@@ -1,0 +1,1468 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>caoz的梦呓</title>
+<link>http://weixin.sogou.com/gzh?openid=oIWsFt8-5hluqvJtbfDX_WSZI-zo&amp;ext=rgljaGmlw7AJJE8qFZFKI8MEnjDIe2xXrQdwhVPDy-7xT9U3BH8LFY6RnXgFY50A</link>
+<description>心得与分享,只此一家,别无分号.</description>
+<language>zh-cn</language>
+<lastBuildDate>Thu, 19 Nov 2015 16:10:01 +0800</lastBuildDate>
+<image>
+<url>http://wx.qlogo.cn/mmhead/Q3auHgzwzM6KKoAryS1XgNSrsD8icEEgrk6XQWA4syu6T2ia6xR4kVAw/0</url>
+<title>caoz的梦呓</title>
+<link>http://weixin.sogou.com/gzh?openid=oIWsFt8-5hluqvJtbfDX_WSZI-zo&amp;ext=rgljaGmlw7AJJE8qFZFKI8MEnjDIe2xXrQdwhVPDy-7xT9U3BH8LFY6RnXgFY50A</link>
+</image>
+<item>
+<title>如何应对并发(2) - 请求合并及异步处理</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400480069&amp;idx=1&amp;sn=4119397d0e3b0444f04d25f76ecdfbe3&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        如何应对并发(2) - 请求合并及异步处理 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-18&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;先说昨天有人反应的问题&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有网友提醒，说数据查询只能用到一个索引，这个表达不精确，只限于单表的查询，而联表查询实际上每个表都可以有其独立的索引被用到。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;非常感谢这个提醒，其实呢，这里必须额外解释一下。&lt;/p&gt;&lt;p&gt;我刚工作的时候呢，特别喜欢写复杂的SQL，觉得自己特酷，写出一个复杂的连表查询逻辑感觉智商优越感爆棚，然后还十分得瑟的给人看这SQL写的思路多牛逼。但是工作十多年后呢，慢慢意识到这样其实不对，特别是面对高并发，高处理请求的时候，联表查询所带来的问题不仅仅是效率的问题，更包括分布式，扩展性的问题，后来我们就制定了一个原则，禁止使用联表查询。所以我系列文章里不会提及任何涉及联表查询的优化问题。可能有的朋友会觉得这样是不是有些极端，是的。但是对于应对高并发的业务场景，这一条其实并不是我个人的规定，很多公司和架构师也都有这样的规定。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么禁止联表查询会带来一系列无法满足查询需求的问题，这个在后面的文章我会提到，在计划中这是第四篇的内容。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外，我可能是跟草根打交道比较多，加上我自己学数据库和编程基本都是野路子，所以特别理解草根创业者，以及野路子程序员面对技术问题的困境和纠结，实话说，因为一直以来跟草根创业者沟通比较多，在实战中遇到的各种优化问题和处理场景，我敢说要比很多大公司的架构师还要多，但也实话说可能并不是那些大公司所遇到的问题那么深。所以我的风格一直是，让菜鸟能够更容易理解和领悟，达到处理较高量级的性能优化水平。但是从几年前架构师大会上，就总有一些逼格很高的技术人员瞧不起我的路数，觉得太low太没技术含量，这个，我也是承认的，不过，敬请自便吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我所提到的几个案例大家可以看到，其实都是非常典型的，使用场景广泛的，一般小公司很可能撞死在里面的案例，昨天还有人留言以前一直被蜘蛛拖死论坛，看了我的文章后才恍然大悟。但是昨天没有完全解读解决方案，请允许我挖个坑，因为饭要一口口吃，我这个系列会逐渐把处理思路一步步贯通。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多人都知道说，如果查询请求过多，其实可以用内存来做缓存，比如memcache，比如redis，很多缓存方案，但是如果更新请求过多，那么缓存就没法用了。而更新请求往往比查询请求更消耗资源，这样系统i/o压力就非常大。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，这里我要额外说一句，并不是查询请求缓存化了系统效率就会提升，和缓存设计有关，同时缓存的使用也会带来新的风险。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1、如果缓存命中率不高，可能反而是负担&lt;/p&gt;&lt;p&gt;很多人觉得加了缓存就能提高效率，未必。如果缓存命中率不高，查询完缓存没有再去查询数据库，那么实际上是额外开销，只有命中率超过50%，才是有价值的缓存。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;2、如果缓存设计不合理，系统开销只会更高&lt;/p&gt;&lt;p&gt;这个我们自己也遇到过，比如有些人喜欢把大量记录扔在缓存里，一条记录可能内容几百k甚至几兆，但是在我们用的时候可能只用到这个记录的某几个字段，这时候通过缓存去读取记录然后再从记录中拆解到这个字段的开销，比直接从数据库中读取这个记录的指定字段，系统开销要大不少。导致你需要更多的缓存服务器，当然，好处是数据库毕竟压力降了（数据库分布式比缓存服务器分布式设计上要复杂一些），但是对于我这样的抠门屌丝程序员，这种开销我是不能忍受的，有钱任性的人可以无视。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;3、雪崩效应的风险，&lt;/p&gt;&lt;p&gt;缓存使用分两种，一种是只通过缓存调用，系统后台定时更新的，如果数据丢失或损坏无需从数据库读取；另一种是先从缓存查询，如果没有符合的记录再找数据库，那么就存在这样的风险，一旦缓存内容被重置或缓存服务器出现问题导致大量内容丢失，那么所有请求全部回源，数据库瞬间过载崩溃，导致系统架构响应崩溃。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以，缓存设计也是一门重要的学问，然而，这部分，很抱歉，不展开。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;部分内容明天可能会说一下。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天说的重点是，关于更新请求，是不是真的不能缓存呢？其实不是。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这就是今天要明确的，请求合并，异步处理。&lt;/p&gt;&lt;p&gt;第一，请求合并。&lt;/p&gt;&lt;p&gt;先说个极端案例，以前有个挺不错的技术，但是早期接触数据库不多，刚开始做服务端的时候，设计了一套框架，然后用框架来实现业务逻辑，但是后来做性能压测就不行，我当时帮他分析，一下子就发现问题了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一个游戏角色，设置了一个操作对象，那么比如说角色生命的增加或减少，是一个方法，经验的增加或减少，是一个方法，金钱的增加和减少，是一个方法，以此类推， 那么游戏角色pk后，很多数值发生了改变，就依次执行这些方法，这不挺正常的逻辑么？但是我们看到的是，对同一个数据表同一条记录的不同字段，执行了多次更新操作，这些请求就是没必要的，完全可以合并成一条update语句。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;再说个常见初级程序员易犯错误，比如要列一个列表，显示符合条件的图书目录和作者信息，那么这人设置了如下方法，book.search(条件)， book.read(id)，先执行book.search，返回所有符合条件的图书id列表，然后循环执行book.read，读取所需要的作者信息，问题就来了，先执行了一个查询，然后在循环中不断执行查询操作。而实际上我们知道，其实一条SQL就解决了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以上两个案例都来源于一种思考习惯，就是我们常见的使用框架，使用面向对象的开发方式，这种方式当然优点多多，但在涉及性能优化的场合，往往其中存在大量的重复逻辑和冗余请求，往往很多可以合并的操作没有合并，很多程序员习惯用这样的方式思考，当然你说协同方便，开发效率高（其实我觉得也未必），但是调优成本就高很多了。 我可能属于上古时期学编程的，面向对象的思路一直不太灵光，所以我写程序的时候偏重于面向过程，缺点就是写出来的东西很low很让某些人不齿，优点就是调优的时候往往看的更清楚。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以上这两个案例都是指在同一个用户操作行为中程序员编码不注意出现的重复请求操作，都是面向对象的编程中容易犯的错误，但是稍微有一些经验的程序员应该都能避免。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面说另一类常见问题，就是不同用户操作行为中出现的类重复请求操作，是否可以合并呢？答案是，其实也可以，这就是今天说的第二点，异步处理。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;常见案例，一个论坛，帖子页，用户每访问一次，就要 update post set views=views+1 where postid = $postid；一个热门论坛一天访问几百万次，上千万次，这个update操作就会执行几百万次，上千万次，别忘了这个post表又是访问请求最高的，会不会锁死？会不会响应不过来？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二个常见案例，还是一个社区，用户每次刷新页面，每次访问，都要记录 update users set lastact =$now where userid=$uid;  为了记录这个用户是否一致活跃及最后活跃的时间，（展示在社区中可以提高社区的活跃度，提高用户间交流的成功率），那么这个网站登录用户每天访问了多少pv，这个更新就执行了多少次。而users表显然也是一个高频率的查询需求的表。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么这两个案例，有优化空间么？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实有，而且很简单，这两个数据，其实你说实时性需要是不是那么高，是不是每个请求都必须立即处理，实际上并不一定，但是我还是希望处理更快一些，因为毕竟希望别人看到这个帖子的访问数，以及别人看到这个用户的最后时间，是非常接近的，而不是很久之后才处理的。那么怎么处理呢？就是当发生这样的行为的时候，把这个行为写到缓存里，在缓存里维持一个队列，最好用队列方式，（如果用memcache，数组的下标用increment方法，否则高访问量可能会导致数据覆盖，不展开解释了），然后后台启用一个cron任务，每分钟执行，把队列里的数据拿出来，&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;案例1，对同一个帖子的views做汇总。（热门帖子往往点击特别频繁）&lt;/p&gt;&lt;p&gt;案例2，对同一个用户最后活跃时间的更新请求，只保留最后一条。&lt;/p&gt;&lt;p&gt;实测数据，越是火爆的社区，合并率越高，更新请求可以合并掉70%左右。异步更新的延迟时间不超过1分钟。如果延时加长，比如2分钟一执行，或5分钟一执行，合并率效率会更高，但是可能导致用户体验下降。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以上就是今天要说的，请求合并和异步更新，这里注意的是，异步更新的内容，属于“丢了其实关系也不大”的数据，如果是非常核心的数据，异步更新要注意数据丢失的危险。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么肯定有人会问，我用了一个开源系统，我怎么知道哪些可以合并，哪些不能？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面继续讲方法论，就是你对一个毫不熟悉的系统，如何快速分析其冗余请求的构成和合并的可能性，以及合并可能带来的开销降低呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;之前有个朋友的公司，几年前做社交游戏的时候，腾讯合作，腾讯一推用户数咔嚓就上去了，然后后台就有点撑不住，请我过去看看，那么，对他们的游戏的产品，怎么开发的，代码怎么写的，我肯定是毫不知情，就是突然叫过去来分析，这怎么分析呢？&lt;/p&gt;&lt;p&gt;慢查询日志肯定是要看的。&lt;/p&gt;&lt;p&gt;昨天讲的  去数据库里，先show processlist;看到有疑问的SQL，去explain，然后set profiling=1；大家回忆一下，看看索引是不是对的，看看哪些SQL本身是有问题的。这些不赘述了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面，重点是，一般大家都会把数据查询封装成一个类对吧，让他们从这个类里加一段代码，干嘛呢，输出都执行了哪些SQL。（每秒请求非常高，所以增加日志的i/o压力也很大，为了避免线上业务受影响，采用抽样输出，比如先算个随机数，符合什么数的才输出，然后根据抽样比例反推请求规模，输出结果存到 /dev/shm 目录下，为什么是这个目录，自己想一下。）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;打开日志我看什么呢？&lt;/p&gt;&lt;p&gt;第一，看查询和更新的比例。&lt;/p&gt;&lt;p&gt;第二，看最多查询的数据表有哪些，最多更新的数据表有哪些。&lt;/p&gt;&lt;p&gt;第三，看最多查询的数据表最多查询的SQL是什么样子的，最多更新的数据表最多执行更新的SQL是怎样的，算出各自每秒的请求频率。&lt;/p&gt;&lt;p&gt;第四，关键分析，最多查询的SQL，基于同一主键查询的比例多不多（潜台词，可以缓存化）。最多更新的SQL，基于同一主键的更新的比例高不高（潜台词，可以合并请求，异步处理，当然必须根据具体业务诉求再核对一遍）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以上的操作并不需要额外编程或复杂的处理，首先用眼睛看日志找规律，其次基于规律用grep 来统计。 然后把内容整理后，询问相关的程序员，每条问题SQL的业务逻辑是什么，然后毕竟还是要让他们一线的程序员来评估业务逻辑上这些操作是否可以合并，缓存，或者异步处理。 但我想说的是，通过这种分析方式，很多非常重复的查询，非常重复的更新请求可以快速定位，即便是一个陌生系统，也可以快速找到症结所在，掌握这一种分析方法，你对系统性能优化的理解和处理能力，就会上升一个台阶。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实，其实根据两个多月运营公众号的观察和分析，我发现，写技术文章挺受累不讨好的，转发也不多，赞赏也不多，也不太容易拉粉； 公众号运营有一个规律，和知乎上皮去获取赞的规律一样，写实不如写虚，写内容不如写立场。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;真的，但是我还是想把这个系列写下去。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这么多文章，我总结两条分享给大家，一是思考方式，二是分析方法，不论是做产品，做运营，创业，做投资，还是做技术。正确的思考方式，正确的分析方法，是最重要的。&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p class=&quot;tips_global reward_tips&quot;&gt;虽然过时，依然有用。&lt;/p&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-814d0d6e7f535a752098bcc2574d87cd:1447849679</guid>
+<pubDate>Wed, 18 Nov 2015 20:27:59 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3nSmh5wIfSfibcWFbURw2omaqMNZDVCwbas4xVzkM8DhNlXXM9FmmZuL8nEuEUo6WazU8y513utYQ/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>如何应对并发(1) - 关于数据索引</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400470606&amp;idx=1&amp;sn=eff5350f80190ad6e32659f434aac970&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        如何应对并发(1) - 关于数据索引 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-17&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;&lt;span style=&quot;line-height: 1.6; font-size: 16px;&quot;&gt;前两天收到一个消息是这样说的，一个学生去面试，题目赫然就是从浏览器输入url到网页打开，都发生了什么。这个学生特别开心，因为订阅了我的公众号，所以对这类问题早有准备。希望他能顺利拿到心仪的offer。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;参见旧文 &lt;a style=&quot;line-height: 1.6; font-size: 16px;&quot; href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209679438&amp;amp;idx=1&amp;amp;sn=d68c1512ad23f6e164f69bd351a18c62&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209679438&amp;amp;idx=1&amp;amp;sn=d68c1512ad23f6e164f69bd351a18c62&amp;amp;scene=21#wechat_redirect&quot;&gt;一则经典技术面试题目的解读&lt;/a&gt;&lt;span style=&quot;line-height: 1.6; font-size: 16px;&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;书归正传，应对并发，其实从整体架构来说分很多部分，比如常见的，存储层的i/o优化，网络层负载均衡，通讯层的连接池等等，不过我这里不讲这些。不讲这些的原因第一呢，是这些我基本都不太会；第二呢，是在实践过程中发现，特别是创业公司，中小企业，一般最容易出问题，也是最难处理的，往往是数据库方面的问题。  &lt;br&gt;&lt;/p&gt;&lt;p&gt;非技术人员往往会认为，负载高了，请求多了，加服务器加硬件不就完了？ 如果是只是应用程序处理，常见的负载均衡方案很成熟，加加硬件的确可以快速，有效的分担负载，提高支撑能力；但是且慢，通常到了数据库这里，如果你前期设计不合理，或者对这类问题考虑不全，那么，加硬件，很遗憾，是没用的。&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们常说运维中要关注所谓的单点隐患，什么是单点隐患呢？就是这个点一旦崩溃，无法实现自动的灾难容错响应，从而导致全盘崩溃。一般比如说web服务器，负载均衡轮询，一台出问题了，系统会自动将负载转移到其他服务器，那么数据库可以不可以呢？其实不是不可以，但是就比较需要做好设计，否则很可能直接就死在这个环节上。而发展趋势不错的创业公司死在数据库的并发能力上的案例，可以说，比比皆是。&lt;/p&gt;&lt;p&gt;&lt;br&gt;再插一些题外话，如果你还是学生，你有意未来往互联网技术领域发展，那么数据结构这么课特别的重要，特别的关键。我上大学的时候糊里糊涂，选中了这门课却天天翘课，工作后特别后悔。就算你不想从事技术，而只是想从事一些产品方面的工作，我个人建议有可能也认真学习一下这门课，目前不少互联网公司都希望产品经理有一点技术背景，这样和技术沟通的时候会更顺畅一些。对研发工作的跟进也会能理解更多一些。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;今天的第一课，我们先要对数据索引和查询效率有个基本认识，连基本优化都做不好去讲什么架构是没意义的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;第一个问题，为什么一条查询语句，使用了数据索引会提高效率？&lt;/p&gt;&lt;p&gt;以及，通过一条SQL语句，能否估算出其执行开销和最佳索引选择？&lt;br&gt;&lt;/p&gt;&lt;p&gt;熟悉数据结构同学大概知道，一般数据库的索引大概是btree，b+tree，类似这样的结构，那么现在非关系型数据库特别流行，也就是所谓的key-value数据库，最求极端效率，通常是 hash结构的数据索引。但其实这些，我认为对于我这样笨的人来说，通常，只需要理解最基本的概念就行，最基本的是什么呢？就是数据索引提供了一种有序，在有序的情况下，进行检索，二分法效率最高，n条记录中定位查询开销是 log2(N)，（hash索引效率更高，但不提供关系型查询，应用场景比较受局限）。 那么所谓的btree结构也好，或其他的类似结构也好，把握一个原则，接近二分法的查询效率，因为如果做一个完全有序的队列，那么插入，删除，修改需要做的操作开销太大了，大家可以思考一下，所以才会有人设计树形结构，兼顾查询和更新操作。理解这一点对理解整个数据查询效率和索引结构，帮助极大。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;简单复习就是，查询效率的关键是有序，二分，反过来理解就是，无需遍历所有数据，即可实现快速的定位。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这里就引出了一个特别经典的题目，ip地址反查。&lt;/p&gt;&lt;p&gt;应用场景非常常见，你上一个什么旅游订票的网站，社区，或者上百度，该网站都希望立即知道你的地理位置，从而基于你的位置定向投放内容，比如当地酒店，或者当地的本地广告。网站一般是获取用户的ip地址，然后在ip-&amp;gt;地区的对应表里去查询比对，通常，ip - 地区的对应表，有大约十万到数十万条记录（看地区粒度），格式是  ipstart, ipend, area 这样的数据结构。如果用纯粹的SQL查询是&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;select * from iparea where $ip between ipstart and ipend;&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;在早期mysql及大部分数据库是不支持between and 中使用索引的，据说最新版本已经提供了支持，但是最近几年没有从事技术，没有测试，不知道效率如何，那么在早期，如果数据查询，这样一条SQL,无法使用索引，就要遍历所有结果，这个开销是不能忍受的，（虽然不用1秒就可以执行出结果，但是开销依然比较大，一秒钟可以处理的查询最多几十次，而我们的要求是，一秒钟几千次！）&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;那么这个问题的特点是什么呢，ip地址区间表并不是经常变化的，比较固定，那么在这种情况下，其实不用数据库都可以，一个完全排好序的队列放在内存里，程序用二分法来查询，每秒种处理几千个非常轻松（这程序不用教了吧），当然，其实还有更极端效率的处理途径，这里不展开，有兴趣的同学自己思考。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;此处插播一条广告，目前国内最好最权威的ip地址区间表来自于高春辉，利益相关，我超过15年的好基友，互联网传奇人物，需要定期更新ip地址区间表的建议找他购买，联系方式，去微博搜索 高春辉 。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;再插播一个题外话，我在微博上说过，百度最应该购买，这是不耍流氓的情况下提升收入最快的方法，可能很多人不理解，其实百度有很多广告投放是按地区投放的，04年底 我刚进百度的时候闲着没事就给升级了一个ip地区对应表，把大量未知地区的ip定位到了已知地区，很多分地区投放的广告展现率一下子就提高了，收入自然随之增长，这玩意虽然看上去不是什么高大上的算法，但是勤更新对收入影响杠杠的。（小贴士，国际ip管理机构会不定期释放ip资源出来给新的网络设施和上网服务商，所以在最近这些年，ip地址区间表还是不断的扩充中）&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;第二个问题，从一个常见SQL如何确定索引的构成&lt;/p&gt;&lt;p&gt;以下所有案例均以mysql   为例，原因是，这个我熟悉。&lt;/p&gt;&lt;p&gt;非mysql可能部分语法不同，但逻辑和思路相同。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;发现有一个简单问题很多人会答错，一个SQL可以用到几个索引？很多人会说是多个，其实是一个，目前一些第三方的数据引擎似乎开始支持一条SQL使用多索引了，比如我前几天看淘宝公开的那个开源数据结构的文档，从官方博客的描述中似乎有这样的提法，但是我最近确实很懒惰也脱离技术，所以没有去测试和仔细研究，这个留给有兴趣的同学吧，我还是回头说通常，我们用mysql或其他常见数据库的，一个查询只能用到一个索引；但是这里要强调的是，一个索引可以用到多个字段，也就是所谓的复合索引。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;那么，按照刚才提到的，基于有序这个概念，如何理解索引的使用和效率呢？特简单，你就把索引当作是一个有序数列放在脑子里，然后思考这个SQL，这个条件子句和排序子句，能否在这个索引的连续范围内精确命中结果，也就是所谓索引命中率高，这个查询就效率高，如果无法在索引这个有序数列连续范围内精确命中，查询效率就不高。&lt;/p&gt;&lt;p&gt;那有人说了，索引并不是真的有序数列啊，我说的是一种模拟的思考方式，这样思考效率最高，当然，必须案例说话。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;比如一个社区，我希望用户进来，就能看到本地的用户，当然，是最新在线的，否则都是死用户就无法交流了。&lt;/p&gt;&lt;p&gt;SQL  select * from user where area=&#39;$area&#39; order by lastlogin desc limit 30;&lt;/p&gt;&lt;p&gt;(这个 limit  特别重要)&lt;/p&gt;&lt;p&gt;稍微懂一点索引的同学都应该知道，正确的索引是area+lastlogin 复合索引，那么，我们把这个思考方式推演一下。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;如果只把area当作索引会怎样，数据库会把符合这个area的所有结果拿出来，然后按照lastlogin排好序给你，这样就要遍历所有符合这个area的用户记录；&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;如果只把lastlogin作为索引会如何，我们想象，lastlogin是一个有序的数列，数据库会从最后一条开始往前挨条遍历，每条都去比对area是不是符合查询条件，直到数出30条，遍历结束，请注意，不是全部遍历，在这里，如果area 是个热门城市，比如上海，北京，可能遍历200次左右就出结果了，效率很快，但如果是个冷门城市，可能要遍历几千条几万条结果，甚至全部数据表遍历都凑不出符合条件的30条。这样效率就要命了。 所以用lastlogin为索引，效率存在风险。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;那么两个我都建立索引呢？这个mysql只会选择一个索引，我记得不同数据库版本的选择策略都不同（实战中遇到过测试服务器用的索引很正确，线上服务器使用了错误索引，因为数据库版本不同），所以我给不出肯定的答案，但是有一点，两个索引没有意义，都不是最优解。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;那么如果把lastlogin+area建立索引呢？你们设想一下，两个字段拼在一起，作为有序数列，然后数据库去查询的时候，lastlogin+area,这时候area是没用的后缀，在排序中根本体现不出他存在的意义，和单独lastlogin索引是完全一样的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;而area+lastlogin呢，把两个字段拼接然后排好序后，看这条SQL在这个数列中查询的体现，所命中的完全是连续的30条，也就是数据库只遍历30条索引记录即完成搜索，效率最好。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这段有点啰嗦，如果不理解，建议多读几遍，理解这个思路，对理解索引的效率帮助特别大，我刚工作的时候写SQL也是瞎写，对索引一知半解全靠蒙，有了这个概念后豁然开朗，从此对索引效率的认识精进了一大截，我看网上各种索引优化的教程，各种规律总结，其实你把这个认识达到了，那些规律基本上不用记，都浅显的如1+1一样。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;理解如上思路，就能一并理解如下策略&lt;/p&gt;&lt;p&gt;A+B索引可以替代A索引，而不能替代B索引。&lt;/p&gt;&lt;p&gt;where key  like &#39;keyword%&#39; 可以用到key 索引&lt;/p&gt;&lt;p&gt;where key like &#39;%keyword%&#39; 不能用到key索引&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;我很笨，所以我的理解方式都是基于中学生知识基础的思路，如果您有更好的理解思路，也可以忽略本文。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;第三个问题，如何评估SQL的执行开销&lt;/p&gt;&lt;p&gt;刚才提到一个重要的概念，就是索引中遍历的记录越少，效率越高，遍历的记录越多，效率越差。 在慢查询日志或者explain分析中，一个重要的指标是 affected rows，（好像也有别的叫法，不查证了，大家应该能知道我说的是什么），这个就是索引遍历的记录说，我以前硬翻译叫做影响结果集，我后来看其他人写的数据库文档叫索引扫描行数，概念是一样的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;那么，要强调一点，一条查询语句，其执行开销，在大多数情况下，与影响结果集，也就是索引扫描行数，呈线性相关，举两个常见经典数据优化的问题案例。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;经典案例1，大翻页问题&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;论坛社区常见，翻页越靠后效率越低，很多论坛本身访客到没事，访客不太会翻几百页几千页，但是被搜索引擎蜘蛛抓取的时候，因为连续抓取大翻页，导致数据库崩溃，这案例太多了，很多站长为此郁闷莫名，不知所措。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;案例SQL如下&lt;/p&gt;&lt;p&gt;按最新更新的板块第一页帖子&lt;/p&gt;&lt;p&gt;select * from post where boardid=$id order by lastupd desc limit 0,30;&lt;/p&gt;&lt;p&gt;按最新更新的板块第100页帖子&lt;/p&gt;&lt;p&gt;select * from post where boardid=$id order by lastupd desc limit 3000,30;  &lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这两个SQL 看上去只有limit有区别，索引都是boardid+lastupd (不要搞错顺序，理解一下)&lt;/p&gt;&lt;p&gt;但第一条SQL索引只扫描30行；第二条SQL索引扫描了3030行，其效率是第一条SQL的1/100.&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;搜索引擎的蜘蛛抓取 大翻页就是 这样把论坛搞死的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;经典案例2，积分排行问题&lt;/p&gt;&lt;p&gt;比如很多小游戏提交成绩，告诉你排名全球多少名，有印象吧。&lt;/p&gt;&lt;p&gt;这个问题我依稀记得云风大神吐槽过，好像曾经陌陌有一款游戏在这里有非常严重的性能问题，被他狠狠BS了一把。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;案例SQL如下&lt;/p&gt;&lt;p&gt;select count(*) from gamescore where gameid=$gameid and score&amp;gt;&#39;$score&#39; ;&lt;/p&gt;&lt;p&gt;索引怎么建？&lt;/p&gt;&lt;p&gt;gameid+score复合索引，顺序不能错，为什么，按照上面说的思路，自己思考一下。&lt;/p&gt;&lt;p&gt;那么这个效率怎么评估？&lt;/p&gt;&lt;p&gt;看结果，如果你游戏成绩特别好，前几名，前几十名，你的结果就是索引扫描行数，（如果索引都设计错了那就不要提了）。&lt;/p&gt;&lt;p&gt;如果你的游戏成绩很烂，几万名，几十万名，那么索引扫描了几万条，几十万条，就效率非常低了，如果有一批人同时在提交成绩，又都是这种几万名，几十万名的用户，数据库非崩溃不可，你再多服务器也白搭。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;所以，常见的解决方法是，积分排行只针对最靠前的用户提供，后面只给估算或区间了。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;当然，这里有个终极方案，用redis的有序数组结构，一劳永逸的解决这个问题，redis四种数据结构，各有所长，有兴趣的可以深入研究一下，今天这里不展开。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;第四个常见问题，MYSQL 分析和优化的方法&lt;/p&gt;&lt;p&gt;刚才我说了索引扫描行数，或者说影响结果集，对查询效率的影响极大，那么有人说了，怎么证明呢？&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;给大家一个日常SQL分析和自我测试的方法。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;首先，你一条SQL如果执行很慢，你用explain 解析一下，看看是否影响结果集很大，这是其一。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;其二，对这条很慢的SQL做一个状态拆解，在mysql中是这样操作的。&lt;/p&gt;&lt;p&gt;set profiling=1;&lt;/p&gt;&lt;p&gt;执行问题SQL;&lt;/p&gt;&lt;p&gt;show profile for query 1;&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;通常，如果这个问题SQL确实是索引出了问题，也就是影响结果集，或者说索引扫描行数较多，那么他的执行状态最多的消耗就在 sending data这个状态上，这个状态不要被名字骗了，其实负载是在i/o，硬盘扫描上。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;你测试的时候就可以看，影响结果集的数字，和sending data上状态的开销，是不是线性相关，对一个复杂的数据表结构，导入上百万条记录，然后用不同索引方式和不同SQL查询，利用 explain 和set profiling 这些操作反复分析SQL的影响结果集和开销构成。结合我今天说的思考方式，就可以更好理解了。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;而且对于日常疑难的分析，这一招也是特别关键特别重要的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;今天啰嗦的，都是数据优化分析的基本功，其实对某些高手来说，简直都弱爆了，但是我发现大部分一线程序员，特别是从业时间不长的年轻人，并不能完全了解和认识这些。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;我不是计算机科班出身，数据结构这门课也没好好上过，很多东西都是工作中慢慢琢磨出来的，如果有不严谨不准确的，万望指出，但我只自嗨的说一点，我这些招数，对大部分创业公司，中小型企业，应对百万级，千万级请求的问题而言，还是颇为管用，当然，今天只是一个开始，这一系列还将继续。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt; &lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p class=&quot;tips_global reward_tips&quot;&gt;继续强调思考方法&lt;/p&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-062e630266e033053c42a2ee67ae5eb6:1447774477</guid>
+<pubDate>Tue, 17 Nov 2015 23:34:37 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer1FwLEr358Df9rXdxXNnMpuJa1dwr4ia921xT1RonTDZ00I1gz1MQuNfSyeibnBzDxmJ5Glp47Q9gcQ/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>谈谈产品和运营 - 什么是需求(下)</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400451448&amp;idx=1&amp;sn=343949112f34c20b662f2d28f9372872&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        谈谈产品和运营 - 什么是需求（下） 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-16&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                        &lt;div class=&quot;rich_media_thumb_wrp&quot; id=&quot;media&quot;&gt;
+                        
+                                                &lt;script&gt;
+                            (function(){
+                                &lt;/script&gt;&lt;img class=&quot;rich_media_thumb&quot; id=&quot;js_cover&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer0lHTphC5icJwrD4FPrmicvbDDHmmOvmOhHGQmOiaRZqibuCmqSW965NgsEFTEBicOX5Y2ibeKuiabzic6cnQ/0?wx_fmt=jpeg&quot;&gt;&lt;script&gt;
+                                document.write(&#39;&lt;img class=&quot;rich_media_thumb&quot; id=&quot;js_cover&quot; onerror=&quot;this.parentNode.removeChild(this)&quot; data-backsrc=&#39;+ cover +&#39;  src=&quot;&#39; + cover + &#39;&quot; /&gt;&#39;);
+                            })();
+                        &lt;/script&gt;
+                                            &lt;/div&gt;
+                                        
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;题图好久没见了，第一次见这张图还是十几年前，挺典型的，回忆一下。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400402277&amp;amp;idx=1&amp;amp;sn=2ebbd48290c34815ab85f22fa5de0afa&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400402277&amp;amp;idx=1&amp;amp;sn=2ebbd48290c34815ab85f22fa5de0afa&amp;amp;scene=21#wechat_redirect&quot;&gt;谈谈产品及运营 - 如何避免一厢情愿&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400416746&amp;amp;idx=1&amp;amp;sn=19ecb45a93869cdcc6ecd5555c3e217c&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400416746&amp;amp;idx=1&amp;amp;sn=19ecb45a93869cdcc6ecd5555c3e217c&amp;amp;scene=21#wechat_redirect&quot;&gt;谈谈产品和运营 - 什么是需求（上）&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400429452&amp;amp;idx=1&amp;amp;sn=31b9260f1d3f26b49d4b8041ba265935&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400429452&amp;amp;idx=1&amp;amp;sn=31b9260f1d3f26b49d4b8041ba265935&amp;amp;scene=21#wechat_redirect&quot;&gt;谈谈产品和运营 - 什么是需求（中）&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209220279&amp;amp;idx=1&amp;amp;sn=d2b835b7680b07f9bf29b7fdaf0fd6e3&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209220279&amp;amp;idx=1&amp;amp;sn=d2b835b7680b07f9bf29b7fdaf0fd6e3&amp;amp;scene=21#wechat_redirect&quot;&gt;谈谈创业这点事(4)&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;之前有朋友问如何使用百度指数和百度知道做需求分析，那么感谢一些朋友的提醒，是在如上，谈谈创业这点事(4) 里面有完整的案例和方法，仅供参考。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上文提到，关于跟随用户还是引领用户的问题，以及如何把握用户需求本质的话题。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天我们继续这个话题，探讨一下在产品和运营过程中，如何利用数据和日志，去了解用户的真实需求。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第一条要说的，看日志，有人说，用什么看？用自己的眼睛看。&lt;/p&gt;&lt;p&gt;日志很多怎么处理？最简单的处理，找一个用户ip出来，grep一下，分分钟就能获得这个用户的完整访问和操作轨迹。&lt;/p&gt;&lt;p&gt;当然，前提是你真的记录了足够详细的日志。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在百度的时候，孙云丰曾经主持过一个分享会，讲产品的一个分享会，具体讲的东西不记得了，但是提到了一个案例记忆犹新，说当时百度的首席架构师，晚上没事干什么呢？上服务器看访问日志，看一个用户的搜索行为，为什么要看用户的搜索行为呢？通过搜索行为的跟踪来分析用户的搜索预期，和搜索引擎给出的结果，是否一致，如果存在差异，再通过其他方式来分析到底在哪里出现了差异，当时讲的例子很有意思，说用户输入了一个关键词，“苹果” 。 这时候，你无法知道用户真实目的是什么，因为苹果是个多指向词，是一种水果？是一个数码品牌？还是当时热播的一部电影？ 用户没有产生有效的点击，而是搜索了第二个词， “苹果 范冰冰” ，好了，已经知道用户要找的是当时热播的电影苹果，但是用户目的是什么呢，看剧情介绍，看幕后花絮？还是看电影视频呢？ 依然不知道，但已经知道用户在搜索苹果的时候，没有找到他想要的结果。 然后就看到用户搜索了第三个词，“苹果 范冰冰 露点视频” ，现在终于知道用户的目的了，然而当然，这种搜索目标是肯定没有结果的，当时正好因为有关部门的原因，苹果的所有视频都在网上被取缔了，然后这个用户就不断变换关键词，从百度网页搜索到视频搜索，然后再度变换多个关键词，最后，搜了一个关键词，雅虎。离开了。 我们设身处地想一下，用户为什么搜索雅虎，很容易想到用户当时的心理，对百度的搜索结果深深的失望，然后跑去雅虎继续搜索了。但是好玩的事，过了20分钟，这个用户又回来了，还在继续搜索这类关键词，那么，这代表什么呢？ 雅虎他也没搜到对不对。 最后用户终于放弃，但是举这个例子，孙云丰说了一句话，我分享给各位，叫做理解用户的挣扎。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个例子特别典型是因为他不可能得到他想要的结果，但是从这里我们看到的是，作为产品设计人员，作为运营人员，通过对用户日志行为的跟踪，是可以设身处地的理解用户的心情，理解用户的处境，从而理解自己产品和运营中，是不是有一些不合适，不妥当的地方。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多公司都会说，我们有数据分析部门，我们天天出数据报告，我们工程师每天处理很多数据，但是回过头来说，这种看上去一点技术含量都没有的体力活，读日志，去揣度用户行为特征，其实价值异常巨大。而大部分公司，并没有人去做这样的事情，他们觉得自己有程序员，有数据库，这么low的事情干嘛要去做。但真正的用户操作习惯，用户使用中细节的诉求，往往隐藏在这里。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么有人就会问，我那么多日志，我怎么知道看什么呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以前我讲过数据分析三板斧，对比，细分，溯源。&lt;/p&gt;&lt;p&gt;好吧，这个公众号好像还真没发过，以前在百度空间还是知乎上发过来着。有机会单独写一篇，今天只说一下要点，简单说就是通过数据对比和数据细分，对所有数据进行筛选，找到你认为需要关注的用户，然后把这些用户的行为特征拿出来，看一下。理解用户的诉求和挣扎。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;举例说，你发一款游戏出去，然后看到统计数据里，玩家流失率有点高（通过同行对比得到的结论），然后去细分这些流失玩家，发现在15级出现一个较大流失，这时候就是溯源，也就是把这些15级流失的玩家，找出几十个完整的玩家的行为记录，拿来看，一条条的看，理解玩家在干嘛，比如说，过15级有个boss任务，玩家去打，没打过，充钱去打，还没打过，又试了三次，流失了。你回头研究一下，发现玩家在这里挺绝望的，卡了两三天难以寸进，说明这个boss难度太高了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天简单总结一下这里的思路，&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;基于一些常见的统计工具，或者自己开发的统计工具，去统计用户的行为特征，行为链路，然后和自己的预期设想对比，和历史数据对比，和同行数据对比，看看哪里和自己的预期不一致，寻找问题点，找到问题点后，通过这个问题点的边界条件，去筛选目标用户，然后人工去分析这些用户的行为记录，人工的目的是强代入感，真正把自己代入到用户的体验中，理解用户的不满，理解用户的挣扎，理解用户在使用中的困惑和障碍，然后优化产品，从而满足用户需求。 这是今天要说的一个重要方法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多人做到了天天看统计数据，看数据分析报告，但是没有认真去溯源，没有代入感，得到的结论往往是片面的，不求甚解的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实，总的来说，虽然写了上中下三篇，但是感觉上依然不够完整，不过能力有限，以后想到了其他的，再开番外篇吧。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;后面想开几篇技术文章，不知道受众目标多不多，做个调查看看。谢谢支持。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span class=&quot;vote_area&quot;&gt;&lt;iframe scrolling=&quot;no&quot; frameborder=&quot;0&quot; class=&quot;vote_iframe js_editor_vote_card&quot; data-display-style=&quot;height: 533px;&quot; data-display-src=&quot;/cgi-bin/readtemplate?t=vote/vote-new_tmpl&amp;amp;__biz=MzI0MjA1Mjg2Ng==&amp;amp;supervoteid=1879656&amp;amp;token=1911134236#none&amp;amp;lang=zh_CN&quot; data-src=&quot;/mp/newappmsgvote?action=show&amp;amp;__biz=MzI0MjA1Mjg2Ng==&amp;amp;supervoteid=1879656#wechat_redirect&quot; data-supervoteid=&quot;1879656&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;&lt;span class=&quot;vote_box skin_help po_left&quot;&gt;&lt;/span&gt;&lt;span class=&quot;vote_box skin_help po_right&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p class=&quot;tips_global reward_tips&quot;&gt;思路和方法比经验更重要&lt;/p&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-c1294ef594f86186d0a94aaae429ef07:1447675335</guid>
+<pubDate>Mon, 16 Nov 2015 20:02:15 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer0lHTphC5icJwrD4FPrmicvbDDHmmOvmOhHGQmOiaRZqibuCmqSW965NgsEFTEBicOX5Y2ibeKuiabzic6cnQ/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>再谈选择性阅读 - 巴黎惨案的话题</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400451448&amp;idx=3&amp;sn=865f8115d21bcd2a3c77f20ef8b8ff6d&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        再谈选择性阅读 - 巴黎惨案的话题 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-16&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p style=&quot;white-space: normal;&quot;&gt;巴黎惨案后，有人也问我为啥不写一篇这样的评论文章，很容易传播，访问量极高，我觉得不合适，太多营销大号用消费灾难的方式来吸引粉丝，我所不齿，此其一。 我不是政治评论家，很多所谓的内幕和彼此关系并不是真的了解，当然我也看了很多这样的文章，但是太多主观臆断在里面，我不能凭借这个去做评论，此其二。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;但今天，从消费灾难的这些营销大号们疯狂的传播文章来看，我想把这篇旧文找出来。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400020243&amp;amp;idx=1&amp;amp;sn=a0b22bd51e97b951ad94f423280ee56e&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400020243&amp;amp;idx=1&amp;amp;sn=a0b22bd51e97b951ad94f423280ee56e&amp;amp;scene=21#wechat_redirect&quot;&gt;偏见的由来-选择性阅读&lt;/a&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;重申一下，互联网时代，大家以为信息流通更顺畅，误解更容易消除，偏见更容易被纠正，其实是错的，实际上互联网加深了误解和偏见，从香港，台湾，到中东乱局，我们都能看到这样的迹象，几年前中东革命本来被冠以自由民主的名义，但结出来的果实却让所有人失望了，互联网没有消除仇恨，而是加深。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;巴黎惨案是一个事实事件，但是仅仅看最近互联网的解读就能看出来，这个事件已经被不同的人，基于不同的目的去解读，而不同的人群，选择性阅读符合自己理念的解读，同一个事实，不同的解读，即便事实俱在，误解和偏见依然无处不在。比如说，美国国务卿说，I S I S是巴沙尔政府独裁造成的恶果；而另一种常见解读说，I SIS是美国自己扶植起来的势力；今天看到的一篇访问量极高的奇葩文章说，ISIS是犹太人扶植起来打击欧洲经济来炒作美元的。你看，每个人都可以选择性相信自己认为正确的解读，从而将罪恶加到不同的人头上，在这种情况下，态度胜于真相，立场胜于真相，所谓齐心协力，同舟共济，从何说起呢？&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;我们这一代人其实非常幸运，不管说目前政府和体制还有多少缺点和不足，我们好歹生活在一个和平和发展的年代，在人类的历史上，不管是中国，还是西方，和平与发展从来不是主流，战争与灾难才是主流，也许有一天回头看，今天我们所计较的，可能都不值一提，今天我们所习以为常的，可能都弥足珍贵，当然，我不希望这一天真的会到来。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;这篇只有一个目的，希望我的读者，重读一下旧文，然后每个人，包括我自己在内，时刻自省。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-642e453ce5d42f4ff10fddd4cd3eb36a:1447675334</guid>
+<pubDate>Mon, 16 Nov 2015 20:02:14 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer0lHTphC5icJwrD4FPrmicvbDicT41SGT2RIVm3UarDEmTRej5Kic7r3DtCKqrMvoDpBAdiaCDNfvXL7YA/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>关于知乎友善度的话题</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400451448&amp;idx=2&amp;sn=9698484ca071ca3123dae5a8c9fc0a27&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        关于知乎友善度的话题 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-16&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;今天收到知乎一封私信，某个回答因为不够友善被关闭。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我能理解运营者的想法，一个和谐的社区，需要彼此尊重和互相理解，但是我绝对不认同这个友善度的做法，原因很简单，我认为最不友善的行为就是，明知道一个人犯愚蠢的错误，还在赞赏他和恭维他，而现实中，最多的就是这种行为！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;认识一个特别不错的应届年轻人，聪明指数很高，但是不谙世事，非常单纯，网上看了一些所谓教人开店的文章和平台，看的热血沸腾就去交钱开店，一堆认识的人说哇你好厉害，开店了不起，恭喜当老板云云，只有我很不客气的告诉他，这个行为蠢透了，淘宝的红利期过去好几年了，纯新手杀进去除了交学费什么都收获不了，他苦撑几个月果然还是关闭了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;赞赏和恭维是最容易的，就算说错了人家也不会怪你，但是直言不讳的批评却很难被人接受，不过哪个对年轻人帮助更大，相信稍微有点智商的人都能明白。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;好吧，今天教大家一个黑招，一般人我都不讲的，连周鸿祎都不会的大招。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果你恨一个人，你讨厌一个人，你就在他愚蠢和犯错误的时候，不断恭维他，赞赏他，让他麻痹，让他自以为是，然后看着他一步步滑落深渊。 如果周鸿祎懂这个，马化腾和李彦宏就不会这么快警醒过来反击了。这就是360最近两年郁闷的真相。&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-f372e9345c3c06cac92cabbb97f26135:1447675334</guid>
+<pubDate>Mon, 16 Nov 2015 20:02:14 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer0lHTphC5icJwrD4FPrmicvbD5iaQ4H4V4J1vEH8WhUxQUmrGwLBnnEMqI9okUFdtnQJhiczlLu1KCicDw/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>从校园到职场 - 说说求职这点事</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400437571&amp;idx=1&amp;sn=7ec9feb5d67eec059f30e8f128f8590a&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        从校园到职场 - 说说求职这点事 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-15&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                        &lt;div class=&quot;rich_media_thumb_wrp&quot; id=&quot;media&quot;&gt;
+                        
+                                                &lt;script&gt;
+                            (function(){
+                                &lt;/script&gt;&lt;img class=&quot;rich_media_thumb&quot; id=&quot;js_cover&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3rIcNZzGeia2QNskibh64vgtyzic0Alh1sXITUk5tibs0Dicias2Rbianepul8ukkAKrOYib02AiayWQjbC5Q/0?wx_fmt=jpeg&quot;&gt;&lt;script&gt;
+                                document.write(&#39;&lt;img class=&quot;rich_media_thumb&quot; id=&quot;js_cover&quot; onerror=&quot;this.parentNode.removeChild(this)&quot; data-backsrc=&#39;+ cover +&#39;  src=&quot;&#39; + cover + &#39;&quot; /&gt;&#39;);
+                            })();
+                        &lt;/script&gt;
+                                            &lt;/div&gt;
+                                        
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;我总是羡慕现在的年轻人，有这么多好公司可以选，拿着这么多 offer可以挑，想想当年我自己，想进入新兴的互联网行业，而找不到门路的窘境，真是不可同日而语。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不过并不是每个孩子都是面霸，大部分应届生面对求职这个门槛还是非常艰辛的，清华著名的计算机博士梁斌，曾搞了一个百司不录的项目，就是从自嘲开始，因为他早年也曾被无数企业拒绝过。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最近收到这样的应届生的私信，是这样说的，自己写简历去求职，但是社会经验有限，只有几个不入流的学校项目，不知道怎么包装简历，我没直接回复，在这里我就说一句，可能很多人都会中枪的话，你早干嘛去了！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;求职的准备不是到你快毕业的时候才开始的，你要尽早想明白自己以后想做什么，并且尽早做出足够的准备和铺垫。有些年轻人一直以我还是学生，我还没毕业为借口逃避了解社会，了解职场，以一直在读书为借口为自己的碌碌无为开辩，真到写简历的时候又不知道自己写什么。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个系列写过很多，其实很多内容以前也提过，有些可能需要重提一次，几点建议。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1、平时上课学到的东西，多思考一下，应用场景在哪里，有些人在大学学了各种算法，各种语言，但是没有明确的场景概念，不知道实际工作中用到哪里，实话说，我当时也一样，工作后最后悔的是大学数据结构这门课如此重要我居然天天跷课了。 现在比我们那时候好很多，我大学最后两年才有互联网，而且信息极为匮乏，那时候连搜索引擎还都没有，所以想对社会有认知也很难，而你们不一样，现在信息的公开性远远高于我们那个时候，各种公开的数据资料都很多，这时候还不做功课了解社会，就只能从自己身上找原因了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;2、如果你有心望互联网技术，或者产品运营领域发展，平时上网站，下app的时候，多思考，人家用了什么技术，怎么实现的，自己学到的东西在里面能做什么，如果学了什么高深的推荐算法或者什么东西，想想能否用在这些工具上，能否提出优化和改进的方案；如果是对产品和运营感兴趣，多想想人家成功产品是怎么运营，怎么推广，怎么发展用户的；这里最重要的一点是，多学人家做的好的地方，特别是细节，比如文案，比如标题抓的用户心理诉求是什么；别看几篇评论家文章，一会琢磨阿里下一步战略什么，一会琢磨百度为啥那么流氓，这他妈的就不是应届生该考虑的问题。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;3、如果你想从事互联网技术，有时间的时候试着做一个app或网站，用开源软件改也行，做好了发布出去，效果好不好不说，先把整个开发，发布的流程搞清楚，然后体会一下这里的问题和困境在哪里；多看开源软件，多学习人家的开发思路和设计理念，别老觉得人家代码写的不如你，很可能你根本就没理解人家这样写的初衷和目的。有机会把一些自己的代码发布到github，并且在一些技术社区多解答问题，多分享自己的东西，可能对未来工作帮助很大。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;4、如果你想从事互联网运营和产品，试着运营一个微博或微信公众号，或者去申请成为百度吧主，运营一个百度贴吧，或者你能在知乎上成为一个有表现力的活跃账户。这些对求职都会有工作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;5、其他领域我实在不是很懂，但请按照如上思路，每个行业都有自己的线上社区和线上的一些分享平台，多积极参与，在读书的时候就多参与讨论参与分享。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;6、关于考证，什么证有用，什么证没用。&lt;/p&gt;&lt;p&gt;如果你想应聘市场，销售，业务等工作，拿个驾照是有用的，难免出差或者接送客户需要开个车，说句那啥的，就算公司没你用车的机会，偶尔和公司领导出去吃饭喝酒，你说领导您尽情喝，待会您的车我开，送您回家，这不也是一种表现力么。工作后你想找出这么多时间学驾照也挺麻烦的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;律考特别有用有价值，当然看你所处的领域。&lt;/p&gt;&lt;p&gt;计算机等级考试这玩意没啥用，我看过这种简历，精通计算机，然后是计算机二级证书，哭笑不得。&lt;/p&gt;&lt;p&gt;程序员资格考试有一些用，用处不大但是还是有人懂的，比如你考了国家认证的高级程序员或者系统分析师，我觉得含金量还可以，如果是应届生，这个还是挺不错的一个证明。&lt;/p&gt;&lt;p&gt;雅思有用，长期有用。&lt;/p&gt;&lt;p&gt;六级过了就行，刷分的我是不能理解。 如果能刷雅思，六级成绩就没用了。&lt;/p&gt;&lt;p&gt;注册会计师，注册审计师 等一系列财经相关证书，有用。&lt;/p&gt;&lt;p&gt;有人会说，其实有这证书后来工资也不怎么高云云。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有用的意思是，你在求职以及未来职场，这东西可能会发挥一些作用，让你增加一些被录取机会，不代表靠这个就有铁饭碗就衣食无忧了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;简单总结就是，&lt;/p&gt;&lt;p&gt;和职场的人一起考的证，多半都有用，只限学生考的证，基本用处都不大。&lt;/p&gt;&lt;p&gt;通过率越低的证，价值越高，通过率越高的证，价值越低。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;除了考证，技术达人应该多做一些竞赛挑战，比如 google 的 code jam，百度的开发大赛，ACM大赛，你说这些东西职场都需要么？真未必，但是你有这个，至少很多公司会高看你一眼，ACM大赛有名次的，基本上去一线互联网公司应聘，录取率是非常高的，而且很多会重点培养。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;7，找一些与兴趣相关行业的实习，如果能跟一些业内大牛实习，帮助提升会更大。 这个强调过 多次，不再解释。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;8，简历怎么写&lt;/p&gt;&lt;p&gt;感性描述不重要，说自己多么好学，多么有潜力，多么勤奋，每个人都这么写，有不这么写的么。&lt;/p&gt;&lt;p&gt;用人单位看的最多的还是你做过什么，你有什么能力，你以前表现出怎样的水平了，你说你一直读书没工作经验啊，就如同我上面写的，你前面几年读书对职场一点准备都没有，你想就靠一份简历和成绩单就打动用人单位？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，简历的写法还是有一些讲究的&lt;/p&gt;&lt;p&gt;首先，不要有错别字！不要有错别字！不要有错别字！  重要的事情说三遍！&lt;/p&gt;&lt;p&gt;连简历都不认真对待的人，怎么可能是一个认真工作的人。&lt;/p&gt;&lt;p&gt;其次，切忌过度包装自己，懂一点皮毛就说精通，你以为面试官都是随便可以忽悠的？&lt;/p&gt;&lt;p&gt;第三，态度要端正，表明自己不挑工作不好高骛远不眼高手低，特别是名校成绩好的，用人单位最怕这种学生来了自我感觉良好，又不屑做初级工作又无法肩负重任。 有时候一些用人单位看到特别出色的反而不敢录取，因为担心来了之后也留不住，辛辛苦苦培养两年也是给别人培养的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面说一个有意思的案例，前几天看一个公众号的文章，说去应聘的时候，用人单位要提供30字以内的简历。这个人就蒙了，说30个字怎么能写简历，肯定是说明打错了，然后带了一份两三百字自认为简洁的简历过去，结果人家说，不是让你带30字以内简历么，他就觉得不可思议，然后问，能看看别人怎么写的么？一看，很多精致的设计，比如一个卡通人物是自己，写着名字，旁边标注着各种技能，并绘成一个场景，那篇文章的主旨是，很多自己做不到的东西，不代表没人做的到，从此他觉得人生观发生了改变，不再盲目自信，学会从身边学习别人。不过这个案例我回头就想了一下，我手绘肯定不行，如果我做一个30字的简历，应该怎么做呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;你们想一想，如果遇到这个考验，做一个30字以内的简历，应该怎么设计？&lt;/p&gt;&lt;p&gt;这就是一个典型面试题目，考验表达和设计能力。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我想了三个方案&lt;/p&gt;&lt;p&gt;方案1、直接给网址+注释&lt;/p&gt;&lt;p&gt;当然，这需要硬背景&lt;/p&gt;&lt;p&gt;你给你在人人的网址，QQ空间地址，51job地址，都太low了，肯定负分。&lt;/p&gt;&lt;p&gt;比如你应聘技术 给 你的项目github网址，+注释，5000人订阅，用人单位一定会去看。&lt;/p&gt;&lt;p&gt;比如你应聘产品或运营，给你的微博网址，+注释 3万粉丝；或知乎地址，加注释 3万订阅，或公众号地址，+注释，3万订阅，相信用人单位一定会看。&lt;/p&gt;&lt;p&gt;上文提到了，如果你大学期间有意识的做这方面的准备，那么这种能力一定是用人单位会认真考虑的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;方案2、关键词标签模式，类似这样，网上抓了一张图&lt;/p&gt;&lt;p&gt;&lt;img data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3rIcNZzGeia2QNskibh64vgtKe7FtNoIeknuI3UrwMMx67LkOrriauy58eLCLoqAyEuT6ff4Grh1JQA/0?wx_fmt=jpeg&quot; data-ratio=&quot;1&quot; data-w=&quot;300&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这种东西大家一看就懂，你的技能，用颜色和字体标注出来，做成这个格式，粗又大的是你认为你最擅长最有优势的，小和浅的是你粗通但是觉得有必要列出来的。 30个字已经可以列七八项关键技能了。而且这种示例一看就懂。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;方案3、还是关键词标签，用二维坐标表示，&lt;/p&gt;&lt;p&gt;画一个坐标轴&lt;/p&gt;&lt;p&gt;横轴 写俩字，经验&lt;/p&gt;&lt;p&gt;纵轴 写俩字， 等级&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;然后把你的技能，按照你认为的等级，和你从事经验时长，列在坐标对应的位置上，这个我不画图了，各位脑补一下，简单明了的一张图，就可以看出你哪些东西比较擅长，哪些东西经验丰富，30个字也够用了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;简历的设计，用最简单的文字和图形，让用人单位印象深刻，这是一个很好的思路挑战，以上案例只是头脑发散，这里不存在所谓的正确答案，但必须说明一点，如果没有一些长期的准备和对职场的认识，仅靠最后灵光一现的小聪明，通常是不够的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;strong style=&quot;font-size: 18px; background-color: rgb(255, 255, 255); color: rgb(62, 62, 62); white-space: pre-wrap; line-height: 1.6; max-width: 100%; box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%; color: rgb(51, 51, 51); font-family: avenir, sans-serif; box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;介绍一个微信公众号：内推小王子&lt;/span&gt;&lt;/strong&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 0px; margin-bottom: 0px; max-width: 100%; min-height: 1em; white-space: pre-wrap; color: rgb(62, 62, 62); background-color: rgb(255, 255, 255); box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%; color: rgb(51, 51, 51); font-family: avenir, sans-serif; box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%; box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 0px; margin-bottom: 0px; max-width: 100%; min-height: 1em; white-space: pre-wrap; color: rgb(62, 62, 62); background-color: rgb(255, 255, 255); box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%; color: rgb(51, 51, 51); font-family: avenir, sans-serif; font-size: 18px; box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;专注于内部推荐，找工作或招聘的人可以关注一下，基本上国内任何互联网公司都可以帮你内推。运营人是阿混。 冯大辉也推过这个号。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 0px; margin-bottom: 0px; max-width: 100%; min-height: 1em; white-space: pre-wrap; color: rgb(62, 62, 62); background-color: rgb(255, 255, 255); box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 0px; margin-bottom: 0px; max-width: 100%; min-height: 1em; white-space: pre-wrap; color: rgb(62, 62, 62); background-color: rgb(255, 255, 255); box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%; color: rgb(51, 51, 51); font-family: avenir, sans-serif; font-size: 18px; box-sizing: border-box !important; word-wrap: break-word !important;&quot;&gt;微信号：neituixiaowangzi&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;img data-s=&quot;300,640&quot; data-type=&quot;png&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3rIcNZzGeia2QNskibh64vgtNhnVl7dtNokt2kne8cCHq7C1vSxBdd2dfp1dicwGBWMhgjrDnbgiaKBQ/0?wx_fmt=png&quot; data-ratio=&quot;1&quot; data-w=&quot;430&quot;&gt;&lt;br&gt;利益相关：友情互推&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;声明：微信并不鼓励互推行为，我个人目前并不公开接受任何互推请求，友情互推仅限于所熟悉信任的人和产品。&lt;br&gt;  &lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p class=&quot;tips_global reward_tips&quot;&gt;谢爷赏&lt;/p&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-7bcc2daee9bab5aeb20628ab83684672:1447585102</guid>
+<pubDate>Sun, 15 Nov 2015 18:58:22 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3rIcNZzGeia2QNskibh64vgtyzic0Alh1sXITUk5tibs0Dicias2Rbianepul8ukkAKrOYib02AiayWQjbC5Q/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>谈谈产品和运营 - 什么是需求(中)</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400429452&amp;idx=1&amp;sn=31b9260f1d3f26b49d4b8041ba265935&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        谈谈产品和运营 - 什么是需求（中） 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-14&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;继续昨天的话题&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400416746&amp;amp;idx=1&amp;amp;sn=19ecb45a93869cdcc6ecd5555c3e217c&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400416746&amp;amp;idx=1&amp;amp;sn=19ecb45a93869cdcc6ecd5555c3e217c&amp;amp;scene=21#wechat_redirect&quot;&gt;谈谈产品和运营 - 什么是需求（上）&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400402277&amp;amp;idx=1&amp;amp;sn=2ebbd48290c34815ab85f22fa5de0afa&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data_ue_src=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400402277&amp;amp;idx=1&amp;amp;sn=2ebbd48290c34815ab85f22fa5de0afa&amp;amp;scene=21#wechat_redirect&quot;&gt;谈谈产品及运营 - 如何避免一厢情愿&lt;/a&gt;&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;先补昨天的话题&lt;/p&gt;&lt;p&gt;有人问如何使用百度知道和百度指数来挖掘需求，我总记得之前文章写过，但一时也没翻出来。&lt;/p&gt;&lt;p&gt;谁还记得帮我翻出来请回复一下，我就不想重复再写这个话题了。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;下面说一个经典问题&lt;/p&gt;&lt;p&gt;5、跟随用户还是引领用户&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这曾经是一场大讨论，因为某些逼格很高的分析师说，乔布斯从来不听用户的，他只引领用户，这些分析师非常瞧不起跟随用户的人，特别是在他们眼里中国的用户都特别low，那些特别low的产品经理怎么能入他们法眼。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;基于这个讨论，我写了一个寓言，以前在百度空间发过。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;说有个山谷，有一村的老百姓，他们过着与世无争的生活，然后山中缺水，需要打井，说有一个老师傅人特别好，特别能探测到哪里有水，打的井又快又好，出水量大，深得村民信任，然而村里人越来越多，水越来越少，井越挖越深，大家还是很辛苦。山上住着一个人，平时也不和村民来往，有一天跑来说，你们别这里瞎忙了，跟我出去吧，村民说，出去有啥啊，这个人说，外面有一大片鲜花，高耸的大树，奔跑的动物，简直太美了，不去看看太可惜了。村民一愣，美不美关我毛事，继续掉头挖井。 这人愤愤的离开，一边嘟囔，愚蠢的村民啊，你们简直没有一点情操。村里还有一个年轻人，也辛苦的打井，天天跟着老师傅打井，大家也很喜欢他，有一天他跑到山顶看了一眼，然后立即跑下山，对着村民们喊，大家不要打井了，跟我出去吧，去山的外面！村民说，不去不去，忙着呢。这个年轻人喊道，我们再也不用打井了，外面，外面有条大河！&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这个寓言其实很好理解&lt;/p&gt;&lt;p&gt;村民是 用户&lt;/p&gt;&lt;p&gt;老师傅是传统的产品经理，他们深知用户的痛点是什么，并基于用户的需求提供产品。&lt;/p&gt;&lt;p&gt;山上的人就是常见的评论家，站得高看的远然而并不理解用户疾苦，很多需求只看到了表面看不到本质。凭借表象来确定方向，自然吸引不到用户。&lt;/p&gt;&lt;p&gt;而年轻人是这里所说的，能够引领用户的产品经理，首先你要知道用户需要什么，知道用户需求的本质是什么，更深的井只是一个描述，而更好的答案是可以超出用户的描述。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;确实，很多时候，用户并不会正确表述自己的需求，也看不清未来在哪里，想到两个久远的案例，都是我年轻的时候电视上看到过的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;最早手机出来的时候，特别大，特别沉，还特别贵，都是特别有钱的大款才会用，然后电视上就有采访，问普通老百姓，要不要用手机，老百姓就说，不需要不需要，那是大款用的，家里有电话，方便的很。 当手机只是少数人产品时，其他人不会觉得自己需要手机，而且在这玩意很贵的时候，老百姓更不会觉得这和自己有什么关系。当年IBM对个人电脑的无视，也是基于此。 那时候谁会认为家庭可以拥有电脑呢？&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;最早互联网出来的时候也是，当时互联网是个新鲜玩意，而且关于互联网是不是会带坏年轻人的讨论开始增加，那时候大众思想是啥呢？上网=不务正业，这是好的，网上都是不健康的东西，我父母那时候就老说我，你能不能干点正事，别老上网。我解释多少次上网是工作，他们都还是根深蒂固的认为，上网就是玩，就是浪费时间。 那时候媒体又去大街上采访，问北京市民，上网不上网啊，有些人就说，偶尔上；又问，如果不上网会怎样啊，都说，没影响啊。 这是上个世纪末的时候的事情，到今天我们都知道，互联网的席卷之势，但那个时候，用户看不到。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;我大学时候最正确的一个判断就是互联网将改变人类，从一开始上网我就被迷住了，我应该是大三或者大四接触互联网的（我们当时还是万恶的五年制），在接触互联网之前，我确实一直不清楚自己未来要做什么，找怎样的工作，从事怎样的工作，接触互联网后，我就给自己立下了目标，以后一定要往这个行业里扎，这个判断很简单，这种东西属于，你一旦习惯了，就摆脱不了，根本回不去的。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;但我没俞军老师格局高，对互联网具体应用场景和改变的范畴，我一直没有明确的概念，所以错失无数机会，不过举这个例子想说，其实比普通用户看远一点，也没那么难，要从未来思考，而不是现状。比如手机会越来越便宜，网费会越来越便宜，内容会越来越丰富，所以使用手机，上网的门槛会越来越低，等等。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;以史为镜，可以知兴替&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这些上古时代的历史，如果深刻领悟，到后面做判断的时候也会有帮助，再举个例子。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;2010年还是功能机的天下，苹果开始攻城略地，2011年安卓的手机才刚刚开始有一点市场份额，当时所有互联网巨头的移动事业部都还把重心放在塞班上。但那时候我们在厦门已经开始强力普及公司使用智能手机，当时我跟同事们做分享，讲未来，我让大家判断，智能手机未来市场规模会有多大，请注意，那时候智能手机市场份额还很小（包含塞班在内），功能机依然是主流，当时我就给出了我的判断，智能手机会吞噬掉绝大部分功能机市场。 这个依据的基础是什么呢？首先肯定是成本和价格的下降，其次是所谓孤岛效应，一种社交产品也好，或者类似智能手机，手机，这样带有社交属性的产品也好，如果你身边的人都在用，而你不在用，你就成为孤岛，别人一起联系，一起玩乐的时候，你插不上话，你被疏远，也许是无意的，但是你就被边缘化了，所以你必须和他们一致（别人有手机的时候，你没有，就成为孤岛，别人有智能手机的时候，你用功能机，也会成为孤岛），才能跟上大家的节奏，这就是原因。我当时说，以后大家出去玩，别人在手机上点点戳戳分享照片，你傻呵呵的不知道别人在干嘛，你以后怎么跟别人玩，所以，智能手机一旦普及，立即就会席卷，后期用户会被前期用户的行为裹挟换机，毫无疑问。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;当用户未处于孤岛，以及这个平台门槛太高，成本太贵的时候，用户不认为他需要这样一个产品。但这个平台门槛降低，孤岛效应体现的时候，用户的需求才会体现，这是一个重要的思路。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;6、把握本质需求而不是盲从于用户的描述&lt;/p&gt;&lt;p&gt;下面说另一个重要思路，把握用户的本质需求&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;用户往往基于自己的历史经验提出需求，而科技和文明的发展，可能对用户的诉求有了更好的满足，而用户不自知。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;上面寓言中，用户表达的需要更多的水井，本质是需要更多的水。而更好的解决方案是搬到河边。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;在历史上，用户需要更快的马，本质需求是快，所以汽车解决了这个需求。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;我们看用户描述的需求，要理解他本质的诉求是什么，基于本质解决问题，才能避免一厢情愿。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;下面举一个特别经典的例子，360刚开始崛起的时候，和做安全的聊天，那时候一些安全高手不是很看得起360，为什么呢，他们说，360技术不咋样，实话说，早期360确实并不是靠技术取胜的。 那我就问了一个问题，用户需要安全产品，其本质需求是什么，是安全么？&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;先不看答案，你们想一想，是不是用户为了安全而需要安全产品？&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;其实不是，用户需要安全产品，本质需求就一个词，要爽，要更爽的上网。为什么会不爽？玩着玩着游戏被盗号了能爽么？打开浏览器到处弹广告能爽么？电脑卡的要死能爽么？ 然后你看360做了啥，很多技术高手觉得不屑的玩意，我把你各种插件清理了，让你浏览器加速，我搞开机加速小助手，高手说了，这玩意和安全有毛关系啊，这玩意让用户上网爽了啊。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;windows的安全问题饱受诟病，后来出了一个版本，叫做windows vista，安全有了极大提升，然后市场惨遭滑铁卢，为啥呢，为了安全牺牲了用户的使用便捷性，用户操作起来各种不爽，怎么会开心。如果他们能理解用户本质诉求，就不会犯这样的错误。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;所以，当用户说，快快，给我一个安全产品保护我，他只是需要一个让他安心上网的东西，而你给了一个18般保护结果让他没法上网的东西，他肯定怒了，卸载你没商量，这是很多产品人犯过的错误。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;先到这里，休息，休息一下。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3WvUnfFHfsWRyOYouo40hO3cXMBYCRlbe1TzribzoBblbIJdQI8ktPjcPiaskSho4o5c4JplBs8ibjA/0?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-s=&quot;300,640&quot; data-ratio=&quot;0.7461538461538462&quot; data-w=&quot;260&quot;&gt;&lt;br&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-a853868a5f097c76547ee98352666ef4:1447509595</guid>
+<pubDate>Sat, 14 Nov 2015 21:59:55 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3WvUnfFHfsWRyOYouo40hOTrt3opTm1vPEfcysqURlzwszgAEEDoQuLibuo0Utia7g08qvdzKCc88Q/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>信息安全精彩视频分享-一张纸入侵企业号星舰</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400416746&amp;idx=3&amp;sn=909e9d559edd0d92b9cfeb487dfe4b27&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        信息安全精彩视频分享-一张纸入侵企业号星舰 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-13&lt;/em&gt;
+
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;利益相关&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我的神秘QQ群里并不是只有创业者，其实也有各种给人打工的，比如某美国上市公司CEO啦，又比如还有江湖上传说中的TK教主，也就是这个视频的主角，于旸。推他的视频其实只有一个原因，脑残级别的崇拜。 连冯大辉都崇拜他，你们信不信。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;iframe class=&quot;video_iframe&quot; style=&quot;   z-index:1; &quot; height=&quot;375&quot; width=&quot;500&quot; frameborder=&quot;0&quot; data-src=&quot;https://v.qq.com/iframe/preview.html?vid=l0172q0kp07&amp;amp;width=500&amp;amp;height=375&amp;amp;auto=0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;&lt;br&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-c34168fe7314a0f94e8a430b36a7562f:1447428026</guid>
+<pubDate>Fri, 13 Nov 2015 23:20:26 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3LwwqIYZ9JpviavZqKfcrNsw0112TYWdVDyv07nxzWYefycb5All38ISAIfeYmic5EC2c0NTe7LJmw/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>提升智商表现,切忌一厢情愿</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400386637&amp;idx=1&amp;sn=3d8e0962255de35f436eb57aff5df680&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        提升智商表现，切忌一厢情愿 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-11&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;今天是双11，讲一厢情愿，这个词大约来源是描写男女单相思的，我不是马伯庸，我考察不出来，不过今天不说这个，说的依然是思维方式。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;先啰嗦一些废话。&lt;/p&gt;&lt;p&gt;有很多智商其实并不低的人，也经常表现出非常弱智的言论和决策，往往就是卡在思维方式这个环节上，今天，我总结这些所谓成功的人，和大部分庸庸碌碌的人，你说他们智商差距很大的么？其实并不大，你说他们情商差距很大么？很多成功创业者的情商说实话实在不高。关键其实就是思维方式。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;这些日子我的文章，包括一些有些朋友觉得很水的文章，其实都是不断重复一个观点，你怎么去看这个世界，去看这个商业社会，你的思维方式，你的视角，你的价值观，影响你的决策和判断，从而给你带来不同的人生选择，昨天写的那篇，双11的套利机会，我又强调了一次，真不是软文，同样一个双11，就存在不同的视角和判断，有的人就当做一个套利机会，而大部分只考虑要不要剁手。你视角不同，别人看不到的机会你就能看到，别人抓不住的商机你就能抓住。 处处皆学问，处处皆商机，关键看你的视角，你的思维方式。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;言归正传，今天讲所谓一厢情愿。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;知乎上我回过一个帖子，一个特典型的数据分析的误区，有人说百度会不会纵容恶意点击而获利，这事我还特有发言权，因为当初我还就负责这个事来着，这事就是无数人的思维误区，认为搜索引擎一旦放纵恶意点击，收入就会滚滚上升，其实是错的，因为广告主真的不是sb，竞价排名是个自平衡策略，所谓无效点击是长期存在的，客户为效果付费，基于竞争关系酌情制定可忍受的单价，这是一个动态平衡，如果欺诈点击泛滥，那么基于欺诈点击是非稳定存在的，平衡就会打破，客户就会失去竞价信心，按照最小风险定价，对百度而言其实是一种收入损失，反而强烈摁死欺诈点击有助于收入提高（竞价信心增加，单价提高），这都是当时有实测数据证明的。 &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;这是数据分析的一个常见的案例，就是你分析数据或调整数据的时候要考虑受众对此的交互和反馈，所谓正反馈还是负反馈；游戏行业也好，电商行业也好，都知道你商品或道具降价促销后，收入是增加的，而不是下降的，这是特简单的一个受众正反馈案例，理解这个案例相信每个人都能做到，但是稍微复杂点，很多人就不理解了。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;不仅仅是数据分析，从生活中，政策决策中，这样的案例数不胜数。有时候，这种一厢情愿的决策是因为蠢，当然，也有时候，是因为坏。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;案例1：&lt;/span&gt;&lt;/p&gt;&lt;p&gt;提升低收入人群的保障，设置更高的最低工资。&lt;/p&gt;&lt;p&gt;提高女性地位，将产假延长。&lt;/p&gt;&lt;p&gt;提高员工福利，增加休假假期。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这些政策听上去挺好对吧，老百姓都觉得这好啊。你看，政策保护我们来了，&lt;span style=&quot;line-height: 1.6;&quot;&gt;但是这种政策，必须保持适度，（我真不是反对保护弱势群体的政策啊，只是强调适度）一旦过度，企业竞争力下降，老板们第一时间会考虑裁员，减少招聘，你以为你的政策保护了穷人，其实你让他们更难找到工作。 特别是第二条，如果增加产假，育龄女性求职困境就会极大增加，我看到某女性人大代表提案要求极大增加女性产假，所谓争取妇女权益，真是一厢情愿啊！&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;一厢情愿的保护弱势群体，很可能导致弱势群体更加难以获得工作和收入的机会，我记得网上写有些中国在欧洲的留学生也遇到这样的窘境，因为工会很强势，很多条款对高学历的人才保护非常好，结果反而导致他们找不到工作，连跟企业主讨价还价的机会都被剥夺了。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;案例2：&lt;/p&gt;&lt;p&gt;说说房价。&lt;/p&gt;&lt;p&gt;中国房价疯涨了十多年，中间很多次政策调整，老百姓都是拍手叫好，然而事实却背道而驰，今天，很多老百姓还傻呵呵的等着新的政策会给他们带来好处，一点记性都没有。&lt;/p&gt;&lt;p&gt;政府开始卖地的时候，一开始是不规范的，很多开发商私下通过关系和贿赂拿到土地，刚开始房子商品化，老百姓就觉得贵，然后政府说，都是开发商私下贿赂拿地造成的，黑幕太多，成本不透明，要公开，透明，走拍卖制，这话说的没问题吧，大家都觉得好啊，公开透明了，没有黑幕成本了，地价就下来了，结果，呵呵，自从土地公开拍卖制度开始，知道竞价排名吧，我之前讲商业分析模式思维的时候说过，这玩意厉害，稀缺资源，挑动入局者竞争，利润榨汁机，土地拍卖就是竞价排名啊！结果呢，地价直线上升，老百姓第一次一厢情愿。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;后来政府说，都是炒房惹的祸，大量多套房产的人是房价高的罪魁祸首，所以增加二手房转让税费就可以遏制房价，老百姓又拍手叫好，对对对！最看不惯那些炒房的人了。结果呢，房东直接把税费一加，成本又转嫁给了买房者，结果房价二次飙涨，老百姓第二次一厢情愿。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;现在又说，开房产税，那些有房的人就完蛋了，房价就降了，老百姓又开心的拍手，对呀对呀。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我就说一点，到今天，我们可爱的老百姓们还是存着劫富济贫的想法，但是几千年的历史告诉我们，劫富从来没有济贫过，晁盖没有，宋江也没有。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;房价如何降呢？说实话，要从根子入手，就是把土地的稀缺性这个属性拿掉，怎么拿掉，有点小敏感，不展开了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;案例3：教育改革&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;关于减负和综合素质教育的问题&lt;/p&gt;&lt;p&gt;网上有一些讨论的文章很好看，我这里不展开了，只说要点，一旦免费的教育资源被削减，受损失的一定是穷人家的子弟；所谓综合素质和综合能力，穷人家子弟也很难比得上见多识广，上过各种昂贵兴趣班的富人子弟，就一句话来解读，如果一个穷人，真以为减负就可以轻轻松给孩子一个美好童年然后幸福的走向社会，那，简直太一厢情愿了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但这样一厢情愿的人还真就是满大街的存在。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;讲政策有些敏感，写了半天删除了好多。但实际上我们总结一下，面对一个问题，做一个决策的时候，以及判断一个决策的时候，要更多理解层层面面的因素，而不是仅仅凭一种简单的对错观就下结论。如果能做到这一点，我们的判断力就会上升很大一个台阶。 不仅仅是政策层面，还包括我们说公司运营，产品决策，都涉及这样的问题，而一厢情愿这个问题在很多公司的运作，产品运营中也都出现过。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面说一下关于公司运营常犯的问题&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;开发流程优化的一厢情愿&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;很多单线思维的方式是这样的，一个简单的开发和发布模式，可能没什么规范，没什么流程，上线出了问题，几个负责人研究了一下，嗯，加一个流程，避免这样的问题重现，没多久出了个新问题，几个负责人一看，嗯，再加一个流程，避免这种问题，以此类推，不断重复，小公司到大公司后，整个产品研发发布流程冗长繁琐，各个环节不胜其扰，以至于你遇到一个很小但是很重要的bug要处理，相关部门负责人说，对不起，这个版本封版了，三个月后下个版本再处理，神马！三个月！ 为了稳定和安全，产品迭代的效率被彻底牺牲，然后你说质量有保证了？但是竞争日新月异，你没有效率，没有快速的市场反应能力，你质量有保证又怎样？丧失活力，眼瞅着新公司咔嚓嚓的崛起。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这样的例子还少么？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;管理决策的一厢情愿&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如有个著名的例子，某个新上任的CEO，看到公司福利太好，而员工经常浪费，各种开销很心疼，于是下令节省开支，各种福利的使用方式和一些耗材零食饮料等等的领取方式都进行了严格的管理，几个月下来，果然相关费用得到了极大的节省，然而，然而，本来一些员工没事就泡在公司里，晚上经常还有人加班干活，现在一到下班都回家了，公司开发效率直线下降，市场竞争力直线下落。 。。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;类似这样的例子，其实也真不少。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天先说这些，更重要的话题是，在产品和运营过程中，如何防止一厢情愿的决策发生。 这个可以说在互联网各种失败原因上的占比性，是排第一的。 我会在最近一两天完成，谢谢。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p class=&quot;tips_global reward_tips&quot;&gt;赞赏是个两厢情愿的事情，别勉强&lt;/p&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-b50c39b9a2cc6a774c80ab1a745a07c8:1447256095</guid>
+<pubDate>Wed, 11 Nov 2015 23:34:55 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer3oms0z7OogdNPicp0QqvJ2EMGtE21YCu73GTvq2crQ7WBEgP0Af1rWO3JZuRyo1IpeugvkEMsialKg/0?wx_fmt=jpeg" />
+</item>
+<item>
+<title>所谓坚持</title>
+<link>https://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=400367085&amp;idx=1&amp;sn=108ac3dfc843baf5bc56f73edf646ae1&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd</link>
+<description>&lt;div id=&quot;img-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+                    &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                        所谓坚持 
+                    &lt;/h2&gt;
+                    &lt;div class=&quot;rich_media_meta_list&quot;&gt;
+                                                &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta meta_original_tag&quot;&gt;原创&lt;/span&gt;
+                        						                        &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2015-11-10&lt;/em&gt;
+
+                                                &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;曹政&lt;/em&gt;
+                                                &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;javascript:void(0);&quot; id=&quot;post-user&quot;&gt;caoz的梦呓&lt;/a&gt;
+                        &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;caoz的梦呓&lt;/span&gt;
+
+                        &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;div class=&quot;profile_inner&quot;&gt;
+                                &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                                &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                                &lt;/p&gt;
+
+                                &lt;p class=&quot;profile_meta&quot;&gt;
+                                &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                                &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                                &lt;/p&gt;
+                                
+                            &lt;/div&gt;
+                            &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                                &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                                &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                            &lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                                            
+                                                            
+                    
+                    &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                        
+                        &lt;p&gt;很多朋友都问我这个问题，你凭借什么能坚持每日更新公众号？ 很多人觉得这事挺难的，其实，说实话，我一开始都不信自己能做到。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;这个话直到现在才敢说，因为看上去已经坚持两个多月了，中间除了因为差旅在路上有几天断更，基本上还是保持了每日更新的节奏。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;实话说，从头开始，我就没把每日更新当作自己的目标，意外不？但真的没有，因为我自己都不信能做到每日更新，但今天回过头来总结，我觉得有两点，第一是分享的欲望和兴趣，确实有很多东西想拿出来说说，然后发现很快就能列出一个礼拜的更新计划。 第二呢，是微信这个激励体系，我就觉得跟玩游戏一样，每天做完任务都有奖励，不要笑，真是这个感觉，好几天晚上觉得算了，要不停一天吧，然后就浑身不舒服，这今天任务没完成，奖励没拿到，多别扭啊。你看我最早百度空间也好，知乎也好，因为没有打赏这样的奖励，就真做不到这一点。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有人会奇怪你真在乎这些打赏么？实话说，真的，偷偷说，这是私房钱，明白么，（好吧，其实已经跟老婆大人汇报过了），微信发红包各个群里得瑟全靠这个了，而且玩游戏冲钱简直不要太潇洒，当然，更多的还是各种国内的消费体验，互联网要与时俱进，真需要理解和体验国内那么多的在线支付场景， 你说这玩意厉害不厉害。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我记得以前看过一篇文章，有个跑马拉松比赛黑马夺冠的人，别人问他为什么这么厉害，他说其实一开始也没想说自己能夺冠，就想我这一公里能不能跟上，能不能领先，一公里一公里的目标，就坚持下来了。 我们说人生是一个长跑，但是如果我们定一个伟大的远景，可能自己都觉得道路艰辛，心生退意，但如果一个阶段一个阶段的制定目标，一个阶段一个阶段的获得心理上的奖励，可能很遥远很伟大的目标就一步步实现了。&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;另外，很多做出伟大事业，创造出伟大成就的人，你说他们很艰苦，很坚持，其实可能只是外行的一种误解，人家其实乐在其中，真的是兴趣使然，你愿意为此付出，愿意为此打拼，你很累，但是很快乐，成就也就是水到渠成。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;line-height: 1.6;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;所以，如果你现在做的事情，很郁闷，很压抑，你默默的告诉自己，要拼搏，要坚持，我觉得你很有可能弄拧了。很多人所谓的坚持，只是害怕改变现状。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;乐在其中的坚持，事半而功倍。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;从创业的故事里也能看出，大部分成功创业者，出发点都是自己喜欢一个事情，想做这个事情，这是他们能坚持，能打拼的基础。很多很窄的领域也因此出了很好很不错的项目，而现在大部分创业者是因为听说什么什么很火，认为可以捞一笔，然后盲目的杀进去，在各种纠结和无奈中坚持，这样你怎么可能有成绩呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我看到很多不错的项目和机会，但是都没有投入进去，原因很简单，真的没太大的兴趣，没兴趣的东西，勉强去做，我能做的过别人？我自己都不信。 就好比写这个公众号，有兴趣了，然后又有激励，就特有动力，说真的，我这些年很荒废，很多事情都懒得看懒得琢磨了，能重新进入写作状态，我自己都佩服自己了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;script type=&quot;text/javascript&quot;&gt;
+                        var first_sceen__time = (+new Date());
+
+                        if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;))
+                            document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+
+                                        (function(){
+                            if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                                var link = document.createElement(&#39;link&#39;);
+                                var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                                link.rel = &#39;stylesheet&#39;;
+                                link.type = &#39;text/css&#39;;
+                                link.href = &quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_pc2826cc.css&quot;;
+                                head.appendChild(link);
+                            }
+                        })();
+                    &lt;/script&gt;
+                    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_combo29ab01.css&quot;&gt;
+                                        
+                                        &lt;div class=&quot;reward_area tc&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                                                &lt;p class=&quot;tips_global reward_tips&quot;&gt;给点私房钱呗&lt;/p&gt;
+                                                &lt;p&gt;
+                            &lt;a class=&quot;reward_access&quot; id=&quot;js_reward_link&quot; href=&quot;javascript:;&quot;&gt;赞赏&lt;/a&gt;
+                        &lt;/p&gt;
+                        &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;p class=&quot;tips_global reward_user_tips&quot;&gt;&lt;a href=&quot;javascript:;&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt;人赞赏&lt;/p&gt;
+                            &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                                        
+                                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar2&quot;&gt;
+                                                                    &lt;div id=&quot;js_read_area2&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum2&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                        &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like2&quot;&gt;
+                            &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum2&quot;&gt;&lt;/span&gt;
+                        &lt;/span&gt;
+
+                        &lt;a id=&quot;js_report_article2&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;javascript:void(0);&quot;&gt;举报&lt;/a&gt;
+
+                    &lt;/div&gt;
+                &lt;/div&gt;&lt;div class=&quot;rich_media_area_extra&quot;&gt;
+
+                    
+                                        &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;
+                        
+                    &lt;/div&gt;
+
+                    
+                    &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                    
+                                        &lt;div class=&quot;rich_media_extra&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+
+                        &lt;div class=&quot;discuss_container&quot; id=&quot;js_cmt_main&quot; style=&quot;display:none&quot;&gt;
+                            &lt;div class=&quot;rich_tips with_line title_tips discuss_title_line&quot;&gt;
+                                &lt;span class=&quot;tips&quot;&gt;精选评论&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;p class=&quot;tips_global tc title_bottom_tips&quot; id=&quot;js_cmt_nofans1&quot; style=&quot;display:none;&quot;&gt;关注该公众号可参与评论&lt;/p&gt;
+                            &lt;p class=&quot;discuss_icon_tips title_bottom_tips tr&quot; id=&quot;js_cmt_addbtn1&quot; style=&quot;display:none&quot;&gt;
+                                
+                                                                &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                            &lt;/p&gt;
+                            &lt;ul class=&quot;discuss_list&quot; id=&quot;js_cmt_list&quot;&gt;&lt;/ul&gt;
+                        &lt;/div&gt;
+
+
+                        &lt;div class=&quot;tips_global rich_split_tips tc&quot; id=&quot;js_cmt_nofans2&quot; style=&quot;display:none;&quot;&gt;
+                            关注该公众号可参与评论
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;discuss_icon_tips rich_split_tips tr&quot; id=&quot;js_cmt_addbtn2&quot; style=&quot;display:none&quot;&gt;
+                            
+                                                        &lt;a href=&quot;#comment&quot;&gt;写评论&lt;img class=&quot;icon_edit&quot; src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/appmsg/icon_edit25ded2.png&quot; alt=&quot;&quot;&gt;&lt;/a&gt;
+                                                    &lt;/p&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc tips_global&quot; id=&quot;js_cmt_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+
+
+                        &lt;div class=&quot;rich_tips tips_global loading_tips&quot; id=&quot;js_cmt_loading&quot;&gt;
+                            &lt;img src=&quot;http://res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/icon/common/icon_loading_white2805ea.gif&quot; class=&quot;rich_icon icon_loading_white&quot; alt=&quot;&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;加载中&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;div class=&quot;rich_tips with_line tips_global&quot; id=&quot;js_cmt_statement&quot; style=&quot;display:none&quot;&gt;
+                            &lt;span class=&quot;tips&quot;&gt;以上评论由公众帐号筛选后显示&lt;/span&gt;
+                        &lt;/div&gt;
+
+                        &lt;p class=&quot;rich_split_tips tc&quot; id=&quot;js_cmt_qa&quot; style=&quot;display:none;&quot;&gt;
+                            &lt;a href=&quot;http://kf.qq.com/touch/sappfaq/150211YfyMVj150313qmMbyi.html?scene_id=kf264&quot;&gt;
+                                了解评论功能详情
+                            &lt;/a&gt;
+                        &lt;/p&gt;
+
+                    &lt;/div&gt;
+                                    &lt;/div&gt;</description>
+<author>曹政</author>
+<guid isPermaLink="false">ab735a258a90e8e1-6bee54fcbd896b2a-4e12410fcaa589a7824c260a4bda3408:1447168783</guid>
+<pubDate>Tue, 10 Nov 2015 23:19:43 +0800</pubDate>
+<media:thumbnail url="http://mmbiz.qpic.cn/mmbiz/nBKX0s8fer2Jy0ibGq3AVq5wAtkfa9Rm9fIlicS3yTCm81JMxzmIkwRMJNwiaKWodZ3JN37j8jicfnYfNnX3TWlznw/0?wx_fmt=jpeg" />
+</item>
+</channel>
+</rss>
