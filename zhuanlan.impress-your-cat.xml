@@ -5,12 +5,34 @@
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 <description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 09 Dec 2015 10:04:22 +0800</lastBuildDate>
+<lastBuildDate>Sat, 12 Dec 2015 23:37:45 +0800</lastBuildDate>
 <image>
 <url>https://pic2.zhimg.com/b7567464789337f354d554ea0dbd28b5_xl.jpg</url>
 <title>impress your cat</title>
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 </image>
+<item>
+<title>derecho</title>
+<link>http://zhuanlan.zhihu.com/impress-your-cat/20412482</link>
+<description>&lt;p&gt;很多公司都在开发自己的监控系统。出发点肯定是现有的并不够好用。而这个看上去很容易嘛，那就自己开发一个。(尽管我不认同这个答案的观点) &lt;a class=&quot;internal&quot; href=&quot;https://www.zhihu.com/question/27464246/answer/75704392&quot;&gt;为什么很多公司都自主开发监控系统？（Linux运维方面） - gashero 的回答&lt;/a&gt; 一针见血的指出了很多公司自己开发的结果是把时间都花在了怎么采集数据，怎么展示上了，往往最后还不如现成的开源的方案。这不就是在浪费时间啊。&lt;br&gt;&lt;/p&gt;&lt;p&gt;我认为他们几乎都掉进了&lt;a class=&quot; wrap external&quot; href=&quot;https://en.wikipedia.org/wiki/Inventor&#39;s_paradox&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Inventor&#39;s paradox&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt; 。 毫无疑问，一开始开发的时候，就会以XXX为目标，把所有XXX中需要的功能都山寨一遍，等这个OK了，替换掉XXX，接着开发自己需要的功能。这实际上是没有必要的，无非是自己给自己设限制。&lt;/p&gt;&lt;p&gt;不仅仅是机器的状态，某个端口能不能连上需要监控。更细的，比如统计IP包的Header，看看是不是有人在攻击你的服务，更贴近业务的，比如某个时间段，来自某个地区的访问是不是突然消失了，又比如付钱是不是突然都失败了。这些东西都是监控要做的。&lt;/p&gt;&lt;p&gt;转换到这种思路之后，你就不会再考虑自己去实现采集数据的功能了，因为根本就不知道会有哪些数据，而是反过来，提供一些接口，要求需要使用监控的一方自己来提供数据。有现成开源的采集数据的工具就先用着再说。展示也是类似的，提供一个取数据的接口，至于怎么展示那是需要使用监控的一方自己说了算。&lt;/p&gt;&lt;p&gt;那监控到底要做什么呢？首先当然是报警啦。而很多工具报警的功能就只针对某一个非常小的领域，要加别的类型的报警很不容易，更别说大部分实现实际上报警是定时读一下日志判断要不要报警的。报警不是单纯的发出通知就够了，肯定需要限制发送频率，也肯定需要能合并多个通知。定时读日志尽管产生报警可以做到stateless，发送报警通知是不可能做到stateless，用adhoc, informally-specified, bug-ridden, ...的方式来存这个状态，往往就是导致使用者想自己开发的导火索。&lt;/p&gt;&lt;p&gt;而这些实际上可以用Complex Event Processing/Event Stream Processing(buzzword)的形式统一起来。把一个比较通用的实时事件流分析处理的功能做好了，报警的问题就迎刃而解了。而开发这么一个东西需要的技术，在2000年前后就已经是众人皆知了。现在最推荐的是看&lt;a href=&quot;http://web.cecs.pdx.edu/~tufte/410-510DS/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Portland State University CS 510-Data Streams&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;这个课程提到的相关资料。&lt;br&gt;&lt;/p&gt;&lt;p&gt;因为等了好多年，发现实在是没有堪用的。于是我决定自己写一个了。毫无疑问，这个语言得选Erlang。很多实现一个stream operator就有一个消息队列，还要弄个scheduler把这几个operator调度来调度去的。用Erlang这些事都省了。&lt;/p&gt;&lt;p&gt;当然了，现在写的这一个derecho并不会是一个实用的版本，因为现在这个还是单机的，而且是完全按顺序处理的。主要是为了尝试一个新想法，既然大部分这种流处理都是DAG，为什么不直接用Erlang代码来写呢，变量之间的依赖关系不刚好是一个DAG么，用List来代替流，测试一个查询的功能更方便直观了。&lt;/p&gt;&lt;p&gt;现在derecho只是刚刚开始，刚刚把第一个例子跑起来。就是一个非常常见的例子，计算某个拍卖物品最高竞拍价格。当你实用streams这个parse_transform的时候，streams:query里面的代码就会被转换成流的查询。而不用parse_transform，那就是对普通的List操作(这个还没写)。&lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-erlang&quot;&gt;&lt;span class=&quot;nn&quot;&gt;streams&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;Bid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;Price&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+          &lt;span class=&quot;nn&quot;&gt;streams&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;groupby&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+                    &lt;span class=&quot;nn&quot;&gt;streams&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;aggregate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;aggregate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;nv&quot;&gt;Bid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;Price&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bid_price&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]),&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;欢迎各种Issue/Pull Request&lt;/p&gt;&lt;p&gt;&lt;a class=&quot; wrap external&quot; href=&quot;https://github.com/bhuztez/derecho&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;bhuztez/derecho · GitHub&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;&lt;/p&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">20412482</guid>
+<pubDate>Sat, 12 Dec 2015 23:04:32 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>第4个21天</title>
 <link>http://zhuanlan.zhihu.com/impress-your-cat/20377683</link>
@@ -1122,15 +1144,6 @@ true
 <author>bhuztez</author>
 <guid isPermaLink="false">20250615</guid>
 <pubDate>Sat, 03 Oct 2015 21:17:06 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>第1个21天</title>
-<link>http://zhuanlan.zhihu.com/impress-your-cat/20226408</link>
-<description>&lt;p&gt;首先感谢&lt;a data-title=&quot;@萧井陌&quot; data-editable=&quot;true&quot; class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/fd7c571a0ada1a72e42e8d7992c4a780&quot; data-hash=&quot;fd7c571a0ada1a72e42e8d7992c4a780&quot; data-tip=&quot;p$b$fd7c571a0ada1a72e42e8d7992c4a780&quot;&gt;@萧井陌&lt;/a&gt;论坛打算先蹭他的cocode.cc了。 在这里，&lt;a class=&quot; wrap external&quot; href=&quot;http://cocode.cc/c/erlang21&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;21天学通Erlang 主题列表&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt; ，想吐槽什么的直接发个贴就可以了。&lt;/p&gt;&lt;p&gt;制作虚拟机镜像这事碰到了一点麻烦。首先是把osv-apps里的Erlang从17改成18，这个没啥大问题。18因为用的是Apache License而不是之前那个不知道咋搞出来的License，至少不用担心怎么判断和其他License是否兼容的问题了。接着想把dns解析的问题解决了，结果发现OSv自带的DHCP client竟然不会写resolv.conf，于是先用8.8.8.8凑数了。最后发现一个巨大的问题，Fedora 22上gcc升级之后暴露了OSv在ELF处理上的大bug，感觉我是修不好了。&lt;/p&gt;&lt;p&gt;Github pages暂定用pelican生成，用i18n_subsites来解决多语言的问题。一开始会先介绍和编辑内容相关的，比如Erlang代码是怎么测试，怎么保证PDF里面贴的代码都是被检查过的，怎么保证代码片段在多个地方出现内容是同步的等等。现在问题来了，英语渣表示英语写不来，&lt;b&gt;求翻译&lt;/b&gt;啊&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20226408</guid>
-<pubDate>Sat, 19 Sep 2015 17:17:30 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
