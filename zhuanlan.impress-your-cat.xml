@@ -5,12 +5,191 @@
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 <description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 20 Dec 2015 21:24:41 +0800</lastBuildDate>
+<lastBuildDate>Wed, 23 Dec 2015 22:42:18 +0800</lastBuildDate>
 <image>
 <url>https://pic2.zhimg.com/b7567464789337f354d554ea0dbd28b5_xl.jpg</url>
 <title>impress your cat</title>
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 </image>
+<item>
+<title>Coq sucks.</title>
+<link>http://zhuanlan.zhihu.com/impress-your-cat/20441953</link>
+<description>&lt;p&gt;珍爱生命，远离Coq邪教。 &lt;a class=&quot;internal&quot; href=&quot;http://zhuanlan.zhihu.com/marisa/20439796&quot;&gt;传教文：Coq - The Dairy of Marisa - 知乎专栏&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Coq超级难入门啊。比如我前1024次尝试都以失败告终。装完Coq之后就不知道自己在干什么了，就没找到一个能看的教程。&lt;/p&gt;&lt;p&gt;(以下内容根据官方教程改编。) &lt;/p&gt;&lt;p&gt;不推荐先用CoqIDE或者Proof General &lt;br&gt;&lt;/p&gt;&lt;p&gt;先学会退出&lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ coqtop
+Welcome to Coq ......
+
+Coq &amp;lt; Quit.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;好，现在来证明第一个定理。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;Coq &amp;lt; Theorem my_first_theorem :
+Coq &amp;lt;   forall A B C : Prop,
+Coq &amp;lt;     (A-&amp;gt;(B-&amp;gt;C)) -&amp;gt; ((A-&amp;gt;B)-&amp;gt;(A-&amp;gt;C)).
+1 subgoal
+  
+  ============================
+   forall A B C : Prop, (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
+
+my_first_theorem &amp;lt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输入定理。Coq的显示，============================上方是假设，下方是待证明的命题。我们的目标就是从假设推出待证明的结果。 &lt;/p&gt;&lt;p&gt;先intros A&lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; intros A.
+1 subgoal
+  
+  A : Prop
+  ============================
+   forall B C : Prop, (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
+
+my_first_theorem &amp;lt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如下图所示，intros A这一步把我们一个开始的目标不妨称为X，转换成了一个新的目标不妨称为Y，只要证明了Y，我们就能证明X。也就是说，Coq通常证明过程是反着来的，把目标不断改写直到待证明的命题都是显然的或者都出现在上方的假设当中，证明就完成了。 &lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;                         intros A A : Prop
+======================= &amp;lt;======== =======================
+forall A B C : Prop,              forall B C : Prop
+(A-&amp;gt;B-&amp;gt;C)-&amp;gt;(A-&amp;gt;B)-&amp;gt;A-&amp;gt;C           (A-&amp;gt;B-&amp;gt;C)-&amp;gt;(A-&amp;gt;B)-&amp;gt;A-&amp;gt;C
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt; 同样的 intros B, intros C&lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; intros B.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  ============================
+   forall C : Prop, (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
+
+my_first_theorem &amp;lt; intros C.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  ============================
+   (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;intros的另一种作用&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; intros H0.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  ============================
+   (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
+
+my_first_theorem &amp;lt; intros H1.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  H1 : A -&amp;gt; B
+  ============================
+   A -&amp;gt; C
+
+my_first_theorem &amp;lt; intros H2.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  H1 : A -&amp;gt; B
+  H2 : A
+  ============================
+   C
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;不妨把上一个目标称为M，下面两个目标称为N。apply H0的意思是，只要证明了N，代入到H0中，我们就能证明M。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; apply H0.
+2 subgoals
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  H1 : A -&amp;gt; B
+  H2 : A
+  ============================
+   A
+
+subgoal 2 is:
+ B 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;也就是说，根据A和H0可以得到 B-&amp;gt;C，再根据B可以得到C。 如下图所示&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;                  ...
+                  ======
+...    apply H0   A
+===== &amp;lt;=========
+C                 ...
+                  ======
+                  B
+
+... 表示
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  H1 : A -&amp;gt; B
+  H2 : A
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;产生多个目标后，Coq会按顺序让你提供证明。因为H2就是A，所以，exact H2。 &lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; exact H2.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  H1 : A -&amp;gt; B
+  H2 : A
+  ============================
+   B
+
+my_first_theorem &amp;lt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt; 类似的。apply H1, exact H2后，剩下一个目标的证明也完成了&lt;br&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; apply H1.
+1 subgoal
+  
+  A : Prop
+  B : Prop
+  C : Prop
+  H0 : A -&amp;gt; B -&amp;gt; C
+  H1 : A -&amp;gt; B
+  H2 : A
+  ============================
+   A
+
+my_first_theorem &amp;lt; exact H2.
+No more subgoals.
+
+my_first_theorem &amp;lt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt; QED&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;my_first_theorem &amp;lt; Qed.
+intros A.
+intros B.
+intros C.
+intros H0.
+intros H1.
+intros H2.
+apply H0.
+ exact H2.
+
+ apply H1.
+ exact H2.
+
+my_first_theorem is defined
+
+Coq &amp;lt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;反过来，是不是感觉好多了&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;A-&amp;gt;(B-&amp;gt;C), A  A-&amp;gt;B, A
+============= =======
+B-&amp;gt;C,         B
+======================
+C
+
+((A-&amp;gt;(B-&amp;gt;C)) /\ (A-&amp;gt;B) /\ A) -&amp;gt; C
+===================================
+((A-&amp;gt;(B-&amp;gt;C)) /\ (A-&amp;gt;B)) -&amp;gt; (A-&amp;gt;C)
+===================================
+(A-&amp;gt;(B-&amp;gt;C)) -&amp;gt; ((A-&amp;gt;B) -&amp;gt; (A-&amp;gt;C))
+
+A : Prop
+B : Prop
+C : Prop
+=============================
+(A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A-&amp;gt;C))
+
+||
+\/
+
+==================================================
+forall A B C : Prop, (A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A-&amp;gt;C))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">20441953</guid>
+<pubDate>Wed, 23 Dec 2015 22:24:49 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>第5个21天</title>
 <link>http://zhuanlan.zhihu.com/impress-your-cat/20432737</link>
@@ -1133,15 +1312,6 @@ true
 <author>bhuztez</author>
 <guid isPermaLink="false">20255574</guid>
 <pubDate>Wed, 07 Oct 2015 17:31:07 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[21天]第一章内容提要</title>
-<link>http://zhuanlan.zhihu.com/impress-your-cat/20250615</link>
-<description>&lt;p&gt;&lt;b&gt;把这个发出来，这样大家都可以开始写起来了。写好了，就可以赶紧发Pull Request了。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;参考资料 &lt;a class=&quot; wrap external&quot; href=&quot;https://github.com/xn--21Erlang-p00o82pmp3o/erlang-for-dummies-zh-cn/wiki&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Home · xn--21Erlang-p00o82pmp3o/erlang-for-dummies-zh-cn Wiki · GitHub&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;在第一章之前会简单介绍Erlang最最基本的功能，也就是函数和模式匹配&lt;/p&gt;&lt;p&gt;以下是第一章内容提要。注意不是目录，有些是正文，有些是习题，且不保证严格按这个顺序来。&lt;/p&gt;&lt;p&gt;&lt;br&gt;1. 写一个最原始的Lisp解释器&lt;br&gt;2. 加pattern matching&lt;br&gt;3. 用Erlang解释之前写的Erlang代码&lt;br&gt;4. 改写之前的解释器，改成自己维护call stack&lt;br&gt;5. 写一个程序，来完成4的工作&lt;br&gt;6. 加回溯&lt;br&gt;7. pattern matching升级成unification&lt;br&gt;8. 改成Prolog那样，以predicate为主的风格 (此时只有AST)&lt;br&gt;9. 用Prolog写Parser(DCG风格)来parse Prolog代码(这样就可以直接从Prolog代码开始了)&lt;br&gt;10. 让这个Prolog解释器足够解释大部分99 Prolog Problems里的答案&lt;br&gt;11. 让这个Prolog解释器足够解释Erlang解释器最早的原型&lt;br&gt;### Prolog太难用了，我们需要Datalog ###&lt;br&gt;12. Datalog之Naive/Semi Naive Evaluation&lt;br&gt;13. Datalog之QSQI&lt;br&gt;14. Datalog之Magic Set&lt;br&gt;15. Datalog之OLDT/SLG&lt;br&gt;### Datalog也可以是Parser，扔掉DCG了 ###&lt;br&gt;16.  从Datalog到CYK/Earley&lt;br&gt;17. 改成LR&lt;br&gt;18. 改成正则表达式&lt;br&gt;### 加一点backtracking回来 ###&lt;br&gt;19. Packrat&lt;br&gt;20. PCRE风格的Regex&lt;br&gt;### 来写个Shell ###&lt;br&gt;21. Erlang I/O protocol&lt;br&gt;22. 第一章这么快就结束了，简单回顾一下&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20250615</guid>
-<pubDate>Sat, 03 Oct 2015 21:17:06 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
