@@ -5,19 +5,28 @@
 <link>http://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 10 Mar 2016 16:33:37 +0800</lastBuildDate>
+<lastBuildDate>Tue, 15 Mar 2016 07:56:53 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>http://zhuanlan.zhihu.com/hllvm</link>
 </image>
 <item>
+<title>[新闻] Java局部类型推导（var）的试玩版</title>
+<link>http://zhuanlan.zhihu.com/hllvm/20646039</link>
+<description>&lt;p&gt;上一篇新闻提到了未来版本的Java（或许是Java 10）会有局部类型推导功能，也就是“var”隐式声明变量类型的功能。大家有兴趣现在就玩玩它的话，有好人build了当前的原型实现：&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//iteratrlearning.com/jep286.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;JEP 286: Type Inference for Java Builds&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;&lt;p&gt;目前该网站提供了Mac OS X和Linux版JDK build。Windows版“coming soon”。&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">20646039</guid>
+<pubDate>Tue, 15 Mar 2016 06:54:55 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
 <title>[新闻] Java也要有局部类型推导（var）了</title>
 <link>http://zhuanlan.zhihu.com/hllvm/20635474</link>
 <description>请跳传送门：&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//openjdk.java.net/jeps/286&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;JEP 286: Local-Variable Type Inference&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;&lt;p&gt;看来有希望赶上Java 10。诶终于啊。&lt;/p&gt;&lt;p&gt;等JEP 286完成之后，Java的局部类型推导就比C#的还要神奇了…看：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;strs1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Java 5 generics&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;strs2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;();&lt;/span&gt;       &lt;span class=&quot;c1&quot;&gt;// Java 7 diamond syntax&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;strs3&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;          &lt;span class=&quot;c1&quot;&gt;// JEP 286 var syntax&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;左边能推导到右边（Java 7 diamond），右边也能推导到左边（JEP 286 var），多欢乐 &amp;gt;_&amp;lt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;另外Java 10还有希望看到&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//openjdk.java.net/projects/valhalla/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Project Valhalla&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;的完成。到时候就可以写：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;xs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Valhalla: generics over value types&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;左边能推导到右边（Java 7 diamond），右边也能推导到左边（JEP 286 var），多欢乐 &amp;gt;_&amp;lt;&lt;/p&gt;&lt;p&gt;另外，C# 3.0里的var是个“&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//msdn.microsoft.com/en-us/library/the35c6y.aspx&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上下文相关关键字&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;”，也就是说只有在合适的地方写var才会被看作变量声明隐式声明类型的关键字，而其它地方（例如说作为变量名）则不算关键字而是普通标识符。JEP 286把这个设计基本找搬了，只是换了个名字叫做“reserved type name”。&lt;/p&gt;&lt;p&gt;========================================&lt;/p&gt;&lt;br&gt;&lt;p&gt;另外Java 10还有希望看到&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//openjdk.java.net/projects/valhalla/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Project Valhalla&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt;的完成。到时候就可以写：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;xs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Valhalla: generics over value types&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;好棒好棒 &amp;gt;_&amp;lt;|||&lt;/p&gt;&lt;p&gt;但Valhalla当前到了第三版原型的设计，把彻底的类型特化给抛弃了，改为只对value type做特化。泪奔啊。这就意味着当前的原型设计不让这样写：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;U&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;T&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;make&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;U&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arg0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
@@ -297,15 +306,6 @@ L_finalRet:
 <author>Belleve</author>
 <guid isPermaLink="false">20570808</guid>
 <pubDate>Sun, 14 Feb 2016 06:33:25 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[新闻][小道消息] ART又要考虑用基于LLVM的编译器了…</title>
-<link>http://zhuanlan.zhihu.com/hllvm/20569303</link>
-<description>如题。真就跟国内修公路一样，修了拆拆了修…&amp;gt;_&amp;lt; 还不知道这个传闻的准确性就是了。&lt;br&gt;&lt;p&gt;另外一方面，ART在向着使用OpenJDK类库的方面倒是有扎实的进展。看这个 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//android.googlesource.com/platform/art/%2B/6c37e9adf7afc547a0fdf4db29249f6982845162/runtime/openjdkjvm/OpenjdkJvm.cc&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;runtime/openjdkjvm/OpenjdkJvm.cc&lt;i class=&quot;icon-external&quot;&gt;&lt;/i&gt;&lt;/a&gt; 就是HotSpot的hotspot/src/share/vm/prims/jvm.cpp的对应物。&lt;/p&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">20569303</guid>
-<pubDate>Sat, 13 Feb 2016 03:10:49 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
