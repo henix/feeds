@@ -5,12 +5,59 @@
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 <description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 30 Mar 2016 21:49:29 +0800</lastBuildDate>
+<lastBuildDate>Sat, 16 Apr 2016 21:12:32 +0800</lastBuildDate>
 <image>
 <url>https://pic2.zhimg.com/b7567464789337f354d554ea0dbd28b5_xl.jpg</url>
 <title>impress your cat</title>
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 </image>
+<item>
+<title>第6/7/8/9个21天</title>
+<link>http://zhuanlan.zhihu.com/p/20760395</link>
+<description>&lt;p&gt;因为现在在最最基本的语法之后，直接就开始解释Erlang的AST了，而不是从括号语言那里取绕了。而之前的做法有个问题是，在Prolog之后才开始写parser，但是要解释Prolog就得先写个parser。现在既然已经在用AST了，那么引入parse_transform也不是什么问题。所以可以用一个简单的parse_transform把代码转换成PEG风格的parser。所以在能解释之前所有Erlang模块的AST之后，就开始写PEG parser。这样在Prolog前就有parser了，且在backtracking之前过渡更自然一点。&lt;/p&gt;&lt;p&gt;expression.erl 类似 Erlang Shell 里解释Erlang表达式的功能。比如 &lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{ok,1,[{&#39;X&#39;,1}]} = expression:eval_string(&quot;X.&quot;,[{&#39;X&#39;,1}]).
+&lt;/code&gt;&lt;p&gt;function.erl 更进一步，能解释单个模块里的函数，比如&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;function:test({module,&quot;seq.erl&quot;}).
+&lt;/code&gt;&lt;p&gt; 相当于&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ok = seq:test().
+&lt;/code&gt;&lt;p&gt;只是所有seq里的函数是由function.erl来解释的。目前，运行seq.erl, board.erl, bindings.erl, expression.erl以及function.erl都没有问题。&lt;/p&gt;&lt;p&gt;最简单的parse_transform，实现的功能相当于&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-compile(export_all).
+&lt;/code&gt;&lt;p&gt;因为是parse_transform，所以得这么用&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-compile({parse_transform, export_all}).
+&lt;/code&gt;&lt;p&gt;接下来就可以有PEG transform了。plain Erlang风格写个简单的parse整数的功能&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;digit([H|T])
+  when H &amp;gt;= $0, H =&amp;lt; $9 -&amp;gt;
+    {ok, H - $0, T};
+digit(_S) -&amp;gt;
+    error.
+
+int(Acc, S) -&amp;gt;
+    case digit(S) of
+        {ok, N, S1} -&amp;gt;
+            Acc1 = Acc*10 + N,
+            case int(Acc1, S1) of
+                {ok, N1, S2} -&amp;gt;
+                    {ok, N1, S2};
+                error -&amp;gt;
+                    {ok, Acc1, S1}
+            end;
+        error -&amp;gt;
+            error
+    end.
+&lt;/code&gt;&lt;p&gt;有了peg_transform之后，可以只关心能匹配的情况，不匹配的情况自动返回error。特别的int函数，第一个clause失败后会尝试第二个clause。&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-compile({parse_transform, peg_transform}).
+
+-rules([int/2, digit/1]).
+
+digit([H|T])
+  when H &amp;gt;= $0, H =&amp;lt; $9 -&amp;gt;
+    {ok, H - $0, T}.
+
+int(Acc, S) -&amp;gt; %%
+    {ok, N, S1} = digit(S), %%
+    int(Acc*10+N, S1);
+int(Acc, S) -&amp;gt;
+    {ok, N, S1} = digit(S),
+    {ok, Acc*10+N, S1}.
+&lt;/code&gt;&lt;p&gt;失败包括两种情况，一种是clause的pattern不匹配，另一种不匹配是发生在类似这种地方&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{ok, Expr, Remain} = rule(...)&lt;/code&gt;&lt;p&gt;利用peg_transform，就可以写一个简单的parser，替换掉 parse_util:parse_expr/1&lt;/p&gt;&lt;p&gt;这些代码都已经在 &lt;a data-title=&quot;GitHub - xn--21Erlang-p00o82pmp3o/skeleton&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/xn--21Erlang-p00o82pmp3o/skeleton&quot;&gt;GitHub - xn--21Erlang-p00o82pmp3o/skeleton&lt;/a&gt; 里更新了。&lt;/p&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">20760395</guid>
+<pubDate>Sat, 16 Apr 2016 20:50:09 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>欢迎投稿本专栏</title>
 <link>http://zhuanlan.zhihu.com/p/20689218</link>
@@ -329,15 +376,6 @@ forall A B C : Prop, (A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A
 <author>bhuztez</author>
 <guid isPermaLink="false">20412482</guid>
 <pubDate>Sat, 12 Dec 2015 23:04:32 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>第4个21天</title>
-<link>http://zhuanlan.zhihu.com/p/20377683</link>
-<description>&lt;p&gt; GitHub Pages上先把英文都删了，因为实在没法看。英文就等大家的Pull Request了。另外，你觉得有任何问题，果断开Issue或者Pull Request。&lt;a data-editable=&quot;true&quot; class=&quot;&quot; data-title=&quot;21天学通Erlang&quot; href=&quot;http://xn--21Erlang-p00o82pmp3o.github.io&quot;&gt;21天学通Erlang&lt;/a&gt;&lt;/p&gt;&lt;p&gt;按上一个21天所说的那样，删掉了之前照搬McCarthy最早的LISP。而是直接用Erlang了。 代码已经有了，文字内容还没有。&lt;/p&gt;&lt;p&gt;接下来几个21天的主要内容就是赶紧加上Backtracking和Unification变成Prolog。&lt;br&gt;&lt;/p&gt;&lt;p&gt;假如你发现了什么问题，赶紧去报告Issue。假如你有内容写好了，那赶紧来发Pull Request。&lt;a data-title=&quot;xn--21Erlang-p00o82pmp3o/erlang-for-dummies-zh-cn · GitHub&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/xn--21Erlang-p00o82pmp3o/erlang-for-dummies-zh-cn&quot;&gt;xn--21Erlang-p00o82pmp3o/erlang-for-dummies-zh-cn · GitHub&lt;/a&gt;&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20377683</guid>
-<pubDate>Sun, 29 Nov 2015 23:16:49 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
