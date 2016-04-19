@@ -5,12 +5,21 @@
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 <description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 16 Apr 2016 21:12:32 +0800</lastBuildDate>
+<lastBuildDate>Tue, 19 Apr 2016 23:13:04 +0800</lastBuildDate>
 <image>
 <url>https://pic2.zhimg.com/b7567464789337f354d554ea0dbd28b5_xl.jpg</url>
 <title>impress your cat</title>
 <link>http://zhuanlan.zhihu.com/impress-your-cat</link>
 </image>
+<item>
+<title>21天学通Erlang Slack Team</title>
+<link>http://zhuanlan.zhihu.com/p/20774580</link>
+<description>&lt;p&gt;&lt;a data-title=&quot;slack.com 的页面&quot; data-editable=&quot;true&quot; href=&quot;https://erlang3437.slack.com/&quot;&gt;https://erlang3437.slack.com/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;前两天试了一下，感觉还行，至少他还提供一个凑合的gateway支持IRC和XMPP。就去注册一个，结果Slack嫌我给的域名太长不让我注册。后来我想了一下就注册了这个域名。评论或者私信或者邮件告诉我你的邮箱，&lt;b&gt;我就赶紧把你加进去&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;第一章内容重新调整之后，现在路线是一上来，学了一点点Erlang之后，就直接用学的这些东西写一个能解释之前刚学的这部分Erlang的解释器。在自己实现调用栈之后，就加上send/recv这两个特殊函数，使得刚好功能和最原始的Erlang一致。毕竟在消息之前已经实现一些Erlang的功能了，实在没必要用Prolog再来一遍。因此，Prolog部分也可以简化，只保留比Datalog对应的过来多一点点的就够了，高级的operator功能都先无视了。这几天先会完成Prolog部分的代码。我想在6月底之前完成到Prolog那一节之前的内容，因为现在已经有PEG风格的parser了，所以主要就缺一个好的backtracking的例子了。这样一开始几个节的思路理顺了，接下来几个21天还会有很多内容出现，所以我去弄了个Slack Team方便大家吐槽。&lt;/p&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">20774580</guid>
+<pubDate>Tue, 19 Apr 2016 22:54:50 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>第6/7/8/9个21天</title>
 <link>http://zhuanlan.zhihu.com/p/20760395</link>
@@ -354,28 +363,6 @@ forall A B C : Prop, (A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A
 <author>bhuztez</author>
 <guid isPermaLink="false">20432737</guid>
 <pubDate>Sun, 20 Dec 2015 20:30:14 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>derecho</title>
-<link>http://zhuanlan.zhihu.com/p/20412482</link>
-<description>&lt;p&gt;很多公司都在开发自己的监控系统。出发点肯定是现有的并不够好用。而这个看上去很容易嘛，那就自己开发一个。(尽管我不认同这个答案的观点) &lt;a class=&quot;&quot; data-title=&quot;为什么很多公司都自主开发监控系统？（Linux运维方面） - gashero 的回答&quot; data-editable=&quot;true&quot; href=&quot;https://www.zhihu.com/question/27464246/answer/75704392&quot;&gt;为什么很多公司都自主开发监控系统？（Linux运维方面） - gashero 的回答&lt;/a&gt; 一针见血的指出了很多公司自己开发的结果是把时间都花在了怎么采集数据，怎么展示上了，往往最后还不如现成的开源的方案。这不就是在浪费时间啊。&lt;br&gt;&lt;/p&gt;&lt;p&gt;我认为他们几乎都掉进了&lt;a class=&quot;&quot; data-title=&quot;Inventor&#39;s paradox&quot; data-editable=&quot;true&quot; href=&quot;https://en.wikipedia.org/wiki/Inventor&#39;s_paradox&quot;&gt;Inventor&#39;s paradox&lt;/a&gt; 。 毫无疑问，一开始开发的时候，就会以XXX为目标，把所有XXX中需要的功能都山寨一遍，等这个OK了，替换掉XXX，接着开发自己需要的功能。这实际上是没有必要的，无非是自己给自己设限制。&lt;/p&gt;&lt;p&gt;不仅仅是机器的状态，某个端口能不能连上需要监控。更细的，比如统计IP包的Header，看看是不是有人在攻击你的服务，更贴近业务的，比如某个时间段，来自某个地区的访问是不是突然消失了，又比如付钱是不是突然都失败了。这些东西都是监控要做的。&lt;/p&gt;&lt;p&gt;转换到这种思路之后，你就不会再考虑自己去实现采集数据的功能了，因为根本就不知道会有哪些数据，而是反过来，提供一些接口，要求需要使用监控的一方自己来提供数据。有现成开源的采集数据的工具就先用着再说。展示也是类似的，提供一个取数据的接口，至于怎么展示那是需要使用监控的一方自己说了算。&lt;/p&gt;&lt;p&gt;那监控到底要做什么呢？首先当然是报警啦。而很多工具报警的功能就只针对某一个非常小的领域，要加别的类型的报警很不容易，更别说大部分实现实际上报警是定时读一下日志判断要不要报警的。报警不是单纯的发出通知就够了，肯定需要限制发送频率，也肯定需要能合并多个通知。定时读日志尽管产生报警可以做到stateless，发送报警通知是不可能做到stateless，用adhoc, informally-specified, bug-ridden, ...的方式来存这个状态，往往就是导致使用者想自己开发的导火索。&lt;/p&gt;&lt;p&gt;而这些实际上可以用Complex Event Processing/Event Stream Processing(buzzword)的形式统一起来。把一个比较通用的实时事件流分析处理的功能做好了，报警的问题就迎刃而解了。而开发这么一个东西需要的技术，在2000年前后就已经是路人皆知了。现在最推荐的是看&lt;a data-title=&quot;Portland State University CS 510-Data Streams&quot; data-editable=&quot;true&quot; href=&quot;http://web.cecs.pdx.edu/~tufte/410-510DS/&quot;&gt;Portland State University CS 510-Data Streams&lt;/a&gt;这个课程提到的相关资料。&lt;br&gt;&lt;/p&gt;&lt;p&gt;因为等了好多年，发现实在是没有堪用的。于是我决定自己写一个了。毫无疑问，这个语言得选Erlang。很多实现一个stream operator就有一个消息队列，还要弄个scheduler把这几个operator调度来调度去的。用Erlang这些事都省了。&lt;/p&gt;&lt;p&gt;当然了，现在写的这一个derecho并不会是一个实用的版本，因为现在这个还是单机的，而且是完全按顺序处理的。主要是为了尝试一个新想法，既然大部分这种流处理都是DAG，为什么不直接用Erlang代码来写呢，变量之间的依赖关系不刚好是一个DAG么，用List来代替流，测试一个查询的功能更方便直观了。&lt;/p&gt;&lt;p&gt;现在derecho只是刚刚开始，刚刚把第一个例子跑起来。就是一个非常常见的例子，计算某个拍卖物品最高竞拍价格。当你实用streams这个parse_transform的时候，streams:query里面的代码就会被转换成流的查询。而不用parse_transform，那就是对普通的List操作(这个还没写)。&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;streams:query(
-  fun (Bid) -&amp;gt;
-      Price =
-          streams:groupby(
-            fun(P) -&amp;gt;
-                    streams:aggregate(aggregate:max(price), P)
-            end,
-            item,
-            Bid),
-      {Price}
-  end,
-  [bid],
-  [bid_price]),
-&lt;/code&gt;&lt;p&gt;欢迎各种Issue/Pull Request&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;&quot; data-title=&quot;bhuztez/derecho · GitHub&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/bhuztez/derecho&quot;&gt;bhuztez/derecho · GitHub&lt;/a&gt;&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20412482</guid>
-<pubDate>Sat, 12 Dec 2015 23:04:32 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
