@@ -5,12 +5,56 @@
 <link>http://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 03 Apr 2016 12:36:43 +0800</lastBuildDate>
+<lastBuildDate>Sun, 24 Apr 2016 15:30:14 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>http://zhuanlan.zhihu.com/hllvm</link>
 </image>
+<item>
+<title>ChakraCore的dump开关</title>
+<link>http://zhuanlan.zhihu.com/p/20792855</link>
+<description>&lt;a href=&quot;https://github.com/Microsoft/ChakraCore&quot; data-editable=&quot;true&quot; data-title=&quot;ChakraCore&quot;&gt;ChakraCore&lt;/a&gt;开源也有一阵了，作为最后开源的一个主流JS引擎，在GitHub上已经有了5000+的star，说明有很多人关注。对于想要研究ChakraCore的童鞋，如果直接从代码入手，不太容易下手和实验。对此，ChakraCore已经自带了不少dump开关来输出整个编译过程的中间结果，可以据此一窥整个编译的过程。这里就介绍下ChakraCore里面的常用dump开关。&lt;p&gt;ChakraCore编译出来是chakracore.dll，如果不想自己写一个host，可以用ChakraCore自带的host CH.exe. CH.exe使用的是JSRT接口来访问ChakraCore的编译功能。比如用ChakraCore运行下面的JS文件。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function foo(a, b) {
+    return a + b
+}
+
+print(foo(3, 4))
+
+print(foo(5, 6))&lt;/code&gt;当CH.exe和chakracore.dll都编译好后（CH.exe依赖于后者，所以只要在Visual Studio编译CH.exe就可以），可以运行 “ch.exe foo.js -bgjit- -maxinterpretercount:1 -off:simplejit -dump:backend&quot;, 这样除了script运行的输出，编译的时候的中间结果也会输出到控制台。西面先解释下上面传入的各个参数。&lt;ul&gt;&lt;li&gt;-bgjit-，禁止JIT运行的background线程。ChakraCore里面JIT默认运行在专门的线程里面接收script线程发来的编译请求（CodeGenWorkItem), 这样的好处是不会阻塞script线程继续运行（interpret），但是也会给调试过程带来不确定性，所以不是调试相关的bug可以关掉。&lt;/li&gt;&lt;li&gt;-maxinterpretercount:1, 仅允许Javascript function被interpret一次。ChakraCore里面有Interpreter, SimpleJit, FullJit, 优化程度和耗时是依次递增，比较hot的函数也会一次进入这几个阶段。ChakraCore里面有heuristic机制来决定function何时进入下一个阶段。Debug的时候自然不能依赖这个来进入JIT，所以对interpret count设置固定值。一般这里推荐设置成1而不是0，因为需要运行一次interpreter来收集profile data供后面JIT使用。另外这个选项可以缩写成 &quot;-mic:1&quot;。&lt;/li&gt;&lt;li&gt;off:simplejit，关掉SimpleJIT。这个作为第二层优化，比FullJIT简单很多，作为interpreter和FullJIT之间的一个平衡，研究中可以关掉。&lt;/li&gt;&lt;li&gt;-dump:backend，输出JIT过程中的中间结果。Chakra的JIT分成了很多个phase（这个和UTC（VC++的c2.dll）很像，但是相比还是简单很多，其实phase dump也和UTC的很像，不得不说ChakraCore的JIT受了UTC的很大影响），第一个phase是IRBuilder把Parser生成的bytecode转成内部的IR结构（intermediate representation），后面典型的phase有Inline, GlobOpt, Lower, Encoder等。每个phase都会在IR上收集些信息供后面的phase使用，或者直接在IR上做变换。运行 ”ch.exe -?&quot;就可以看到phase列表。这里会列出相当多的phase，但实际上并不代表ChakraCore有这么多阶段来做优化，里面很多phase实际上代表了中比较具体的优化，这样可以通过 &quot;-off&quot; 选项来关闭相关的优化，比如CSE (common sub-expression elimination)，CopyProp都被列为一个phase，但是他们都是在GlobOpt里面做的。&quot;-dump&quot; 选项接收一个实际的phase做参数（比如IRBuilder, Lower)从而在相关phase结束后dump相应的中间结果。在研究JIT bug的是有经常需要把JIT的所有phase的结果都dump出来看看是哪个phase除了问题，全部都写上比较浪费时间，就有了一个“backend”来代表所有的phases。ChkaraCore的JIT主要是针对function的（另外一个是loop），这样dump一个有很多function的JS文件而已知问题出在某个function里面的时候，会很不方便，这里的dump选项还接受一个function Id来过滤，比如“-dump:backend:1” （function Id可以在不带function Id过滤的dump里面找到，如下面“#1.1”后面的1就是）。后续再介绍这里其他数字（从源代码也比较容易看出来）和每条IR的意思。最后需要注意的是所有的dump代码指编译在Debug版本的chakracore.dll里。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;上面的JS在ChakraCore里面的实际dump如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;-----------------------------------------------------------------------------
+
+
+
+************   IR after IRBuilder (FullJit)  ************
+-----------------------------------------------------------------------------
+Function foo ( (#1.1), #2)                        Instr Count:13
+
+                       FunctionEntry                                          #
+    s1[Object].var  =  Ld_A           0xXXXXXXXX (GlobalObject)[Object].var   #
+    s2[LikelyCanBeTaggedValue_Int].var = ArgIn_A  prm2&amp;lt;40&amp;gt;.var                #
+    s3[LikelyCanBeTaggedValue_Int].var = ArgIn_A  prm3&amp;lt;48&amp;gt;.var                #
+
+
+  Line   2: return a + b
+  Col    5: ^
+                       StatementBoundary  #0                                  #0000
+    s0.var          =  Add_A          s2.var, s3.var                          #0000
+                       Br             $L1                                     #0004
+    s0.var          =  Ld_A           0xXXXXXXXX (undefined)[Undefined].var   #0007
+$L1:                                                                          #0009
+
+
+  Line   3: }
+  Col    1: ^
+                       StatementBoundary  #1                                  #0009
+                       StatementBoundary  #-1                                 #0009
+                       Ret            s0.var                                  #0009
+
+                       FunctionExit                                           #&lt;/code&gt;</description>
+<author>Thomson</author>
+<guid isPermaLink="false">20792855</guid>
+<pubDate>Sat, 23 Apr 2016 14:51:47 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>lisp0</title>
 <link>http://zhuanlan.zhihu.com/p/20689554</link>
@@ -293,15 +337,6 @@ L_finalRet:
 <guid isPermaLink="false">20581695</guid>
 <pubDate>Thu, 18 Feb 2016 15:44:23 +0800</pubDate>
 <media:thumbnail url="" />
-</item>
-<item>
-<title>[新闻][JavaScript引擎] WebKit JavaScriptCore用新的B3编译器后端替代FTL JIT中的LLVM</title>
-<link>http://zhuanlan.zhihu.com/p/20577490</link>
-<description>&lt;p&gt;传送门：&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://webkit.org/blog/5852/introducing-the-b3-jit-compiler/&quot; data-editable=&quot;true&quot; data-title=&quot;Introducing the B3 JIT Compiler&quot; class=&quot;&quot;&gt;Introducing the B3 JIT Compiler&lt;/a&gt; &amp;lt;- 这篇介绍写得非常好，清晰的讲解了B3的设计目的、思路和效果。&lt;br&gt;&lt;/li&gt;&lt;li&gt;B3文档：&lt;a href=&quot;https://webkit.org/docs/b3/&quot; data-editable=&quot;true&quot; data-title=&quot;Bare Bones Backend&quot;&gt;Bare Bones Backend&lt;/a&gt;&lt;/li&gt;&lt;li&gt;B3 IR文档：&lt;a href=&quot;https://webkit.org/docs/b3/intermediate-representation.html&quot; data-editable=&quot;true&quot; data-title=&quot;B3 Intermediate Representation&quot;&gt;B3 Intermediate Representation&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;Filip大大再次立功。苹果内部果然也开撕了嘛…&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这次更新后，JavaScriptCore仍旧会使用4层编译系统：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;第1层：解释器 LLInt&lt;br&gt;&lt;/li&gt;&lt;li&gt;第2层：简易非优化JIT编译器 Baseline JIT&lt;/li&gt;&lt;li&gt;第3层：优化JIT编译器 DFG JIT&lt;/li&gt;&lt;li&gt;第4层：高度优化JIT编译器 FTL JIT&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;只不过，这个FTL的意思变了：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;老：Fourth Tier LLVM = DFG++（高层优化） + LLVM（底层优化）&lt;br&gt;&lt;/li&gt;&lt;li&gt;新：Faster Than Light = DFG++（高层优化） + B3（底层优化）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;…名字的更新当然是故意的。以前就有人开玩笑说FTL是faster than light，现在把LLVM扔掉了这名字就干脆也改过来了。&lt;/p&gt;&lt;p&gt;可以看到其实这个新的B3后端并不是把整个FTL JIT给重写了，而只是替换掉了其中负责底层优化的LLVM部分而已。&lt;/p&gt;&lt;br&gt;&lt;p&gt;不得不说Filip大大带的JavaScriptCore团队还挺厉害的。去年10月开始写这个新的名为“B3”的后端，过了4个月就已经上了正轨了。&lt;/p&gt;&lt;p&gt;B3本质上是对LLVM的剪裁与特化，针对JavaScriptCore的需求而生。它与LLVM在相似的抽象层，B3 IR的构造API也与LLVM IR相似，这样FTL::Output就可以方便的从原本构造LLVM IR切换到构造B3 IR。换句话说，扔掉的是LLVM“&lt;i&gt;臃肿&lt;/i&gt;”的实现，而保留下的是LLVM的优化的精髓。当然“&lt;i&gt;臃肿&lt;/i&gt;”是相对FTL的应用场景而言的（？）。&lt;/p&gt;&lt;p&gt;这个B3后端最最核心的关注点就是减少内存开销。这再次展示了&lt;b&gt;编译器中IR在内存里的布局对编译速度的影响&lt;/b&gt;——但主要关注AOT编译场景的编译器（例如GCC和LLVM）大多不够注重这一点。在FTL JIT里，LLVM编译出来的代码质量虽然不错，但是编译速度在许多运行时间不够长的场景里就显得太慢了，用户程序都跑完了LLVM还没编译完。&lt;/p&gt;&lt;p&gt;以前跟JRockit的JIT编译器开发聊天的时候，他们也提到JRockit的JIT编译器IR有过一次重要的更新，大幅减少了内存开销而并没有做什么别的特别优化，光是这样就让编译速度提升了50%而编译出来的代码质量与以前一样。JRockit减少编译器IR的内存开销主要是通过几种思路：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;减少数据结构中指针的使用，改为用更紧凑的整数ID/下标来表示引用关系；&lt;/li&gt;&lt;li&gt;尽量用固定大小的结构表示常用信息，而把可变长并且不常用的信息挪到外部；&lt;/li&gt;&lt;li&gt;尽量把数据紧凑的放在数组/vector里。&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;无独有偶，B3的思路和JRockit非常非常相似。这也是比较新的、干净的IR设计流行的做法。&lt;/p&gt;&lt;p&gt;B3为了减少内存开销，还把LLVM IR中的use-def/def-use双向链接中的def-use信息抛弃了。一个def无法直接找到自己的所有use，就无法直接完成“Replace All Uses With”操作；但要替换IR指令还是可以通过遍历一次IR图来做到。&lt;/p&gt;&lt;p&gt;不在IR里记录def-use信息是的有趣的取舍；HotSpot Client Compiler（C1）与Maxine C1X也采用了类似的设计，只为了SSA而记录use-def信息，但不记录def-use信息。这个设计在C1里却造成了一些很悲催的坑：C1 HIR的指令替换只能一条对一条的做——一条HIR指令可以被另外一条HIR指令所替代，但是一条新的指令却无法替代多条老的指令，因为不遍历一次整个IR就无法知道老指令有没有被其它地方用到（同时C1也无法让多条新指令替代一条老指令，不过那是另一个问题）。这设计导致&lt;a href=&quot;http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/87ee5ee27509/src/share/vm/c1/c1_Canonicalizer.cpp#l713&quot; data-editable=&quot;true&quot; data-title=&quot;C1某些优化被“永久禁用”&quot;&gt;C1某些优化被“永久禁用”&lt;/a&gt;，导致C1X的&lt;a href=&quot;https://kenai.com/projects/maxine/sources/maxine/content/com.oracle.max.c1x/src/com/sun/c1x/opt/DiamondEliminator.java?rev=8812&quot; data-editable=&quot;true&quot; data-title=&quot;DiamondEliminator&quot; class=&quot;&quot;&gt;DiamondEliminator&lt;/a&gt;如此难看、而&lt;a href=&quot;https://kenai.com/projects/maxine/sources/maxine/content/com.oracle.max.c1x/src/com/sun/c1x/opt/SCCPropagator.java?rev=8812&quot; data-editable=&quot;true&quot; data-title=&quot;SCCPropagator&quot; class=&quot;&quot;&gt;SCCPropagator&lt;/a&gt;实现起来太麻烦以致没人去实现它。&lt;/p&gt;&lt;p&gt;但C1 / C1X的HIR还是用单向链表连在一起的，而B3 IR是用数组（vector）为容器，如果要实现批量插入新IR节点那肯定得仔细处理才能让效率高。B3的解决方案是在一个pass里把需要对IR做的修改放进&lt;a href=&quot;https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/b3/B3InsertionSet.h&quot; data-title=&quot;InsertionSet&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;InsertionSet&lt;/a&gt;里，等到下次遍历整个IR图时再去批量插入IR。这对JavaScriptCore倒不是什么新概念——DFG自己其实早就有&lt;a href=&quot;https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/dfg/DFGInsertionSet.h&quot; data-editable=&quot;true&quot; data-title=&quot;InsertionSet&quot;&gt;InsertionSet&lt;/a&gt;了。可见Filip大大还是不禁觉得自己的设计比LLVM好哇。&lt;/p&gt;&lt;p&gt;B3 IR里还藏了些原本LLVM没有但DFG已经有的私货，例如&lt;a href=&quot;https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/b3/B3UpsilonValue.h&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;webkit/B3UpsilonValue.h at master · WebKit/webkit · GitHub&quot;&gt;UpsilonValue&lt;/a&gt;。这是DFG所采用的特殊的SSA形式的组成部分，既然要扔掉LLVM，就干脆把B3的SSA形式也向DFG靠拢。&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;B3 IR里一些复合控制流的IR指令设计也是个有趣的点。用Graal的术语来说，这就是在IR层面上用更显式的方式来表达&lt;b&gt;Guard&lt;/b&gt;。在IR层面上保留Guard的语义，而不急于将其lower到普通的if + deoptimization，对干净的实现某些优化（例如guard的提升与合并）还挺重要的。&lt;/p&gt;&lt;br&gt;&lt;p&gt;B3目前采用的寄存器分配器是一个graph coloring算法的变种，叫做&lt;a href=&quot;https://www.cs.princeton.edu/research/techreps/TR-498-95&quot; data-editable=&quot;true&quot; data-title=&quot;Iterated Register Coalescing&quot; class=&quot;&quot;&gt;Iterated Register Coalescing&lt;/a&gt;（IRC）。LLVM默认的寄存器分配器则是一种linear scan算法的比较复杂的变种，叫做Greedy。Greedy虽然比原始的linear scan慢一些，但是总体来说还是比graph coloring系的算法快而效果相近。所以Filip大大也说会一边继续优化B3基于IRC的寄存器分配器，一边考虑&lt;a href=&quot;https://bugs.webkit.org/show_bug.cgi?id=153797&quot; data-editable=&quot;true&quot; data-title=&quot;把Greedy分配算法移植到JavaScriptCore里&quot; class=&quot;&quot;&gt;把Greedy分配算法移植到JavaScriptCore里&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;LLVM的Greedy寄存器分配器近来还挺流行的。V8 TurboFan&lt;a href=&quot;https://codereview.chromium.org/1061923005/&quot; data-title=&quot;尝试过移植它&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;尝试过移植它&lt;/a&gt;（虽然目前被撤销了，但以后或许还会再放进来），&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=814966&quot; data-title=&quot;IonMonkey&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;IonMonkey&lt;/a&gt;也&lt;a href=&quot;http://hg.mozilla.org/mozilla-central/file/tip/js/src/jit/BacktrackingAllocator.h&quot; data-title=&quot;实现了它&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;实现了它&lt;/a&gt;。Hmm。&lt;/p&gt;&lt;br&gt;&lt;p&gt;====================================================&lt;/p&gt;&lt;p&gt;同事Philip Reames也发表了对B3的看法：&lt;a href=&quot;http://www.philipreames.com/Blog/2016/02/15/quick-thoughts-on-webkits-b3/&quot; data-editable=&quot;true&quot; data-title=&quot;philipreames.com 的页面&quot; class=&quot;&quot;&gt;Quick thoughts on WebKit’s B3&lt;/a&gt;&lt;/p&gt;&lt;p&gt;显然，作为我们这边的重度LLVM用户和开发，Philip大大对B3颇有微词 &amp;gt;_&amp;lt;&lt;/p&gt;&lt;p&gt;====================================================&lt;br&gt;&lt;/p&gt;&lt;p&gt;题图跟本文的主题有什么关系，大家知道不？^_^&lt;/p&gt;&lt;p&gt;（题图引用自&lt;a href=&quot;http://faf.jp/info_spe1.html&quot; data-editable=&quot;true&quot; data-title=&quot;í“¬—d¸á•&quot; class=&quot;&quot;&gt;戦闘妖精雪風&lt;/a&gt;，（ｃ）２００２ 神林長平・早川書房／バンダイビジュアル・ビクターエンタテインメント・ＧＯＮＺＯ）&lt;/p&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">20577490</guid>
-<pubDate>Wed, 17 Feb 2016 04:05:15 +0800</pubDate>
-<media:thumbnail url="https://pic2.zhimg.com/2f994cb65c4e8ddbeedccb101c97e689_r.jpg" />
 </item>
 </channel>
 </rss>
