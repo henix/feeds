@@ -2,18 +2,39 @@
 <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
 <channel>
 <title>impress your cat</title>
-<link>http://zhuanlan.zhihu.com/impress-your-cat</link>
+<link>https://zhuanlan.zhihu.com/impress-your-cat</link>
 <description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 19 Apr 2016 23:13:04 +0800</lastBuildDate>
+<lastBuildDate>Fri, 15 Jul 2016 12:13:05 +0800</lastBuildDate>
 <image>
 <url>https://pic2.zhimg.com/b7567464789337f354d554ea0dbd28b5_xl.jpg</url>
 <title>impress your cat</title>
-<link>http://zhuanlan.zhihu.com/impress-your-cat</link>
+<link>https://zhuanlan.zhihu.com/impress-your-cat</link>
 </image>
 <item>
+<title>函数式-21天入门教程</title>
+<link>https://zhuanlan.zhihu.com/p/21601402</link>
+<description>&lt;p&gt;老是有人问函数式要如何入门。我早就说过了，只要识字的人，函数式就已经入门了 。所以当然-21天就可以入门了。&lt;/p&gt;&lt;p&gt;在原始APL里，求平均数，通常的写法是&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;avg←{(+⌿⍵)÷≢⍵}
+&lt;/code&gt;&lt;p&gt;而J，求平均数&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;avg =: +/ % #
+&lt;/code&gt;&lt;p&gt;J相对原始APL的一大改进就是我们不再需要使用⍺⍵&lt;/p&gt;&lt;p&gt;J使用了 [ 和 ] 这两个函数&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;x [ y = x
+x ] y = y
+&lt;/code&gt;&lt;p&gt;这样用J使用纯函数风格组合新函数时，所有用到的都是函数，毕竟 [ ] 是真正普通函数，而⍺⍵并不是。&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;这对我们有何启发呢？我们平时是如何说平均数的&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;相加 除以 项数
++/   %   #
+&lt;/code&gt;&lt;p&gt;除了J是从右向左计算的，我们是从左往右计算的，写法上并没有本质区别。相对应/，加对应+。 Alan J. Perlis 早就说过了 Though the Chinese should adore APL, it&#39;s FORTRAN they put their money on。APL你对应不起来还情有可原。J这个都已经完全一样了，你要是还看不出来，那我不禁要问，你到底识不识字了。&lt;/p&gt;&lt;p&gt;我们用西方不识字的人搞出来的文字理论，当然会觉得有各种省略， 各种倒序，各种词性乱用。明明很自然的说法，用这狗屁理论解释不通，那自然是理论有问题。 &lt;br&gt;&lt;/p&gt;&lt;p&gt;看看九章算术&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;合分术曰
+母互乘子并以为实
+...
+&lt;/code&gt;&lt;p&gt;你非要因为母指的是分母，认为这个是名词。那当然解释不通了。因为我们的文字从两千多年前就是函数式的，你得把母当成一个函数，作用是取出分母，那就全都能解释通了。&lt;/p&gt;&lt;p&gt;用类似ML的风格，近似可以写成这样&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let 合(x:[分,分]) =
+  ...
+  where
+    实 = 并(互(乘)((母 x), (子 x)))&lt;/code&gt;&lt;p&gt;这就导致了一个问题，你的代码就没法朗读了。&lt;/p&gt;&lt;p&gt;所以说，函数式你早就已经入门了，掌握的还是更高级的形式。而不是Haskell里那种 (.) . (.) 。&lt;/p&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">21601402</guid>
+<pubDate>Fri, 15 Jul 2016 11:40:06 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
 <title>21天学通Erlang Slack Team</title>
-<link>http://zhuanlan.zhihu.com/p/20774580</link>
+<link>https://zhuanlan.zhihu.com/p/20774580</link>
 <description>&lt;p&gt;&lt;a data-title=&quot;slack.com 的页面&quot; data-editable=&quot;true&quot; href=&quot;https://erlang3437.slack.com/&quot;&gt;https://erlang3437.slack.com/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;前两天试了一下，感觉还行，至少他还提供一个凑合的gateway支持IRC和XMPP。就去注册一个，结果Slack嫌我给的域名太长不让我注册。后来我想了一下就注册了这个域名。评论或者私信或者邮件告诉我你的邮箱，&lt;b&gt;我就赶紧把你加进去&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;第一章内容重新调整之后，现在路线是一上来，学了一点点Erlang之后，就直接用学的这些东西写一个能解释之前刚学的这部分Erlang的解释器。在自己实现调用栈之后，就加上send/recv这两个特殊函数，使得刚好功能和最原始的Erlang一致。毕竟在消息之前已经实现一些Erlang的功能了，实在没必要用Prolog再来一遍。因此，Prolog部分也可以简化，只保留比Datalog对应的过来多一点点的就够了，高级的operator功能都先无视了。这几天先会完成Prolog部分的代码。我想在6月底之前完成到Prolog那一节之前的内容，因为现在已经有PEG风格的parser了，所以主要就缺一个好的backtracking的例子了。这样一开始几个节的思路理顺了，接下来几个21天还会有很多内容出现，所以我去弄了个Slack Team方便大家吐槽。&lt;/p&gt;</description>
 <author>bhuztez</author>
 <guid isPermaLink="false">20774580</guid>
@@ -22,7 +43,7 @@
 </item>
 <item>
 <title>第6/7/8/9个21天</title>
-<link>http://zhuanlan.zhihu.com/p/20760395</link>
+<link>https://zhuanlan.zhihu.com/p/20760395</link>
 <description>&lt;p&gt;因为现在在最最基本的语法之后，直接就开始解释Erlang的AST了，而不是从括号语言那里取绕了。而之前的做法有个问题是，在Prolog之后才开始写parser，但是要解释Prolog就得先写个parser。现在既然已经在用AST了，那么引入parse_transform也不是什么问题。所以可以用一个简单的parse_transform把代码转换成PEG风格的parser。所以在能解释之前所有Erlang模块的AST之后，就开始写PEG parser。这样在Prolog前就有parser了，且在backtracking之前过渡更自然一点。&lt;/p&gt;&lt;p&gt;expression.erl 类似 Erlang Shell 里解释Erlang表达式的功能。比如 &lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{ok,1,[{&#39;X&#39;,1}]} = expression:eval_string(&quot;X.&quot;,[{&#39;X&#39;,1}]).
 &lt;/code&gt;&lt;p&gt;function.erl 更进一步，能解释单个模块里的函数，比如&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;function:test({module,&quot;seq.erl&quot;}).
 &lt;/code&gt;&lt;p&gt; 相当于&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ok = seq:test().
@@ -69,7 +90,7 @@ int(Acc, S) -&amp;gt;
 </item>
 <item>
 <title>欢迎投稿本专栏</title>
-<link>http://zhuanlan.zhihu.com/p/20689218</link>
+<link>https://zhuanlan.zhihu.com/p/20689218</link>
 <description>&lt;p&gt;假如您看得上只有仅仅2K+粉丝的专栏，刚好又没有专栏。任何和编程或者形式证明相关的，特别是能和Erlang, APL(包括APL家族的A+, J, K等等), Metamath等扯上关系的，欢迎来稿。&lt;/p&gt;&lt;p&gt;根据知乎专栏的新玩法，在知乎允许的范围(我也懒得了解了)内，假如有幸收录您的一篇投稿，就会把您列为作者之一，也就是下一次就可以直接发了。 (不知道能不能抢文章，那样就好玩了) &lt;/p&gt;</description>
 <author>bhuztez</author>
 <guid isPermaLink="false">20689218</guid>
@@ -78,7 +99,7 @@ int(Acc, S) -&amp;gt;
 </item>
 <item>
 <title>向OJ提交编译出来的汇编代码2</title>
-<link>http://zhuanlan.zhihu.com/p/20656358</link>
+<link>https://zhuanlan.zhihu.com/p/20656358</link>
 <description>&lt;p&gt;之前只是解决了是否可能的问题。真正要能用，还是要把代码长度控制在允许的范围内。 &lt;br&gt;&lt;/p&gt;&lt;p&gt;一是需要压缩率更高的算法&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;&quot; data-title=&quot;如何提高写在C语言里的汇编代码的压缩率？ - 知乎用户的回答&quot; data-editable=&quot;true&quot; href=&quot;https://www.zhihu.com/question/39504416/answer/88728975&quot;&gt;如何提高写在C语言里的汇编代码的压缩率？ - 知乎用户的回答&lt;/a&gt;&lt;/p&gt;&lt;p&gt;二是用gcc编译时，加上参数 -fwhole-program 而不是通常的 -flto &lt;br&gt;&lt;/p&gt;&lt;p&gt;这样提交上去的代码长度不少就只有10K左右了。而算法库的源代码目前都已经接近50K了，无脑复制成一个文件已经没啥OJ会接受了。&lt;/p&gt;</description>
 <author>bhuztez</author>
 <guid isPermaLink="false">20656358</guid>
@@ -87,7 +108,7 @@ int(Acc, S) -&amp;gt;
 </item>
 <item>
 <title>Awesome Ancient Chinese Books</title>
-<link>http://zhuanlan.zhihu.com/p/20627628</link>
+<link>https://zhuanlan.zhihu.com/p/20627628</link>
 <description>&lt;p&gt;&lt;a class=&quot;&quot; data-title=&quot;GitHub - bhuztez/awesome-ancient-chinese-books: A curated list of awesome chinese books&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/bhuztez/awesome-ancient-chinese-books&quot;&gt;GitHub - bhuztez/awesome-ancient-chinese-books: A curated list of awesome chinese books&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;暂时没时间维护。先把坑挖开，&lt;b&gt;求支持&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;目标就是整理个目录，把网上能找到的古籍的地址按书名记录好，以便查阅。 &lt;/p&gt;&lt;p&gt;主要是为了以后开发中文编程语言时有据可循，而不是自己胡编乱造&lt;/p&gt;&lt;p&gt;就是这样&lt;/p&gt;</description>
 <author>bhuztez</author>
 <guid isPermaLink="false">20627628</guid>
@@ -96,7 +117,7 @@ int(Acc, S) -&amp;gt;
 </item>
 <item>
 <title>[黑魔法]Python模拟HTML表单提交</title>
-<link>http://zhuanlan.zhihu.com/p/20612720</link>
+<link>https://zhuanlan.zhihu.com/p/20612720</link>
 <description>&lt;p&gt;application/x-www-form-urlencoded这种比较简单就不讨论了。&lt;/p&gt;&lt;p&gt;multipart/form-data就比较麻烦了。搜了一下结果发现要么是远古时期的，要么就是推荐requests。有必要这么麻烦么？Python明明自带MIME库了，为啥就没人推荐用标准库的方法？只能自己来了&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;from urllib2 import Request
 from email.message import Message
 
@@ -141,7 +162,7 @@ def make_request(url,form_data):
 </item>
 <item>
 <title>barelibc问题修复及其他</title>
-<link>http://zhuanlan.zhihu.com/p/20521163</link>
+<link>https://zhuanlan.zhihu.com/p/20521163</link>
 <description>&lt;p&gt;&lt;a data-title=&quot;bhuztez/barelibc&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/bhuztez/barelibc&quot;&gt;bhuztez/barelibc&lt;/a&gt;&lt;/p&gt;&lt;p&gt;在&lt;a class=&quot;&quot; data-title=&quot;为什么链接时__libc_start_main和__syscall行为不同？ - bsdelf 的回答&quot; data-editable=&quot;true&quot; href=&quot;https://www.zhihu.com/question/39519315/answer/81747490&quot;&gt;为什么链接时__libc_start_main和__syscall行为不同？ - bsdelf 的回答&lt;/a&gt;的启发下，我把 __syscall 挪到 crt1.o 里去了，免得被覆盖还不知道。&lt;/p&gt;&lt;p&gt;之前可能没提用barelibc也可以支持一部分C++了。注意编译的命令是 gcc 而不是 g++，不然会链接 libstdc++ ，就见鬼了。&lt;/p&gt;&lt;p&gt;--------------------------&lt;/p&gt;&lt;p&gt;正式开始在刷题的库。主要卖点是写完运行一行命令可以生成能提交到OJ的代码。在正式发布之前暂时不会公开源代码。假如你手上有很多现成优质代码捐赠给我，那果断加入吧。&lt;br&gt;&lt;/p&gt;&lt;p&gt;没代码，你也可以来完善这个TODO list。目标是收集各种topic，可能出现的题型，以及每个题型一个例题。以便我的库能覆盖所有常见题型。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;&quot; data-title=&quot;oj-solutions/TODO.md at master · bhuztez/oj-solutions · GitHub&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/bhuztez/oj-solutions/blob/master/TODO.md&quot;&gt;oj-solutions/TODO.md at master · bhuztez/oj-solutions · GitHub&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;欢迎Pull Request &lt;/p&gt;&lt;p&gt;--------------------------&lt;/p&gt;&lt;p&gt;另外，第6个21天的更新会和第7个21天一起发布&lt;/p&gt;</description>
 <author>bhuztez</author>
 <guid isPermaLink="false">20521163</guid>
@@ -150,7 +171,7 @@ def make_request(url,form_data):
 </item>
 <item>
 <title>向OJ提交编译出来的汇编代码</title>
-<link>http://zhuanlan.zhihu.com/p/20494114</link>
+<link>https://zhuanlan.zhihu.com/p/20494114</link>
 <description>&lt;p&gt; 比如 x.c 的内容如下&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;asm(&quot;\t.globl main\n&quot;
 &quot;\t.type main,@function\n&quot;
 &quot;main:\n&quot;
@@ -178,7 +199,7 @@ asm(&quot;...&quot;M&quot;...&quot;)
 </item>
 <item>
 <title>Coq sucks.</title>
-<link>http://zhuanlan.zhihu.com/p/20441953</link>
+<link>https://zhuanlan.zhihu.com/p/20441953</link>
 <description>&lt;p&gt;珍爱生命，远离Coq邪教。 &lt;a class=&quot;&quot; data-title=&quot;传教文：Coq - The Dairy of Marisa - 知乎专栏&quot; data-editable=&quot;true&quot; href=&quot;http://zhuanlan.zhihu.com/marisa/20439796&quot;&gt;传教文：Coq - The Dairy of Marisa - 知乎专栏&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Coq超级难入门啊。比如我前1024次尝试都以失败告终。装完Coq之后就不知道自己在干什么了，就没找到一个能看的教程。&lt;/p&gt;&lt;p&gt;(以下内容根据官方教程改编。) &lt;/p&gt;&lt;p&gt;不推荐先用CoqIDE或者Proof General &lt;br&gt;&lt;/p&gt;&lt;p&gt;先学会退出&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ coqtop
 Welcome to Coq ......
 
@@ -354,15 +375,6 @@ forall A B C : Prop, (A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A
 <author>bhuztez</author>
 <guid isPermaLink="false">20441953</guid>
 <pubDate>Wed, 23 Dec 2015 22:24:49 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>第5个21天</title>
-<link>http://zhuanlan.zhihu.com/p/20432737</link>
-<description>&lt;p&gt;调整了git仓库的名字，改成book了。GitHub Pages上也加上了链接。重新生成了PDF。&lt;/p&gt;&lt;p&gt;之前老是写完了不满意重写，反反复复两个小节都没写完。现在特别开了skeleton仓库(&lt;a data-title=&quot;xn--21Erlang-p00o82pmp3o/skeleton · GitHub&quot; data-editable=&quot;true&quot; class=&quot;&quot; href=&quot;https://github.com/xn--21Erlang-p00o82pmp3o/skeleton&quot;&gt;xn--21Erlang-p00o82pmp3o/skeleton · GitHub&lt;/a&gt;)，先把想到的都记下来，降低反馈以及参与的难度。等skeleton里讨论了差不多了再挪到book里。&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以赶紧来吐槽，来补充内容吧。&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20432737</guid>
-<pubDate>Sun, 20 Dec 2015 20:30:14 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
