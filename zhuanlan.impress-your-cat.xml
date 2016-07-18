@@ -5,12 +5,21 @@
 <link>https://zhuanlan.zhihu.com/impress-your-cat</link>
 <description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 15 Jul 2016 12:13:05 +0800</lastBuildDate>
+<lastBuildDate>Mon, 18 Jul 2016 23:46:39 +0800</lastBuildDate>
 <image>
 <url>https://pic2.zhimg.com/b7567464789337f354d554ea0dbd28b5_xl.jpg</url>
 <title>impress your cat</title>
 <link>https://zhuanlan.zhihu.com/impress-your-cat</link>
 </image>
+<item>
+<title>强烈推荐untrusted</title>
+<link>https://zhuanlan.zhihu.com/p/21636039</link>
+<description>&lt;p&gt;&lt;a class=&quot;&quot; href=&quot;http://alexnisnevich.github.io/untrusted/&quot;&gt;http://alexnisnevich.github.io/untrusted/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;不是什么新东西。不要怪我老土。 &lt;br&gt;&lt;/p&gt;&lt;p&gt;很多所谓的教你学编程的游戏都非常无趣，他们总是站在居高临下的角度以怎么教你学习一点比如程序语言的知识。而且这也没有多大意义。学会trial and error，比掌握一点可怜的知识重要多了。因为思路的限制，大部分都做成了几个bot打来打去这种形式。而像Robocode这种单纯的bot对战，入门就比较困难，比这更糟糕的是，之后更困难，你在会写一些基于简单规则的bot之后直接就不知所措了。 &lt;/p&gt;&lt;p&gt;untrusted的目标只是做一个好玩的复古的游戏，你使用规定的方式作弊才能进入下一关。我认为这很可能是未来大部分计算机游戏(不要与视频游戏混淆)的起点。同时，尽管他们在开发时并没有考虑什么教育意义，用这个untrusted来入门，比其他你在网上找到的什么东西都强。目标明确，让你自己想办法去作弊，而不是生硬的塞给你一点知识。毫无疑问，把这个玩通关，效果就要比比如萧井陌的2K培训强多了。顺便提一下另外一个用Python的类似的游戏 &lt;a href=&quot;https://schilcote.itch.io/injection&quot;&gt;https://schilcote.itch.io/injection&lt;/a&gt;&lt;/p&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">21636039</guid>
+<pubDate>Mon, 18 Jul 2016 23:03:30 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>函数式-21天入门教程</title>
 <link>https://zhuanlan.zhihu.com/p/21601402</link>
@@ -195,186 +204,6 @@ asm(&quot;...&quot;M&quot;...&quot;)
 <author>bhuztez</author>
 <guid isPermaLink="false">20494114</guid>
 <pubDate>Tue, 12 Jan 2016 18:57:45 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>Coq sucks.</title>
-<link>https://zhuanlan.zhihu.com/p/20441953</link>
-<description>&lt;p&gt;珍爱生命，远离Coq邪教。 &lt;a class=&quot;&quot; data-title=&quot;传教文：Coq - The Dairy of Marisa - 知乎专栏&quot; data-editable=&quot;true&quot; href=&quot;http://zhuanlan.zhihu.com/marisa/20439796&quot;&gt;传教文：Coq - The Dairy of Marisa - 知乎专栏&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Coq超级难入门啊。比如我前1024次尝试都以失败告终。装完Coq之后就不知道自己在干什么了，就没找到一个能看的教程。&lt;/p&gt;&lt;p&gt;(以下内容根据官方教程改编。) &lt;/p&gt;&lt;p&gt;不推荐先用CoqIDE或者Proof General &lt;br&gt;&lt;/p&gt;&lt;p&gt;先学会退出&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ coqtop
-Welcome to Coq ......
-
-Coq &amp;lt; Quit.
-&lt;/code&gt;&lt;p&gt;好，现在来证明第一个定理。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Coq &amp;lt; Theorem my_first_theorem :
-Coq &amp;lt;   forall A B C : Prop,
-Coq &amp;lt;     (A-&amp;gt;(B-&amp;gt;C)) -&amp;gt; ((A-&amp;gt;B)-&amp;gt;(A-&amp;gt;C)).
-1 subgoal
-  
-  ============================
-   forall A B C : Prop, (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
-
-my_first_theorem &amp;lt; 
-&lt;/code&gt;&lt;p&gt;输入定理。Coq的显示，============================上方是假设，下方是待证明的命题。我们的目标就是从假设推出待证明的结果。 &lt;/p&gt;&lt;p&gt;先intros A&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; intros A.
-1 subgoal
-  
-  A : Prop
-  ============================
-   forall B C : Prop, (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
-
-my_first_theorem &amp;lt; 
-&lt;/code&gt;&lt;p&gt;如下图所示，intros A这一步把我们一个开始的目标不妨称为X，转换成了一个新的目标不妨称为Y，只要证明了Y，我们就能证明X。也就是说，Coq通常证明过程是反着来的，把目标不断改写直到待证明的命题都是显然的或者都出现在上方的假设当中，证明就完成了。 &lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;                         intros A A : Prop
-======================= &amp;lt;======== =======================
-forall A B C : Prop,              forall B C : Prop
-(A-&amp;gt;B-&amp;gt;C)-&amp;gt;(A-&amp;gt;B)-&amp;gt;A-&amp;gt;C           (A-&amp;gt;B-&amp;gt;C)-&amp;gt;(A-&amp;gt;B)-&amp;gt;A-&amp;gt;C
-&lt;/code&gt;&lt;p&gt; 同样的 intros B, intros C&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; intros B.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  ============================
-   forall C : Prop, (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
-
-my_first_theorem &amp;lt; intros C.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  ============================
-   (A -&amp;gt; B -&amp;gt; C) -&amp;gt; (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
-
-&lt;/code&gt;&lt;p&gt;intros的另一种作用&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; intros H0.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  ============================
-   (A -&amp;gt; B) -&amp;gt; A -&amp;gt; C
-
-my_first_theorem &amp;lt; intros H1.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  H1 : A -&amp;gt; B
-  ============================
-   A -&amp;gt; C
-
-my_first_theorem &amp;lt; intros H2.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  H1 : A -&amp;gt; B
-  H2 : A
-  ============================
-   C
-&lt;/code&gt;&lt;p&gt;不妨把上一个目标称为M，下面两个目标称为N。apply H0的意思是，只要证明了N，代入到H0中，我们就能证明M。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; apply H0.
-2 subgoals
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  H1 : A -&amp;gt; B
-  H2 : A
-  ============================
-   A
-
-subgoal 2 is:
- B 
-&lt;/code&gt;&lt;p&gt;也就是说，根据A和H0可以得到 B-&amp;gt;C，再根据B可以得到C。 如下图所示&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;                  ...
-                  ======
-...    apply H0   A
-===== &amp;lt;=========
-C                 ...
-                  ======
-                  B
-
-... 表示
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  H1 : A -&amp;gt; B
-  H2 : A
-&lt;/code&gt;&lt;p&gt;产生多个目标后，Coq会按顺序让你提供证明。因为H2就是A，所以，exact H2。 &lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; exact H2.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  H1 : A -&amp;gt; B
-  H2 : A
-  ============================
-   B
-
-my_first_theorem &amp;lt; 
-&lt;/code&gt;&lt;p&gt; 类似的。apply H1, exact H2后，剩下一个目标的证明也完成了&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; apply H1.
-1 subgoal
-  
-  A : Prop
-  B : Prop
-  C : Prop
-  H0 : A -&amp;gt; B -&amp;gt; C
-  H1 : A -&amp;gt; B
-  H2 : A
-  ============================
-   A
-
-my_first_theorem &amp;lt; exact H2.
-No more subgoals.
-
-my_first_theorem &amp;lt; 
-
-&lt;/code&gt;&lt;p&gt; QED&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;my_first_theorem &amp;lt; Qed.
-intros A.
-intros B.
-intros C.
-intros H0.
-intros H1.
-intros H2.
-apply H0.
- exact H2.
-
- apply H1.
- exact H2.
-
-my_first_theorem is defined
-
-Coq &amp;lt; 
-&lt;/code&gt;&lt;p&gt;反过来，是不是感觉好多了&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;A-&amp;gt;(B-&amp;gt;C), A  A-&amp;gt;B, A
-============= =======
-B-&amp;gt;C,         B
-======================
-C
-
-((A-&amp;gt;(B-&amp;gt;C)) /\ (A-&amp;gt;B) /\ A) -&amp;gt; C
-===================================
-((A-&amp;gt;(B-&amp;gt;C)) /\ (A-&amp;gt;B)) -&amp;gt; (A-&amp;gt;C)
-===================================
-(A-&amp;gt;(B-&amp;gt;C)) -&amp;gt; ((A-&amp;gt;B) -&amp;gt; (A-&amp;gt;C))
-
-A : Prop
-B : Prop
-C : Prop
-=============================
-(A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A-&amp;gt;C))
-
-||
-\/
-
-==================================================
-forall A B C : Prop, (A-&amp;gt;(B-&amp;gt;C))-&amp;gt;((A-&amp;gt;B)-&amp;gt;(A-&amp;gt;C))&lt;/code&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20441953</guid>
-<pubDate>Wed, 23 Dec 2015 22:24:49 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
