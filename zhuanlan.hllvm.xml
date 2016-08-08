@@ -5,16 +5,25 @@
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 15 Jul 2016 12:13:30 +0800</lastBuildDate>
+<lastBuildDate>Mon, 08 Aug 2016 12:26:40 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 </image>
 <item>
+<title>[题外] 技术演进与代码工人</title>
+<link>https://zhuanlan.zhihu.com/p/21916716</link>
+<description>上周在开JVMLS，有机会跟很多同行大佬们聊天。其中听说的一个好玩的想法是：现在在软件开发行业有大量低端职位是不断在做重复开发，重复的低质量开发。然而这样的代码还是会被部署到生产环境，成为许多软件产品的重要组成部分。&lt;p&gt;让机器完全替代人类来写所有代码显然还不是近期能实现的。但如果我们能容忍一些不那么重要（或者或许本来应该重要）的程序是低端程序员造出来的低质量轮子，那能不能让机器来替代人类做好这部分？据说像Lars Bak、Gilad Bracha等大牛都转向研究机器学习，目标之一就是让机器能部分代替人类写代码。多有趣啊。&lt;/p&gt;&lt;p&gt;这种东西真能成的话，以后就越来越不需要低端码农了吧。就像在机械化、自动化生产线上，越来越不需要低端的人类手工劳作，而是需要高端技工去管理那些机器一样。&lt;/p&gt;&lt;p&gt;虽然不是啥新闻，但突然听说业界的前辈（特别是同做JVM研发的前辈们）真的投身去做这种研究，还是不免觉得机器写代码离现实越来越近了。&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">21916716</guid>
+<pubDate>Mon, 08 Aug 2016 11:33:22 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
 <title>[八卦] LLILC项目貌似挂了…</title>
 <link>https://zhuanlan.zhihu.com/p/21602080</link>
-<description>刚跟同事聊天的时候听说原来我们已经好一段时间没有跟LLILC项目组的人开过定期会议了，而且近期我们在LLVM邮件列表上试着推的GC指针功能，LLILC项目的人也没人来参与讨论…&lt;p&gt;关于LLILC是什么，请跳传送门：&lt;a href=&quot;https://www.zhihu.com/question/29544174&quot; class=&quot;&quot; data-title=&quot;如何看待微软LLILC，一个新的基于LLVM的CoreCLR JIT/CoreRT AOT编译器？&quot; data-editable=&quot;true&quot;&gt;如何看待微软LLILC，一个新的基于LLVM的CoreCLR JIT/CoreRT AOT编译器？&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Andy Ayers会不会抓狂了，Phoenix和LLILC都挂了的话…&lt;/p&gt;&lt;p&gt;不知道他们是不是遇到了什么解决起来很麻烦（我不想说“无法解决”）的技术问题，导致这个项目被放弃/搁置/降低优先级了。C# / CLR需要支持的功能确实比Java要复杂许多，因此LLILC也遇到了许多我们在我们的基于LLVM的JVM JIT编译器里不会遇到的问题。&lt;/p&gt;</description>
+<description>刚跟同事聊天的时候听说原来我们已经好一段时间没有跟LLILC项目组的人开过定期会议了，而且近期我们在LLVM邮件列表上试着推的GC指针功能，LLILC项目的人也没人来参与讨论…&lt;p&gt;关于LLILC是什么，请跳传送门：&lt;a href=&quot;https://www.zhihu.com/question/29544174&quot; class=&quot;&quot; data-title=&quot;如何看待微软LLILC，一个新的基于LLVM的CoreCLR JIT/CoreRT AOT编译器？&quot; data-editable=&quot;true&quot;&gt;如何看待微软LLILC，一个新的基于LLVM的CoreCLR JIT/CoreRT AOT编译器？&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Andy Ayers大大会不会抓狂了，Phoenix和LLILC都挂了的话…&lt;/p&gt;&lt;p&gt;============================================&lt;/p&gt;&lt;p&gt;LLILC项目的开发过程上可能也有些隐患。&lt;/p&gt;&lt;p&gt;其中很有趣很subtle的一点是：他们在项目初期决定先实现对MSIL的大范围的支持，为此抄了些捷径：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;生成LLVM IR后，几乎不打开LLVM的优化pass，直接去生成目标代码&lt;/li&gt;&lt;li&gt;使用CoreCLR的GC的后备漠视——保守式GC（conservative GC），这样就可以让LLILC不处理栈上的托管指针，而是让CoreCLR自己去保守式扫描栈上的值去猜哪些是托管指针。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这俩捷径的好处是项目初期可以快速推进进度，把大部分MSIL指令都支持上，让LLILC可以编译一些小程序来测试。&lt;/p&gt;&lt;p&gt;但坏处在后期会慢慢浮现出来：一个编译器前端在生成LLVM IR后，如果不打开LLVM的优化pass来编译，其实无法确定到底生成的IR对不对——有没有正确实现想要表达的语义。如果有些代码生成模式已经大规模写进去了，然后才发现不对，那改起来就会极其痛苦。毕竟最终LLILC还是想要打开LLVM的优化的，不然要它来干嘛，所以这不得不面对的问题，还是早点面对了比较好。&lt;/p&gt;&lt;p&gt;而借由CoreCLR的conservative GC支持的初步运行也可能掩盖了一些其实难以解决的问题，等后面真的要尝试解决的时候才发现困难的话多头疼。&lt;/p&gt;&lt;p&gt;说来，LLILC一开始就决定放弃CoreCLR的JIT所支持的“fully interruptible code”了。这种东西用LLVM实现确实非常别扭，放弃就放弃吧。&lt;/p&gt;&lt;br&gt;&lt;p&gt;============================================&lt;br&gt;&lt;/p&gt;&lt;p&gt;不知道他们是不是遇到了什么解决起来很麻烦（我不想说“无法解决”）的技术问题，导致这个项目被放弃/搁置/降低优先级了。C# / CLR需要支持的功能确实比Java要复杂许多，因此LLILC也遇到了许多我们在我们的基于LLVM的JVM JIT编译器里不会遇到的问题。&lt;/p&gt;&lt;p&gt;同事提到，跟LLILC组的人讨论的时候，他们提出过许多问题。&lt;/p&gt;&lt;p&gt;其中一个是：C#有value type，在CLR / CoreCLR的实现中value type既可能被分配在栈帧里，也可能被box后分配在托管堆里；而且C#还支持pass-by-reference的参数传递模式，一个类型为value type的reference到底是引用着一个栈上还是堆上的value type实例，从被调用方法的一侧是无从知道的。然而如果用LLVM的address space来实现对普通内存（用默认address space）和托管堆内存（用某个自定义address space）的区分，LLVM就要求要把指针声明为对应的address space，这样一个指针就不允许既可能指向栈上对象又可能指向堆上对象，于是处理起来就有点麻烦。&lt;/p&gt;&lt;p&gt;另外，C#的value type里可以包含托管指针字段。如果一个含有托管指针字段的value type值被分配在栈上，而GC又要求对栈上的托管指针做准确式扫描（precise GC / type-exact GC），那么当然这些栈上的托管指针要能被正确处理。然而Azul给LLVM加入的&lt;a href=&quot;http://llvm.org/docs/Statepoints.html&quot; data-editable=&quot;true&quot; data-title=&quot;gc.statepoint&quot;&gt;gc.statepoint&lt;/a&gt;并不能直接处理这种情况——gc.statepoint所能指定的root set都是LLVM IR意义上的SSA value，而不包括实际在内存栈帧里的值；即便给gc.statepoint添加对栈帧内存的支持，在LLVM IR里想要精确控制&lt;b&gt;&lt;i&gt;整个栈帧&lt;/i&gt;&lt;/b&gt;在内存里的布局是非常困难甚至可能做不到的——是，每一个alloca内部的布局是可以精确控制的，但如果我们想精确控制某个slot在栈帧里的实际偏移量，做不到。而C#的value type是一个需要精确控制内存布局的聚合类型（aggregate type），我们不能说把里面的字段给打散了分别处理然后再聚合回来，而总是得保证整个value type的值打包在一起处理。&amp;lt;- 让我找找看LLILC的issues或者wiki之类的地方有没有人讨论过这个问题然后再来补充。&lt;/p&gt;</description>
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">21602080</guid>
 <pubDate>Fri, 15 Jul 2016 11:09:49 +0800</pubDate>
@@ -130,15 +139,6 @@ var strs3 = new ArrayList&amp;lt;String&amp;gt;();          // JEP 286 var synta
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">20616374</guid>
 <pubDate>Thu, 03 Mar 2016 09:43:19 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[新闻] Azul Systems正式宣布32位ARM上的Zulu Embedded</title>
-<link>https://zhuanlan.zhihu.com/p/20595654</link>
-<description>新闻稿：&lt;a href=&quot;https://www.azul.com/press_release/azul-systems-enhances-zulu-embedded-to-support-32-bit-arm-processors/&quot; data-editable=&quot;true&quot; data-title=&quot;Azul Systems enhances Zulu Embedded to support 32-bit ARM processors&quot;&gt;Azul Systems enhances Zulu Embedded to support 32-bit ARM processors&lt;/a&gt;&lt;p&gt;这是Azul Systems在OpenJDK的基础上做的ARMv7 / AArch32 port。目前已经有解释器以及完整的Client Compiler（C1）实现。&lt;/p&gt;&lt;p&gt;贯彻Zulu产品线的一贯作风，这个ARM port的所有代码都会在&lt;a href=&quot;http://openjdk.java.net/projects/aarch32-port/&quot; data-title=&quot;OpenJDK AArch32项目&quot; class=&quot;&quot;&gt;OpenJDK AArch32项目&lt;/a&gt;下完全开源。同事最近发的&lt;a href=&quot;http://mail.openjdk.java.net/pipermail/aarch32-port-dev/2016-February/000094.html&quot;&gt;一个大patch&lt;/a&gt;就是为接下来提交C1代码而做的铺垫。&lt;/p&gt;&lt;p&gt;欢迎关注ARM上的Zulu Embedded！&lt;/p&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">20595654</guid>
-<pubDate>Wed, 24 Feb 2016 08:15:57 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
