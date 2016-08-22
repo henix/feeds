@@ -5,12 +5,97 @@
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 08 Aug 2016 16:35:30 +0800</lastBuildDate>
+<lastBuildDate>Mon, 22 Aug 2016 15:39:24 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 </image>
+<item>
+<title>为什么Python里面的locals()是只读的</title>
+<link>https://zhuanlan.zhihu.com/p/21815224</link>
+<description>Python里面的各个名字空间都可以抽象成一个dictionary, 比如函数的本地变量就可以通过build-in函数locals()来取得。但是很多资料都提到通过locals()取得的dictionary是只读的，比较好奇为什么会有这个限制。下面是一个点单的对locals()的调用 （在CPython 2.7下运行得到）:&lt;code lang=&quot;python&quot;&gt;&amp;gt;&amp;gt;&amp;gt; def foo(a):
+...   return locals()
+...
+&amp;gt;&amp;gt;&amp;gt; dis.dis(foo)
+  2           0 LOAD_GLOBAL              0 (locals)
+              3 CALL_FUNCTION            0
+              6 RETURN_VALUE
+&lt;/code&gt;&lt;p&gt;-- 补充，按R大提到的，CPython的local variable都是放在frame的localplus数组里面，而locals()返回的是dictionary对象，通过这个dictionary对象不能直接修改localplus上的值也是很直观的。&lt;/p&gt;&lt;p&gt;locals在global空间(LOAD_GLOBAL), 这个build-in方法最终在bltinmodule.c里面实现如下：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;static PyObject *
+builtin_locals(PyObject *self)
+{
+    PyObject *d;
+
+    d = PyEval_GetLocals();
+    Py_XINCREF(d);
+    return d;
+}
+&lt;/code&gt;&lt;p&gt;主要是转到ceval.c的PyEval_GetLocals()上：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;PyObject *
+PyEval_GetLocals(void)
+{
+    PyFrameObject *current_frame = PyEval_GetFrame();
+    if (current_frame == NULL)
+        return NULL;
+    PyFrame_FastToLocals(current_frame);
+    return current_frame-&amp;gt;f_locals;
+}
+&lt;/code&gt;&lt;p&gt;又转到frameobject.c里的PyFrame_FastToLocals(PyFrameObject *f)上。不考虑错误和cellvar的处理等，主要部分如下：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;PyFrame_FastToLocals(PyFrameObject *f)
+{
+    /* Merge fast locals into f-&amp;gt;f_locals */
+    PyObject *locals, *map;
+    PyObject **fast;
+    PyCodeObject *co;
+    Py_ssize_t j;
+    locals = f-&amp;gt;f_locals;
+    if (locals == NULL) {
+        locals = f-&amp;gt;f_locals = PyDict_New();
+    }
+    co = f-&amp;gt;f_code;
+
+    map = co-&amp;gt;co_varnames;
+    fast = f-&amp;gt;f_localsplus;
+    j = PyTuple_GET_SIZE(map);
+    if (co-&amp;gt;co_nlocals)
+        map_to_dict(map, j, locals, fast, 0);
+&lt;/code&gt;&lt;p&gt;最主要的map_to_dict（同在frameobject.c）就会把存在f-&amp;gt;localsplus里面的local variable (所有的local variable name在co-&amp;gt;varnames里面）放到locals所指向的dictionary, 也同时放在了当前frame里（f-&amp;gt;locals）。所有的local variable很自然成为一个名字空间放进dictionary，这里放进数组风格的f_localsplus里面是为了不用每次使用local variable都查找dictionary。可以搜索此变量名获得更多信息。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;static void
+map_to_dict(PyObject *map, Py_ssize_t nmap, PyObject *dict, PyObject **values,
+            int deref)
+{
+    Py_ssize_t j;
+    for (j = nmap; --j &amp;gt;= 0; ) {
+        PyObject *key = PyTuple_GET_ITEM(map, j);
+        PyObject *value = values[j];
+        if (deref) {
+            value = PyCell_GET(value);
+        }
+        if (value == NULL) {
+            if (PyObject_DelItem(dict, key) != 0)
+                PyErr_Clear();
+        }
+        else {
+            if (PyObject_SetItem(dict, key, value) != 0)
+                PyErr_Clear();
+        }
+    }
+}
+&lt;/code&gt;&lt;p&gt;上面的map_to_dict会遍历所有的local variable names, 如果这个variable指向了Python对象则把variable name和对象放进要返回的dictionary对象(f-&amp;gt;f_locals)，这也就意味着每次对locals()的调用都会把frame object里面的dictionary (f_locals)的所有variable name到object的映射根据当前状态刷新，就相当于给所有的local vars照相（snapshot）。这样就能比较容易理解为什么对locals()返回的dictionary是无效的的，因为直接写入这个dictionary只会影响dictionary自身而不会反映到当前frame的f_localsplus，每次调用locals()又会刷新要返回的dictionary内容。下面的例子可以帮助理解这点。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;def f():
+    x = 10
+    lc = locals()
+    lc[&#39;x&#39;] = 20
+    # &#39;x&#39;-&amp;gt;20 remains on dictionary before locals() is called
+    print lc
+    # {&#39;x&#39;: 20}                 
+    locals()
+    # locals dictionary is refreshed in the above call to locals()
+    print lc
+    # {&#39;x&#39;: 10, &#39;lc&#39;: {...}}     
+
+f()&lt;/code&gt;&lt;p&gt;&lt;a href=&quot;https://docs.python.org/2/library/functions.html#locals&quot; data-title=&quot;CPython&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;CPython&lt;/a&gt;官网对locals()的主要描述如下，也说明返回的dictionary只是代表了local symbol table, 并不能等价使用（修改）。&lt;/p&gt;&lt;blockquote&gt;Update and return a dictionary representing the current local symbol table&lt;/blockquote&gt;</description>
+<author>Thomson</author>
+<guid isPermaLink="false">21815224</guid>
+<pubDate>Mon, 01 Aug 2016 15:09:37 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>[新闻] ChakraCore已支持运行在Linux上</title>
 <link>https://zhuanlan.zhihu.com/p/21825477</link>
@@ -130,15 +215,6 @@ var strs3 = new ArrayList&amp;lt;String&amp;gt;();          // JEP 286 var synta
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">20635474</guid>
 <pubDate>Thu, 10 Mar 2016 16:04:28 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[新闻] IBM OMR项目正式开源</title>
-<link>https://zhuanlan.zhihu.com/p/20631665</link>
-<description>代码在GitHub上：&lt;a href=&quot;https://github.com/eclipse/omr&quot; data-editable=&quot;true&quot; data-title=&quot;GitHub - eclipse/omr: OMR project&quot;&gt;GitHub - eclipse/omr: OMR project&lt;/a&gt;&lt;p&gt;项目负责人Mark Stoodley刚刚在EclipseCon上做了相关的演讲：&lt;a href=&quot;http://www.slideshare.net/MarkStoodley/omr-a-modern-toolkit-for-building-language-runtimes&quot; data-editable=&quot;true&quot; data-title=&quot;slideshare.net 的页面&quot; class=&quot;&quot;&gt;OMR: a modern toolkit for building language runtimes, EclipseCON 2016&lt;/a&gt;&lt;/p&gt;&lt;p&gt;IBM官方新闻稿：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://developer.ibm.com/open/omr/&quot; data-editable=&quot;true&quot; data-title=&quot;OMR | developerWorks Open&quot; class=&quot;&quot;&gt;OMR | developerWorks Open&lt;/a&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://developer.ibm.com/open/2016/03/08/introducing-omr-building-language-runtimes/&quot; data-editable=&quot;true&quot; data-title=&quot;Introducing OMR: Building language runtimes&quot;&gt;Introducing OMR: Building language runtimes&lt;/a&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;初始开源的组件有下面这些：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;port: platform porting library&lt;br&gt;&lt;/li&gt;&lt;li&gt;thread: a cross platform pthread-like threading library&lt;br&gt;&lt;/li&gt;&lt;li&gt;util: general utilities useful for building cross platform runtimes&lt;br&gt;&lt;/li&gt;&lt;li&gt;omrsigcompat: signal handling compatibility library&lt;br&gt;&lt;/li&gt;&lt;li&gt;omrtrace: tracing library for communication with IBM Health Center monitoring tools&lt;br&gt;&lt;/li&gt;&lt;li&gt;tool: code generation tools for the build system&lt;br&gt;&lt;/li&gt;&lt;li&gt;gc: garbage collection framework for managed heaps&lt;br&gt;&lt;/li&gt;&lt;li&gt;vm: APIs to manage per-interpreter and per-thread contexts&lt;br&gt;&lt;/li&gt;&lt;li&gt;example: demonstration code to show how a language runtime might consume some OMR components&lt;br&gt;&lt;/li&gt;&lt;li&gt;fvtest: a language-independent test framework so that OMR components can be tested outside of a language runtime&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;嗯最重磅的JIT部分还没出来，还在准备开源。&lt;/p&gt;&lt;br&gt;&lt;p&gt;知乎上之前的相关讨论：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://www.zhihu.com/question/38480772/answer/76715935&quot; data-editable=&quot;true&quot; data-title=&quot;如何评价 IBM 的 Ruby + OMR？ - RednaxelaFX 的回答&quot; class=&quot;&quot;&gt;如何评价 IBM 的 Ruby + OMR？ - RednaxelaFX 的回答&lt;/a&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://zhuanlan.zhihu.com/hllvm/20581695&quot; data-editable=&quot;true&quot; data-title=&quot;[新闻] CPython / 微软 Pyjion / IBM Python+OMR - 编程语言与高级语言虚拟机杂谈（仮） - 知乎专栏&quot;&gt;[新闻] CPython / 微软 Pyjion / IBM Python+OMR - 编程语言与高级语言虚拟机杂谈（仮） - 知乎专栏&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">20631665</guid>
-<pubDate>Wed, 09 Mar 2016 10:19:36 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
