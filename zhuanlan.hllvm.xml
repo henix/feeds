@@ -5,12 +5,21 @@
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 31 Aug 2016 16:19:57 +0800</lastBuildDate>
+<lastBuildDate>Mon, 19 Sep 2016 14:06:52 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 </image>
+<item>
+<title>[新闻] IBM/Eclipse OMR的编译器部分也已开源，以及IBM即将开源J9 VM</title>
+<link>https://zhuanlan.zhihu.com/p/22506697</link>
+<description>&lt;p&gt;OMR的组件的大类别中里最后一个重量级类别也终于来了：源自J9的JIT编译器“Testarossa”（J9/TR）的编译器架构：&lt;/p&gt;&lt;blockquote&gt;&lt;a href=&quot;https://github.com/eclipse/omr/commit/03874a48843df45292aa35086c5faf4fd83de264&quot; data-editable=&quot;true&quot; data-title=&quot;Initial contribution of compiler technology consisting of: · eclipse/omr@03874a4 · GitHub&quot; class=&quot;&quot;&gt;Initial contribution of compiler technology consisting of: · eclipse/omr@03874a4 · GitHub&lt;br&gt;&lt;br&gt;&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;Commit message:&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;Initial contribution of compiler technology consisting of:&lt;/p&gt;&lt;p&gt;* high-level optimization technology featuring classic compiler optimizations, loop optimizations, control and data flow analyses, and support data structures&lt;/p&gt;&lt;p&gt;* code generation technology with deep platform exploitation for x86 (i386 and x86-64), Power, System Z, and ARM (32-bit)&lt;/p&gt;&lt;p&gt;* a robust, tree-based intermediate representation (or IL) and support code for producing IL from different method representations&lt;/p&gt;&lt;p&gt;* expressive tracing and logging infrastructure for problem determination&lt;/p&gt;&lt;p&gt;* JitBuilder technology to simplify the effort to integrate a JIT compiler into an existing language interpreter&lt;/p&gt;&lt;p&gt;* a framework for constructing language-agnostic unit tests for compiler technology&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;OMR编译器部分的说明：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/eclipse/omr/blob/master/compiler/README.md&quot; data-editable=&quot;true&quot; data-title=&quot;omr/README.md at master · eclipse/omr · GitHub&quot;&gt;omr/README.md at master · eclipse/omr · GitHub&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;后续会在OMR里开源的都是各个大类别（GC、compiler、threading、diagnostic等）下的一些具体功能，而没有别的大类别还没开出来了。&lt;/p&gt;&lt;p&gt;Exciting！&lt;/p&gt;&lt;p&gt;另外，IBM已经计划好在今年接下来的JavaOne上宣布IBM J9 VM的开源。看来OMR的开源还真是J9开源的一个敲门砖。以前我问Mark Stoodley说如果有人基于OMR写了个JVM的话会怎样，他还说：那很好啊，IBM不会介意的，如果有好想法的话可能还会取回到J9里去用；这不，J9自己干脆也决定要开源了。&lt;/p&gt;&lt;p&gt;今年的JVMLS上我问Mark说显然有不少在J9里已有的功能在OMR里尚未开放，例如说J9/TR自身支持的dependency-based speculative optimization，这方面有怎样的计划。他提到确实有不少功能因为还没想好如何抽象出来给外界使用，所以还没从J9剥离出来放到OMR里。但是他们会很欢迎外界贡献者帮忙从J9中把功能打捞到OMR去 &amp;gt;_&amp;lt;&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">22506697</guid>
+<pubDate>Mon, 19 Sep 2016 13:57:57 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
 <item>
 <title>[新闻] Android Runtime（ART）的一些新动态，2016-08</title>
 <link>https://zhuanlan.zhihu.com/p/22253472</link>
@@ -201,15 +210,6 @@ $L1:                                                                          #0
 <author>Thomson</author>
 <guid isPermaLink="false">20792855</guid>
 <pubDate>Sat, 23 Apr 2016 14:51:47 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>lisp0</title>
-<link>https://zhuanlan.zhihu.com/p/20689554</link>
-<description>&lt;p&gt;代码没写完，广告先打起来&lt;a class=&quot;&quot; data-title=&quot;GitHub - bhuztez/lisp0: a bare minimum remake of origin LISP&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/bhuztez/lisp0&quot;&gt; GitHub - bhuztez/lisp0: a bare minimum remake of origin LISP&lt;/a&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;学习高级语言Runtime最好的办法，当然是自己动手写一个啦。毫无疑问假如你不是特别喜欢走弯路的轮子哥，肯定选从容易的开始。那么就选最最原始的LISP好了(Brainfuck之类的过于简单，这里先忽略他们的存在)。lisp0不会像Lisp Machine是一台单独的机器，lisp0就是一个普通的运行在Linux的程序。&lt;/p&gt;&lt;p&gt;既然是把Runtime实现一遍，那么在操作系统之上全都自己来实现，连CRT和libc也不要用。因为Lisp语言自己就又栈了，所以C程序没事别递归，用的栈是非常有限的，于是用bss段里的一段内存当C语言的栈，而操作系统在启动时，分配来的栈，给Lisp用。这样虽然奇葩了点，非常省事啊。&lt;/p&gt;&lt;p&gt;因为(假装)lisp0是immutable的，所以只要简单的引用计数就可以了。不过这写起来麻烦，用一次就要增减一次。还不如先用个简单的Mark sweep GC。因为immutable，所以新的不能被旧的引用，在allocate后把他们串成一个栈，只要从新往旧扫一遍，在扫到时还没被标记，那就一定不会被标记到，可以放心的free。至于memory allocator，就用简陋的TLSF算法就好了，这算法看上去就像个增强版的Buddy allocator。&lt;br&gt;&lt;/p&gt;&lt;p&gt;既然Lisp霸占了原本给C用的栈，使用方式也就和C保持一致好了。因为GCC支持Labels as Values，所以只要在CALL之后放一个label，那个label的值就是返回地址了。同时，因为symbol只接受[_0-9A-Za-z]+，所以长度小于等于8的symbol，经过base64解码之后长度就只有6字节了，而64位机器上去掉3位tag，还有61位，完全放的下。&lt;/p&gt;&lt;p&gt;接下来，lisp0应该改用HAMT来实现environment，换一个更好的GC。本文到此就结束了。&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">20689554</guid>
-<pubDate>Wed, 30 Mar 2016 23:01:05 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
