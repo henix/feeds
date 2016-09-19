@@ -5,16 +5,25 @@
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 19 Sep 2016 14:06:52 +0800</lastBuildDate>
+<lastBuildDate>Mon, 19 Sep 2016 16:11:27 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 </image>
 <item>
+<title>[OMR/TR] Testarossa的IL设计（持续更新）</title>
+<link>https://zhuanlan.zhihu.com/p/22508731</link>
+<description>边读代码边更新的笔记。先写点我原本就知道的内容，后面再更新具体到OMR TR代码的知识点。&lt;p&gt;上一篇文章 &lt;a href=&quot;https://zhuanlan.zhihu.com/p/22506697?refer=hllvm&quot; data-editable=&quot;true&quot; data-title=&quot;[新闻] IBM/Eclipse OMR的编译器部分也已开源，以及IBM即将开源J9 VM - 编程语言与高级语言虚拟机杂谈（仮） - 知乎专栏&quot; class=&quot;&quot;&gt;[新闻] IBM/Eclipse OMR的编译器部分也已开源，以及IBM即将开源J9 VM - 编程语言与高级语言虚拟机杂谈（仮） - 知乎专栏&lt;/a&gt; 提到了OMR中的编译器组件——Testarossa（以下简称OMR TR）——也终于开源的新闻。这里就来看看OMR TR的中间表现形式（Intermediate Representation，IR）的设计是怎样的。&lt;br&gt;&lt;/p&gt;&lt;p&gt;OMR TR的IR叫做Testarossa IL（Intermediate Language），下面简称TR IL。它是一种颇为传统的树形IR（Tree IR），比一般编译器前端用的抽象语法树（AST）底层一些，而比完全拉直的线性IR要高层一些。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;相信熟悉&lt;a href=&quot;https://book.douban.com/subject/1886911/&quot; data-title=&quot;虎书系列&quot; class=&quot;&quot;&gt;虎书系列&lt;/a&gt;的同学会对这种IR比较熟悉（对应虎书第7、8两章内容）。&lt;/li&gt;&lt;li&gt;如果是熟悉GCC IR的同学，TR IL跟GCC的GENERIC已经lower了控制流但尚未lower表达式树的GIMPLE比较相似。&lt;/li&gt;&lt;li&gt;如果是熟悉RyuJIT的同学，TR IL跟RyuJIT的Tree IR颇有相似之处。&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;TR IL比AST底层的地方在于：一般的AST设计会比较贴近源语言的语法结构，所以如果源语言有结构化控制流结构（if-then-else、while/for-loop等）的话，在AST里也会有直接对应的节点。而在一个典型的编译器后端用的树形IR中，控制流会被拆解为条件跳转与无条件跳转，树的形状会更贴近于底层控制流，而不再维持原本AST那种贴近源语言语法的层次结构。&lt;/p&gt;&lt;p&gt;TR IL比线性代码高层的地方在于：一般的线性代码跟机器语言比较贴近，就是一串线性执行的代码，没有所谓“语句”与“表达式”之分了——所有复杂表达式都被lower为一串使用临时变量的简单表达式。线性IR中的表达式大都可以用三地址代码直观地表示：dest = src1 op src2。&lt;/p&gt;&lt;p&gt;TR IL所使用的树形IR则仍然保持“语句”与“表达式”的区别。其中“语句”指的是可能有副作用的操作（例如变量赋值、函数调用等）或者是控制流跳转。语句不能嵌套，只能按顺序线性执行。而“表达式”则是纯粹的运算，没有副作用，没有控制流，可以嵌套。“表达式”的若干重要特征是：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;由于没有副作用与控制流，嵌套表达式的求值顺序可以任意决定，这给优化留下了自由度；&lt;/li&gt;&lt;li&gt;一个语句中的嵌套表达式的中间结果不会被别的语句中的表达式所看到。也就是说，一个语句中的表达式中间结果的生命周期仅限于该语句内，不会“泄漏”到别的语句中。这个特征对于某些非常简易的局部优化挺有帮助，例如&lt;a href=&quot;https://www.zhihu.com/question/29355187/answer/51935409&quot;&gt;这里&lt;/a&gt;提到的超简易寄存器分配算法。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;（未完待续）&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">22508731</guid>
+<pubDate>Mon, 19 Sep 2016 16:10:23 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
 <title>[新闻] IBM/Eclipse OMR的编译器部分也已开源，以及IBM即将开源J9 VM</title>
 <link>https://zhuanlan.zhihu.com/p/22506697</link>
-<description>&lt;p&gt;OMR的组件的大类别中里最后一个重量级类别也终于来了：源自J9的JIT编译器“Testarossa”（J9/TR）的编译器架构：&lt;/p&gt;&lt;blockquote&gt;&lt;a href=&quot;https://github.com/eclipse/omr/commit/03874a48843df45292aa35086c5faf4fd83de264&quot; data-editable=&quot;true&quot; data-title=&quot;Initial contribution of compiler technology consisting of: · eclipse/omr@03874a4 · GitHub&quot; class=&quot;&quot;&gt;Initial contribution of compiler technology consisting of: · eclipse/omr@03874a4 · GitHub&lt;br&gt;&lt;br&gt;&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;Commit message:&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;Initial contribution of compiler technology consisting of:&lt;/p&gt;&lt;p&gt;* high-level optimization technology featuring classic compiler optimizations, loop optimizations, control and data flow analyses, and support data structures&lt;/p&gt;&lt;p&gt;* code generation technology with deep platform exploitation for x86 (i386 and x86-64), Power, System Z, and ARM (32-bit)&lt;/p&gt;&lt;p&gt;* a robust, tree-based intermediate representation (or IL) and support code for producing IL from different method representations&lt;/p&gt;&lt;p&gt;* expressive tracing and logging infrastructure for problem determination&lt;/p&gt;&lt;p&gt;* JitBuilder technology to simplify the effort to integrate a JIT compiler into an existing language interpreter&lt;/p&gt;&lt;p&gt;* a framework for constructing language-agnostic unit tests for compiler technology&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;OMR编译器部分的说明：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/eclipse/omr/blob/master/compiler/README.md&quot; data-editable=&quot;true&quot; data-title=&quot;omr/README.md at master · eclipse/omr · GitHub&quot;&gt;omr/README.md at master · eclipse/omr · GitHub&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;后续会在OMR里开源的都是各个大类别（GC、compiler、threading、diagnostic等）下的一些具体功能，而没有别的大类别还没开出来了。&lt;/p&gt;&lt;p&gt;Exciting！&lt;/p&gt;&lt;p&gt;另外，IBM已经计划好在今年接下来的JavaOne上宣布IBM J9 VM的开源。看来OMR的开源还真是J9开源的一个敲门砖。以前我问Mark Stoodley说如果有人基于OMR写了个JVM的话会怎样，他还说：那很好啊，IBM不会介意的，如果有好想法的话可能还会取回到J9里去用；这不，J9自己干脆也决定要开源了。&lt;/p&gt;&lt;p&gt;今年的JVMLS上我问Mark说显然有不少在J9里已有的功能在OMR里尚未开放，例如说J9/TR自身支持的dependency-based speculative optimization，这方面有怎样的计划。他提到确实有不少功能因为还没想好如何抽象出来给外界使用，所以还没从J9剥离出来放到OMR里。但是他们会很欢迎外界贡献者帮忙从J9中把功能打捞到OMR去 &amp;gt;_&amp;lt;&lt;/p&gt;</description>
+<description>&lt;p&gt;OMR的组件的大类别中里最后一个重量级类别也终于来了：源自J9的JIT编译器“Testarossa”（J9/TR）的编译器架构：&lt;/p&gt;&lt;blockquote&gt;&lt;a href=&quot;https://github.com/eclipse/omr/commit/03874a48843df45292aa35086c5faf4fd83de264&quot; data-editable=&quot;true&quot; data-title=&quot;Initial contribution of compiler technology consisting of: · eclipse/omr@03874a4 · GitHub&quot; class=&quot;&quot;&gt;Initial contribution of compiler technology consisting of: · eclipse/omr@03874a4 · GitHub&lt;br&gt;&lt;br&gt;&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;Commit message:&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;Initial contribution of compiler technology consisting of:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;high-level optimization technology featuring classic compiler optimizations, loop optimizations, control and data flow analyses, and support data structures&lt;br&gt;&lt;/li&gt;&lt;li&gt;code generation technology with deep platform exploitation for x86 (i386 and x86-64), Power, System Z, and ARM (32-bit)&lt;br&gt;&lt;/li&gt;&lt;li&gt;a robust, tree-based intermediate representation (or IL) and support code for producing IL from different method representations&lt;br&gt;&lt;/li&gt;&lt;li&gt;expressive tracing and logging infrastructure for problem determination&lt;br&gt;&lt;/li&gt;&lt;li&gt;JitBuilder technology to simplify the effort to integrate a JIT compiler into an existing language interpreter&lt;br&gt;&lt;/li&gt;&lt;li&gt;a framework for constructing language-agnostic unit tests for compiler technology&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/blockquote&gt;&lt;p&gt;OMR编译器部分的说明：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/eclipse/omr/blob/master/compiler/README.md&quot; data-editable=&quot;true&quot; data-title=&quot;omr/README.md at master · eclipse/omr · GitHub&quot;&gt;omr/README.md at master · eclipse/omr · GitHub&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;后续会在OMR里开源的都是各个大类别（GC、compiler、threading、diagnostic等）下的一些具体功能，而没有别的大类别还没开出来了。&lt;/p&gt;&lt;p&gt;Exciting！&lt;/p&gt;&lt;p&gt;可能会有不熟悉Testarossa的同学说：这个编译器开源出来跟我有毛关系，这不是个JVM里的JIT编译器么？&lt;/p&gt;&lt;p&gt;呵呵，它可不只是个JIT编译器。其实Kevin Stoodley大大最初提出Testarossa项目的时候，是想要成为IBM XL编译器套件（C/C++/Fortran等）的一个中间优化器（大概是想替代TPO？）。但是生不逢时，一开始没能被XL编译器青睐，却正好碰上IBM开始做J9 JVM，就摇身一变成为了J9的御用JIT编译器。后来它还被用在了许多不同的场景中，例如编译C/C++的Static Testarossa（sTR，曾在Linux/z上部署过）、用于优化legacy COBOL代码性能的动态二进制翻译/优化器，等等。这是个相当通用的编译器架构，就算对OMR的其它组件不感兴趣，Testarossa也可以单独拿出来用的。所以如果想自己写个编译器来玩，后端的选择除了LLVM、libgccjit、&lt;a href=&quot;http://microvm.github.io/&quot; data-editable=&quot;true&quot; data-title=&quot;The Mu Micro &quot; class=&quot;&quot;&gt;MicroVM&lt;/a&gt;、&lt;a href=&quot;http://c9x.me/compile/&quot; data-editable=&quot;true&quot; data-title=&quot;QBE&quot; class=&quot;&quot;&gt;QBE&lt;/a&gt;之类之外，这OMR TR也是个新选择。&lt;/p&gt;&lt;p&gt;不过当然，Testarossa的代码还是可以看出它最初的正式用途是作为J9 VM配套的编译器的这个历史。例如说，请看OMR Testarossa IL默认的opcode：&lt;a href=&quot;https://github.com/eclipse/omr/blob/master/compiler/il/OMRILOpCodesEnum.hpp&quot; data-editable=&quot;true&quot; data-title=&quot;omr/OMRILOpCodesEnum.hpp at master · eclipse/omr · GitHub&quot;&gt;omr/OMRILOpCodesEnum.hpp at master · eclipse/omr · GitHub&lt;/a&gt;，拿它跟JVM的字节码来对比一下，看看名字是不是非常的相似——OMR TR IL的opcode就像是JVM字节码的扩展版一样，在功能相同的地方名字也是一样的。&lt;/p&gt;&lt;p&gt;说来，把一个老项目开源还真是改进代码质量 / 代码风格的一个好的动力来源。Testarossa的代码还没重构完，但组织决定让它尽快先放出来给大家瞄一眼。代码里使用 TR:: 命名空间的类型是已经被重构到的代码，而在全局命名空间但有 TR_ 前缀的类型则是尚未被重构（至少尚未被重命名）的代码。IBM还在继续重构中，尽量把Testarossa的代码风格从以前基本上就是C with Classes的风格改进为比较现代的C++风格；它自己带的一些数据结构库也将尽量被替换为STL的对应物。&lt;/p&gt;&lt;p&gt;==================================================&lt;/p&gt;&lt;p&gt;另外，IBM已经计划好在今年接下来的JavaOne上宣布IBM J9 VM的开源。看来OMR的开源还真是J9开源的一个敲门砖。以前我问Mark Stoodley说如果有人基于OMR写了个JVM的话会怎样，他还说：那很好啊，IBM不会介意的，如果有好想法的话可能还会取回到J9里去用；这不，J9自己干脆也决定要开源了。&lt;/p&gt;&lt;p&gt;今年的JVMLS上我问Mark说显然有不少在J9里已有的功能在OMR里尚未开放，例如说J9/TR自身支持的dependency-based speculative optimization，这方面有怎样的计划。他提到确实有不少功能因为还没想好如何抽象出来给外界使用，所以还没从J9剥离出来放到OMR里。但是他们会很欢迎外界贡献者帮忙从J9中把功能打捞到OMR去 &amp;gt;_&amp;lt;&lt;/p&gt;</description>
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">22506697</guid>
 <pubDate>Mon, 19 Sep 2016 13:57:57 +0800</pubDate>
@@ -166,50 +175,6 @@ f()&lt;/code&gt;&lt;p&gt;&lt;a href=&quot;https://docs.python.org/2/library/func
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">20808925</guid>
 <pubDate>Wed, 27 Apr 2016 07:40:58 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>ChakraCore的dump开关</title>
-<link>https://zhuanlan.zhihu.com/p/20792855</link>
-<description>&lt;a href=&quot;https://github.com/Microsoft/ChakraCore&quot; data-editable=&quot;true&quot; data-title=&quot;ChakraCore&quot;&gt;ChakraCore&lt;/a&gt;开源也有一阵了，作为最后开源的一个主流JS引擎，在GitHub上已经有了5000+的star，说明有很多人关注。对于想要研究ChakraCore的童鞋，如果直接从代码入手，不太容易下手和实验。对此，ChakraCore已经自带了不少dump开关来输出整个编译过程的中间结果，可以据此一窥整个编译的过程。这里就介绍下ChakraCore里面的常用dump开关。&lt;p&gt;ChakraCore编译出来是chakracore.dll，如果不想自己写一个host，可以用ChakraCore自带的host CH.exe. CH.exe使用的是JSRT接口来访问ChakraCore的编译功能。比如用ChakraCore运行下面的JS文件。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function foo(a, b) {
-    return a + b
-}
-
-print(foo(3, 4))
-
-print(foo(5, 6))&lt;/code&gt;当CH.exe和chakracore.dll都编译好后（CH.exe依赖于后者，所以只要在Visual Studio编译CH.exe就可以），可以运行 “ch.exe foo.js -bgjit- -maxinterpretercount:1 -off:simplejit -dump:backend&quot;, 这样除了script运行的输出，编译的时候的中间结果也会输出到控制台。西面先解释下上面传入的各个参数。&lt;ul&gt;&lt;li&gt;-bgjit-，禁止JIT运行的background线程。ChakraCore里面JIT默认运行在专门的线程里面接收script线程发来的编译请求（CodeGenWorkItem), 这样的好处是不会阻塞script线程继续运行（interpret），但是也会给调试过程带来不确定性，所以不是调试相关的bug可以关掉。&lt;/li&gt;&lt;li&gt;-maxinterpretercount:1, 仅允许Javascript function被interpret一次。ChakraCore里面有Interpreter, SimpleJit, FullJit, 优化程度和耗时是依次递增，比较hot的函数也会一次进入这几个阶段。ChakraCore里面有heuristic机制来决定function何时进入下一个阶段。Debug的时候自然不能依赖这个来进入JIT，所以对interpret count设置固定值。一般这里推荐设置成1而不是0，因为需要运行一次interpreter来收集profile data供后面JIT使用。另外这个选项可以缩写成 &quot;-mic:1&quot;。&lt;/li&gt;&lt;li&gt;off:simplejit，关掉SimpleJIT。这个作为第二层优化，比FullJIT简单很多，作为interpreter和FullJIT之间的一个平衡，研究中可以关掉。&lt;/li&gt;&lt;li&gt;-dump:backend，输出JIT过程中的中间结果。Chakra的JIT分成了很多个phase（这个和UTC（VC++的c2.dll）很像，但是相比还是简单很多，其实phase dump也和UTC的很像，不得不说ChakraCore的JIT受了UTC的很大影响），第一个phase是IRBuilder把Parser生成的bytecode转成内部的IR结构（intermediate representation），后面典型的phase有Inline, GlobOpt, Lower, Encoder等。每个phase都会在IR上收集些信息供后面的phase使用，或者直接在IR上做变换。运行 ”ch.exe -?&quot;就可以看到phase列表。这里会列出相当多的phase，但实际上并不代表ChakraCore有这么多阶段来做优化，里面很多phase实际上代表了中比较具体的优化，这样可以通过 &quot;-off&quot; 选项来关闭相关的优化，比如CSE (common sub-expression elimination)，CopyProp都被列为一个phase，但是他们都是在GlobOpt里面做的。&quot;-dump&quot; 选项接收一个实际的phase做参数（比如IRBuilder, Lower)从而在相关phase结束后dump相应的中间结果。在研究JIT bug的是有经常需要把JIT的所有phase的结果都dump出来看看是哪个phase除了问题，全部都写上比较浪费时间，就有了一个“backend”来代表所有的phases。ChkaraCore的JIT主要是针对function的（另外一个是loop），这样dump一个有很多function的JS文件而已知问题出在某个function里面的时候，会很不方便，这里的dump选项还接受一个function Id来过滤，比如“-dump:backend:1” （function Id可以在不带function Id过滤的dump里面找到，如下面“#1.1”后面的1就是）。后续再介绍这里其他数字（从源代码也比较容易看出来）和每条IR的意思。最后需要注意的是所有的dump代码指编译在Debug版本的chakracore.dll里。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;上面的JS在ChakraCore里面的实际dump如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;-----------------------------------------------------------------------------
-
-
-
-************   IR after IRBuilder (FullJit)  ************
------------------------------------------------------------------------------
-Function foo ( (#1.1), #2)                        Instr Count:13
-
-                       FunctionEntry                                          #
-    s1[Object].var  =  Ld_A           0xXXXXXXXX (GlobalObject)[Object].var   #
-    s2[LikelyCanBeTaggedValue_Int].var = ArgIn_A  prm2&amp;lt;40&amp;gt;.var                #
-    s3[LikelyCanBeTaggedValue_Int].var = ArgIn_A  prm3&amp;lt;48&amp;gt;.var                #
-
-
-  Line   2: return a + b
-  Col    5: ^
-                       StatementBoundary  #0                                  #0000
-    s0.var          =  Add_A          s2.var, s3.var                          #0000
-                       Br             $L1                                     #0004
-    s0.var          =  Ld_A           0xXXXXXXXX (undefined)[Undefined].var   #0007
-$L1:                                                                          #0009
-
-
-  Line   3: }
-  Col    1: ^
-                       StatementBoundary  #1                                  #0009
-                       StatementBoundary  #-1                                 #0009
-                       Ret            s0.var                                  #0009
-
-                       FunctionExit                                           #&lt;/code&gt;</description>
-<author>Thomson</author>
-<guid isPermaLink="false">20792855</guid>
-<pubDate>Sat, 23 Apr 2016 14:51:47 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
