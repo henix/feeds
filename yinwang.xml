@@ -5,13 +5,112 @@
 <link>http://www.yinwang.org/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 17 Sep 2016 02:49:35 +0800</lastBuildDate>
+<lastBuildDate>Mon, 19 Sep 2016 13:04:28 +0800</lastBuildDate>
+<item>
+<title>对 Rust 语言的分析</title>
+<link>http://yinwang.org/blog-cn/2016/09/18/rust</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;对 Rust 语言的分析&lt;/h2&gt;
+                            &lt;p&gt;Rust 是一门最近比较热门的语言，有很多人问过我对 Rust 的看法。由于我本人是一个顶级的语言设计专家，我能实现所有的语言特性，随便就可以造出新的语言，所以没有任何语言我会觉得是“新”的。所以一般情况下我都懒得去评论另外一种语言，除非它真的在工作中惹恼了我（像 Go 语言那样）。所以这些人问我 Rust 的问题，我一般都没有回复，或者一笔带过。&lt;/p&gt;
+
+&lt;p&gt;不过最近有点闲情逸致，我想既然有人这么热衷于这种新语言，那我还是稍微看一下，顺便分享一下我对某些设计的看法。由于我这个人性格很难闭门造车，所以现在我只是把这篇文章的开头发布出来，边写边更新。所以你要明白，这只是一个开端，我会按照自己阅读的进度对这篇文章进行更新。如果你发现没有新的内容，请隔一段时间再回来检查。如果你有没有弄明白的问题，可以发信来问，我会汇总之后把想法发布在这里。&lt;/p&gt;
+
+&lt;h3&gt;变量&lt;/h3&gt;
+
+&lt;p&gt;Rust 的&lt;a href=&quot;https://doc.rust-lang.org/book/variable-bindings.html&quot;&gt;变量声明&lt;/a&gt;跟 Scala 和 Swift 的很像。你用&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let x = 8;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样的构造来声明一个新的变量。变量缺省都是不可变的，也就是不可赋值。你必须用一种特殊的构造&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let mut x = 8;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;来声明一个新的可变变量。这跟 Swift 的 &lt;code&gt;let&lt;/code&gt; 和 &lt;code&gt;var&lt;/code&gt; 的区别是一样的，只是形式不大一样。其实很难说这种在“可变性”上的区别到底带来了多少性能上的好处。&lt;/p&gt;
+
+&lt;p&gt;但 Rust 有一个很奇怪的地方，它可以让你在同一个作用域里面“重复绑定”同一个名字，甚至可以把它绑定到另外一个类型：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let mut x: i32 = 1;
+x = 7;
+let x = x; // x is now immutable and is bound to 7
+
+let y = 4;
+let y = &quot;I can also be bound to text!&quot;; // y is now of a different type
+// ... ...
+// ... ...
+println!(&quot;y is {}&quot;, y);      // Where is y defined?
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;其实在 Yin 语言最初的设计里面，我也是允许这样的重复绑定的。然而后来我发现，虽然这实现起来没有什么问题，然而这样做不但没有带来更大的方便性，反而可能引起程序的混淆不清。极少有情况需要在同一个作用域里面定义两个名字一样的变量，你完全可以另外起一个名字。但是允许重复绑定同一个名字，甚至让它们是不同的类型，会导致程序员看不清楚。&lt;/p&gt;
+
+&lt;p&gt;比如上面的这个例子，你在很下面的地方看到一个变量 &lt;code&gt;y&lt;/code&gt;，它是在哪里定义的呢？你需要在头脑中对程序进行数据流分析，才能找到它定义的位置。而且这不是一次性的工作，每一次看到这个变量，你都需要疑惑一下，它到底是个整数，还是一个字符串呢？&lt;/p&gt;
+
+&lt;p&gt;可是如果语言不允许在同一个作用域里面重复声明同一个变量，你就根本不用想这个事情了。你只需要在作用域里面找到唯一的那个 &lt;code&gt;let y = ...&lt;/code&gt;，那就是它的定义的地方。&lt;/p&gt;
+
+&lt;h3&gt;未完，待续……&lt;/h3&gt;
+
+&lt;p&gt;（如果你想支持这篇文章的书写，请付费5美元或者30人民币，谢谢！）&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">rust</guid>
+<pubDate>Sun, 18 Sep 2016 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>支付宝的身份验证问题</title>
 <link>http://yinwang.org/blog-cn/2016/09/16/alipay</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;支付宝的身份验证问题&lt;/h2&gt;&lt;p&gt;我看到有人继续在向我之前的支付宝账号付费。其实现在的&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/04/13/pay-blog&quot;&gt;付费二维码&lt;/a&gt;已经改成了我父亲的账号，原因是因为支付宝的身份验证问题。&lt;/p&gt;&lt;p&gt;我的支付宝账号是在国内的时候开通的，支付宝收到的博文付费，都是准备转给家人的。开始收费之后，向家人的账号转了一些钱。支付宝似乎有很严格的防盗验证，我开头不熟悉怕出问题，所以做了几个试验，把钱分成好几次转。最后一次的时候，发现支付宝说需要验证我的身份，还打开手机的相机，要做“人脸验证”。让我左边转一点，右边转一点…… 我的身份证是15年前办的了，当然现在不像了！最后验证没有通过，于是支付功能就被锁定了，再也无法向家人转账。解锁的方法只有联系客服，可是客服电话打了老半天，根本没人接……&lt;/p&gt;&lt;p&gt;由于这个原因，我不能再用我自己的支付宝账号收费。开通新的账号又需要银行卡验证，而我的国内手机和U盾都丢了…… 国内的银行系统就是这么麻烦。&lt;/p&gt;&lt;p&gt;所以没办法，只好把我父亲的支付宝二维码放了上去。请大家以后不要再向我的账号付费，直接转账给我父亲就可以了。谢谢！&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;支付宝的身份验证问题&lt;/h2&gt;
+                            &lt;p&gt;我看到有人继续在向我之前的支付宝账号付费。其实现在的&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/04/13/pay-blog&quot;&gt;付费二维码&lt;/a&gt;已经改成了我父亲的账号，原因是因为支付宝的身份验证问题。&lt;/p&gt;
+
+&lt;p&gt;我的支付宝账号是在国内的时候开通的，支付宝收到的博文付费，都是准备转给家人的。开始收费之后，向家人的账号转了一些钱。支付宝似乎有很严格的防盗验证，我开头不熟悉怕出问题，所以做了几个试验，把钱分成好几次转。最后一次的时候，发现支付宝说需要验证我的身份，还打开手机的相机，要做“人脸验证”。让我左边转一点，右边转一点…… 我的身份证是15年前办的了，当然现在不像了！最后验证没有通过，于是支付功能就被锁定了，再也无法向家人转账。解锁的方法只有联系客服，可是客服电话打了老半天，根本没人接……&lt;/p&gt;
+
+&lt;p&gt;由于这个原因，我不能再用我自己的支付宝账号收费。开通新的账号又需要银行卡验证，而我的国内手机和U盾都丢了…… 国内的银行系统就是这么麻烦。&lt;/p&gt;
+
+&lt;p&gt;所以没办法，只好把我父亲的支付宝二维码放了上去。请大家以后不要再向我的账号付费，直接转账给我父亲就可以了。谢谢！&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">alipay</guid>
 <pubDate>Fri, 16 Sep 2016 00:00:00 +0800</pubDate>
@@ -19,9 +118,21 @@
 <item>
 <title>测试的道理</title>
 <link>http://yinwang.org/blog-cn/2016/09/14/tests</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;测试的道理&lt;/h2&gt;&lt;p&gt;在长期的程序语言研究和实际工作中，我摸索出了一些关于测试的道理。然而在我工作过的每一个公司，我发现绝大多数人都不明白这些道理，很多团队集体性的采用错误的做法而不自知。很多人把测试当成一种主义和教条，进行过度的测试，不必要的测试，不可靠的测试，并且把这些错误的做法传授给新手，造成恶性循环。本来目的是提高代码质量，结果不但没能达到目的，反而降低了代码质量，增大了工作量，大幅度延缓工程进度。&lt;/p&gt;&lt;p&gt;我也写测试，但我的测试方式比“测试教条主义者”们的方式聪明很多。在我心目中，代码本身的地位大大的高于测试。我不忽视测试，但我不会本末倒置，过分强调测试，我并不推崇测试驱动开发（TDD）。我知道该测试什么，不该测试什么，什么时候该写测试，什么时候不该写，什么时候应该推迟测试，什么时候完全不需要测试。因为这个原因，再加上高强的编程能力，我多次完成别人认为在短时间不可能完成的任务，并且制造出质量非常高的代码。&lt;/p&gt;&lt;h3&gt;测试的道理&lt;/h3&gt;&lt;p&gt;现在我就把这些自己领悟到的关于测试的道理总结一下，其中有一些是鲜为人知或者被误解的。&lt;/p&gt;&lt;ol&gt;
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;测试的道理&lt;/h2&gt;
+                            &lt;p&gt;在长期的程序语言研究和实际工作中，我摸索出了一些关于测试的道理。然而在我工作过的每一个公司，我发现绝大多数人都不明白这些道理，很多团队集体性的采用错误的做法而不自知。很多人把测试当成一种主义和教条，进行过度的测试，不必要的测试，不可靠的测试，并且把这些错误的做法传授给新手，造成恶性循环。本来目的是提高代码质量，结果不但没能达到目的，反而降低了代码质量，增大了工作量，大幅度延缓工程进度。&lt;/p&gt;
+
+&lt;p&gt;我也写测试，但我的测试方式比“测试教条主义者”们的方式聪明很多。在我心目中，代码本身的地位大大的高于测试。我不忽视测试，但我不会本末倒置，过分强调测试，我并不推崇测试驱动开发（TDD）。我知道该测试什么，不该测试什么，什么时候该写测试，什么时候不该写，什么时候应该推迟测试，什么时候完全不需要测试。因为这个原因，再加上高强的编程能力，我多次完成别人认为在短时间不可能完成的任务，并且制造出质量非常高的代码。&lt;/p&gt;
+
+&lt;h3&gt;测试的道理&lt;/h3&gt;
+
+&lt;p&gt;现在我就把这些自己领悟到的关于测试的道理总结一下，其中有一些是鲜为人知或者被误解的。&lt;/p&gt;
+
+&lt;ol&gt;
 &lt;li&gt;&lt;p&gt;不要以为你处处显示出“重视代码质量”的态度，就能提高代码质量。总有些人，以为自己知道“单元测试”（unit test），“集成测试”（integration test）这样的名词，就很懂编程，就可以教育其他人。可惜，光有态度和口号是不解决问题的，你还必须有实战的技巧，深入的见解和智慧，必须切实地知道应该怎么做。代码的质量不会因为你重视它就得到提升，也不会因为你采取了措施（比如测试，静态分析）就一定会得到改善。你必须知道什么时候该写测试，什么时候不该写测试，需要写测试的时候，要写什么样的测试。其实，提高代码质量唯一可行的手段不是写测试，而是反复的提炼自己的思维，写简单清晰的代码。如果你想真的提高代码质量，我的文章『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/11/21/programming-philosophy&quot;&gt;编程的智慧&lt;/a&gt;』是一个不错的出发点。&lt;/p&gt;&lt;/li&gt;
 &lt;li&gt;&lt;p&gt;真正的编程高手不会被测试捆住手脚。是的，你身边那个你认为“不很在乎测试”的家伙，也许是个比你更好的程序员。我喜欢把编程比喻成开赛车，而测试就是放在路边用来防撞的轮胎护栏……&lt;/p&gt;
 
@@ -51,12 +162,51 @@
 &lt;li&gt;&lt;p&gt;避免写太长，太耗时的测试。很多人写测试，叽里呱啦很长一串，到后来再看的时候，他已经不记得自己当时想测什么了。有些人本来用很小的输入就可以测试到需要的性质，他却总喜欢给一个很大的输入，下意识的以为这样更加靠谱，结果这测试每次都会消耗大量的 build 时间，而其实达到的效果跟很小的输入没有任何区别。&lt;/p&gt;&lt;/li&gt;
 &lt;li&gt;&lt;p&gt;一个测试只测试一个方面，避免重复测试。有些人一个测试测很多内容，结果每次那个测试失败，都搞不清楚到底是哪个部件出了问题。有些人为了“放心”，喜欢在多个测试里面“附带”测某些他认为相关的部件，结果每次那个部件出问题，就发现好多个测试失败。如果一个测试只测一个方面，不重复测同一个部件，那么你就可以很快的根据失败的测试，发现出问题的部件和位置。&lt;/p&gt;&lt;/li&gt;
 &lt;li&gt;&lt;p&gt;避免通过比较字符串来进行测试。很多人写测试的时候，喜欢通过打印出一些东西，然后使用字符串比较的方式来决定输出是否符合要求。一个常见的做法是把输出打印成格式化的 JSON，然后对比两个文本。甚至有人 JSON 都不用，直接就比较 printf 输出的结果。这种测试是非常脆弱的。因为字符串输出的格式往往会发生微小的变化，比如有人在里面加了一个空格之类的。把这种字符串作为标准输出，进行字符串比较，很容易因为微小的改动而使大量测试失败，导致很多的测试需要做不必要的修改。正确的做法，应该是进行结构化的比较，如果你要把标准结果存成 JSON，那么你应该先 parse 出 JSON 所表示的对象，然后再进行结构化的对比。PySonar2 的测试就是这样的做法，所以相当的稳定。&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;“测试能帮助后来人”的误区。每当指出测试教条主义的错误，就会有人出来说：“测试不是为了你自己，而是为了你走了以后，以后进来的人不犯错误。” 首先，这种人根本没有看清楚我在说什么，因为我从来没有反对过合理的测试。其次，这种“测试能帮助后来人”，其实是没有经过实践检验，站不住脚的说法。如果你的代码写得很乱，就算你测试再多，后来人也无法理解，反倒被莫名其妙的测试失败给弄得更糊涂，不知道是自己错了还是测试错了。我已经说过了，测试不能完全保证代码不被改错，实际上它们防止代码被改错的作用是非常弱的。无论如何，后来人都必须理解原来的代码的逻辑，知道它在做什么，否则他们不可能做出正确的修改，就算你有再严密的测试也一样。&lt;/p&gt;
+&lt;li&gt;&lt;p&gt;“测试能帮助后来人”的误区。每当指出测试教条主义的错误，就会有人出来说：“测试不是为了你自己，而是为了你走了以后，以后进来的人不犯错误。” 首先，这种人根本没有看清楚我在说什么，因为我从来没有反对过合理的测试。其次，这种“测试能帮助后来人”，其实是没有经过实践检验，站不住脚的说法。如果你的代码写得很乱，就算你测试再多，后来人也无法理解，反倒被莫名其妙的测试失败给弄得更糊涂，不知道是自己错了还是测试错了。我已经说过了，测试不能完全保证代码不被改错，实际上它们防止代码被改错的作用是非常弱的。无论如何，后来人都必须理解原来的代码的逻辑，知道它在做什么，否则他们不可能做出正确的修改，就算你有再严密的测试也一样。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
 
-&lt;p&gt;举一个亲身的例子。我在 Google 做出 PySonar 之后，最后一个测试都没写。第二次我回到 Google，我的上司 Steve Yegge 对我说：“你走了之后，我改了一些你的代码，真是太清晰，太好把握了，修改你的代码是一种快乐！” 这说明什么问题呢？我并不是说你可以不写测试，但这个例子说明，测试对于后来人的作用，并不是你有些人想象的那么大。创造清晰的代码才是解决这个问题的关键。&lt;/p&gt;
 
-&lt;p&gt;这种怕人突然走了，代码无法维护的想法，导致了一些人对测试过分的重视，但测试却不能解决这种问题。相反，如果测试太繁琐，做不必要的测试，反而容易让员工不满，容易走人，去加入在这方面更加有见地的公司。有些公司以为有了测试，就可以随便打发人走，这种想法是大错特错的。你需要明白的一个事情是，代码永远是属于写出它的那个人的，就算有测试也一样。如果核心人物真的走了，就算你有再多的测试也没用的，所以解决的方法就是把他们留住！一个有远见的公司总是通过其他的手段解决这个问题，比如优待和尊重员工，创造良好的氛围，使得他们没那么快想走。另外，公司必须注意知识的传承，防止某些代码只有一个人理解。&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;&lt;h3&gt;案例分析&lt;/h3&gt;&lt;p&gt;有人会疑问，我凭什么可以给别人讲这些经验，我自己为此有什么成功的案例呢？所以现在来讲讲我做过的几个东西，以及我亲眼目睹的测试教条主义者们的失败案例。&lt;/p&gt;&lt;h4&gt;Google&lt;/h4&gt;&lt;p&gt;很多人可能听说过我在 &lt;a href=&quot;http://www.yinwang.org/blog-%EF%BC%8Ccn/2014/12/31/google-story&quot;&gt;Google&lt;/a&gt; 做的 PySonar。当时 Google 的队友们战战兢兢，说这么高难复杂的东西要从头做起，几乎是不可能的。特别是某位队友，一开头就吵着要我写测试，一直吵到最后，烦死我了。他们为什么这么担心呢？因为对 Python 做类型推导是非常高难度的代码，需要相当复杂的数据结构和算法，需要精通 Python 的语义实现。&lt;/p&gt;&lt;p&gt;作为一个训练有素的专家，我没有在乎他们的咋呼，没有信他们的教条。我按照自己的方式组织代码，进行精密的思考，设计和推理，最终在三个月之内做出了非常优雅，正确，高性能，而又容易维护的代码。PySonar 到现在仍然是世界上最先进的 Python 类型推导和索引系统，被多家公司采用，用于处理数以百万计的 Python 代码。，&lt;/p&gt;&lt;p&gt;如果我当时按照 Google 队友的要求，采用已有的开源代码，或者过早的写了测试，别说无法在三个月的实习时间之内完成这个东西，就算折腾好几年也没有可能。&lt;/p&gt;&lt;h4&gt;Shape Security&lt;/h4&gt;&lt;p&gt;这种思维方式最近的成功实例，是给 Shape Security 做的一个先进的 JavaScript 混淆器（obfuscator）和对集群（cluster）管理系统的改进。不要小看了这个 JS 混淆器，它的混淆能力要比 uglify 之类的开源工具强很多，也快很多。它不但包含了 uglify 的变量换名等基本功能，而且含有专门针对人类和编译器的复杂化，使得没人能看出一点线索这个程序到底要干什么，让最先进的 JS 编译器也无法把它简化。&lt;/p&gt;&lt;p&gt;其实这个混淆器也是一种编译器，只不过它把 JavaScript 翻译成不可读的形式。在这个项目中，由于失之毫厘就可以差之千里，我采用了从 Chez Scheme 编译器学过来的，非常严密的测试方法。对每一个编译器的步骤（pass），我都给它设计一些正好可以测到这个步骤的输入代码（比如，具有函数定义的，for循环，try-catch的，等等）。Pass 输出的代码，经过 JavaScript 解释器执行，把结果跟原来程序的执行结果对比。每一个测试程序，经过每一个 pass，输出的中间结果都跟标准结果进行对比，如果错了就表明那个 pass 有问题，出错的小程序会指出大概是哪一个部分出了问题。遵循小巧，不冗余，不重复的原则，我总共只写了40多个非常小的 JavaScript 程序。由于这些测试涵盖了 JavaScript 的所有构造而且几乎不重复，它们能够准确的定位到错误的改动。最后，这个 JS 混淆器能够正确的转换像 AngularJS 那么大的项目，确保语义的正确，让人完全无法读懂，而且能有效地防止被优化器（比如 Closure Compiler）简化掉。&lt;/p&gt;&lt;p&gt;相比之下，过度鼓吹测试和可靠性的人，并没能制造出这么高质量的混淆器。其实在我进入团队之前，里面的两三位高手已经做了一个混淆器，项目延续了好多个月。这片代码一直没能发布给客户用，因为它的换名部件总是会在某些情况下输出错误的代码，修改了好多次仍然会出错。不是100%的正确，这对于程序语言的转换器来说，是不可接受的。换名只是我的混淆器里的一个步骤，它还包含大概十个类似的步骤，可以把代码进行各种转换。&lt;/p&gt;&lt;p&gt;在实现换名器的时候，队友们让我直接拿他们以前写的换名代码过来，把 bug 修好就可以。然而看了代码之后，我发现这代码没法修，因为它采用了错误的思路，缝缝补补也不可能达到100%的正确，而且明显效率低下，所以我决定自己重写一个。由于轻车熟路，我只花了一下午的时间，就完成了一个正确的换名器，它完全符合 JavaScript 的语义，各种奇葩的作用域规则，而且结构非常简单。说白了，这个换名器也是一种&lt;a href=&quot;http://www.yinwang.org/blog-cn/2012/08/01/interpreter&quot;&gt;解释器&lt;/a&gt;。对解释器的深刻理解，让我可以很容易的写出任何语言的换名器。&lt;/p&gt;&lt;p&gt;不幸的是，历史再次重演了 ;) 队友们听说我花一下午重写了一个换名器，非常紧张，咋呼地跟我说：“你知道我们的换名器是花了多少个月的时间做出来的吗？你知道我们写了多少测试来保证它的正确性吗？你现在一下午做出来一个新的，你如何能保证它的正确！” 我不知道他们怎么好意思说出这样的话来，因为事实是，他们花了这么多个月，耗费这么多人力，写了这么多的测试，做出来的换名器却仍然有 bug，没法用。当我把我写的测试和几个大点的 open source 项目（AngularJS, Backbone 等）放进他们的换名器之后，就发现有些地方出问题了，而所有的测试和 open source 项目通过我的换名器，却得到完全正确的代码。另外经过性能测试，我的换名器速度要快四倍的样子。所以就像 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2014/02/18/dijkstra-interview&quot;&gt;Dijkstra&lt;/a&gt; 所说：“最优雅的程序往往也是最高效的。”&lt;/p&gt;&lt;p&gt;结束这个项目之后，我换了一个团队（cluster团队），这个团队的人要好很多，低调而且幽默。Shape Security 的产品（Shape Shifter）里面包含一个高可靠（HA）集群管理系统，它可以通过网络，选举 leader，构建一个高容错的并行处理集群。这个集群管理系统一直以来都是公司里很复杂，却是可靠性要求最高的一个部件，一旦出问题就可能有灾难性的后果。确实，它当时可靠性非常高，从来没出过问题。但它的代码过度复杂而缺乏模块化，以至于很难扩展来应付新的客户需求。我进入这个新团队的任务，就是对它进行大规模的简化，模块化和扩展，让它满足新的需求。&lt;/p&gt;&lt;p&gt;在这个项目中，由于代码的改动幅度很大，在同事和部门领导的理解，信任和支持下，我们决定直接抛弃已有的测试，完全靠严格而及时的 code review，逻辑推理，推敲讨论，手工试验来保证代码的正确。在我修改代码的同时，一位更熟悉已有代码的队友一直通过 git 默默监视着我的每一次改动，根据他自己的经验来判断我的改动是否偏离了原来的语义，及时与我交流和讨论。由于这种灵活而严格的方式，工程不到两个月就完成了。改进后的代码不但更加模块化，更可扩展，适应了新的需求，而且仍然非常可靠。假设部门领导是“测试教条主义者”，不允许抛弃已有的测试，这样的项目是绝对不可能如期完成的。然而在当今世界遇到这样的领导的机会，恐怕十个人里面不到一个吧。&lt;/p&gt;&lt;h4&gt;Coverity&lt;/h4&gt;&lt;p&gt;最后，我举一个由于测试方式不当而非常失败的案例，那就是 Coverity 的 Java 静态分析产品。我承认 Coverity 的 C 和 C++ 分析器也许是非常好的，然而 Java 的分析器，很难说。当我进入 Coverity 的时候，同事们已经忍受了整整一年的管理层的威逼和高压，超时过劳工作，写出了基本的新产品和很多的测试。可是由于技术债太多，再多的测试也没能保证产品的可靠性。&lt;/p&gt;&lt;p&gt;我的任务就是利用我深入的 PL 知识，不停的修补前人留下来的各种蹊跷 bug。有些 bug 需要运行20多分钟之后才出现，一次还看不出是怎么回事，所以修起来非常耗时。有时候我只好趴在电脑前面养神，时不时的睁眼看看结果。Coverity 是如此的在乎测试，他们要求每修复一个 bug 你就必须写出新的测试。测试必须能够如实的重现 bug 的现象，修复之后测试必须能够通过。这看似一个很在乎代码质量的做法，然而它不但没能保证产品的稳定可靠，而且大幅度的减慢了工程进度，并且造成员工的疲惫和不满。&lt;/p&gt;&lt;p&gt;有一次他们分配给我一个 bug：在分析一个中型项目的时候，分析器似乎进入了死循环，好几个小时都不能完成。因为 Coverity 的全局静态分析，其实就是某种图遍历算法。当这个图里面有回路的时候，你就必须小心，如果不问青红皂白就递归进去，就可能进入死循环。避免死循环的办法很简单，你构造一个图节点的集合（Set），然后把它传递到函数里面作为参数。 每当访问一个节点，你先检查这个节点是否已经在这个集合里，如果在你就直接返回，否则你就把这个节点加入到集合里，然后递归处理这个节点的子节点。它的 C++ 代码大概就像这个样子：&lt;/p&gt;&lt;pre&gt;&lt;code&gt;void traverse(Node node, Set&amp;lt;Node&amp;gt; &amp;amp;visited)
+&lt;p&gt;   举一个亲身的例子。我在 Google 做出 PySonar 之后，最后一个测试都没写。第二次我回到 Google，我的上司 Steve Yegge 对我说：“你走了之后，我改了一些你的代码，真是太清晰，太好把握了，修改你的代码是一种快乐！” 这说明什么问题呢？我并不是说你可以不写测试，但这个例子说明，测试对于后来人的作用，并不是你有些人想象的那么大。创造清晰的代码才是解决这个问题的关键。&lt;/p&gt;
+
+&lt;p&gt;   这种怕人突然走了，代码无法维护的想法，导致了一些人对测试过分的重视，但测试却不能解决这种问题。相反，如果测试太繁琐，做不必要的测试，反而容易让员工不满，容易走人，去加入在这方面更加有见地的公司。有些公司以为有了测试，就可以随便打发人走，这种想法是大错特错的。你需要明白的一个事情是，代码永远是属于写出它的那个人的，就算有测试也一样。如果核心人物真的走了，就算你有再多的测试也没用的，所以解决的方法就是把他们留住！一个有远见的公司总是通过其他的手段解决这个问题，比如优待和尊重员工，创造良好的氛围，使得他们没那么快想走。另外，公司必须注意知识的传承，防止某些代码只有一个人理解。&lt;/p&gt;
+
+&lt;h3&gt;案例分析&lt;/h3&gt;
+
+&lt;p&gt;有人会疑问，我凭什么可以给别人讲这些经验，我自己为此有什么成功的案例呢？所以现在来讲讲我做过的几个东西，以及我亲眼目睹的测试教条主义者们的失败案例。&lt;/p&gt;
+
+&lt;h4&gt;Google&lt;/h4&gt;
+
+&lt;p&gt;很多人可能听说过我在 &lt;a href=&quot;http://www.yinwang.org/blog-%EF%BC%8Ccn/2014/12/31/google-story&quot;&gt;Google&lt;/a&gt; 做的 PySonar。当时 Google 的队友们战战兢兢，说这么高难复杂的东西要从头做起，几乎是不可能的。特别是某位队友，一开头就吵着要我写测试，一直吵到最后，烦死我了。他们为什么这么担心呢？因为对 Python 做类型推导是非常高难度的代码，需要相当复杂的数据结构和算法，需要精通 Python 的语义实现。&lt;/p&gt;
+
+&lt;p&gt;作为一个训练有素的专家，我没有在乎他们的咋呼，没有信他们的教条。我按照自己的方式组织代码，进行精密的思考，设计和推理，最终在三个月之内做出了非常优雅，正确，高性能，而又容易维护的代码。PySonar 到现在仍然是世界上最先进的 Python 类型推导和索引系统，被多家公司采用，用于处理数以百万计的 Python 代码。，&lt;/p&gt;
+
+&lt;p&gt;如果我当时按照 Google 队友的要求，采用已有的开源代码，或者过早的写了测试，别说无法在三个月的实习时间之内完成这个东西，就算折腾好几年也没有可能。&lt;/p&gt;
+
+&lt;h4&gt;Shape Security&lt;/h4&gt;
+
+&lt;p&gt;这种思维方式最近的成功实例，是给 Shape Security 做的一个先进的 JavaScript 混淆器（obfuscator）和对集群（cluster）管理系统的改进。不要小看了这个 JS 混淆器，它的混淆能力要比 uglify 之类的开源工具强很多，也快很多。它不但包含了 uglify 的变量换名等基本功能，而且含有专门针对人类和编译器的复杂化，使得没人能看出一点线索这个程序到底要干什么，让最先进的 JS 编译器也无法把它简化。&lt;/p&gt;
+
+&lt;p&gt;其实这个混淆器也是一种编译器，只不过它把 JavaScript 翻译成不可读的形式。在这个项目中，由于失之毫厘就可以差之千里，我采用了从 Chez Scheme 编译器学过来的，非常严密的测试方法。对每一个编译器的步骤（pass），我都给它设计一些正好可以测到这个步骤的输入代码（比如，具有函数定义的，for循环，try-catch的，等等）。Pass 输出的代码，经过 JavaScript 解释器执行，把结果跟原来程序的执行结果对比。每一个测试程序，经过每一个 pass，输出的中间结果都跟标准结果进行对比，如果错了就表明那个 pass 有问题，出错的小程序会指出大概是哪一个部分出了问题。遵循小巧，不冗余，不重复的原则，我总共只写了40多个非常小的 JavaScript 程序。由于这些测试涵盖了 JavaScript 的所有构造而且几乎不重复，它们能够准确的定位到错误的改动。最后，这个 JS 混淆器能够正确的转换像 AngularJS 那么大的项目，确保语义的正确，让人完全无法读懂，而且能有效地防止被优化器（比如 Closure Compiler）简化掉。&lt;/p&gt;
+
+&lt;p&gt;相比之下，过度鼓吹测试和可靠性的人，并没能制造出这么高质量的混淆器。其实在我进入团队之前，里面的两三位高手已经做了一个混淆器，项目延续了好多个月。这片代码一直没能发布给客户用，因为它的换名部件总是会在某些情况下输出错误的代码，修改了好多次仍然会出错。不是100%的正确，这对于程序语言的转换器来说，是不可接受的。换名只是我的混淆器里的一个步骤，它还包含大概十个类似的步骤，可以把代码进行各种转换。&lt;/p&gt;
+
+&lt;p&gt;在实现换名器的时候，队友们让我直接拿他们以前写的换名代码过来，把 bug 修好就可以。然而看了代码之后，我发现这代码没法修，因为它采用了错误的思路，缝缝补补也不可能达到100%的正确，而且明显效率低下，所以我决定自己重写一个。由于轻车熟路，我只花了一下午的时间，就完成了一个正确的换名器，它完全符合 JavaScript 的语义，各种奇葩的作用域规则，而且结构非常简单。说白了，这个换名器也是一种&lt;a href=&quot;http://www.yinwang.org/blog-cn/2012/08/01/interpreter&quot;&gt;解释器&lt;/a&gt;。对解释器的深刻理解，让我可以很容易的写出任何语言的换名器。&lt;/p&gt;
+
+&lt;p&gt;不幸的是，历史再次重演了 ;) 队友们听说我花一下午重写了一个换名器，非常紧张，咋呼地跟我说：“你知道我们的换名器是花了多少个月的时间做出来的吗？你知道我们写了多少测试来保证它的正确性吗？你现在一下午做出来一个新的，你如何能保证它的正确！” 我不知道他们怎么好意思说出这样的话来，因为事实是，他们花了这么多个月，耗费这么多人力，写了这么多的测试，做出来的换名器却仍然有 bug，没法用。当我把我写的测试和几个大点的 open source 项目（AngularJS, Backbone 等）放进他们的换名器之后，就发现有些地方出问题了，而所有的测试和 open source 项目通过我的换名器，却得到完全正确的代码。另外经过性能测试，我的换名器速度要快四倍的样子。所以就像 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2014/02/18/dijkstra-interview&quot;&gt;Dijkstra&lt;/a&gt; 所说：“最优雅的程序往往也是最高效的。”&lt;/p&gt;
+
+&lt;p&gt;结束这个项目之后，我换了一个团队（cluster团队），这个团队的人要好很多，低调而且幽默。Shape Security 的产品（Shape Shifter）里面包含一个高可靠（HA）集群管理系统，它可以通过网络，选举 leader，构建一个高容错的并行处理集群。这个集群管理系统一直以来都是公司里很复杂，却是可靠性要求最高的一个部件，一旦出问题就可能有灾难性的后果。确实，它当时可靠性非常高，从来没出过问题。但它的代码过度复杂而缺乏模块化，以至于很难扩展来应付新的客户需求。我进入这个新团队的任务，就是对它进行大规模的简化，模块化和扩展，让它满足新的需求。&lt;/p&gt;
+
+&lt;p&gt;在这个项目中，由于代码的改动幅度很大，在同事和部门领导的理解，信任和支持下，我们决定直接抛弃已有的测试，完全靠严格而及时的 code review，逻辑推理，推敲讨论，手工试验来保证代码的正确。在我修改代码的同时，一位更熟悉已有代码的队友一直通过 git 默默监视着我的每一次改动，根据他自己的经验来判断我的改动是否偏离了原来的语义，及时与我交流和讨论。由于这种灵活而严格的方式，工程不到两个月就完成了。改进后的代码不但更加模块化，更可扩展，适应了新的需求，而且仍然非常可靠。假设部门领导是“测试教条主义者”，不允许抛弃已有的测试，这样的项目是绝对不可能如期完成的。然而在当今世界遇到这样的领导的机会，恐怕十个人里面不到一个吧。&lt;/p&gt;
+
+&lt;h4&gt;Coverity&lt;/h4&gt;
+
+&lt;p&gt;最后，我举一个由于测试方式不当而非常失败的案例，那就是 Coverity 的 Java 静态分析产品。我承认 Coverity 的 C 和 C++ 分析器也许是非常好的，然而 Java 的分析器，很难说。当我进入 Coverity 的时候，同事们已经忍受了整整一年的管理层的威逼和高压，超时过劳工作，写出了基本的新产品和很多的测试。可是由于技术债太多，再多的测试也没能保证产品的可靠性。&lt;/p&gt;
+
+&lt;p&gt;我的任务就是利用我深入的 PL 知识，不停的修补前人留下来的各种蹊跷 bug。有些 bug 需要运行20多分钟之后才出现，一次还看不出是怎么回事，所以修起来非常耗时。有时候我只好趴在电脑前面养神，时不时的睁眼看看结果。Coverity 是如此的在乎测试，他们要求每修复一个 bug 你就必须写出新的测试。测试必须能够如实的重现 bug 的现象，修复之后测试必须能够通过。这看似一个很在乎代码质量的做法，然而它不但没能保证产品的稳定可靠，而且大幅度的减慢了工程进度，并且造成员工的疲惫和不满。&lt;/p&gt;
+
+&lt;p&gt;有一次他们分配给我一个 bug：在分析一个中型项目的时候，分析器似乎进入了死循环，好几个小时都不能完成。因为 Coverity 的全局静态分析，其实就是某种图遍历算法。当这个图里面有回路的时候，你就必须小心，如果不问青红皂白就递归进去，就可能进入死循环。避免死循环的办法很简单，你构造一个图节点的集合（Set），然后把它传递到函数里面作为参数。 每当访问一个节点，你先检查这个节点是否已经在这个集合里，如果在你就直接返回，否则你就把这个节点加入到集合里，然后递归处理这个节点的子节点。它的 C++ 代码大概就像这个样子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;void traverse(Node node, Set&amp;lt;Node&amp;gt; &amp;amp;visited)
 {
   if (visited.contains(node)) {
     return;
@@ -65,7 +215,41 @@
     process_node(node, visited);   // 里面会递归调用 traverse
   }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;查看代码之后我发现，代码其实没有进入“死循环”，而是进入了指数复杂度的计算，所以很久都不能完成。这是因为写这函数的人不小心，或者没有理解 C++ 的函数参数缺省是传值（做拷贝）而不是传引用，所以他忘了打那个“&amp;amp;”，所以函数被递归调用的时候不是传递原来的集合，而是做了一个拷贝。每一次递归调用&lt;code&gt;traverse&lt;/code&gt;，visited 都得到一个新的拷贝，所以返回之后，visited 的值就恢复到之前的状态，就像 node 被自动 remove 了一样。所以这个函数仍然会在某种情况下再次访问这个节点。这样的代码不会进入死循环，然而在某种特殊的图结构下，这会造成指数级的时间复杂度（请想一下这是什么样的一种图）。&lt;/p&gt;&lt;p&gt;本来很明显的一个图论算法问题，加一个“&amp;amp;”就修好了，手工试验也发现问题消失了。然而 Coverity 的测试教条主义者们（包括写出这 bug 的那人自己），吵着闹着，严肃命令我必须写出测试，构造出可以造成这种后果的数据结构，确保这个 bug 不会再重新出现。&lt;/p&gt;&lt;p&gt;为一个我根本不会犯的错误写测试，而且它不可能再次发生，这不是很搞笑吗？就算你写了测试，也不能保证同样的事情不再发生。如果你不小心漏掉“&amp;amp;”，下次同样的问题还会发生，并且发生在另外的地方，而你却没有给那块代码写测试，所以给这个 bug 写测试，并不能防止同样的问题再次发生。这就像一个技术不过关的赛车手，他在别人不大可能撞车的地方撞了车，然后就要求赛场在那个地方撞上轮胎护栏。可是下一次，这个车手又会在另一个其他人都不会撞车地方撞车……&lt;/p&gt;&lt;p&gt;稍微有点图论常识，熟悉 C++ 基本概念的人，都不会犯这种错误。防止这种问题，只有靠个人的技术和经验，而不能靠测试。防止它再次发生的最好办法，恐怕是开个会把这个问题讲清楚，让大家理解，下次不要再犯。所以给这个 bug 写测试，完全是多此一举。跟队友们讲解了这个原理，他们听了之后，仿佛什么都没有听到一样，仍然强硬的要求：“可是你还是得写这个测试，因为这是我们的规定！你知道要是出了 bug，送一个销售工程师去客户那里，要花多少钱吗……” 无语了。&lt;/p&gt;&lt;p&gt;Coverity 的 Java 分析，就是经常因为这种测试教条主义，使得项目进展及其痛苦和缓慢，却仍然 bug 百出。Coverity 的其他的问题，还包括我上面指出的，写重复的测试，一个测试测太多东西，使用字符串比较来做测试，等等。你恐怕很难想象，一个制造旨在提高代码质量的产品的公司，自己代码的质量是这样维护的 :P&lt;/p&gt;&lt;h3&gt;完&lt;/h3&gt;&lt;p&gt;由于绝大多数人对测试的误解如此之深，测试教条主义的流毒如此之广，导致许许多多优秀的程序员沉沦在繁琐的测试驱动开发中，无法舒展自己的长处。为了大家有一个轻松，顺利又可靠的工作环境，我希望大家多多转发这篇文章，改变这个行业的陋习。我希望大家在工程中理性的对待测试，而不是盲目的写测试，只有这样才能更好更快的完成项目。&lt;/p&gt;&lt;p&gt;（由于这篇文章包含了我很多年的经验和深入的见解，希望你觉得有收获的话为此付费。建议价格是5美元，或者30人民币。【&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/04/13/pay-blog&quot;&gt;付费方式&lt;/a&gt;】）&lt;/p&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;查看代码之后我发现，代码其实没有进入“死循环”，而是进入了指数复杂度的计算，所以很久都不能完成。这是因为写这函数的人不小心，或者没有理解 C++ 的函数参数缺省是传值（做拷贝）而不是传引用，所以他忘了打那个“&amp;amp;”，所以函数被递归调用的时候不是传递原来的集合，而是做了一个拷贝。每一次递归调用&lt;code&gt;traverse&lt;/code&gt;，visited 都得到一个新的拷贝，所以返回之后，visited 的值就恢复到之前的状态，就像 node 被自动 remove 了一样。所以这个函数仍然会在某种情况下再次访问这个节点。这样的代码不会进入死循环，然而在某种特殊的图结构下，这会造成指数级的时间复杂度（请想一下这是什么样的一种图）。&lt;/p&gt;
+
+&lt;p&gt;本来很明显的一个图论算法问题，加一个“&amp;amp;”就修好了，手工试验也发现问题消失了。然而 Coverity 的测试教条主义者们（包括写出这 bug 的那人自己），吵着闹着，严肃命令我必须写出测试，构造出可以造成这种后果的数据结构，确保这个 bug 不会再重新出现。&lt;/p&gt;
+
+&lt;p&gt;为一个我根本不会犯的错误写测试，而且它不可能再次发生，这不是很搞笑吗？就算你写了测试，也不能保证同样的事情不再发生。如果你不小心漏掉“&amp;amp;”，下次同样的问题还会发生，并且发生在另外的地方，而你却没有给那块代码写测试，所以给这个 bug 写测试，并不能防止同样的问题再次发生。这就像一个技术不过关的赛车手，他在别人不大可能撞车的地方撞了车，然后就要求赛场在那个地方装上轮胎护栏。可是下一次，这个车手又会在另一个其他人都不会撞车地方撞车……&lt;/p&gt;
+
+&lt;p&gt;稍微有点图论常识，熟悉 C++ 基本概念的人，都不会犯这种错误。防止这种问题，只有靠个人的技术和经验，而不能靠测试。防止它再次发生的最好办法，恐怕是开个会把这个问题讲清楚，让大家理解，下次不要再犯。所以给这个 bug 写测试，完全是多此一举。跟队友们讲解了这个原理，他们听了之后，仿佛什么都没有听到一样，仍然强硬的要求：“可是你还是得写这个测试，因为这是我们的规定！你知道要是出了 bug，送一个销售工程师去客户那里，要花多少钱吗……” 无语了。&lt;/p&gt;
+
+&lt;p&gt;Coverity 的 Java 分析，就是经常因为这种测试教条主义，使得项目进展及其痛苦和缓慢，却仍然 bug 百出。Coverity 的其他的问题，还包括我上面指出的，写重复的测试，一个测试测太多东西，使用字符串比较来做测试，等等。你恐怕很难想象，一个制造旨在提高代码质量的产品的公司，自己代码的质量是这样维护的 :P&lt;/p&gt;
+
+&lt;h3&gt;完&lt;/h3&gt;
+
+&lt;p&gt;由于绝大多数人对测试的误解如此之深，测试教条主义的流毒如此之广，导致许许多多优秀的程序员沉沦在繁琐的测试驱动开发中，无法舒展自己的长处。为了大家有一个轻松，顺利又可靠的工作环境，我希望大家多多转发这篇文章，改变这个行业的陋习。我希望大家在工程中理性的对待测试，而不是盲目的写测试，只有这样才能更好更快的完成项目。&lt;/p&gt;
+
+&lt;p&gt;（由于这篇文章包含了我很多年的经验和深入的见解，希望你觉得有收获的话为此付费。建议价格是5美元，或者30人民币。【&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/04/13/pay-blog&quot;&gt;付费方式&lt;/a&gt;】）&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">tests</guid>
 <pubDate>Wed, 14 Sep 2016 00:00:00 +0800</pubDate>
@@ -73,9 +257,41 @@
 <item>
 <title>收回前一篇文章</title>
 <link>http://yinwang.org/blog-cn/2016/09/12/withdraw</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;收回前一篇文章&lt;/h2&gt;&lt;p&gt;写前一篇文章的时候，头脑比较热。现在想起来，也不知道自己为什么会说出那样的话来，为什么会有那样的想法。最后是真是假，还有一些半成品和猜忌，都一股脑的倒了出来。&lt;/p&gt;&lt;p&gt;今天回到公司，看见 manager 诚恳的眼神，被一群低调的同事所围绕，听取我对某些工具的抱怨和改进意见，向我表示抱歉，解释并且确认需要改进的地方。我发现，满头的怨气顿时全没了。这是一群挺可爱的同事……&lt;/p&gt;&lt;p&gt;也许，是经历了这么多风雨和奇葩的人际关系之后，很难不猜忌其它人的想法吧，很难以轻松的心情相待。一朝被蛇咬，十年怕井绳。有些事情不说清楚，就憋在心里了。人和人的了解需要时间，才来两个月，都不怎么熟悉，难免因为语言上的差异而产生误会。如果说有人封闭和压抑的话，那恐怕是我自己吧。这里的天空其实挺广阔，是我自己没有看到。&lt;/p&gt;&lt;p&gt;实话说在这两个月里面，我是真心欣赏微软的很多方面，享受自己所做的事情的时候还是很多，可是那天折腾得郁闷了就都忘了说好的方面。如果要我用两个字来概括对这个公司的第一印象，我能想到的两个字就是：成熟。我能感觉到，他们其中一些人会是很好的朋友。&lt;/p&gt;&lt;p&gt;刚说错那么多话，这里就不好意思多说了。&lt;/p&gt;&lt;p&gt;（有人在关心是不是领导给了我压力，所以改口了。我王垠有这么怕事吗？话说如果领导真给了我压力，那我还反倒不改了。我又不靠微软这口饭活着 :P 我是真心觉得自己太急太冲动了，本着尊重事实的原则，所以才撤回的。）&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;收回前一篇文章&lt;/h2&gt;
+                            &lt;p&gt;写前一篇文章的时候，头脑比较热。现在想起来，也不知道自己为什么会说出那样的话来，为什么会有那样的想法。最后是真是假，还有一些半成品和猜忌，都一股脑的倒了出来。&lt;/p&gt;
+
+&lt;p&gt;今天回到公司，看见 manager 诚恳的眼神，被一群低调的同事所围绕，听取我对某些工具的抱怨和改进意见，向我表示抱歉，解释并且确认需要改进的地方。我发现，满头的怨气顿时全没了。这是一群挺可爱的同事……&lt;/p&gt;
+
+&lt;p&gt;也许，是经历了这么多风雨和奇葩的人际关系之后，很难不猜忌其它人的想法吧，很难以轻松的心情相待。一朝被蛇咬，十年怕井绳。有些事情不说清楚，就憋在心里了。人和人的了解需要时间，才来两个月，都不怎么熟悉，难免因为语言上的差异而产生误会。如果说有人封闭和压抑的话，那恐怕是我自己吧。这里的天空其实挺广阔，是我自己没有看到。&lt;/p&gt;
+
+&lt;p&gt;实话说在这两个月里面，我是真心欣赏微软的很多方面，享受自己所做的事情的时候还是很多，可是那天折腾得郁闷了就都忘了说好的方面。如果要我用两个字来概括对这个公司的第一印象，我能想到的两个字就是：成熟。我能感觉到，他们其中一些人会是很好的朋友。&lt;/p&gt;
+
+&lt;p&gt;刚说错那么多话，这里就不好意思多说了。&lt;/p&gt;
+
+&lt;p&gt;（有人在关心是不是领导给了我压力，所以改口了。我王垠有这么怕事吗？话说如果领导真给了我压力，那我还反倒不改了。我又不靠微软这口饭活着 :P 我是真心觉得自己太急太冲动了，本着尊重事实的原则，所以才撤回的。）&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">withdraw</guid>
 <pubDate>Mon, 12 Sep 2016 00:00:00 +0800</pubDate>
@@ -83,9 +299,57 @@
 <item>
 <title>Tesla autopilot 引起致命车祸</title>
 <link>http://yinwang.org/blog-cn/2016/07/10/tesla-autopilot-fatal-crash</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;Tesla autopilot 引起致命车祸&lt;/h2&gt;&lt;p&gt;好一段时间没关心 Tesla 了，今天才发现他们的 autopilot 终于引起了&lt;a href=&quot;http://www.pbs.org/newshour/rundown/deadly-tesla-crash-exposes-confusion-over-automated-driving&quot;&gt;致命的车祸&lt;/a&gt;。这场 Model S 撞上18轮大卡车的车祸，发生于5月7号，距今已经两个月了。 Tesla 把这事隐瞒了两个月之久，直到现在美国国家公路交通安全管理局（NHTSA）开始调查此事，才迫不得已公之于众。由于 Tesla 没有及时向政府监管部门报告事实，政府正在考虑对 Tesla 公司采取法律行动。&lt;/p&gt;&lt;p&gt;本来都懒得再提 Tesla 这公司的名字，但是由于 Tesla 对于这起车祸态度极不端正，不但隐瞒事实，而且继续找各种借口为 autopilot 开脱罪名，让这玩具级别的技术继续危害无辜开车人的安全，很多人（包括新闻机构）对此的分析很多都抓不住关键，所以我不得不再出来说几句。&lt;/p&gt;&lt;p&gt;死者名叫 &lt;a href=&quot;http://www.legacy.com/obituaries/ohio/obituary.aspx?pid=179994314&quot;&gt;Joshua Brown&lt;/a&gt;，40岁，曾作为炸弹专家，服役美国海军11年之久。退役以后成立了自己的技术公司，近段时间热衷于 Tesla 的电动车技术，还建立了一个 YouTube 频道，用于演示自己的 Tesla 车子。所以可以说，Joshua 对 Tesla 的 autopilot 使用方法已经很熟悉了。然而这不幸的事件，恰恰就发生在这个专家用户和热心人身上。&lt;/p&gt;&lt;p&gt;Tesla 方面称，那天 Joshua 行驶在佛罗里达州一条中间有隔离带的公路上，符合规定的启用了 autopilot。行车途中，前方有一辆18轮卡车左转，由于卡车车厢是白色的，后面的天空也是白色，所以 autopilot 没发现这个卡车，没有进行刹车，最后 Model S 撞上卡车，车主身亡。白色卡车衬托在白色天空上，所以 autopilot 就把卡车当成空气，这是个什么情况……&lt;/p&gt;&lt;p&gt;先不说这技术有什么问题，出了这种事情，Tesla 对此&lt;a href=&quot;https://www.teslamotors.com/en_GB/blog/tragic-loss&quot;&gt;反应&lt;/a&gt;让人非常的失望。不但没有基本的自我检查，反而各种狡辩，把责任全都推到用户身上。首先，他们从统计的角度，说明 Tesla 车引起死亡的比例，比其它车子小很多。然后旁敲侧击地想说明，就算是那人自己开车，也不能避免这种车祸。最后他们再三的强调，autopilot 的说明书已经声明，功能还不成熟，如果看到要出事而没有及时接管，你们自己负责！&lt;/p&gt;&lt;p&gt;这些都是 Tesla 老一套的诡辩方法。首先，Tesla 的死亡比例比其它车要小，并不能掩盖 autopilot 存在严重问题的事实。死亡比例小可能跟 Tesla 的技术没有很大关系，Tesla 是新公司，车都很新所以不容易出机械故障，而且买 Tesla 的都是有钱人，受过良好的教育，懂技术，所以一般不会乱开。那这种死亡比例，跟老牌子的车比是不公平的。其他牌子的车总数比 Tesla 多太多了，很多车子都十几二十年老掉牙，开车的各种人都有，酒鬼也有，老汉也有，罪犯也有，当然事故比例就上去了。如果你只看其它牌子最近几年的新车和豪华车，死亡比例拿来算一下，就很小。&lt;/p&gt;&lt;p&gt;如果你光看 autopilot 导航的总里程数，事故比例恐怕就上去了，因为很多 Tesla 用户可能没有启用 autopilot，或者用的很少。Autopilot 不是第一次引起车祸了，之前我的&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/01/10/tesla-autopilot&quot;&gt;另一篇文章&lt;/a&gt;已经提到，由于它的视觉技术不成熟，引发了许多险些发生车祸的情况，而且最近引起了好多次真正的车祸。要知道微小的比例落在一个人头上，就等于100%的不幸。等你因为 autopilot 而受害，才会发现 Tesla 摆出来的那些统计数字，对你其实毫无意义。也许，它确实造福了全人类，可惜死伤的人是你或者你的家人，而且那是因为 autopilot 极其弱智的判断错误…… 你会因为统计数字很安全而饶了 Tesla 吗？&lt;/p&gt;&lt;p&gt;另外 Tesla 喜欢旁敲侧击的指出 autopilot 的驾驶能力高于人类，而事实并不是那样。你怎么能证明人开车不能避免这车祸？Tesla 说：“驾驶员和 autopilot 都没有看到卡车。” 你们怎么知道驾驶员没有看见卡车？那可是18轮的大卡车！说白色的侧面车厢映在白色的天空，所以人看不见它，这不是搞笑吗。&lt;/p&gt;&lt;p&gt;一个东西是白色的，不等于它是看不见的，一个不透明的东西会挡住后面的景物，这一点人是很清楚的。白色的物体也会有反光，纹理会跟天空不一样，人可以通过这种反光感知它的存在。卡车不止有白色的侧面，还有黑色的轮子，车头上有烟囱，车窗，油箱，…… 各种其它颜色的附件。为了让其他人在夜间能看到车厢的大小，大卡车必须在车厢的八个角上都安装红色的警示灯，这些灯在白天不亮的时候也看得见的。就算天空是白色，人也是不可能看不见它，把卡车当成空气的。所以我猜真实情况是，驾驶员发现 autopilot 判断错误，想接管过来，但已经来不及了。要知道这个反应时间也许不到一秒！人死了，当然死无对证。&lt;/p&gt;&lt;p&gt;从多次的事故现象中，我分析出这样一个规律，虽然 Tesla 声称 Model S 上装备了雷达和声呐，但是 autopilot 的操作却似乎仅靠摄像头的“像素”，通过神经网络进行图像分析，所以它才会连18轮大卡车这么巨型的东西都没有发现，在路上看到个树影还以为是障碍物…… 这些都是人根本不会犯的奇葩错误。我请大家不要对自动驾驶技术过于乐观，急于求成。机器视觉在某些地方是很有用的技术，然而它要能被用于自动驾车，还有非常长的路要走。&lt;/p&gt;&lt;p&gt;Tesla 确实警告过人们，说这个技术还不成熟，你必须把手一直放在方向盘上，准备随时接管，然而这并不能免除 Tesla 的责任。首先，Tesla 根本就不应该把不成熟的技术发布出来，而且大肆宣传，搞得大家以为它很先进很可靠似的，争相试用。其次，说明书上的警告，在法律上也许是没有效力的。你要求别人随时接管，那么你必须在可能判断错误的时候给出警示，而且给人足够的响应时间，才能算是合理。&lt;/p&gt;&lt;p&gt;Autopilot 的设计是有严重问题的。它操纵着车子，却不给人解释自己看见了什么，准备进行什么操作，在道路情况超越了自己能力的时候，也不给人提示，以至于人根本不知道它出了问题，不能及时接管。要知道，车在直走的时候，autopilot 是否判断正确，人往往是看不出来的。一辆没有 autopilot（只有普通  cruise  control）的车子，跟一辆启用了  autopilot 的车子，在匀速直线运动的时候，人是无法察觉出任何区别的。可是人知道 autopilot 会自动刹车，而普通的  cruise  control 不能，所以人就会期望有 autopilot 的车子会刹车。等你发现它一声不吭，前面有障碍物却没有刹车，才会知道它有判断错误，可是那个时候就已经晚了。&lt;/p&gt;&lt;p&gt;所以在这种情况下，Tesla 虽然事先有“免责声明”，把责任全都推在用户头上，在法庭上其实仍然可以败诉，因为他们对用户提出的要求是不切实际的，没有人能够在上述 autopilot 判断错误情况下及时的接管过来。我建议这起车祸死者的家属把 Tesla 告上法庭，要求巨额赔偿。我也建议所有 Tesla 的车主，为了对自己和他人的生命负责，请关闭 autopilot 这个功能！Tesla 根本就不懂如何设计自动驾驶系统，技术不过硬，设计有缺陷，基本就是个玩具。生命很宝贵，用自己的生命来给所谓的“新技术”做试验品，是不值得的。&lt;/p&gt;&lt;p&gt;珍爱生命，远离 autopilot！&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;Tesla autopilot 引起致命车祸&lt;/h2&gt;
+                            &lt;p&gt;好一段时间没关心 Tesla 了，今天才发现他们的 autopilot 终于引起了&lt;a href=&quot;http://www.pbs.org/newshour/rundown/deadly-tesla-crash-exposes-confusion-over-automated-driving&quot;&gt;致命的车祸&lt;/a&gt;。这场 Model S 撞上18轮大卡车的车祸，发生于5月7号，距今已经两个月了。 Tesla 把这事隐瞒了两个月之久，直到现在美国国家公路交通安全管理局（NHTSA）开始调查此事，才迫不得已公之于众。由于 Tesla 没有及时向政府监管部门报告事实，政府正在考虑对 Tesla 公司采取法律行动。&lt;/p&gt;
+
+&lt;p&gt;本来都懒得再提 Tesla 这公司的名字，但是由于 Tesla 对于这起车祸态度极不端正，不但隐瞒事实，而且继续找各种借口为 autopilot 开脱罪名，让这玩具级别的技术继续危害无辜开车人的安全，很多人（包括新闻机构）对此的分析很多都抓不住关键，所以我不得不再出来说几句。&lt;/p&gt;
+
+&lt;p&gt;死者名叫 &lt;a href=&quot;http://www.legacy.com/obituaries/ohio/obituary.aspx?pid=179994314&quot;&gt;Joshua Brown&lt;/a&gt;，40岁，曾作为炸弹专家，服役美国海军11年之久。退役以后成立了自己的技术公司，近段时间热衷于 Tesla 的电动车技术，还建立了一个 YouTube 频道，用于演示自己的 Tesla 车子。所以可以说，Joshua 对 Tesla 的 autopilot 使用方法已经很熟悉了。然而这不幸的事件，恰恰就发生在这个专家用户和热心人身上。&lt;/p&gt;
+
+&lt;p&gt;Tesla 方面称，那天 Joshua 行驶在佛罗里达州一条中间有隔离带的公路上，符合规定的启用了 autopilot。行车途中，前方有一辆18轮卡车左转，由于卡车车厢是白色的，后面的天空也是白色，所以 autopilot 没发现这个卡车，没有进行刹车，最后 Model S 撞上卡车，车主身亡。白色卡车衬托在白色天空上，所以 autopilot 就把卡车当成空气，这是个什么情况……&lt;/p&gt;
+
+&lt;p&gt;先不说这技术有什么问题，出了这种事情，Tesla 对此&lt;a href=&quot;https://www.teslamotors.com/en_GB/blog/tragic-loss&quot;&gt;反应&lt;/a&gt;让人非常的失望。不但没有基本的自我检查，反而各种狡辩，把责任全都推到用户身上。首先，他们从统计的角度，说明 Tesla 车引起死亡的比例，比其它车子小很多。然后旁敲侧击地想说明，就算是那人自己开车，也不能避免这种车祸。最后他们再三的强调，autopilot 的说明书已经声明，功能还不成熟，如果看到要出事而没有及时接管，你们自己负责！&lt;/p&gt;
+
+&lt;p&gt;这些都是 Tesla 老一套的诡辩方法。首先，Tesla 的死亡比例比其它车要小，并不能掩盖 autopilot 存在严重问题的事实。死亡比例小可能跟 Tesla 的技术没有很大关系，Tesla 是新公司，车都很新所以不容易出机械故障，而且买 Tesla 的都是有钱人，受过良好的教育，懂技术，所以一般不会乱开。那这种死亡比例，跟老牌子的车比是不公平的。其他牌子的车总数比 Tesla 多太多了，很多车子都十几二十年老掉牙，开车的各种人都有，酒鬼也有，老汉也有，罪犯也有，当然事故比例就上去了。如果你只看其它牌子最近几年的新车和豪华车，死亡比例拿来算一下，就很小。&lt;/p&gt;
+
+&lt;p&gt;如果你光看 autopilot 导航的总里程数，事故比例恐怕就上去了，因为很多 Tesla 用户可能没有启用 autopilot，或者用的很少。Autopilot 不是第一次引起车祸了，之前我的&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/01/10/tesla-autopilot&quot;&gt;另一篇文章&lt;/a&gt;已经提到，由于它的视觉技术不成熟，引发了许多险些发生车祸的情况，而且最近引起了好多次真正的车祸。要知道微小的比例落在一个人头上，就等于100%的不幸。等你因为 autopilot 而受害，才会发现 Tesla 摆出来的那些统计数字，对你其实毫无意义。也许，它确实造福了全人类，可惜死伤的人是你或者你的家人，而且那是因为 autopilot 极其弱智的判断错误…… 你会因为统计数字很安全而饶了 Tesla 吗？&lt;/p&gt;
+
+&lt;p&gt;另外 Tesla 喜欢旁敲侧击的指出 autopilot 的驾驶能力高于人类，而事实并不是那样。你怎么能证明人开车不能避免这车祸？Tesla 说：“驾驶员和 autopilot 都没有看到卡车。” 你们怎么知道驾驶员没有看见卡车？那可是18轮的大卡车！说白色的侧面车厢映在白色的天空，所以人看不见它，这不是搞笑吗。&lt;/p&gt;
+
+&lt;p&gt;一个东西是白色的，不等于它是看不见的，一个不透明的东西会挡住后面的景物，这一点人是很清楚的。白色的物体也会有反光，纹理会跟天空不一样，人可以通过这种反光感知它的存在。卡车不止有白色的侧面，还有黑色的轮子，车头上有烟囱，车窗，油箱，…… 各种其它颜色的附件。为了让其他人在夜间能看到车厢的大小，大卡车必须在车厢的八个角上都安装红色的警示灯，这些灯在白天不亮的时候也看得见的。就算天空是白色，人也是不可能看不见它，把卡车当成空气的。所以我猜真实情况是，驾驶员发现 autopilot 判断错误，想接管过来，但已经来不及了。要知道这个反应时间也许不到一秒！人死了，当然死无对证。&lt;/p&gt;
+
+&lt;p&gt;从多次的事故现象中，我分析出这样一个规律，虽然 Tesla 声称 Model S 上装备了雷达和声呐，但是 autopilot 的操作却似乎仅靠摄像头的“像素”，通过神经网络进行图像分析，所以它才会连18轮大卡车这么巨型的东西都没有发现，在路上看到个树影还以为是障碍物…… 这些都是人根本不会犯的奇葩错误。我请大家不要对自动驾驶技术过于乐观，急于求成。机器视觉在某些地方是很有用的技术，然而它要能被用于自动驾车，还有非常长的路要走。&lt;/p&gt;
+
+&lt;p&gt;Tesla 确实警告过人们，说这个技术还不成熟，你必须把手一直放在方向盘上，准备随时接管，然而这并不能免除 Tesla 的责任。首先，Tesla 根本就不应该把不成熟的技术发布出来，而且大肆宣传，搞得大家以为它很先进很可靠似的，争相试用。其次，说明书上的警告，在法律上也许是没有效力的。你要求别人随时接管，那么你必须在可能判断错误的时候给出警示，而且给人足够的响应时间，才能算是合理。&lt;/p&gt;
+
+&lt;p&gt;Autopilot 的设计是有严重问题的。它操纵着车子，却不给人解释自己看见了什么，准备进行什么操作，在道路情况超越了自己能力的时候，也不给人提示，以至于人根本不知道它出了问题，不能及时接管。要知道，车在直走的时候，autopilot 是否判断正确，人往往是看不出来的。一辆没有 autopilot（只有普通  cruise  control）的车子，跟一辆启用了  autopilot 的车子，在匀速直线运动的时候，人是无法察觉出任何区别的。可是人知道 autopilot 会自动刹车，而普通的  cruise  control 不能，所以人就会期望有 autopilot 的车子会刹车。等你发现它一声不吭，前面有障碍物却没有刹车，才会知道它有判断错误，可是那个时候就已经晚了。&lt;/p&gt;
+
+&lt;p&gt;所以在这种情况下，Tesla 虽然事先有“免责声明”，把责任全都推在用户头上，在法庭上其实仍然可以败诉，因为他们对用户提出的要求是不切实际的，没有人能够在上述 autopilot 判断错误情况下及时的接管过来。我建议这起车祸死者的家属把 Tesla 告上法庭，要求巨额赔偿。我也建议所有 Tesla 的车主，为了对自己和他人的生命负责，请关闭 autopilot 这个功能！Tesla 根本就不懂如何设计自动驾驶系统，技术不过硬，设计有缺陷，基本就是个玩具。生命很宝贵，用自己的生命来给所谓的“新技术”做试验品，是不值得的。&lt;/p&gt;
+
+&lt;p&gt;珍爱生命，远离 autopilot！&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">tesla-autopilot-fatal-crash</guid>
 <pubDate>Sun, 10 Jul 2016 00:00:00 +0800</pubDate>
@@ -93,13 +357,46 @@
 <item>
 <title>Google Maps的设计问题</title>
 <link>http://yinwang.org/blog-cn/2016/07/05/google-maps</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;Google Maps的设计问题&lt;/h2&gt;&lt;p&gt;我开车的时候喜欢用 Google Maps 导航。虽然我对 Google 这公司挺有意见，然而 Google Maps 确实是好东西。比较过其他几个导航软件（Waze，Scout Maps）之后，我发现 Google Maps 在大部分时候还是表现最好的一个。&lt;/p&gt;&lt;p&gt;然而这并不等于它的设计是没有问题的。Google Maps 时不时的会改变设计，有些地方改进了，另外一些地方却可能被改得还不如以前。我已经不止一次的向 Google Maps team 提出反馈意见。&lt;/p&gt;&lt;p&gt;现在我就把最近烦扰我的一个问题讲一下。我已经通过 app 给 Google Maps team 发送了 feedback，但我希望这种设计问题引起足够的重视，所以也在这里说一下。&lt;/p&gt;&lt;p&gt;这个最近发现的问题是，Google Maps 显示的公路号码字体太小。它把州际公路（interstate）之类的公路号码，显示成路牌上的样式。比如下面的这个 Interstate 880，被显示成带有弧形花边，红蓝底色的路牌样式。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-d0dfc31379ac5331.PNG?imageMogr2/auto-orient/strip%7CimageView2/2/w/300&quot; alt=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;这看似美观，平时在手机上看貌似没什么问题，然而在开车的时候你就会发现，里面的号码很难看清楚。其原因是：&lt;/p&gt;&lt;ol&gt;
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;Google Maps的设计问题&lt;/h2&gt;
+                            &lt;p&gt;我开车的时候喜欢用 Google Maps 导航。虽然我对 Google 这公司挺有意见，然而 Google Maps 确实是好东西。比较过其他几个导航软件（Waze，Scout Maps）之后，我发现 Google Maps 在大部分时候还是表现最好的一个。&lt;/p&gt;
+
+&lt;p&gt;然而这并不等于它的设计是没有问题的。Google Maps 时不时的会改变设计，有些地方改进了，另外一些地方却可能被改得还不如以前。我已经不止一次的向 Google Maps team 提出反馈意见。&lt;/p&gt;
+
+&lt;p&gt;现在我就把最近烦扰我的一个问题讲一下。我已经通过 app 给 Google Maps team 发送了 feedback，但我希望这种设计问题引起足够的重视，所以也在这里说一下。&lt;/p&gt;
+
+&lt;p&gt;这个最近发现的问题是，Google Maps 显示的公路号码字体太小。它把州际公路（interstate）之类的公路号码，显示成路牌上的样式。比如下面的这个 Interstate 880，被显示成带有弧形花边，红蓝底色的路牌样式。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-d0dfc31379ac5331.PNG?imageMogr2/auto-orient/strip%7CimageView2/2/w/300&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;这看似美观，平时在手机上看貌似没什么问题，然而在开车的时候你就会发现，里面的号码很难看清楚。其原因是：&lt;/p&gt;
+
+&lt;ol&gt;
 &lt;li&gt;&lt;p&gt;把带有这个花边的路牌嵌入到导航提示里面之后，由于整个路牌的高度和旁边字体的高度一样，公路号码“880”的字体，比旁边的字小了很多（请比较“880”和“North”的大小）。&lt;/p&gt;&lt;/li&gt;
 &lt;li&gt;&lt;p&gt;在开车的时候，手机架在机座上，离眼睛有一定距离，而且由于车速很快，你只有不超过一秒钟的安全时间可以去瞄手机。所以我经常发现瞄一眼是根本没法看清楚这个花边里面的号码（880）的，你得盯着手机看好一会儿。有时候我把头凑近手机，都很不容易看清楚。这对于开车的人是一个不小的干扰，可能会引起交通事故。&lt;/p&gt;&lt;/li&gt;
 &lt;li&gt;&lt;p&gt;湾区的很多高速公路号码只差一个数字，比如 280，380，680，880…… 这么小的字体，很容易看不清楚这号码到底是哪一个！&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;&lt;p&gt;实际上你观察一下真正的路牌，就会发现公路号码的字体，跟旁边文字的比例，并不是像 Google Maps 上那个样子。请观察下图中的路牌，号码“280”和“101”的字体，和旁边的文字“SOUTH”，“TO”，“NORTH”，“San Francisco”其实是一样大，甚至更大一些。加上 INTERSTATE 的盾形花边，这个标志的尺寸比旁边的文字要大很多。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-43f9258afbc7373a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/600&quot; alt=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;所以 Google Maps 一片好心，想把公路号码做得很“形象”和“直观”，做得像路牌的样子，结果比例不对，帮了倒忙。对此我提出的建议是：&lt;/p&gt;&lt;p&gt;方式1：不要把公路号码显示为路牌的样式，直接使用像“I-440”这样的文本来显示路名。很少有人会在乎公路号码的样式是否美观，他们只在意是否能清楚地看到号码，所以这可能是最好的选择。很多其他导航软件和专用 GPS 设备（比如 Waze，Garmin）都是直接采用文本显示公路号码。&lt;/p&gt;&lt;p&gt;方式2：保留路牌样式，但是需要把路牌的尺寸增加到真正的路牌字体比例，也就是说让路牌里的号码跟旁边的字体大小一样。这个方式放到 Google Maps 的导航提示里面，恐怕会让导航提示的宽度变大，占用更多屏幕空间，所以虽然也许可行，但可能不如第一种方式。&lt;/p&gt;&lt;h3&gt;其它一些问题&lt;/h3&gt;&lt;p&gt;当然，字体大小并不是我发现的 Google Maps 唯一的问题。它还有其他一些小问题，有一些我已经向 Google Maps 的 team 提供了反馈，已经修复，还有一些仍然存在。现在我把这些小问题指出来，其中一些相当的讨厌：&lt;/p&gt;&lt;ul&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;实际上你观察一下真正的路牌，就会发现公路号码的字体，跟旁边文字的比例，并不是像 Google Maps 上那个样子。请观察下图中的路牌，号码“280”和“101”的字体，和旁边的文字“SOUTH”，“TO”，“NORTH”，“San Francisco”其实是一样大，甚至更大一些。加上 INTERSTATE 的盾形花边，这个标志的尺寸比旁边的文字要大很多。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-43f9258afbc7373a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/600&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;所以 Google Maps 一片好心，想把公路号码做得很“形象”和“直观”，做得像路牌的样子，结果比例不对，帮了倒忙。对此我提出的建议是：&lt;/p&gt;
+
+&lt;p&gt;方式1：不要把公路号码显示为路牌的样式，直接使用像“I-440”这样的文本来显示路名。很少有人会在乎公路号码的样式是否美观，他们只在意是否能清楚地看到号码，所以这可能是最好的选择。很多其他导航软件和专用 GPS 设备（比如 Waze，Garmin）都是直接采用文本显示公路号码。&lt;/p&gt;
+
+&lt;p&gt;方式2：保留路牌样式，但是需要把路牌的尺寸增加到真正的路牌字体比例，也就是说让路牌里的号码跟旁边的字体大小一样。这个方式放到 Google Maps 的导航提示里面，恐怕会让导航提示的宽度变大，占用更多屏幕空间，所以虽然也许可行，但可能不如第一种方式。&lt;/p&gt;
+
+&lt;h3&gt;其它一些问题&lt;/h3&gt;
+
+&lt;p&gt;当然，字体大小并不是我发现的 Google Maps 唯一的问题。它还有其他一些小问题，有一些我已经向 Google Maps 的 team 提供了反馈，已经修复，还有一些仍然存在。现在我把这些小问题指出来，其中一些相当的讨厌：&lt;/p&gt;
+
+&lt;ul&gt;
 &lt;li&gt;&lt;p&gt;[已修复] Google Maps 曾经在一段时间采用这样一种设计：当它通过对交通信息进行分析，得知有另一条时间更短的路线，它会弹出一个窗口，询问用户是否要选择这条更快的路（Yes/No?）。这个窗口有十几秒的延时，到时间之后如果你没有按屏幕，窗口会自动消失，并且自动选择新的路线。&lt;/p&gt;
 
 &lt;p&gt;缺省选择新的路线，是一个很不合理的设计。在开车的时候，你必须集中注意力在路上，几乎没有时间去相应弹出的窗口。而且这个窗口字体和按钮都很小，开车人可能根本没时间去读里面的内容，即使读了也不容易按中正确的按钮。到时间没有动作，导航系统自动切换到新的路线，而不是保留用户最初的选择。未经允许改变用户的路线选择，可以说是一个反人类的设计。&lt;/p&gt;
@@ -108,7 +405,26 @@
 &lt;li&gt;&lt;p&gt;[还存在] Google Maps 有时候会忽然重新计算并且改变原来的路线。改变的原因也许是因为开车人没有按原路线走，然而这有可能不是开车人的意愿。举一个例子，从南湾地区去三藩市方向，有两条高速公路可以走：280 和 101。白天我一般会选择 280，因为 280 车不多，而且风景优美一些。我会在 Google Maps 界面选择 280 的路线。&lt;/p&gt;
 
 &lt;p&gt;然而当我开出停车场，在第一个路口由于 GPS 的方向还未适应过来，我有可能转错方向。这个时候 Google Maps 会根据我的方向重新计算路线，这时候它很有可能自动把整个路线换成走 101，而不再是 280。由于最初的方向错误而换掉整体要走的高速公路，是非常不合理的。你以为它会按你原来的选择走 280，结果最后发现它把你带到了 101 的入口……&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
+&lt;/ul&gt;
+
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">google-maps</guid>
 <pubDate>Tue, 05 Jul 2016 00:00:00 +0800</pubDate>
@@ -116,9 +432,53 @@
 <item>
 <title>养生节目带来的危害</title>
 <link>http://yinwang.org/blog-cn/2016/06/28/yangsheng</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;养生节目带来的危害&lt;/h2&gt;&lt;p&gt;国内总是流行各种各样的“养生节目”，深受中老年人的欢迎。比如我爸妈，有时无聊了，就会转发给我一些养生节目，比如这个：『&lt;a href=&quot;http://v.qq.com/x/cover/kieigw8nv6q7fj0/b0016b9qoy1.html&quot;&gt;多喝白开水带来的危害&lt;/a&gt;』。这节目说，有人得了过敏性鼻炎，喷嚏鼻涕不断，严重脱发，头都半秃了，虚弱无力，性能力衰退…… 最后专家得出结论，是因为他每天早上喝一杯凉水导致的！&lt;/p&gt;&lt;p&gt;据我观察，这些养生节目里面的理论，基本可以归为两种：好的和新的。可惜好的理论都不新，新的理论都不好。&lt;/p&gt;&lt;h3&gt;好的理论&lt;/h3&gt;&lt;p&gt;第一类理论，就是把人们早已熟悉的，久经考验的常识，比如早晚要刷牙之类的，拿来包装成“新理论”。这些理论当然错不到哪里去，然而却是每个人从小都已熟知的。现在挂着“专家”头衔的人出来一宣传，这些斯通见惯的常识，忽然间被老人家们当成了最新的研究成果。&lt;/p&gt;&lt;p&gt;我遇到的这种例子挺多的。有时候父母给我发个信息，说你要注意这个那个习惯啊，不然会得什么什么样的病…… 这本来就是我从小就已经知道并且照办的事情，而且我还记得当年这东西就是我爸妈教给我的。现在让这帮“养生专家”一忽悠，倒像个新鲜事，又拿出来讲一遍，好像别人不知道一样…… “专家”的威力就是这么强大 :P&lt;/p&gt;&lt;h3&gt;新的理论&lt;/h3&gt;&lt;p&gt;第二类理论，就是胡编乱造出一些“新理论”，却没有经过科学实验证实。『&lt;a href=&quot;http://v.qq.com/x/cover/kieigw8nv6q7fj0/b0016b9qoy1.html&quot;&gt;多喝白开水带来的危害&lt;/a&gt;』就属于这一种情况。通常这种理论把问题的原因归结为某一个生活习惯（比如早上喝一杯凉水），而忽略所有其它引起问题的因素。这些理论的问题在于，它们通过臆断，得出错误的“因果关系”。&lt;/p&gt;&lt;p&gt;据我了解，过敏性鼻炎，脱发等问题，很多都是因为基因遗传，跟人平时的生活习惯几乎没有关系。现在有一个人出现了过敏性鼻炎和脱发，而且碰巧这人早上起来喜欢喝一杯凉水，于是专家就得出一个可笑的结论：一定是喝凉水引起了过敏性鼻炎和脱发。&lt;/p&gt;&lt;p&gt;养生专家们很喜欢把健康问题跟某些不起眼的习惯挂钩，这样就可以创造一些惊人的理论，却无法验证其真实性。他们可以说，就是因为你这个小小的习惯，导致了如此严重的健康问题。这样一来，他们就可以告诉你吃什么，不吃什么，做什么，不做什么。每过一段时间，这些人都会换一套不同的说法，让你感觉有新东西出来，却没发现这些其实跟之前的说法自相矛盾。老年人记性不好，看不出破绽，有些人为了健康不惜一切，仿佛活着就是为了不停地研究如何才能继续活着…… 这就是这帮养生专家和养生节目得以生存的关键。&lt;/p&gt;&lt;p&gt;得出喝凉水引起了鼻炎，脱发，身体虚弱这样的结论，且不说它看起来有没有可能，你必须先经过科学实验。你不能只看一个人，因为数据量太小，很可能是偶然巧合，没法建立因果关系。所以实验必须要有两组人进行对照，就是所谓“对照实验”。一组人早上喝一杯凉水，另外一组人不喝。过一段时间，分析这两组人里面出现上述问题的人的比例，如果喝凉水的人大部分出现了问题，而不喝凉水的人大部分没有出现问题，你才有可以得出“喝凉水导致鼻炎和脱发”这样的结论。&lt;/p&gt;&lt;p&gt;显然，这个节目里的专家并没有经过实验，而是引用（滥用）『黄帝内经』里面的各种阴阳理论。说早上阳气上升，喝一杯凉水把阳气给浇灭了，怎么能不得病哪！这显然是完全不科学，不负责任的说法。实际上这套阴阳理论是如此的模棱两可，跟占星学如出一辙，你可以利用这些说法来解释世界上的几乎任何现象！不管遇到好事还是坏事，同样的一句话，可以同时支持两种完全相反的结果。为什么它可以这样呢？因为这些说法本来模棱两可，所以不同的人从不同的角度去解释它，发现都是说得通的。&lt;/p&gt;&lt;p&gt;这些养生节目，经常把严重身体问题的起因，归结为某些生活上的小习惯，吃什么，不吃什么之类，很容易让人忽略真正的起因，更加严重的因素，这属于一种误导。中老年人看了这些节目，往往盲目的认为坚持或者改变生活上的一些小习惯，就可以避免或者修正一些严重的身体疾患，结果耽误了真正科学研究出来的补救办法。在这种意义上，养生节目是有危害性的。我建议中老年人少看这种节目，多跟真正的医生了解科学的医疗知识。&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;养生节目带来的危害&lt;/h2&gt;
+                            &lt;p&gt;国内总是流行各种各样的“养生节目”，深受中老年人的欢迎。比如我爸妈，有时无聊了，就会转发给我一些养生节目，比如这个：『&lt;a href=&quot;http://v.qq.com/x/cover/kieigw8nv6q7fj0/b0016b9qoy1.html&quot;&gt;多喝白开水带来的危害&lt;/a&gt;』。这节目说，有人得了过敏性鼻炎，喷嚏鼻涕不断，严重脱发，头都半秃了，虚弱无力，性能力衰退…… 最后专家得出结论，是因为他每天早上喝一杯凉水导致的！&lt;/p&gt;
+
+&lt;p&gt;据我观察，这些养生节目里面的理论，基本可以归为两种：好的和新的。可惜好的理论都不新，新的理论都不好。&lt;/p&gt;
+
+&lt;h3&gt;好的理论&lt;/h3&gt;
+
+&lt;p&gt;第一类理论，就是把人们早已熟悉的，久经考验的常识，比如早晚要刷牙之类的，拿来包装成“新理论”。这些理论当然错不到哪里去，然而却是每个人从小都已熟知的。现在挂着“专家”头衔的人出来一宣传，这些斯通见惯的常识，忽然间被老人家们当成了最新的研究成果。&lt;/p&gt;
+
+&lt;p&gt;我遇到的这种例子挺多的。有时候父母给我发个信息，说你要注意这个那个习惯啊，不然会得什么什么样的病…… 这本来就是我从小就已经知道并且照办的事情，而且我还记得当年这东西就是我爸妈教给我的。现在让这帮“养生专家”一忽悠，倒像个新鲜事，又拿出来讲一遍，好像别人不知道一样…… “专家”的威力就是这么强大 :P&lt;/p&gt;
+
+&lt;h3&gt;新的理论&lt;/h3&gt;
+
+&lt;p&gt;第二类理论，就是胡编乱造出一些“新理论”，却没有经过科学实验证实。『&lt;a href=&quot;http://v.qq.com/x/cover/kieigw8nv6q7fj0/b0016b9qoy1.html&quot;&gt;多喝白开水带来的危害&lt;/a&gt;』就属于这一种情况。通常这种理论把问题的原因归结为某一个生活习惯（比如早上喝一杯凉水），而忽略所有其它引起问题的因素。这些理论的问题在于，它们通过臆断，得出错误的“因果关系”。&lt;/p&gt;
+
+&lt;p&gt;据我了解，过敏性鼻炎，脱发等问题，很多都是因为基因遗传，跟人平时的生活习惯几乎没有关系。现在有一个人出现了过敏性鼻炎和脱发，而且碰巧这人早上起来喜欢喝一杯凉水，于是专家就得出一个可笑的结论：一定是喝凉水引起了过敏性鼻炎和脱发。&lt;/p&gt;
+
+&lt;p&gt;养生专家们很喜欢把健康问题跟某些不起眼的习惯挂钩，这样就可以创造一些惊人的理论，却无法验证其真实性。他们可以说，就是因为你这个小小的习惯，导致了如此严重的健康问题。这样一来，他们就可以告诉你吃什么，不吃什么，做什么，不做什么。每过一段时间，这些人都会换一套不同的说法，让你感觉有新东西出来，却没发现这些其实跟之前的说法自相矛盾。老年人记性不好，看不出破绽，有些人为了健康不惜一切，仿佛活着就是为了不停地研究如何才能继续活着…… 这就是这帮养生专家和养生节目得以生存的关键。&lt;/p&gt;
+
+&lt;p&gt;得出喝凉水引起了鼻炎，脱发，身体虚弱这样的结论，且不说它看起来有没有可能，你必须先经过科学实验。你不能只看一个人，因为数据量太小，很可能是偶然巧合，没法建立因果关系。所以实验必须要有两组人进行对照，就是所谓“对照实验”。一组人早上喝一杯凉水，另外一组人不喝。过一段时间，分析这两组人里面出现上述问题的人的比例，如果喝凉水的人大部分出现了问题，而不喝凉水的人大部分没有出现问题，你才有可以得出“喝凉水导致鼻炎和脱发”这样的结论。&lt;/p&gt;
+
+&lt;p&gt;显然，这个节目里的专家并没有经过实验，而是引用（滥用）『黄帝内经』里面的各种阴阳理论。说早上阳气上升，喝一杯凉水把阳气给浇灭了，怎么能不得病哪！这显然是完全不科学，不负责任的说法。实际上这套阴阳理论是如此的模棱两可，跟占星学如出一辙，你可以利用这些说法来解释世界上的几乎任何现象！不管遇到好事还是坏事，同样的一句话，可以同时支持两种完全相反的结果。为什么它可以这样呢？因为这些说法本来模棱两可，所以不同的人从不同的角度去解释它，发现都是说得通的。&lt;/p&gt;
+
+&lt;p&gt;这些养生节目，经常把严重身体问题的起因，归结为某些生活上的小习惯，吃什么，不吃什么之类，很容易让人忽略真正的起因，更加严重的因素，这属于一种误导。中老年人看了这些节目，往往盲目的认为坚持或者改变生活上的一些小习惯，就可以避免或者修正一些严重的身体疾患，结果耽误了真正科学研究出来的补救办法。在这种意义上，养生节目是有危害性的。我建议中老年人少看这种节目，多跟真正的医生了解科学的医疗知识。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">yangsheng</guid>
 <pubDate>Tue, 28 Jun 2016 00:00:00 +0800</pubDate>
@@ -126,9 +486,33 @@
 <item>
 <title>老虎出租</title>
 <link>http://yinwang.org/blog-cn/2016/06/27/tiger-for-rent</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;老虎出租&lt;/h2&gt;&lt;p&gt;为了挣点外快，现在开始提供老虎出租合影服务，每张照片5元（cash only）。有意者请来电 123-456-7890。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-98872cd22bb84c91.JPG?imageMogr2/auto-orient/strip%7CimageView2/2/w/300&quot; alt=&quot;&quot;&gt;&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;老虎出租&lt;/h2&gt;
+                            &lt;p&gt;为了挣点外快，现在开始提供老虎出租合影服务，每张照片5元（cash only）。有意者请来电 123-456-7890。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-98872cd22bb84c91.JPG?imageMogr2/auto-orient/strip%7CimageView2/2/w/300&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">tiger-for-rent</guid>
 <pubDate>Mon, 27 Jun 2016 00:00:00 +0800</pubDate>
@@ -136,9 +520,37 @@
 <item>
 <title>欧盟草拟法案，对机器人征税</title>
 <link>http://yinwang.org/blog-cn/2016/06/24/robot-tax</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;欧盟草拟法案，对机器人征税&lt;/h2&gt;&lt;p&gt;据路透社报道，欧盟正在草拟一个关于机器人的&lt;a href=&quot;http://www.reuters.com/article/us-europe-robotics-lawmaking-idUSKCN0Z72AY&quot;&gt;法案&lt;/a&gt;。由于机器人以及智能机器的使用，可能带来空前严重的失业问题，这项法案要求所有使用智能机器人的公司，如实向政府汇报由于机器人的使用，而节省下来的人的工资，然后政府据此征收社会安全税，给人发放相应的福利。这个法案跟我的一个想法类似：每当机器人取代一个人的工作，使用机器人的公司就有义务要养活那个人。&lt;/p&gt;&lt;p&gt;很多机器人公司在抱怨，说这会阻碍机器人行业的发展，然而我觉得这正是欧盟关爱人民的表现。对机器人的使用进行征税，对于社会的安全和幸福是非常有必要的。用机器人代替人的劳动，导致人失业，却不安顿好失业者的生活，属于一种掠夺或者抢劫的行为。这不但会大幅度降低社会幸福感，而且会导致社会安全问题，比如犯罪率上升等等。&lt;/p&gt;&lt;p&gt;人的权益应该是崇高致上的，所有损害人的切身利益的做法，都应该付出代价，哪怕这会阻碍技术的发展。要记住，技术是为人服务的。如果技术给人和社会带来的不是幸福，而是困苦甚至灾难，那我们就应该理智的延缓甚至取消技术的发展，或者为此征税来维护人的权益。&lt;/p&gt;&lt;p&gt;世界上聪明人太多了，却缺乏智慧的人。欧盟的这一法案让我看到了希望。我希望世界上所有国家，特别是美国和中国，都意识到这个问题。大部分的社会财富集中在极少数人手中，这样的社会是不会幸福的。就算你钱再多也一样，你只会看到一片荒凉，到处是饥饿而势利的人。你不再会有朋友，只有对你的钱感兴趣的人…… “&lt;a href=&quot;http://baike.baidu.com/view/1140346.htm&quot;&gt;独乐乐，与人乐乐，孰乐乎？不若与人。&lt;/a&gt;” 我们都应该明白这个道理。&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;欧盟草拟法案，对机器人征税&lt;/h2&gt;
+                            &lt;p&gt;据路透社报道，欧盟正在草拟一个关于机器人的&lt;a href=&quot;http://www.reuters.com/article/us-europe-robotics-lawmaking-idUSKCN0Z72AY&quot;&gt;法案&lt;/a&gt;。由于机器人以及智能机器的使用，可能带来空前严重的失业问题，这项法案要求所有使用智能机器人的公司，如实向政府汇报由于机器人的使用，而节省下来的人的工资，然后政府据此征收社会安全税，给人发放相应的福利。这个法案跟我的一个想法类似：每当机器人取代一个人的工作，使用机器人的公司就有义务要养活那个人。&lt;/p&gt;
+
+&lt;p&gt;很多机器人公司在抱怨，说这会阻碍机器人行业的发展，然而我觉得这正是欧盟关爱人民的表现。对机器人的使用进行征税，对于社会的安全和幸福是非常有必要的。用机器人代替人的劳动，导致人失业，却不安顿好失业者的生活，属于一种掠夺或者抢劫的行为。这不但会大幅度降低社会幸福感，而且会导致社会安全问题，比如犯罪率上升等等。&lt;/p&gt;
+
+&lt;p&gt;人的权益应该是崇高致上的，所有损害人的切身利益的做法，都应该付出代价，哪怕这会阻碍技术的发展。要记住，技术是为人服务的。如果技术给人和社会带来的不是幸福，而是困苦甚至灾难，那我们就应该理智的延缓甚至取消技术的发展，或者为此征税来维护人的权益。&lt;/p&gt;
+
+&lt;p&gt;世界上聪明人太多了，却缺乏智慧的人。欧盟的这一法案让我看到了希望。我希望世界上所有国家，特别是美国和中国，都意识到这个问题。大部分的社会财富集中在极少数人手中，这样的社会是不会幸福的。就算你钱再多也一样，你只会看到一片荒凉，到处是饥饿而势利的人。你不再会有朋友，只有对你的钱感兴趣的人…… “&lt;a href=&quot;http://baike.baidu.com/view/1140346.htm&quot;&gt;独乐乐，与人乐乐，孰乐乎？不若与人。&lt;/a&gt;” 我们都应该明白这个道理。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">robot-tax</guid>
 <pubDate>Fri, 24 Jun 2016 00:00:00 +0800</pubDate>
@@ -146,9 +558,63 @@
 <item>
 <title>两个计划的变动</title>
 <link>http://yinwang.org/blog-cn/2016/06/22/plan-change</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;两个计划的变动&lt;/h2&gt;&lt;p&gt;我有两个计划的变动，一个是关于离开美国，另一个是关于写书计划。&lt;/p&gt;&lt;h3&gt;离开美国计划的推迟&lt;/h3&gt;&lt;p&gt;有些人可能发现了，之前写的『关于离开美国的决定』，其实算是一时冲动的结果。我对美国的意见不会变化，然而生活还是需要折中考虑，一步一步的来。我不喜欢美国的制度，绝大部分原因是因为过去几年的经历，以及亲眼目睹作为“美国人”的女朋友的一些经历。&lt;/p&gt;&lt;p&gt;美国在对于劳动者的福利和保护方面确实很不好，很多时候可以说是任凭雇主欺压员工，没有法律保障。然而一个现实的问题是，我们现在没有能力改变它。我离开中国十年了，一点都不了解现在的中国社会，也没有任何现实可行的计划让我的生活有所保障。父母对此也不大支持。在这样的情况下回国，就有点像没有带好降落伞就跳出一架引擎发出怪响的飞机 :P&lt;/p&gt;&lt;p&gt;前几年的遭遇虽然很惨，觉得根本不应该发生在我身上的事情，居然都发生了，可是我毕竟已经度过了最困难的时候。老实说，现在这个公司其实对人挺好，特别是现在的团队的同事特别好。我在这里其实已经有了一些同类的朋友，我有女朋友，女朋友的爸爸妈妈，弟弟妹妹，…… 他们都很关心我，这是很宝贵的财富。过度的思考以前的不幸，让我没有看到离开的代价，这个代价是非常大的。&lt;/p&gt;&lt;p&gt;所以在看好前面的每一步之前，我不得不推迟所谓的“离开美国计划”，不能冲动行事。当然我会继续观察国内和其它国家的情况，看好了之后也许会有动作。当然我感谢大家的支持。由于这篇文章和之前的『未来计划』，有一些现在和以前的同事都表示很关心，我也新结识了一些有相似经历和思想的人。他们找我聊天，表示关心和支持，聊得挺投机的。&lt;/p&gt;&lt;p&gt;所谓同类相吸，我觉得这些人和我，已经建立起一种互相支持的氛围。所以如果你喜欢我的想法，也可以联系我。也许有一天，我们这些意气相投的人会走到一起来……&lt;/p&gt;&lt;h3&gt;写书计划的取消&lt;/h3&gt;&lt;p&gt;之前我有感于计算机科学教育不求甚解，以讹传讹的现状，想写本书来传播我所掌握的精华。然而面对社会的现状，我不得不取消这个计划。取消的原因不是因为写不出来或者没有时间写，而是因为我发现并不是每个人都应该得到真知。卖知识是一种非常不划算的生意。有些信息太过宝贵，远不是一本书的价钱可以买得到的，甚至不是大学四年的学费可以付得起的。我不愿意让它们落到阴险的人或者敌对势力手里。&lt;/p&gt;&lt;p&gt;这里面是有一个故事的…… 曾经有个人看了我的文章联系我，加了我的 QQ。他对 PL 的东西很感兴趣，我觉得他挺聪明又好学，就给他讲了很多。不过我也看出来，他并不是科班出生，没经过名师指导，民科一样瞎弄，所以很多概念都是乱的，喜欢把问题搞复杂，但我还是耐心地给他解释。后来他的问题越来越多，暴露出的知识缺陷和误解也越来越多，始终没有说出有价值的见解。&lt;/p&gt;&lt;p&gt;直到一天，有个朋友跟我说，这人在知乎上黑我，我才恍然大悟。原来他一边在 QQ 上请教我，同时却背地里在知乎上评论我，说：“王垠就是吹得厉害，某些很基本的东西他其实都不懂。有一次我问他那什么什么，结果他吹了一通，最后也没说清楚……”&lt;/p&gt;&lt;p&gt;事实是，由于一段时间以来他不停地问问题，从我这得到了太多有价值的信息，却没有任何付出。这人是敌是友还不知道呢，所以我决定对他留一手。没想到他一边跟我虚心请教的样子，一边却在知乎上跟小白们显示牛逼，背地里黑我，把我没告诉他的事情，说成是我不懂，把我没给他看的代码，说成是我不会写……&lt;/p&gt;&lt;p&gt;这个人在知乎上很有名。为了给他留点面子和醒悟的机会，我就不点名了。然而我奉劝这类人，请不要在知乎上制造自己的名气，贬损其它人了。在网络上的名气和真实世界里的地位，是有非常大差别的。人们不会因为你在知乎上排名很高，就在现实工作中给你重要的职位。只有在真实的人际关系中踏踏实实做事，诚实为人，得到现实中人们的认可，才会得到真正的尊重。&lt;/p&gt;&lt;p&gt;出现了这样的人，让我非常的心寒，我深刻地认识到，并不是所有人都是我想象中那么善良。我无偿的把经过千辛万苦，跋山涉水得来的宝贵财富，给了一个阴险的小人。这种人很聪明，然而却缺乏洞察力和深刻的思维。让他们得到了这样的东西，这些人就会到处张扬，最后不知情的人还以为是什么天才。我用自己泛滥的爱心和拯救世界的愿望，帮助了一些别有用心的人，结果只会让世界变得更糟。&lt;/p&gt;&lt;p&gt;我不止一次的遇到这样的人，所以现在要分析什么技术问题，都得很小心点，不让人轻易得到背后的思想。鉴于这个原因，我决定取消写书的计划。我不愿意把深刻的思想用书的形式送给所有人，可是我又不会像某些作者那样随便写点肤浅的东西，所以我只好不写了。&lt;/p&gt;&lt;p&gt;就像武林高手不把绝招轻易传授一样，在技术的领域也是一样。真正的精华，只能在完全确信对方的身份和人品之后，在互惠互利的情况下，才能部分的指点。只有这样才能够平衡世界上的善恶两种势力，让强大的力量只帮助那些善良的人，最终达到一个更好的世界。我的几个教授，包括 Dan Friedman 和 Kent Dybvig 都是这样做的，对未经深入了解的人保留很多秘密，我现在终于理解了为什么。&lt;/p&gt;&lt;p&gt;这就是为什么有陌生人发 email 问我深入的问题，一般都没有回复。就算是同事我也会在潜意识里分成不同的信任级别，并不是每个人我都会跟他畅谈技术。你必须认识我，而且人品必须好，我才有可能跟你探讨问题。&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;两个计划的变动&lt;/h2&gt;
+                            &lt;p&gt;我有两个计划的变动，一个是关于离开美国，另一个是关于写书计划。&lt;/p&gt;
+
+&lt;h3&gt;离开美国计划的推迟&lt;/h3&gt;
+
+&lt;p&gt;有些人可能发现了，之前写的『关于离开美国的决定』，其实算是一时冲动的结果。我对美国的意见不会变化，然而生活还是需要折中考虑，一步一步的来。我不喜欢美国的制度，绝大部分原因是因为过去几年的经历，以及亲眼目睹作为“美国人”的女朋友的一些经历。&lt;/p&gt;
+
+&lt;p&gt;美国在对于劳动者的福利和保护方面确实很不好，很多时候可以说是任凭雇主欺压员工，没有法律保障。然而一个现实的问题是，我们现在没有能力改变它。我离开中国十年了，一点都不了解现在的中国社会，也没有任何现实可行的计划让我的生活有所保障。父母对此也不大支持。在这样的情况下回国，就有点像没有带好降落伞就跳出一架引擎发出怪响的飞机 :P&lt;/p&gt;
+
+&lt;p&gt;前几年的遭遇虽然很惨，觉得根本不应该发生在我身上的事情，居然都发生了，可是我毕竟已经度过了最困难的时候。老实说，现在这个公司其实对人挺好，特别是现在的团队的同事特别好。我在这里其实已经有了一些同类的朋友，我有女朋友，女朋友的爸爸妈妈，弟弟妹妹，…… 他们都很关心我，这是很宝贵的财富。过度的思考以前的不幸，让我没有看到离开的代价，这个代价是非常大的。&lt;/p&gt;
+
+&lt;p&gt;所以在看好前面的每一步之前，我不得不推迟所谓的“离开美国计划”，不能冲动行事。当然我会继续观察国内和其它国家的情况，看好了之后也许会有动作。当然我感谢大家的支持。由于这篇文章和之前的『未来计划』，有一些现在和以前的同事都表示很关心，我也新结识了一些有相似经历和思想的人。他们找我聊天，表示关心和支持，聊得挺投机的。&lt;/p&gt;
+
+&lt;p&gt;所谓同类相吸，我觉得这些人和我，已经建立起一种互相支持的氛围。所以如果你喜欢我的想法，也可以联系我。也许有一天，我们这些意气相投的人会走到一起来……&lt;/p&gt;
+
+&lt;h3&gt;写书计划的取消&lt;/h3&gt;
+
+&lt;p&gt;之前我有感于计算机科学教育不求甚解，以讹传讹的现状，想写本书来传播我所掌握的精华。然而面对社会的现状，我不得不取消这个计划。取消的原因不是因为写不出来或者没有时间写，而是因为我发现并不是每个人都应该得到真知。卖知识是一种非常不划算的生意。有些信息太过宝贵，远不是一本书的价钱可以买得到的，甚至不是大学四年的学费可以付得起的。我不愿意让它们落到阴险的人或者敌对势力手里。&lt;/p&gt;
+
+&lt;p&gt;这里面是有一个故事的…… 曾经有个人看了我的文章联系我，加了我的 QQ。他对 PL 的东西很感兴趣，我觉得他挺聪明又好学，就给他讲了很多。不过我也看出来，他并不是科班出生，没经过名师指导，民科一样瞎弄，所以很多概念都是乱的，喜欢把问题搞复杂，但我还是耐心地给他解释。后来他的问题越来越多，暴露出的知识缺陷和误解也越来越多，始终没有说出有价值的见解。&lt;/p&gt;
+
+&lt;p&gt;直到一天，有个朋友跟我说，这人在知乎上黑我，我才恍然大悟。原来他一边在 QQ 上请教我，同时却背地里在知乎上评论我，说：“王垠就是吹得厉害，某些很基本的东西他其实都不懂。有一次我问他那什么什么，结果他吹了一通，最后也没说清楚……”&lt;/p&gt;
+
+&lt;p&gt;事实是，由于一段时间以来他不停地问问题，从我这得到了太多有价值的信息，却没有任何付出。这人是敌是友还不知道呢，所以我决定对他留一手。没想到他一边跟我虚心请教的样子，一边却在知乎上跟小白们显示牛逼，背地里黑我，把我没告诉他的事情，说成是我不懂，把我没给他看的代码，说成是我不会写……&lt;/p&gt;
+
+&lt;p&gt;这个人在知乎上很有名。为了给他留点面子和醒悟的机会，我就不点名了。然而我奉劝这类人，请不要在知乎上制造自己的名气，贬损其它人了。在网络上的名气和真实世界里的地位，是有非常大差别的。人们不会因为你在知乎上排名很高，就在现实工作中给你重要的职位。只有在真实的人际关系中踏踏实实做事，诚实为人，得到现实中人们的认可，才会得到真正的尊重。&lt;/p&gt;
+
+&lt;p&gt;出现了这样的人，让我非常的心寒，我深刻地认识到，并不是所有人都是我想象中那么善良。我无偿的把经过千辛万苦，跋山涉水得来的宝贵财富，给了一个阴险的小人。这种人很聪明，然而却缺乏洞察力和深刻的思维。让他们得到了这样的东西，这些人就会到处张扬，最后不知情的人还以为是什么天才。我用自己泛滥的爱心和拯救世界的愿望，帮助了一些别有用心的人，结果只会让世界变得更糟。&lt;/p&gt;
+
+&lt;p&gt;我不止一次的遇到这样的人，所以现在要分析什么技术问题，都得很小心点，不让人轻易得到背后的思想。鉴于这个原因，我决定取消写书的计划。我不愿意把深刻的思想用书的形式送给所有人，可是我又不会像某些作者那样随便写点肤浅的东西，所以我只好不写了。&lt;/p&gt;
+
+&lt;p&gt;就像武林高手不把绝招轻易传授一样，在技术的领域也是一样。真正的精华，只能在完全确信对方的身份和人品之后，在互惠互利的情况下，才能部分的指点。只有这样才能够平衡世界上的善恶两种势力，让强大的力量只帮助那些善良的人，最终达到一个更好的世界。我的几个教授，包括 Dan Friedman 和 Kent Dybvig 都是这样做的，对未经深入了解的人保留很多秘密，我现在终于理解了为什么。&lt;/p&gt;
+
+&lt;p&gt;这就是为什么有陌生人发 email 问我深入的问题，一般都没有回复。就算是同事我也会在潜意识里分成不同的信任级别，并不是每个人我都会跟他畅谈技术。你必须认识我，而且人品必须好，我才有可能跟你探讨问题。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">plan-change</guid>
 <pubDate>Wed, 22 Jun 2016 00:00:00 +0800</pubDate>
@@ -156,9 +622,57 @@
 <item>
 <title>IT业给世界带来的危机</title>
 <link>http://yinwang.org/blog-cn/2016/06/20/it-and-society</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;IT业给世界带来的危机&lt;/h2&gt;&lt;p&gt;昨天写了文章之后，回忆起这几年在湾区的经历，觉得自己是一个很不幸的人。然而就在今天，我的自怜奇妙的转换成了另一种感情，因为我看到了更不幸的人……&lt;/p&gt;&lt;p&gt;正在女朋友 Cinny 的父母家吃饭，忽然窗外来了一个人。仔细一看，是个约莫十来岁年纪的漂亮白人女孩，她说：“亲爱的，你们想要一些刚从树上摘下来的新鲜李子吗？” 据女朋友妈妈介绍，她是邻居的女儿。之后我尝了一个李子，颜色已经黑透了，非常新鲜非常甜！&lt;/p&gt;&lt;p&gt;随后我和 Cinny 出去散步。在她家的对面，耸立着两栋高大华丽的豪宅，看那样子，价值恐怕超过200万美元。两栋豪宅的中间，夹着一间样式非常不搭调的便宜小矮屋。这屋子周围被篱笆围了起来，可以看见里面种了很多的植物。在那门口的无花果树下，赫然出现这样的一个牌子：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-fbcae0ac0fa13486.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;它说：“请不要摘我的无花果。我失去了我的工作，需要依靠自己种的食物为生。我是一个生物学家，如果你知道有任何的工作，请告诉我。谢谢！” 这树上还挂着好几个类似的牌子，从它们看来，这位生物学家已经失业一年了……&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-18fdd10a61af7c99.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;Cinny 说，吃饭时给我们送果子来的女孩，就是这家的孩子。我想起她甜美的笑容，不禁一阵心酸！哎，谁才是真正可怜的人？我之前在无病呻吟些什么啊……&lt;/p&gt;&lt;p&gt;这些年来湾区的 IT 业大量的扩张，Apple，Google 等公司不停地在附近建新的办公楼。IT 业的过度发展，导致了其它行业的衰落，让附近土生土长的居民生存困难。本来公司的扩张应该引起经济的流通，社区的繁荣，人气的高涨，结果每当像 Google 这样的公司提供免费餐饮，附近就会有多少店铺关门，又有多少人失业，成为一片荒漠……&lt;/p&gt;&lt;p&gt;是的，大家节省外出买饭的时间能为公司赚很多钱，自己也节省了不少开支。但是这些公司真的回报了社会吗？新闻早已经曝光，这些大公司利用美国税法的漏洞，每一家每年都导致政府少收上亿美元的税钱。没有收到税，就没法给这些丢了工作的人发福利，以至于他们落魄到这种地步。&lt;/p&gt;&lt;p&gt;Cinny 告诉我，这家人可能也要卖掉房子，搬到别州去了。之前有好些邻居已经搬走了，其中有一些以前在附近开小店，卖很好吃的东西。现在这些儿时的美好回忆，都已经不在了……&lt;/p&gt;&lt;p&gt;我们一直盲目的以为技术会改善人们的生活，很多人总是试图做一些 O2O 服务，甚至研制机器人和自动车，这样可以代替许多人的劳动。如果这些技术真的能代替繁重或者危险的劳动，那确实好。可是如果发明这些技术的公司不回报社会，反而想办法钻法律的漏洞避税，那就变得有害了。在创造这些技术的同时，我们有想过因为它们而失去工作，而又因为公司不交税，不回报社会而变卖房产，颠沛流离的无辜人们吗？&lt;/p&gt;&lt;p&gt;作为一个 IT 人，我们不得不思考，这是不是一种无情的掠夺，我们是不是害虫？当我们帮助雇主掠夺了别人的工作之后，我们自己会不会就是下一个被社会抛弃，丢掉工作的人？“&lt;a href=&quot;http://baike.baidu.com/view/1140346.htm&quot;&gt;独乐乐，与人乐乐，孰乐乎？不若与人。&lt;/a&gt;” 我们在思考如何发展自己事业的同时，也应该思考如何回报社会了。否则我们面对的将是一片毫无生气的荒原，我们不会再看到幸福的笑脸……&lt;/p&gt;&lt;p&gt;有人说这一切都是资本主义造的孽，而不能怪 IT 业。不过由于 IT 存在高度的“智能”和“自动”，它已经开始给资本主义的社会关系带来灾难性的影响。有位大胡子说，无产阶级是资本主义的掘墓人，那么我说，IT 业就是资本主义的定时炸弹，它离爆炸的那一天已经不远了。&lt;/p&gt;&lt;p&gt;我想我们应该都能做点什么…… 话说，如果你知道湾区有招生物学家的工作，请联系我！&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;IT业给世界带来的危机&lt;/h2&gt;
+                            &lt;p&gt;昨天写了文章之后，回忆起这几年在湾区的经历，觉得自己是一个很不幸的人。然而就在今天，我的自怜奇妙的转换成了另一种感情，因为我看到了更不幸的人……&lt;/p&gt;
+
+&lt;p&gt;正在女朋友 Cinny 的父母家吃饭，忽然窗外来了一个人。仔细一看，是个约莫十来岁年纪的漂亮白人女孩，她说：“亲爱的，你们想要一些刚从树上摘下来的新鲜李子吗？” 据女朋友妈妈介绍，她是邻居的女儿。之后我尝了一个李子，颜色已经黑透了，非常新鲜非常甜！&lt;/p&gt;
+
+&lt;p&gt;随后我和 Cinny 出去散步。在她家的对面，耸立着两栋高大华丽的豪宅，看那样子，价值恐怕超过200万美元。两栋豪宅的中间，夹着一间样式非常不搭调的便宜小矮屋。这屋子周围被篱笆围了起来，可以看见里面种了很多的植物。在那门口的无花果树下，赫然出现这样的一个牌子：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-fbcae0ac0fa13486.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;它说：“请不要摘我的无花果。我失去了我的工作，需要依靠自己种的食物为生。我是一个生物学家，如果你知道有任何的工作，请告诉我。谢谢！” 这树上还挂着好几个类似的牌子，从它们看来，这位生物学家已经失业一年了……&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-18fdd10a61af7c99.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;Cinny 说，吃饭时给我们送果子来的女孩，就是这家的孩子。我想起她甜美的笑容，不禁一阵心酸！哎，谁才是真正可怜的人？我之前在无病呻吟些什么啊……&lt;/p&gt;
+
+&lt;p&gt;这些年来湾区的 IT 业大量的扩张，Apple，Google 等公司不停地在附近建新的办公楼。IT 业的过度发展，导致了其它行业的衰落，让附近土生土长的居民生存困难。本来公司的扩张应该引起经济的流通，社区的繁荣，人气的高涨，结果每当像 Google 这样的公司提供免费餐饮，附近就会有多少店铺关门，又有多少人失业，成为一片荒漠……&lt;/p&gt;
+
+&lt;p&gt;是的，大家节省外出买饭的时间能为公司赚很多钱，自己也节省了不少开支。但是这些公司真的回报了社会吗？新闻早已经曝光，这些大公司利用美国税法的漏洞，每一家每年都导致政府少收上亿美元的税钱。没有收到税，就没法给这些丢了工作的人发福利，以至于他们落魄到这种地步。&lt;/p&gt;
+
+&lt;p&gt;Cinny 告诉我，这家人可能也要卖掉房子，搬到别州去了。之前有好些邻居已经搬走了，其中有一些以前在附近开小店，卖很好吃的东西。现在这些儿时的美好回忆，都已经不在了……&lt;/p&gt;
+
+&lt;p&gt;我们一直盲目的以为技术会改善人们的生活，很多人总是试图做一些 O2O 服务，甚至研制机器人和自动车，这样可以代替许多人的劳动。如果这些技术真的能代替繁重或者危险的劳动，那确实好。可是如果发明这些技术的公司不回报社会，反而想办法钻法律的漏洞避税，那就变得有害了。在创造这些技术的同时，我们有想过因为它们而失去工作，而又因为公司不交税，不回报社会而变卖房产，颠沛流离的无辜人们吗？&lt;/p&gt;
+
+&lt;p&gt;作为一个 IT 人，我们不得不思考，这是不是一种无情的掠夺，我们是不是害虫？当我们帮助雇主掠夺了别人的工作之后，我们自己会不会就是下一个被社会抛弃，丢掉工作的人？“&lt;a href=&quot;http://baike.baidu.com/view/1140346.htm&quot;&gt;独乐乐，与人乐乐，孰乐乎？不若与人。&lt;/a&gt;” 我们在思考如何发展自己事业的同时，也应该思考如何回报社会了。否则我们面对的将是一片毫无生气的荒原，我们不会再看到幸福的笑脸……&lt;/p&gt;
+
+&lt;p&gt;有人说这一切都是资本主义造的孽，而不能怪 IT 业。不过由于 IT 存在高度的“智能”和“自动”，它已经开始给资本主义的社会关系带来灾难性的影响。有位大胡子说，无产阶级是资本主义的掘墓人，那么我说，IT 业就是资本主义的定时炸弹，它离爆炸的那一天已经不远了。&lt;/p&gt;
+
+&lt;p&gt;我想我们应该都能做点什么…… 话说，如果你知道湾区有招生物学家的工作，请联系我！&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">it-and-society</guid>
 <pubDate>Mon, 20 Jun 2016 00:00:00 +0800</pubDate>
@@ -166,9 +680,65 @@
 <item>
 <title>关于离开美国的决定</title>
 <link>http://yinwang.org/blog-cn/2016/06/19/leaving-united-states</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;关于离开美国的决定&lt;/h2&gt;&lt;p&gt;很多人看了我的『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/05/14/future&quot;&gt;未来计划&lt;/a&gt;』之后联系我，热心的给我提供线索和帮助。记得差不多两年以前，我因为某些人的卑鄙作法而突然丢了工作，导致签证出现问题。在那个危机关头，也有很多人伸出援助之手。在此我对这些人一并表示由衷的感谢。&lt;/p&gt;&lt;p&gt;虽然我口头上自嘲，实际上生活过得并不差，吃好穿好住好，还有漂亮妹纸陪 :) 只是由于美国社会的不合理，我没法发挥自己的能力，没有得到我应有的回报。由于我深入的洞察力和卓越的实现能力，一个建议就可以避免团队走很多弯路，我给曾经任职的每个公司提供的价值都超过百万美元，可是我没有看到合理的回报。所以现在的生活跟我的实际能力，显然差距太远。&lt;/p&gt;&lt;p&gt;我觉得现在是该离开美国的时候了。虽然我拿着某知名低调大公司一个不错的 offer，其实我早已对美国彻底失望了，我不准备接受这个工作。一个具有卓越才能的人，在这个国家有过如此悲催的遭遇，才能一直得不到发挥，处处被压制，只能说明这个国家存在非常严重的问题。美国不再是一个尊重人才的国家，它已经被野心家和吹牛扯淡的官僚政客所控制。这次很多人推荐给我美国公司的工作，各种热门公司都有。可是简单了解他们的“文化”之后，我都失去了兴趣，放弃了跟他们面试的机会。我感谢这些人，然而我的心已经不在美国。&lt;/p&gt;&lt;p&gt;对美国的失望不止因为事业的不顺，我已经彻底厌倦了美国的生活。人们都说美国是个大农村，好山好水好寂寞，这是千真万确的。一个人的时候很无聊，两个人的时候也没有好到哪里去。我交往了一年多的新女朋友从小在美国长大，是个“融入了美国文化”的，漂亮时尚的 ABC 妹纸。跟她在一起久了，也没有感觉好到哪去。到后来约会都不知道该干什么了，因为想不到附近还有什么有意思的地方值得常去的！同事们所谓的休闲，也就是爬山一类的事情，爬一次还好，多两次就发现没意思了，正所谓好山好水好寂寞嘛 :) 在这个文化和人心的沙漠，无论你是否单身，都无法摆脱那黑压压的孤独感。&lt;/p&gt;&lt;p&gt;在中国吃个夜宵，穿上短裤拖鞋走过两个灯火通明，人行道宽敞的路口，就发现人来人往，什么都有。在美国吃个夜宵？在黑洞洞的大马路上开十几分钟的车，若隐若现的 plaza 中间忽然出现一家还亮着灯的饭店，旁边的商店饭店都早已关门，鬼屋一样的死寂。你朋友圈出现的烤串照片，说“咱美国也有吃夜宵的地方啦”，就是这样的背景，没有气氛和文化，只有味道一般般的烤串。这还是近两年才出现的，不知道哪天又因为某大公司为鼓励员工熬夜工作在内部开设夜宵而倒闭也说不准。到了荒漠中的夜宵店，走近一看，门口停着几辆车，站着十几个人。店家没好气的对你说：“等待时间大概是半小时！”&lt;/p&gt;&lt;p&gt;整个国家的设施和道路被设计来方便开车，大片的面积被停车场占据，拉大了人与人的距离，也许是美国如此无聊的一个原因。你不可能悠闲的牵着女友散个步，然后顺便买点东西吃。商店和饭店都被道路分成一小块一小块的，人行道非常狭窄，只能走一个人，或者干脆没有人行道，旁边的车以每小时40英里的速度在你耳边呼啸而过。近在眼前的商店你也没法步行到达，必须钻进那铁盒子才能安全地开到另一个地方，然后又得经过一番找车位的折腾。有时候车位全满，你还需要绕来绕去的“蹲坑”甚至“跟踪行人”，看别人走了你才能趴进去。这样一番折腾之后，本来休闲的心情，全都因为各种紧张而消失殆尽。&lt;/p&gt;&lt;p&gt;当然生活缺乏休闲精神，只是美国生活的一方面。最不满意的其实还是工作的不如意。有些人跟我说，等有了绿卡之后就会感觉自由一些了，然而我很怀疑这种说法。要说绿卡，我得来可以很容易的，我的女朋友从小就是美国公民，而且她很愿意跟我结婚 :P 我不是那么喜欢结婚的人，所以肯定不会为了绿卡而结婚。然而就算我拿到了绿卡，那又能怎样呢？美国公司混进管理层的人，往往不是靠能力，而是靠关系，而且对于中国人相当的排斥，就算你有绿卡，有美国公民身份也一样。有真知灼见的人的意见，往往被下层和中层领导所掩盖，完全得不到被上层领导赏识的机会。&lt;/p&gt;&lt;p&gt;绿卡，可以说是美国用于敲诈外国人，让他们提供廉价劳动的强有力工具。很多人为了绿卡，连续好几年忍辱负重，拿着低廉的薪水，扛着巨大的压力，做着比美国人繁重的工作，到后来人都老了，头都秃了。可是绿卡会给你自由吗？有了绿卡你就不再能去其它国家定居，否则绿卡会被收回，而且在另一个国家赚的钱还得给美国缴税。美国政府这如意算盘打得可真好，利用绿卡把别人套牢在自己国家做苦力。我看到许多有绿卡，甚至有美国公民身份的华人，我并不觉得他们过得很好。一个很实在的例子，我的女朋友就是美国公民，我知道美国政府和公司对她并不好。美国不是一个关爱人民的国家，实际上它跟奴隶社会非常的接近，所以就算你成为美国公民又能怎样？很多人跟我提到要先解决“身份问题”，我很讨厌“身份问题”这个词。身为中国的主流社会，跑到这里来跟偷渡客难民似的，没有“身份”，好像没有自己的国家一样……&lt;/p&gt;&lt;p&gt;来了美国十年了，基本上受了十年的罪。开头受了美国教育的欺骗，以为在美国能够静心的做研究，然后以为在美国可以发展自己的事业。可是到如今，一场场的骗局都已经揭穿，这一切都已经看透了。并不是我不能“融入”美国社会，而是我根本不屑于融入它。跟美国人聊天感觉就两个字，假和蠢。一百年前罗素（&lt;a href=&quot;https://en.wikipedia.org/wiki/Bertrand_Russell&quot;&gt;Bertrand Russell&lt;/a&gt;）就说过，美国是商人开的国家，美国的大学教授只是商人的仆人而已，商人只知道竞争，直到不需要竞争的时候还仍然在竞争，为所谓“生存压力”惶惶不得终日。他的话直到今天都还是对的。哈佛，斯坦福之类的学校尽培养一些商人和政客，吹牛的本事大。利用别人的劳动和发明，把功劳挂在自己头上，然后别人就以为自己是“成功人士”。&lt;/p&gt;&lt;p&gt;美国人深深地为自己的文化感到自卑，所以一有机会就附庸风雅，显示自己跟欧洲的渊源关系。星巴克的咖啡中杯不叫“medium”，非要用个意大利词叫“grande”。从法语引进的词，非得要古板的按法语发音，漱喉咙一样，你按英语发音他们还指证你说这是法语~ 美国人互相之间的关怀，比起世界上很多其他国家都要差很多，特别是比欧洲国家要差非常多，甚至比日渐势利的中国都要差一些。中国社会的一些倒退作法，包括利益熏心，学术腐败，都是被美国传染而来的。&lt;/p&gt;&lt;p&gt;美国人的教育和意识形态里鼓吹的贪婪，导致了这个国家的人民生活越来越艰难，所以就算它科技再发达，总体再有钱又能怎样？这个国家的财富对你已经不再有意义。亿万富翁们可以合法避税，收入过十亿的大公司利用税收法漏洞，把巨额收入报在不收企业税的百慕大一类的小国，结果总共只交不到3%的税，反倒让挣血汗钱的工薪阶层缴税超过收入的35%。90%以上的财富集中在10%的极少数人手里，社会最底层的人没有工作，政府却利用各种借口（比如因为你仍然有自己的房子）不提供社会福利和医疗保障。当技术的进步导致的不是人民的安逸和享受，而是进一步的失业率扩大，人民工作更辛苦，压力更大，生活困苦，医疗，福利和下一代的教育条件恶化，技术再发展又有什么意义？我怎么总觉得美国在走苏联或者纳粹德国的老路…… 我不能让自己的下一代诞生于这样的国家！&lt;/p&gt;&lt;p&gt;很多中国人不理解欧洲国家的悠闲，觉得欧洲人太懒，在技术上落后于美国，真是天大的误解。很多欧洲人看到了技术发展会带来这样的后果，所以他们很明智的决定，不要研究什么智能机器了，继续让人去干很多事情。没工作的人也有很好的福利，养小孩上大学都不要钱，无忧无虑。上班的人就算是饭店服务员，都有各种法律保障，工作条件有保证，休息时间有保证，最低工资有保证，根本不用像美国的服务员一样，需要靠小费为生。欧洲劳动法不承认美国社会流行的所谓“at-will employment”，即雇主或者雇员都可以在任何时候无条件终止雇佣关系而无需提前通知或者警告，所以雇员不用担心随时会被炒鱿鱼。这就是为什么欧洲人过得比美国人开心，在欧洲国家生活比美国有趣。&lt;/p&gt;&lt;p&gt;所以我已经决定要离开美国，这是思考了很久很久以后才做出的决定。我的下一站，当然是我的家。我会歇至少半年不工作，陪伴我的父母，会见我的老友。同时我可能静下心来思考未来的事业。我目前的想法是做一个自由职业者。我不再愿意成为某个公司的正式员工，继续做底层的编程工作。由于我的造诣和深入见解，我更愿意给一些公司做“顾问”性质的指导和初期的建模设计，而不成为那些公司的一员。由于我对各种技术深入精髓的理解，以及对于设计的见解，我可能会成立自己的咨询公司，面向企业，对各种 IT 技术提供分析和指导，或者对企业提供技术培训服务，就像著名的 &lt;a href=&quot;https://www.nngroup.com&quot;&gt;Nielsen Norman Group&lt;/a&gt;。同时我也会花时间来发展自己的核心技术，包括 Yin 语言和最近对于数据库系统和存储系统的深度探索。&lt;/p&gt;&lt;p&gt;总是有人跟我说国内的环境不好，说得跟水深火热似的，可是我觉得那只是片面观察和危言耸听。我觉得我还不至于在国内活不下去。我喜欢中国，并不因为它是我的国家，或者被政治书教的，这是通过与美国和其它国家比较得出的结论。中国的文化更加接近欧洲，而不像美国。这些国家经历了历史与战火，经历了无产阶级革命，就算失败之后，社会平等关爱的思想已经进入了很多人的心。两年前在国内待了两个月，我过街可能被车撞，在地摊上可能吃到地沟油或者毒牛奶，可是我却显然过得舒心很多，轻松很多，浪漫很多。我一点也不贪恋美国的秩序和设施的高质量。社会分配制度的不合理，文化的贫瘠，压迫，剥削，歧视和人心的险恶，使得那一切的安逸都失去了意义。当然将来我也可能周游世界其他国家，比如热爱休闲的欧洲各国，然而中国会永远是我的根据地和故乡。&lt;/p&gt;&lt;p&gt;由于回国会带来一笔不小的安家开支，在这里我再次鼓励大家为一些高价值的文章付款，比如『怎样写一个解释器』，『编程的哲学』等。每篇文章的收费大概是5美元。之前已经付费的人就不用了，如果你不喜欢或者觉得没有收获的话也请不要付费，我不想欠别人人情。请注意你的付款并不是在无偿募捐或者施舍，这也不是在进行众筹投资，这只是你在为你使用了的好东西付款。我的文章比起很多教科书都要精辟，价值显然比5美元大很多。所以如果你从中收获了益处，按照经济学的原理，你确实是应该付费的。这种费用只针对特定的文章，付费之后并不等于我以后所有的作品你都应该免费获得。付费时请注明是在为哪篇文章付费。谢谢你的理解和支持！&lt;/p&gt;&lt;p&gt;【&lt;a href=&quot;http://paypal.me/yinwang0&quot;&gt;PayPal付款链接&lt;/a&gt;】&lt;/p&gt;&lt;p&gt;支付宝二维码：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-87cccd26dde8490a.JPG?imageMogr2/auto-orient/strip%7CimageView2/2/w/200&quot; alt=&quot;&quot;&gt;&lt;/p&gt;</description>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;关于离开美国的决定&lt;/h2&gt;
+                            &lt;p&gt;很多人看了我的『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/05/14/future&quot;&gt;未来计划&lt;/a&gt;』之后联系我，热心的给我提供线索和帮助。记得差不多两年以前，我因为某些人的卑鄙作法而突然丢了工作，导致签证出现问题。在那个危机关头，也有很多人伸出援助之手。在此我对这些人一并表示由衷的感谢。&lt;/p&gt;
+
+&lt;p&gt;虽然我口头上自嘲，实际上生活过得并不差，吃好穿好住好，还有漂亮妹纸陪 :) 只是由于美国社会的不合理，我没法发挥自己的能力，没有得到我应有的回报。由于我深入的洞察力和卓越的实现能力，一个建议就可以避免团队走很多弯路，我给曾经任职的每个公司提供的价值都超过百万美元，可是我没有看到合理的回报。所以现在的生活跟我的实际能力，显然差距太远。&lt;/p&gt;
+
+&lt;p&gt;我觉得现在是该离开美国的时候了。虽然我拿着某知名低调大公司一个不错的 offer，其实我早已对美国彻底失望了，我不准备接受这个工作。一个具有卓越才能的人，在这个国家有过如此悲催的遭遇，才能一直得不到发挥，处处被压制，只能说明这个国家存在非常严重的问题。美国不再是一个尊重人才的国家，它已经被野心家和吹牛扯淡的官僚政客所控制。这次很多人推荐给我美国公司的工作，各种热门公司都有。可是简单了解他们的“文化”之后，我都失去了兴趣，放弃了跟他们面试的机会。我感谢这些人，然而我的心已经不在美国。&lt;/p&gt;
+
+&lt;p&gt;对美国的失望不止因为事业的不顺，我已经彻底厌倦了美国的生活。人们都说美国是个大农村，好山好水好寂寞，这是千真万确的。一个人的时候很无聊，两个人的时候也没有好到哪里去。我交往了一年多的新女朋友从小在美国长大，是个“融入了美国文化”的，漂亮时尚的 ABC 妹纸。跟她在一起久了，也没有感觉好到哪去。到后来约会都不知道该干什么了，因为想不到附近还有什么有意思的地方值得常去的！同事们所谓的休闲，也就是爬山一类的事情，爬一次还好，多两次就发现没意思了，正所谓好山好水好寂寞嘛 :) 在这个文化和人心的沙漠，无论你是否单身，都无法摆脱那黑压压的孤独感。&lt;/p&gt;
+
+&lt;p&gt;在中国吃个夜宵，穿上短裤拖鞋走过两个灯火通明，人行道宽敞的路口，就发现人来人往，什么都有。在美国吃个夜宵？在黑洞洞的大马路上开十几分钟的车，若隐若现的 plaza 中间忽然出现一家还亮着灯的饭店，旁边的商店饭店都早已关门，鬼屋一样的死寂。你朋友圈出现的烤串照片，说“咱美国也有吃夜宵的地方啦”，就是这样的背景，没有气氛和文化，只有味道一般般的烤串。这还是近两年才出现的，不知道哪天又因为某大公司为鼓励员工熬夜工作在内部开设夜宵而倒闭也说不准。到了荒漠中的夜宵店，走近一看，门口停着几辆车，站着十几个人。店家没好气的对你说：“等待时间大概是半小时！”&lt;/p&gt;
+
+&lt;p&gt;整个国家的设施和道路被设计来方便开车，大片的面积被停车场占据，拉大了人与人的距离，也许是美国如此无聊的一个原因。你不可能悠闲的牵着女友散个步，然后顺便买点东西吃。商店和饭店都被道路分成一小块一小块的，人行道非常狭窄，只能走一个人，或者干脆没有人行道，旁边的车以每小时40英里的速度在你耳边呼啸而过。近在眼前的商店你也没法步行到达，必须钻进那铁盒子才能安全地开到另一个地方，然后又得经过一番找车位的折腾。有时候车位全满，你还需要绕来绕去的“蹲坑”甚至“跟踪行人”，看别人走了你才能趴进去。这样一番折腾之后，本来休闲的心情，全都因为各种紧张而消失殆尽。&lt;/p&gt;
+
+&lt;p&gt;当然生活缺乏休闲精神，只是美国生活的一方面。最不满意的其实还是工作的不如意。有些人跟我说，等有了绿卡之后就会感觉自由一些了，然而我很怀疑这种说法。要说绿卡，我得来可以很容易的，我的女朋友从小就是美国公民，而且她很愿意跟我结婚 :P 我不是那么喜欢结婚的人，所以肯定不会为了绿卡而结婚。然而就算我拿到了绿卡，那又能怎样呢？美国公司混进管理层的人，往往不是靠能力，而是靠关系，而且对于中国人相当的排斥，就算你有绿卡，有美国公民身份也一样。有真知灼见的人的意见，往往被下层和中层领导所掩盖，完全得不到被上层领导赏识的机会。&lt;/p&gt;
+
+&lt;p&gt;绿卡，可以说是美国用于敲诈外国人，让他们提供廉价劳动的强有力工具。很多人为了绿卡，连续好几年忍辱负重，拿着低廉的薪水，扛着巨大的压力，做着比美国人繁重的工作，到后来人都老了，头都秃了。可是绿卡会给你自由吗？有了绿卡你就不再能去其它国家定居，否则绿卡会被收回，而且在另一个国家赚的钱还得给美国缴税。美国政府这如意算盘打得可真好，利用绿卡把别人套牢在自己国家做苦力。我看到许多有绿卡，甚至有美国公民身份的华人，我并不觉得他们过得很好。一个很实在的例子，我的女朋友就是美国公民，我知道美国政府和公司对她并不好。美国不是一个关爱人民的国家，实际上它跟奴隶社会非常的接近，所以就算你成为美国公民又能怎样？很多人跟我提到要先解决“身份问题”，我很讨厌“身份问题”这个词。身为中国的主流社会，跑到这里来跟偷渡客难民似的，没有“身份”，好像没有自己的国家一样……&lt;/p&gt;
+
+&lt;p&gt;来了美国十年了，基本上受了十年的罪。开头受了美国教育的欺骗，以为在美国能够静心的做研究，然后以为在美国可以发展自己的事业。可是到如今，一场场的骗局都已经揭穿，这一切都已经看透了。并不是我不能“融入”美国社会，而是我根本不屑于融入它。跟美国人聊天感觉就两个字，假和蠢。一百年前罗素（&lt;a href=&quot;https://en.wikipedia.org/wiki/Bertrand_Russell&quot;&gt;Bertrand Russell&lt;/a&gt;）就说过，美国是商人开的国家，美国的大学教授只是商人的仆人而已，商人只知道竞争，直到不需要竞争的时候还仍然在竞争，为所谓“生存压力”惶惶不得终日。他的话直到今天都还是对的。哈佛，斯坦福之类的学校尽培养一些商人和政客，吹牛的本事大。利用别人的劳动和发明，把功劳挂在自己头上，然后别人就以为自己是“成功人士”。&lt;/p&gt;
+
+&lt;p&gt;美国人深深地为自己的文化感到自卑，所以一有机会就附庸风雅，显示自己跟欧洲的渊源关系。星巴克的咖啡中杯不叫“medium”，非要用个意大利词叫“grande”。从法语引进的词，非得要古板的按法语发音，漱喉咙一样，你按英语发音他们还指证你说这是法语~ 美国人互相之间的关怀，比起世界上很多其他国家都要差很多，特别是比欧洲国家要差非常多，甚至比日渐势利的中国都要差一些。中国社会的一些倒退作法，包括利益熏心，学术腐败，都是被美国传染而来的。&lt;/p&gt;
+
+&lt;p&gt;美国人的教育和意识形态里鼓吹的贪婪，导致了这个国家的人民生活越来越艰难，所以就算它科技再发达，总体再有钱又能怎样？这个国家的财富对你已经不再有意义。亿万富翁们可以合法避税，收入过十亿的大公司利用税收法漏洞，把巨额收入报在不收企业税的百慕大一类的小国，结果总共只交不到3%的税，反倒让挣血汗钱的工薪阶层缴税超过收入的35%。90%以上的财富集中在10%的极少数人手里，社会最底层的人没有工作，政府却利用各种借口（比如因为你仍然有自己的房子）不提供社会福利和医疗保障。当技术的进步导致的不是人民的安逸和享受，而是进一步的失业率扩大，人民工作更辛苦，压力更大，生活困苦，医疗，福利和下一代的教育条件恶化，技术再发展又有什么意义？我怎么总觉得美国在走苏联或者纳粹德国的老路…… 我不能让自己的下一代诞生于这样的国家！&lt;/p&gt;
+
+&lt;p&gt;很多中国人不理解欧洲国家的悠闲，觉得欧洲人太懒，在技术上落后于美国，真是天大的误解。很多欧洲人看到了技术发展会带来这样的后果，所以他们很明智的决定，不要研究什么智能机器了，继续让人去干很多事情。没工作的人也有很好的福利，养小孩上大学都不要钱，无忧无虑。上班的人就算是饭店服务员，都有各种法律保障，工作条件有保证，休息时间有保证，最低工资有保证，根本不用像美国的服务员一样，需要靠小费为生。欧洲劳动法不承认美国社会流行的所谓“at-will employment”，即雇主或者雇员都可以在任何时候无条件终止雇佣关系而无需提前通知或者警告，所以雇员不用担心随时会被炒鱿鱼。这就是为什么欧洲人过得比美国人开心，在欧洲国家生活比美国有趣。&lt;/p&gt;
+
+&lt;p&gt;所以我已经决定要离开美国，这是思考了很久很久以后才做出的决定。我的下一站，当然是我的家。我会歇至少半年不工作，陪伴我的父母，会见我的老友。同时我可能静下心来思考未来的事业。我目前的想法是做一个自由职业者。我不再愿意成为某个公司的正式员工，继续做底层的编程工作。由于我的造诣和深入见解，我更愿意给一些公司做“顾问”性质的指导和初期的建模设计，而不成为那些公司的一员。由于我对各种技术深入精髓的理解，以及对于设计的见解，我可能会成立自己的咨询公司，面向企业，对各种 IT 技术提供分析和指导，或者对企业提供技术培训服务，就像著名的 &lt;a href=&quot;https://www.nngroup.com&quot;&gt;Nielsen Norman Group&lt;/a&gt;。同时我也会花时间来发展自己的核心技术，包括 Yin 语言和最近对于数据库系统和存储系统的深度探索。&lt;/p&gt;
+
+&lt;p&gt;总是有人跟我说国内的环境不好，说得跟水深火热似的，可是我觉得那只是片面观察和危言耸听。我觉得我还不至于在国内活不下去。我喜欢中国，并不因为它是我的国家，或者被政治书教的，这是通过与美国和其它国家比较得出的结论。中国的文化更加接近欧洲，而不像美国。这些国家经历了历史与战火，经历了无产阶级革命，就算失败之后，社会平等关爱的思想已经进入了很多人的心。两年前在国内待了两个月，我过街可能被车撞，在地摊上可能吃到地沟油或者毒牛奶，可是我却显然过得舒心很多，轻松很多，浪漫很多。我一点也不贪恋美国的秩序和设施的高质量。社会分配制度的不合理，文化的贫瘠，压迫，剥削，歧视和人心的险恶，使得那一切的安逸都失去了意义。当然将来我也可能周游世界其他国家，比如热爱休闲的欧洲各国，然而中国会永远是我的根据地和故乡。&lt;/p&gt;
+
+&lt;p&gt;由于回国会带来一笔不小的安家开支，在这里我再次鼓励大家为一些高价值的文章付款，比如『怎样写一个解释器』，『编程的哲学』等。每篇文章的收费大概是5美元。之前已经付费的人就不用了，如果你不喜欢或者觉得没有收获的话也请不要付费，我不想欠别人人情。请注意你的付款并不是在无偿募捐或者施舍，这也不是在进行众筹投资，这只是你在为你使用了的好东西付款。我的文章比起很多教科书都要精辟，价值显然比5美元大很多。所以如果你从中收获了益处，按照经济学的原理，你确实是应该付费的。这种费用只针对特定的文章，付费之后并不等于我以后所有的作品你都应该免费获得。付费时请注明是在为哪篇文章付费。谢谢你的理解和支持！&lt;/p&gt;
+
+&lt;p&gt;【&lt;a href=&quot;http://paypal.me/yinwang0&quot;&gt;PayPal付款链接&lt;/a&gt;】&lt;/p&gt;
+
+&lt;p&gt;支付宝二维码：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-87cccd26dde8490a.JPG?imageMogr2/auto-orient/strip%7CimageView2/2/w/200&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">leaving-united-states</guid>
 <pubDate>Sun, 19 Jun 2016 00:00:00 +0800</pubDate>
@@ -176,13 +746,70 @@
 <item>
 <title>美国社会的信息不平等现象</title>
 <link>http://yinwang.org/blog-cn/2016/06/14/information-inequality</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;美国社会的信息不平等现象&lt;/h2&gt;&lt;p&gt;在美国工作过的人都知道，进入一个公司之前，雇员都要经过一种“背景调查”（background check）。这种调查一般由专门的“背景调查公司”来协助进行，他们可以通过各种渠道来获取你的信息，包括身份，住址，犯罪记录，学位信息，之前雇主信息，职位，工资，工作时间，离职原因等等。很多公司还要求你提供几个“联系人”（reference）和他们的联系方式，有些甚至要求其中有一个是你之前的 manager，这样他们可以去询问你的表现……&lt;/p&gt;&lt;p&gt;在美国大学读研究生，进去之前都需要找几个认识的教授写推荐信。进去之后每隔一段时间，教授们会召开一种八卦会议，讨论各个学生的表现。你之前对任何一个教授说的话，都可能传到别的教授耳朵里。教授们用这种机制来打探学生的底细，所以如果你在一个教授那里表现不好（当然其实可能是教授的人品问题）或者发生了矛盾，去找另一个教授的时候很可能立即吃闭门羹，或者找借口回避。在这种会议上，教授们还会决定哪些学生会被“请离学校”……&lt;/p&gt;&lt;p&gt;这表面上看上去是为了防止有问题或者不合格的人进入公司或者学校，久而久之你才发现，这种“背景调查”并不是什么好东西。它造成的“信息不平等”，导致了雇员和学生在自身权益保护上处于劣势，陷入被控制，被压迫的地位。雇员和学生如果有问题，公司和学校使用联盟的力量来解决；可是如果公司和教授有问题，学生们却没有相应的机制来维护自己的权益。&lt;/p&gt;&lt;p&gt;所以你经常发现教授欺负学生的情况，最后反而是学生被迫离开。如果一个教授人品有问题导致了矛盾，他总是会推到学生头上。学生只能默默的忍着，绝不会有另一个学生或者教授来维护你的权益，伸张正义。正如中国的一句古话，官官相护，教授和教授之间都是互相庇护的。在美国，教授和研究生是两个地位完全不同的阶级。不要以为在美国你可以对教授直呼其名，在地位上你们就是平等的，那些都是美国一直以来的广告宣传（包括电影，电视，GRE 文章……）在你头脑里产生的幻觉。&lt;/p&gt;&lt;p&gt;你发现没有，公司和学校可以调查你之前的表现和不良记录，你却没有可靠的办法来调查公司的内部情况和不良底细。如果没有熟人在公司，你是没法知道公司内部的一些龌龊做法的。某些公司里面的情况是多么龌龊，从我之前的文章你应该已经有所了解。你不但不容易找到说真话的“内线”，而且当你进入公司之后会被要求签署一种叫 NDA 的东西，也就是 Non-Disclosure Agreement。这种 NDA 很多不但要求你不能暴露公司的商业和技术机密，而且要求你不能公开公司内部的“做法”（practice）。当然做法就包括了内部的各种压榨，政治斗争，勾心斗角，领导瞎指挥，等等。&lt;/p&gt;&lt;p&gt;签了这样 NDA 的人，除非你跟他是很好的朋友，他才有可能在不被抓到证据（无记录）的情况下，亲口告诉你公司内部的真实情况。很多时候，情况要比你从外面看起来糟很多，就算它是世界知名的“伟大”公司也一样。本来你认识公司内部员工的机会就不是很多，再除去本来就精通政治斗争的人，那些喜欢晒幸福显牛逼的人，那些由于签了 NDA 而三缄其口的人，就没有很多机会听到另外方面的信息。&lt;/p&gt;&lt;p&gt;你可以从 Glassdoor 之类的网站了解一些公司的负面信息，然而经验告诉我，Glassdoor 并不是没有“审查”的。你大体上说一下不好的感觉可以，然而如果你说到具体的地方，review 就会被 Glassdoor 封锁，理由是里面有脏话，或者违反“社区规则”（community guidelines）。你以为真是因为脏话吗？等你删掉所有的脏话和用星号替换的脏话（比如 s**t），会发现仍然无法通过审查。他们不会告诉你为什么，只是反复的跟你说违反了社区规则。至于怎么违反了，你是永远琢磨不出来的。&lt;/p&gt;&lt;p&gt;到底哪里有问题呢？问题就在于你的 review 太具体了，包含了确凿的证据，别人一看就知道那是真的。Glassdoor 的所谓社区规则，让你无法显示出具体的证据，以至于人们看到你的反面 review 也无法确信你说的是实话。有些甚至可能以为你是个人性格问题，要求太高，对公司不满而已。当你忽略了这些反面 review，进入公司一看，才发现他们说的都是真的…… 所以像 Glassdoor 这种试图朝 LinkedIn 竞争者方向发展，目的在于盈利的公司，它们其实是不敢让这样的 review 存在的。否则得罪了某些牛气的公司或者投资者，自己可就吃不了兜着了。要记住 Glassdoor 也是一家公司，然而能够给公司提供公正 review 的地方，它自己绝对不应该是一家公司。&lt;/p&gt;&lt;p&gt;由于新的工作都需要背景调查，甚至要求给你之前的上司打电话，所以知道这一点的人都会在工作中唯唯诺诺，不敢得罪任何人，就算你的上司人品非常差也一样。这样一来，背景调查和推荐制度，就成为了管理层控制工薪阶层和学生强有力的工具。你的上司比较放心，无论他如何瞎指挥，如何欺负陷害你，你都得在他面前笑嘻嘻的，不敢当面冒犯。如果他对你不满意，就算你离开这个公司，将来的工作也不好找。因为之后的公司可能要求打电话跟他询问你的情况，到时候他可以在背地里狠狠黑你一番，然后还跟你说自己高度的赞扬了你。等你过五关斩六将，到了最后却莫名其妙没有拿到以为可以顺手拈来的工作，才发现他也许是一只笑面虎。&lt;/p&gt;&lt;p&gt;我在 Google 和 Coverity 的两个上司都是这样的人。其中 Coverity 的上司曾经在 2013 年直接导致我失去一个很好的工作机会，幸好本来要给我 offer 的公司里一个好心人事后告诉了我原因——Coverity 的 manager 提供了“让人震惊的负面信息”！在那之前我一直以为，虽然这人帮着公司压榨我们，但平时又跟我哭诉说是被迫的，所以也许还有点人性。当新公司要求之前公司的联系人中包含一个 manager 的时候，由于只有 Google 的那家伙和他可以选，我写了他的名字。结果呢，同事给了我好评，然后这个 manager 本来的面目就显示出来了…… 现在你知道美国的人际关系可以多么的微妙和复杂了吧，一个人在背后戳你一刀，你也许直到最后都没有发现，而且很多时候你的新公司明确要求你提供让别人捅你一刀的机会……&lt;/p&gt;&lt;p&gt;这就是中国人心目中简单纯朴善良的美国人，他们制造了世界上最强大的无形锁链，根本不需要政府出手，利用整个社会的集体力量来操控和挟制每个人的行为，使得他们不敢有不服从的举动，不敢公开公司和学校的不良做法。我之所以在博文里曝光一些公司的行为，就是为了抵抗这种信息的不平等，为了破坏这种无形的锁链。&lt;/p&gt;&lt;p&gt;有些人每次看到我批评前任雇主，就觉得我是大嘴巴，说得好像我在欺负雇主一样。我这种资产为负数的区区小民（负人阶级），哪里能动得了牛逼哄哄的 Google，不可一世的 Coverity 的汗毛呢？可是你发现没有，被我曝光的全都是强权势力，而且它们都对我的身心健康和切身利益产生了严重的危害。我从来没有说过我前女友，我前同事的故事，就算他们有些做法相当的不好，也绝对不会公开出来。因为他们没有像公司那样强大的权力和危害，可以伤害大量的人却不受惩罚，可以导致整个社会文明的败坏。所以就算我受到很大的伤害，也要保护这些人的隐私，因为他们还有醒悟和改进自己的机会。&lt;/p&gt;&lt;p&gt;然而对于公司和大学这样的强权，如果出现严重侵害切身利益的恶劣行为，我就会毫不留情的揭露。就算 NDA 禁止透露某些信息也一样，我不会让 NDA 阻碍我对伤害自己的恶劣行径进行披露。就像你被别人打了，打人者逼你签字画押，让你保证不说出去，不然上法院告你。你去遵循这种条款不是很可笑吗？本来该被告上法庭的是打人者，到头来打人者却要挟上法院告你，试图封你的嘴，掩盖真相。写 GRE 作文的时候大家都分析过如何对待“unjust law”（不正义的法律），现在是拿出来用的时候了，用于掩盖公司丑恶行径的 NDA 条款是不正义的法律，所以我们应该联合起来废除它！当然这里说要揭露的，不包括商业和技术机密。&lt;/p&gt;&lt;p&gt;这里我应该强调一下，并不是所有问题都属于“严重侵害”，都需要进行揭露。这些侵害只包括那种对人的身心健康，切身的基本利益，也就是所谓“人权”产生危害的。比如利用高压甚至威胁剥夺员工休息时间，危害员工生命安全和健康，暴力谩骂等行为，缺乏对人的基本尊重的行为，才列入被揭露之列。其它的常见问题，比如节奏太慢，工作缺乏挑战性，process 太繁琐，同事比较笨，…… 由于没有造成伤害，所以不包括在内。&lt;/p&gt;&lt;p&gt;一些典型的公司恶劣行径例子：&lt;/p&gt;&lt;ol&gt;
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;美国社会的信息不平等现象&lt;/h2&gt;
+                            &lt;p&gt;在美国工作过的人都知道，进入一个公司之前，雇员都要经过一种“背景调查”（background check）。这种调查一般由专门的“背景调查公司”来协助进行，他们可以通过各种渠道来获取你的信息，包括身份，住址，犯罪记录，学位信息，之前雇主信息，职位，工资，工作时间，离职原因等等。很多公司还要求你提供几个“联系人”（reference）和他们的联系方式，有些甚至要求其中有一个是你之前的 manager，这样他们可以去询问你的表现……&lt;/p&gt;
+
+&lt;p&gt;在美国大学读研究生，进去之前都需要找几个认识的教授写推荐信。进去之后每隔一段时间，教授们会召开一种八卦会议，讨论各个学生的表现。你之前对任何一个教授说的话，都可能传到别的教授耳朵里。教授们用这种机制来打探学生的底细，所以如果你在一个教授那里表现不好（当然其实可能是教授的人品问题）或者发生了矛盾，去找另一个教授的时候很可能立即吃闭门羹，或者找借口回避。在这种会议上，教授们还会决定哪些学生会被“请离学校”……&lt;/p&gt;
+
+&lt;p&gt;这表面上看上去是为了防止有问题或者不合格的人进入公司或者学校，久而久之你才发现，这种“背景调查”并不是什么好东西。它造成的“信息不平等”，导致了雇员和学生在自身权益保护上处于劣势，陷入被控制，被压迫的地位。雇员和学生如果有问题，公司和学校使用联盟的力量来解决；可是如果公司和教授有问题，学生们却没有相应的机制来维护自己的权益。&lt;/p&gt;
+
+&lt;p&gt;所以你经常发现教授欺负学生的情况，最后反而是学生被迫离开。如果一个教授人品有问题导致了矛盾，他总是会推到学生头上。学生只能默默的忍着，绝不会有另一个学生或者教授来维护你的权益，伸张正义。正如中国的一句古话，官官相护，教授和教授之间都是互相庇护的。在美国，教授和研究生是两个地位完全不同的阶级。不要以为在美国你可以对教授直呼其名，在地位上你们就是平等的，那些都是美国一直以来的广告宣传（包括电影，电视，GRE 文章……）在你头脑里产生的幻觉。&lt;/p&gt;
+
+&lt;p&gt;你发现没有，公司和学校可以调查你之前的表现和不良记录，你却没有可靠的办法来调查公司的内部情况和不良底细。如果没有熟人在公司，你是没法知道公司内部的一些龌龊做法的。某些公司里面的情况是多么龌龊，从我之前的文章你应该已经有所了解。你不但不容易找到说真话的“内线”，而且当你进入公司之后会被要求签署一种叫 NDA 的东西，也就是 Non-Disclosure Agreement。这种 NDA 很多不但要求你不能暴露公司的商业和技术机密，而且要求你不能公开公司内部的“做法”（practice）。当然做法就包括了内部的各种压榨，政治斗争，勾心斗角，领导瞎指挥，等等。&lt;/p&gt;
+
+&lt;p&gt;签了这样 NDA 的人，除非你跟他是很好的朋友，他才有可能在不被抓到证据（无记录）的情况下，亲口告诉你公司内部的真实情况。很多时候，情况要比你从外面看起来糟很多，就算它是世界知名的“伟大”公司也一样。本来你认识公司内部员工的机会就不是很多，再除去本来就精通政治斗争的人，那些喜欢晒幸福显牛逼的人，那些由于签了 NDA 而三缄其口的人，就没有很多机会听到另外方面的信息。&lt;/p&gt;
+
+&lt;p&gt;你可以从 Glassdoor 之类的网站了解一些公司的负面信息，然而经验告诉我，Glassdoor 并不是没有“审查”的。你大体上说一下不好的感觉可以，然而如果你说到具体的地方，review 就会被 Glassdoor 封锁，理由是里面有脏话，或者违反“社区规则”（community guidelines）。你以为真是因为脏话吗？等你删掉所有的脏话和用星号替换的脏话（比如 s**t），会发现仍然无法通过审查。他们不会告诉你为什么，只是反复的跟你说违反了社区规则。至于怎么违反了，你是永远琢磨不出来的。&lt;/p&gt;
+
+&lt;p&gt;到底哪里有问题呢？问题就在于你的 review 太具体了，包含了确凿的证据，别人一看就知道那是真的。Glassdoor 的所谓社区规则，让你无法显示出具体的证据，以至于人们看到你的反面 review 也无法确信你说的是实话。有些甚至可能以为你是个人性格问题，要求太高，对公司不满而已。当你忽略了这些反面 review，进入公司一看，才发现他们说的都是真的…… 所以像 Glassdoor 这种试图朝 LinkedIn 竞争者方向发展，目的在于盈利的公司，它们其实是不敢让这样的 review 存在的。否则得罪了某些牛气的公司或者投资者，自己可就吃不了兜着了。要记住 Glassdoor 也是一家公司，然而能够给公司提供公正 review 的地方，它自己绝对不应该是一家公司。&lt;/p&gt;
+
+&lt;p&gt;由于新的工作都需要背景调查，甚至要求给你之前的上司打电话，所以知道这一点的人都会在工作中唯唯诺诺，不敢得罪任何人，就算你的上司人品非常差也一样。这样一来，背景调查和推荐制度，就成为了管理层控制工薪阶层和学生强有力的工具。你的上司比较放心，无论他如何瞎指挥，如何欺负陷害你，你都得在他面前笑嘻嘻的，不敢当面冒犯。如果他对你不满意，就算你离开这个公司，将来的工作也不好找。因为之后的公司可能要求打电话跟他询问你的情况，到时候他可以在背地里狠狠黑你一番，然后还跟你说自己高度的赞扬了你。等你过五关斩六将，到了最后却莫名其妙没有拿到以为可以顺手拈来的工作，才发现他也许是一只笑面虎。&lt;/p&gt;
+
+&lt;p&gt;我在 Google 和 Coverity 的两个上司都是这样的人。其中 Coverity 的上司曾经在 2013 年直接导致我失去一个很好的工作机会，幸好本来要给我 offer 的公司里一个好心人事后告诉了我原因——Coverity 的 manager 提供了“让人震惊的负面信息”！在那之前我一直以为，虽然这人帮着公司压榨我们，但平时又跟我哭诉说是被迫的，所以也许还有点人性。当新公司要求之前公司的联系人中包含一个 manager 的时候，由于只有 Google 的那家伙和他可以选，我写了他的名字。结果呢，同事给了我好评，然后这个 manager 本来的面目就显示出来了…… 现在你知道美国的人际关系可以多么的微妙和复杂了吧，一个人在背后戳你一刀，你也许直到最后都没有发现，而且很多时候你的新公司明确要求你提供让别人捅你一刀的机会……&lt;/p&gt;
+
+&lt;p&gt;这就是中国人心目中简单纯朴善良的美国人，他们制造了世界上最强大的无形锁链，根本不需要政府出手，利用整个社会的集体力量来操控和挟制每个人的行为，使得他们不敢有不服从的举动，不敢公开公司和学校的不良做法。我之所以在博文里曝光一些公司的行为，就是为了抵抗这种信息的不平等，为了破坏这种无形的锁链。&lt;/p&gt;
+
+&lt;p&gt;有些人每次看到我批评前任雇主，就觉得我是大嘴巴，说得好像我在欺负雇主一样。我这种资产为负数的区区小民（负人阶级），哪里能动得了牛逼哄哄的 Google，不可一世的 Coverity 的汗毛呢？可是你发现没有，被我曝光的全都是强权势力，而且它们都对我的身心健康和切身利益产生了严重的危害。我从来没有说过我前女友，我前同事的故事，就算他们有些做法相当的不好，也绝对不会公开出来。因为他们没有像公司那样强大的权力和危害，可以伤害大量的人却不受惩罚，可以导致整个社会文明的败坏。所以就算我受到很大的伤害，也要保护这些人的隐私，因为他们还有醒悟和改进自己的机会。&lt;/p&gt;
+
+&lt;p&gt;然而对于公司和大学这样的强权，如果出现严重侵害切身利益的恶劣行为，我就会毫不留情的揭露。就算 NDA 禁止透露某些信息也一样，我不会让 NDA 阻碍我对伤害自己的恶劣行径进行披露。就像你被别人打了，打人者逼你签字画押，让你保证不说出去，不然上法院告你。你去遵循这种条款不是很可笑吗？本来该被告上法庭的是打人者，到头来打人者却要挟上法院告你，试图封你的嘴，掩盖真相。写 GRE 作文的时候大家都分析过如何对待“unjust law”（不正义的法律），现在是拿出来用的时候了，用于掩盖公司丑恶行径的 NDA 条款是不正义的法律，所以我们应该联合起来废除它！当然这里说要揭露的，不包括商业和技术机密。&lt;/p&gt;
+
+&lt;p&gt;这里我应该强调一下，并不是所有问题都属于“严重侵害”，都需要进行揭露。这些侵害只包括那种对人的身心健康，切身的基本利益，也就是所谓“人权”产生危害的。比如利用高压甚至威胁剥夺员工休息时间，危害员工生命安全和健康，暴力谩骂等行为，缺乏对人的基本尊重的行为，才列入被揭露之列。其它的常见问题，比如节奏太慢，工作缺乏挑战性，process 太繁琐，同事比较笨，…… 由于没有造成伤害，所以不包括在内。&lt;/p&gt;
+
+&lt;p&gt;一些典型的公司恶劣行径例子：&lt;/p&gt;
+
+&lt;ol&gt;
 &lt;li&gt;Coverity 故意对任务设置过短的时间，然后通过解雇相威胁，导致员工严重超时工作，无耻剥夺员工的休息时间。&lt;/li&gt;
 &lt;li&gt;Sourcegraph 在员工短时间完成重大贡献之后，使用无理借口解雇，收回早期员工的大额股票份额。这是相当于抢劫的犯罪行为。&lt;/li&gt;
 &lt;li&gt;Amazon 被多次曝光的&lt;a href=&quot;http://www.nytimes.com/2015/08/16/technology/inside-amazon-wrestling-big-ideas-in-a-bruising-workplace.html&quot;&gt;极度压榨的工作环境&lt;/a&gt;，对怀孕女员工的&lt;a href=&quot;https://medium.com/@jcheiffetz/i-had-a-baby-and-cancer-when-i-worked-at-amazon-this-is-my-story-9eba5eef2976#.fooa1dmgi&quot;&gt;不公正待遇&lt;/a&gt;，等等……&lt;/li&gt;
-&lt;/ol&gt;&lt;p&gt;有人跟我说我这么曝光以前的雇主，新的公司会对我有所顾忌，这样的行为等于自杀。我其实一点都不担心这个事情。虽然恶劣的行径是一定会被揭穿的，然而胸怀坦荡，对人友好，心里没有鬼的公司却大可不必担心。对我有所顾忌是应该的，我理所应当有自己的威严——公司都应该知道，王垠不是好惹的，但他却是非常讲理的。你可以看到，被曝光的雇主都有非常严重的恶劣行为，甚至可以告上法庭，要求赔偿。我对这样的公司躲都来不及，如果类似的不地道的公司看到了我的文章而回避我，那正好！因为我正想很有效的过滤掉这样的公司，省得浪费时间去跟他们聊。剩下的有良心的公司，自然会发现我是朋友，而且是非常有价值的人，从而愿意跟我合作。&lt;/p&gt;&lt;p&gt;如果你被公司欺负了，却担心曝光了公司的恶劣行为会导致以后找不到工作，那你就助长了这种公司的气焰。他们就会打着假面具继续害人，把大家都蒙在鼓里。这样坏人就会横行霸道，导致整个社会环境的恶化。所以这些人对我的做法的担心，说我是在自杀，不但是多余的，而且是有害的，甚至可以被视为一种恐吓行为。我希望广大的劳动群众都能有如此的勇气，勇于站出来说真话，世界才能得到信息的平等。只有在信息上平等，公司的不良行为才能受到节制，有良心的公司才能得以发扬光大，人类才有可能得到物质上平等的机会，最终消灭人压迫人，人剥削人的制度。&lt;/p&gt;</description>
+&lt;/ol&gt;
+
+
+&lt;p&gt;有人跟我说我这么曝光以前的雇主，新的公司会对我有所顾忌，这样的行为等于自杀。我其实一点都不担心这个事情。虽然恶劣的行径是一定会被揭穿的，然而胸怀坦荡，对人友好，心里没有鬼的公司却大可不必担心。对我有所顾忌是应该的，我理所应当有自己的威严——公司都应该知道，王垠不是好惹的，但他却是非常讲理的。你可以看到，被曝光的雇主都有非常严重的恶劣行为，甚至可以告上法庭，要求赔偿。我对这样的公司躲都来不及，如果类似的不地道的公司看到了我的文章而回避我，那正好！因为我正想很有效的过滤掉这样的公司，省得浪费时间去跟他们聊。剩下的有良心的公司，自然会发现我是朋友，而且是非常有价值的人，从而愿意跟我合作。&lt;/p&gt;
+
+&lt;p&gt;如果你被公司欺负了，却担心曝光了公司的恶劣行为会导致以后找不到工作，那你就助长了这种公司的气焰。他们就会打着假面具继续害人，把大家都蒙在鼓里。这样坏人就会横行霸道，导致整个社会环境的恶化。所以这些人对我的做法的担心，说我是在自杀，不但是多余的，而且是有害的，甚至可以被视为一种恐吓行为。我希望广大的劳动群众都能有如此的勇气，勇于站出来说真话，世界才能得到信息的平等。只有在信息上平等，公司的不良行为才能受到节制，有良心的公司才能得以发扬光大，人类才有可能得到物质上平等的机会，最终消灭人压迫人，人剥削人的制度。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">information-inequality</guid>
 <pubDate>Tue, 14 Jun 2016 00:00:00 +0800</pubDate>
@@ -190,21 +817,82 @@
 <item>
 <title>Java 有值类型吗？</title>
 <link>http://yinwang.org/blog-cn/2016/06/08/java-value-type</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;Java 有值类型吗？&lt;/h2&gt;&lt;p&gt;有人看了我之前的文章『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;Swift 语言的设计错误&lt;/a&gt;』，问我：“你说 Java 只有引用类型（reference type），但是根据 Java 的&lt;a href=&quot;http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html&quot;&gt;官方文档&lt;/a&gt;，Java 也有值类型（value type）和引用类型的区别的。比如 int，boolean 等原始类型就是值类型。” 现在我来解释一下这个问题。&lt;/p&gt;&lt;p&gt;Java 有值类型，原始类型 int，boolean 等是值类型，其实是长久以来的一种误解，它混淆了实现和语义的区别。不要以为 Java 的官方文档那样写就是权威定论，就可以说“王垠不懂” :) 当你认为王垠不懂一个初级问题的时候，都需要三思，因为他可能是大智若愚…… 看了我下面的论述，也许你会发现自己应该怀疑的是，Java 的设计者到底有没有搞明白这个问题 :P&lt;/p&gt;&lt;p&gt;胡扯结束，现在来说正事。Java，Scheme 等语言的原始类型，比如 char，int，boolean，double 等，在“实现”上确实是通过值（而不是引用，或者叫指针）直接传递的，然而这完全是一种为了效率的优化（叫做 inlining）。这种优化对于程序员应该是不可见的。Java 继承了 Scheme/Lisp 的衣钵，它们在“语义”上其实是没有值类型的。&lt;/p&gt;&lt;p&gt;这不是天方夜谭，为了理解这一点，你可以做一个很有意思的思维实验。现在你把 Java 里面所有的原始类型都“想象”成引用类型，也就是说，所有的 int, boolean 等原始类型的变量都不包含实际的数据，而是引用（或者叫指针），指向堆上分配的数据。然后你会发现这样“改造后”的 Java，仍然符合现有 Java 代码里能看到的一切现象。也就是说，原始类型被作为值类型还是引用类型，对于程序员完全没有区别。&lt;/p&gt;&lt;p&gt;举个简单的例子，如果我们把 int 的实现变成完全的引用，然后来看这段代码：&lt;/p&gt;&lt;pre&gt;&lt;code&gt;int x = 1;    // x指向内存地址A，内容是整数1
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;Java 有值类型吗？&lt;/h2&gt;
+                            &lt;p&gt;有人看了我之前的文章『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;Swift 语言的设计错误&lt;/a&gt;』，问我：“你说 Java 只有引用类型（reference type），但是根据 Java 的&lt;a href=&quot;http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html&quot;&gt;官方文档&lt;/a&gt;，Java 也有值类型（value type）和引用类型的区别的。比如 int，boolean 等原始类型就是值类型。” 现在我来解释一下这个问题。&lt;/p&gt;
+
+&lt;p&gt;Java 有值类型，原始类型 int，boolean 等是值类型，其实是长久以来的一种误解，它混淆了实现和语义的区别。不要以为 Java 的官方文档那样写就是权威定论，就可以说“王垠不懂” :) 当你认为王垠不懂一个初级问题的时候，都需要三思，因为他可能是大智若愚…… 看了我下面的论述，也许你会发现自己应该怀疑的是，Java 的设计者到底有没有搞明白这个问题 :P&lt;/p&gt;
+
+&lt;p&gt;胡扯结束，现在来说正事。Java，Scheme 等语言的原始类型，比如 char，int，boolean，double 等，在“实现”上确实是通过值（而不是引用，或者叫指针）直接传递的，然而这完全是一种为了效率的优化（叫做 inlining）。这种优化对于程序员应该是不可见的。Java 继承了 Scheme/Lisp 的衣钵，它们在“语义”上其实是没有值类型的。&lt;/p&gt;
+
+&lt;p&gt;这不是天方夜谭，为了理解这一点，你可以做一个很有意思的思维实验。现在你把 Java 里面所有的原始类型都“想象”成引用类型，也就是说，所有的 int, boolean 等原始类型的变量都不包含实际的数据，而是引用（或者叫指针），指向堆上分配的数据。然后你会发现这样“改造后”的 Java，仍然符合现有 Java 代码里能看到的一切现象。也就是说，原始类型被作为值类型还是引用类型，对于程序员完全没有区别。&lt;/p&gt;
+
+&lt;p&gt;举个简单的例子，如果我们把 int 的实现变成完全的引用，然后来看这段代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;int x = 1;    // x指向内存地址A，内容是整数1
 int y = x;    // y指向同样的内存地址A，内容是整数1
 x = 2;        // x指向另一个内存地址B，内容是整数2。y仍然指向地址A，内容是1。
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;由于我们改造后的 Java 里面 int 全部是引用，所以第一行定义的 &lt;code&gt;x&lt;/code&gt; 并不包含一个整数，而是一个引用，它指向堆里分配的一块内存，这个空间的内容是整数 1。在第二行，我们定 int 变量 &lt;code&gt;y&lt;/code&gt;，当然它也是一个引用，它的值跟 &lt;code&gt;x&lt;/code&gt; 一样，所以 &lt;code&gt;y&lt;/code&gt; 也指向同一个地址，里面的内容是同一个整数：1。在第三行，我们对 &lt;code&gt;x&lt;/code&gt; 这个引用赋值。你会发现一个很有意思的现象，虽然 &lt;code&gt;x&lt;/code&gt; 指向了 2，&lt;code&gt;y&lt;/code&gt; 却仍然指向 1。对 &lt;code&gt;x&lt;/code&gt; 赋值并没能改变 &lt;code&gt;y&lt;/code&gt; 指向的内容，这种情况就跟 int 是值类型的时候一模一样！所以现在虽然 int 变量全部是引用，你却不能实现共享地址的引用能做的事情：对 &lt;code&gt;x&lt;/code&gt; 进行某种操作，导致 &lt;code&gt;y&lt;/code&gt; 指向的内容也发生改变。&lt;/p&gt;&lt;p&gt;出现这个现象的原因是，虽然现在 int 成了引用类型，你却并不能对它进行引用类型所特有（而值类型没有）的操作。这样的操作包括：&lt;/p&gt;&lt;ol&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;由于我们改造后的 Java 里面 int 全部是引用，所以第一行定义的 &lt;code&gt;x&lt;/code&gt; 并不包含一个整数，而是一个引用，它指向堆里分配的一块内存，这个空间的内容是整数 1。在第二行，我们定 int 变量 &lt;code&gt;y&lt;/code&gt;，当然它也是一个引用，它的值跟 &lt;code&gt;x&lt;/code&gt; 一样，所以 &lt;code&gt;y&lt;/code&gt; 也指向同一个地址，里面的内容是同一个整数：1。在第三行，我们对 &lt;code&gt;x&lt;/code&gt; 这个引用赋值。你会发现一个很有意思的现象，虽然 &lt;code&gt;x&lt;/code&gt; 指向了 2，&lt;code&gt;y&lt;/code&gt; 却仍然指向 1。对 &lt;code&gt;x&lt;/code&gt; 赋值并没能改变 &lt;code&gt;y&lt;/code&gt; 指向的内容，这种情况就跟 int 是值类型的时候一模一样！所以现在虽然 int 变量全部是引用，你却不能实现共享地址的引用能做的事情：对 &lt;code&gt;x&lt;/code&gt; 进行某种操作，导致 &lt;code&gt;y&lt;/code&gt; 指向的内容也发生改变。&lt;/p&gt;
+
+&lt;p&gt;出现这个现象的原因是，虽然现在 int 成了引用类型，你却并不能对它进行引用类型所特有（而值类型没有）的操作。这样的操作包括：&lt;/p&gt;
+
+&lt;ol&gt;
 &lt;li&gt;deref。就像 C 语言里的 &lt;code&gt;*&lt;/code&gt; 操作符。&lt;/li&gt;
 &lt;li&gt;成员赋值。就像对 C struct 成员的 &lt;code&gt;x.foo = 2&lt;/code&gt; 。&lt;/li&gt;
-&lt;/ol&gt;&lt;p&gt;在 Java 里，你没法写像 C 语言的 &lt;code&gt;*x = 2&lt;/code&gt; 这样的代码，因为 Java 没有提供 deref 操作符 &lt;code&gt;*&lt;/code&gt;。你也没法通过 &lt;code&gt;x.foo = 2&lt;/code&gt; 这样的语句改变 &lt;code&gt;x&lt;/code&gt; 所指向的内存数据（内容是1）的一部分，因为 int 是一个原始类型。最后你发现，你只能写 &lt;code&gt;x = 2&lt;/code&gt;，也就是改变 &lt;code&gt;x&lt;/code&gt; 这个引用本身的指向。&lt;code&gt;x = 2&lt;/code&gt; 执行之后，原来数字 1 所在的内存空间并没有变成 2，只不过 x 指向了新的地址，那里装着数字 2 而已。指向 1 的其它引用变量比如 &lt;code&gt;y&lt;/code&gt;，不会因为你进行了 &lt;code&gt;x = 2&lt;/code&gt; 这个操作而看到 2，它们仍然看到原来那个1……&lt;/p&gt;&lt;p&gt;在这种 int 是引用的 Java 里，你对 int 变量 &lt;code&gt;x&lt;/code&gt; 能做的事情只有两种：&lt;/p&gt;&lt;ol&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;在 Java 里，你没法写像 C 语言的 &lt;code&gt;*x = 2&lt;/code&gt; 这样的代码，因为 Java 没有提供 deref 操作符 &lt;code&gt;*&lt;/code&gt;。你也没法通过 &lt;code&gt;x.foo = 2&lt;/code&gt; 这样的语句改变 &lt;code&gt;x&lt;/code&gt; 所指向的内存数据（内容是1）的一部分，因为 int 是一个原始类型。最后你发现，你只能写 &lt;code&gt;x = 2&lt;/code&gt;，也就是改变 &lt;code&gt;x&lt;/code&gt; 这个引用本身的指向。&lt;code&gt;x = 2&lt;/code&gt; 执行之后，原来数字 1 所在的内存空间并没有变成 2，只不过 x 指向了新的地址，那里装着数字 2 而已。指向 1 的其它引用变量比如 &lt;code&gt;y&lt;/code&gt;，不会因为你进行了 &lt;code&gt;x = 2&lt;/code&gt; 这个操作而看到 2，它们仍然看到原来那个1……&lt;/p&gt;
+
+&lt;p&gt;在这种 int 是引用的 Java 里，你对 int 变量 &lt;code&gt;x&lt;/code&gt; 能做的事情只有两种：&lt;/p&gt;
+
+&lt;ol&gt;
 &lt;li&gt;读出它的值。&lt;/li&gt;
 &lt;li&gt;对它进行赋值，使它指向另一个地方。&lt;/li&gt;
-&lt;/ol&gt;&lt;p&gt;这两种事情，就跟你能对值类型能做的两件事情没有区别。这就是为什么你没法通过对 &lt;code&gt;x&lt;/code&gt; 的操作而改变 &lt;code&gt;y&lt;/code&gt; 表示的值。所以不管 int 在实现上是传递值还是传递引用，它们在语义上都是等价的。也就是说，原始类型是值类型还是引用类型，对于程序员来说完全没有区别。你完全可以把 Java 所有的原始类型都想成引用类型，之后你能对它们做的事情，你的编程思路和方式，都不会因此有任何的改变。&lt;/p&gt;&lt;p&gt;从这个角度来看，Java 在语义上是没有值类型的。值类型和引用类型如果同时并存，程序员必须能够在语义上感觉到它们的不同，然而不管原始类型是值类型还是引用类型，作为程序员，你无法感觉到任何的不同。所以你完全可以认为 Java 只有引用类型，把原始类型全都当成引用类型来用，虽然它们确实是用值实现的。&lt;/p&gt;&lt;p&gt;一个在语义上有值类型的语言（比如 C#，Go 和 Swift）必须具有以下两种特性之一（或者两者都有），程序员才能感觉到值类型的存在：&lt;/p&gt;&lt;ol&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;这两种事情，就跟你能对值类型能做的两件事情没有区别。这就是为什么你没法通过对 &lt;code&gt;x&lt;/code&gt; 的操作而改变 &lt;code&gt;y&lt;/code&gt; 表示的值。所以不管 int 在实现上是传递值还是传递引用，它们在语义上都是等价的。也就是说，原始类型是值类型还是引用类型，对于程序员来说完全没有区别。你完全可以把 Java 所有的原始类型都想成引用类型，之后你能对它们做的事情，你的编程思路和方式，都不会因此有任何的改变。&lt;/p&gt;
+
+&lt;p&gt;从这个角度来看，Java 在语义上是没有值类型的。值类型和引用类型如果同时并存，程序员必须能够在语义上感觉到它们的不同，然而不管原始类型是值类型还是引用类型，作为程序员，你无法感觉到任何的不同。所以你完全可以认为 Java 只有引用类型，把原始类型全都当成引用类型来用，虽然它们确实是用值实现的。&lt;/p&gt;
+
+&lt;p&gt;一个在语义上有值类型的语言（比如 C#，Go 和 Swift）必须具有以下两种特性之一（或者两者都有），程序员才能感觉到值类型的存在：&lt;/p&gt;
+
+&lt;ol&gt;
 &lt;li&gt;deref 操作。这使得你可以用 &lt;code&gt;*x = 2&lt;/code&gt; 这样的语句来改变引用指向的内容，导致共享地址的其它引用看到新的值。你没法通过 &lt;code&gt;x = 2&lt;/code&gt; 让其他值变量得到新的值，所以你感觉到值类型的存在。&lt;/li&gt;
 &lt;li&gt;像 struct 这样的“值组合类型”。你可以通过 &lt;code&gt;x.foo = 2&lt;/code&gt; 这样的成员赋值改变引用数据（比如 class object）的一部分，使得共享地址的其它引用看到新的值。你没法通过成员赋值让另一个 struct 变量得到新的值，所以你感觉到值类型的存在。&lt;/li&gt;
-&lt;/ol&gt;&lt;p&gt;实际上，所有的数据都是引用类型就是 Scheme 和 Java 最初的设计原理。原始类型用值来传递数据只是一种性能优化（叫做 inlining），它对于程序员应该是透明（看不见）的。那些在面试时喜欢问“Java 是否所有数据都是引用”，然后当你回答“是”的时候纠正你说“int，boolean 是值类型”的人，都是本本主义者。&lt;/p&gt;&lt;h3&gt;思考题&lt;/h3&gt;&lt;p&gt;有人指出，Java 的引用类型可以是 null，而原始类型不行，所以引用类型和值类型还是有区别的。但是其实这并不能否认本文指出的观点，你可以想想这是为什么吗？&lt;/p&gt;</description>
+&lt;/ol&gt;
+
+
+&lt;p&gt;实际上，所有的数据都是引用类型就是 Scheme 和 Java 最初的设计原理。原始类型用值来传递数据只是一种性能优化（叫做 inlining），它对于程序员应该是透明（看不见）的。那些在面试时喜欢问“Java 是否所有数据都是引用”，然后当你回答“是”的时候纠正你说“int，boolean 是值类型”的人，都是本本主义者。&lt;/p&gt;
+
+&lt;h3&gt;思考题&lt;/h3&gt;
+
+&lt;p&gt;有人指出，Java 的引用类型可以是 null，而原始类型不行，所以引用类型和值类型还是有区别的。但是其实这并不能否认本文指出的观点，你可以想想这是为什么吗？&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">java-value-type</guid>
 <pubDate>Wed, 08 Jun 2016 00:00:00 +0800</pubDate>
@@ -212,55 +900,107 @@ x = 2;        // x指向另一个内存地址B，内容是整数2。y仍然指�
 <item>
 <title>Swift 语言的设计错误</title>
 <link>http://yinwang.org/blog-cn/2016/06/06/swift</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;Swift 语言的设计错误&lt;/h2&gt;&lt;p&gt;在『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/11/21/programming-philosophy&quot;&gt;编程的智慧&lt;/a&gt;』一文中，我分析和肯定了 Swift 语言的 optional type 设计，但这并不等于 Swift 语言的整体设计是完美没有问题的。其实 Swift 1.0 刚出来的时候，我就发现它的 array 可变性设计存在严重的错误。Swift 2.0 修正了这个问题，然而他们的修正方法却没有击中要害，所以导致了其它的问题。这个错误一直延续到今天。&lt;/p&gt;&lt;p&gt;Swift 1.0 试图利用 var 和 let 的区别来指定 array 成员的可变性，然而其实 var 和 let 只能指定 array reference 的可变性，而不能指定 array 成员的可变性。举个例子，Swift 1.0 试图实现这样的语义：&lt;/p&gt;&lt;pre&gt;&lt;code&gt;var shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;Swift 语言的设计错误&lt;/h2&gt;
+                            &lt;p&gt;在『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/11/21/programming-philosophy&quot;&gt;编程的智慧&lt;/a&gt;』一文中，我分析和肯定了 Swift 语言的 optional type 设计，但这并不等于 Swift 语言的整体设计是完美没有问题的。其实 Swift 1.0 刚出来的时候，我就发现它的 array 可变性设计存在严重的错误。Swift 2.0 修正了这个问题，然而他们的修正方法却没有击中要害，所以导致了其它的问题。这个错误一直延续到今天。&lt;/p&gt;
+
+&lt;p&gt;Swift 1.0 试图利用 var 和 let 的区别来指定 array 成员的可变性，然而其实 var 和 let 只能指定 array reference 的可变性，而不能指定 array 成员的可变性。举个例子，Swift 1.0 试图实现这样的语义：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
 
 // 可以对 array 成员赋值
 shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
 
 // 不能对 array 成员赋值，报错
 shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这是错误的。在 Swift 1.0 里面，array 像其它的 object 一样，是一种“reference type”。为了理解这个问题，你应该清晰地区分 array reference 和 array 成员的区别。在这个例子里，&lt;code&gt;shoppingList&lt;/code&gt; 是一个 array reference，而 &lt;code&gt;shoppingList[0]&lt;/code&gt; 是访问一个 array 成员，这两者有着非常大的不同。&lt;/p&gt;&lt;p&gt;var 和 let 本来是用于指定 &lt;code&gt;shoppingList&lt;/code&gt; 这个 reference 是否可变，也就是决定 &lt;code&gt;shoppingList&lt;/code&gt; 是否可以指向另一个 array 对象。正确的用法应该是这样：&lt;/p&gt;&lt;pre&gt;&lt;code&gt;var shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这是错误的。在 Swift 1.0 里面，array 像其它的 object 一样，是一种“reference type”。为了理解这个问题，你应该清晰地区分 array reference 和 array 成员的区别。在这个例子里，&lt;code&gt;shoppingList&lt;/code&gt; 是一个 array reference，而 &lt;code&gt;shoppingList[0]&lt;/code&gt; 是访问一个 array 成员，这两者有着非常大的不同。&lt;/p&gt;
+
+&lt;p&gt;var 和 let 本来是用于指定 &lt;code&gt;shoppingList&lt;/code&gt; 这个 reference 是否可变，也就是决定 &lt;code&gt;shoppingList&lt;/code&gt; 是否可以指向另一个 array 对象。正确的用法应该是这样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
 
 // 可以对 array reference 赋值
 shoppingList = [&quot;Salad&quot;, &quot;Noodles&quot;]
 
 // 可以对 array 成员赋值
 shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
 
 // 不能对 array reference 赋值，报错
 shoppingList = [&quot;Salad&quot;, &quot;Noodles&quot;]
 
 // let 不能限制对 array 成员赋值，不报错
 shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;也就是说你可以用 var 和 let 来限制 &lt;code&gt;shoppingList&lt;/code&gt; 这个 reference 的可变性，而不能用来限制 &lt;code&gt;shoppingList[0]&lt;/code&gt; 这样的成员访问的可变性。&lt;/p&gt;&lt;p&gt;var 和 let 一旦被用于指定 array reference 的可变性，就不再能用于指定 array 成员的可变性。实际上 var 和 let 用于局部变量定义的时候，只能指定栈上数据的可变性。如果你理解 reference 是放在栈（stack）上的，而 Swift 1.0 的 array 是放在堆（heap）上的，就会明白array 成员（一种堆数据）可变性，必须用另外的方式来指定，而不能用 var 和 let。&lt;/p&gt;&lt;p&gt;很多古老的语言都已经看清楚了这个问题，它们明确的用两种不同的方式来指定栈和堆数据的可变性。C++ 程序员都知道 &lt;code&gt;int const *&lt;/code&gt; 和 &lt;code&gt;int * const&lt;/code&gt; 的区别。Objective C 程序员都知道 &lt;code&gt;NSArray&lt;/code&gt; 和 &lt;code&gt;NSMutableArray&lt;/code&gt; 的区别。我不知道为什么 Swift 的设计者看不到这个问题，试图用同样的关键字（var 和 let）来指定栈和堆两种不同位置数据的可变性。实际上，不可变数组和可变数组，应该使用两种不同的类型来表示，就像 Objective C 的 &lt;code&gt;NSArray&lt;/code&gt; 和 &lt;code&gt;NSMutableArray&lt;/code&gt; 那样，而不应该使用 var 和 let 来区分。&lt;/p&gt;&lt;p&gt;Swift 2.0 修正了这个问题，然而可惜的是，它的修正方式是错误的。Swift 2.0 做出了一个离谱的改动，它把 array 从 reference type 变成了所谓 value type，也就是说把整个 array 放在栈上，而不是堆上。这貌似解决了以上的问题，由于 array 成了 value type，那么  &lt;code&gt;shoppingList&lt;/code&gt; 就不是  reference，而代表整个 array 本身。所以在 array 是 value type 的情况下，你确实可以用 var 和 let 来决定它的成员是否可变。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;也就是说你可以用 var 和 let 来限制 &lt;code&gt;shoppingList&lt;/code&gt; 这个 reference 的可变性，而不能用来限制 &lt;code&gt;shoppingList[0]&lt;/code&gt; 这样的成员访问的可变性。&lt;/p&gt;
+
+&lt;p&gt;var 和 let 一旦被用于指定 array reference 的可变性，就不再能用于指定 array 成员的可变性。实际上 var 和 let 用于局部变量定义的时候，只能指定栈上数据的可变性。如果你理解 reference 是放在栈（stack）上的，而 Swift 1.0 的 array 是放在堆（heap）上的，就会明白array 成员（一种堆数据）可变性，必须用另外的方式来指定，而不能用 var 和 let。&lt;/p&gt;
+
+&lt;p&gt;很多古老的语言都已经看清楚了这个问题，它们明确的用两种不同的方式来指定栈和堆数据的可变性。C++ 程序员都知道 &lt;code&gt;int const *&lt;/code&gt; 和 &lt;code&gt;int * const&lt;/code&gt; 的区别。Objective C 程序员都知道 &lt;code&gt;NSArray&lt;/code&gt; 和 &lt;code&gt;NSMutableArray&lt;/code&gt; 的区别。我不知道为什么 Swift 的设计者看不到这个问题，试图用同样的关键字（var 和 let）来指定栈和堆两种不同位置数据的可变性。实际上，不可变数组和可变数组，应该使用两种不同的类型来表示，就像 Objective C 的 &lt;code&gt;NSArray&lt;/code&gt; 和 &lt;code&gt;NSMutableArray&lt;/code&gt; 那样，而不应该使用 var 和 let 来区分。&lt;/p&gt;
+
+&lt;p&gt;Swift 2.0 修正了这个问题，然而可惜的是，它的修正方式是错误的。Swift 2.0 做出了一个离谱的改动，它把 array 从 reference type 变成了所谓 value type，也就是说把整个 array 放在栈上，而不是堆上。这貌似解决了以上的问题，由于 array 成了 value type，那么  &lt;code&gt;shoppingList&lt;/code&gt; 就不是  reference，而代表整个 array 本身。所以在 array 是 value type 的情况下，你确实可以用 var 和 let 来决定它的成员是否可变。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
 
 // 不能对 array 成员赋值，因为 shoppingList 是 value type
 // 它表示整个 array 而不是一个指针
 // 这个 array 的任何一部分都不可变
 shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这看似一个可行的解决方案，然而它却没有击中要害。这是一种削足适履的做法，它带来了另外的问题。把 array 作为 value type，使得每一次对 array 变量的赋值或者参数传递，都必须进行拷贝。你没法让两个变量指向同一个 array，也就是说 array 不再能被共享。比如：&lt;/p&gt;&lt;pre&gt;&lt;code&gt;var a = [1, 2, 3]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这看似一个可行的解决方案，然而它却没有击中要害。这是一种削足适履的做法，它带来了另外的问题。把 array 作为 value type，使得每一次对 array 变量的赋值或者参数传递，都必须进行拷贝。你没法让两个变量指向同一个 array，也就是说 array 不再能被共享。比如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var a = [1, 2, 3]
 
 // a 的内容被拷贝给 b
 // a 和 b 是两个不同的 array，有相同的内容
 var b = a   
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这违反了程序员对于数组这种大型结构的心理模型，他们不再能清晰方便的对 array 进行思考。由于 array 会被不经意的自动拷贝，很容易犯错误。数组拷贝需要大量时间，就算接收者不修改它也必须拷贝，所以效率上有很大影响。不能共享同一个 array，在里面读写数据，是一个很大的功能缺失。由于这个原因，没有任何其它现代语言（Java，C#，……）把 array 作为 value type。&lt;/p&gt;&lt;p&gt;如果你看透了 value type 的实质，就会发现这整个概念的存在，在具有垃圾回收（GC）的现代语言里，几乎是没有意义的。有些新语言比如 Swift 和 Rust，试图利用 value type 来解决内存管理的效率问题，然而它带来的性能提升其实是微乎其微的，给程序员带来的麻烦和困扰却是有目共睹的。完全使用 reference type 的语言（比如 Java，Scheme，Python），程序员不需要思考 value type 和 reference type 的区别，大大简化和加速了编程的思维过程。Java 不但有非常高效的 GC，还可以利用 escape analysis 自动把某些堆数据放在栈上，程序员不需要思考就可以达到 value type 带来的那么一点点性能提升。相比之下，Swift，Rust 和 C# 的 value type 制造的更多是麻烦，而没有带来实在的性能优势。&lt;/p&gt;&lt;p&gt;Swift 1.0 犯下这种我一眼就看出来的低级错误，你也许从中发现了一个道理：编译器专家并不等于程序语言专家。很多经验老到的程序语言专家一看到 Swift 最初的 array 设计，就知道那是错的。只要团队里有一个语言专家指出了这个问题，就不需要这样反复的修改折腾。为什么 Swift 直到 1.0 发布都没有发现这个问题，到了 2.0 修正却仍然是错的？我猜这是因为 Apple 并没有聘请到合格的程序语言专家来进行 Swift 的设计，或者有合格的人，然而他们的建议却没有被领导采纳。Swift 的首席设计师是 Chris Lattner，也就是 LLVM 的设计者。他是不错的编译器专家，然而在程序语言设计方面，恐怕只能算业余水平。编译器和程序语言，真的是两个非常不同的领域。Apple 的领导们以为好的编译器作者就能设计出好的程序语言，以至于让 Chris Lattner 做了总设计师。&lt;/p&gt;&lt;p&gt;Swift 团队不像 Go 语言团队完全是一知半解的外行，他们在语言方面确实有一定的基础，所以 Swift 在大体上不会有特别严重的问题。然而可以看出来这些人功力还不够深厚，略带年轻人的自负，浮躁，盲目的创新和借鉴精神。有些设计并不是出自自己深入的见解，而只是“借鉴”其它语言的做法，所以可能犯下经验丰富的语言专家根本不会犯的错误。第一次就应该做对的事情，却需要经过多次返工。以至于每出一个新的版本，就出现一些“不兼容改动”，导致老版本语言写出来的代码不再能用。这个趋势在 Swift 3.0 还要继续。由于 Apple 的统治地位，这种情况对于 Swift 语言也许不是世界末日，然而它确实犯了语言设计的大忌。一个好的语言可以缺少一些特性，但它绝不应该加入错误的设计，导致日后出现不兼容的改变。我希望 Apple 能够早日招募到资深一些的语言设计专家，虚心采纳他们的建议。BTW，如果 Apple 支付足够多的费用，我倒可以考虑兼职做他们的语言设计顾问 ;-)&lt;/p&gt;&lt;h3&gt;Java 有 value type 吗？&lt;/h3&gt;&lt;p&gt;有人看了以上的内容，问我：“你说 Java 只有 reference type，但是根据 Java 的&lt;a href=&quot;http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html&quot;&gt;官方文档&lt;/a&gt;，Java 也有 value type 和 reference type 的区别的。” 由于这个问题相当的有趣，我另外写了一篇&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/08/java-value-type&quot;&gt;文章&lt;/a&gt;来回答这个问题。&lt;/p&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这违反了程序员对于数组这种大型结构的心理模型，他们不再能清晰方便的对 array 进行思考。由于 array 会被不经意的自动拷贝，很容易犯错误。数组拷贝需要大量时间，就算接收者不修改它也必须拷贝，所以效率上有很大影响。不能共享同一个 array，在里面读写数据，是一个很大的功能缺失。由于这个原因，没有任何其它现代语言（Java，C#，……）把 array 作为 value type。&lt;/p&gt;
+
+&lt;p&gt;如果你看透了 value type 的实质，就会发现这整个概念的存在，在具有垃圾回收（GC）的现代语言里，几乎是没有意义的。有些新语言比如 Swift 和 Rust，试图利用 value type 来解决内存管理的效率问题，然而它带来的性能提升其实是微乎其微的，给程序员带来的麻烦和困扰却是有目共睹的。完全使用 reference type 的语言（比如 Java，Scheme，Python），程序员不需要思考 value type 和 reference type 的区别，大大简化和加速了编程的思维过程。Java 不但有非常高效的 GC，还可以利用 escape analysis 自动把某些堆数据放在栈上，程序员不需要思考就可以达到 value type 带来的那么一点点性能提升。相比之下，Swift，Rust 和 C# 的 value type 制造的更多是麻烦，而没有带来实在的性能优势。&lt;/p&gt;
+
+&lt;p&gt;Swift 1.0 犯下这种我一眼就看出来的低级错误，你也许从中发现了一个道理：编译器专家并不等于程序语言专家。很多经验老到的程序语言专家一看到 Swift 最初的 array 设计，就知道那是错的。只要团队里有一个语言专家指出了这个问题，就不需要这样反复的修改折腾。为什么 Swift 直到 1.0 发布都没有发现这个问题，到了 2.0 修正却仍然是错的？我猜这是因为 Apple 并没有聘请到合格的程序语言专家来进行 Swift 的设计，或者有合格的人，然而他们的建议却没有被领导采纳。Swift 的首席设计师是 Chris Lattner，也就是 LLVM 的设计者。他是不错的编译器专家，然而在程序语言设计方面，恐怕只能算业余水平。编译器和程序语言，真的是两个非常不同的领域。Apple 的领导们以为好的编译器作者就能设计出好的程序语言，以至于让 Chris Lattner 做了总设计师。&lt;/p&gt;
+
+&lt;p&gt;Swift 团队不像 Go 语言团队完全是一知半解的外行，他们在语言方面确实有一定的基础，所以 Swift 在大体上不会有特别严重的问题。然而可以看出来这些人功力还不够深厚，略带年轻人的自负，浮躁，盲目的创新和借鉴精神。有些设计并不是出自自己深入的见解，而只是“借鉴”其它语言的做法，所以可能犯下经验丰富的语言专家根本不会犯的错误。第一次就应该做对的事情，却需要经过多次返工。以至于每出一个新的版本，就出现一些“不兼容改动”，导致老版本语言写出来的代码不再能用。这个趋势在 Swift 3.0 还要继续。由于 Apple 的统治地位，这种情况对于 Swift 语言也许不是世界末日，然而它确实犯了语言设计的大忌。一个好的语言可以缺少一些特性，但它绝不应该加入错误的设计，导致日后出现不兼容的改变。我希望 Apple 能够早日招募到资深一些的语言设计专家，虚心采纳他们的建议。BTW，如果 Apple 支付足够多的费用，我倒可以考虑兼职做他们的语言设计顾问 ;-)&lt;/p&gt;
+
+&lt;h3&gt;Java 有 value type 吗？&lt;/h3&gt;
+
+&lt;p&gt;有人看了以上的内容，问我：“你说 Java 只有 reference type，但是根据 Java 的&lt;a href=&quot;http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html&quot;&gt;官方文档&lt;/a&gt;，Java 也有 value type 和 reference type 的区别的。” 由于这个问题相当的有趣，我另外写了一篇&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/08/java-value-type&quot;&gt;文章&lt;/a&gt;来回答这个问题。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
 <author>yinwang0</author>
 <guid isPermaLink="false">swift</guid>
 <pubDate>Mon, 06 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>我的 tweet 系统</title>
-<link>http://yinwang.org/blog-cn/2016/05/25/my-tweet</link>
-<description>&lt;p&gt;
-  　　
-  &lt;/p&gt;&lt;h2&gt;我的 tweet 系统&lt;/h2&gt;&lt;p&gt;有时候灵光乍现，却又不想写成完整的文章，所以尝试过使用 twitter 和微博，然而最终我发现它们有各种缺点。所以我想出一个圡办法：自己手动整理一个列表，把想说的放进去，加上日期，就算是我的 tweet 系统。&lt;/p&gt;&lt;p&gt;这个系统有一系列强大的功能：无法 follow 或订阅，不能评论，不方便转载。可以随意修改，随意排序，不限字数。不能随时随地增加内容，防止成瘾。心诚的人必须主动来这里看，理解更深入，自动过滤心理不正常的人，等等…… 这是迄今为止最好最完善的 social network 系统。本系统的座右铭是：我想写 tweet，所以我就写了。你们想看就看，不想看就算了。&lt;/p&gt;&lt;p&gt;请点击&lt;a href=&quot;http://www.yinwang.org/tweet.html&quot;&gt;这里&lt;/a&gt;访问我的 tweet 系统。&lt;/p&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">my-tweet</guid>
-<pubDate>Wed, 25 May 2016 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
