@@ -5,7 +5,83 @@
 <link>http://www.yinwang.org/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 19 Sep 2016 13:04:28 +0800</lastBuildDate>
+<lastBuildDate>Thu, 13 Oct 2016 05:06:01 +0800</lastBuildDate>
+<item>
+<title>C 编译器优化过程中的 Bug</title>
+<link>http://yinwang.org/blog-cn/2016/10/12/compiler-bug</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;C 编译器优化过程中的 Bug&lt;/h2&gt;
+                            &lt;p&gt;一个朋友向我指出一个最近他们发现的 GCC 编译器优化过程（加上 -O3 选项）里的 bug，导致他们的产品出现非常诡异的行为。这使我想起以前见过的一个 GCC 的 bug。当时很多人死活认为那种做法是正确的，辩不过他们。简言之，这种优化利用 C 语言的“未定义行为”（undefined behavior）进行推断，最后得到出人意料（错误）的结果。&lt;/p&gt;
+
+&lt;p&gt;这类优化过程的推理方式都很类似，他们使用一种看似严密而巧妙的推理：“现在有一个整数 &lt;code&gt;x&lt;/code&gt;，我们不知道它是多少。但 &lt;code&gt;x&lt;/code&gt; 出现在一个条件语句里面，如果 &lt;code&gt;x&amp;gt;1&lt;/code&gt;，那么程序会进入未定义行为，所以我们可以断定 &lt;code&gt;x&lt;/code&gt; 的值必然 &lt;code&gt;≤1&lt;/code&gt;，所以现在我们利用 &lt;code&gt;x≤1&lt;/code&gt; 这个事实来对相关代码进行优化……”。你能看出来这样的推理错在何处吗？&lt;/p&gt;
+
+&lt;p&gt;但我一时想不起来之前的例子了（如果你知道的话告诉我），所以上网搜了一下，于是乎发现这篇 Chris Lattner (LLVM 和 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;Swift 语言&lt;/a&gt; 的设计者) &lt;a href=&quot;http://blog.llvm.org/2011/05/what-every-c-programmer-should-know_14.html&quot;&gt;写于 2011 年的文章&lt;/a&gt;。文中指出，编译器利用 C 语言的“未定义行为”进行优化，是合理的，对于性能是很重要的，并且举出这样一个例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void contains_null_check(int *P) {
+  int dead = *P;
+  if (P == 0)
+    return;
+  *P = 4;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个函数经过这样两个优化步骤，得出“等价”的代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void contains_null_check_after_RNCE(int *P) {
+  int dead = *P;
+  if (false)  // P 在上一行被访问，所以这里 P 不可能是 null
+    return;
+  *P = 4;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void contains_null_check_after_RNCE_and_DCE(int *P) {
+  //int dead = *P;    // 死代码消除
+  //if (false)
+  //  return;
+  *P = 4;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;他的推理方式是这样：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;首先，因为在 &lt;code&gt;int dead = *P&lt;/code&gt; 里面，指针 &lt;code&gt;P&lt;/code&gt; 的地址被访问，所以如果程序顺利通过了这一行，那么之后它就不可能是 null，所以我们可以把 &lt;code&gt;P == 0&lt;/code&gt; 优化为 &lt;code&gt;false&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dead&lt;/code&gt; 变量赋值之后，没有被任何其它代码使用，所以对 &lt;code&gt;dead&lt;/code&gt; 的赋值是死代码，可以消去。&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;所以最后函数就只剩下一行代码 &lt;code&gt;*P = 4&lt;/code&gt;。然而经我分析，发现这个优化转换是错误的做法（unsound 的变换）。现在我来考考你，你知道这为什么是错的吗？值得庆幸的是，现在如果你把这代码输入到 Clang，就算加上 -O3 选项，它也不再会给你进行这个优化，说明 Lattner 这个 2011 年的想法已经被 LLVM 团队抛弃了。&lt;/p&gt;
+
+&lt;p&gt;我写这篇文章的目的其实是想告诉你，不要盲目的相信编译器的作者们（就算是牛人）做出的变换都是正确的，无论它看起来多么的合理，只要打开优化之后你的程序出现诡异的行为，请一定要怀疑编译器的优化是 unsound 的。&lt;/p&gt;
+
+&lt;p&gt;（文中提出的两个问题，欢迎来信讨论，或者在两星期之后等待答案。）&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">compiler-bug</guid>
+<pubDate>Wed, 12 Oct 2016 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>对 Rust 语言的分析</title>
 <link>http://yinwang.org/blog-cn/2016/09/18/rust</link>
@@ -15,46 +91,206 @@
                     &lt;td width=&quot;60%&quot;&gt;
                         &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
                             &lt;h2&gt;对 Rust 语言的分析&lt;/h2&gt;
-                            &lt;p&gt;Rust 是一门最近比较热门的语言，有很多人问过我对 Rust 的看法。由于我本人是一个顶级的语言设计专家，我能实现所有的语言特性，随便就可以造出新的语言，所以没有任何语言我会觉得是“新”的。所以一般情况下我都懒得去评论另外一种语言，除非它真的在工作中惹恼了我（像 Go 语言那样）。所以这些人问我 Rust 的问题，我一般都没有回复，或者一笔带过。&lt;/p&gt;
+                            &lt;p&gt;Rust 是一门最近比较热的语言，有很多人问过我对 Rust 的看法。由于我本人是一个语言专家，实现过几乎所有的语言特性，所以我不认为任何一种语言是新的。任何“新语言”对我来说，不过是把早已存在的语言特性（或者毛病），挑一些出来放在一起。所以一般情况下我都不会去评论别人设计的语言，甚至懒得看一眼，除非它历史悠久（比如像 C 或者 C++），或者它在工作中惹恼了我（像 Go 和 JavaScript 那样）。这就是为什么这些人问我 Rust 的问题，我一般都没有回复，或者一笔带过。&lt;/p&gt;
 
-&lt;p&gt;不过最近有点闲情逸致，我想既然有人这么热衷于这种新语言，那我还是稍微看一下，顺便分享一下我对某些设计的看法。由于我这个人性格很难闭门造车，所以现在我只是把这篇文章的开头发布出来，边写边更新。所以你要明白，这只是一个开端，我会按照自己阅读的进度对这篇文章进行更新。如果你发现没有新的内容，请隔一段时间再回来检查。如果你有没有弄明白的问题，可以发信来问，我会汇总之后把想法发布在这里。&lt;/p&gt;
+&lt;p&gt;不过最近有点闲，我想既然有人这么热衷于这种新语言，那我还是稍微凑下热闹，顺便分享一下我对某些常见的设计思路的看法。所以这篇文章虽然是在评论 Rust 的设计，它却不只是针对 Rust。它是针对某些语言特性，而不只是针对某一种语言。&lt;/p&gt;
 
-&lt;h3&gt;变量&lt;/h3&gt;
+&lt;p&gt;由于我这人性格很难闭门造车，所以现在我只是把这篇文章的开头发布出来，边写边更新。所以你要明白，这只是一个开端，我会按自己理解的进度对这篇文章进行更新。你看了之后，可以隔一段时间再回来看新的内容。如果有特别疑惑的问题，也可以发信来问，我会汇总之后把看法发布在这里。&lt;/p&gt;
+
+&lt;h3&gt;变量声明语法&lt;/h3&gt;
 
 &lt;p&gt;Rust 的&lt;a href=&quot;https://doc.rust-lang.org/book/variable-bindings.html&quot;&gt;变量声明&lt;/a&gt;跟 Scala 和 Swift 的很像。你用&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let x = 8;
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;这样的构造来声明一个新的变量。变量缺省都是不可变的，也就是不可赋值。你必须用一种特殊的构造&lt;/p&gt;
+&lt;p&gt;这样的构造来声明一个新的变量。大部分时候 Rust 可以推导出变量的类型，所以你不一定需要写明它的类型。如果你真的要指明变量类型，需要这样写：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let x: i32 = 8;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在我看来这是丑陋的语法。本来语义是把变量 x 绑定到值 8，可是 x 和 8 之间却隔着一个“i32”，看起来像是把 8 赋值给了 i32……&lt;/p&gt;
+
+&lt;p&gt;变量缺省都是不可变的，也就是不可赋值。你必须用一种特殊的构造&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let mut x = 8;
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;来声明一个新的可变变量。这跟 Swift 的 &lt;code&gt;let&lt;/code&gt; 和 &lt;code&gt;var&lt;/code&gt; 的区别是一样的，只是形式不大一样。其实很难说这种在“可变性”上的区别到底带来了多少性能上的好处。&lt;/p&gt;
+&lt;p&gt;来声明可变变量。这跟 Swift/Scala 的 &lt;code&gt;let&lt;/code&gt; 和 &lt;code&gt;var&lt;/code&gt; 的区别是一样的，只是形式不大一样。&lt;/p&gt;
 
-&lt;p&gt;但 Rust 有一个很奇怪的地方，它可以让你在同一个作用域里面“重复绑定”同一个名字，甚至可以把它绑定到另外一个类型：&lt;/p&gt;
+&lt;h3&gt;变量可以重复绑定&lt;/h3&gt;
+
+&lt;p&gt;Rust 的变量定义有一个比其它语言更奇怪的地方，它可以让你在同一个作用域里面“重复绑定”同一个名字，甚至可以把它绑定到另外一个类型：&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let mut x: i32 = 1;
 x = 7;
-let x = x; // x is now immutable and is bound to 7
+let x = x; // 这两个 x 是两个不同的变量
 
 let y = 4;
-let y = &quot;I can also be bound to text!&quot;; // y is now of a different type
-// ... ...
-// ... ...
-println!(&quot;y is {}&quot;, y);      // Where is y defined?
+// 30 lines of code ...
+let y = &quot;I can also be bound to text!&quot;;
+// 30 lines of code ...
+println!(&quot;y is {}&quot;, y);      // 定义在第二个 let y 的地方
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;其实在 Yin 语言最初的设计里面，我也是允许这样的重复绑定的。然而后来我发现，虽然这实现起来没有什么问题，然而这样做不但没有带来更大的方便性，反而可能引起程序的混淆不清。极少有情况需要在同一个作用域里面定义两个名字一样的变量，你完全可以另外起一个名字。但是允许重复绑定同一个名字，甚至让它们是不同的类型，会导致程序员看不清楚。&lt;/p&gt;
+&lt;p&gt;在 Yin 语言最初的设计里面，我也是允许这样的重复绑定的。第一个 y 和 第二个 y 是两个不同的变量，只不过它们碰巧叫同一个名字而已。你甚至可以在同一行出现两个 x，而它们其实是不同的变量！这难道不是一个很酷，很灵活，其他语言都没有的设计吗？后来我发现，虽然这实现起来没什么难度，可是这样做不但没有带来更大的方便性，反而可能引起程序的混淆不清。在同一个作用域里面，给两个不同的变量起同一个名字，这有什么用处呢？自找麻烦而已。&lt;/p&gt;
 
-&lt;p&gt;比如上面的这个例子，你在很下面的地方看到一个变量 &lt;code&gt;y&lt;/code&gt;，它是在哪里定义的呢？你需要在头脑中对程序进行数据流分析，才能找到它定义的位置。而且这不是一次性的工作，每一次看到这个变量，你都需要疑惑一下，它到底是个整数，还是一个字符串呢？&lt;/p&gt;
+&lt;p&gt;比如上面的例子，在下面我们看到一个对变量 &lt;code&gt;y&lt;/code&gt; 的引用，它是在哪里定义的呢？你需要在头脑中对程序进行“数据流分析”，才能找到它定义的位置。从上面读起，我们看到 &lt;code&gt;let y = 4&lt;/code&gt;，然而这不一定是正确的定义，因为 &lt;code&gt;y&lt;/code&gt; 可以被重新绑定，所以我们必须继续往下看。30 行代码之后，我们看到了第二个对 &lt;code&gt;y&lt;/code&gt; 的绑定，可是我们仍然不能确定。继续往下扫，30行代码之后我们到了引用 &lt;code&gt;y&lt;/code&gt; 的地方，没有再看到其它对 &lt;code&gt;y&lt;/code&gt; 的绑定，所以我们才能确信第二个 let 是 &lt;code&gt;y&lt;/code&gt; 的定义位置，它是一个字符串。&lt;/p&gt;
 
-&lt;p&gt;可是如果语言不允许在同一个作用域里面重复声明同一个变量，你就根本不用想这个事情了。你只需要在作用域里面找到唯一的那个 &lt;code&gt;let y = ...&lt;/code&gt;，那就是它的定义的地方。&lt;/p&gt;
+&lt;p&gt;这难道不是很费事吗？更糟的是，这种人工扫描不是一次性的工作，每次看到这个变量，你都要疑惑一下它是什么东西，因为它可以被重新绑定，你必须重新确定一下它的定义。如果语言不允许在同一个作用域里面重复绑定同一个名字，你就根本不需要担心这个事情了。你只需要在作用域里面找到唯一的那个 &lt;code&gt;let y = ...&lt;/code&gt;，那就是它的定义。&lt;/p&gt;
 
-&lt;h3&gt;未完，待续……&lt;/h3&gt;
+&lt;p&gt;也许你会说，只有当有人滥用这个特性的时候，才会导致问题。然而语言设计的问题往往就在于，一旦你允许某种奇葩的用法，就一定会有人自作聪明去用。因为你无法确信别人是否会那样做，所以你随时都得提高警惕，而不能放松下心情来。&lt;/p&gt;
 
-&lt;p&gt;（如果你想支持这篇文章的书写，请付费5美元或者30人民币，谢谢！）&lt;/p&gt;
+&lt;h3&gt;类型推导&lt;/h3&gt;
+
+&lt;p&gt;另外一个很多人误解的地方是类型推导。在 Rust 和 C# 之类的语言里面，你不需要像 Java 那样写&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;int x = 8;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样显式的指出变量的类型，而是可以让编译器把类型推导出来。比如你写：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let x = 8;  // x 的类型推导为 i32
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;编译器的类型推导就可以知道 &lt;code&gt;x&lt;/code&gt; 的类型是 i32，而不需要你把“i32”写在那里。这似乎是一个很方便的东西。然而看过很多 C# 代码之后你发现，这看似方便，却让程序变得不好读。在看 C# 代码的时候，我经常看到一堆的变量定义，每一个的前面都是 var。我没法一眼就看出它们表示什么，是整数，bool，还是字符串，还是某个用户定义的类？&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;var correct = ...;
+var id = ...;
+var slot = ...;
+var user = ...;
+var passwd = ...;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我需要把鼠标移到变量上面，让 Visual Studio 显示出它推导出来的类型，可是鼠标移开之后，我可能又忘了它是什么。有时候发现看同一片代码，都需要反复的做这件事，鼠标移来移去的。而且要是没有 Visual Studio，用其它编辑器，或者在 github 上看代码或者 code review 的时候，你就得不到这种信息了。很多 C# 程序员为了避免这个问题，开始用很长的变量名，把类型的名字加在变量名字里面去，这样一来反而更复杂了，却没有想到直接把类型写出来。所以这种形式的类型推导，看似先进或者方便，其实还不如直接在声明处写下变量的类型，就像 Java 那样。&lt;/p&gt;
+
+&lt;p&gt;所以，虽然 Rust 在变量声明上似乎有更灵活的设计，然而我觉得 C 和 Java 之类的语言那样看似死板的方式其实更好。我建议不要使用 Rust 变量的重复绑定，避免使用类型推导，尽量明确的写出类型，以方便读者。如果你真的在乎代码的质量，就会发现大部分时候你的代码的读者是你自己，而不是别人，因为你需要反复的阅读和提炼你的代码。&lt;/p&gt;
+
+&lt;h3&gt;动作的“返回值”&lt;/h3&gt;
+
+&lt;p&gt;Rust 的文档说它是一种“&lt;a href=&quot;https://doc.rust-lang.org/book/functions.html#expressions-vs-statements&quot;&gt;大部分基于表达式&lt;/a&gt;”的语言，并且给出这样一个例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;let mut y = 5;
+let x = (y = 6);  // x has the value `()`, not `6`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;奇怪的是，这里变量 &lt;code&gt;x&lt;/code&gt; 会得到一个值，空的 tuple，&lt;code&gt;()&lt;/code&gt;。这种思路不大对，它是从像 OCaml 那样的语言照搬过来的，而 OCaml 本身就有问题。在 OCaml 里面，如果你使用 &lt;code&gt;print_string&lt;/code&gt;，那你会得到如下的结果：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;haskell&quot;&gt;print_string &quot;hello world!\n&quot;;;
+
+hello world!
+- : unit = ()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里，&lt;code&gt;print_string&lt;/code&gt; 是一个“动作”，它对应过程式语言里面的“statement”。就像 C 语言的 &lt;code&gt;printf&lt;/code&gt;。动作通常只产生“副作用”，而不返回值。在 OCaml 里面，为了“理论的优雅”，动作也会返回一个值，这个值叫做 &lt;code&gt;()&lt;/code&gt;。其实 &lt;code&gt;()&lt;/code&gt; 相当于 C 语言的 void。C 语言里面有 void 类型，然而它却不允许你声明一个 void 类型的变量。比如你写&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c&quot;&gt;int main()
+{
+  void x;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;程序是没法编译通过的（试一试？）。让人惊讶的是，古老的 C 的做法其实是正确的，这里有比较深入的原因。如果你把一个类型看成是一个集合（比如 int 是机器整数的集合），那么 void 所表示的集合是个空集，它里面是不含有任何元素的。声明一个 void 类型的变量是没有任何意义的，因为它不可能有一个值。如果一个函数返回 void，你是没法把它赋值给一个变量的。&lt;/p&gt;
+
+&lt;p&gt;可是在 Rust 里面，不但动作（比如 &lt;code&gt;y = 6&lt;/code&gt; ）会返回一个值 &lt;code&gt;()&lt;/code&gt;，你居然可以把这个值赋给一个变量。其实这是错误的作法。原因在于 &lt;code&gt;y = 6&lt;/code&gt; 只是一个“动作”，它只是把 6 放进变量 y 里面，这个动作发生了就发生了，它根本不应该返回一个值，它不应该可以出现在 &lt;code&gt;let x = (y = 6);&lt;/code&gt; 的右边。就算你牵强附会说 &lt;code&gt;y = 6&lt;/code&gt; 的返回值是 &lt;code&gt;()&lt;/code&gt;，这个值是没有任何用处的。更不要说使用空的 tuple 来表示这个值，会引起更大的类型混淆，因为 &lt;code&gt;()&lt;/code&gt; 本身有另外的，更有用的含义。&lt;/p&gt;
+
+&lt;p&gt;你根本就不应该可以写 &lt;code&gt;let x = (y = 6);&lt;/code&gt; 这样的代码。只有当你犯错误或者逻辑不清晰的时候，才有可能把 &lt;code&gt;y = 6&lt;/code&gt; 当成一个值来用。Rust 允许你把这种毫无意义的返回值赋给一个变量，这种错误就没有被及时发现，反而能够通过变量传播到另外一个地方去。有时候这种错误会传播挺远，然后导致问题（运行时错误或者类型检查错误），可是当它出问题的时候，你就不大容易找到错误的起源了。&lt;/p&gt;
+
+&lt;p&gt;这是很多语言的通病，特别是像 JavaScript 或者 PHP 之类的语言。它们把毫无意义或者牵强附会的结果（比如 undefined）到处传播，结果使错误很难被发现和追踪。&lt;/p&gt;
+
+&lt;h3&gt;return 语句&lt;/h3&gt;
+
+&lt;p&gt;Rust 的设计者似乎很推崇“面向表达式”的语言，所以在 Rust 里面你不需要直接写“return”这个语句。比如，这个&lt;a href=&quot;https://doc.rust-lang.org/book/functions.html#early-returns&quot;&gt;例子&lt;/a&gt;里面，你可以直接这样写：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;fn add_one(x: i32) -&amp;gt; i32 {
+    x + 1
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;返回函数里的最后一个表达式，而不需要写 return 语句，这是函数式语言共有的特征。然而其实我觉得直接写 return 其实是更好的作法，像这个样子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;fn foo(x: i32) -&amp;gt; i32 {
+    return x + 1;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;编程有一个容易引起问题的作法，叫做“不够明确”，总想让编译器自动去处理一些问题，在这里也是一样的问题。如果你隐性的返回函数里最后一个表达式，那么每一次看见这个函数，你都必须去搞清楚最后一个表达式是什么，这并不是每次都那么明显的。比如下面这段代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;fn main() {
+    println!(&quot;{}&quot;, add_one(7));
+}
+
+fn add_one(x: i32) -&amp;gt; i32 {
+  if (x &amp;lt; 5) {
+      if (x &amp;lt; 10) {
+        // 做很多事...
+        x * 2
+      } else {
+        // 做很多事...
+        x + 1
+      }
+  } else {
+    // 做很多事...
+    x / 2
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;由于 if 语句里面有嵌套，每个分支又有好些代码，而且 if 语句又是最后一个语句，所以这个嵌套 if 的三个出口的最后一个表达式都是返回值。如果你写了“return”，那么你可以直接看有几个“return”，或者拿编辑器加亮一下，就知道这个函数有几个出口。然而现在没有了“return”这个关键字，你就必须把最后那个 if 语句自己看清楚了，找到每一个分支的“最后表达式”。很多时候这不是那么明显，你总需要找一下，而且这件事在读代码的时候总是反复做。&lt;/p&gt;
+
+&lt;p&gt;所以对于返回值，我的建议是总是明确的写上“return”，就像第二个例子那样。Rust 的文档说这是“poor style”，那不是真的。有一个例外，那就是当函数体里面只有一条语句的时候，那个时候没有任何歧义哪一个是返回表达式。&lt;/p&gt;
+
+&lt;p&gt;这个问题类似于重复绑定变量和类型推导的问题，属于一种“用户体验设计”问题。无论如何，编译器都很容易实现，然而不同样式的代码，对于人类阅读的工作量，是很不一样的。很多时候最省人力的做法并不是那种看来最聪明，最酷，打字量最少的办法，而是写得最明确，让读者省事的办法。人们常说，代码读的时候比写的时候多得多，所以要想语言好用省事，我们应该更加重视读的时候，而不是写的时候。&lt;/p&gt;
+
+&lt;h3&gt;数组的可变性&lt;/h3&gt;
+
+&lt;p&gt;Rust 的数组可变性标记，跟 Swift 犯了一样的错误。Swift 的问题，我已经在之前的&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;文章&lt;/a&gt;有详细叙述，所以这里就不多说了。简言之，同一个标记能表示的可变性，要么针对数组指针，要么针对数组元素，应该只能选择其一。而在 Rust 里面，你只有一个地方可以放“mut”进去，所以要么数组指针和元素全部都可变，要么数组指针和元素都不可变。你没有办法制定一个不可变的数组指针，而它指向的数组的元素却是可变的。&lt;/p&gt;
+
+&lt;p&gt;请对比下面两个例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;fn main() {
+    let m = [1, 2, 3];      // 指针和元素都不可变
+    m[0] = 10;              // 出错
+    m = [4, 5, 6];          // 也出错
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;fn main() {
+    let mut m = [1, 2, 3];  // 指针和元素都可变
+    m[0] = 10;              // 不出错
+    m = [4, 5, 6];          // 也不出错
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;内存管理&lt;/h3&gt;
+
+&lt;p&gt;Rust 号称实现了非常先进的内存管理机制，不需要垃圾回收（GC）或者引用计数（RC）就可以“静态”的管理内存的分配和释放。然而仔细思考之后你就会发现，这很可能是不切实际的梦想（或者广告）。内存的分配和释放（如果要及时释放的话），本身是一个动态的过程，无法用静态分析来实现。现在你说可以通过一些特殊的构造，特殊的指针和传值方式，静态的决定内存的回收时间，真的有可能吗？&lt;/p&gt;
+
+&lt;p&gt;实际上在 IU 的时候，我有一个类似的梦。我曾经向我的教授们（Friedman，Dybvig）提出过 N 多种不需 GC 和 RC 就能静态管理内存的办法，结果每一次都被他们给我的小例子给打败了，以至于我很难相信有任何人可以想到比 GC 和 RC 更好的方法。&lt;/p&gt;
+
+&lt;p&gt;Rust 那些炫酷的 move semantics, borrowing, lifetime 之类的概念加在一起，不但让语言变得复杂不堪，我感觉并不能从根本上解决内存管理问题。很多人在 blog 里面为这些概念热情洋溢地做宣传，显得自己很懂一样，拿一些玩具代码来演示，可是从没看到任何人说清楚这些东西为什么可以从根本上解决问题，能用到复杂一点的代码里面去。所以我觉得这些东西有“皇帝的新装”之嫌。&lt;/p&gt;
+
+&lt;p&gt;连 Rust 自己的&lt;a href=&quot;https://doc.rust-lang.org/book/ownership.html#meta&quot;&gt;文档&lt;/a&gt;都说，你可能需要“fight with the borrow checker”。为了通过这些检查，你必须用很怪异的方式来写程序，随着问题复杂度的增加，就要求有更怪异的写法。如果用了 lifetime，很简单一个代码看起来就会是这种样子。真够烦的，我感觉我的眼睛都没法 parse 这段代码了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;rust&quot;&gt;fn foo&amp;lt;&#39;a, &#39;b&amp;gt;(x: &amp;amp;&#39;a str, y: &amp;amp;&#39;b str) -&amp;gt; &amp;amp;&#39;a str {
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上一次我看 Rust 文档的时候，没发现有 lifetime 这概念。文档对此的介绍非常粗略，仔细看了也不知道他们在说些什么，更不要说相信这办法真的管用了。对不起，我根本不想去理解这些尖括号里的 &lt;code&gt;&#39;a&lt;/code&gt; 和 &lt;code&gt;&#39;b&lt;/code&gt; 是什么，除非你先向我证明这些东西真的能解决内存管理的问题。实际上这个 lifetime 我感觉像是跨过程静态分析时产生的一些标记，要知道静态分析是无法解决内存管理的问题的，我猜想这种 lifetime 在有递归函数的情况下就会遇到麻烦。&lt;/p&gt;
+
+&lt;p&gt;实际上我最开头看 Rust 的时候，它号称只用 move semantics 和好几种不同的指针，就可以解决内存管理的问题。可是一旦有了那几种不同的指针，就已经复杂不堪了，比 C 语言还要麻烦，而且显然不能解决问题。Lifetime 恐怕是后来发现有新的问题解决不了才加进去的，可是我不知道他们这次是不是又少考虑了某些情况。&lt;/p&gt;
+
+&lt;p&gt;Rust 的设计者显然受了 &lt;a href=&quot;https://en.wikipedia.org/wiki/Linear_logic&quot;&gt;Linear Logic&lt;/a&gt; 一类看似很酷的逻辑的启发和熏陶，想用类似的方式奇迹般的解决内存和资源的回收问题。然而研究过一阵子 Linear Logic 之后我发现，这个逻辑自己都没有解决任何问题，只不过给对象的引用方式施加了一些无端的限制，这样使得对象的引用计数是一个固定的值（1）。内存管理当然容易了，可是这样导致有很多程序你没法表达。&lt;/p&gt;
+
+&lt;p&gt;开头让你感觉很有意思，似乎能解决一些小问题。到后来遇到大一点的实际问题的时候，你就发现需要引入越来越复杂的概念，使用越来越奇葩的写法，才能达到目的，而且你总是会在将来某个时候发现它没法解决的问题。因为这个问题很可能从根本上是无法解决的，所以每当遇到有超越现有能力的事情，你就得增加新的“绕过方法”（workaround）。缝缝补补，破败不堪。最后你发现，除了垃圾回收（GC）和引用计数（RC），内存管理还是没有其它更好更简单的办法。&lt;/p&gt;
+
+&lt;p&gt;当然我的意见也许不是完全准确，可我真是没有时间去琢磨这么多乱七八糟，不知道管不管用的概念（特别是 lifetime），更不要说真的用它来构建大型的系统程序了。有用来理解这些概念，把程序改成奇葩样子的时间，我可能已经用 C 语言写出很好的手动内存管理代码了。如果你真的看进去理解了，发现这些东西可以用的话，告诉我一声！不过你必须说明原因，不要只告诉我“皇帝是穿了衣服的” :P&lt;/p&gt;
+
+&lt;h3&gt;完&lt;/h3&gt;
+
+&lt;p&gt;本来想写一个更详细的评价的，可是到了这个地方，我感觉已经失去兴趣了，困就一个字啊…… Rust 比 C 语言复杂太多，我很难想象用这样的语言来构造大型的操作系统。而构造系统程序，是 Rust 设计的初衷。说真的，写操作系统那样的程序，C 语言真的不算讨厌。用户空间的程序，Java，C# 和 Swift 完全可以胜任。所以我觉得 Rust 的市场空间恐怕非常狭小……&lt;/p&gt;
+
+&lt;p&gt;（如果你喜欢这些内容，请付费5美元或者30人民币，谢谢！）&lt;/p&gt;
 
                         &lt;/div&gt;
 
@@ -194,9 +430,9 @@ println!(&quot;y is {}&quot;, y);      // Where is y defined?
 
 &lt;p&gt;不幸的是，历史再次重演了 ;) 队友们听说我花一下午重写了一个换名器，非常紧张，咋呼地跟我说：“你知道我们的换名器是花了多少个月的时间做出来的吗？你知道我们写了多少测试来保证它的正确性吗？你现在一下午做出来一个新的，你如何能保证它的正确！” 我不知道他们怎么好意思说出这样的话来，因为事实是，他们花了这么多个月，耗费这么多人力，写了这么多的测试，做出来的换名器却仍然有 bug，没法用。当我把我写的测试和几个大点的 open source 项目（AngularJS, Backbone 等）放进他们的换名器之后，就发现有些地方出问题了，而所有的测试和 open source 项目通过我的换名器，却得到完全正确的代码。另外经过性能测试，我的换名器速度要快四倍的样子。所以就像 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2014/02/18/dijkstra-interview&quot;&gt;Dijkstra&lt;/a&gt; 所说：“最优雅的程序往往也是最高效的。”&lt;/p&gt;
 
-&lt;p&gt;结束这个项目之后，我换了一个团队（cluster团队），这个团队的人要好很多，低调而且幽默。Shape Security 的产品（Shape Shifter）里面包含一个高可靠（HA）集群管理系统，它可以通过网络，选举 leader，构建一个高容错的并行处理集群。这个集群管理系统一直以来都是公司里很复杂，却是可靠性要求最高的一个部件，一旦出问题就可能有灾难性的后果。确实，它当时可靠性非常高，从来没出过问题。但它的代码过度复杂而缺乏模块化，以至于很难扩展来应付新的客户需求。我进入这个新团队的任务，就是对它进行大规模的简化，模块化和扩展，让它满足新的需求。&lt;/p&gt;
+&lt;p&gt;结束这个项目之后，我换了一个团队（cluster团队），这个团队的人要好很多，低调而且幽默。Shape Security 的产品（Shape Shifter）里面包含一个高可靠（HA）集群管理系统，它可以通过网络，选举 leader，构建一个高容错的并行处理集群。这个集群管理系统一直以来都是公司里很复杂，却是可靠性要求最高的一个部件，一旦出问题就可能有灾难性的后果。确实，它当时可靠性非常高，从来没出过问题。但由于历史原因，它的代码过度复杂而缺乏模块化，以至于很难扩展来应付新的客户需求。我进入这个新团队的任务，就是对它进行大规模的简化，模块化和扩展，让它满足新的需求。&lt;/p&gt;
 
-&lt;p&gt;在这个项目中，由于代码的改动幅度很大，在同事和部门领导的理解，信任和支持下，我们决定直接抛弃已有的测试，完全靠严格而及时的 code review，逻辑推理，推敲讨论，手工试验来保证代码的正确。在我修改代码的同时，一位更熟悉已有代码的队友一直通过 git 默默监视着我的每一次改动，根据他自己的经验来判断我的改动是否偏离了原来的语义，及时与我交流和讨论。由于这种灵活而严格的方式，工程不到两个月就完成了。改进后的代码不但更加模块化，更可扩展，适应了新的需求，而且仍然非常可靠。假设部门领导是“测试教条主义者”，不允许抛弃已有的测试，这样的项目是绝对不可能如期完成的。然而在当今世界遇到这样的领导的机会，恐怕十个人里面不到一个吧。&lt;/p&gt;
+&lt;p&gt;在这个项目中，由于代码的改动幅度很大，在同事和部门领导的理解，信任和支持下，我们决定直接抛弃已有的测试，完全靠严格而及时的 code review，逻辑推理，推敲讨论，手工试验来保证代码的正确。在我修改代码的同时，一位更熟悉已有代码的队友一直通过 git 默默监视着我的每一次改动，根据他自己的经验来判断我的改动是否偏离了原来的语义，及时与我交流和讨论。由于这种灵活而严格的方式，工程不到两个月就完成了。改进后的代码不但更加模块化，更可扩展，适应了新的需求，而且仍然非常可靠。假设部门领导是“测试教条主义者”，不允许抛弃已有的测试，这样的项目是绝对不可能如期完成的。然而在当今世界遇到这样领导的机会，恐怕十个人里面不到一个吧。&lt;/p&gt;
 
 &lt;h4&gt;Coverity&lt;/h4&gt;
 
@@ -253,48 +489,6 @@ println!(&quot;y is {}&quot;, y);      // Where is y defined?
 <author>yinwang0</author>
 <guid isPermaLink="false">tests</guid>
 <pubDate>Wed, 14 Sep 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>收回前一篇文章</title>
-<link>http://yinwang.org/blog-cn/2016/09/12/withdraw</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;收回前一篇文章&lt;/h2&gt;
-                            &lt;p&gt;写前一篇文章的时候，头脑比较热。现在想起来，也不知道自己为什么会说出那样的话来，为什么会有那样的想法。最后是真是假，还有一些半成品和猜忌，都一股脑的倒了出来。&lt;/p&gt;
-
-&lt;p&gt;今天回到公司，看见 manager 诚恳的眼神，被一群低调的同事所围绕，听取我对某些工具的抱怨和改进意见，向我表示抱歉，解释并且确认需要改进的地方。我发现，满头的怨气顿时全没了。这是一群挺可爱的同事……&lt;/p&gt;
-
-&lt;p&gt;也许，是经历了这么多风雨和奇葩的人际关系之后，很难不猜忌其它人的想法吧，很难以轻松的心情相待。一朝被蛇咬，十年怕井绳。有些事情不说清楚，就憋在心里了。人和人的了解需要时间，才来两个月，都不怎么熟悉，难免因为语言上的差异而产生误会。如果说有人封闭和压抑的话，那恐怕是我自己吧。这里的天空其实挺广阔，是我自己没有看到。&lt;/p&gt;
-
-&lt;p&gt;实话说在这两个月里面，我是真心欣赏微软的很多方面，享受自己所做的事情的时候还是很多，可是那天折腾得郁闷了就都忘了说好的方面。如果要我用两个字来概括对这个公司的第一印象，我能想到的两个字就是：成熟。我能感觉到，他们其中一些人会是很好的朋友。&lt;/p&gt;
-
-&lt;p&gt;刚说错那么多话，这里就不好意思多说了。&lt;/p&gt;
-
-&lt;p&gt;（有人在关心是不是领导给了我压力，所以改口了。我王垠有这么怕事吗？话说如果领导真给了我压力，那我还反倒不改了。我又不靠微软这口饭活着 :P 我是真心觉得自己太急太冲动了，本着尊重事实的原则，所以才撤回的。）&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">withdraw</guid>
-<pubDate>Mon, 12 Sep 2016 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Tesla autopilot 引起致命车祸</title>
@@ -482,40 +676,6 @@ println!(&quot;y is {}&quot;, y);      // Where is y defined?
 <author>yinwang0</author>
 <guid isPermaLink="false">yangsheng</guid>
 <pubDate>Tue, 28 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>老虎出租</title>
-<link>http://yinwang.org/blog-cn/2016/06/27/tiger-for-rent</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;老虎出租&lt;/h2&gt;
-                            &lt;p&gt;为了挣点外快，现在开始提供老虎出租合影服务，每张照片5元（cash only）。有意者请来电 123-456-7890。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-98872cd22bb84c91.JPG?imageMogr2/auto-orient/strip%7CimageView2/2/w/300&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">tiger-for-rent</guid>
-<pubDate>Mon, 27 Jun 2016 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>欧盟草拟法案，对机器人征税</title>
@@ -1001,6 +1161,42 @@ var b = a
 <author>yinwang0</author>
 <guid isPermaLink="false">swift</guid>
 <pubDate>Mon, 06 Jun 2016 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>我的 tweet 系统</title>
+<link>http://yinwang.org/blog-cn/2016/05/25/my-tweet</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;我的 tweet 系统&lt;/h2&gt;
+                            &lt;p&gt;有时候灵光乍现，却又不想写成完整的文章，所以尝试过使用 twitter 和微博，然而最终我发现它们有各种缺点。所以我想出一个圡办法：自己手动整理一个列表，把想说的放进去，加上日期，就算是我的 tweet 系统。&lt;/p&gt;
+
+&lt;p&gt;这个系统有一系列强大的功能：无法 follow 或订阅，不能评论，不方便转载。可以随意修改，随意排序，不限字数。不能随时随地增加内容，防止成瘾。心诚的人必须主动来这里看，理解更深入，自动过滤心理不正常的人，等等…… 这是迄今为止最好最完善的 social network 系统。本系统的座右铭是：我想写 tweet，所以我就写了。你们想看就看，不想看就算了。&lt;/p&gt;
+
+&lt;p&gt;请点击&lt;a href=&quot;http://www.yinwang.org/tweet.html&quot;&gt;这里&lt;/a&gt;访问我的 tweet 系统。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">my-tweet</guid>
+<pubDate>Wed, 25 May 2016 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
