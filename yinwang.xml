@@ -5,7 +5,67 @@
 <link>http://www.yinwang.org/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 13 Oct 2016 05:06:01 +0800</lastBuildDate>
+<lastBuildDate>Fri, 14 Oct 2016 15:20:22 +0800</lastBuildDate>
+<item>
+<title>讨厌的 C# IDisposable 接口</title>
+<link>http://yinwang.org/blog-cn/2016/10/13/c-sharp-disposable</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;讨厌的 C# IDisposable 接口&lt;/h2&gt;
+                            &lt;p&gt;我们 team 快被 C# 里面的各种 &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.idisposable(v=vs.110).aspx&quot;&gt;IDisposable&lt;/a&gt; 对象给折腾疯了！&lt;a href=&quot;https://github.com/dotnet/roslyn-analyzers&quot;&gt;Roslyn 静态分析&lt;/a&gt;给出几百个警告，说你没有调用有些对象里的 Dispose 方法。有些很小的对象，包括 &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.threading.manualresetevent(v=vs.110).aspx&quot;&gt;ManualResetEvent&lt;/a&gt;，&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.threading.semaphore(v=vs.110).aspx&quot;&gt;Semaphore&lt;/a&gt;，&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.threading.readerwriterlockslim(v=vs.110).aspx&quot;&gt;ReaderWriterLockSlim&lt;/a&gt; 都是 IDisposable，按官方的“规矩”，你得显式的调用 Dispose 方法进行“释放”，而不能依赖 GC 进行回收。&lt;/p&gt;
+
+&lt;p&gt;问题是，很多时候你根本搞不清楚什么时候该释放一个对象，因为它存在于一个复杂的数据结构里面，到处被引用，所以你很难搞清楚什么时候不会有代码再用它。如果你过早调用 Dispose 方法，释放了对象里的资源，但其实还有人在用它，就会出现严重的错误。这问题就像 C 语言里面的 free，你很多时候不知道该不该 free 一块内存。如果你过早的 free 了内存，就会出现非常严重的内存错误。所以对于复杂的数据结构，比如图节点，你就只好给对象手动加上引用计数。或者如果内存够用，你也不需要分配释放很多中间结果的话，你就干脆到算法结束以后再一并释放它们……&lt;/p&gt;
+
+&lt;p&gt;是的，C# 有垃圾回收（GC），所以你以为不用再想这些低级问题了。不幸的是，IDisposable 接口把这噩梦给带回来了。以前在 Java 里面用此类对象，从来没遇到过这么麻烦的事情，最多就是打开文件的时候需要记得最后关掉。所以我很怀疑 C# 里的那些像 Semaphore 之类的小东西是否真的需要显式的“释放资源”。&lt;/p&gt;
+
+&lt;p&gt;不得已之下，我用 JetBrain 出品的反汇编器 &lt;a href=&quot;https://www.jetbrains.com/decompiler&quot;&gt;dotPeek&lt;/a&gt; （好东西呀！）反编译了 .NET 的库代码。结果发现好些库代码其实完全没必要实现 IDisposable 接口。这说明有些 .NET 库代码的作者其实都没有弄明白什么时候该实现 IDisposable 接口，以及如何有意义地实现它。这些类包括常用的 HashAlgorithm 甚至 MemoryStream。其中 HashAlgorithm（各种 SHA 算法的父类）的 Dispose 方法是完全没必要的，它看起来是这个样子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;protected virtual void Dispose(bool disposing)
+{
+    if (disposing)
+    {
+        if (HashValue != null)
+            Array.Clear(HashValue, 0, HashValue.Length);
+        HashValue = null;
+        m_bDisposed = true;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;看明白了吗？它不过是在把内部数组 &lt;code&gt;HashValue&lt;/code&gt; 的每个元素清零，然后把指针设为 null。之后我要讲一下，在 Dispose 方法里把成员设为 null，其实并不会导致更快的内存释放，所以对资源释放一点用都没有。有人可能以为这是为了“安全”考虑，然而 IDisposable 是用于释放“资源”的接口，把安全清零这种事情放在这个接口里面，反而会让人造成疏忽。而且从源代码里的注释看来，HashAlgorithm 的这个方法就为了释放资源，而不是为了什么安全的考虑。这些库代码实现 IDisposable，意味着这个接口会通过这些库代码不必要的传递到用户代码里面去，导致很多不知情用户的代码被迫实现 IDisposable，造成大面积“传染”。&lt;/p&gt;
+
+&lt;p&gt;另外，我发现 AutoResetEvent，ManualResetEvent，ReaderWriterLockSlim，Semaphore 这些 IDisposable 对象，里面的所谓“资源”都是很小的 event 对象，而且它们都是被 SafeHandle 指向的。SafeHandle 本身有一个“析构函数”（finalizer），它会在被 GC 回收的时候，自动调用 Dispose 方法。也就是说，你其实并不需要调用这些对象的 Dispose 方法。这些对象占用资源很少，GC 完全应该有能力释放它们占用的系统资源（Win32 Event 对象）。&lt;/p&gt;
+
+&lt;p&gt;什么时候该实现 IDisposable 接口，我建议使用 .NET 的开发人员（包括微软自己的员工）先看看&lt;a href=&quot;http://blog.stephencleary.com/2009/08/first-rule-of-implementing-idisposable.html&quot;&gt;这篇 blog&lt;/a&gt;（看完之后我还有其它的推荐）。简言之，如果你的对象的 Dispose 方法只是在把一些成员对象设为 null，那么你根本就不需要实现 IDisposable。为什么呢？因为把对象引用设为 null 并不等于 C 语言里面的 free，它并不能让 GC 更快的回收那份内存，就算你的对象里面有一个很大的 byte[] 数组也一样。&lt;/p&gt;
+
+&lt;p&gt;其实在 C# 里面，你没有任何办法可以手动回收内存，你一定要依赖于 GC，就算你实现 Dispose，在里面把成员设置为 null，内存也只有等下次 GC 执行的时候才能被回收。所以你还不如就把外层对象的引用设为 null（如果是局部变量就让它自然离开作用域），然后 GC 下次执行，就会自动把里面的对象也给回收了，完全不需要你实现 Dispose 方法，你实现了也不能更加及时的回收内存。为什么 GC 会回收里面的对象呢？去看看 GC 的工作原理就知道了！&lt;/p&gt;
+
+&lt;p&gt;微软其它 team 的童鞋们，欢迎来人来函跟我讨论你们对待 IDisposable 的做法。我现在已经有一套用于对付 IDisposable 的策略，准备在 team 内部推行。我还准备写一个终极的小手册，用于简化对 IDisposable 的处理，你们的经验和讨论将对此很有帮助。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">c-sharp-disposable</guid>
+<pubDate>Thu, 13 Oct 2016 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>C 编译器优化过程中的 Bug</title>
 <link>http://yinwang.org/blog-cn/2016/10/12/compiler-bug</link>
@@ -15,11 +75,11 @@
                     &lt;td width=&quot;60%&quot;&gt;
                         &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
                             &lt;h2&gt;C 编译器优化过程中的 Bug&lt;/h2&gt;
-                            &lt;p&gt;一个朋友向我指出一个最近他们发现的 GCC 编译器优化过程（加上 -O3 选项）里的 bug，导致他们的产品出现非常诡异的行为。这使我想起以前见过的一个 GCC 的 bug。当时很多人死活认为那种做法是正确的，辩不过他们。简言之，这种优化利用 C 语言的“未定义行为”（undefined behavior）进行推断，最后得到出人意料（错误）的结果。&lt;/p&gt;
+                            &lt;p&gt;一个朋友向我指出一个最近他们发现的 GCC 编译器优化过程（加上 -O3 选项）里的 bug，导致他们的产品出现非常诡异的行为。这使我想起以前见过的一个 GCC bug。当时很多人死活认为那种做法是正确的，跟他们说不清楚。简言之，这种有问题的优化，喜欢利用 C 语言的“未定义行为”（undefined behavior）进行推断，最后得到奇怪的结果。&lt;/p&gt;
 
-&lt;p&gt;这类优化过程的推理方式都很类似，他们使用一种看似严密而巧妙的推理：“现在有一个整数 &lt;code&gt;x&lt;/code&gt;，我们不知道它是多少。但 &lt;code&gt;x&lt;/code&gt; 出现在一个条件语句里面，如果 &lt;code&gt;x&amp;gt;1&lt;/code&gt;，那么程序会进入未定义行为，所以我们可以断定 &lt;code&gt;x&lt;/code&gt; 的值必然 &lt;code&gt;≤1&lt;/code&gt;，所以现在我们利用 &lt;code&gt;x≤1&lt;/code&gt; 这个事实来对相关代码进行优化……”。你能看出来这样的推理错在何处吗？&lt;/p&gt;
+&lt;p&gt;这类优化过程的推理方式都很类似，他们使用一种看似严密而巧妙的推理，例如：“现在有一个整数 &lt;code&gt;x&lt;/code&gt;，我们不知道它是多少。但 &lt;code&gt;x&lt;/code&gt; 出现在一个条件语句里面，如果 &lt;code&gt;x &amp;gt; 1&lt;/code&gt;，那么程序会进入未定义行为，所以我们可以断定 &lt;code&gt;x&lt;/code&gt; 的值必然小于或者等于 1，所以现在我们利用 &lt;code&gt;x ≤ 1&lt;/code&gt; 这个事实来对相关代码进行优化……”&lt;/p&gt;
 
-&lt;p&gt;但我一时想不起来之前的例子了（如果你知道的话告诉我），所以上网搜了一下，于是乎发现这篇 Chris Lattner (LLVM 和 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;Swift 语言&lt;/a&gt; 的设计者) &lt;a href=&quot;http://blog.llvm.org/2011/05/what-every-c-programmer-should-know_14.html&quot;&gt;写于 2011 年的文章&lt;/a&gt;。文中指出，编译器利用 C 语言的“未定义行为”进行优化，是合理的，对于性能是很重要的，并且举出这样一个例子：&lt;/p&gt;
+&lt;p&gt;看似合理，然而它却是不正确的，你能看出来这样的推理错在何处吗？我一时想不起来之前具体的例子了（如果你知道的话告诉我）。上网搜了一下相关话题，发现这篇 Chris Lattner (LLVM 和 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;Swift 语言&lt;/a&gt; 的设计者) 写于 2011 年的&lt;a href=&quot;http://blog.llvm.org/2011/05/what-every-c-programmer-should-know_14.html&quot;&gt;文章&lt;/a&gt;。文中指出，编译器利用 C 语言的“未定义行为”进行优化，是合理的，对于性能是很重要的，并且举出这样一个例子：&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void contains_null_check(int *P) {
   int dead = *P;
@@ -29,7 +89,7 @@
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;这个函数经过这样两个优化步骤，得出“等价”的代码：&lt;/p&gt;
+&lt;p&gt;这例子跟我之前看到的 GCC bug 不大一样，但大致是类似的推理方式：这个函数依次经过这样两个优化步骤（RNCE 和 DCE），之后得出“等价”的代码：&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void contains_null_check_after_RNCE(int *P) {
   int dead = *P;
@@ -41,8 +101,8 @@
 
 &lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void contains_null_check_after_RNCE_and_DCE(int *P) {
   //int dead = *P;    // 死代码消除
-  //if (false)
-  //  return;
+  //if (false)        // 死代码
+  //  return;         // 死代码
   *P = 4;
 }
 &lt;/code&gt;&lt;/pre&gt;
@@ -50,14 +110,15 @@
 &lt;p&gt;他的推理方式是这样：&lt;/p&gt;
 
 &lt;ol&gt;
-&lt;li&gt;首先，因为在 &lt;code&gt;int dead = *P&lt;/code&gt; 里面，指针 &lt;code&gt;P&lt;/code&gt; 的地址被访问，所以如果程序顺利通过了这一行，那么之后它就不可能是 null，所以我们可以把 &lt;code&gt;P == 0&lt;/code&gt; 优化为 &lt;code&gt;false&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;首先，因为在 &lt;code&gt;int dead = *P&lt;/code&gt; 里面，指针 &lt;code&gt;P&lt;/code&gt; 的地址被访问，如果程序顺利通过了这一行而没有出现未定义行为（比如当掉），那么之后 &lt;code&gt;P&lt;/code&gt; 就不可能是 null，所以我们可以把 &lt;code&gt;P == 0&lt;/code&gt; 优化为 &lt;code&gt;false&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;因为条件是 &lt;code&gt;false&lt;/code&gt;，所以整个 if 语句都是死代码，被删掉。&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;dead&lt;/code&gt; 变量赋值之后，没有被任何其它代码使用，所以对 &lt;code&gt;dead&lt;/code&gt; 的赋值是死代码，可以消去。&lt;/li&gt;
 &lt;/ol&gt;
 
 
-&lt;p&gt;所以最后函数就只剩下一行代码 &lt;code&gt;*P = 4&lt;/code&gt;。然而经我分析，发现这个优化转换是错误的做法（unsound 的变换）。现在我来考考你，你知道这为什么是错的吗？值得庆幸的是，现在如果你把这代码输入到 Clang，就算加上 -O3 选项，它也不再会给你进行这个优化，说明 Lattner 这个 2011 年的想法已经被 LLVM 团队抛弃了。&lt;/p&gt;
+&lt;p&gt;最后函数就只剩下一行代码 &lt;code&gt;*P = 4&lt;/code&gt;。然而经我分析，发现这个优化转换是根本错误的做法（unsound 的变换），而不只是像他说的“存在安全隐患”。现在我来考考你，你知道这为什么是错的吗？值得庆幸的是，现在如果你把这代码输入到 Clang，就算加上 -O3 选项，它也不会给你进行这个优化。这也许说明 Lattner 的这个想法后来已经被 LLVM 团队抛弃。&lt;/p&gt;
 
-&lt;p&gt;我写这篇文章的目的其实是想告诉你，不要盲目的相信编译器的作者们（就算是牛人）做出的变换都是正确的，无论它看起来多么的合理，只要打开优化之后你的程序出现诡异的行为，请一定要怀疑编译器的优化是 unsound 的。&lt;/p&gt;
+&lt;p&gt;我写这篇文章的目的其实是想告诉你，不要盲目的相信编译器的作者们做出的变换都是正确的，无论它看起来多么的合理，只要打开优化之后你的程序出现奇葩的行为，你就不能排除编译器进行了错误优化的可能性。Lattner 指出这样的优化完全符合 C 语言的标准，这说明就算你符合国际标准，也有可能其实是错的。有时候，你是得相信自己的直觉……&lt;/p&gt;
 
 &lt;p&gt;（文中提出的两个问题，欢迎来信讨论，或者在两星期之后等待答案。）&lt;/p&gt;
 
@@ -1161,42 +1222,6 @@ var b = a
 <author>yinwang0</author>
 <guid isPermaLink="false">swift</guid>
 <pubDate>Mon, 06 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>我的 tweet 系统</title>
-<link>http://yinwang.org/blog-cn/2016/05/25/my-tweet</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;我的 tweet 系统&lt;/h2&gt;
-                            &lt;p&gt;有时候灵光乍现，却又不想写成完整的文章，所以尝试过使用 twitter 和微博，然而最终我发现它们有各种缺点。所以我想出一个圡办法：自己手动整理一个列表，把想说的放进去，加上日期，就算是我的 tweet 系统。&lt;/p&gt;
-
-&lt;p&gt;这个系统有一系列强大的功能：无法 follow 或订阅，不能评论，不方便转载。可以随意修改，随意排序，不限字数。不能随时随地增加内容，防止成瘾。心诚的人必须主动来这里看，理解更深入，自动过滤心理不正常的人，等等…… 这是迄今为止最好最完善的 social network 系统。本系统的座右铭是：我想写 tweet，所以我就写了。你们想看就看，不想看就算了。&lt;/p&gt;
-
-&lt;p&gt;请点击&lt;a href=&quot;http://www.yinwang.org/tweet.html&quot;&gt;这里&lt;/a&gt;访问我的 tweet 系统。&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">my-tweet</guid>
-<pubDate>Wed, 25 May 2016 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
