@@ -5,16 +5,94 @@
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 21 Sep 2016 16:01:38 +0800</lastBuildDate>
+<lastBuildDate>Thu, 27 Oct 2016 17:52:55 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 </image>
 <item>
+<title>[新闻] Oracle开源了其Java AOT编译器</title>
+<link>https://zhuanlan.zhihu.com/p/23247204</link>
+<description>先放传送门：&lt;a href=&quot;http://mail.openjdk.java.net/pipermail/hotspot-dev/2016-October/025033.html&quot; data-editable=&quot;true&quot; data-title=&quot;[9] RFR(L) 8166415: Integrate AOT tool JAOTC&quot;&gt;[9] RFR(L) 8166415: Integrate AOT tool JAOTC&lt;/a&gt;&lt;p&gt;这是一个基于Graal的AOT编译器，可以跟JDK9+的HotSpot VM搭配使用。&lt;/p&gt;&lt;p&gt;这比我原本预期的要早得多。我原本以为会到明年甚至更之后才能看到这个项目开源出来。真是惊喜。&lt;/p&gt;&lt;p&gt;以后大家再也不能吐槽Java的默认实现没有AOT编译器了（逃&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">23247204</guid>
+<pubDate>Thu, 27 Oct 2016 16:58:33 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
+<title>[C++] GCC对C++虚函数调用的一个优化</title>
+<link>https://zhuanlan.zhihu.com/p/23233548</link>
+<description>这个专栏平时Java / JVM的内容偏多，今天混入一些新血液吧。来聊点C++的话题。&lt;p&gt;不过说起来还是跟JVM相关的内容。在JVM实现中，要达到高性能的一个重要方面就是要对虚方法调用做优化，要尽其所能将虚方法调用点去虚化（devirtualize），以便支持后续的优化。这是因为Java里非private的成员方法默认就是virtual的，大家愿意也好不愿意也好也很容易会写一大堆虚方法，再加上良好的面向对象风格的代码提倡要尽量写职责单一的小方法，一大堆小的虚方法如果不能好好优化，那性能是上不去的。&lt;/p&gt;&lt;p&gt;而在C++里，虚函数的开销则没Java那么引人关注，毕竟成员函数默认不是virtual的，而且还有&lt;a href=&quot;https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern&quot; data-editable=&quot;true&quot; data-title=&quot;CRTP&quot;&gt;CRTP&lt;/a&gt;之类的奇技淫巧来向别的方向取舍开销。但始终，对虚函数有优化需求这点跟Java还是很相似的。&lt;/p&gt;&lt;p&gt;很多同学都会在学习了一些C++的基础知识之后就偏执地认为C++的虚函数分派总是通过对vtable（虚函数表）的间接调用来做的，并且虚函数调用无法被内联。事实上编译器优化发展了那么多年，这种事情又怎会没有进一步的优化呢。&lt;/p&gt;&lt;p&gt;今天要说的就是相对新一些的GCC（&lt;a href=&quot;https://gcc.gnu.org/gcc-4.9/changes.html&quot; data-editable=&quot;true&quot; data-title=&quot;GCC 4.9&quot;&gt;GCC 4.9&lt;/a&gt;或更高）里的一种优化，由-fdevirtualize-speculatively参数控制的“speculative devirtualization”，或者用JVM里更常用的叫法是“guarded devirtualization”。&lt;/p&gt;&lt;p&gt;让我们先来看个例子：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;class Base {
+  int value_;
+public:
+  virtual int foo() __attribute__ ((noinline)) {
+    return 42 + this-&amp;gt;bar();
+  }
+
+  virtual int bar() {
+    return value_;
+  }
+};
+
+class Derived : public Base {
+public:
+  int bar() {
+    return 256;
+  }
+};
+
+int main() {
+  Base* b = new Derived;
+  return b-&amp;gt;foo();
+}
+&lt;/code&gt;&lt;p&gt;这个例子用GCC 4.9.2在-O2下编译，会发现Base::foo()里对bar()这个虚函数的调用就是普通的通过vtable分派的间接调用。用伪代码来说就是这样：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;// this-&amp;gt;bar()
+bar_ptr = this-&amp;gt;_vptr[BAR_VTABLE_INDEX]; // load function entry point from vtable
+tmp = bar_ptr();                         // indirect call&lt;/code&gt;&lt;p&gt;实际用GCC 4.9.2 -O2在Linux/x86-64上生成的Base::foo()函数的代码是这样的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Base::foo():
+        subq    $8, %rsp
+        movq    (%rdi), %rax  # rax = this-&amp;gt;_vptr
+        call    *8(%rax)      # call this-&amp;gt;_vptr[BAR_VTABLE_INDEX]
+        addq    $8, %rsp
+        addl    $42, %eax
+        ret
+&lt;/code&gt;&lt;p&gt;但是如果我们把上面代码例子中Derived::bar()的声明去掉，使得Derived类变成：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;class Derived : public Base {
+};&lt;/code&gt;&lt;p&gt;再重新编译这个实验代码，就会发现Base::foo()里对bar()的调用变成了这个样子：（继续伪代码）&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;// this-&amp;gt;bar()
+bar_ptr = this-&amp;gt;_vptr[BAR_VTABLE_INDEX]; // load function entry point from vtable
+if (bar_ptr == Base::bar) {
+  // inlined Base::bar()
+  tmp = this-&amp;gt;value_;
+} else {
+  tmp = bar_ptr();                       // normal indirect virtual call
+}&lt;/code&gt;&lt;p&gt;实际用GCC 4.9.2 -O2在Linux/x86-64上生成的新版本Base::foo()函数的代码是这样的：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Base::foo():
+        movq    (%rdi), %rax
+        movq    8(%rax), %rax
+        cmpq    Base::bar(), %rax
+        jne     .L3
+        movl    8(%rdi), %eax
+        addl    $42, %eax
+        ret
+.L3:
+        subq    $8, %rsp
+        call    *%rax
+        addq    $8, %rsp
+        addl    $42, %eax
+        ret
+&lt;/code&gt;&lt;p&gt;这种先做条件检查，然后在检查通过的分支里把虚函数调用变为非虚调用（进而可以被内联）的做法，就叫做“speculative devirtualization”或者“guarded devirtualization”。&lt;/p&gt;&lt;p&gt;GCC具体采用的做法是“function-based guarded devirtualization”，正如上面例子所演示的，它的“guard”其实还是从vtable读出了函数指针，只是读出来之后不马上去调用该函数指针，而是检查一下它是否跟预期的函数指针一致，如果一致则认为检查通过。乍一看这挺傻的，访问vtable的内存访问开销一点都没少，而且还多了个条件分支；如果能内联目标函数的话那可能还值得，否则的话这么做的好处就没多少了。&lt;/p&gt;&lt;p&gt;正因为这个优化并非总是值得的，GCC采用了很保守的策略，只在应该能提升性能的地方采用这种做法。一种情况是通过静态的类层次分析（CHA），发现一个虚函数调用点可能调用的目标函数只有1个可能性，那就生成上面所演示的“speculative devirtualized”代码，这种情况不需要profiling信息的支持。如果在做了该优化后，后续优化没能把目标函数内联进来或者至少从目标函数获取某些有利于优化的信息的话，则会撤销该优化，恢复回到普通的vtable间接调用。&lt;/p&gt;&lt;p&gt;上面演示的例子，之所以最开始的版本bar()还是用普通vtable调用而去掉Derived::bar()之后则变为“speculative devirtualized”调用，就是因为要满足上述保守策略的“只有1个可能调用的目标”的条件。&lt;/p&gt;&lt;p&gt;既然“只有1个可能调用目标”了，为啥不干脆去掉检查变为纯粹的直接调用（进而可能被内联），而要保留一个检查并在检查失败的分支中还去做普通vtable间接调用呢？&lt;/p&gt;&lt;p&gt;这主要是因为对C++程序不一点总是能做真正完备的“全程序分析”——假如碰上共享库/动态链接库，这些库里的类层次状况只能当黑盒子看待，所以总得留下一条退路给类层次分析错误的时候还能正确执行程序。&lt;/p&gt;&lt;p&gt;==================================&lt;/p&gt;&lt;p&gt;GCC选择的guard形式并非唯一的可能性。这种形式的guard在JVM里也有研究和应用，例如说IBM的JVM就有过这种形式的devirtualization。&lt;/p&gt;&lt;p&gt;但HotSpot VM没有使用这种形式的guard。HotSpot VM如果选择做guarded devirtualization的话，只会用type-based guarded devirtualization，也就是说guard检查的是被调用对象的类型，而不是目标方法的地址。&lt;/p&gt;&lt;p&gt;Type-based与function-/method-based的guard各有取舍。前者开销更小，而后者可处理的情况更多。&lt;/p&gt;&lt;p&gt;还是用本文开头的例子，如果是type-based，就可能会生成这样的代码：（还是伪代码）&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;// this-&amp;gt;bar()
+if (this-&amp;gt;_vptr == vtable_of(Derived)) {
+  // inlined Derived::bar()
+  tmp = 256;
+} else {
+  this-&amp;gt;_vptr[BAR_VTABLE_INDEX](); // normal indirect virtual call
+}&lt;/code&gt;&lt;p&gt;这个guard的形式显然比function-based的更轻一些，只要做一次间接读（读出_vptr字段来），而不像function-based版额外再读出bar的vtable entry出来。&lt;/p&gt;&lt;p&gt;但假如我们要调用foo()，它也是一个虚方法，但在Base与Derived中只有一个版本的实现，用type-based guard就得写成：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;if (this-&amp;gt;_vptr == vtable_of(Base) || this-&amp;gt;_vptr == vtable_of(Derived))&lt;/code&gt;&lt;p&gt;这就未必比function-based版好了。&lt;/p&gt;&lt;br&gt;&lt;p&gt;最后放个传送门：&lt;a href=&quot;https://www.zhihu.com/question/34846173/answer/60302017&quot; data-editable=&quot;true&quot; data-title=&quot;HotSpot VM有没有对invokeinterface指令的方法表搜索进行优化？ - RednaxelaFX 的回答&quot;&gt;HotSpot VM有没有对invokeinterface指令的方法表搜索进行优化？ - RednaxelaFX 的回答&lt;/a&gt;&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">23233548</guid>
+<pubDate>Thu, 27 Oct 2016 16:54:38 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
 <title>[新闻] IBM J9 JVM开源的消息正式宣布了——OpenJ9</title>
 <link>https://zhuanlan.zhihu.com/p/22550958</link>
-<description>昨天（2016-09-20 PDT）在旧金山举办的JavaOne上，IBM正式宣布了即将开源其J9 Java虚拟机的消息。开源版J9 VM的名字是：OpenJ9！&lt;p&gt;几天前这边才刚发&lt;a href=&quot;https://zhuanlan.zhihu.com/p/22506697?refer=hllvm&quot;&gt;OMR/TR终于开源的消息&lt;/a&gt;，这不，J9开源说来就来。&lt;br&gt;&lt;/p&gt;&lt;p&gt;相关资料：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;JavaOne的演讲：J9: Under the Hood of the Next Open Source JVM [CON3014]&lt;/li&gt;&lt;ul&gt;&lt;li&gt;可惜这个演讲没有录像，只有演示稿：&lt;a href=&quot;http://www.slideshare.net/DanHeidinga/j9-under-the-hood-of-the-next-open-source-jvm&quot; data-title=&quot;J9: Under the Hood of the Next Open Source JVM - SlideShare&quot; class=&quot;&quot;&gt;J9: Under the Hood of the Next Open Source JVM - SlideShare&lt;/a&gt;。链接是好的，打不开的话请自备…&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;根据演示稿所述，IBM目前的计划是跟随IBM Java 9一同正式发布OpenJ9。掐指一算，这大概就是明年这个时候了吧…&lt;/p&gt;&lt;p&gt;以后可以看到更多关于J9内部工作原理的资料了。怎能不一颗赛艇！&lt;/p&gt;&lt;p&gt;引用上述演示稿中的一页：&lt;/p&gt;&lt;img src=&quot;v2-f311880185afab21c28ac3d804def914.png&quot; data-rawwidth=&quot;2494&quot; data-rawheight=&quot;1402&quot;&gt;&lt;p&gt;&amp;lt;- 清晰地表明了未来OMR、OpenJ9与IBM J9之间的关系：OMR将是最上游，OpenJ9基于OMR构建出一个完整的JVM，OpenJ9 + OpenJDK Java Class Library构成一个完整的Java运行时环境，然后在此基础上添加IBM的特化功能最终构成IBM发型版J9及其配套库。&lt;br&gt;&lt;/p&gt;&lt;p&gt;这跟OpenJDK与Oracle JDK之间的关系基本上是同一个模型。&lt;/p&gt;</description>
+<description>昨天（2016-09-20 PDT）在旧金山举办的JavaOne上，IBM正式宣布了即将开源其J9 Java虚拟机的消息。开源版J9 VM的名字是：OpenJ9！&lt;p&gt;几天前这边才刚发&lt;a href=&quot;https://zhuanlan.zhihu.com/p/22506697?refer=hllvm&quot;&gt;OMR/TR终于开源的消息&lt;/a&gt;，这不，J9开源说来就来。&lt;br&gt;&lt;/p&gt;&lt;p&gt;相关资料：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;JavaOne的演讲：J9: Under the Hood of the Next Open Source JVM [CON3014]&lt;/li&gt;&lt;ul&gt;&lt;li&gt;可惜这个演讲没有录像，只有演示稿：&lt;a href=&quot;http://www.slideshare.net/DanHeidinga/j9-under-the-hood-of-the-next-open-source-jvm&quot; data-title=&quot;J9: Under the Hood of the Next Open Source JVM - SlideShare&quot; class=&quot;&quot;&gt;J9: Under the Hood of the Next Open Source JVM - SlideShare&lt;/a&gt;。链接是好的，打不开的话请自备…&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;根据演示稿所述，IBM目前的计划是跟随IBM Java 9一同正式发布OpenJ9。掐指一算，这大概就是明年这个时候了吧…&lt;/p&gt;&lt;p&gt;以后可以看到更多关于J9内部工作原理的资料了。怎能不一颗赛艇！&lt;/p&gt;&lt;p&gt;引用上述演示稿中的一页：&lt;/p&gt;&lt;img src=&quot;v2-f311880185afab21c28ac3d804def914.png&quot; data-rawwidth=&quot;2494&quot; data-rawheight=&quot;1402&quot;&gt;&lt;p&gt;&amp;lt;- 清晰地表明了未来OMR、OpenJ9与IBM J9之间的关系：OMR将是最上游，OpenJ9基于OMR构建出一个完整的JVM，OpenJ9 + OpenJDK Java Class Library构成一个完整的Java运行时环境，然后在此基础上添加IBM的特化功能最终构成IBM发行版J9及其配套库。&lt;br&gt;&lt;/p&gt;&lt;p&gt;这跟OpenJDK与Oracle JDK之间的关系基本上是同一个模型。&lt;/p&gt;</description>
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">22550958</guid>
 <pubDate>Wed, 21 Sep 2016 15:48:26 +0800</pubDate>
@@ -157,24 +235,6 @@ f()&lt;/code&gt;&lt;p&gt;&lt;a href=&quot;https://docs.python.org/2/library/func
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">21916716</guid>
 <pubDate>Mon, 08 Aug 2016 11:33:22 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[八卦] LLILC项目貌似挂了…</title>
-<link>https://zhuanlan.zhihu.com/p/21602080</link>
-<description>刚跟同事聊天的时候听说原来我们已经好一段时间没有跟LLILC项目组的人开过定期会议了，而且近期我们在LLVM邮件列表上试着推的GC指针功能，LLILC项目的人也没人来参与讨论…&lt;p&gt;关于LLILC是什么，请跳传送门：&lt;a href=&quot;https://www.zhihu.com/question/29544174&quot; class=&quot;&quot; data-title=&quot;如何看待微软LLILC，一个新的基于LLVM的CoreCLR JIT/CoreRT AOT编译器？&quot; data-editable=&quot;true&quot;&gt;如何看待微软LLILC，一个新的基于LLVM的CoreCLR JIT/CoreRT AOT编译器？&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Andy Ayers大大会不会抓狂了，Phoenix和LLILC都挂了的话…&lt;/p&gt;&lt;p&gt;============================================&lt;/p&gt;&lt;p&gt;LLILC项目的开发过程上可能也有些隐患。&lt;/p&gt;&lt;p&gt;其中很有趣很subtle的一点是：他们在项目初期决定先实现对MSIL的大范围的支持，为此抄了些捷径：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;生成LLVM IR后，几乎不打开LLVM的优化pass，直接去生成目标代码&lt;/li&gt;&lt;li&gt;使用CoreCLR的GC的后备漠视——保守式GC（conservative GC），这样就可以让LLILC不处理栈上的托管指针，而是让CoreCLR自己去保守式扫描栈上的值去猜哪些是托管指针。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这俩捷径的好处是项目初期可以快速推进进度，把大部分MSIL指令都支持上，让LLILC可以编译一些小程序来测试。&lt;/p&gt;&lt;p&gt;但坏处在后期会慢慢浮现出来：一个编译器前端在生成LLVM IR后，如果不打开LLVM的优化pass来编译，其实无法确定到底生成的IR对不对——有没有正确实现想要表达的语义。如果有些代码生成模式已经大规模写进去了，然后才发现不对，那改起来就会极其痛苦。毕竟最终LLILC还是想要打开LLVM的优化的，不然要它来干嘛，所以这不得不面对的问题，还是早点面对了比较好。&lt;/p&gt;&lt;p&gt;而借由CoreCLR的conservative GC支持的初步运行也可能掩盖了一些其实难以解决的问题，等后面真的要尝试解决的时候才发现困难的话多头疼。&lt;/p&gt;&lt;p&gt;说来，LLILC一开始就决定放弃CoreCLR的JIT所支持的“fully interruptible code”了。这种东西用LLVM实现确实非常别扭，放弃就放弃吧。&lt;/p&gt;&lt;br&gt;&lt;p&gt;============================================&lt;br&gt;&lt;/p&gt;&lt;p&gt;不知道他们是不是遇到了什么解决起来很麻烦（我不想说“无法解决”）的技术问题，导致这个项目被放弃/搁置/降低优先级了。C# / CLR需要支持的功能确实比Java要复杂许多，因此LLILC也遇到了许多我们在我们的基于LLVM的JVM JIT编译器里不会遇到的问题。&lt;/p&gt;&lt;p&gt;同事提到，跟LLILC组的人讨论的时候，他们提出过许多问题。&lt;/p&gt;&lt;p&gt;其中一个是：C#有value type，在CLR / CoreCLR的实现中value type既可能被分配在栈帧里，也可能被box后分配在托管堆里；而且C#还支持pass-by-reference的参数传递模式，一个类型为value type的reference到底是引用着一个栈上还是堆上的value type实例，从被调用方法的一侧是无从知道的。然而如果用LLVM的address space来实现对普通内存（用默认address space）和托管堆内存（用某个自定义address space）的区分，LLVM就要求要把指针声明为对应的address space，这样一个指针就不允许既可能指向栈上对象又可能指向堆上对象，于是处理起来就有点麻烦。&lt;/p&gt;&lt;p&gt;另外，C#的value type里可以包含托管指针字段。如果一个含有托管指针字段的value type值被分配在栈上，而GC又要求对栈上的托管指针做准确式扫描（precise GC / type-exact GC），那么当然这些栈上的托管指针要能被正确处理。然而Azul给LLVM加入的&lt;a href=&quot;http://llvm.org/docs/Statepoints.html&quot; data-editable=&quot;true&quot; data-title=&quot;gc.statepoint&quot;&gt;gc.statepoint&lt;/a&gt;并不能直接处理这种情况——gc.statepoint所能指定的root set都是LLVM IR意义上的SSA value，而不包括实际在内存栈帧里的值；即便给gc.statepoint添加对栈帧内存的支持，在LLVM IR里想要精确控制&lt;b&gt;&lt;i&gt;整个栈帧&lt;/i&gt;&lt;/b&gt;在内存里的布局是非常困难甚至可能做不到的——是，每一个alloca内部的布局是可以精确控制的，但如果我们想精确控制某个slot在栈帧里的实际偏移量，做不到。而C#的value type是一个需要精确控制内存布局的聚合类型（aggregate type），我们不能说把里面的字段给打散了分别处理然后再聚合回来，而总是得保证整个value type的值打包在一起处理。&amp;lt;- 让我找找看LLILC的issues或者wiki之类的地方有没有人讨论过这个问题然后再来补充。&lt;/p&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">21602080</guid>
-<pubDate>Fri, 15 Jul 2016 11:09:49 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[新闻] 龙芯开源了OpenJDK8的MIPS64 port</title>
-<link>https://zhuanlan.zhihu.com/p/20853163</link>
-<description>&lt;a href=&quot;http://mail.openjdk.java.net/pipermail/porters-dev/2016-May/000544.html&quot; data-editable=&quot;true&quot; data-title=&quot;OpenJDK 8 port for MIPS has been open sourced by Loongson&quot;&gt;OpenJDK 8 port for MIPS has been open sourced by Loongson&lt;/a&gt;&lt;p&gt;太激动了！开源世界源源不断的好消息！&lt;/p&gt;&lt;p&gt;龙芯贡献出来的这个MIPS64 port可能是国内公司对OpenJDK做出的单个最大的贡献了。就为了这个规模也值得记录在册。&lt;/p&gt;&lt;p&gt;感谢所有参与了OpenJDK移植到龙芯以及将其开源的工作的大大们 ^_^&lt;br&gt;&lt;/p&gt;&lt;p&gt;除了龙芯之外，目前国内对OpenJDK贡献最活跃的公司是华为；阿里也有向OpenJDK贡献过代码。&lt;/p&gt;&lt;p&gt;更新：敖琪大大发的宣传稿：&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzA4Mjc1NzIyOQ==&amp;amp;mid=2650613858&amp;amp;idx=1&amp;amp;sn=a621a8ca47688076e995f6fb9d09cf75&amp;amp;scene=0&amp;amp;pass_ticket=3nCh51VB1d%2FU9Dh8ADVjpZyfMZLpfmFxmjSmGE2%2BQVk%3D&quot;&gt;龙芯软件生态系列文章——聊聊龙芯Java开源&lt;/a&gt;&lt;/p&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">20853163</guid>
-<pubDate>Fri, 06 May 2016 08:32:28 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
