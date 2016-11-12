@@ -5,16 +5,25 @@
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 08 Nov 2016 18:15:14 +0800</lastBuildDate>
+<lastBuildDate>Sat, 12 Nov 2016 08:33:11 +0800</lastBuildDate>
 <image>
 <url>https://pic4.zhimg.com/4b70deef7_xl.jpg</url>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://zhuanlan.zhihu.com/hllvm</link>
 </image>
 <item>
-<title>[八卦] Phoenix Compiler Infrastructure或有望开源？</title>
+<title>[文献导读] Borrow checker 的形式化</title>
+<link>https://zhuanlan.zhihu.com/p/23603637</link>
+<description>&lt;p&gt;最近都忙着做某大厂项目去了都没时间写文，介绍篇文章吧。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Patina: A Formalization of the Rust Programming Language&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Eric Reed, University of Washington&lt;br&gt;&lt;/p&gt;ftp://ftp.cs.washington.edu/tr/2015/03/UW-CSE-15-03-02.pdf&lt;p&gt;这篇文章稍有些早了（现在 Rust 的语法早就给改的面目全非），不过作为 Borrow Checker 的形式化描述还是很值得一看的。其实，对于 Rust 的那一套，熟悉 Separtion Logic 的应该不难写出语义定义出来，这篇文献也通过定义简化过的 Patina 系统讨论了如何严谨地实现对内侧所有权的检查。&lt;/p&gt;</description>
+<author>Belleve</author>
+<guid isPermaLink="false">23603637</guid>
+<pubDate>Sat, 12 Nov 2016 08:03:59 +0800</pubDate>
+<media:thumbnail url="" />
+</item>
+<item>
+<title>[八卦] Phoenix Compiler Infrastructure或许那个有望开源？</title>
 <link>https://zhuanlan.zhihu.com/p/23515899</link>
-<description>上周的就在家附近开的LLVM dev meeting俺可耻地缺席了。都是为了能有足够时间在家照顾好小叶子 ToT&lt;p&gt;好在还是有好几位同事去了。“Hallway session”万岁！&lt;/p&gt;&lt;p&gt;于是听到一个让我很感兴趣的、跟LLVM没关系的小道消息：微软研究院（MSR）或许有机会未来会把他们以前做的Phoenix Compiler Infrastructure给开源了。简直兴奋啊！&lt;/p&gt;&lt;p&gt;完全没听说过Phoenix的同学，请看Andy Ayers大大以前做的一个演讲：&lt;a href=&quot;http://slideplayer.com/slide/3602411/&quot; data-title=&quot;The Phoenix Compiler and Tools Framework&quot; class=&quot;&quot;&gt;The Phoenix Compiler and Tools Framework&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Phoenix是一个可以说定位跟LLVM颇为相似的编译器及分析工具框架，主要工作在语言中立的中端/后端。它完全使用C++/CLI编写，有native和CLI版binary，可分别供native C++与任意.NET语言调用。它有一套定义良好的IR以及操作该IR的API，IR有几个不同的抽象层，适用于编译流程中的各阶段（而不像LLVM的主IR主要只适合中端使用，到后端则是相当不同的MachineInstr IR）。它最初的目标是作为一个编译器框架（工具箱）要可以支持多种场景以及多种目标平台。例如说，基于它可以实现替代Visual C++编译器后端的c2.dll；最初也计划用它来替代CLR中的JIT64作为新的server JIT compiler…后来这部分目标被放弃了；同时还要可以支持对C/C++以及.NET程序的各种分析与优化，提供插件化API让用户可以轻松自定义编译pipeline并插入自己的插件。&lt;/p&gt;&lt;p&gt;2008年6月，Phoenix发布了最后一个CTP SDK之后，就从外界的视野中销声匿迹了。然而当时参与了这个项目的大大们都很不甘心吧。当时它还在活跃开发中的时候是由MSR和VC产品组共同管理的；后来产品组不要管它了，它就变成MSR自己的项目了。作为一个MSR项目，或许开源的阻力会稍微小一点点吧…&lt;/p&gt;&lt;p&gt;拭目以待！&lt;/p&gt;</description>
+<description>上周的就在家附近开的LLVM dev meeting俺可耻地缺席了。都是为了能有足够时间在家照顾好小叶子 ToT&lt;p&gt;好在还是有好几位同事去了。“Hallway session”万岁！&lt;/p&gt;&lt;p&gt;于是听到一个让我很感兴趣的、跟LLVM没关系的小道消息：微软研究院（MSR）&lt;i&gt;或许&lt;/i&gt;有机会未来会把他们以前做的Phoenix Compiler Infrastructure给开源了。简直兴奋啊！…虽然不是啥确定的消息。&lt;/p&gt;&lt;p&gt;完全没听说过Phoenix的同学，请看Andy Ayers大大以前做的一个演讲：&lt;a href=&quot;http://slideplayer.com/slide/3602411/&quot; data-title=&quot;The Phoenix Compiler and Tools Framework&quot; class=&quot;&quot;&gt;The Phoenix Compiler and Tools Framework&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Phoenix是一个可以说定位跟LLVM颇为相似的编译器及分析工具框架，主要工作在语言中立的中端/后端。它完全使用C++/CLI编写，有native和CLI版binary，可分别供native C++与任意.NET语言调用。它有一套定义良好的IR以及操作该IR的API，IR有几个不同的抽象层（HIR -&amp;gt; MIR -&amp;gt; LIR -&amp;gt; EIR），适用于编译流程中的各阶段，而不像LLVM的主IR主要只适合中端使用，到后端则是相当不同的MachineInstr IR。Phoenix自带C/C++前端支持（可以读取Visual C++的前端C1生成的CIL / CxxIL）、MSIL前端支持（支持读取.NET Assembly），并且自带一个功能完善的PDB Reader以及从x86机器码提升到LIR的功能。&lt;/p&gt;&lt;p&gt;它最初的目标是作为一个编译器框架（工具箱）要可以支持多种场景以及多种目标平台。例如说，基于它可以实现替代Visual C++编译器后端的c2.dll；最初也计划用它来替代CLR中的JIT64作为新的server JIT compiler…后来这部分目标被放弃了；同时还要可以支持对C/C++以及.NET程序的各种分析与优化，提供插件化API让用户可以轻松自定义编译pipeline并插入自己的插件。&lt;/p&gt;&lt;p&gt;几个实际使用Phoenix的微软自家项目/产品：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;替代原本Visual C++编译器的c2的Phoenix-based c2.dll。用native C++编译版binary的Phoenix。&lt;/li&gt;&lt;li&gt;FxCop等Visual Studio里带有的代码分析工具。用CLI编译版binary的Phoenix。&lt;/li&gt;&lt;li&gt;跟Midori项目搭配的Bartok编译器后端。Bartok是一个用纯C#实现的MSIL-to-native AOT编译器以及运行时，可自举（是的，它带有用C#实现的GC，也用Bartok来编译自举）。最初Bartok跟Singularity的早期版搭配时是完全纯C#的，自己写了编译器的中端和后端。后来到Singularity的后期版本就接上了Phoenix作为后端，以期生成更高效的代码。这个设计也被后来的Midori继承了下来。&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;2008年6月，Phoenix发布了最后一个CTP SDK之后，就从外界的视野中销声匿迹了。然而当时参与了这个项目的大大们都很不甘心吧。当时它还在活跃开发中的时候是由MSR和VC产品组共同管理的；后来产品组不要管它了，它就变成MSR自己的项目了。作为一个MSR项目，或许开源的阻力会稍微小一点点吧…&lt;/p&gt;&lt;p&gt;拭目以待！&lt;/p&gt;&lt;p&gt;P.S. 一个八卦：当年Chris Lattner在MSR实习的时候还参与过Phoenix的研发。期间做过一个Phoenix-to-LLVM bridge，比较过两个compiler infrastructure的特性。不知道那段经历对LLVM的早期设计有多少影响呢？（或许Chris看了Phoenix之后对自己的作品更自豪了哈哈哈…）&lt;/p&gt;</description>
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">23515899</guid>
 <pubDate>Tue, 08 Nov 2016 17:30:08 +0800</pubDate>
@@ -609,15 +618,6 @@ if (this-&amp;gt;_vptr == vtable_of(Derived)) {
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">23233548</guid>
 <pubDate>Thu, 27 Oct 2016 16:54:38 +0800</pubDate>
-<media:thumbnail url="" />
-</item>
-<item>
-<title>[新闻] IBM J9 JVM开源的消息正式宣布了——OpenJ9</title>
-<link>https://zhuanlan.zhihu.com/p/22550958</link>
-<description>昨天（2016-09-20 PDT）在旧金山举办的JavaOne上，IBM正式宣布了即将开源其J9 Java虚拟机的消息。开源版J9 VM的名字是：OpenJ9！&lt;p&gt;几天前这边才刚发&lt;a href=&quot;https://zhuanlan.zhihu.com/p/22506697?refer=hllvm&quot;&gt;OMR/TR终于开源的消息&lt;/a&gt;，这不，J9开源说来就来。&lt;br&gt;&lt;/p&gt;&lt;p&gt;相关资料：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;JavaOne的演讲：J9: Under the Hood of the Next Open Source JVM [CON3014]&lt;/li&gt;&lt;ul&gt;&lt;li&gt;可惜这个演讲没有录像，只有演示稿：&lt;a href=&quot;http://www.slideshare.net/DanHeidinga/j9-under-the-hood-of-the-next-open-source-jvm&quot; data-title=&quot;J9: Under the Hood of the Next Open Source JVM - SlideShare&quot; class=&quot;&quot;&gt;J9: Under the Hood of the Next Open Source JVM - SlideShare&lt;/a&gt;。链接是好的，打不开的话请自备…&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;根据演示稿所述，IBM目前的计划是跟随IBM Java 9一同正式发布OpenJ9。掐指一算，这大概就是明年这个时候了吧…&lt;/p&gt;&lt;p&gt;以后可以看到更多关于J9内部工作原理的资料了。怎能不一颗赛艇！&lt;/p&gt;&lt;p&gt;引用上述演示稿中的一页：&lt;/p&gt;&lt;img src=&quot;v2-f311880185afab21c28ac3d804def914.png&quot; data-rawwidth=&quot;2494&quot; data-rawheight=&quot;1402&quot;&gt;&lt;p&gt;&amp;lt;- 清晰地表明了未来OMR、OpenJ9与IBM J9之间的关系：OMR将是最上游，OpenJ9基于OMR构建出一个完整的JVM，OpenJ9 + OpenJDK Java Class Library构成一个完整的Java运行时环境，然后在此基础上添加IBM的特化功能最终构成IBM发行版J9及其配套库。&lt;br&gt;&lt;/p&gt;&lt;p&gt;这跟OpenJDK与Oracle JDK之间的关系基本上是同一个模型。&lt;/p&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">22550958</guid>
-<pubDate>Wed, 21 Sep 2016 15:48:26 +0800</pubDate>
 <media:thumbnail url="" />
 </item>
 </channel>
