@@ -5,7 +5,165 @@
 <link>http://www.yinwang.org/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 16 Apr 2017 20:46:04 +0800</lastBuildDate>
+<lastBuildDate>Tue, 18 Apr 2017 18:54:50 +0800</lastBuildDate>
+<item>
+<title>为什么我的代码进入闭源状态</title>
+<link>http://yinwang.org/blog-cn/2017/04/18/close-source</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;为什么我的代码进入闭源状态&lt;/h2&gt;
+                            &lt;p&gt;我做出了一个可能让很多人遗憾的决定。从今天开始，我曾经开源放在 GitHub 上的代码，除了教育性质的代码，全部进入私有闭源状态。这些代码包括 PySonar2，RubySonar 等等，它们已经从 GitHub 上消失。从今以后，除非用于教育目的，我将不再开源任何代码。当然，你们已经下载的那些代码，仍然可以按照开源许可证免费使用，然而最新的改进以及将来的新产品，将全部闭源。做出这个决定的大部分原因，是因为多次对人心的失望。&lt;/p&gt;
+
+&lt;p&gt;PySonar2 一度处于开源状态，使用宽松的 BSD 和 Apache 版权。PySonar 的用户包括了 Google，Sourcegraph，还有其它几个我不能透露名字的，做专业代码管理工具的公司。很多人崇尚 BSD 这样的宽松版权，因为这样可以最大限度的传播代码。他们甚至把这作为了一种信仰，对于 GPL 这类严格限制商业用途的版权嗤之以鼻。甚至遮住眼睛对你说：“你的代码是 GPL 的，我不能看！看了之后写出一样的代码来，你会起诉我！” 然而多年的经历之后，我才发现 BSD 并不是好的开源版权，它其实会让代码的作者失去自由，而 GPL 才是真正保护软件及其作者的自由的。就像 &lt;a href=&quot;https://en.wikipedia.org/wiki/Richard_Stallman&quot;&gt;Stallman&lt;/a&gt; 说的，自由软件（Free Software）这个词里的“free”，是自由的意思，而不是免费的意思。直到今天，我才明白他这句话的真正含义。&lt;/p&gt;
+
+&lt;p&gt;为什么 BSD 版权会让人失去自由？这个故事要从 Sourcegraph 讲起……&lt;/p&gt;
+
+&lt;p&gt;Sourcegraph 是一家做代码管理工具的公司。他们初期的系统，其实只是在 PySonar 之上做了一个简单的 web 包装。把 PySonar 分析出来的信息倒到数据库里面，然后通过 web 方式显示给用户。PySonar 本身早就有一个演示程序，可以生成互动的 HTML，所以其实 Sourcegraph 能做的事情，我很容易就可以做到，只不过多一些杂活而已。Sourcegraph 并没有在 PySonar 之上增添很多的新东西，也无法做出 PySonar 这样的核心技术。他们早期的 UI 混淆不堪，有很多地方都是我给他们改了之后，才好了一点。但是因为我一直不在乎 Python 这语言，也没觉得这种工具有什么市场，所以一直没有动手开发一套完整的服务。不是不能做，而是没有动力去做。&lt;/p&gt;
+
+&lt;p&gt;BSD 的版权使得 Sourcegraph 的两个创始人可以完全免费，无限制的使用 PySonar。这样的结果，使得我无法为 PySonar 收到任何的回报。后来 Sourcegraph 的两个人找到我，想招我进去，帮助他们制造 RubySonar 和改进 PySonar。这样就开始了我们的不平等合作关系。Sourcegraph 使用了 PySonar，按理我不需要另外做什么，就应该有一定的回报。然而现在他们把我招进去作为员工，我必须要做点其它事情，才能得到回报，也就是说我反倒成为了他们的打工仔。几个月之后，我逐渐发现这两个人的肤浅和不尊重。最后，在得到了最重要的技术改进之后，两个创始人翻脸不认人，把我赶出了公司。&lt;/p&gt;
+
+&lt;p&gt;新的 PySonar2 里面已经没有了 Google 的代码。由于对人心的失望，我曾一度把 PySonar2 的版权改为 AGPL。这是 GPL 的增强版，它要求任何使用这些代码的人和公司，在对它做出改进之后，必须把改进的代码能让人下载。就算你在自己的服务器上运行这些代码，不把它作为产品提供给人，也一样需要让人能够下载到改进的代码。这并不是说你不能用这些代码，但如果作为一个公司，你不想让别人得到改进后的代码，那么你完全可以找代码的原作者，付给他一定的报酬，得到闭源使用这些代码的权利。也就是说，AGPL 能够让代码的作者在某些时候得到应有的回报。&lt;/p&gt;
+
+&lt;p&gt;把版权改为 AGPL 之后，出现了一个奇怪的事情。申请美国绿卡的时候，我找以前 Google 的上司要一封“工作经历证明”。这种证明本应是公司无条件提供的，甚至不应该需要通过上司去获取，而是人事部无条件签发。然而收到 email 之后，前上司却对我说：“我可以给你这个证明，然而我想让你给我提供一个好处作为交换。你的 PySonar2 现在改成了 AGPL 版权，我们想用你的代码，却因为这个版权没法用。你能否把版权改为 BSD 一类的，这样很多人都可以用它？” 面对这样的无理要求，我很鄙视，所以干脆没要 Google 的工作经历证明，直接找其它公司开了证明。&lt;/p&gt;
+
+&lt;p&gt;又过了一段时间，我感觉 AGPL 似乎确实限制了 PySonar 的应用，所以又把版权给换成了 BSD，进而换成了 Apache，一种比 BSD 还要宽松的版权。刚换成 BSD，我就发现有一家代码工具公司 fork 了 PySonar，最新的 commit 正好是改为 BSD 版权的时候。这个公司从来没联系过我，从来没感谢我，只是无声无息地用 PySonar 来赚钱。他们 fork 这个时候的 PySonar，应该只是用于法律保护，证明 PySonar 的代码在这时候是 BSD 版权的。&lt;/p&gt;
+
+&lt;p&gt;这样的作法不仅让我一阵心酸。曾经一直在用 PySonar 的另一家公司的创始人 Z，当天也发信来跟我说：“正在考虑给你版税呢，结果你就换成 BSD 了。哈哈哈！” 这是什么意思呢？本来都要付钱给你了，结果你把版权换成了 BSD，所以我就可以不给钱了，捡了个大便宜，就是这个意思吧。他最后还是象征性的给了一千美元，然而这相对于 PySonar 为他创造的价值，其实什么都不是。&lt;/p&gt;
+
+&lt;p&gt;我一直把 Z 作为朋友。平时如果他报告 PySonar 的 bug，我乐意免费给他改进。我给他介绍投资人，甚至给他介绍妹子…… 我并没有图他什么，并没有要求回报。我只是想积点德，将来总有好的后果吧。然而，前几天当我宣布离开美国的时候，我才发现我的好心，其实并没有好报。Z 发信息来，说看我想回国，所以想招我进他的公司。给我开了一个价，具体的数字我就不说了，不过这个工资，现在国内是个程序员都能拿到。我当时想，给这点钱，给他当个顾问，关键时刻给点方向，隔几个月改改 PySonar 的代码也就算了，结果他说要求我全职给他工作。笑他太抠门，结果得到的回答是嘲笑：“你嫌钱少，可是你做出过什么真正的产品吗？” 哦，是的，PySonar 不是真正的产品。你在外面做个包装界面，然后功劳都是你的了，我还得给你打工？换成 BSD 版权的时候就捡了一个大便宜，现在我要回国了，以为我落难了，趁火打劫想捡个超大便宜。说不定到时候还跟 Sourcegraph 一样跟我翻脸不认人…… 哎，我再也不相信任何免费用我代码的人了。&lt;/p&gt;
+
+&lt;p&gt;这就是我用 BSD 版权发行有价值的代码的辛酸史。有些人免费拿你的高价值代码去赚了钱，到后来却让你给他做廉价劳工。由于这个原因，从今天起，我的代码完全进入闭源状态。没有人再能免费得到 PySonar 最新的改进，没有人再能看见我最新的技术。另外为了防小人留一手，PySonar 其实一直以来都有一个未开源的分支，里面含有对于静态分析逻辑的重大改进，能够精确地发现很多 Python 程序里的 bug。从今以后，这一切都只能属于我私有，它们将会让我未来的产品立于不败之地。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2017/04/18/close-source</guid>
+<pubDate>Tue, 18 Apr 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>美国公司管理层常用心理技巧</title>
+<link>http://yinwang.org/blog-cn/2017/04/17/management-tricks</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;美国公司管理层常用心理技巧&lt;/h2&gt;
+                            &lt;p&gt;在美国工作过的人，都对美国公司管理层的心理战术深有感受。很多人都感觉跟上司之间有某种难以言表的问题，然而却又难以说清楚这到底是怎么回事。经历了这么多工作之后，我想把他们常用的技巧总结一下，以便广大员工对此提高警惕，采取相应的对策。&lt;/p&gt;
+
+&lt;p&gt;这篇文章还在继续写作中，这是一个草稿。我这里所指出的技巧，似乎在网上都搜不到。如果你在 Google 搜索，只能找到一些冠冕堂皇的题为『如何管理职工』之类的文章，把管理层说得简直无比善良，尊重人才，体贴又公平。当你真正理解了他们才发现，根本不是那样的。由于这个原因，我鼓励大家为这篇文章付款 3 美元，用以鼓励它的继续写作，付款方式请见主页右上方。&lt;/p&gt;
+
+&lt;h3&gt;树立虚假威信&lt;/h3&gt;
+
+&lt;p&gt;很多管理层的人，从跟你面试时开始，就已经开始树立自己的高大形象和威信了。只要你对公司表达一点点的欣赏，他们就会想办法在心理上压倒你。比如，当你表达对某公司的尊敬时，他就会开始说：“对的，这是一个成熟的公司。我在这已经工作了 14 年了，这表示我喜欢这个公司。当年，我是 A 系统的构架师，我还是 B 系统的构架师，我跟某某牛人一起工作……”&lt;/p&gt;
+
+&lt;p&gt;等你进了这公司，从人事部（HR）管理系统里面一查，才发现这人的履历里面根本没有什么 A 系统和 B 系统构架师的经历。后来从同事那里听说，他只不过是参与制作了 A 和 B 里面的一小部分，根本不是什么构架师，而且他参与的那部分代码，直到许多年后的今天还有 bug……&lt;/p&gt;
+
+&lt;p&gt;虽然你心里知道，然而上司总假设你不知道，于是在以后的日子里，他就可以利用这些虚假的资历，占据对话的有利地位。&lt;/p&gt;
+
+&lt;h3&gt;卑微经历的谎言&lt;/h3&gt;
+
+&lt;p&gt;管理层想给你一个比以前还低的职称（title），你对此提出异议，他们有一种忽悠技巧可以让你接受它。上司可以这样说：“你知道吗，小公司的职称都是乱来的，不算数的。我当年在小公司，职位是 VP engineering。进这大公司时，人家只给了我个 manager 的职位。可是因为公司尊重人才，再加上我的出色表现，很快就升到了现在的职位。所以关于这个职称你不用担心……”&lt;/p&gt;
+
+&lt;p&gt;等你进了这公司一查 HR 系统，发现他进公司时的职位哪里是 manager 啊，他一进来就是 director of XYZ。 上司为自己制造这种虚假的“卑微”和“奋斗”经历，目的是让你接受不公平的待遇，让你拼命工作而已。&lt;/p&gt;
+
+&lt;h3&gt;建立对比参照物&lt;/h3&gt;
+
+&lt;p&gt;选择另外一个人作为你的“参照物”，在需要的时候，把这个人抬出来跟你比，以达到某种目的。这个人一般是大家“公认”水平很高，或者职称很高的某个人。为了方便，下文把这个人称为“小强”。&lt;/p&gt;
+
+&lt;p&gt;管理层首先假设小强比你强，价值比你高。虽然事实也许不是这样，但他们总是会想方设法让他显得比你强，比如夸他以前做过多么了不起的事情，让你在不知不觉中接受这个假定。夸别人的时候总是不心虚的，所以把他吹上天也没有自大狂的嫌疑。他到底做没做那些事情，你也无从对证。然后，他们就可以随时在你面前提起他的名字，借此来达到某种目的。&lt;/p&gt;
+
+&lt;p&gt;举个例子，上司可以让你去做一些高手不愿意做的杂活，比如为团队的代码配置一个测试工具。作为一个编程高手，刚进公司代码都还没碰呢，就被叫去干这种杂活，所以你对此一点不感兴趣。而且这工具由于设计很差，问题很多，耗费你很多时间，却收效不多，非常没有成就感，显然这不是一个聪明人愿意做的。&lt;/p&gt;
+
+&lt;p&gt;当你对此提出异议的时候，上司就会苦口婆心对你说：“这种杂活是我们每个人都应该会做的。你看看小强，人家编程水平可以说是超一流了，然而当年我们的连续集成（CI）系统，那么无聊的东西，都是他设置的。” 这样你就没话可说了。然而上司没告诉你的事情是，小强当年是自己对那 CI 系统感兴趣，所以他就去做了，那并不是管理层强制分配给他的任务。而对于你，这是强加给你的任务，你不感兴趣也得做。而且小强设置的 CI 系统，比你现在折腾的这个东西容易配置，没那么多毛病，而且对于团队意义挺大。你的情况跟小强的其实没有可比之处，然而这种突如其来的“对比心理压制”，让你措手不及，只好默认接受。&lt;/p&gt;
+
+&lt;p&gt;这里我要指出很多人的一种误区，他们认为杂事必须得有人做，你不做我不做，难道让老板做？所以老板让任何人做任何事都是可以的。这种想法是不对的。公司里自然有不同水平的人，杂事一般都应该交给水平比较低的，或者刚毕业的新手去捣鼓，或者正好有人感兴趣，那当然最好。水平高的人请进来，真的不是你叫他做什么都可以的。他完全应该拒绝给你端茶倒水，给你跑腿买机票，对不对？所以他也可以拒绝做他觉得不符合自己身份和职责的事情。我见过有些老板，自以为有钱能使鬼推磨，不尊重人才，所以到最后没人愿意给他做事。&lt;/p&gt;
+
+&lt;p&gt;另外一个例子。评职称的时候，你做了一个很好的成果，然而上司可以对你这样说：“我觉得你的成果还没有到让你升职成为 principal 的资格。当年小强做了那个什么什么，比你这难度还要大，人家当时才升了一级而已……” 小强那东西的价值和难度，其实谁也不清楚，但这样跟你一比，就让你沉默接受了他给你的评定。&lt;/p&gt;
+
+&lt;p&gt;把人拿来互相比，是一种不尊重人的作法。管理层就是通过这种比较的方式，来压低人的价值。在 A 面前说 B 更强，在 B 面前说 A 更强。因为 A 和 B 信息不通，结果 A 和 B 的价钱就都给压下去了。这就跟你买菜的时候，跟 A 家的菜农说：“B 家这个菜才卖 2 毛钱一斤。你怎么卖 3 毛 5，也太贵了！” 而其实 B 家的价钱是 5 毛，或者 B 家的菜不新鲜…… 菜农都知道这种技巧，所以他们会对你说：“一分钱一分货。你嫌贵就去 B 家买好了！” 我觉得广大受过高等教育的人才，也应该有这种一口价的霸气。&lt;/p&gt;
+
+&lt;p&gt;另外，上司还可以用参照物来做“激将法”，使得你更加卖命的工作。把小强做的东西吹得神乎其神，拿来跟你做的东西比。做技术的人很多都争强好胜，你想要做出胜过小强的东西，所以你就更加拼命地工作。等你做出来，就让公司赚了。最后你仔细一看小强做的东西，其实做得很水……&lt;/p&gt;
+
+&lt;h3&gt;待续……&lt;/h3&gt;
+
+&lt;p&gt;当然管理层的招数不止这些，我也还在总结中。如果你有其它的经验，欢迎来信给我指出：shredderyin@gmail.com。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2017/04/17/management-tricks</guid>
+<pubDate>Mon, 17 Apr 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>求带猫回国经验</title>
+<link>http://yinwang.org/blog-cn/2017/04/15/monet</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;求带猫回国经验&lt;/h2&gt;
+                            &lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/monet.jpg&quot; width=&quot;300&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;我亲爱的小莫奈要跟我一起回国，我希望给他一个尽量舒适的旅行。目前只搞清楚疫苗和健康证明方面的信息，但是航班方面还不是很清楚。能带宠物进入客舱的航班貌似只有 UA 的，然而这次 UA 的恶劣行径，再加上以前坐 UA 的经历，让我不可能再光顾他们。&lt;/p&gt;
+
+&lt;p&gt;中国的航空公司貌似都只能把宠物放在有氧货舱，但是关于这个有氧舱和旅行用的笼子，我还有挺多疑虑，害怕出问题。也不知道宠物机票等操作的顺序和方法。网上的资料很多啰里八嗦，搞不清楚重点，也不知道有没有过时。所以还请有亲身经验的高手，或者知道相关论坛的人给我指点一下，发信到 shredderyin@gmail.com 即可。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2017/04/15/monet</guid>
+<pubDate>Sat, 15 Apr 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>经验和洞察力</title>
 <link>http://yinwang.org/blog-cn/2017/04/14/experience-and-insight</link>
@@ -49,6 +207,499 @@
 <author>yinwang0</author>
 <guid isPermaLink="false">2017/04/14/experience-and-insight</guid>
 <pubDate>Fri, 14 Apr 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>一个人的罢工</title>
+<link>http://yinwang.org/blog-cn/2017/04/11/strike</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;一个人的罢工&lt;/h2&gt;
+                            &lt;p&gt;世界上有一种罪恶，叫做“不计回报的付出”。我不再是它的作恶者之一。&lt;/p&gt;
+
+&lt;p&gt;看了我上一篇&lt;a href=&quot;http://www.yinwang.org/blog-cn/2017/04/06/update&quot;&gt;文章&lt;/a&gt;之后，可能有人在笑我，既然受到那样不合理的礼遇，干嘛还要再等几个月，等到被微软完全榨干价值才回国？我也是这么想的，所以我已经于昨天开始，无声无息地开始了“一个人的罢工”，我已经停止对微软提供一切工作和服务。罢工会一直进行到微软提供合理的报酬（这样也许我可以给他们提供远程服务），或者裁掉本人为止。&lt;/p&gt;
+
+&lt;p&gt;可以说，微软用极其低廉的价钱，已经从我这里得到了多出许多倍的价值。我写出的代码，其难度和质量，解决的问题，是微软的 principal 级别都难以做到的，然而我却拿着 SDEV2 的职称和 senior 的工资。由于职称工资严重的不符合本人水平，随之带来的是尊严的失去。随着时间的推移，我越来越感觉到这个公司的贪婪和狡诈，感觉自己并没有受到尊重。&lt;/p&gt;
+
+&lt;p&gt;在微软，我没有受到专家的礼遇。事情做的越好越多，越是有人催你做更多的事。我没有感觉到欣赏，感激和尊敬。只感觉到有人在不断地提醒你：工期将近。催你写注释，催你写测试，以为这样你的代码就能被完全据为己有。为了满足事先设定的日程计划，很多时候还必须加班，周末加班，晚上加班，这是极其不合理的。如果你的计划不能在一天 8 小时之内完成，那么它就是霸王计划。&lt;/p&gt;
+
+&lt;p&gt;经济学告诉我们，一分钱一分货。公司付给人固定的工资，他们就应该得到固定数量的服务，而不应该得到更多。设定很紧的工期，导致了很多人超时工作，他们付出了时间，却没有得到补偿。特别像我这样的专家，在短时间内做出太多的价值，却拿跟普通人一样的回报。这就像是外科专家被作为包月家庭医生，太不划算了。&lt;/p&gt;
+
+&lt;p&gt;这种“不计回报的付出”，使得资本家用极少的金钱买到太多的价值。这不仅导致自身的贬值，而且还会导致其他人失业，所以这种行为损人而不利己。由于这个原因，我必须立即停止对微软提供廉价服务。&lt;/p&gt;
+
+&lt;p&gt;外科专家用白菜的价钱给你换了一颗心脏，还没有复诊呢，就显示出各种抠门和不尊重，所以他就不管你了，听天由命吧。我的离去会对项目造成不小的打击，然而这是一个深刻的教训。负责核心技术的 architect 走了，你们没能留住他，丢下无人敢碰的代码。现在好不容易有个人能够一眼看穿这代码在干什么，你们又各种抠门和不尊重，然后他又走了。这样不尊重人才，不失败才怪呢。&lt;/p&gt;
+
+&lt;p&gt;由于这个举动，我可以在两个月之内返回中国。在中国，我将拒绝一切类似这样的不公平交易，以及任何不尊重人的价值的行为。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2017/04/11/strike</guid>
+<pubDate>Tue, 11 Apr 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>更新</title>
+<link>http://yinwang.org/blog-cn/2017/04/06/update</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;更新&lt;/h2&gt;
+                            &lt;p&gt;几个月没有更新了，有些人来问我为什么，我也没有回他们。显然我不会因为有人来问就写东西，我写东西完全是因为我自己想写，它不受任何人的影响，不管是好心人还是别有用心的。不过现在回答一下，我没写文章是因为我在忙着写很好玩，很有价值的代码。&lt;/p&gt;
+
+&lt;p&gt;我知道这个博客的影响力很大，但我对此所产生的“名气”一点都不在乎。以前公司的同事有时见到我，说：“我听说你在网上很有名啊！介绍几个粉丝来我们公司，我们就走向成功啦！” 我听了苦笑一声。因为对于我来说，“网上有名”其实是一种贬低。想利用我的名气，说明他们不理解我最重要的价值。可能是好心的恭维，然而这种不理解真正价值的恭维，听着很不是滋味。我给公司提供的实实在在的价值，有目共睹，有些人却只能看到名气，这也许说明他们的内心也只有名和利这些东西吧。我王垠没有粉丝，也不需要粉丝。&lt;/p&gt;
+
+&lt;p&gt;虽然我不在乎甚至讨厌“名气”，但我确实在乎“影响力”。我在乎它，是因为很多人能够看到我的文字和想法，这些会对这些人以至于整个社会产生深远的影响。至于这些改变是不是归功到我身上，我根本不在乎。我在乎的是，我的想法真正的改变了很多人的思维，改善了社会风气，最后使我自己也获益。所以也许我最初就不该用自己的真名，而应该使用一个笔名，这样也不至于给我的事业带来影响。但既然这已经发生了，我也只有认命了。我死都不怕，还怕招揽几个恶名吗。实际上名声很难掩盖我真实的能力，就像黄药师的名声，也很难给他造成实际的影响。当然，我的能力是盖世无双的，我可以心平气和的说出这句话，不带半点虚荣。这不需要任何人的认可，因为世界上已经没有任何人有资格来认可我。&lt;/p&gt;
+
+&lt;p&gt;这种奇妙的能力，不但最初在 Google 得到了体现，在 Coverity，Sourcegraph，Shape Security，一次次的巧妙发挥，最近又再一次的在微软得到了发扬光大。我不得不说，微软是少有的踏踏实实，用心做技术的公司，很少有瞎指挥的情况。也只有这样的公司，才可能从最底层开始做独立的技术。在微软，我的团队的产品是一种企业级存储设备，名叫 StorSimple。这东西看似跟我的特长程序语言（PL）关系不大，然而我从来就没有局限于 PL，我的洞察力深入到了计算机科学的各个领域。这是一种艺术，是不局限于领域的才能。任何我接触到的东西，都被揭示出其本质，揭开肤浅复杂的表面现象，被改造得更加简单，更加可靠和精密。&lt;/p&gt;
+
+&lt;p&gt;在微软，我从头构造的基于 B+ 树的核心数据结构，被巧妙地集成到一个复杂的含有大量并发同步问题的系统里面，正在经受企业级数据的千锤百炼，从来没出过差错。存储设备是一个几乎完全不可以出 bug 的领域，因为一旦用户的数据因此丢失或者发生错误，后果将是灾难性的，不可逆转的，不是重启一下机器就可以了结的。用户会离你而去，再也不会回头，这跟飞机因质量问题而坠毁的后果差不多。&lt;/p&gt;
+
+&lt;p&gt;不客气的说，我做的这玩意还真是这产品的核心部件，你可以把它想成是一个“云”里的文件系统（file system）。这是之前走掉的一个 architect 留下来的精(Lan)品(Tanzi)，复杂不堪，还可以用，但它简陋的数据结构无法支持大规模的数据量。把它精确地换成像 B+ 树这么复杂的数据结构，就像做个心脏置换手术，不能出一点差错，不能影响其它组件的运行。这是微软这方向上经验丰富的 principal engineer 们联手也难办到的事情。因为这个原因，再加上它至关重要的核心地位，所以 architect 走后一直没人敢碰这块代码。哎，为什么每次我都接手这样的事情……&lt;/p&gt;
+
+&lt;p&gt;光是写一个没有 bug 的 B+ 树，其实都够让绝大部分的程序员汗颜，更不要说把它集成到 StorSimple 的“异构云”（hybrid cloud）构架里面去。有个写过 B+ 树的 principal engineer 喜欢跟我咋呼要“先写测试”，可我就是直接两天把代码给写出来了，然后再写了一个测试，就已经到了无懈可击的地步。代码优雅而通用化，不带有任何业务逻辑，可以原封不动用到其他地方，比如数据库索引。像 B+ 树这么复杂的数据结构，你还真是很难把它写得简单正确还通用，但我洞察到了精髓，所以稍加思索就办到了。这是我平生第一次写 B+ 树。&lt;/p&gt;
+
+&lt;p&gt;微软有一些厉害的 principal engineer，他们的 B+ 树代码我看过了。实话说吧，虽然可以用，但非常繁复没法看，很难确信它是正确的。每次用到新的地方，你都得改动挺多代码才行，不能作为“库代码”来调用。而且你一改可能就给改错了，难怪跟我说需要很多很多的测试，还说要先写测试再写代码什么的…… 当然我说这些完全没有贬低微软工程师的能力，有个会写 B+ 树的 principal engineer 跟我关系相当好，初期还给了我挺好的参考资料，所以我无意贬低他。不过呢，写代码不能超越王垠，是再正常不过的事了，不是吗？所以当然不是耻辱 :P 相比其它肤浅的公司（Google，Facebook……），微软的好些人显然是有两刷子的，兢兢业业踏踏实实的在做自己的工作，而且在必要的时候给了我一些启发，人也相当好。可是在代码的优雅，简单和可靠性上，世界上还真没有人可以跟王垠抗衡。&lt;/p&gt;
+
+&lt;p&gt;微软工程师确实有很多好人，不过呢公司的官僚系统跟人其实是两码事。我也看到了，我创造的价值已经大大的高于我的薪酬。微软这公司给我的级别（别去查了，是 SDEV2）和薪资，完全就是一个笑话。最初就是忽悠的，我在之前公司就已经是 senior，早就已经对这 title 很不满意了，还给我降一级，说你知道微软要升到 senior 级别需要多少经验吗，你要有微软的经验才行，不是其它地方的经验！说先给你个低点的 title（当然工资比以前高），进来半年以内升职，到现在 9 个月了没有一点动静，却跟你说什么：“Review 的时间还没到，要等到 9 月去了。” 去年 7 月中进来的，年底 bonus 都没有，说：“公司规定不满半年的没有 bonus，自己看看手册吧。” 我管你公司规定如何，我差几天就工作了半年，提供了这么多价值，一点 bonus 都没有，还得等一年？你玩我吧！&lt;/p&gt;
+
+&lt;p&gt;所有这些什么“公司规定”，其实都是借口，是“catch”，它们就像有些信用卡条款下面的小字，你不仔细看就以为小便宜就在眼前，结果根本不是的。那些小字写的是，你必须满足这样那样的条件才可以！所有这些诱惑的作用，就是把你变成一头拉磨的驴子。在你的头顶上架个杆子，上面挂着食物。你想吃到这眼前的食物，可是你每走一步这食物就随着你往前挪一步，所以你就总也吃不到，只是不停地给别人拉磨。总有人传言说，微软升职好快哦，看那谁进来那么低职位，很快就变成 principal 了。轮到你的时候，就发现完全不是那回事。等你去查，发现那个人升职根本就没那么快，好几年了才升了一级。于是你醒悟了，原来这些都是广告吧？&lt;/p&gt;
+
+&lt;p&gt;而且还有人时不时的提醒你一下，好像在说，你不应该得到我应有的回报。比如：“看人家这个（拿L1签证工作的廉价劳动力）印度小妹，也做出了很了不起的成绩，人家才这个级别……” 很是拿 title 当回事，张口闭口“看看人家某 principal……”，“你要是 principal 才可以 remote……” 还喜欢引用某 principal 的话，奉为真理一样。吃饭的时候，跟我关系不错的 remote principal 本来过来跟我坐在一起，然后就被坐在另一桌的大老板叫过去了，说：“过来过来，别跟他们浪费时间。” 这 principal 只好跟我道歉之后走掉了。于是几个 principal 单独一桌，跟大老板一起吃，我和其他人另外一桌。这大老板呢，自以为级别高点（partner），从来不正眼看人，也从来不直接跟我谈话。好像很是高高在上，从几个台阶上面看我的样子。&lt;/p&gt;
+
+&lt;p&gt;虽然口头上的政策是所有级别一视同仁，然而久而久之你就发现一些微妙的区别。有些话，管理层是不敢对 principal 级别的人说的，然而他们却可以对较低级别的人说，而这些话又正好表现出微妙的不尊重。本来自己做不出来的东西，却偏要显得自己能做，以保持自己的权威，显得在指导你似的。有次居然当众对我说，你遇到了困难要告诉大家，我们这么多经验，随便帮你看一下就解决了。哈哈，我倒是想看看王垠都觉得棘手的问题，你们怎么解决！实话说吧，那几个 principal 经常都是在受我指导，走弯路的时候都是我在跟他们争论，及时制止，虽然有些时候不听，继续走弯路。当然，管理层绝对不会忘记的一件事情就是督促写注释，写测试，而且用的是对奴隶说话的口气，说：“你的代码注释太少了，要是你走了就没人能理解了。要是你想能放假，那就要写注释，否则没人能帮你维护代码，你就永远放不了假！” 说这话语气是调侃而温和的，然而听到好几次之后你就发现，这里面的含义是狠毒而贪婪的。如果是个 principal engineer，就没人敢叫他写注释！&lt;/p&gt;
+
+&lt;p&gt;这一切都让我心里很不是滋味。这种情况，不仅我这样顶级专家难以接受，这是任何一个文明人都不应该接受的。我压根就从来没把 title 当回事，我对待 principal engineer 和印度小妹是同样的尊重。张口闭口 principal，那倒是叫你的 principal engineer 写出可以跟我匹敌的代码来啊？实话说吧，门都没有。世界上就只有一个人可以做到这个事情。微软的所有 title，全世界公司和大学的所有 title，还真没有一个是可以衡量本人的。管你什么 principal, partner, distinguished…… 只要跟我一聊，我就知道他脑子里有多少货。资本主义根深蒂固的劣根性就是利用这些标签，肆无忌惮的贬低人的价值，拿白菜的价钱买白粉。你稍微谦虚一点，就有人真把自己当回事了，开始用“老资格”的口气说话。这不是微软一家的问题，然而不管在哪里出现都是值得鄙视的。&lt;/p&gt;
+
+&lt;p&gt;本来进微软的时候我就想，这是我在离开美国之前想看的最后一个公司。所以呢，我的微软之行已经达到了它的目的，也快要到达它的尽头。对于 Google 我只有鄙视，而对于微软，我觉得技术能力还是有那么几刷子的。如果 Google 得分是 D 的话，那微软倒是可以得 B。然而在这里，技术能力确实没法得到公平的回报和尊重。过了这么几个月，我觉得也该是寻求自身价值应有回报的时候了。在美国待了十年，我已经很清楚，美国根本不是一个尊重事实和人才的国度。从来都不是，换了总统也不会是。这个虚伪而邪恶的国家，正在继续走向昏庸和毁灭。这一切，我已经看得很透了。&lt;/p&gt;
+
+&lt;p&gt;我的心，已经飞回到了中国，飞回到了家乡，飞到了北京。我每天都在想象跟老朋友们坐在一起喝茶聊天，感受城市生命的律动。这一切，都是在美国永远得不到的，我命中注定要在中国生活。当然我知道国内的人也很复杂，很多制度不健全，但中国之大，我相信会遇到很多靠谱的人。我不会再给任何公司工作。我会创造一个伟大的公司，它会创造世界上最精致的产品，它会给真正有价值的人相应的回报和尊重。由于一些现实的问题，回国的日子还要等几个月，不过应该在年底之前。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2017/04/06/update</guid>
+<pubDate>Thu, 06 Apr 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>精英主义的灭亡</title>
+<link>http://yinwang.org/blog-cn/2017/01/02/elitism</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;精英主义的灭亡&lt;/h2&gt;
+                            &lt;p&gt;精英主义是一种精神疾病，是一种心理变态。得了这种病的人，有不同的轻重程度。程度轻的人，也许只是张口闭口的“名校”和“牛人”。而程度重的人，最后可能成为反人类的战争罪犯。希特勒就是一个严重的精英主义者，他认为自己是精英，“劣等民族”的人都应该死。&lt;/p&gt;
+
+&lt;p&gt;这些所谓的精英，在智力上，体力上，学识上，人格上，都没有什么值得称道的地方。他们被称为“精英”，往往是通过家族关系，或者舔人屁股，玩弄权术。还有些人，尽其所能包装自己，把自己跟名人或者富豪挂钩，写回忆录，请人给自己写传记，这样别人就以为他是天才，是杰出人物。而他们其实并没有什么特别，也许还不如一般人。&lt;/p&gt;
+
+&lt;p&gt;精英们最在行的事情，其实是拉关系，互相吹捧，唱高调，包装自己。他们在心理上是弱小的，他们必须依赖于名校或者大公司的牌子，依赖于校友的认可，依赖于那些身居高位的人的赞许和提拔。他们很多人不过是某些幕后黑手的木偶人而已。有句话说得好：宠为下，得知若惊，失之若惊。如果你需要身居高位的人的认可，那么你其实是一个卑贱的人。&lt;/p&gt;
+
+&lt;p&gt;精英主义者集结的地方，被中国人叫做“世界一流大学”：哈佛，耶鲁，&lt;a href=&quot;http://www.yinwang.org/blog-cn/2014/01/04/authority&quot;&gt;Cornell&lt;/a&gt;…… 进入这些大学的人，一般都是通过关系或者金钱，却吹捧自己是因为才能出众而进入那些学校。等你亲自进去一看，发现里面的教授很少有真知灼见，上课照本宣科，学生忙着抄笔记，学得一知半解，作业互相抄袭，考试焦头烂额，蒙混过关。&lt;/p&gt;
+
+&lt;p&gt;这些教授倒是对宣传工作相当在行，屁大点研究，总要让纽约时报之类的搞一下政治宣传，然后在院系主页上贴个告示，看哪我们教授的研究被纽约时报报道了！这些人的实际水平，比起很多州立大学里潜心做研究的不知名学者，差不止一个档次。很多中国人都不知道，纽约时报，华盛顿邮报，CNN 之类，其实都是婊子媒体，出钱或者有关系就给你发文拍片。纽约时报的老板就是个毒贩子，黑帮老大。&lt;/p&gt;
+
+&lt;p&gt;实际上，“世界一流大学”这个名词，你只能在中国听到。在美国没有人使用这种词汇，甚至像“著名的”（prestigious）这种词都很少用。如果你进入普通的州立大学，会发现没有人在乎哈佛，耶鲁，Cornell 这些“常春藤联盟”。如果你老是提这些名字，会招致人的反感。因为这些大学的人都知道精英学校是什么东西，根本不屑于提到他们。&lt;/p&gt;
+
+&lt;p&gt;精英大学不但以无能著称，它们比你现象的还要可怕许多。这些学校里面一般都存在一些“秘密组织”，比如 Cornell 的 &lt;a href=&quot;https://en.wikipedia.org/wiki/Quill_and_Dagger&quot;&gt;Quill and Dagger&lt;/a&gt;。这些组织就是精英聚集的场所。为什么要是秘密的呢？因为他们会进行一些见不得人的犯罪活动，导致成员之间互相抓住把柄，从而形成共生死的团伙。甚至有些名校的&lt;a href=&quot;https://www.youtube.com/watch?v=cKy2c-itZEg&amp;amp;feature=youtu.be&amp;amp;t=1255&quot;&gt;整个学院&lt;/a&gt;，都被罪犯花重金包下来，成为培养他们接班人的摇篮。所以美国的名校，其实跟娼妓没什么两样，名气越是大的越是这样。&lt;/p&gt;
+
+&lt;p&gt;很多进入白宫的精英，就是从这种名校秘密组织出来的，比如臭名昭著的克林顿国家安全顾问 &lt;a href=&quot;https://en.wikipedia.org/wiki/Sandy_Berger&quot;&gt;Sandy Berger&lt;/a&gt;，就是 Quill and Dagger 的成员。在 &lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/12/01/september-eleven&quot;&gt;9/11 恐怖袭击&lt;/a&gt;发生之后，Sandy Berger 进入国家档案馆，偷走关于克林顿与 9/11 之间关系的资料原版，并且销毁。这种销毁证据的做法，说明克林顿跟 9/11 肯定有扯不清的关系。&lt;/p&gt;
+
+&lt;p&gt;从这个现象，你也许可以理解为什么很多精英大学容易出现学生自杀的事件。比如上次新闻报道说，一周之内有三个学生从 Cornell 校内同一座桥上跳下去&lt;a href=&quot;http://www.nytimes.com/2010/03/17/education/17cornell.html&quot;&gt;自杀&lt;/a&gt;，结果后来派了警察在桥上日夜巡逻。三个学生几乎在同一时间想不通，在同一地点寻短见，这也未免太巧了点吧。如果你研究过历史就会知道，美国很多所谓的自杀案件其实都是谋杀，只是用自杀来掩盖真相。所以这些学生到底是自杀还是谋杀，谁都说不清楚。想要把孩子送去精英大学读书的人，真的应该考虑一下他们的安全了。&lt;/p&gt;
+
+&lt;p&gt;在精英大学上过研究生的人，大可不必觉得我是在嘲笑你们。精英主义者心目中的所谓“校友”，一般只包括本科阶段的同僚。如果你跟我一样在“二流学校”本科毕业，进入精英学校读研究生或者博士生，他们不会把你当成校友。相反，他们会歧视你，觉得你是去那里打工的，甚至嘲笑你好像什么都不懂，怎么进来的。这是因为本科是塑造人格和价值观的主要阶段，如果你的本科生活是在其它学校度过的，那么你并不具有这种“精英品质”，就算你之后进去读完博士也不会改变这个观念。这就是为什么有些中国人在国内本科都快毕业了，却退学去美国精英大学再读一个本科，因为这些人很想要成为精英，进入“主流社会”。&lt;/p&gt;
+
+&lt;p&gt;然而现在我们已经看清楚了，美国的主流社会和精英们的本质，我们知道了他们在干些什么样的事情。所以如果你不是精英大学官方意义上的校友，反倒没有了这层嫌疑需要洗清。&lt;/p&gt;
+
+&lt;p&gt;美国精英们的“宣传部”，叫做好莱坞。好莱坞通过形象包装，形成偶像崇拜，好莱坞电影就是给人们洗脑的工具。好莱坞明星们给人们灌输错误的标准：审美标准，道德标准。说实话，好莱坞这么多女影星走红地毯，就找不出几个好看的。可是由于他们给人洗脑，以至于很多天生丽质的女生从小耳濡目染，居然觉得好莱坞那些丑女明星比自己美，去模仿她们的化妆和衣着样式，甚至想去做整形手术，这样可以变得更像她们。这些美丽的女孩因为明星崇拜，失去了对自己的尊重和自信，真是可惜。&lt;/p&gt;
+
+&lt;p&gt;说到道德，你可能已经听说了，好莱坞的明星们几乎每一个都吸毒，很多还进行更可怕的犯罪活动。有一种极其变态的犯罪活动，叫做恋童癖（&lt;a href=&quot;https://en.wikipedia.org/wiki/Pedophilia&quot;&gt;pedophilia&lt;/a&gt;），或者直接一点，叫做性虐儿童（child sex abuse）。我们都听说 &lt;a href=&quot;https://youtu.be/iZ0B4jjNdjM?t=2963&quot;&gt;Michael Jackson&lt;/a&gt; 被指控强奸男童的事，后来又莫名其妙死了，这表现出团伙成员之间的内斗现象。有趣的是，好莱坞有很多的明星最后都说是自杀或者吸毒过量死亡。他们到底是自杀还是谋杀，也很值得怀疑。&lt;/p&gt;
+
+&lt;p&gt;恋童活动在好莱坞非常的&lt;a href=&quot;https://www.youtube.com/watch?v=roW238dfUUk&quot;&gt;普遍&lt;/a&gt;，它还经常跟邪教仪式（satanic ritual）结合在一起，这些人会在仪式上当场宰杀儿童用来“祭祀”。这种丧尽天良的可怕罪行，在很多其他国家是要判死刑的，美国政府却几乎完全不管，因为白宫的官员们在干同样的事情。这不是危言耸听，如果你仔细研究，就会发现这就是全世界的精英团伙里面正在进行的：&lt;a href=&quot;https://www.youtube.com/watch?v=ekejhDu-biQ&quot;&gt;美国白宫&lt;/a&gt;，&lt;a href=&quot;https://www.youtube.com/watch?v=NUfJXdMIRGw&quot;&gt;英国王室&lt;/a&gt;，&lt;a href=&quot;https://www.youtube.com/watch?v=roW238dfUUk&quot;&gt;好莱坞&lt;/a&gt;，&lt;a href=&quot;https://en.wikipedia.org/wiki/Catholic_Church_sexual_abuse_cases&quot;&gt;天主教会&lt;/a&gt;，世界一流大学……&lt;/p&gt;
+
+&lt;p&gt;美国这几年每年有超过 40 万儿童失踪，每年车祸死亡的人数才 3 万多。失踪儿童数量比车祸死亡人数大十倍以上，这是不正常的。这些失踪的儿童到哪里去了？另外，美国有些儿童领养中心和孤儿院，被查出在从事贩卖儿童性奴（child sex trafficking）的生意。这些人还在落后和受灾国家办&lt;a href=&quot;http://www.usapoliticstoday.com/hillary-clinton-kids-wikileaks-nuke-hillary-see-potential-clinton-foundation-sex-trafficking-ring&quot;&gt;孤儿院&lt;/a&gt;，说是人道主义援助，结果被当地警察发现他们带走的小孩都是有父母的…… 你不觉得毛骨悚然吗？&lt;/p&gt;
+
+&lt;p&gt;反正看到这一切的时候，我的世界观都被颠覆了。我真希望这只是一场还没醒来的噩梦，可是无数的证据和证人都说明这就是现实！&lt;/p&gt;
+
+&lt;p&gt;精英们一直以来都依靠媒体来掩盖自己罪恶的真相，给人洗脑，冠冕堂皇的让人崇拜。而这次的美国总统大选，导致了这些主流媒体的轰然倒塌：CNN，华盛顿邮报，纽约时报，时代周刊，BBC，…… 我们现在知道，这些媒体都是被庞大的恶势力网络控制的。&lt;/p&gt;
+
+&lt;p&gt;在互联网发达之后，精英们也利用网络媒体来对公众进行洗脑。他们的帮凶包括 &lt;a href=&quot;https://twitter.com/wikileaks/status/809305627319291906&quot;&gt;Google&lt;/a&gt;，Facebook，Twitter，…… 这些社交媒体不但在政治上帮助这些精英搞宣传，而且帮助他们屏蔽对他们不利的真相，把这些真相都叫做“&lt;a href=&quot;https://www.facebook.com/zuck/posts/10103253901916271&quot;&gt;假新闻&lt;/a&gt;”。而事实是，CNN 之类的主流媒体才是假新闻。如果你仔细研究一下，会发现 Facebook 和华盛顿邮报的幕后支持者，其实是作恶多端的 &lt;a href=&quot;https://www.youtube.com/watch?v=oFH3uLuNL5Y&quot;&gt;CIA&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;真正独立而自由的“另类媒体”，比如 &lt;a href=&quot;http://www.infowars.com/&quot;&gt;InfoWars&lt;/a&gt;，&lt;a href=&quot;http://www.wnd.com/&quot;&gt;Breitbart&lt;/a&gt;，&lt;a href=&quot;http://www.prisonplanet.com&quot;&gt;Prison Planet&lt;/a&gt;，再加上异常强大的 &lt;a href=&quot;https://wikileaks.org/&quot;&gt;WikiLeaks&lt;/a&gt;，通过多方面的证据，揭示了精英们的真相。是这些敢于说真话的人，用他们的&lt;a href=&quot;https://en.wikipedia.org/wiki/Andrew_Breitbart#Death&quot;&gt;生命&lt;/a&gt;和&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/11/22/assange-donation&quot;&gt;自由&lt;/a&gt;，换来了世界局势的转机，同时导致了精英主义走向灭亡。现在听说某人是“精英”，我都得先考虑一下他跟这些龌龊的事情有没有关系，上网搜索调查一下。&lt;/p&gt;
+
+&lt;p&gt;未来的世界属于每一个平凡的人，只是他们还在熟睡，旁边的吸血鬼们正在黑暗中选择他们的猎物…… 当真相的阳光照进来，当人们醒过来的时候，就是精英统治的时代结束的时候。如果你现在还以为有任何人高人一等，你的心里还存在某种偶像，你还以为世界上有&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/10/18/turing&quot;&gt;天才&lt;/a&gt;存在，你还很在乎好莱坞明星，或者 &lt;a href=&quot;https://www.youtube.com/watch?v=oFH3uLuNL5Y&quot;&gt;Zuckerberg&lt;/a&gt; 之类小丑说的话或者做的事，你还在梦想有一天把孩子送到哈佛念书，进入“上流社会”，请仔细再看看这篇文章和相关的视频，你会意识到这些想法有多么的愚蠢。&lt;/p&gt;
+
+&lt;p&gt;你完全没有意识到自己的价值，你没有意识到身边的普通人的价值，你没有发现幸福就在身边。你只是生活在别人为你设计的梦里，追求那些他们让你追求的东西，最终却发现你出卖了灵魂。醒来的过程是痛苦的，但醒来后的未来是美好的。被精英们用欺骗手段收走的力量，就要回到人们的手里！&lt;/p&gt;
+
+&lt;p&gt;（写这样一篇文章挺费神的，说真话是需要一些胆量的，所以如果你觉得开了眼界的话，请考虑付款 $3。谢谢！）&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2017/01/02/elitism</guid>
+<pubDate>Mon, 02 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>9-11 袭击的真相</title>
+<link>http://yinwang.org/blog-cn/2016/12/01/september-eleven</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;9-11 袭击的真相&lt;/h2&gt;
+                            &lt;p&gt;9-11 袭击一直以来都是一个谜。是谁在幕后策划，它为什么会发生？美国政府对此进行的调查都是遮遮掩掩，很多证据藏起来不给人看，借口说是“国家机密”。这种鬼鬼祟祟的行为非常可疑，所以网络上出现了很多的谣言和“阴谋论”，说这是美国政府的人自己干的。然而这些东西很少有确凿的证据，所以久而久之，人们对真相失去了兴趣。每当跟美国人提到“9-11真相”，他们的反应一般都是，我不相信美国政府可能做出这么邪恶的事情！&lt;/p&gt;
+
+&lt;p&gt;然而最近我发现了这部摄制于 2014 年的纪录片『&lt;a href=&quot;https://www.youtube.com/watch?v=8DOnAn_PX6M&quot;&gt;9-11：新的珍珠港&lt;/a&gt;』，它打破了 9-11 的迷雾。跟『华氏9-11』之类的阴谋论不同，『新珍珠港』出自许许多多追求真相的专家：飞行员，土木工程师，结构工程师，爆破专家，甚至世贸大厦的设计者自己…… 它从严谨的证据，数据和科学的角度出发，通过常识和科学理论，指出了美国政府官方报告与实际现象的严重偏差，从而引导人们认识到这背后的可怕真相。再加上一个&lt;a href=&quot;https://www.youtube.com/watch?v=fAawF22QUMs&quot;&gt;前 CIA 特工的证实&lt;/a&gt;，还有一些&lt;a href=&quot;https://www.youtube.com/watch?v=DQbEuBgAKso&quot;&gt;目击证人&lt;/a&gt;的回忆，我发现『新珍珠港』里面的大部分猜想都是正确的。&lt;/p&gt;
+
+&lt;p&gt;大家都没猜错，9-11 确实是美国政府自己策划和执行的。然而具体的细节和操作，其实比我们想象的还要可怕和残忍许多，以至于知道了之后你可能会做噩梦……&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;9-11 是美国政府，军方，CIA 联合策划的，用于发动战争的伪旗行动（false-flag）&lt;/li&gt;
+&lt;li&gt;撞击世贸大厦的不是波音客机，而是有两种可能：
+
+&lt;ul&gt;
+&lt;li&gt;军方遥控的大型无人机（drone）&lt;/li&gt;
+&lt;li&gt;根本没有飞机，而是激光全息成像或者电脑动画&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;大楼不是因为飞机撞击和燃烧而垮掉，而是通过可控爆破（controlled demolition）&lt;/li&gt;
+&lt;li&gt;可控爆破使用的是美国军方特有的武器：纳米铝热炸弹 （nano thermite bomb）&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;下面我就把这些片子里面最震撼我的部分摘要一下：&lt;/p&gt;
+
+&lt;h3&gt;可控爆破（Controlled Demolition）&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://youtu.be/8DOnAn_PX6M?t=9621&quot;&gt;&lt;img src=&quot;http://www.yinwang.org/images/demolition-evidence.png&quot; width=&quot;400&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;2001 年袭击发生的当天，我看了电视就觉得这很不可思议：飞机撞了楼的上面，下面楼体看起来完好无损，为什么整栋楼后来会从上到下，垂直坍塌下去，一瞬间就消失了？当时媒体给我们的解释是，世贸大厦建造时钢筋用得太少，强度不够，所以被飞机撞伤了结构，再加上飞机燃料的高温，就散架了。你看&lt;a href=&quot;https://www.youtube.com/watch?v=ZD69sP51u-s&quot;&gt;帝国大厦&lt;/a&gt;当年被 B-52 轰炸机撞了都没事，因为它钢筋用得多…… 我当时还真的被忽悠了！&lt;/p&gt;
+
+&lt;p&gt;现在各种证据都显示，世贸大厦的钢架结构其实非常结实稳固，根本不亚于帝国大厦。飞机自身的动能和燃料的温度，都远远不够软化世贸大厦的结构。在 9-11 之前，世界上从来没有一栋钢结构的大厦因为着火而垮塌过。有的大楼着了火，全部烧焦了也都还站在那里。就算你要塌，也不能那么规整地垂直塌下来啊，总要偏一点吧？而且由于材料的阻力，下降速度不可能那么快。你再仔细看它坍塌的视频，就发现这跟拆楼所用的“可控爆破”一模一样，楼体以自由落体的速度，不偏不倚垂直塌下去，就像完全不受阻力一样。这是一架波音飞机撞上去完全不可能达到的效果。唯一能达到这个效果的作法，是使用许许多多的炸弹，在非常精确的时间点引爆，也就是可控爆破的做法。&lt;/p&gt;
+
+&lt;p&gt;『新珍珠港』提供了充足的证据，证明这是经过预谋和精密设计的可控爆破。&lt;/p&gt;
+
+&lt;h3&gt;纳米铝热炸弹（Nano-Thermite Bomb）&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/911-molten-steel.png&quot; width=&quot;172&quot;&gt; &lt;img src=&quot;http://www.yinwang.org/images/911-thermite.png&quot; width=&quot;210&quot;&gt; &lt;img src=&quot;http://www.yinwang.org/images/911-bodies.png&quot; width=&quot;300&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;据另一些视频（&lt;a href=&quot;https://www.youtube.com/watch?v=rnbMjAN7Bws&quot;&gt;视频1&lt;/a&gt;，&lt;a href=&quot;https://www.youtube.com/watch?v=GOb92R34jxo&quot;&gt;视频2&lt;/a&gt;）的介绍，为了更有效的弄垮这三栋楼，他们使用的是铝热炸弹，而不是普通的 TNT 之类的炸药。这符合一位&lt;a href=&quot;https://www.youtube.com/watch?v=DQbEuBgAKso&quot;&gt;目击证人&lt;/a&gt;的口述，在第一个爆炸之后，他看到有橙色的，熔化的钢水从楼的表面流下去。经过 CIA 特工&lt;a href=&quot;https://youtu.be/fAawF22QUMs?t=1498&quot;&gt;证实&lt;/a&gt;，以及化学专家的&lt;a href=&quot;http://www.taliban-norge.no/wp-content/uploads/2013/04/%E4%BB%8E%E4%B8%96%E8%B4%B8%E4%B8%AD%E5%BF%83911%E7%81%BE%E9%9A%BE%E4%B8%AD%E7%9A%84%E5%B0%98%E5%9F%83%E7%89%A9%E9%87%8C%E5%8F%91%E7%8E%B0%E7%83%88%E6%80%A7%E7%82%B8%E8%8D%AF.pdf&quot;&gt;采样研究报告&lt;/a&gt;，这种炸弹是美国军方研制的一种非常先进的武器，成分是纳米铝热材料。这东西在 400 多度的普通温度就可以被激发，进行异常剧烈的铝热反应，产生 3000 多度的高温。这是火山喷发出来的熔岩温度（700-1200 度）的 2-4 倍。难怪有人把它称为“&lt;a href=&quot;http://m.akjunshi.com/article/117609_4.html&quot;&gt;来自地狱的火焰&lt;/a&gt;”，因为自然界很难产生这么高的温度，飞机的燃料也完全不可能到达这种温度。&lt;/p&gt;
+
+&lt;p&gt;也就是这种东西熔化了大量的钢铁和水泥，导致整座大楼垮塌。后来这些熔岩一样的钢材和水泥，滞留在世贸大厦的废墟下面，三个月之后才冷却下去。这就是为什么死了 2800 人，最后只发现不到 300 具完整的尸体，因为大部分人都被炸得粉碎，或者被蒸发掉了！由于铝热炸弹对于人类极其残忍，联合国已经在 1980 年通过『禁止和限制使用，燃烧武器的议定书』，禁止在战争中使用铝热炸弹。然而这次更为超级的“纳米铝热炸弹”，竟然被用在了本国平民身上，其心狠手辣之程度，让人毛骨悚然。&lt;/p&gt;
+
+&lt;h3&gt;无人机（drone）猜想&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/911-boeing-diagram.png&quot; width=&quot;400&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;两架飞机撞击大楼的时速大概是 580 mph（英里/小时）。而波音客机在低空的最高时速（VMO）只可能有 400 mph。这两架飞机在低空超过了波音 767 在高空的巡航速度（529 mph）。在低空飞行时，空气阻力会很大。波音 767 的引擎不可能提供这么大的推力。就算你有办法超过 VMO，机身也会被空气阻力给拖散架。很多开了几十年客机，成千上万小时经验的飞行员都说，速度超过 VMO 150 mph 以上，是根本无法控制的。没有人可以这样高速低空飞行，准确的操纵波音客机去撞大楼。&lt;/p&gt;
+
+&lt;p&gt;另外，客机的外壳都是很轻的铝合金材料，强度完全不是世贸大厦外面那层钢架的对手，所以根本不应该可以完全撞进去，至少应该有一部分掉在外面。所以有人猜想，这两架飞机很可能根本不是客机，而是美国军方遥控的，具有加强机身和特殊引擎的军用无人机（drone）。另外经过&lt;a href=&quot;https://www.youtube.com/watch?v=o551CQFAMKI&quot;&gt;视频分析&lt;/a&gt;，也发现在飞机撞上大楼之前，楼体上有闪光出现，说明可能有炸弹同时爆炸，给飞机开路。&lt;/p&gt;
+
+&lt;p&gt;关于这个问题，航空界人士联合起来，进行了一次深入的&lt;a href=&quot;https://www.youtube.com/watch?v=-Laaq44SDgg&quot;&gt;调查&lt;/a&gt;，搜集了许多的雷达，录音数据，发现“客机撞大楼”，确实有很多不符合数据的地方。另外，美国军方之前有一个项目叫 Operation Northwoods，使用无人机跟在客机下面，击毁客机，然后假冒成客机，继续飞行…… 有些专家觉得，这就是 9-11 发生的事情。&lt;/p&gt;
+
+&lt;h3&gt;全息成像和电脑动画猜想&lt;/h3&gt;
+
+&lt;p&gt;另外一些飞行专家指出(&lt;a href=&quot;https://www.youtube.com/watch?v=YQBlv7sZGVE&quot;&gt;视频&lt;/a&gt;)，遥控大型客机高速去撞大楼，也是非常困难而且开销太大。另外，波音客机在如此的低空高速飞行，所有人都应该能听到震耳欲聋的飞机噪音，音量应该超过摇滚音乐会最前排，而现场的新闻报道，&lt;a href=&quot;https://www.youtube.com/watch?v=DQbEuBgAKso&quot;&gt;目击证人&lt;/a&gt;的口述，都没有任何这样的迹象。所以他们怀疑这两架所谓的“飞机”，可能根本就不存在。他们猜想，美国军方可能采用了激光全息成像制造幻觉。&lt;/p&gt;
+
+&lt;p&gt;然而我觉得，激光全息技术发展到今天，也不可能在半空中制造出一个飞机那么大的物体，因为要在半空中制造出不透明的物体，要求你能够改变光线在任意位置的传播方向，那似乎是不可能的。其实有一个更容易的办法可以达到这个效果。你想一想，飞机撞大楼发生在仅仅一秒种之间，为什么有几个人运气就那么好，摄像机正好对准那个方向，拍到了那个镜头？&lt;/p&gt;
+
+&lt;p&gt;所以我觉得这些视频的来源很值得怀疑。也许这些正好拍到飞机的人，全都是这个阴谋的参与者，而他们的视频，全都是事先用电脑动画合成好的，只不过到时候拿出来作为现场录像。这种做法成本很低，然后只需要在大楼里面装上炸弹就可以了。&lt;/p&gt;
+
+&lt;h3&gt;借口：无能&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/personnel-excuse.png&quot; width=&quot;400&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;美国政府和军方，喜欢采用“无能”作为借口，来解释他们“故意”的行为。在袭击发生当天，美国空军特别组织了一次训练，把几乎所有的战斗机都调到很远的地方去，只剩下 4 架战机防守东部领空。而且在这之前不久，他们对国防部的人员进行了重大调整，换了几个新手担当重任，结果出事的时候发现只能找到新手，但新手根本不知道该怎么办。另外，还有故意报错方位之类的事情。&lt;/p&gt;
+
+&lt;p&gt;这看似犯了“错误”，然而其实是一种非常狡猾的制造借口的方式。这样飞机撞了楼之后，他们就可以说：“哎呀，不是我们不想拦截他们，只是措手不及……” 美国政府在&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/11/20/hillary-emailgate&quot;&gt;本加西&lt;/a&gt;恐怖袭击发生的时候，也是同样的作法。&lt;/p&gt;
+
+&lt;h3&gt;借口：对民航飞机不设防&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/washington-missle.png&quot; width=&quot;400&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;美国政府的另一个借口，是说军方的防空设施只能防御战斗机和导弹之类的东西，而不能防御被劫持的客机。然而事实是，在通常情况下，如果客机偏离规定的航道，并且没有应答的时候，FAA 会立即通知五角大楼，在几分钟之内派出战斗机去拦截民航飞机。另外华盛顿特区附近，有一个“特别空中管制区”，任何飞机要进去必须事先经过许可，不然就会被打下来。附近不但有好几个空军基地，海军基地，还有专门的地对空导弹，随时可以打下飞向五角大楼或者白宫“禁飞区”的可疑飞行物。所以显然，这种理论完全站不住脚。除非美国政府自己有阴谋，这种事情根本不可能发生。&lt;/p&gt;
+
+&lt;p&gt;另外，从这个&lt;a href=&quot;https://www.youtube.com/watch?v=-Laaq44SDgg&quot;&gt;视频&lt;/a&gt;里的雷达和对话记录，你可以发现 FAA 和空军基地在接到劫机报告的时候，在故意放任，踢皮球，比电话客服还漫不经心。这是报告劫机，本来应该是肾上腺素上升的时刻，然而接听人最后一句话居然是慢条斯理的：“…… 好的，我看看我们能做些什么…… 请问还有什么其它事情可以帮助您吗？” 这不是明摆着是怎么回事了吗！&lt;/p&gt;
+
+&lt;h3&gt;各种其他漏洞和疑点&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;世贸大厦垮塌之后，还没有进行任何调查，就立即有卡车和挖掘机开始运走它的废墟。这是匆忙销毁证据的做法。&lt;/li&gt;
+&lt;li&gt;FBI 和媒体报告说飞机上的人给家人打了电话，而在那个高度和速度，手机是不可能有信号的。&lt;/li&gt;
+&lt;li&gt;五角大楼被撞之后的形状，不像是被波音 757 那么大的飞机撞的，完全看不见飞机残骸。附近建筑上的 80 多个摄像头的监控录像都被 FBI 藏起来，无法证实波音 757 真的去了那里。&lt;/li&gt;
+&lt;li&gt;五角大楼被撞的那个位置，不久前花了两亿多美元进行了加固，而“飞机”其它可以死更多人的位置不撞，正好撞了那个非常牢固的地方。&lt;/li&gt;
+&lt;li&gt;93 号航班坠毁的地点，看不到飞机的残骸和应该有的火焰。&lt;/li&gt;
+&lt;li&gt;被指控的那几个恐怖分子，当天根本没在任何机场的监控录像里出现过。&lt;/li&gt;
+&lt;li&gt;恐怖分子的飞行教练指出，这人开小飞机都不合格，完全不可能有能力操纵波音客机这种超级复杂的庞然大物。&lt;/li&gt;
+&lt;li&gt;坠毁飞机的残骸，从来没有经过重新组装还原的“航空界标准”调查过程。&lt;/li&gt;
+&lt;li&gt;五角大楼一名官员作证，显示国防部早就知道有飞机要撞五角大楼，却故意不打下来。然而他作证的录音被 FBI 从网站上去除，在官方报告也没有记录。&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;h3&gt;死亡人数仍然在增加&lt;/h3&gt;
+
+&lt;p&gt;9-11 给成千上万的人带来了灾难。由于 9-11 死亡的人数，直到今天都还在增加。由于世贸大厦的建筑材料里面有大量的石棉（asbestos，一种呼吸道致癌物），再加上铝热炸弹里面不知道有什么有毒物质，纳米物质，所以现场附近的人，估计有 40 万人患上了不同程度的呼吸道，食道，肺，肝和肾脏疾病。&lt;/p&gt;
+
+&lt;p&gt;到今天，37000 名当时战斗在一线的救援人员里面，已经有 5000 多人被诊断患了癌症，有 1100 人死亡，医疗开销总数已经超过 3 亿美元。这些人被发现患有 70 多种癌症，其中有很多罕见的癌症，几乎没有办法治疗。然而，这 40 多万受到健康威胁的人里面，只有不到 1 万人收到了政府的“幸存者补助”。 (&lt;a href=&quot;http://www.newsweek.com/2016/09/16/9-11-death-toll-rising-496214.html&quot;&gt;Newsweek 报道&lt;/a&gt;)&lt;/p&gt;
+
+&lt;h3&gt;世界上最阴险的政府&lt;/h3&gt;
+
+&lt;p&gt;所有的证据和现象都表明，这是美国政府自编自导自演的一出戏。他们制造这样惨绝人寰的灾难，是为了有借口可以发动伊拉克战争。另外，世贸大厦的主人也是这次阴谋的参与者之一。他在出事之前买了很多的保险，后来拿到了 40 多亿美元的赔偿，很是赚了一笔。&lt;/p&gt;
+
+&lt;p&gt;成千上万不知情的人在大楼里，被事先准备好的塞满整栋楼的铝热炸弹，炸得粉身碎骨，连完整的尸体都找不到。很多人被完全蒸发掉了，就跟掉进了火山口一样…… 想到这里，我不禁毛骨悚然。这比我们之前想象的飞机撞大楼，还要残忍许多倍，跟日本人的南京大屠杀有得一拼。这要心理多变态的人，才会想出这样的做法！&lt;/p&gt;
+
+&lt;p&gt;美国政府里的某些人为了赚黑心钱，可以随时把本国平民作为炮灰来用。再加上因此发动的伊拉克战争，导致上百万无辜平民死亡，这真是天大的灾难！珍珠港，9-11，&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/11/20/hillary-emailgate&quot;&gt;本加西&lt;/a&gt;，San Bernardino…… 这些袭击都是同样的性质：幌子。天天在叫要打击恐怖分子，结果最可怕的恐怖分子，就坐在白宫里面！小布什是坏人大家都知道。不过大家都还被蒙在鼓里，以为克林顿，希拉里，奥巴马是好人。看看这个片子，醒过来吧。&lt;/p&gt;
+
+&lt;p&gt;另外，看看这个希拉里谈伊朗的&lt;a href=&quot;https://www.youtube.com/watch?v=xvhBoF_pCHo&quot;&gt;视频&lt;/a&gt;。她说：“我希望他们（伊朗）来袭击我们。我们甚至可以去挑起他们来袭击我们。这样我们就有正当的理由向他们开战了！” 明白了吗？其实她就是会制造 9-11 的那种人。难怪揭发 9-11 真相的 CIA 特工 &lt;a href=&quot;https://www.youtube.com/watch?v=_dvxnqe6Eew&quot;&gt;Susan Lindauer 说&lt;/a&gt;：“投票给希拉里，就等于投票给第三次世界大战。就是有那么严重！”&lt;/p&gt;
+
+&lt;p&gt;当今的美国政府里面，窝藏着世界上最阴险的犯罪团伙。犯下这样极端残忍的滔天罪行，居然还可以藏这么深这么久，让人们继续以为他们是道德高尚的好人，也真是无人能比了。人们对 9-11 真相的无知是很危险的。由于他们的无知，这些野心家可以制造任何他们想要的假象，可以诬陷任何好人，继续屠杀本国民众，同时让他们的战争和侵略行为合法化。我希望 Trump 的政府能改变这种情况，让 9-11 的真相大白于天下，把这些十恶不赦的罪犯们早日送上断头台。&lt;/p&gt;
+
+&lt;p&gt;（写这样一篇文章挺费神的，说真话是需要一些胆量的，所以如果你觉得开了眼界的话，请考虑付款 $3。谢谢！）&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2016/12/01/september-eleven</guid>
+<pubDate>Thu, 01 Dec 2016 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>可恶的 C# IDisposable 接口</title>
+<link>http://yinwang.org/blog-cn/2016/10/13/c-sharp-disposable</link>
+<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
+            &lt;table&gt;
+                &lt;tr&gt;
+                    &lt;td width=&quot;60%&quot;&gt;
+                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
+                            &lt;h2&gt;可恶的 C# IDisposable 接口&lt;/h2&gt;
+                            &lt;p&gt;我们 team 快被 C# 里面的各种 &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.idisposable(v=vs.110).aspx&quot;&gt;IDisposable&lt;/a&gt; 对象给折腾疯了…… 故事比较长，先来科普一下。如果你没有用过 C#，IDisposable 是 C# 针对“资源管理”设计的一个接口，它类似于 Java 的 &lt;a href=&quot;https://docs.oracle.com/javase/7/docs/api/java/io/Closeable.html&quot;&gt;Closeable&lt;/a&gt; 接口。这类接口一般提供一个“方法”（比如叫 Dispose 或者 Close），你的资源（比如文件流）实现这个接口。使用资源的人先“打开资源”，用完之后调用这个方法，表示“关闭资源”。比如，文件打开，读写完了之后，调用 close 关掉，就是这个原理。&lt;/p&gt;
+
+&lt;p&gt;相比于 Java，C# 大部分时候是更好的语言，然而它并没有全面超越 Java。一个显著的不足之处就是 C# 的 IDisposable 接口引起的头痛，要比 Java 的 Closeable 大很多。经过我分析，这一方面是因为 .NET 库代码里面实现了很多没必要的 IDisposable，以至于你经常需要思考如何处理它们。另一方面是由于微软的编码规范和 Roslyn 静态分析引起的误导，使得用户对于 IDisposable 接口的“正确使用”过度在乎，导致代码无端变得复杂，导致 IDisposable 在用户代码里面传染。&lt;/p&gt;
+
+&lt;p&gt;回来说说我们的代码，本来没那么多问题的，结果把 &lt;a href=&quot;https://github.com/dotnet/roslyn-analyzers&quot;&gt;Roslyn 静态分析&lt;/a&gt;一打开，立马给出几百个警告，说“你应该调用 Disposable 成员的 Dispose 方法”（&lt;a href=&quot;(https://msdn.microsoft.com/en-us/library/ms182328.aspx&quot;&gt;CA2213&lt;/a&gt;)），或者说“类型含有 disposable 成员，却没有实现 IDisposable 接口”（&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/ms182172.aspx&quot;&gt;CA1001&lt;/a&gt;）。奇葩的是，C# 里面有些很小却很常用的对象，包括 &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.threading.manualresetevent(v=vs.110).aspx&quot;&gt;ManualResetEvent&lt;/a&gt;, &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.threading.semaphore(v=vs.110).aspx&quot;&gt;Semaphore&lt;/a&gt;, &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/system.threading.readerwriterlockslim(v=vs.110).aspx&quot;&gt;ReaderWriterLockSlim&lt;/a&gt; 都实现了 IDisposable 接口，所以经常搞得你不知所措。按官方的“规矩”，你得显式的调用所有这些对象的 Dispose 方法进行“释放”，而不能依赖 GC 进行回收。所以你的代码经常看起来就像这个样子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;void foo()
+{
+  var event = new ManualResetEvent(false);
+  // 使用 _event ...
+  event.Dispose();
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;貌似没什么困难嘛，我们把每个对象的 Dispose 方法都调用一下，不就得了？然而问题远远不是这么简单。很多时候你根本搞不清楚什么时候该释放一个对象，因为它存在于一个复杂，动态变化的数据结构里面。除非你使用引用计数，否则你没有办法确定调用 Dispose 的时机。如果你过早调用了 Dispose 方法，而其实还有人在用它，就会出现严重的错误。这问题就像 C 语言里面的 free，很多时候你不知道该不该 free 一块内存。如果你过早的 free 了内存，就会出现非常严重而蹊跷的内存错误，比泄漏内存还要严重很多。举一个 C 语言的例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c&quot;&gt;void main()
+{
+    int *a = malloc(sizeof(int));
+    *a = 1;
+
+    int *b = malloc(sizeof(int));
+    *b = 2;
+
+    free(a);
+
+    int *c = malloc(sizeof(int));
+    *c = 3;
+
+    printf(&quot;%d, %d, %d\n&quot;, *a, *b, *c);    
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你知道这个程序最后是什么结果吗？自己运行一下看看吧。所以对于复杂的数据结构，比如图节点，你就只好给对象加上引用计数。我当年用 C 语言写计算几何算法的时候就干过这种事情，相信我，这其实挺痛苦。或者如果你的内存够用，也不需要分配释放很多中间结果，那你就干脆把这些对象都放进一个“池子”，到算法结束以后再一并释放它们……&lt;/p&gt;
+
+&lt;p&gt;是的 C# 有垃圾回收（GC），所以你以为不用再考虑这些低级问题了。不幸的是，IDisposable 接口以及对于它兢兢业业的态度，把这麻烦事给带回来了。以前在 Java 里用此类对象，从来没遇到过这么麻烦的事情，最多就是打开文件的时候要记得关掉（关于文件，我之后会细讲一下）。我不记得 Java 的等价物（&lt;a href=&quot;https://docs.oracle.com/javase/7/docs/api/java/io/Closeable.html&quot;&gt;Closeable&lt;/a&gt; 接口）引起过这么多的麻烦，Java 的 &lt;a href=&quot;https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Semaphore.html&quot;&gt;Semaphore&lt;/a&gt; 根本就没有实现 Closeable 接口，也不需要在用完之后调用什么 Close 或者 Dispose 之类的方法。作为一个眼睛雪亮的旁观者，我开始怀疑 C# 里的那些像 Semaphore 之类的小东西是否真的需要显式的“释放资源”。&lt;/p&gt;
+
+&lt;p&gt;为了搞明白 C# 库代码里面为什么这么多 IDisposable 对象，我用 JetBrains 出品的反编译器 &lt;a href=&quot;https://www.jetbrains.com/decompiler&quot;&gt;dotPeek&lt;/a&gt; （好东西呀）反编译了 .NET 的库代码。结果发现好些库代码实现了完全没必要的 IDisposable 接口。这说明有些 .NET 库代码的作者其实没有弄明白什么时候该实现 IDisposable ，以及如何有意义地实现它。这些有问题的类，包括常用的 HashAlgorithm（各种 SHA 算法的父类）和 MemoryStream。&lt;/p&gt;
+
+&lt;p&gt;其中 HashAlgorithm 的 Dispose 方法完全没必要，这个类的源代码看起来是这个样子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;public abstract class HashAlgorithm : IDisposable, ICryptoTransform {
+  ...
+  protected internal byte[] HashValue;
+  ...
+  protected virtual void Dispose(bool disposing)
+  {
+      if (disposing)
+      {
+          if (HashValue != null)
+              Array.Clear(HashValue, 0, HashValue.Length);
+          HashValue = null;
+          m_bDisposed = true;
+      }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;看明白了吗？它不过是在把内部数组 HashValue 的每个元素清零，然后把指针设为 null。这个库代码作者没有搞明白的是，如果你的 Dispose 方法只是在把一些成员设为 null，那么你根本就不需要实现 IDisposable。为什么呢？因为把引用设为 null 并不等于 C 语言里面的 free，它并不能立即回收那份内存，就算你的对象里面有一个很大的数组也一样。我发现有些 C# 程序员喜欢在使用对象之后把引用赋值为 null，就像这样写代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;void foo()
+{
+  BigObject x = new BigObject();
+  // ...
+  // 使用 x 指向的对象 ...
+  // ...
+  x = null;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;x = null&lt;/code&gt; 是毫无意义的。写出这样的代码，说明他们不明白 GC 是如何工作的，以为把引用设为 null 就可以释放内存，以为不把引用设为 null，内存就不会被回收！再进一步，如果你仔细看 HashAlgorithm 的源代码，就会发现 HashValue 这个成员数组其实没有必要存在，因为它保存的只是上一次调用 ComputeHash() 的结果而已。这种保存结果的事情，本来应该交给使用者去做，而不是包揽到自己身上。这个数组的存在，还导致你没法重用同一个 HashAlgorithm 对象，因为有共享的成员 HashValue，所以不再是 thread safe 的。&lt;/p&gt;
+
+&lt;p&gt;其实在 C# 里面，你没有办法可以手动回收内存，因为内存是由 GC 统一管理的。就算你实现 Dispose，在里面把成员设置为 null，内存也只有等下次 GC 执行的时候才可能被回收。举一个例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;C#&quot;&gt;class Foo : IDisposable
+{
+  private byte[] _data = new byte[1000000000];
+
+  public void Dispose()
+  {
+    _data = null;    // 没用的
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在这个例子里面，Foo 类型的 Dispose 只是在把 _data 设为 null，这是毫无意义的。如果你想释放掉这块数组，那么你只需要等不再有人使用 Foo 对象。比如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;void UseFoo()
+{
+  Foo foo = new Foo();
+  // 使用 f...
+  foo.Dispose();  // 没必要
+  foo = null;     // 没必要
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里的 &lt;code&gt;foo.Dispose()&lt;/code&gt; 是完全没必要的。你甚至没必要写 &lt;code&gt;foo = null&lt;/code&gt;，因为 foo 是一个局部变量，它一般很快就会离开作用域的。当函数执行完毕，或者编译器推断 foo 不会再次被使用的时候，GC 会回收整个 Foo 对象，包括里面的巨大数组。&lt;/p&gt;
+
+&lt;p&gt;所以正确的做法应该是完全不要 Dispose，不实现 IDisposable 接口。有些人问，要是 Foo 对象被放进一个全局哈希表之类的数据结构，GC 没法释放它，就需要 Dispose 了吧？这也是一种常见的误解。如果你真要回收全局哈希表里的 Foo 对象，你只需要把 Foo 对象从哈希表里面删掉就可以了。一旦哈希表对 Foo 对象的引用没有了，GC 运行的时候就会发现它成了垃圾，里面的 _data 数组自然也是垃圾，所以一起就回收掉了。&lt;/p&gt;
+
+&lt;p&gt;所以简言之，Dispose 不是用来给你回收内存用的。在 Dispose 方法里把成员设为 null，并不会导致更快的内存释放。有人可能以为 HashAlgorithm 是为了“安全”考虑，所以在 Dispose 方法里对数组清零。然而 IDisposable 是用于释放“资源”的接口，把安全清零这种事情放在这个接口里面，反而会让人误解，造成疏忽。而且从源代码里的注释看来，HashAlgorithm 的这个方法确实是为了释放资源，而不是为了什么安全考虑。这些库代码实现 IDisposable，意味着这个接口会通过这些库代码不必要的传递到用户代码里面去，导致很多不知情用户的代码被迫实现 IDisposable，造成“传染”。&lt;/p&gt;
+
+&lt;p&gt;作为练习，你可以分析一下 MemoryStream 的 Dispose 方法，为什么是没必要的：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;protected override void Dispose(bool disposing)
+{
+    try
+    {
+        if (disposing)
+        {
+            _isOpen = false;
+            _writable = false;
+            _expandable = false;
+#if FEATURE_ASYNC_IO
+        _lastReadTask = null;
+#endif
+        }
+    }
+    finally
+    {
+        // Call base.Close() to cleanup async IO resources
+        base.Dispose(disposing);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;另外，我发现 AutoResetEvent，ManualResetEvent，ReaderWriterLockSlim，Semaphore 这些 IDisposable 对象，里面的所谓“资源”，归根结底都是一些很小的 Windows event 对象，而且它们都继承了 SafeHandle。SafeHandle 本身有一个“析构函数”（finalizer），它看起来是这个样子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;c#&quot;&gt;~SafeHandle()
+{
+    Dispose(false);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当 SafeHandle 被 GC 回收的时候，GC 会自动自动调用这个析构函数，进而调用 Dispose。也就是说，你其实并不需要手动调用这些对象（例如 ManualResetEvent, Semaphore 之类）的 Dispose 方法，因为 GC 会调用它们。这些对象占用资源不多，系统里也不会有很多这种对象，所以 GC 完全应该有能力释放它们占用的系统资源。&lt;/p&gt;
+
+&lt;p&gt;很多人谈到这个问题，就会举文件的例子来反驳你，说你不应该依靠 GC 来释放 IDisposable 对象。他们说，你应该及时关闭文件，所以对于其它 IDisposable 资源，你应该做同样的事情，然而他们并没有抓住问题的关键。文件是一种很特殊的资源，你之所以需要在用完之后立即关掉它，而不能等 GC  来做这事，是因为文件是一种“全局资源”。使用文件的时候，你使用文件的名字来读写它。任何知道这个名字的进程，都可以试图访问这个文件。这使得文件成为一种“全局资源”，也就是说，它不是 thread safe 的。一般系统里面，在任何一个时刻，只能有一个进程打开文件进行写操作，然后这个文件就被锁住了，其它进程不能打开。所以如果你不关掉文件，那其它人就没法用它。&lt;/p&gt;
+
+&lt;p&gt;写文件需要给它加锁，当然你必须及时进行解锁，而不能等 GC 这样的过程来帮你解。否则即使你不再引用这个文件，其他人仍然没法及时进入锁定的区域，就造成了不必要的等待。然而有另外一种资源，它不是共享的，而是分配给进程“私人使用”的。系统里面可以有任意多个这样的资源，你用任何一个都可以，它们的使用互不干扰，所以你并不需要非常及时的关闭它们。这种资源的性质，跟内存的性质几乎完全一样。像 ManualResetEvent, Semaphore, ReaderWriterLockSlim 就属于这种非共享的资源，它们的性质跟内存非常相似。就算它们实现了 IDisposable 接口，关闭它们的重要性也跟关闭文件相差非常大。实际上我通过测试发现，就算你把它们完全交给 GC 处理，也不会有任何问题。你掉不调用 Dispose，内存的使用量都一模一样。只不过如果你调用 Dispose，计算花的时间还要多一些。&lt;/p&gt;
+
+&lt;p&gt;微软官方文档和 Roslyn 静态分析说一定要调用 Dispose，其实是把不是问题的问题拿出来让人心惊胆战，结果把代码给搞复杂了，进而引发更严重的问题。很多人把 Roslyn 静态分析的结果很当回事，而其实看了源代码之后，我发现 Roslyn 关于 Dispose 的静态分析实现，是相当幼稚的作法（flow analysis 都没实现），所以结果是非常不准确的，导致很多 false positive。&lt;/p&gt;
+
+&lt;p&gt;另外 Roslyn 分析给出的警告信息，有严重的误导性质。比如编号为&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/ms182172.aspx&quot;&gt;CA1001&lt;/a&gt;的警告对你说：“Types that own disposable fields should be disposable。” 如果你严格遵循这一“条款”，让所有含有 IDispoable 的成员的类都去实现 IDisposable，那么 IDisposable 接口就会从一些很小的对象（比如常见的 ManualResetEvent），很快扩散到几乎所有的对象里去。每个对象都实现 IDisposable 接口，却没有任何对象真正的调用 Dispose 方法。最终结果跟你什么都不做是一样的，只不过代码变复杂了，还浪费了时间和精力。&lt;/p&gt;
+
+                        &lt;/div&gt;
+
+                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
+                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
+                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+
+                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
+                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
+                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
+                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2016/10/13/c-sharp-disposable</guid>
+<pubDate>Thu, 13 Oct 2016 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>C 编译器优化过程中的 Bug</title>
@@ -665,558 +1316,6 @@ fn add_one(x: i32) -&amp;gt; i32 {
 <author>yinwang0</author>
 <guid isPermaLink="false">2016/07/05/google-maps</guid>
 <pubDate>Tue, 05 Jul 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>养生节目带来的危害</title>
-<link>http://yinwang.org/blog-cn/2016/06/28/yangsheng</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;养生节目带来的危害&lt;/h2&gt;
-                            &lt;p&gt;国内总是流行各种各样的“养生节目”，深受中老年人的欢迎。比如我爸妈，有时无聊了，就会转发给我一些养生节目，比如这个：『&lt;a href=&quot;http://v.qq.com/x/cover/kieigw8nv6q7fj0/b0016b9qoy1.html&quot;&gt;多喝白开水带来的危害&lt;/a&gt;』。这节目说，有人得了过敏性鼻炎，喷嚏鼻涕不断，严重脱发，头都半秃了，虚弱无力，性能力衰退…… 最后专家得出结论，是因为他每天早上喝一杯凉水导致的！&lt;/p&gt;
-
-&lt;p&gt;据我观察，这些养生节目里面的理论，基本可以归为两种：好的和新的。可惜好的理论都不新，新的理论都不好。&lt;/p&gt;
-
-&lt;h3&gt;好的理论&lt;/h3&gt;
-
-&lt;p&gt;第一类理论，就是把人们早已熟悉的，久经考验的常识，比如早晚要刷牙之类的，拿来包装成“新理论”。这些理论当然错不到哪里去，然而却是每个人从小都已熟知的。现在挂着“专家”头衔的人出来一宣传，这些斯通见惯的常识，忽然间被老人家们当成了最新的研究成果。&lt;/p&gt;
-
-&lt;p&gt;我遇到的这种例子挺多的。有时候父母给我发个信息，说你要注意这个那个习惯啊，不然会得什么什么样的病…… 这本来就是我从小就已经知道并且照办的事情，而且我还记得当年这东西就是我爸妈教给我的。现在让这帮“养生专家”一忽悠，倒像个新鲜事，又拿出来讲一遍，好像别人不知道一样…… “专家”的威力就是这么强大 :P&lt;/p&gt;
-
-&lt;h3&gt;新的理论&lt;/h3&gt;
-
-&lt;p&gt;第二类理论，就是胡编乱造出一些“新理论”，却没有经过科学实验证实。『&lt;a href=&quot;http://v.qq.com/x/cover/kieigw8nv6q7fj0/b0016b9qoy1.html&quot;&gt;多喝白开水带来的危害&lt;/a&gt;』就属于这一种情况。通常这种理论把问题的原因归结为某一个生活习惯（比如早上喝一杯凉水），而忽略所有其它引起问题的因素。这些理论的问题在于，它们通过臆断，得出错误的“因果关系”。&lt;/p&gt;
-
-&lt;p&gt;据我了解，过敏性鼻炎，脱发等问题，很多都是因为基因遗传，跟人平时的生活习惯几乎没有关系。现在有一个人出现了过敏性鼻炎和脱发，而且碰巧这人早上起来喜欢喝一杯凉水，于是专家就得出一个可笑的结论：一定是喝凉水引起了过敏性鼻炎和脱发。&lt;/p&gt;
-
-&lt;p&gt;养生专家们很喜欢把健康问题跟某些不起眼的习惯挂钩，这样就可以创造一些惊人的理论，却无法验证其真实性。他们可以说，就是因为你这个小小的习惯，导致了如此严重的健康问题。这样一来，他们就可以告诉你吃什么，不吃什么，做什么，不做什么。每过一段时间，这些人都会换一套不同的说法，让你感觉有新东西出来，却没发现这些其实跟之前的说法自相矛盾。老年人记性不好，看不出破绽，有些人为了健康不惜一切，仿佛活着就是为了不停地研究如何才能继续活着…… 这就是这帮养生专家和养生节目得以生存的关键。&lt;/p&gt;
-
-&lt;p&gt;得出喝凉水引起了鼻炎，脱发，身体虚弱这样的结论，且不说它看起来有没有可能，你必须先经过科学实验。你不能只看一个人，因为数据量太小，很可能是偶然巧合，没法建立因果关系。所以实验必须要有两组人进行对照，就是所谓“对照实验”。一组人早上喝一杯凉水，另外一组人不喝。过一段时间，分析这两组人里面出现上述问题的人的比例，如果喝凉水的人大部分出现了问题，而不喝凉水的人大部分没有出现问题，你才有可以得出“喝凉水导致鼻炎和脱发”这样的结论。&lt;/p&gt;
-
-&lt;p&gt;显然，这个节目里的专家并没有经过实验，而是引用（滥用）『黄帝内经』里面的各种阴阳理论。说早上阳气上升，喝一杯凉水把阳气给浇灭了，怎么能不得病哪！这显然是完全不科学，不负责任的说法。实际上这套阴阳理论是如此的模棱两可，跟占星学如出一辙，你可以利用这些说法来解释世界上的几乎任何现象！不管遇到好事还是坏事，同样的一句话，可以同时支持两种完全相反的结果。为什么它可以这样呢？因为这些说法本来模棱两可，所以不同的人从不同的角度去解释它，发现都是说得通的。&lt;/p&gt;
-
-&lt;p&gt;这些养生节目，经常把严重身体问题的起因，归结为某些生活上的小习惯，吃什么，不吃什么之类，很容易让人忽略真正的起因，更加严重的因素，这属于一种误导。中老年人看了这些节目，往往盲目的认为坚持或者改变生活上的一些小习惯，就可以避免或者修正一些严重的身体疾患，结果耽误了真正科学研究出来的补救办法。在这种意义上，养生节目是有危害性的。我建议中老年人少看这种节目，多跟真正的医生了解科学的医疗知识。&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/06/28/yangsheng</guid>
-<pubDate>Tue, 28 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>IT业给世界带来的危机</title>
-<link>http://yinwang.org/blog-cn/2016/06/20/it-and-society</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;IT业给世界带来的危机&lt;/h2&gt;
-                            &lt;p&gt;昨天写了文章之后，回忆起这几年在湾区的经历，觉得自己是一个很不幸的人。然而就在今天，我的自怜奇妙的转换成了另一种感情，因为我看到了更不幸的人……&lt;/p&gt;
-
-&lt;p&gt;正在女朋友 Cinny 的父母家吃饭，忽然窗外来了一个人。仔细一看，是个约莫十来岁年纪的漂亮白人女孩，她说：“亲爱的，你们想要一些刚从树上摘下来的新鲜李子吗？” 据女朋友妈妈介绍，她是邻居的女儿。之后我尝了一个李子，颜色已经黑透了，非常新鲜非常甜！&lt;/p&gt;
-
-&lt;p&gt;随后我和 Cinny 出去散步。在她家的对面，耸立着两栋高大华丽的豪宅，看那样子，价值恐怕超过200万美元。两栋豪宅的中间，夹着一间样式非常不搭调的便宜小矮屋。这屋子周围被篱笆围了起来，可以看见里面种了很多的植物。在那门口的无花果树下，赫然出现这样的一个牌子：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-fbcae0ac0fa13486.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-
-&lt;p&gt;它说：“请不要摘我的无花果。我失去了我的工作，需要依靠自己种的食物为生。我是一个生物学家，如果你知道有任何的工作，请告诉我。谢谢！” 这树上还挂着好几个类似的牌子，从它们看来，这位生物学家已经失业一年了……&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-18fdd10a61af7c99.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-
-&lt;p&gt;Cinny 说，吃饭时给我们送果子来的女孩，就是这家的孩子。我想起她甜美的笑容，不禁一阵心酸！哎，谁才是真正可怜的人？我之前在无病呻吟些什么啊……&lt;/p&gt;
-
-&lt;p&gt;这些年来湾区的 IT 业大量的扩张，Apple，Google 等公司不停地在附近建新的办公楼。IT 业的过度发展，导致了其它行业的衰落，让附近土生土长的居民生存困难。本来公司的扩张应该引起经济的流通，社区的繁荣，人气的高涨，结果每当像 Google 这样的公司提供免费餐饮，附近就会有多少店铺关门，又有多少人失业，成为一片荒漠……&lt;/p&gt;
-
-&lt;p&gt;是的，大家节省外出买饭的时间能为公司赚很多钱，自己也节省了不少开支。但是这些公司真的回报了社会吗？新闻早已经曝光，这些大公司利用美国税法的漏洞，每一家每年都导致政府少收上亿美元的税钱。没有收到税，就没法给这些丢了工作的人发福利，以至于他们落魄到这种地步。&lt;/p&gt;
-
-&lt;p&gt;Cinny 告诉我，这家人可能也要卖掉房子，搬到别州去了。之前有好些邻居已经搬走了，其中有一些以前在附近开小店，卖很好吃的东西。现在这些儿时的美好回忆，都已经不在了……&lt;/p&gt;
-
-&lt;p&gt;我们一直盲目的以为技术会改善人们的生活，很多人总是试图做一些 O2O 服务，甚至研制机器人和自动车，这样可以代替许多人的劳动。如果这些技术真的能代替繁重或者危险的劳动，那确实好。可是如果发明这些技术的公司不回报社会，反而想办法钻法律的漏洞避税，那就变得有害了。在创造这些技术的同时，我们有想过因为它们而失去工作，而又因为公司不交税，不回报社会而变卖房产，颠沛流离的无辜人们吗？&lt;/p&gt;
-
-&lt;p&gt;作为一个 IT 人，我们不得不思考，这是不是一种无情的掠夺，我们是不是害虫？当我们帮助雇主掠夺了别人的工作之后，我们自己会不会就是下一个被社会抛弃，丢掉工作的人？“&lt;a href=&quot;http://baike.baidu.com/view/1140346.htm&quot;&gt;独乐乐，与人乐乐，孰乐乎？不若与人。&lt;/a&gt;” 我们在思考如何发展自己事业的同时，也应该思考如何回报社会了。否则我们面对的将是一片毫无生气的荒原，我们不会再看到幸福的笑脸……&lt;/p&gt;
-
-&lt;p&gt;有人说这一切都是资本主义造的孽，而不能怪 IT 业。不过由于 IT 存在高度的“智能”和“自动”，它已经开始给资本主义的社会关系带来灾难性的影响。有位大胡子说，无产阶级是资本主义的掘墓人，那么我说，IT 业就是资本主义的定时炸弹，它离爆炸的那一天已经不远了。&lt;/p&gt;
-
-&lt;p&gt;我想我们应该都能做点什么…… 话说，如果你知道湾区有招生物学家的工作，请联系我！&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/06/20/it-and-society</guid>
-<pubDate>Mon, 20 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Java 有值类型吗？</title>
-<link>http://yinwang.org/blog-cn/2016/06/08/java-value-type</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;Java 有值类型吗？&lt;/h2&gt;
-                            &lt;p&gt;有人看了我之前的文章『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/06/swift&quot;&gt;Swift 语言的设计错误&lt;/a&gt;』，问我：“你说 Java 只有引用类型（reference type），但是根据 Java 的&lt;a href=&quot;http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html&quot;&gt;官方文档&lt;/a&gt;，Java 也有值类型（value type）和引用类型的区别的。比如 int，boolean 等原始类型就是值类型。” 现在我来解释一下这个问题。&lt;/p&gt;
-
-&lt;p&gt;Java 有值类型，原始类型 int，boolean 等是值类型，其实是长久以来的一种误解，它混淆了实现和语义的区别。不要以为 Java 的官方文档那样写就是权威定论，就可以说“王垠不懂” :) 当你认为王垠不懂一个初级问题的时候，都需要三思，因为他可能是大智若愚…… 看了我下面的论述，也许你会发现自己应该怀疑的是，Java 的设计者到底有没有搞明白这个问题 :P&lt;/p&gt;
-
-&lt;p&gt;胡扯结束，现在来说正事。Java，Scheme 等语言的原始类型，比如 char，int，boolean，double 等，在“实现”上确实是通过值（而不是引用，或者叫指针）直接传递的，然而这完全是一种为了效率的优化（叫做 inlining）。这种优化对于程序员应该是不可见的。Java 继承了 Scheme/Lisp 的衣钵，它们在“语义”上其实是没有值类型的。&lt;/p&gt;
-
-&lt;p&gt;这不是天方夜谭，为了理解这一点，你可以做一个很有意思的思维实验。现在你把 Java 里面所有的原始类型都“想象”成引用类型，也就是说，所有的 int, boolean 等原始类型的变量都不包含实际的数据，而是引用（或者叫指针），指向堆上分配的数据。然后你会发现这样“改造后”的 Java，仍然符合现有 Java 代码里能看到的一切现象。也就是说，原始类型被作为值类型还是引用类型，对于程序员完全没有区别。&lt;/p&gt;
-
-&lt;p&gt;举个简单的例子，如果我们把 int 的实现变成完全的引用，然后来看这段代码：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;int x = 1;    // x指向内存地址A，内容是整数1
-int y = x;    // y指向同样的内存地址A，内容是整数1
-x = 2;        // x指向另一个内存地址B，内容是整数2。y仍然指向地址A，内容是1。
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;由于我们改造后的 Java 里面 int 全部是引用，所以第一行定义的 &lt;code&gt;x&lt;/code&gt; 并不包含一个整数，而是一个引用，它指向堆里分配的一块内存，这个空间的内容是整数 1。在第二行，我们定 int 变量 &lt;code&gt;y&lt;/code&gt;，当然它也是一个引用，它的值跟 &lt;code&gt;x&lt;/code&gt; 一样，所以 &lt;code&gt;y&lt;/code&gt; 也指向同一个地址，里面的内容是同一个整数：1。在第三行，我们对 &lt;code&gt;x&lt;/code&gt; 这个引用赋值。你会发现一个很有意思的现象，虽然 &lt;code&gt;x&lt;/code&gt; 指向了 2，&lt;code&gt;y&lt;/code&gt; 却仍然指向 1。对 &lt;code&gt;x&lt;/code&gt; 赋值并没能改变 &lt;code&gt;y&lt;/code&gt; 指向的内容，这种情况就跟 int 是值类型的时候一模一样！所以现在虽然 int 变量全部是引用，你却不能实现共享地址的引用能做的事情：对 &lt;code&gt;x&lt;/code&gt; 进行某种操作，导致 &lt;code&gt;y&lt;/code&gt; 指向的内容也发生改变。&lt;/p&gt;
-
-&lt;p&gt;出现这个现象的原因是，虽然现在 int 成了引用类型，你却并不能对它进行引用类型所特有（而值类型没有）的操作。这样的操作包括：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;deref。就像 C 语言里的 &lt;code&gt;*&lt;/code&gt; 操作符。&lt;/li&gt;
-&lt;li&gt;成员赋值。就像对 C struct 成员的 &lt;code&gt;x.foo = 2&lt;/code&gt; 。&lt;/li&gt;
-&lt;/ol&gt;
-
-
-&lt;p&gt;在 Java 里，你没法写像 C 语言的 &lt;code&gt;*x = 2&lt;/code&gt; 这样的代码，因为 Java 没有提供 deref 操作符 &lt;code&gt;*&lt;/code&gt;。你也没法通过 &lt;code&gt;x.foo = 2&lt;/code&gt; 这样的语句改变 &lt;code&gt;x&lt;/code&gt; 所指向的内存数据（内容是1）的一部分，因为 int 是一个原始类型。最后你发现，你只能写 &lt;code&gt;x = 2&lt;/code&gt;，也就是改变 &lt;code&gt;x&lt;/code&gt; 这个引用本身的指向。&lt;code&gt;x = 2&lt;/code&gt; 执行之后，原来数字 1 所在的内存空间并没有变成 2，只不过 x 指向了新的地址，那里装着数字 2 而已。指向 1 的其它引用变量比如 &lt;code&gt;y&lt;/code&gt;，不会因为你进行了 &lt;code&gt;x = 2&lt;/code&gt; 这个操作而看到 2，它们仍然看到原来那个1……&lt;/p&gt;
-
-&lt;p&gt;在这种 int 是引用的 Java 里，你对 int 变量 &lt;code&gt;x&lt;/code&gt; 能做的事情只有两种：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;读出它的值。&lt;/li&gt;
-&lt;li&gt;对它进行赋值，使它指向另一个地方。&lt;/li&gt;
-&lt;/ol&gt;
-
-
-&lt;p&gt;这两种事情，就跟你能对值类型能做的两件事情没有区别。这就是为什么你没法通过对 &lt;code&gt;x&lt;/code&gt; 的操作而改变 &lt;code&gt;y&lt;/code&gt; 表示的值。所以不管 int 在实现上是传递值还是传递引用，它们在语义上都是等价的。也就是说，原始类型是值类型还是引用类型，对于程序员来说完全没有区别。你完全可以把 Java 所有的原始类型都想成引用类型，之后你能对它们做的事情，你的编程思路和方式，都不会因此有任何的改变。&lt;/p&gt;
-
-&lt;p&gt;从这个角度来看，Java 在语义上是没有值类型的。值类型和引用类型如果同时并存，程序员必须能够在语义上感觉到它们的不同，然而不管原始类型是值类型还是引用类型，作为程序员，你无法感觉到任何的不同。所以你完全可以认为 Java 只有引用类型，把原始类型全都当成引用类型来用，虽然它们确实是用值实现的。&lt;/p&gt;
-
-&lt;p&gt;一个在语义上有值类型的语言（比如 C#，Go 和 Swift）必须具有以下两种特性之一（或者两者都有），程序员才能感觉到值类型的存在：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;deref 操作。这使得你可以用 &lt;code&gt;*x = 2&lt;/code&gt; 这样的语句来改变引用指向的内容，导致共享地址的其它引用看到新的值。你没法通过 &lt;code&gt;x = 2&lt;/code&gt; 让其他值变量得到新的值，所以你感觉到值类型的存在。&lt;/li&gt;
-&lt;li&gt;像 struct 这样的“值组合类型”。你可以通过 &lt;code&gt;x.foo = 2&lt;/code&gt; 这样的成员赋值改变引用数据（比如 class object）的一部分，使得共享地址的其它引用看到新的值。你没法通过成员赋值让另一个 struct 变量得到新的值，所以你感觉到值类型的存在。&lt;/li&gt;
-&lt;/ol&gt;
-
-
-&lt;p&gt;实际上，所有的数据都是引用类型就是 Scheme 和 Java 最初的设计原理。原始类型用值来传递数据只是一种性能优化（叫做 inlining），它对于程序员应该是透明（看不见）的。那些在面试时喜欢问“Java 是否所有数据都是引用”，然后当你回答“是”的时候纠正你说“int，boolean 是值类型”的人，都是本本主义者。&lt;/p&gt;
-
-&lt;h3&gt;思考题&lt;/h3&gt;
-
-&lt;p&gt;有人指出，Java 的引用类型可以是 null，而原始类型不行，所以引用类型和值类型还是有区别的。但是其实这并不能否认本文指出的观点，你可以想想这是为什么吗？&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/06/08/java-value-type</guid>
-<pubDate>Wed, 08 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Swift 语言的设计错误</title>
-<link>http://yinwang.org/blog-cn/2016/06/06/swift</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;Swift 语言的设计错误&lt;/h2&gt;
-                            &lt;p&gt;在『&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/11/21/programming-philosophy&quot;&gt;编程的智慧&lt;/a&gt;』一文中，我分析和肯定了 Swift 语言的 optional type 设计，但这并不等于 Swift 语言的整体设计是完美没有问题的。其实 Swift 1.0 刚出来的时候，我就发现它的 array 可变性设计存在严重的错误。Swift 2.0 修正了这个问题，然而他们的修正方法却没有击中要害，所以导致了其它的问题。这个错误一直延续到今天。&lt;/p&gt;
-
-&lt;p&gt;Swift 1.0 试图利用 var 和 let 的区别来指定 array 成员的可变性，然而其实 var 和 let 只能指定 array reference 的可变性，而不能指定 array 成员的可变性。举个例子，Swift 1.0 试图实现这样的语义：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;var shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
-
-// 可以对 array 成员赋值
-shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
-
-// 不能对 array 成员赋值，报错
-shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这是错误的。在 Swift 1.0 里面，array 像其它的 object 一样，是一种“reference type”。为了理解这个问题，你应该清晰地区分 array reference 和 array 成员的区别。在这个例子里，&lt;code&gt;shoppingList&lt;/code&gt; 是一个 array reference，而 &lt;code&gt;shoppingList[0]&lt;/code&gt; 是访问一个 array 成员，这两者有着非常大的不同。&lt;/p&gt;
-
-&lt;p&gt;var 和 let 本来是用于指定 &lt;code&gt;shoppingList&lt;/code&gt; 这个 reference 是否可变，也就是决定 &lt;code&gt;shoppingList&lt;/code&gt; 是否可以指向另一个 array 对象。正确的用法应该是这样：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;var shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
-
-// 可以对 array reference 赋值
-shoppingList = [&quot;Salad&quot;, &quot;Noodles&quot;]
-
-// 可以对 array 成员赋值
-shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
-
-// 不能对 array reference 赋值，报错
-shoppingList = [&quot;Salad&quot;, &quot;Noodles&quot;]
-
-// let 不能限制对 array 成员赋值，不报错
-shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;也就是说你可以用 var 和 let 来限制 &lt;code&gt;shoppingList&lt;/code&gt; 这个 reference 的可变性，而不能用来限制 &lt;code&gt;shoppingList[0]&lt;/code&gt; 这样的成员访问的可变性。&lt;/p&gt;
-
-&lt;p&gt;var 和 let 一旦被用于指定 array reference 的可变性，就不再能用于指定 array 成员的可变性。实际上 var 和 let 用于局部变量定义的时候，只能指定栈上数据的可变性。如果你理解 reference 是放在栈（stack）上的，而 Swift 1.0 的 array 是放在堆（heap）上的，就会明白array 成员（一种堆数据）可变性，必须用另外的方式来指定，而不能用 var 和 let。&lt;/p&gt;
-
-&lt;p&gt;很多古老的语言都已经看清楚了这个问题，它们明确的用两种不同的方式来指定栈和堆数据的可变性。C++ 程序员都知道 &lt;code&gt;int const *&lt;/code&gt; 和 &lt;code&gt;int * const&lt;/code&gt; 的区别。Objective C 程序员都知道 &lt;code&gt;NSArray&lt;/code&gt; 和 &lt;code&gt;NSMutableArray&lt;/code&gt; 的区别。我不知道为什么 Swift 的设计者看不到这个问题，试图用同样的关键字（var 和 let）来指定栈和堆两种不同位置数据的可变性。实际上，不可变数组和可变数组，应该使用两种不同的类型来表示，就像 Objective C 的 &lt;code&gt;NSArray&lt;/code&gt; 和 &lt;code&gt;NSMutableArray&lt;/code&gt; 那样，而不应该使用 var 和 let 来区分。&lt;/p&gt;
-
-&lt;p&gt;Swift 2.0 修正了这个问题，然而可惜的是，它的修正方式是错误的。Swift 2.0 做出了一个离谱的改动，它把 array 从 reference type 变成了所谓 value type，也就是说把整个 array 放在栈上，而不是堆上。这貌似解决了以上的问题，由于 array 成了 value type，那么  &lt;code&gt;shoppingList&lt;/code&gt; 就不是  reference，而代表整个 array 本身。所以在 array 是 value type 的情况下，你确实可以用 var 和 let 来决定它的成员是否可变。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let shoppingList = [&quot;Eggs&quot;, &quot;Milk&quot;]
-
-// 不能对 array 成员赋值，因为 shoppingList 是 value type
-// 它表示整个 array 而不是一个指针
-// 这个 array 的任何一部分都不可变
-shoppingList[0] = &quot;Salad&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这看似一个可行的解决方案，然而它却没有击中要害。这是一种削足适履的做法，它带来了另外的问题。把 array 作为 value type，使得每一次对 array 变量的赋值或者参数传递，都必须进行拷贝。你没法让两个变量指向同一个 array，也就是说 array 不再能被共享。比如：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;var a = [1, 2, 3]
-
-// a 的内容被拷贝给 b
-// a 和 b 是两个不同的 array，有相同的内容
-var b = a   
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这违反了程序员对于数组这种大型结构的心理模型，他们不再能清晰方便的对 array 进行思考。由于 array 会被不经意的自动拷贝，很容易犯错误。数组拷贝需要大量时间，就算接收者不修改它也必须拷贝，所以效率上有很大影响。不能共享同一个 array，在里面读写数据，是一个很大的功能缺失。由于这个原因，没有任何其它现代语言（Java，C#，……）把 array 作为 value type。&lt;/p&gt;
-
-&lt;p&gt;如果你看透了 value type 的实质，就会发现这整个概念的存在，在具有垃圾回收（GC）的现代语言里，几乎是没有意义的。有些新语言比如 Swift 和 Rust，试图利用 value type 来解决内存管理的效率问题，然而它带来的性能提升其实是微乎其微的，给程序员带来的麻烦和困扰却是有目共睹的。完全使用 reference type 的语言（比如 Java，Scheme，Python），程序员不需要思考 value type 和 reference type 的区别，大大简化和加速了编程的思维过程。Java 不但有非常高效的 GC，还可以利用 escape analysis 自动把某些堆数据放在栈上，程序员不需要思考就可以达到 value type 带来的那么一点点性能提升。相比之下，Swift，Rust 和 C# 的 value type 制造的更多是麻烦，而没有带来实在的性能优势。&lt;/p&gt;
-
-&lt;p&gt;Swift 1.0 犯下这种我一眼就看出来的低级错误，你也许从中发现了一个道理：编译器专家并不等于程序语言专家。很多经验老到的程序语言专家一看到 Swift 最初的 array 设计，就知道那是错的。只要团队里有一个语言专家指出了这个问题，就不需要这样反复的修改折腾。为什么 Swift 直到 1.0 发布都没有发现这个问题，到了 2.0 修正却仍然是错的？我猜这是因为 Apple 并没有聘请到合格的程序语言专家来进行 Swift 的设计，或者有合格的人，然而他们的建议却没有被领导采纳。Swift 的首席设计师是 Chris Lattner，也就是 LLVM 的设计者。他是不错的编译器专家，然而在程序语言设计方面，恐怕只能算业余水平。编译器和程序语言，真的是两个非常不同的领域。Apple 的领导们以为好的编译器作者就能设计出好的程序语言，以至于让 Chris Lattner 做了总设计师。&lt;/p&gt;
-
-&lt;p&gt;Swift 团队不像 Go 语言团队完全是一知半解的外行，他们在语言方面确实有一定的基础，所以 Swift 在大体上不会有特别严重的问题。然而可以看出来这些人功力还不够深厚，略带年轻人的自负，浮躁，盲目的创新和借鉴精神。有些设计并不是出自自己深入的见解，而只是“借鉴”其它语言的做法，所以可能犯下经验丰富的语言专家根本不会犯的错误。第一次就应该做对的事情，却需要经过多次返工。以至于每出一个新的版本，就出现一些“不兼容改动”，导致老版本语言写出来的代码不再能用。这个趋势在 Swift 3.0 还要继续。由于 Apple 的统治地位，这种情况对于 Swift 语言也许不是世界末日，然而它确实犯了语言设计的大忌。一个好的语言可以缺少一些特性，但它绝不应该加入错误的设计，导致日后出现不兼容的改变。我希望 Apple 能够早日招募到资深一些的语言设计专家，虚心采纳他们的建议。BTW，如果 Apple 支付足够多的费用，我倒可以考虑兼职做他们的语言设计顾问 ;-)&lt;/p&gt;
-
-&lt;h3&gt;Java 有 value type 吗？&lt;/h3&gt;
-
-&lt;p&gt;有人看了以上的内容，问我：“你说 Java 只有 reference type，但是根据 Java 的&lt;a href=&quot;http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html&quot;&gt;官方文档&lt;/a&gt;，Java 也有 value type 和 reference type 的区别的。” 由于这个问题相当的有趣，我另外写了一篇&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/08/java-value-type&quot;&gt;文章&lt;/a&gt;来回答这个问题。&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/06/06/swift</guid>
-<pubDate>Mon, 06 Jun 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>我的 tweet 系统</title>
-<link>http://yinwang.org/blog-cn/2016/05/25/my-tweet</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;我的 tweet 系统&lt;/h2&gt;
-                            &lt;p&gt;有时候灵光乍现，却又不想写成完整的文章，所以尝试过使用 twitter 和微博，然而最终我发现它们有各种缺点。所以我想出一个圡办法：自己手动整理一个列表，把想说的放进去，加上日期，就算是我的 tweet 系统。&lt;/p&gt;
-
-&lt;p&gt;这个系统有一系列强大的功能：无法 follow 或订阅，不能评论，不方便转载。可以随意修改，随意排序，不限字数。不能随时随地增加内容，防止成瘾。心诚的人必须主动来这里看，理解更深入，自动过滤心理不正常的人，等等…… 这是迄今为止最好最完善的 social network 系统。本系统的座右铭是：我想写 tweet，所以我就写了。你们想看就看，不想看就算了。&lt;/p&gt;
-
-&lt;p&gt;请点击&lt;a href=&quot;http://www.yinwang.org/tweet.html&quot;&gt;这里&lt;/a&gt;访问我的 tweet 系统。&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/05/25/my-tweet</guid>
-<pubDate>Wed, 25 May 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>正面思维的误区</title>
-<link>http://yinwang.org/blog-cn/2016/05/22/positive-thinking</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;正面思维的误区&lt;/h2&gt;
-                            &lt;p&gt;有些人喜欢宣扬所谓“正面思维”（positive thinking），而不顾事实真相。每当你批评一些事情，他们就会拿出正面思维这个万能法宝来压制你，说：“你这人怎么这么 negative？要 positive，要看到事物好的方面才对！”&lt;/p&gt;
-
-&lt;p&gt;比如这次有人说：“你把之前每个东家都喷了一遍。这里面难道就没有你自己的问题吗？” 我只能说，如果它们真的就是那么恶劣，那我有什么办法呢？由于没来得及选择，连续进入好几家问题公司，其实很正常。我不是一个完美的人，然而在公司的人际关系上，我可以说是仁至义尽了。我没架子，容易相处，这点很多同事都知道，甚至厨师和扫地大妈都知道。然而我绝对不是好欺负的。&lt;/p&gt;
-
-&lt;p&gt;像 Coverity，Sourcegraph 这类极品，欺压员工，无耻利用，行为极其恶劣，难道我还能说它们好话不成？我的心理不知道要扭曲到什么程度，才能发掘出他们好的地方来。这些公司的恶劣行径，严重损害了员工的身心健康，伤害了他们的事业发展，在某种程度上可以说是犯罪行为，没有把这些人告上法庭就已经不错了。关于这些公司，有很多骇人听闻的细节我还没有说出来，我保留对这些进行进一步揭露的权利。&lt;/p&gt;
-
-&lt;p&gt;然而这不是今天的主题，我今天想谈的是所谓“正面思维”。很多人没有意识到，盲目的正面思维，其实是一个很严重的问题。正面并没有什么问题，快乐是好事，然而它们应该是结果，而不应该是目的。如果一个社会需要刻意去提倡“正面”和“快乐”，去宣扬它们，通过舆论压力或者暴力，迫使每个人都“正面思维”，那就有严重问题了。文化大革命的时候，人们的思维可真是很正面啊，各种歌颂…… 你要是敢说任何不好听的话，立即被打成反革命右派。可是今天，我发现这种文革似的“正面思潮”，又有抬头之势。其实，它在美国已经泛滥成灾，以至于有人专门写了一本书来批判这种“正面思维”：&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.amazon.com/Bright-sided-Relentless-Promotion-Positive-Undermined-ebook/dp/B002SKDGQ0&quot;&gt;
-&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-28fd151402f7b345.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/200&quot;&gt;&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;当你遇到困难的时候，美国人喜欢说：“别担心，一切都会好起来的……”，“要专注于事物好的方面……”，“只要你努力，就会有好结果……”，“困难是临时的，面包会有的，Go 语言会改进的……”，“危机会过去的，经济会持续增长的⋯⋯”，“美国是世界上最伟大的国家，上帝保佑美利坚……” 看看这本书，你就知道这些说法有多大的欺骗性。整个美国，其实都沉浸在人们不切实际的“正面幻想”之中。&lt;/p&gt;
-
-&lt;p&gt;“正面思维”跟美国的剥削制度和资本主义，是密不可分的。美国总是宣称自己是民主自由的国家。听到这个，比美国民主和自由很多的国家，都笑了。一个真正民主自由的国家，有什么必要反复的宣称自己是民主和自由的呢？事实上，美国是一个剥削和压迫非常严重的国家，美国人民并不幸福。实际上，正面思维就是剥削者想出来，用于安抚人民，让人安心做廉价劳动力的工具。一些所谓“成功人士”，总是鼓励大家要上进，要看到事物好的方面，说失业是一种福分，要安于现状，一步一步奋斗，往上爬！然后呢，自己却在背后玩弄权术，利用人们的正面不设防的心理，招摇撞骗，投机取巧，贬低人的价值，压低雇员工资，让别人加班加点，动作慢了随时开掉。自己却不劳而获，靠着一口官腔（所谓“领导才能”）飞黄腾达。&lt;/p&gt;
-
-&lt;p&gt;在美国，正面思维是一个产业。号称“快乐民族”的美国人，每年消耗掉世界上三分之二的抗抑郁症药物。美国出产层出不穷的正面思维和“成功学”书籍，DVD，以及其他产品：『&lt;a href=&quot;https://en.wikipedia.org/wiki/How_to_Win_Friends_and_Influence_People&quot;&gt;人性的弱点&lt;/a&gt;』，『&lt;a href=&quot;https://en.wikipedia.org/wiki/Chicken_Soup_for_the_Soul&quot;&gt;心灵的鸡汤&lt;/a&gt;』，『&lt;a href=&quot;https://en.wikipedia.org/wiki/Who_Moved_My_Cheese%3F&quot;&gt;谁动了我的奶酪&lt;/a&gt;』，『&lt;a href=&quot;https://en.wikipedia.org/wiki/The_Secret_(book&quot;&gt;秘密&lt;/a&gt;)』…… 出产成千上万的所谓人生导师，职场教练，宗教领袖，知心大妈，心理医生，鸡汤和蛇油贩子…… 他们的谋生方式，就是训练你如何正面思维，抑制负面情绪。这些人不能给你任何切实可行改善生活的办法，而只是告诉你，如何才能把生活的挫折，社会的不合理，不公平，都想成自己的思想有问题，或者自己不够努力，不够好。不论遇到什么样的不幸或者不公正待遇，你都不能抱怨抗议，反而还得“心存感激”，因为你活着就是上帝最好的恩赐。这也就是为什么美国有个节日叫“感恩节”，除了美国及其附庸加拿大，世界上没有其它国家庆祝感恩节。&lt;/p&gt;
-
-&lt;p&gt;美国的正面思维产业是如此的发达，甚至产生了一门学科，叫做“正面心理学”。哈佛大学还开设了红极一时的『&lt;a href=&quot;https://positivepsychologyprogram.com/harvard-positive-psychology-course-1504&quot;&gt;正面心理学&lt;/a&gt;』课程（所谓“幸福课”）。我当年看了一阵子这课的&lt;a href=&quot;https://www.youtube.com/watch?v=K8qpn6kNfPc&amp;amp;list=PL28D16304BA57DD7E&quot;&gt;视频&lt;/a&gt;，发现它真的很不寻常。课程进行到将近一半，教授仍然在做一般课程第一堂课的那种“动员工作”。没有传授任何切实可行的方法，只是反反复复地试图说服你，为什么你应该学正面心理学…… 老师啊，我坐在你课堂上半学期了，你还在告诉我为什么应该上你的课？！后来我发现，这个学科很像传销。它并不能让人快乐起来，然而它确实能教会你如何说服别人来上这门课，能把你训练成跟老师一样的“幸福课推销员”，然后你又可以去训练下一代的推销员…… 最后大家都成了推销员，然而推销员自己并不快乐，因为他们没有真正的产品和客户。&lt;/p&gt;
-
-&lt;p&gt;你知道为什么自从小布什做总统以来，美国的正面思维产业越来越红火了吗？因为小布什本来就是拉拉队长（cheerleader）出生，他以前的工作就是给大家加油鼓气的。小布什要求美国人民，一定要正面，一定要认为美国是世界上最伟大的国家，一定要认为美国人民是上帝的宠儿！;-)&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-8c0c6feb3e7cffc8.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/300&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-
-&lt;p&gt;在 Cornell 和 Google 的时候，我饱尝了盲目的正面思维所带来的危害。Cornell 这学校有个奇怪的现象，跟同学聊天时，如果你想打听某个教授的学术或者为人，得到的回应必然是：“他好牛！” “好厉害！” “非常聪明！” 之类的语言。你听不到任何人说不好的方面，比如：“他讲课像是背书”，“他的研究没有实质意义”，“他的学生都很累”之类的负面信息。所以在 Cornell，你无法从同学那里得到任何信息，每个人都饱尝了与某些教授打交道的辛酸，可是每个人都把那些秘密藏在心底。他们对你说：“嗯，他很厉害，他的研究很伟大……”&lt;/p&gt;
-
-&lt;p&gt;这种铺天盖地的正面信息，是无益甚至有害的。如果你只听到正面的声音，那你就无法做出正确的决定。这就像你在网上买东西，如果只看正面的评价，那你很可能买到有问题的商品。正确的作法，应该是正面负面的信息都看。特别是负面的信息，必须仔细看。它们可以告诉你，这个产品有哪些烦扰其他人的缺陷，会不会影响到你的使用。一般我在网上如果被一个产品吸引，我首先看的是一颗星的评价，因为给一颗星的人，一般是恨透了这个产品。当然里面有些无知或者不知好歹的人，你可以忽略，但是大部分人会告诉你，他们不喜欢这个产品的具体原因。我很会分析这些评价，这就是为什么我家里的很多产品，都是非常好用的。&lt;/p&gt;
-
-&lt;p&gt;Cornell 这个学校，就是缺乏这种有益的负面评价。你总是听说每个教授都很牛，人都很好，…… 然而当你真正跟他们接触，就发现事实并非如此。你一次次的跳入火坑，然后才开始希望，要是开头的时候听到一些负面的信息，该多好。可是每个人表面上都是那么的 positive，每个人都认为 negative 是错误的心理，每个人都在强装笑容。这是一个多么可怕的地方！&lt;/p&gt;
-
-&lt;p&gt;Google 的气氛非常类似于 Cornell。Google 员工吃饭时，谈论每个项目或者团队，都带着玫瑰色的光环，仿佛 Google 做的一切都是美好的，先进的，有前途的。在每个星期的 TGIF（Tell Googlers It&#39;s Friday）大会上，founder 们都在大讲台上宣布各种好消息，而对坏消息闭口不提或者一笔带过。下面的 Google 员工们群情激昂，对一些小不点的事情各种欢呼鼓掌尖叫，跟传销大会似的。事实上，Google 内部有许多穷途末路的项目。表面看上去很厉害的样子，等你进去才发现是死路一条，垂死挣扎。项目领导平时紧紧张张，生怕上面来人调查，把自己的项目杀掉。在公司内部搞各种政治，东拉西扯建立各种依赖关系，这样自己的项目才得以生存。&lt;/p&gt;
-
-&lt;p&gt;这种虚伪的正面氛围，存在于很多的美国公司，员工每个星期都被领导打各种鸡血针，保持激昂向上的状态。我曾经跟英国，法国，德国，意大利，瑞典，波兰等国家的同事聊天，他们都暗自嘲笑美国人，说过度正面，传销式的群情激昂，吃错药了一样，确实是美国文化的一大特色。欧洲人比较务实，不搞这套，好的就说好，坏的就批评或者嘲笑，直率坦荡。当然，我不能说所有美国公司都有这种问题，所以我仍然存在希望，找到稍微实在点的公司。&lt;/p&gt;
-
-&lt;p&gt;盲目的正面思维，忽略问题，并不能解决问题。你必须看到负面的事实，才有可能避免困难，得到好的结果。正面思维和浮夸的气氛，正在侵蚀 Google 和很多其它美国公司。为了看清楚正面思维的危害性，我推荐你看看这本书，名叫『负面思维的威力』：&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://www.amazon.com/Power-Negative-Thinking-Unconventional-Achieving/dp/054402771X&quot;&gt;
-&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-f879b3a439066457.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/200&quot;&gt;&lt;/a&gt;&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/05/22/positive-thinking</guid>
-<pubDate>Sun, 22 May 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>关于博文的自愿付费方式</title>
-<link>http://yinwang.org/blog-cn/2016/04/13/pay-blog</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;关于博文的自愿付费方式&lt;/h2&gt;
-                            &lt;p&gt;曾经有很多人跟我建议，给我的博文里面加上付款的链接，这样我花费的时间可以得到一些回报。我一直很高尚的样子，不愿意为此收费。然而，根据经济学的原理，这是有害社会的 :P 经济的原理是这样，有价值的事物，应该在经济上受到相应的支持，这样好的东西才能受到鼓励，发扬光大，不好的东西才可能被人忘记。&lt;/p&gt;
-
-&lt;p&gt;所以现在我决定，给我觉得价值比较大的文章加上大概的价格，这样喜欢文章的人可以自愿付费，当然也可以不付费。谢谢你的支持！&lt;/p&gt;
-
-&lt;p&gt;【&lt;a href=&quot;http://paypal.me/yinwang0/5&quot;&gt;PayPal付款链接&lt;/a&gt;】&lt;/p&gt;
-
-&lt;p&gt;支付宝二维码（收款人是我父亲的账号mantianxing）：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/alipay.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/04/13/pay-blog</guid>
-<pubDate>Wed, 13 Apr 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>我为什么不再做PL人</title>
-<link>http://yinwang.org/blog-cn/2016/03/31/no-longer-pl</link>
-<description>&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;我为什么不再做PL人&lt;/h2&gt;
-                            &lt;p&gt;我不做程序语言（PL）的工作已经半年了。在这半年里，我变得快乐了很多，对世界也有了新的观点。现在我想来讲一讲，我为什么不想再做PL的工作和研究。我只希望这些观点可以给正在做PL，或者考虑进入这个领域的人们，作为一份参考。&lt;/p&gt;
-
-&lt;h3&gt;学校里的PL人&lt;/h3&gt;
-
-&lt;p&gt;PL看似计算机科学最精髓的部分，事实确实也是这样的。没有任何一个其它领域，可以让你对程序的本质形成如此深入的领悟，然而这并不等于你就应该进入PL的博士班。这是为什么呢？&lt;/p&gt;
-
-&lt;h4&gt;炒冷饭&lt;/h4&gt;
-
-&lt;p&gt;PL这个领域几十年来，已经发展到了非常成熟的阶段。这里面的问题，要么在20年前已经被人解决掉了，要么就是类似“&lt;a href=&quot;https://en.wikipedia.org/wiki/Halting_problem&quot;&gt;停机问题&lt;/a&gt;”一样，不可能解决的问题。然而，博士毕业却要求你发表“创新”的论文，那怎么办呢？于是你就只有扯淡，把别人已经解决的问题换个名字，或者制造一些看似新鲜却不管用的概念，在大会上煞有介事的宣讲。俗话说就是“炒冷饭”。&lt;/p&gt;
-
-&lt;p&gt;最开头进入这个领域的时候，你可能不觉得是这样，因为似乎有那么多的东西可以学习，那么多的大牛可以瞻仰，那么多的新鲜名词，什么“lambda calculus”啊，“语义”啊，各种各样的“类型系统”啊，这样那样的“逻辑”…… 可是时间久了，看透了，你就发现一些这个圈子里的规律。&lt;/p&gt;
-
-&lt;h4&gt;崇拜古人&lt;/h4&gt;
-
-&lt;p&gt;几乎每篇PL领域的论文，里面必有一页弯弯曲曲，让人看花眼的逻辑公式。程序语言的论文，不是用程序来描述，而是用一些老古董的逻辑符号，像这样：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-eae6c6cd2eecfb4a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/500&quot; alt=&quot;图1：PL论文里的公式&quot;&gt;&lt;/p&gt;
-
-&lt;p&gt;绝大部分PL领域的专家们，似乎都酷爱逻辑符号，视逻辑学家高人一等。这种崇尚古人的倾向，使得PL专家们看不见这些符号背后，类似电路一样的直觉。他们看不见逻辑学的历史局限，所以他们也许能够发展和扩充一个理论，却无法创造一个新的。&lt;/p&gt;
-
-&lt;p&gt;说到古人，却并不是所有古人都这么晦涩。如果你考古一下就会发现，其实现代逻辑学的鼻祖&lt;a href=&quot;https://en.wikipedia.org/wiki/Gottlob_Frege&quot;&gt;Gottlob Frege&lt;/a&gt;最初的论文里，是没有这些稀奇古怪的符号的。他整篇论文都在画图，一些像电路一样的东西。比如下图，就是Frege的创始论文《&lt;a href=&quot;https://en.wikipedia.org/wiki/Begriffsschrift&quot;&gt;Begriffsschrift&lt;/a&gt;》里最复杂的“公式”之一：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/68562-80571c70a82c1850.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/200&quot; alt=&quot;图2：Frege的“公式”&quot;&gt;&lt;/p&gt;
-
-&lt;p&gt;你可以把这里的每根线理解成一根电线。图1里那些诡异的逻辑符号，都是一些好事的后人（比如&lt;a href=&quot;https://en.wikipedia.org/wiki/Gerhard_Gentzen&quot;&gt;Gentzen&lt;/a&gt;）加进去的，最后搞得乌七八糟，失去了Frege理论的简单性。所以PL专家们虽然崇尚古人，却没有发现大部分古人，其实并没能获得鼻祖Frege的真传。&lt;/p&gt;
-
-&lt;p&gt;如果你看透了那些公式，自己动手实现过各种解释器，就会发现PL论文里的那些公式，其实相当于解释器的代码，只不过是用一种叫做“XX逻辑”的晦涩的语言写出来的。逻辑，其实本质上是一种相当落伍的程序语言。如果你精通解释器的代码，也许就会发现，这些公式其实用非常蹩脚的方式，实现了哈希表等数据结构。逻辑语言只运行于逻辑学家的脑子里面，用它写出的代码一样可能有bug，而且由于这语言如此障眼难读，而且没有debugger，所以bug非常难发现。逻辑学家们成天为自己的设计失误和bug伤透了脑筋，PL专家们却认为他们具有数学的美感，是比自己聪明的高人 :)&lt;/p&gt;
-
-&lt;p&gt;所以当你看透了所有这些，就会发现PL的学术界，其实反反复复在解决一些早已经解决了的问题，只不过给它们起了不同的名字，使用不同的方式来描述。有时候好几个子领域，其实解决的是同一个问题，然而每个子领域的人，却都说自己的问题在本质上是不一样的，号称自己是那个子领域的鼻祖。甚至有人在20多年的时间里，制造出一代又一代的PhD和教授职位。他们的理论一代代的更新，最后却无法解决实际的问题。所谓的“控制流分析”（control-flow analysis，CFA），就是这样的一个子领域。&lt;/p&gt;
-
-&lt;h4&gt;不知道谁是真的高人&lt;/h4&gt;
-
-&lt;p&gt;进入一个领域做研究，你总该知道那些人是真正厉害的。可惜的是，PL这个领域里，你往往不知道谁是真正掌握了精髓的学者，甚至好几年之后你仍然蒙在鼓里。我的历史教训是，写教科书的人，往往不是最聪明，最理解本质的。真正深刻的PL研究者，你可能根本没听说过他们的名字。&lt;/p&gt;
-
-&lt;p&gt;一般程序员提到PL，就会跟“编译器”这个领域混淆在一起，就会想起大学时候上编译器课，看《&lt;a href=&quot;http://www.amazon.com/Compilers-Principles-Techniques-Tools-2nd/dp/0321486811&quot;&gt;龙书&lt;/a&gt;》时焦头烂额的情景。然后由于&lt;a href=&quot;https://en.wikipedia.org/wiki/Stockholm_syndrome&quot;&gt;斯德哥尔摩综合症&lt;/a&gt;，他们就会崇拜龙书的作者们。直到遇到了真正厉害的PL专家，你才发现编译器这个领域，跟PL根本是两回事，它其实比PL要低一个档次，里面充满了死记硬背的知识甚至误导。龙书的作者，其实也不是最厉害的编译器作者，他们更不是合格的PL专家。&lt;/p&gt;
-
-&lt;p&gt;上过“正统”的PL课程的学生，往往用一本经典大部头教材叫《&lt;a href=&quot;https://mitpress.mit.edu/index.php?q=books/types-and-programming-languages&quot;&gt;TAPL&lt;/a&gt;》，然后就会误认为此书的作者是最厉害的PL专家，然而他们再一次被名气给蒙蔽了。TAPL这书其实不但照本宣科，没有揭示实质，而且冗长没有选择，有用的没用的过时的理论，一股脑的灌输给你。等你研究到了所谓“交集类型”（intersection types），看到TAPL作者当年的博士论文才发现，其实他把简单的问题搞复杂了，而且那些理论几乎完全不能实用。真正厉害的intersection types专家，其实默默无闻的待在Boston University，而且研究到最后，intersection types这个领域其实被他们证明为完全不能实用。&lt;/p&gt;
-
-&lt;p&gt;由于TAPL这本书，以及&lt;a href=&quot;https://en.wikipedia.org/wiki/ML_(programming_language&quot;&gt;ML&lt;/a&gt;)，Haskell等语言在PL界的“&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E7%99%BD%E8%B1%A1&quot;&gt;白象&lt;/a&gt;”地位，于是很多人又对&lt;a href=&quot;https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system&quot;&gt;Hindley-Milner&lt;/a&gt;类型系统（HM）充满了崇敬之情，以为HM系统的发明者&lt;a href=&quot;https://en.wikipedia.org/wiki/Robin_Milner&quot;&gt;Robin Milner&lt;/a&gt;是最厉害的PL学者。他的确不错，然而等你随手就能实现出HM系统，看清了它的实质，就会发现所有这样能够“倒推”出类型的系统，其实都具有很大的局限性。&lt;/p&gt;
-
-&lt;p&gt;HM系统的“&lt;a href=&quot;https://en.wikipedia.org/wiki/Unification_(computer_science&quot;&gt;unification&lt;/a&gt;)”机制，依赖于数学上的“&lt;a href=&quot;https://en.wikipedia.org/wiki/Equivalence_relation&quot;&gt;等价关系&lt;/a&gt;”，所以它不可能兼容子类型（subtyping）关系。原因很简单：因为子类型没有交换性，不是一个等价关系。而子类型关系却是对现实世界进行直观的建模所必不可少的，于是你就发现Haskell这类基于HM系统的语言，为了弥补这些缺陷而出现各种“扩展”，却永远无法达到简单和直观。一开头就错了，所以无论Haskell如何发展，这个缺陷也无法弥补。如果没有了HM系统，Haskell就不再是Haskell。&lt;/p&gt;
-
-&lt;p&gt;Robin Milner的另外一个贡献&lt;a href=&quot;https://en.wikipedia.org/wiki/%CE%A0-calculus&quot;&gt;π-calculus&lt;/a&gt;，虽然看起来吓人，其实看透了之后你发现它里面并没有很多东西。π-calculus对并发进行“建模”，却不能解决并发所带来的各种问题，比如竞争（race condition）。实际上普通的语言也能对并发进行简单的建模，所以π-calculus其实只停留于纸面上，不可能应用到现实中去。跟π-calculus类似的一个概念&lt;a href=&quot;https://en.wikipedia.org/wiki/Communicating_sequential_processes&quot;&gt;CSP&lt;/a&gt;也有类似的问题，属于“白象理论”。很多语言（比如Go）扯着CSP的旗号，引起很多人无厘头的膜拜，可见白象的威力有多大 :)&lt;/p&gt;
-
-&lt;p&gt;我在学校研究PL的时候就是这样，每天都发现天外有天，每天都发现曾经的偶像其实很多时候是错觉。最后我发现，PL领域其实最后就剩下那么一点点实质的内容，其它的都是人们造出来的浮云。所以每当有人问我推荐PL书籍，我都比较无语，因为我的PL知识只有非常少数是看书得来的。自己动手琢磨出来的知识，才是最管用的。&lt;/p&gt;
-
-&lt;h4&gt;没人知道你是谁&lt;/h4&gt;
-
-&lt;p&gt;PL的学生还有一个问题，那就是毕业后工作不好找。只有极少数公司（像微软，Intel，Oracle）里的少数团队，可以发挥PL专家的特殊才能。绝大部分其它公司根本不知道PL是什么，PL专家是干什么的。你跟他们说你的专业是“程序语言”，他们还以为你只是学会了“编程”而已，还问你想做“前端”还是“后端” :) 诚然，PL学生一般都有很好的编程能力，然而公司往往只关心自己的实际需求。PL学生毕业之后，很容易被普通公司作为没有任何专长的人对待。&lt;/p&gt;
-
-&lt;p&gt;另外，PL的圈子相当的小，而且门派宗教观念严重，所以就算你从名师手下毕业，想进入另一个老师的门徒掌权的公司，很可能因为两个门派的敌视而无法被接纳，就算进去了也经常会因为对于PL的理念不同而发生冲突。所以，学习PL最精髓的理论是有好处的，然而进入PhD投身PL的研究，我觉得应该三思。&lt;/p&gt;
-
-&lt;h3&gt;公司里的PL人：过度工程&lt;/h3&gt;
-
-&lt;p&gt;PL人在学校里跟着教授炒冷饭，毕业进入了公司之后，他们的行为方式还是非常类似。他们喜欢在公司里做的一件事情，叫做“过度工程”。本来很直接，很容易解决的一个问题，非要给你扯到各种炫酷的PL名词，然后用无比复杂的方案来解决。&lt;/p&gt;
-
-&lt;p&gt;有一些PL人喜欢推广他们认为高大上的语言，比如Haskell，OCaml，Scala等。这些语言在PL学术界很受尊重，所以他们以为这些语言能够奇迹般的解决实际的问题，然而事实却不是这样的。事实是，这些学术界出来的语言，其实缺乏处理现实问题的机制。为了能够在学术上证明程序的所谓“正确性”，而且由于类型系统本身的局限性，这些语言往往被设计得过于简单，具有过度的约束性，以至于表达能力欠缺。&lt;/p&gt;
-
-&lt;p&gt;最后，你发现用这些语言来写代码，总是这也不能做，那也不能做，因为你要是那么做了，编译器就无法发现“类型错误”。到最后你发现，这些语言的约束，其实是无需有的。如果放宽这些约束，其实可以更优雅，更简单的对问题进行建模。对正确性的过分关注，其实导致了PL人选择蹩脚的语言，写出绕着弯子，难以理解的代码。&lt;/p&gt;
-
-&lt;p&gt;还有一类PL人，喜欢设计不必要存在的语言。因为他们认为设计语言是PL人的特异功能，所以随时随地都想把问题往“语言设计”的方向上靠。这样的趋势是非常危险的，因为有原则的PL人，其实都明白一条重要的道理：不到万不得已的时候，千万不要制造语言。&lt;/p&gt;
-
-&lt;p&gt;很多PL人在公司里盲目的制造新的语言，导致的问题是，到最后谁也无法理解这种新语言写出来的代码。这一方面是新语言必然导致的结果，另一方面是由于，并不是每一个PL人都有全面的知识和很好的“品味”。每个PL学生毕业，往往只深入研究了PL的某个子领域，而对其它方面只是浮光掠影，所以他们有可能在那上面犯错。有些PL人喜欢照猫画虎，所以可能盲目的模仿Go语言，Haskell或者Python的特性，设计出非常蹊跷难用的语法。这些新的语言，其实让其他人苦不堪言。最后你发现，他们声称新语言能解决的问题，其实用像Java一样的老语言，照样可以很容易的解决。&lt;/p&gt;
-
-&lt;p&gt;喜欢钻牛角尖，把问题搞复杂，就是很多公司里的PL人的共同点。制造语言是PL人应该尽量避免的事情，这恰恰跟PL人的专长是矛盾的。所以有原则的PL人，生活怎么可能不苦 :)&lt;/p&gt;
-
-&lt;h3&gt;PL人的天才病&lt;/h3&gt;
-
-&lt;p&gt;很多研究PL的人喜欢看低其它程序员，认为自己能设计实现程序语言，就是天之骄子。我之所以从Dan Friedman那里学到了好东西，却没有成为他的PhD学生，一方面就是因为看不惯围绕在他身边那些自认为是“天才”的人。&lt;/p&gt;
-
-&lt;p&gt;总是有那么一群本科生，自认为掌握了Friedman所讲授的精髓，所以高人一等。其实呢，他们的水平比起我这样的，其实差的天远。于是我就经常无奈的看着他们，吵吵闹闹的宣讲他们解决的“新问题”，貌似什么了不起的发明一样，受到Friedman的肯定就受宠若惊的样子。而其实呢，那些都是我几年前就已经试过并且抛弃的方案……&lt;/p&gt;
-
-&lt;p&gt;其它的PL人，包括PhD学生，也有一样的毛病。不管在三流大学，还是在Harvard，Princeton，MIT这样的“牛校”出来的，只要是PL人，几乎必然有这种天才作风。另外你可能不知道的是，牛校往往并不产出优秀的PL人才。像Stanford，Berkeley，MIT这样的传统CS牛校，其实在PL方面是相当差的。&lt;/p&gt;
-
-&lt;p&gt;这种天才病的危害在于，它蒙蔽了这些人的眼睛。他们不再能设计出让“普通人”可以容易使用的产品。如果你不会用，他们就会嘲笑你笨，而其实呢，是因为他们的设计不好。他们喜欢用含混晦涩的方式（所谓“函数式”）的写法来构造代码，让其它人阅读和修改都极其困难，……&lt;/p&gt;
-
-&lt;p&gt;这些所谓天才，看不到简单直观的解决方案，为了显示自己的聪明而采用繁复的抽象，其实是一种愚蠢。真正的天才，必须能够让事情变得简单。&lt;/p&gt;
-
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;margin-top: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2016/03/31/no-longer-pl</guid>
-<pubDate>Thu, 31 Mar 2016 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
