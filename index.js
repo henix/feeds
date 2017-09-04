@@ -11,6 +11,7 @@ const feeds = [
 	]],
 	["独立", [
 		"wxieshuo",
+		"yeka52",
 		"aloha-yaoyao",
 		"gh_7d1aa4ada621",
 		"iamawguo",
@@ -19,9 +20,15 @@ const feeds = [
 		"yinwang",
 		"impress-your-cat",
 		"marisa",
+		"yangbo",
+		"hllvm",
 		"rust-lang",
 	]],
 	["Security", [
+		"WeiranCrypto",
+		"fhe-blockchain",
+		"twosecurity",
+		"freebuf",
 		"drops",
 	]],
 	["政治 / 人文", [
@@ -30,11 +37,15 @@ const feeds = [
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
+	["算法", [
+		"algorithmicliberalartsdegree",
+	]],
 	["商业", [
 		"caozsay",
 		"Professor-Li",
 	]],
 	["心理", [
+		"knowyourself",
 		"PSY_Jile",
 	]],
 	["科学", [

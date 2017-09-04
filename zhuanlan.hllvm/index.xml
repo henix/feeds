@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>编程语言与高级语言虚拟机杂谈（仮）</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/</link>
+<description>探讨编程语言的设计与实现</description>
+<language>zh-cn</language>
+<lastBuildDate>Mon, 04 Sep 2017 17:55:40 +0800</lastBuildDate>
+<item>
+<title>谈寄存器分配器中Spiller的作用</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-07-29-28182330.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;谈寄存器分配器中Spiller的作用&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28182330&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;之前的两篇文章&lt;a href=&quot;https://www.zhihu.com/question/29355187/answer/99413526&quot;&gt;知乎用户：寄存器分配问题？&lt;/a&gt; 和&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24554029&quot;&gt;https://zhuanlan.zhihu.com/p/24554029&lt;/a&gt; 分别从线性扫描的分配算法到LLVM2.6中是如何实现的两方面坐了简要的阐述，但是正如我初学之时一样的想法，在执行LinearScan之后算法就结束了吗？ 代码生成步骤完成了吗？ 实际的工作未必！本文将接上文阐述这最后一道工序。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;一、什么是Spiller？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;在执行上述趟的分配之后，在LLVM中，MachineInstr携带的虚拟寄存器操作数仍然是虚拟寄存器，分配得到的物理寄存器并没有重写到对应到操作数，以反应这个事实。另外，有部分操作数由于可用的物理寄存器数目受限的原因，只能分配至某个栈槽(Stack Slot)中，虽然如此，但对应的操作数并没有重写为Stack Slot引用（如：[%ebp-4]，而是一个表示Stack Slot的编号，如#1）。所以需要一趟Spiller（代码溢出器）重写对应的操作数，将分配到物理寄存器的操作数reg属性设置为物理寄存器的编号(LLVM，物理寄存器的编号范围为[0, FirstVirtualRegister = 1024))，将分配至stack slot的操作数重写为内存操作数的引用，如上述的[%ebp-4]。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;以如下的伪X86汇编代码为例(未执行三地址指令消除趟TwoAddrInstruction)，并且假设只有两个物理寄存器%eax, %ebx可用。&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;nasm&quot;&gt;movl %vreg1, [%ebp+8];   # vreg1表示虚拟寄存器, [%ebp+8]用于获取第一个参数
+addl %vreg0, %vreg1, 1;  # %vreg0 = %vreg1 + 1
+addl %vreg2, %vreg1, 1;  # %vreg2 = %vreg1 + 1
+subl %res, %vreg0, %vreg2;  # %res = %vreg0 - %vreg2&lt;/code&gt;&lt;p&gt;针对上述伪代码，计算得到的活跃区间(Live Interval)分别是[1]:&lt;/p&gt;&lt;p&gt;%vreg0 = [4, 15)&lt;/p&gt;&lt;p&gt;%vreg1 = [0, 11)&lt;/p&gt;&lt;p&gt;%vreg2 = [8, 15)&lt;/p&gt;&lt;p&gt;%res = [12, 19)&lt;/p&gt;&lt;p&gt;然后依次分配寄存器，%vreg0分配到%ebx，%vreg1分配到%eax，%vreg2分配到0号栈槽(stack slot)，%res分配到%eax。对于%vreg2来说，在使用的时候必须有寄存器可以使用，此处调用函数addIntervalsForSpills插入一个很短的Live Interval = [8, 11)用于为%vreg2分配一个临时寄存器，同时更新对应的active, inactive集合。如果将这个临时live interval权重设置高些，则就能剥夺%vreg0的物理寄存器%ebx给%vreg2使用。&lt;/p&gt;&lt;p&gt;在执行寄存器分配之后，上述的分配结果只是保存在VirtRegMap中，并没有反映到指令操作数的更改。为了反映上述分配事实，就需要执行一趟代码重写操作，将分配至物理寄存器的操作数重写为物理寄存器编号，分配到栈槽的操作数重写为内存引用。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;二、LLVM 1.3的Spiller的实现[1]&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;LLVM 1.3中Spiller实现分为两种，一种是SimpleSpiller，一种是LocalSpiller，所工作的范围不一样。前者局限于单条指令，只保存某个可重用的结果，便于同一条指令之后的使用同样寄存器的其他操作数。后者则在基本块范围内进行指令重写，寻找更多的可重用操作数。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;  bool runOnMachineFunction(MachineFunction&amp;amp; mf, const VirtRegMap&amp;amp; vrm) {
+            DEBUG(std::cerr &amp;lt;&amp;lt; &quot;********** REWRITE MACHINE CODE **********\n&quot;);
+            DEBUG(std::cerr &amp;lt;&amp;lt; &quot;********** Function: &quot;
+              &amp;lt;&amp;lt; mf.getFunction()-&amp;gt;getName() &amp;lt;&amp;lt; &#39;\n&#39;);
+            const TargetMachine&amp;amp; tm = mf.getTarget();
+            const MRegisterInfo&amp;amp; mri = *tm.getRegisterInfo();
+
+            // Loaded这个map记录某个虚拟寄存器所分配到的物理寄存器是否可重用
+            // 但是这个map的有效范围只在单条指令的多个操作数之间，无法跨指令保存
+            typedef DenseMap&amp;lt;bool, VirtReg2IndexFunctor&amp;gt; Loaded;
+            Loaded loaded;
+
+            for (MachineFunction::iterator mbbi = mf.begin(),
+                     mbbe = mf.end(); mbbi != mbbe; ++mbbi) {
+                DEBUG(std::cerr &amp;lt;&amp;lt; mbbi-&amp;gt;getBasicBlock()-&amp;gt;getName() &amp;lt;&amp;lt; &quot;:\n&quot;);
+                for (MachineBasicBlock::iterator mii = mbbi-&amp;gt;begin(),
+                         mie = mbbi-&amp;gt;end(); mii != mie; ++mii) {
+                    // 重新清空
+                    loaded.grow(mf.getSSARegMap()-&amp;gt;getLastVirtReg());
+                    for (unsigned i = 0,e = mii-&amp;gt;getNumOperands(); i != e; ++i){
+                        MachineOperand&amp;amp; mop = mii-&amp;gt;getOperand(i);
+
+                        // 只处理寄存器操作数，并且该寄存器仍然是虚拟寄存器
+                        if (mop.isRegister() &amp;amp;&amp;amp; mop.getReg() &amp;amp;&amp;amp;
+                            MRegisterInfo::isVirtualRegister(mop.getReg())) {
+                            unsigned virtReg = mop.getReg();
+                            unsigned physReg = vrm.getPhys(virtReg);
+                            if (mop.isUse() &amp;amp;&amp;amp;
+                                vrm.hasStackSlot(mop.getReg()) &amp;amp;&amp;amp;
+                                !loaded[virtReg]) {
+                                // 对于溢出到stackslot中的操作数来说，此时需要重新
+                                // reload到临时物理寄存器phyReg中
+                                mri.loadRegFromStackSlot(
+                                    *mbbi,
+                                    mii,
+                                    physReg,
+                                    vrm.getStackSlot(virtReg),
+                                    mf.getSSARegMap()-&amp;gt;getRegClass(virtReg));
+                                // 记录该virtReg已经reload至物理寄存器了，
+                                // 下次如果当前指令中还有操作数使用了这个寄存器，则
+                                // 可以避免一次reload
+                                loaded[virtReg] = true;
+                                DEBUG(std::cerr &amp;lt;&amp;lt; &#39;\t&#39;;
+                                      prior(mii)-&amp;gt;print(std::cerr, &amp;amp;tm));
+                                ++numLoads;
+                            }
+                            if (mop.isDef() &amp;amp;&amp;amp;
+                                vrm.hasStackSlot(mop.getReg())) {
+                                // 如果该操作数是def操作数，那么需要讲结果
+                                // 写回到stack slot中
+                                mri.storeRegToStackSlot(
+                                    *mbbi,
+                                    next(mii),
+                                    physReg,
+                                    vrm.getStackSlot(virtReg),
+                                    mf.getSSARegMap()-&amp;gt;getRegClass(virtReg));
+                                ++numStores;
+                            }
+                            // 设置当前的操作数寄存器为物理寄存器，当前运算的临时的
+                            // 寄存器
+                            mii-&amp;gt;SetMachineOperandReg(i, physReg);
+                        }
+                    }
+                    DEBUG(std::cerr &amp;lt;&amp;lt; &#39;\t&#39;; mii-&amp;gt;print(std::cerr, &amp;amp;tm));
+                    // 清空loaded集合，因为loaded只在单条指令范围内有效
+                    loaded.clear();
+                }
+            }
+            return true;
+        }&lt;/code&gt;&lt;h2&gt;&lt;b&gt;三、LLVM 2.6中的Rewriter实现&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在LLVM 2.6中完成这部分工作的类名字修改成了VirtRegRewriter，该类同样分为两种，一种是简单的，单条指令范围内的TrivialRewriter，第二种是LocalRewriter。实现的逻辑和功能基本类似，只不过加了部分窥孔优化，如：OptimizeByUnfold2函数折叠一系列的load/store指令为一个寄存器，避免多次访存；针对满足交换律的指令进行操作数交换优化等。&lt;/p&gt;&lt;p&gt;[1]. &lt;a href=&quot;http://llvm.org/ProjectsWithLLVM/2004-Fall-CS426-LS.pdf&quot;&gt;Improvements to Linear Scan register allocation&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>XlousZeng</author>
+<guid isPermaLink="false">2017-07-29-28182330</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>[链接][C#][CLR] 在线把玩Roslyn与CLR JIT32</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-07-06-27740581.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;[链接][C#][CLR] 在线把玩Roslyn与CLR JIT32&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27740581&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;传送门：&lt;a href=&quot;https://sharplab.io/&quot;&gt;SharpLab&lt;/a&gt;&lt;/p&gt;&lt;p&gt;以前就有用它来把玩C#编译器（Roslyn），试用一些新语法，观察某些语法糖的实现，还有测试看某些结构生成的MSIL的样子。超方便。因为是完全在线的工具，我在火车上懒得拿出电脑的时候也可以用手机玩，简直太爽了。&lt;/p&gt;&lt;p&gt;刚才突然发现它现在在右手边的Decompiled下拉菜单里居然多了一个“JIT Asm”选项，选上它就可以看某段C#代码对应由Desktop CLR 4.7的JIT32所编译出来的x86代码。这更爽了啊！&lt;/p&gt;&lt;p&gt;（回头看看把它弄成再支持上x64有多麻烦…）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;还有一个我偶尔也用用的在线工具是 &lt;a href=&quot;https://csharppad.com/&quot;&gt;C# Pad: Run C# Code Online&lt;/a&gt; ，基本上是个基于Roslyn的在线C# REPL。因为是基于相当新的Roslyn，也可以用它来试用新语法。前面那个SharpLab只能用来编译与反编译，C# Pad则可以编译并运行。两者各有其用。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;要是我平时还用Windows的话我多半还会在本地用 &lt;a href=&quot;https://www.linqpad.net/&quot;&gt;LINQPad&lt;/a&gt; 吧。也超好用。可惜它在Mac上现在也还是跑不了，只好作罢。&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">2017-07-06-27740581</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>闭包捕获与lazy val字段</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-06-30-27633304.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;闭包捕获与lazy val字段&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27633304&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+几天前有同事聊起这个话题：大家在review一段Scala代码，里面有一个lazy val字段被用在一个闭包里，而这个闭包是要被序列化传到别的机器上去执行的。话题的重点就是在闭包前这段代码特意前访问了一下这个lazy val字段的值，引起同事讨论是否有必要。&lt;p&gt;其中一位同事对Scala不熟而对微软系技术更熟，于是我就把这个例子用C#来写了一次给他看。结果他没听说过C#里有&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/dd642331(v=vs.110).aspx&quot; data-editable=&quot;true&quot; data-title=&quot;System.Lazy&amp;lt;T&amp;gt;&quot; class=&quot;&quot;&gt;System.Lazy&amp;lt;T&amp;gt;&lt;/a&gt;…不过还好C#的Lazy&amp;lt;T&amp;gt;是标准库层面的功能，毕竟magic少一些，还是比Scala的好解释一些。&lt;/p&gt;&lt;p&gt;C#和Scala的代码例子在这个gist里：&lt;a href=&quot;https://gist.github.com/rednaxelafx/32574a3db9e46b09ddf4218e3185f3a8&quot; data-editable=&quot;true&quot; data-title=&quot;github.com 的页面&quot; class=&quot;&quot;&gt;demo C# and Scala&#39;s lazy val and lambda capturing&lt;/a&gt;&lt;/p&gt;&lt;p&gt;真正的重点是：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;C#和Scala里如果“捕获了字段”的话，其实捕获的是this而不是单独捕获了一个字段，在lambda里访问字段其实是通过捕获的this来访问的。Java 8的lambda也是如此。&lt;br&gt;&lt;/li&gt;&lt;li&gt;对this的捕获并不会导致lazy val被求值，所以就算lambda里会用到一个lazy val字段，在闭包创建的时候并不会当时就导致该字段求值。如果要包装这个lazy val字段在lambda表达式实际被调用时得到闭包创建时的一些环境状态的话，得自己显式在闭包创建前对这个lazy val字段求一下值才行。&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;然后同事表示还是C++好，lambda的捕获列表很明确哪些是capture-by-value哪些是capture-by-reference。然而其实来个 [&amp;amp;] 就可以把按引用捕获this的事实给隐含起来了，对新手来说也没友好多少吧（ry&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;functional&amp;gt;
+
+class Foo {
+  int val_ = 0;
+
+public:
+  std::function&amp;lt;int()&amp;gt; get_func() {
+    return [&amp;amp;]() { return val_; };
+  }
+
+  void incr() { val_++; }
+};
+
+int main() {
+  Foo foo;
+  const auto&amp;amp; f = foo.get_func();
+  std::cout &amp;lt;&amp;lt; f() &amp;lt;&amp;lt; std::endl;
+  foo.incr();
+  std::cout &amp;lt;&amp;lt; f() &amp;lt;&amp;lt; std::endl;
+  return 0;
+}&lt;/code&gt;&lt;p&gt;让不熟悉现代C++的人来读这段代码，能看出来那个lambda隐式按引用捕获了this么 &amp;gt;_&amp;lt;&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">2017-06-30-27633304</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Value type and Packaged Object for Java</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-06-06-27259688.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Value type and Packaged Object for Java&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27259688&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;前段时间有人问了我下关于Java 中Value Type的概念，并转了我一篇王垠去年的一篇博客&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/06/08/java-value-type&quot; data-editable=&quot;true&quot; data-title=&quot;Java 有值类型吗？&quot;&gt;Java 有值类型吗？&lt;/a&gt; &lt;/p&gt;&lt;p&gt;Java语言层面上并不能算是支持value type。Java有两种类型： primitive type and object type。前者如我们大家经常见到的 `int`  `float`，从JVM的角度上看，变量的数据是直接在JVM operand stack上面的。而后者，所有的对象则是从heap上申请，每个对象的field则是通过reference 来联系起来。&lt;/p&gt;&lt;p&gt;当然这篇博文主要不是针对王垠的博文(自己个人理解垠神在PL 的Type System方面的学识远远超过了本人)。这篇文章还是还是比较value type and packaged object. &lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Value Type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;最早关于Java Value Type这个词的时候是先前有一次旁听Doug lea和某博士的关于Packaged object的讨论会，后来我的合作方给我稍微普及, 并给了IBM clear过的链接 &lt;a href=&quot;http://openjdk.java.net/projects/valhalla/&quot; data-title=&quot;Valhalla&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;Valhalla&lt;/a&gt;(Open JDK experiment项目)以及他们最新的 &lt;a href=&quot;http://cr.openjdk.java.net/%7Ejrose/values/shady-values.html&quot; data-editable=&quot;true&quot; data-title=&quot;Minimal Value Types&quot; class=&quot;&quot;&gt;Minimal Value Types&lt;/a&gt;.　&lt;/p&gt;&lt;p&gt;Value Type的思想是关于Object Model。每个Java Object有一个Header(有的地方叫做Metadata)：包含lock-word, ptr, 等信息。通过lock-word 可以实现object synchronization (e.g., lock-word)，而　ptr可以获取object相应的相Class信息。Value Type的目标是Headerless that is no more header( or no identify ) for an object on the heap. The benefits would be on GC, memory usage, potential cache locality (Refer Valhalla home for more). &lt;/p&gt;&lt;p&gt;当然，任何的好处都不是没有代价的。Because of no header and identify, it would be problem to call methods of a value type object: hashcode, getClass, wait, notify. Another problem is about the object synchronization, which strongly depends on marker bit of an object&#39;s header that is no longer available. &lt;/p&gt;&lt;p&gt;对于普通的开发人员来讲，value type的出炉需要保持对原有Java应用的支持，数据模型的变更应该对使用者是透明的。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Packaged Object&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Packaged Object is an experimental enhancement for J9 JVM to improve serialization, Java object I/O cross on-heap and off-heap (native memory), and object layout alignment. In the packaged object data model, data are organized in a multi-tier manner (like the nested C structs), in which the object’s data is nested in its enclosing Packed Object instead of being pointed to by an object reference as in the traditional Java object data model.  &lt;/p&gt;&lt;p&gt;This project stopped at 2014(?). The main disclosure document is Marcel Mitran&#39;s ``IBM Java PackedObjects: An Overview`` (You get get it via google), and some publications  about synchronization from IBM CAS. My post will only based on these document. &lt;/p&gt;&lt;p&gt;The packaged object&#39;s goals：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Remove object metadata. This point is similar to the Value Type. &lt;br&gt;&lt;/li&gt;&lt;li&gt;Off-head and on-head serialization. As what is shown at marcel&#39;s slides，the copy and serialization can be avoided avoided by using a packaged header at on-heap to reference the packaged object at off-heap directly. &lt;/li&gt;&lt;li&gt;... &lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Because the header(the lock-word) is removed, the existing Java synchronization does not work for packaged object directly. Developer has to achieve the thread-safe via: &lt;/p&gt;&lt;ul&gt;&lt;li&gt;在packaged object上一层使用java 已有的lock机制。　&lt;/li&gt;&lt;li&gt;Concurrent Multi-way tree 以及其衍生的方法。这个方法主要是IBM CAS中的Dr Bing Yang提出来实现的，大概意思是将根据multi-tier PackedObject data structure来构建一个multiple-way tree, 在读写 packaged data 的时候通过操作(Search, add, remove)这个multiple-way tree来实现同步。具体的方式可以参考下CASCON 2016 best paper: Bing Yang: &lt;b&gt;A concurrent multiway tree using the lazy locking mechanism. &lt;br&gt;&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;本来这篇博文还安排了一部分关于GraphJIT, a jit bytecode compiler that simplify graph structure. GraphJIT 也能达到类似Packaged object和value type的部分效果。&lt;/p&gt;</description>
+<author>Shijie XU</author>
+<guid isPermaLink="false">2017-06-06-27259688</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>[Java] 关于OpenJDK对Java 8 lambda表达式的运行时实现的查看方式</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-29-27159693.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;[Java] 关于OpenJDK对Java 8 lambda表达式的运行时实现的查看方式&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27159693&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+有同学私信我说看到之前一个回答（&lt;a href=&quot;https://www.zhihu.com/question/51491241/answer/126232275&quot; data-editable=&quot;true&quot; data-title=&quot;Java中普通lambda表达式和方法引用本质上有什么区别？ - RednaxelaFX的回答 - 知乎&quot; class=&quot;&quot;&gt;Java中普通lambda表达式和方法引用本质上有什么区别？ - RednaxelaFX的回答 - 知乎&lt;/a&gt;）里我给出了OpenJDK对lambda表达式的实现的例子，问说例子里的代码是如何获得的。&lt;p&gt;简短的答案是：是使用内部调试参数dump出了Class文件，然后人肉反编译Class文件给出了我的回答中的代码。而其实这些步骤只是我基于已有的知识所采用的简略步骤，大家即便不知道实现细节，也可以靠自己一步步探索出来的。&lt;/p&gt;&lt;h2&gt;我是如何做的：&lt;/h2&gt;&lt;p&gt;首先我知道Oracle JDK 8 / OpenJDK 8对lambda表达式在运行时的实现方式是动态生成跟&lt;b&gt;匿名内部类&lt;/b&gt;相似形式的类，而负责生成代码的类位于&lt;a href=&quot;http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/file/tip/src/share/classes/java/lang/invoke/InnerClassLambdaMetafactory.java&quot; data-title=&quot;java.lang.invoke.InnerClassLambdaMetafactory&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;java.lang.invoke.InnerClassLambdaMetafactory&lt;/a&gt;。可以看到，这个类里有一个调试用的Java property可以设置：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;jdk.internal.lambda.dumpProxyClasses&lt;/code&gt;&lt;p&gt;相关代码在：&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;    static {
+        final String key = &quot;jdk.internal.lambda.dumpProxyClasses&quot;;
+        String path = AccessController.doPrivileged(
+                new GetPropertyAction(key), null,
+                new PropertyPermission(key , &quot;read&quot;));
+        dumper = (null == path) ? null : ProxyClassesDumper.getInstance(path);
+    }
+&lt;/code&gt;&lt;p&gt;所以我们在启动Java的时候，传入这个参数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;-Djdk.internal.lambda.dumpProxyClasses=&amp;lt;path_to_your_dump_directory&amp;gt;&lt;/code&gt;&lt;p&gt;就可以让JDK把lambda表达式对应的运行时生成的类给dump下来了。&lt;/p&gt;&lt;p&gt;接下来我会把这些dump下来的Class文件用javap解读成文本形式，然后人肉将其反编译到Java代码。涉及的字节码其实都非常简单，即便人肉反编译也非常非常快。大家如果还是喜欢用现成的反编译器也大可去用自己喜欢的反编译器。&lt;/p&gt;&lt;p&gt;然而我是如何知道“首先”的那步内容的呢？&lt;/p&gt;&lt;h2&gt;大家可以如何着手去调查：&lt;/h2&gt;&lt;p&gt;即便没有文档也可以顺藤摸瓜，写个例子慢慢调查。&lt;/p&gt;&lt;p&gt;例如说，随便写个这样的例子：&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;import java.util.Arrays;
+
+public class MyTest {
+  public static void main(String[] args) {
+    Runnable r = () -&amp;gt; System.out.println(Arrays.toString(args));
+    r.run();
+  }
+}&lt;/code&gt;&lt;p&gt;然后用javac -g MyTest.java编译，再用javap来把Class文件解读为文本形式：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ javap -verbose -private MyTest
+Classfile /private/tmp/MyTest.class
+  Last modified May 28, 2017; size 1260 bytes
+  MD5 checksum 2ce5e67938afee50b0dc8841569ea12e
+  Compiled from &quot;MyTest.java&quot;
+public class MyTest
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #8.#25         // java/lang/Object.&quot;&amp;lt;init&amp;gt;&quot;:()V
+   #2 = InvokeDynamic      #0:#30         // #0:run:([Ljava/lang/String;)Ljava/lang/Runnable;
+   #3 = InterfaceMethodref #31.#32        // java/lang/Runnable.run:()V
+   #4 = Fieldref           #33.#34        // java/lang/System.out:Ljava/io/PrintStream;
+   #5 = Methodref          #35.#36        // java/util/Arrays.toString:([Ljava/lang/Object;)Ljava/lang/String;
+   #6 = Methodref          #37.#38        // java/io/PrintStream.println:(Ljava/lang/String;)V
+   #7 = Class              #39            // MyTest
+   #8 = Class              #40            // java/lang/Object
+   #9 = Utf8               &amp;lt;init&amp;gt;
+  #10 = Utf8               ()V
+  #11 = Utf8               Code
+  #12 = Utf8               LineNumberTable
+  #13 = Utf8               LocalVariableTable
+  #14 = Utf8               this
+  #15 = Utf8               LMyTest;
+  #16 = Utf8               main
+  #17 = Utf8               ([Ljava/lang/String;)V
+  #18 = Utf8               args
+  #19 = Utf8               [Ljava/lang/String;
+  #20 = Utf8               r
+  #21 = Utf8               Ljava/lang/Runnable;
+  #22 = Utf8               lambda$main$0
+  #23 = Utf8               SourceFile
+  #24 = Utf8               MyTest.java
+  #25 = NameAndType        #9:#10         // &quot;&amp;lt;init&amp;gt;&quot;:()V
+  #26 = Utf8               BootstrapMethods
+  #27 = MethodHandle       #6:#41         // invokestatic java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+  #28 = MethodType         #10            //  ()V
+  #29 = MethodHandle       #6:#42         // invokestatic MyTest.lambda$main$0:([Ljava/lang/String;)V
+  #30 = NameAndType        #43:#44        // run:([Ljava/lang/String;)Ljava/lang/Runnable;
+  #31 = Class              #45            // java/lang/Runnable
+  #32 = NameAndType        #43:#10        // run:()V
+  #33 = Class              #46            // java/lang/System
+  #34 = NameAndType        #47:#48        // out:Ljava/io/PrintStream;
+  #35 = Class              #49            // java/util/Arrays
+  #36 = NameAndType        #50:#51        // toString:([Ljava/lang/Object;)Ljava/lang/String;
+  #37 = Class              #52            // java/io/PrintStream
+  #38 = NameAndType        #53:#54        // println:(Ljava/lang/String;)V
+  #39 = Utf8               MyTest
+  #40 = Utf8               java/lang/Object
+  #41 = Methodref          #55.#56        // java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+  #42 = Methodref          #7.#57         // MyTest.lambda$main$0:([Ljava/lang/String;)V
+  #43 = Utf8               run
+  #44 = Utf8               ([Ljava/lang/String;)Ljava/lang/Runnable;
+  #45 = Utf8               java/lang/Runnable
+  #46 = Utf8               java/lang/System
+  #47 = Utf8               out
+  #48 = Utf8               Ljava/io/PrintStream;
+  #49 = Utf8               java/util/Arrays
+  #50 = Utf8               toString
+  #51 = Utf8               ([Ljava/lang/Object;)Ljava/lang/String;
+  #52 = Utf8               java/io/PrintStream
+  #53 = Utf8               println
+  #54 = Utf8               (Ljava/lang/String;)V
+  #55 = Class              #58            // java/lang/invoke/LambdaMetafactory
+  #56 = NameAndType        #59:#63        // metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+  #57 = NameAndType        #22:#17        // lambda$main$0:([Ljava/lang/String;)V
+  #58 = Utf8               java/lang/invoke/LambdaMetafactory
+  #59 = Utf8               metafactory
+  #60 = Class              #65            // java/lang/invoke/MethodHandles$Lookup
+  #61 = Utf8               Lookup
+  #62 = Utf8               InnerClasses
+  #63 = Utf8               (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+  #64 = Class              #66            // java/lang/invoke/MethodHandles
+  #65 = Utf8               java/lang/invoke/MethodHandles$Lookup
+  #66 = Utf8               java/lang/invoke/MethodHandles
+{
+  public MyTest();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object.&quot;&amp;lt;init&amp;gt;&quot;:()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   LMyTest;
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=1, locals=2, args_size=1
+         0: aload_0
+         1: invokedynamic #2,  0              // InvokeDynamic #0:run:([Ljava/lang/String;)Ljava/lang/Runnable;
+         6: astore_1
+         7: aload_1
+         8: invokeinterface #3,  1            // InterfaceMethod java/lang/Runnable.run:()V
+        13: return
+      LineNumberTable:
+        line 5: 0
+        line 6: 7
+        line 7: 13
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      14     0  args   [Ljava/lang/String;
+            7       7     1     r   Ljava/lang/Runnable;
+
+  private static void lambda$main$0(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PRIVATE, ACC_STATIC, ACC_SYNTHETIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         3: aload_0
+         4: invokestatic  #5                  // Method java/util/Arrays.toString:([Ljava/lang/Object;)Ljava/lang/String;
+         7: invokevirtual #6                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        10: return
+      LineNumberTable:
+        line 5: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  args   [Ljava/lang/String;
+}
+SourceFile: &quot;MyTest.java&quot;
+InnerClasses:
+     public static final #61= #60 of #64; //Lookup=class java/lang/invoke/MethodHandles$Lookup of class java/lang/invoke/MethodHandles
+BootstrapMethods:
+  0: #27 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #28 ()V
+      #29 invokestatic MyTest.lambda$main$0:([Ljava/lang/String;)V
+      #28 ()V
+&lt;/code&gt;&lt;br&gt;&lt;p&gt;&lt;i&gt;(Whenever I open this page in Chrome with the macOS Chinese input method active, Chrome crashes immediately. I&#39;ll have to write the following in English for now. Hopefully the crash issue goes away soon so that I can rewrite it back to Chinese.)&lt;/i&gt;&lt;/p&gt;&lt;p&gt;As shown above, the two lines of source code in main() maps to the following bytecode by javac:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// 1st line:
+// Runnable r = () -&amp;gt; System.out.println(Arrays.toString(args));
+         0: aload_0
+         1: invokedynamic #2,  0              // InvokeDynamic #0:run:([Ljava/lang/String;)Ljava/lang/Runnable;
+         6: astore_1
+// 2nd line:
+// r.run();
+         7: aload_1
+         8: invokeinterface #3,  1            // InterfaceMethod java/lang/Runnable.run:()V
+&lt;/code&gt;&lt;p&gt;The 2nd line, which invokes the lambda, is the same as a normal Runnable.run() invocation, through invokeinterface. So it doesn&#39;t matter whether the Runnable was created using a lambda expression or some other way (e.g. pre-Java 8 anonymous inner classes), the invocation side is always the same.&lt;/p&gt;&lt;p&gt;The interesting part is on the 1st line, where there&#39;s a curious-looking invokedynamic instruction involved. Looking at its operands, &quot;#2&quot;, is:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;   #2 = InvokeDynamic      #0:#30         // #0:run:([Ljava/lang/String;)Ljava/lang/Runnable;
+&lt;/code&gt;&lt;p&gt;which specifies a &quot;BootstrapMethod&quot; (#0) and a &quot;NameAndType&quot; (#30). Let&#39;s look at the BootstrapMethod part:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;BootstrapMethods:
+  0: #27 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #28 ()V
+      #29 invokestatic MyTest.lambda$main$0:([Ljava/lang/String;)V
+      #28 ()V
+&lt;/code&gt;&lt;p&gt;(Note that the body of the lambda expression is actually desugared into a private static method, lambda$main$0.)&lt;/p&gt;&lt;p&gt;Here we can see that the bootstrap method specified is &lt;a href=&quot;http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/file/5b86f66575b7/src/share/classes/java/lang/invoke/LambdaMetafactory.java#l291&quot; data-editable=&quot;true&quot; data-title=&quot;java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;&quot;&gt;java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;&lt;/a&gt;, from which we can see its use of the InnerClassLambdaMetaFactory:&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;    public static CallSite metafactory(MethodHandles.Lookup caller,
+                                       String invokedName,
+                                       MethodType invokedType,
+                                       MethodType samMethodType,
+                                       MethodHandle implMethod,
+                                       MethodType instantiatedMethodType)
+            throws LambdaConversionException {
+        AbstractValidatingLambdaMetafactory mf;
+        mf = new InnerClassLambdaMetafactory(caller, invokedType,
+                                             invokedName, samMethodType,
+                                             implMethod, instantiatedMethodType,
+                                             false, EMPTY_CLASS_ARRAY, EMPTY_MT_ARRAY);
+        mf.validateMetafactoryArgs();
+        return mf.buildCallSite();
+    }
+&lt;/code&gt;&lt;p&gt;That&#39;s where we would start following the call and dig in, and then search for keywords like &quot;dump&quot;, &quot;trace&quot;, &quot;debug&quot;, etc, to see if there&#39;s any debugging switch/flags embedded in the implementation that would give us more information for debugging.&lt;/p&gt;&lt;br&gt;&lt;p&gt;Have fun debugging!&lt;/p&gt;&lt;h2&gt;What Else?&lt;/h2&gt;&lt;p&gt;Of course, an even better way to get started is to &lt;a href=&quot;https://en.wikipedia.org/wiki/RTFM&quot;&gt;RTFM&lt;/a&gt;. Here&#39;s the design documentation of the lambda expression translation strategy: &lt;a href=&quot;http://cr.openjdk.java.net/~briangoetz/lambda/lambda-translation.html&quot; data-editable=&quot;true&quot; data-title=&quot;Translation of Lambda Expressions&quot; class=&quot;&quot;&gt;Translation of Lambda Expressions&lt;/a&gt;&lt;/p&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">2017-05-29-27159693</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>考不上三本也会实现数据绑定（二）</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-25-27111228.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;考不上三本也会实现数据绑定（二）&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27111228&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;&lt;b&gt;你现在所阅读的并不是第一篇文章，你可能想看&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25959684&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;目录和前言&quot;&gt;目录和前言&lt;/a&gt;。&lt;/b&gt;&lt;/blockquote&gt;我想了想还是拆开写。今天只讲一种简单的表达式的形状，也就是XAML用的属性链。属性链指的就是a.b.c这样的表达式，同时你也可以带有下标，但是下标也只能是属性链。不过在大多数的实现里面，像a[b.c]这样的表达式，只会监视b.c有没有变化，而不会在b.c固定的情况下监视a[x]有没有变化，所以实际上跟只没有下标处理起来是差不多的。&lt;h2&gt;&lt;b&gt;例子&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;让我们来看这样的一个例子，我们要把语句：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;attach(bind(a.b.c.d).ValueChanged, callback);&lt;/code&gt;&lt;p&gt;变成一个触发callback的事件，从而你可以监听他的变化，那到底要处理多少东西呢？如果我们假设每一个属性都有对应的变化事件，那么其实就等于监听&lt;/p&gt;&lt;ul&gt;&lt;li&gt;a.bChanged&lt;br&gt;&lt;/li&gt;&lt;li&gt;a.b.cChanged&lt;/li&gt;&lt;li&gt;a.b.c.dChanged&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;这几个事件。同时我们也做出下面的假设：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;a不会变&lt;br&gt;&lt;/li&gt;&lt;li&gt;多次读取一个属性只会返回相同的值，也就是这个表达式的副作用将被忽略&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;而且a.b变化了，那么原先我们监听的a.b.cChanged就没有用了，我们要解绑它，重新监听一个新的。通常来讲，解绑一个事件，要么是通过直接操作监听事件返回的cookie（如.net的IObservable），要么是直接把cookie交给被监听对象的属性来完成。如果我们取的是后者，那么我们还得把旧的a.b留下来，然后才能正确的解绑事件。你要是不这么做的话，那么我们就会一直在试图监听旧的a.b的cChanged事件，那么新的a.b.c再怎么变化你也不会接到通知。&lt;/p&gt;&lt;p&gt;这就意味着，如果我们监听一个对象o的属性p，那么我们就得把o给cache下来，当o变了的时候，我们才能正确的解绑事件pChanged，然后挂一个新的callback到新的o.pChanged上面去。因此对于表达式a.b.c.d，首先假设a不会变，那么我们要cache下来的就是a.b和a.b.c了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;代码生成&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;所以我们大概会生成这样的代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;class MyDataBinding : Subscription
+{
+    var cache_a : A^ = null;
+    var cache_a_b : B^ = null;
+    var cache_a_b_c : C^ = null;
+    var handler_a_b : EventHandler^;
+    var handler_a_b_c : EventHandler^;
+    var handler_a_b_c_d : EventHandler^;
+
+    ctor(a : A)
+    {
+        // 给a.bChanged上绑
+        cache_a = a;
+        handler_a_b = attach(cache_a.bChanged, OnChanged_a_b);
+        // 绑上剩下的所有事件
+        Update_a_b(cache_a.b);
+    }
+
+    func Update_a_b(b : B) : void
+    {
+        // 如果a.b变了，那么要正确处理a.b.cChanged
+        if (cache_a_b == b) return;
+        // 把旧的a.b.cChanged解绑
+        if (handler_a_b_c is not null)
+        {
+            detach(cache_a_b.cChanged, handler_a_b_c);
+        }
+        // 把新的a.b.cChanged上绑
+        cache_a_b = b;
+        handler_a_b_c = attach(cache_a_b.cChanged, OnChanged_a_b_c);
+        // 既然a.b变了，那么a.b.c多半也变了
+        OnChanged_a_b_c();
+    }
+
+    func Update_a_b_c(c : C) : void
+    {
+        // 如果a.b.c变了，那么要正确处理a.b.c.dChanged
+        if (cache_a_b_c == c) return;
+        // 把旧的a.b.c.dChanged解绑
+        if (handler_a_b_c_d is not null)
+        {
+            detach(cache_a_b_c.dChanged, handler_a_b_c_d);
+        }
+        // 把新的a.b.c.dChanged上绑
+        cache_a_b_c = c;
+        handler_a_b_c_d = attach(cache_a_b_c.dChanged, OnChanged_a_b_c_d);
+        // 既然a.b.c变了，那么a.b.c.d多半也变了
+        OnChanged_a_b_c_d();
+    }
+
+    func OnChanged_a_b() : void
+    {
+        Update_a_b(cache_a.b);
+    }
+
+    func OnChanged_a_b_c() : void
+    {
+        Update_a_b_c(cache_a_b.c);
+    }
+
+    func OnChanged_a_b_c_d() : void
+    {
+        // 触发ValueChanged事件，调用callback
+        ValueChanged(cache_a_b_c.d);
+    }
+}&lt;/code&gt;&lt;p&gt;然后原来的那段代码就变成了：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;var myDataBinding = new MyDataBinding^(a);
+attach(myDataBinding.ValueChanged, callback);&lt;/code&gt;&lt;h2&gt;&lt;b&gt;计算过程&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果bind(a.b.c.d)这样实现的话，那么其实可以看到，如果a.bChanged触发了，那么旧的a.b.cChanged和a.b.c.dChanged都会被解开，然后OnChanged系列函数就挂到了新的a.b.cChanged和a.b.c.dChanged上面去。所以不管是b、c、d这三个属性哪一个变了，ValueChanged事件最终都会触发。&lt;br&gt;&lt;/p&gt;&lt;p&gt;上面这个代码有一个瑕疵，就是构造MyDataBinding的时候，ValueChanged会被触发一次。不过这种小事只要不影响profiling，都不用管。生成代码的算法尽量以简单为好。&lt;/p&gt;&lt;p&gt;生成MyDataBinding的策略很简单，因为我们涉及的属性有&lt;/p&gt;&lt;ul&gt;&lt;li&gt;a.b&lt;br&gt;&lt;/li&gt;&lt;li&gt;a.b.c&lt;br&gt;&lt;/li&gt;&lt;li&gt;a.b.c.d&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;这三个，因此就有以下三个步骤：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;对于a.b&lt;/li&gt;&lt;ul&gt;&lt;li&gt;cache一下a，然后挂上a.bChanged&lt;/li&gt;&lt;ul&gt;&lt;li&gt;生成ctor&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;li&gt;对于a.b.c和a.b.c.d&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;cache一下a.b，然后挂上a.b.cChanged&lt;/li&gt;&lt;ul&gt;&lt;li&gt;生成Update_a_b和OnChanged_a_b&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;cache一下a.b.c，然后挂上a.b.c.dChanged&lt;/li&gt;&lt;ul&gt;&lt;li&gt;生成Update_a_b_c和OnChanged_a_b_c&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;li&gt;触发ValueChanged事件&lt;/li&gt;&lt;ul&gt;&lt;li&gt;生成OnChanged_a_b_c_d&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;对于a[b.c]这样的表达式，道理也是一样的，就是分别给下标表达式生成MyDataBinding这样的类，最后把它们组合起来，这是一个递归地步骤，留给大家课后练习一下。今天就说到这里了，下一篇就会讲到处理复杂表达式的方法。&lt;/p&gt;&lt;p&gt;其实在这里，a.b的变化会导致a.b.cChanged重挂的事情，就是一个a.b.c对a.b的依赖关系。在复杂的表达式里面，就会有各种各样依赖关系，它们共同组成了一个偏序的关系。举个简单的例子：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let a = x.y in (a.b + a.c)&lt;/code&gt;&lt;p&gt;a.b和a.c就共同依赖于a，也就是x.y，因此x.yChanged的事件处理函数里面，就要把a.bChanged和a.cChanged都进行重挂。这样的依赖关系当然是不会有环的。&lt;/p&gt;&lt;p&gt;通常来讲，做出这样的一个关系图倒是不难，难的是当你的表达式类型特别多的时候，你做的这些类似把a.b.c替换成cache_a_b_c和cache_a_b.c这样的工作，就容易出bug。这些还得靠你多写几个测试用例来保证。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;后注&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;UWP的{x:Bind}比起{Binding}先进的地方在于，Binding需要运行时的反射，而x:Bind是不需要的。但是XAML的编译器在处理x:Bind的时候，怎么知道a、a.b、a.b.c和a.b.c.d的类型，从而生成出正确的代码呢？这通常有两个办法：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;你可以想办法让XAML编译器知道他们的类型。对于x:Bind，这是通过cl、midl、mdmerge和xamlcompiler这几个程序共同实现的。其中的辛酸，只有手写idl文件的人才能明白（逃。这种方法不仅可以支持C++，也可以支持WinRT上面的任何编程语言。&lt;br&gt;&lt;/li&gt;&lt;li&gt;如果是想支持C++的话，其实你完全可以通过模板的技巧来计算出所有的这些东西，只要你使用同样的语法来在所有可以绑定的对象身上读取属性和挂事件就可以。x:Bind的灵感其实是从Office借去的（包括以前的XAML），而Office又怎么有办法修改cl呢？所以内部的工具就通过生成模板类和函数的方法来解决。&lt;/li&gt;&lt;/ul&gt;</description>
+<author>vczh</author>
+<guid isPermaLink="false">2017-05-25-27111228</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>[Graal] 原来Substrate VM已经公开二进制发布版了</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-19-26988266.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;[Graal] 原来Substrate VM已经公开二进制发布版了&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26988266&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+Oracle Labs有一个“神秘项目”叫做Substrate VM，主要用于将使用Truffle框架+Graal编译器的语言实现AOT编译到一个紧凑的二进制版本，并链接上一个精巧高效的runtime（也就是Substrate VM自身），以此来提升用Truffle实现的语言的启动性能以及减小其内存开销。简单说，它的目标就是让用Java写的、基于Truffle框架的编程语言实现，在各种指标上都能媲美甚至超过手工用C/C++写的、优化过的语言实现。它由Christian Wimmer带队开发，已经在各大会议刷了几圈，但一直没有对外公开发布其实体；外界对它的了解仅限于一些论文和tutorial。&lt;p&gt;小道消息的传闻说由Truffle/Substrate VM驱动的FastR已经在Oracle数据库产品中发布了好一段时间了，虽然对外并未大力宣传里面的技术关联。&lt;/p&gt;&lt;p&gt;去年的JVMLS上跟Christian聊天，他说或许去年下半年就可以看到Substrate单独对外发布了。可是等等等就是没等到。&lt;/p&gt;&lt;p&gt;刚才突然发现原来在GraalVM 0.20开始Substrate VM就“悄悄地”发布出来了。从Oracle Labs的Graal项目页面下载GraalVM，里面的 bin/aot-image 命令就可以打包出一个AOT编译的、与Substrate VM runtime链接在一起的二进制包。&lt;/p&gt;&lt;p&gt;相关链接：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Oracle Labs GraalVM项目页面：&lt;a href=&quot;http://www.oracle.com/technetwork/oracle-labs/program-languages/overview/index-2301583.html&quot; data-editable=&quot;true&quot; data-title=&quot;Programming Languages and Runtimes Overview&quot; class=&quot;&quot;&gt;GraalVM - New JIT Compiler and Polyglot Runtime for the JVM&lt;/a&gt;&lt;/li&gt;&lt;li&gt;GraalVM下载页面：&lt;a href=&quot;http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Oracle Labs GraalVM&quot;&gt;Oracle Labs GraalVM&lt;/a&gt;，当前的GraalVM版本是0.22&lt;/li&gt;&lt;a href=&quot;http://nirvdrum.com/2017/02/15/truffleruby-on-the-substrate-vm.html&quot; data-editable=&quot;true&quot; data-title=&quot;TruffleRuby on the Substrate VM&quot;&gt;TruffleRuby on the Substrate VM&lt;/a&gt;&lt;br&gt;&lt;li&gt;GraalVM 0.20 release notes：&lt;a href=&quot;http://mail.openjdk.java.net/pipermail/graal-dev/2017-February/004856.html&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;GraalVM 0.20 Release&quot;&gt;GraalVM 0.20 Release&lt;/a&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;This release now includes the Substrate VM image builder (bin/aot-image). It is possible to create SVM executable images of Graal.JS using &quot;bin/aot-image --js&quot; and TruffleRuby using &quot;bin/aot-image --ruby&quot;.&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=FJY96_6Y3a4&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;One VM to Rule Them All, One VM to Bind Them&quot;&gt;One VM to Rule Them All, One VM to Bind Them&lt;/a&gt;（录像），PLDI 2016上的Truffle Tutorial&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;PLDI页面：&lt;a href=&quot;http://conf.researchr.org/event/pldi-2016/tutorials-one-vm-to-rule-them-all-one-vm-to-bind-them&quot; data-editable=&quot;true&quot; data-title=&quot;One VM to Rule Them All, One VM to Bind Them&quot; class=&quot;&quot;&gt;One VM to Rule Them All, One VM to Bind Them&lt;/a&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;演示稿：&lt;a href=&quot;https://lafo.ssw.uni-linz.ac.at/pub/papers/2016_PLDI_Truffle.pdf&quot; data-editable=&quot;true&quot; data-title=&quot;uni-linz.ac.at 的页面&quot; class=&quot;&quot;&gt;https://lafo.ssw.uni-linz.ac.at/pub/papers/2016_PLDI_Truffle.pdf&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;http://dl.acm.org/citation.cfm?id=2509581&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;One VM to Rule Them All&quot;&gt;One VM to Rule Them All&lt;/a&gt;，2013年的论文&lt;br&gt;&lt;/li&gt;&lt;li&gt;其它论文和演讲：&lt;a href=&quot;https://wiki.openjdk.java.net/display/Graal/Publications+and+Presentations&quot; data-editable=&quot;true&quot; data-title=&quot;Publications and Presentations&quot;&gt;Publications and Presentations&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">2017-05-19-26988266</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Google I/O 2017的编程语言实现相关演讲</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-18-26966166.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Google I/O 2017的编程语言实现相关演讲&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26966166&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+放个笔记给自己关注一下：&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://events.google.com/io/schedule/?section=may-17&amp;amp;sid=1ce10bee-3c21-4115-b01c-f7bf4d977064&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Compiling for the Web with WebAssembly&quot;&gt;Compiling for the Web with WebAssembly&lt;/a&gt;, Wed. May 17, 5PM - 6PM&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;录像：&lt;a href=&quot;https://www.youtube.com/watch?v=6v4E6oksar0&amp;amp;list=PLNYkxOF6rcICniLJ2rfj0FexlA-9zmJJE&amp;amp;index=5&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Compiling for the Web with WebAssembly (Google I/O &#39;17)&quot;&gt;Compiling for the Web with WebAssembly (Google I/O &#39;17)&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;https://events.google.com/io/schedule/?section=may-17&amp;amp;sid=06ad955b-2387-45b8-9a5b-9ebd00a6f952&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;V8, Advanced JavaScript, &amp;amp; the next performance frontier&quot;&gt;V8, Advanced JavaScript, &amp;amp; the next performance frontier&lt;/a&gt;, Thu. May 18, 5:30PM - 6:30PM&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;录像：&lt;a href=&quot;https://www.youtube.com/watch?v=EdFDJANJJLs&quot; data-editable=&quot;true&quot; data-title=&quot;V8, Advanced JavaScript, &amp;amp; the Next Performance Frontier (Google I/O &#39;17)&quot; class=&quot;&quot;&gt;V8, Advanced JavaScript, &amp;amp; the Next Performance Frontier (Google I/O &#39;17)&lt;/a&gt;&lt;/li&gt;&lt;li&gt;这个演讲的内容还挺不错，主要介绍了V8新的Ignition+TurboFan执行引擎的设计取舍，V8在新benchmark上的表现，提了一句V8 GC方面的改进Orinoco，然后展示了一些炫酷的devtools的新功能。能在表达式中间下断点真的非常有用。&lt;/li&gt;&lt;li&gt;但是演讲者的水平实在是太糟糕了。不知道是紧张还是怎样。而且一些细节描述得颇不正确。果然技术细节就不应该找PM来讲么。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;https://events.google.com/io/schedule/?section=may-17&amp;amp;sid=ed94ee38-d88b-44a9-833f-1df7c51472e0&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Performance and Memory Improvements in Android Run Time (ART)&quot;&gt;Performance and Memory Improvements in Android Run Time (ART)&lt;/a&gt;, Fri. May 19, 9:30AM - 10:30AM&lt;/li&gt;&lt;ul&gt;&lt;li&gt;录像：&lt;a href=&quot;https://www.youtube.com/watch?v=iFE2Utbv1Oo&quot; class=&quot;&quot; data-title=&quot;Performance and Memory Improvements in Android Run Time (ART) (Google I/O &#39;17)&quot; data-editable=&quot;true&quot;&gt;Performance and Memory Improvements in Android Run Time (ART) (Google I/O &#39;17)&lt;/a&gt;&lt;/li&gt;&lt;li&gt;关注点：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;DEX layout：Android N开始恢复使用JIT并且收集profile信息；Android O可以使用该信息来优化DEX文件的布局，将实际被用到的数据与不常用的数据分别集中在一起，减少应用启动时要加载的memory page数。以前在.NET MPGO里也有类似的优化，可以参考：&lt;a href=&quot;https://blogs.msdn.microsoft.com/dotnet/2012/03/20/improving-launch-performance-for-your-desktop-applications/&quot; data-editable=&quot;true&quot; data-title=&quot;Improving Launch Performance for Your Desktop Applications&quot; class=&quot;&quot;&gt;Improving Launch Performance for Your Desktop Applications&lt;/a&gt;&lt;/li&gt;&lt;li&gt;并发GC：Concurrent Copying GC终于上位，准备替代掉先前的CMS GC。这是一个使用read barrier实现并发的、region-based的、不分代的copying GC。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;仍然使用一个短暂的pause来做root scanning&lt;/li&gt;&lt;li&gt;然后做concurrent copy和concurrent reclaiming&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Optimizing Compiler的新改进：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;Inliner改进：允许内联更多代码&lt;/li&gt;&lt;li&gt;Code sinking：看起来是一种global scheduling (Global Code Motion) / Partial Redundancy Elimination的实现&lt;/li&gt;&lt;li&gt;基于Class Hierarchy Analysis对虚方法做去虚化（devirtualize）&lt;/li&gt;&lt;li&gt;新的循环优化，特别是对某些循环做向量化（vectorization）来更好地利用SIMD（例如NEON指令集）。向量化的算法是从&lt;a href=&quot;https://android.googlesource.com/platform/art/+/5f80500bba3df590f0bfffea2ebe2adee7c40763/compiler/optimizing/loop_optimization.cc#521&quot;&gt;这块代码&lt;/a&gt;的作者Aart Bik自己的书里来了：&lt;a href=&quot;http://www.aartbik.com/SSE/index.html&quot; data-editable=&quot;true&quot; data-title=&quot;Vectorization for Multimedia Extensions&quot;&gt;Vectorization for Multimedia Extensions&lt;/a&gt;&lt;/li&gt;&lt;li&gt;嗯基本上ART就是更看齐于成熟的桌面/服务器端JVM的技术水平了&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;/ul&gt;</description>
+<author>RednaxelaFX</author>
+<guid isPermaLink="false">2017-05-18-26966166</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Memory Management, Garbage Collection on the JVM</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-15-26900569.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Memory Management, Garbage Collection on the JVM&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26900569&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;本来计划继续接着“&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26389041&quot; data-title=&quot;invokedynamic and MethodHandle缘由&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;invokedynamic and MethodHandle缘由&lt;/a&gt;”，讲些已经公开的invokedynamic指令优化，以及Methodhandle的优化方面的话题。但是后来想想本来出发点就是科普入门的，而且目前对普通开发人员来说，用invokedynamic指令的还没有那么多，还是先暂时放弃了，将来再补上。　&lt;/p&gt;&lt;p&gt;言归正传，这次讲讲关于Memory, Garbage Collection, and Performance的问题。其实这个话题非常大，而且自己本身并没有在这方面做非常大的深入，就总结一些自己所了解的或者想法。不讲Hotspot, J9 的GC算法了，尤其是Hotspot的那几个策略，大部分人应该算是很清楚了。&lt;/p&gt;&lt;h2&gt;&lt;u&gt;1，Tracing GC vs. Reference Counting （RC）&lt;/u&gt;&lt;/h2&gt;&lt;h2&gt;不能说RC GC一定不好&lt;br&gt;&lt;/h2&gt;&lt;p&gt;目前主流的都是用的Tracing GC(e.g., parallel GC, CMG, Balanced GC and so on), 性能和效率上比较高。而Reference Counting没有这么大的普及，主要是由于&lt;/p&gt;&lt;ul&gt;&lt;li&gt;性能。counter所带来的性能开销，尤其是对很多young and short live object 进行计数带来的开销。&lt;br&gt;&lt;/li&gt;&lt;li&gt;cycles的不友好。&lt;/li&gt;&lt;li&gt;Defragmentation. &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;而且从前一直没有那么大的重视。 &lt;br&gt;&lt;/p&gt;&lt;p&gt;针对RC的这些问题，也有不少的改进，比较关注过的 Deferral Reference Count, 大概意思就是对某些variables所引用的对象不进行count (比如 frequently modified variables on stack and registers) 来减少整体开销的代价，但需要编译器方面的支持。 另外一种Coalescing，原话是“Only the initial and final states of the reference are necessary to calculate correct reference counts. Intervening mutations generate increments and decrements that cancel each other out&quot;，白话理解就是一个引用，只有最初和最终状态时候，这个引用所指向的对象才需要去counting,　而中间状态所指向的对象是不需要counting，因为加加减减相互抵消了。&lt;/p&gt;&lt;p&gt;另外不得不说的是关于Jikes JVM上面的一个实现RC Immix, 这个是基于 Mark-region 来管理Free-list。这个作者的老板Steve Blackburn原先是Intel后来回袋鼠国 一个大学当教授和MS合作弄的。这个方法的出发点有几个：RC fragmentation, cache locality (Poor locality occurs because free-list allocators typically disperse contemporaneously allocated objects in memory, which degrades locality compared to allocating them together in space) and instruction overhead (programming languages require objects to be pre-initialized to zero.)的问题。他们的方法大概就是讲Free memory 分成 Block，然后Block由多个line组成。每个line计数多少个live object, 同样的也适用于Block。和传统的RC方式不一样的地方　在于这个方法中GC的时候就按照Line和Block为单位进行，而不是以对象的方式来进行了。&lt;/p&gt;&lt;h2&gt;&lt;u&gt;2，GC and Hardware&lt;/u&gt;&lt;/h2&gt;&lt;p&gt;大家还是多想想GC和你的机器硬件的关系吧。单纯的从GC算法来改进吞吐量或者延时的空间我个人觉得远远不如想着如何去更大发挥你的机器硬件来的有效直接。这里的其中一个硬件就是NUMA(non-uniform memory access). &lt;/p&gt;&lt;p&gt;NUMA的硬件核心思想是多个Processor Nodes and each processor has its local memory. It is fast for a node to access its local memory, while slow to access remote memory of other nodes. 传统的机器就是多个处理器，大家通过BUS来共享一块内存。&lt;/p&gt;&lt;p&gt;因此，新的这种结构，就带来了很多新的GC玩法。比如NumGic, 作者以前是MS@Cambridge，后来去法国INRIA的。大概思路就是GC的时候(比如Mark live objects), 当前A thread at a processor visits local object A, which refers to B at remote memory.  因为从当前Thread去访问另外一个节点的内存慢，所以他们就发送消息给另外 Processor上的thread, 当前线程不阻塞。待到Remote thread complete时候再回馈结果。&lt;/p&gt;&lt;p&gt;另外关于NUMA的是IBM的Balanced GC，是将内存分为多个region, 回收的时候，通过不同策略构造Collection Set和Eden Regions。Balanced GC官方文档最大卖点是 NUMA awared, 很遗憾，文档少的可怜，我也没有细细研究过到底是如何支持这个NUMA的。&lt;/p&gt;&lt;h2&gt;&lt;u&gt;3，GC相关优化&lt;/u&gt;&lt;/h2&gt;&lt;p&gt;其实普通程序员，会Hotspot GC Tuning就差不多了。同样，对于GC实现优化，仅仅立足于GC本身个人觉得能做的东西不是很大。因此，有人就考虑GC和其它的领域相结合，比如Cache, dataminning等。。&lt;/p&gt;&lt;p&gt;Christian wimmer在10年前修改了Hotpsot的GC实现(应该是他自己的私有版本，不了解Hotspot实现)，来实现Object co-location. 大概思想是groups heap objects together and sorts them so that their order in memory matches their access order in the program. 他做这个的出发点就是为了经验提高cache locality和为了做Object fusion的目的。通过GC stop and copy将一些有引用关系的group(或者对象)实现locailty, 然后将field load的指令为address arithmetic操作。&lt;/p&gt;&lt;p&gt;这里八卦下，说起christian, 就要说他从前作为博士的学校 澳大利亚的JKU。 由于和Oracle的关系，基本上O家在英国做Graal全是JKU出来的人。14年的时候遇见Christian, 在做广告：我在做Graal, 你们有兴趣吗，我们在招人！  1.8不止的个子，英国腔，面对面讨论让我觉得压抑感太强了。他的队伍里面还有Chris Seaton(先前做JRuby的), Stefan Marr, 和Manuel Rigger. 全是JKU出来的。 对Manuel印象比较深刻，好像还只是个博士. 有一次开会休息的时候跑过来说我做 sulong的，你看我们这名字就是中文翻译过来的. Anyway, 从JKU出来的人估计把持了 Oracle家Graal大半江山吧！&lt;/p&gt;&lt;p&gt;另外自己本人从前做过GC相关的原型，大概思想是想利用GC的信息做点名堂。比如每次GC释放掉的对象，我去跟踪最早new 这些对象的指令。之后通过每次GC的信息，我来建立new 指令相关性和模型，将来用这个模型我来实现memory allocator, 来增加locailty 和 less fragmentation. 当然只是个原型，后来也扔给其他工程师去深入研究细化了。&lt;br&gt;&lt;/p&gt;&lt;p&gt;Disclaimer &lt;/p&gt;&lt;ol&gt;&lt;li&gt;关于这篇文章的参考文献目前还没有组织，很多都是靠印象写的，将来补上，或者大家也可以帮我补上。&lt;/li&gt;&lt;li&gt;由于个人知识范围有限，而GC以及性能相关的优化太大了，不可能面面俱到，不足或者错误的地方谢谢指出来帮忙改正。&lt;/li&gt;&lt;/ol&gt;</description>
+<author>Shijie XU</author>
+<guid isPermaLink="false">2017-05-15-26900569</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>给 Idris 写 JS 后端</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-04-25-26544417.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;给 Idris 写 JS 后端&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26544417&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;（听说最近写文章都流行配超大封面……）&lt;/p&gt;&lt;p&gt;在一票 FP 语言里面，Idris 是最特殊的之一，因为只有极少数语言能夸下海口说「It compiles, it must work!」，Idris 是其中之一。然而虽然 Coq 和 Agda 说这话底气更足，不过它们特性太偏 PA，做正经开发的话不如 Idris 和 F* 二位兄弟。而在这两者中只有 Idris 提供了多后端支持以及正经的 FFI。&lt;/p&gt;&lt;p&gt;然而在默认状况下，Idris 编译器会使用 C 后端生成 Native binary（我还给它的 RTS 上过代码……）。然后 EB 写了一个 JS 后端，只是这个后端写的实在不敢恭维：&lt;b&gt;它内嵌了一个堆栈式的虚拟机，然后使用 Tracing 的方式解释字节码&lt;/b&gt;。虽然和 C 版行为最一致，但性能和「可理解性」方面都远远不如其他的 Functional-to-js 编译器，像下面这段：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;module Main
+
+range : Int
+range = 1000
+
+testProg : Int -&amp;gt; Int
+testProg n = loop n
+where
+	lmt : Int
+	lmt = min (n + 100) range
+
+	loop : Int -&amp;gt; Int
+	loop i = if i &amp;gt;= lmt then i else loop (i + 1)
+
+main : IO()
+main = printLn $ testProg 0
+&lt;/code&gt;&lt;p&gt;使用官方后端的话 testProg 相关的部分会变成这个德行（Idris 因为是全程序编译的，所以 JS 里面还带有 Prelude 的部分）：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var _idris_Main_46_testProg_58_lmt_58_0 = function(oldbase){
+  var myoldbase = new i$POINTER();
+  i$valstack_top += 2;
+  i$valstack[i$valstack_base + 1] = 100;
+  i$valstack[i$valstack_base + 1] = i$valstack[i$valstack_base] + i$valstack[i$valstack_base + 1];
+  i$valstack[i$valstack_base + 2] = 1000;
+  i$valstack[i$valstack_top] = i$valstack[i$valstack_base + 1];
+  i$valstack[i$valstack_top + 1] = i$valstack[i$valstack_base + 2];
+  i$SLIDE(2);
+  i$valstack_top = i$valstack_base + 2;
+  i$CALL(_idris_Prelude_46_Interfaces_46_Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33_min_58_0,[oldbase]);
+}
+var _idris_Main_46_testProg_58_loop_58_0$1 = function(oldbase,myoldbase){
+  i$valstack[i$valstack_base + 2] = i$ret;
+  switch(i$valstack[i$valstack_base + 2].tag){
+    case 0:
+      i$valstack[i$valstack_base + 3] = 1;
+      i$valstack[i$valstack_base + 3] = i$valstack[i$valstack_base + 1] + i$valstack[i$valstack_base + 3];
+      i$valstack[i$valstack_top] = i$valstack[i$valstack_base];
+      i$valstack[i$valstack_top + 1] = i$valstack[i$valstack_base + 3];
+      i$SLIDE(2);
+      i$valstack_top = i$valstack_base + 2;
+      i$CALL(_idris_Main_46_testProg_58_loop_58_0,[oldbase]);
+      break;
+    case 1:
+      i$ret = i$valstack[i$valstack_base + 1];
+      i$valstack_top = i$valstack_base;
+      i$valstack_base = oldbase.addr;
+      break;
+  };
+}
+var _idris_Main_46_testProg_58_loop_58_0$0 = function(oldbase,myoldbase){
+  i$valstack[i$valstack_base + 2] = i$ret;
+  i$valstack[i$valstack_top] = i$valstack[i$valstack_base + 1];
+  i$valstack[i$valstack_top + 1] = i$valstack[i$valstack_base + 2];
+  myoldbase.addr = i$valstack_base;
+  i$valstack_base = i$valstack_top;
+  i$valstack_top += 2;
+  i$CALL(_idris_Main_46_testProg_58_loop_58_0$1,[oldbase,myoldbase]);
+  i$CALL(_idris_Prelude_46_Interfaces_46_Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33__62__61__58_0,[myoldbase]);
+}
+var _idris_Main_46_testProg_58_loop_58_0 = function(oldbase){
+  var myoldbase = new i$POINTER();
+  i$valstack_top += 2;
+  i$valstack[i$valstack_top] = i$valstack[i$valstack_base];
+  myoldbase.addr = i$valstack_base;
+  i$valstack_base = i$valstack_top;
+  i$valstack_top += 1;
+  i$CALL(_idris_Main_46_testProg_58_loop_58_0$0,[oldbase,myoldbase]);
+  i$CALL(_idris_Main_46_testProg_58_lmt_58_0,[myoldbase]);
+}
+&lt;/code&gt;&lt;p&gt;对比下 &lt;a href=&quot;http://www.zhihu.com/people/2ff239f95aaa7f4612a23d220ff4ce48&quot; data-hash=&quot;2ff239f95aaa7f4612a23d220ff4ce48&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@张宏波&quot; data-hovercard=&quot;p$b$2ff239f95aaa7f4612a23d220ff4ce48&quot;&gt;@张宏波&lt;/a&gt; 每天广告的 Bucklescript&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Generated by BUCKLESCRIPT VERSION 1.2.1 , PLEASE EDIT WITH CARE
+&#39;use strict&#39;;
+
+var Pervasives = require(&quot;stdlib/pervasives&quot;);
+
+function testProg(n) {
+  var lmt = Pervasives.min(n + 100 | 0, 1000);
+  var _i = n;
+  while(true) {
+    var i = _i;
+    if (i &amp;gt;= lmt) {
+      return i;
+    }
+    else {
+      _i = i + 1 | 0;
+      continue ;
+      
+    }
+  };
+}
+
+var range = 1000;
+
+exports.range    = range;
+exports.testProg = testProg;
+&lt;/code&gt;&lt;p&gt;这是何等的差距……&lt;/p&gt;&lt;p&gt;不过好在，Idris 在设计的时候就考虑了对接多种后端，而且也确实有很多人在做后端的工作，那么，如果官方后端不够好的话，自己写一个不就行了么……（当然了，认为官方后端烂的不只我一个，没有必要真的从头去写。）&lt;/p&gt;&lt;p&gt;项目在这：&lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt;，分化自上游的 &lt;a href=&quot;https://github.com/rbarreiro/idrisjs&quot; data-editable=&quot;true&quot; data-title=&quot;rbarreiro/idrisjs&quot; class=&quot;&quot;&gt;rbarreiro/idrisjs&lt;/a&gt;。&lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 的目标就是打造一个高效和易于理解的 JS backend。&lt;/p&gt;&lt;h2&gt;Idris 的编译流程&lt;/h2&gt;&lt;p&gt;OK 说正经的吧，Idris 的编译流程大体如下图：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f7619c7a601fbc82ce7d32e3b19d626f.png_r.jpg&quot; data-rawwidth=&quot;1015&quot; data-rawheight=&quot;1708&quot;&gt;作为一个同样献祭了无数 PhD 的项目，Idris 最有技术含量的是第一个部分，LoadSource。在这个步骤中，Idris 使用一种类似 Coq 中执行 LTac 的方式将「上位」的 .idr 源码&lt;b&gt;繁饰&lt;/b&gt;（Elaboration）成一个下位的语言 TT，具体过程参阅 EB 的论文 &lt;a href=&quot;https://eb.host.cs.st-andrews.ac.uk/drafts/impldtp.pdf&quot; data-editable=&quot;true&quot; data-title=&quot;Idris, a General Purpose Dependently Typed Programming Language&quot; class=&quot;&quot;&gt;Idris, a General Purpose Dependently Typed Programming Language&lt;/a&gt;。（所以如果你关住比较早的话，估计还用过 Idris 的 Elaborator 脚本，那个就是直接操纵 Elaborator 的过程——当然这东西现在换成 Elaborator Reflection 了。）繁饰完成的 TT 会被写入相应的 .ibc 文件，同时也被 Idris REPL 使用。&lt;/p&gt;&lt;p&gt;而第二个部分，Compile，则是从 TT 开始一步一步地进行一系列语法变换，最终交给 Codegen 生成目标文件。这个步骤是在一个单独的进程中运行的，程序名 idris-codegen-#.exe，由 Idris 主程序调用，输入一组 .ibc，输出一个目标文件。给 Idris 写后端实际上就是写一个新的「idris-codegen-#.exe」，放在 idris 主程序相同目录下，然后就可以用了……&lt;/p&gt;&lt;p&gt;因此，如果你愿意的话完全可以想办法自己读 .ibc 文件，自己变换自己输出，可惜 ibc 不仅是二进制文件而且格式也没文档，这种想法也就真的是想想而已了。&lt;/p&gt;&lt;p&gt;更加务实的手段是复用 Idris 的架构，也即上图中的若干框里的表示，这些中间表示位于 IRTS 下的若干模块中：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;TT，这个是类型信息最完整的，但是较为复杂，而且还用了 HOAS 之类的高端特性，拿来做类型检查很合适，给后端用就未必了。&lt;/li&gt;&lt;li&gt;LDecl，这个是 TT 编译后的结果，一种类似 UTLC 的语言，但所有的函数调用都只会调用变量，但 Arity 可能不匹配，即可能产生闭包，也可能调用传入的参数。&lt;/li&gt;&lt;li&gt;DDecl，这个是在 LDecl 的基础上进行 Defunctinalize，通过显式构造数据结构消除闭包构造的产物。到了这一步，所有的函数调用不仅只调用顶层声明，还抱着 Arity 严格匹配。&lt;/li&gt;&lt;li&gt;SDecl 则在 DDecl 上进一步简化，所有的嵌套函数调用都被提出成 let 的形式。&lt;/li&gt;&lt;li&gt;字节码，这个没有在 IRTS.CodegenCommon.CodegenInfo 中直接给出，需要自己生成，官方的 C 后端就使用了字节码。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;TT、LDecl、DDecl、SDecl 到字节码可以看作一个函数式语言一步一步走向机器底层的路程。在 LDecl、DDecl、SDecl、字节码这四者中，LDecl 和各种脚本语言的模式最为相似；DDecl 的模型则接近于 C；SDecl 接近一些 SSA IR；字节码就不用说了。在写后端的时候可以使用其中任意一种作为处理。&lt;/p&gt;&lt;p&gt;考虑到现在是 target 到 JavaScript，属于一个带有原生闭包支持的脚本语言，因此使用 LDecl 对应的 Lang 层进行最为合适，不过我们会做一些优化，比如 uncurry 干掉嵌套函数之类。&lt;/p&gt;&lt;h2&gt;Lang 层的结构&lt;/h2&gt;&lt;p&gt;Lang 层的模块名是 IRTS.Lang，其核心部分是 LExp 和 LDecl，定义如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data LVar = Loc Int | Glob Name
+  deriving (Show, Eq)
+
+data LExp = LV LVar
+          | LApp Bool LExp [LExp]    -- True = tail call
+          | LLazyApp Name [LExp]     -- True = tail call
+          | LLazyExp LExp            -- lifted out before compiling
+          | LForce LExp              -- make sure Exp is evaluted
+          | LLet Name LExp LExp      -- name just for pretty printing
+          | LLam [Name] LExp         -- lambda, lifted out before compiling
+          | LProj LExp Int           -- projection
+          | LCon (Maybe LVar)        -- Location to reallocate, if available
+                 Int Name [LExp]
+          | LCase CaseType LExp [LAlt]
+          | LConst Const
+          | LForeign FDesc           -- Function descriptor (usually name as string)
+                     FDesc           -- Return type descriptor
+                     [(FDesc, LExp)] -- first LExp is the FFI type description
+          | LOp PrimFn [LExp]
+          | LNothing
+          | LError String
+  deriving Eq
+
+-- 中间省略 FFI 和 PrimFn 的部分
+
+data LAlt&#39; e = LConCase Int Name [Name] e
+             | LConstCase Const e
+             | LDefaultCase e
+  deriving (Show, Eq, Functor)
+
+type LAlt = LAlt&#39; LExp
+
+data LDecl = LFun [LOpt] Name [Name] LExp -- options, name, arg names, def
+           | LConstructor Name Int Int    -- constructor name, tag, arity
+  deriving (Show, Eq)
+
+type LDefs = Ctxt LDecl
+&lt;/code&gt;LExp 大体上就是一个支持闭包的脚本语言的样子，LDecl 则包含「函数」声明以及构造器声明两类（Name 是 Idris TT 层的类型，表示各种各样的名称，十分复杂）。不过你别看 LExp 分支那么多，实际上在 Lang 层的 Lambda lifting 之后，LLam 不会给你拿到，真正能出现的组合只有以下这么几类：&lt;code lang=&quot;text&quot;&gt;(LV (Glob n))
+(LApp tc (LV (Glob n)) args)
+(LLazyApp n args)
+(LForce e)
+(LLet n v sc)
+(LCon loc i n args)
+(LProj t i)
+(LCase up e alts)
+(LConst c)
+(LForeign t n args)
+(LOp f args)
+LNothing
+(LError e)
+&lt;/code&gt;&lt;p&gt;即使配合上 TCO（LApp 第一个字段就是是否为 tail call），一个 backend 也就大约 1000 行 Haskell 的篇幅，当然如果你把优化全去掉的话会更短，不过生成出来的 JS 会更慢就是了。&lt;/p&gt;&lt;h2&gt;去 Curry 化&lt;/h2&gt;&lt;p&gt;Idris 和其他一票函数式语言一样都是默认 Curry 化的，想要消除的话需要记录顶层声明的 Arity，然后在编译 LApp 的时候比对 args 的长度：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;如果两者相等，很好，生成一个简单的 JS 函数调用，返回即可；&lt;/li&gt;&lt;li&gt;如果声明的 arity 比传入的大，那么就需要刷一个 lambda，同时进行 curry；&lt;/li&gt;&lt;li&gt;如果声明的 arity 小于传入的，那么在「正常」的调用之后，生成一系列的 JS 调用，每次一个参数。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;IRTS 从 L 层到 D 层的实现也与之相似。&lt;/p&gt;&lt;h2&gt;对象的表示&lt;/h2&gt;&lt;p&gt;由于 Idris 大量使用 datatype，对于 LCon 可以做一个有趣的优化：如果某个构造是 0 元的，就不去刷出一个新对象出来，而是直接返回 tag 的数值，减少构造和解构的开销。&lt;/p&gt;&lt;p&gt;事实上，如果不考虑 LProj 的话，可以再这里做更多的 specialize，比如把 Idris 的 List 映射到 JS 的数组等等，不过最简单的 specialize 就是把 Idris 的 Bool 映射成 JS 的 Boolean，实现非常简单：查询出 constructor declaration 之后，如果它是 True 或者 False，改掉实现即可。&lt;/p&gt;&lt;p&gt;目前 &lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;be5invis/idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 使用 {type:tag,$1:arg1,$2:arg2,...} 生成 Idris 的对象，以后则会迁移到对每个构造器生成特化的类来实现。&lt;/p&gt;&lt;h2&gt;结果&lt;/h2&gt;&lt;p&gt;使用现在的 &lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 编译和上文同一段 Idris 结果是这样：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function x_Main_46_testProg_58_lmt_58_0(_e$0){
+   return q_Prelude$Interfaces$$Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33_min_58_0((_e$0 + 100), 1000)
+}
+
+function x_Main_46_testProg_58_loop_58_0(_e$0, _e$1){
+   for(;;) {
+      var cgIdris_2 = q_Prelude$Interfaces$$Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33__62__61__58_0(_e$1, x_Main_46_testProg_58_lmt_58_0(_e$0));
+      if(( !cgIdris_2)) {
+         var cgIdris_3 = _e$0;
+         var cgIdris_4 = (_e$1 + 1);
+         _e$0 = cgIdris_3;
+         _e$1 = cgIdris_4;
+         continue
+      } else {
+         return _e$1
+      }
+      ;
+      break
+   }
+}
+
+var q_Main$$main = (function(){
+   return q_Prelude$Interactive$$putStr_39_(null, (q_Prelude$Show$$primNumShow(null, u_prim____toStrInt, 0, x_Main_46_testProg_58_loop_58_0(0, 0)) + &quot;\n&quot;))
+})()
+
+var _runMain$0 = (function(){
+   return js_idris_force(q_Main$$main(null))
+})()&lt;/code&gt;&lt;p&gt;可以看出几点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Idris 的编译器有内联的能力，同时会尽力消除重载函数的 dict passing 开销，这点比 purescript 强太多……&lt;/li&gt;&lt;li&gt;testProg 被内联了，连定义都不再导出。testProg 里的 loop 被提出同时改成了两个参数，lmt 也被提出，成为了函数。&lt;/li&gt;&lt;li&gt;常数 range 也被内联了。&lt;/li&gt;&lt;li&gt;Type term 和 Proof term 都在 LDecl 前消除，成为 null。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;对 &lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;be5invis/idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 感兴趣的可以去这儿拉源码编译、上 PR 等等。JS Binding 可以去上游 &lt;a href=&quot;https://github.com/rbarreiro/idrisjs&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;rbarreiro/idrisjs&quot;&gt;rbarreiro/idrisjs&lt;/a&gt; 获取。&lt;/p&gt;&lt;p&gt;感谢 &lt;a href=&quot;http://www.zhihu.com/people/2d8f51b6523e01a8529606f466d98198&quot; data-hash=&quot;2d8f51b6523e01a8529606f466d98198&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@Canto Ostinato&quot; data-hovercard=&quot;p$b$2d8f51b6523e01a8529606f466d98198&quot;&gt;@Canto Ostinato&lt;/a&gt; 帮忙配 stack。&lt;/p&gt;&lt;p&gt;图片来源：《&lt;a href=&quot;https://functor-fantasy.github.io/&quot; data-editable=&quot;true&quot; data-title=&quot;A Functor Fantasy&quot;&gt;A Functor Fantasy&lt;/a&gt;》章节封面&lt;/p&gt;&lt;p&gt;————————————————————————————————————————&lt;/p&gt;&lt;p&gt;附录：&lt;/p&gt;&lt;p&gt;Purescript 等效代码&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;module Main where
+import Prelude
+range = 1000
+
+testProg n = -- do some work
+  let lmt = min (n + 100) range 
+  in
+  let loop i =
+       if i &amp;gt;= lmt 
+        then i
+        else loop (i + 1) 
+  in
+  loop n
+&lt;/code&gt;&lt;p&gt;Purescript 生成结果&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&quot;use strict&quot;;
+var Data_Ord = require(&quot;../Data.Ord&quot;);
+var Data_Semiring = require(&quot;../Data.Semiring&quot;);
+var Prelude = require(&quot;../Prelude&quot;);
+var range = 1000;
+var testProg = function (n) {
+    var lmt = Data_Ord.min(Data_Ord.ordInt)(n + 100 | 0)(range);
+    var loop = function (__copy_i) {
+        var i = __copy_i;
+        var __tco_done = false;
+        var __tco_result;
+        var __tco_i;
+        function __tco_loop(i) {
+            var $0 = i &amp;gt;= lmt;
+            if ($0) {
+                __tco_done = true;
+                return i;
+            };
+            __tco_i = i + 1 | 0;
+            return;
+        };
+        while (!__tco_done) {
+            __tco_result = __tco_loop(i);
+            i = __tco_i;
+        };
+        return __tco_result;
+    };
+    return loop(n);
+};
+module.exports = {
+    range: range, 
+    testProg: testProg
+};
+&lt;/code&gt;&lt;p&gt;Elm 等效代码&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;range : Int
+range = 1000
+
+testProg : Int -&amp;gt; Int
+testProg n = -- do some work
+  let lmt = min (n + 100) range in
+  let loop i =
+    if i &amp;gt;= lmt then i else
+    loop (i + 1) in loop n
+&lt;/code&gt;&lt;p&gt;Elm 输出 JS&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var _user$project$Temp1482759649866537$range = 100;
+var _user$project$Temp1482759649866537$testProg = function (n) {
+	var lmt = A2(_elm_lang$core$Basics$min, n + 1000, _user$project$Temp1482759649866537$range);
+	var loop = function (i) {
+		loop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(i, lmt) &amp;gt; -1) {
+				return i;
+			} else {
+				var _v0 = i + 1;
+				i = _v0;
+				continue loop;
+			}
+		}
+	};
+	return loop(n);
+};
+&lt;/code&gt;</description>
+<author>Belleve</author>
+<guid isPermaLink="false">2017-04-25-26544417</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+</channel>
+</rss>
