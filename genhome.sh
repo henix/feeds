@@ -8,7 +8,7 @@ cat <<EOF
 <body>
 <ul>
 EOF
-for d in $(find . -maxdepth 1 -type d | sed -e 's|^./||' -e '/^\.\|\.git$/d') ; do
+for d in $(find . -maxdepth 1 -type d | sed -e 's|^./||' -e '/^\.\|\.git$/d' | sort) ; do
 	printf '<li><a href="%s/">%s</a></li>\n' "$d" "$d"
 done
 cat <<EOF
