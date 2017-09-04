@@ -1,4 +1,4 @@
-<meta charset="utf-8"><p><a href="https://zhuanlan.zhihu.com/p/20612720">原文</a></p><p>application/x-www-form-urlencoded这种比较简单就不讨论了。</p><p>multipart/form-data就比较麻烦了。搜了一下结果发现要么是远古时期的，要么就是推荐requests。有必要这么麻烦么？Python明明自带MIME库了，为啥就没人推荐用标准库的方法？只能自己来了</p><code lang="python">from urllib2 import Request
+<meta charset="utf-8"><title>[黑魔法]Python模拟HTML表单提交</title><p><a href="https://zhuanlan.zhihu.com/p/20612720">原文</a></p><p>application/x-www-form-urlencoded这种比较简单就不讨论了。</p><p>multipart/form-data就比较麻烦了。搜了一下结果发现要么是远古时期的，要么就是推荐requests。有必要这么麻烦么？Python明明自带MIME库了，为啥就没人推荐用标准库的方法？只能自己来了</p><code lang="python">from urllib2 import Request
 from email.message import Message
 
 
