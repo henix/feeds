@@ -1,0 +1,989 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>雾雨魔法店</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
+<description>http://zhuanlan.zhihu.com/marisa/20419321</description>
+<language>zh-cn</language>
+<lastBuildDate>Mon, 04 Sep 2017 16:25:36 +0800</lastBuildDate>
+<item>
+<title>如何编译函数闭包</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-04-28787934.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;如何编译函数闭包&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28787934&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+</description>
+<author>nameoverflow</author>
+<guid isPermaLink="false">2017-09-04-28787934</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>（如何（用Python）写一个（Lisp）解释器（上））</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-01-28989326.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;（如何（用Python）写一个（Lisp）解释器（上））&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28989326&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&amp;gt; 译自&lt;a href=&quot;http://norvig.com/lispy.html&quot;&gt;Peter Norvig的博客&lt;/a&gt;，有少量魔改&lt;/p&gt;&lt;p&gt;这篇文章有两个目的：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;通用地介绍如何实现计算机语言的解释器。&lt;/li&gt;&lt;li&gt;介绍如何利用Python实现Lisp方言Scheme的一个子集。&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;Scheme程序的语法和语义&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;一门语言的语法（syntax）指的是字母排列成正确表达式或声明的顺序；语义（semantics）则是这些表达式或声明的意义。例如在数学和许多编程语言之中，一加二的语法是“1 + 2”， 语义则是将加法运算符应用于数字1和2之上，得到结果3。我们将计算表达式的值称之为求值（evaluating）；“1 + 2”求值得到结果3，我们将之记为“1 + 2” =&amp;gt; 3。&lt;/p&gt;&lt;p&gt;Scheme的语法与你熟悉的大部分语言不同。例如：&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;// Java
+if (x.val() &amp;gt; 0) { 
+  fn(A[i] + 1, 
+     return new String[] {&quot;one&quot;, &quot;two&quot;}); 
+}&lt;/code&gt;&lt;p&gt;-&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;;; Scheme
+(if (&amp;gt; (val x) 0) 
+    (fn (+ (aref A i) 1) 
+        (quote (one two)))&lt;/code&gt;&lt;p&gt;Java有大量不同的语法约规（关键字、中置操作符、三种括号、操作符优先级、点、引号、逗号、分号等等），而Scheme的语法则简单很多：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Scheme程序中只有表达式。表达式和声明之间并无区别。&lt;/li&gt;&lt;li&gt;数字（例如 1）和符号（例如 A）被称之为原子表达式（atomic expression）；他们无法被拆分成更小的表达式。这部分和Java类似，但在Scheme中，诸如 + 和 &amp;gt; 这种操作符也被认为是符号（symbol），处理方式与A或是fn这种符号别无二致。&lt;/li&gt;&lt;li&gt;除此之外的一切都是列表表达式（list expression）：以“(”为首，“)”为尾，中间包括着零个或更多表达式。列表的第一个元素决定了它的含义：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;若第一个元素是关键字，例如(if ...)，那这个列表是一个特殊形式（special form）；特殊形式的意义取决于关键字。&lt;/li&gt;&lt;li&gt;若第一个元素并非关键字，例如(fn ...)，那这个列表则是函数调用。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Scheme之美在于她的简洁性：整个语言由5个关键字和8个语法形式构成。相较之下，Python有33个关键字和110个语法形式，Java有50个关键字和133个语法形式。Scheme中的大量括号初看起来可能显得古怪陌生，但括号为Scheme提供了简洁性和一致性。（有些人开玩笑说Lisp的意思是“大量又蠢又烦的括号（Lots of Irritating Silly Parentheses）”；我觉得应该是“Lisp拥有纯净的语法（Lisp Is Syntactically Pure）。”）&lt;/p&gt;&lt;p&gt;在这篇文章中我们会涉及到Scheme中所有的关键点（除了一些琐碎的细节）。但罗马城不是一天建成的，我们需要分两步。首先，我们会定义一个相对简单的语言，再在它的基础上定义一个几近完整的Scheme语言。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1号语言：Lispy计算器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Lispy计算器是Scheme语言的一个子集，它只包含五种语法形式（两种原子，两个特殊形式，以及过程调用）。只要你习惯了Lisp前置运算符的古怪语法，你就能利用Lispy计算器干一般计算器的活。你还能干一般计算器干不了的活：使用&quot;if&quot;表达式进行条件判断以及定义新的变量。我们来举个例子，以下是一个计算圆面积的程序，圆的半径为10，计算公式为πr^2：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(begin
+    (define r 10)
+    (* pi (* r r)))&lt;/code&gt;&lt;p&gt;下面这张表列举了所有可用的语法形式：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-dd978e5bb96fff4a144b3a27fef70c21.png_r.jpg&quot; data-rawwidth=&quot;725&quot; data-rawheight=&quot;567&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在表中“语法”一列中，&lt;i&gt;var&lt;/i&gt;必须为一个符号，&lt;i&gt;number&lt;/i&gt;必须为一个整数或浮点数，其他斜体字可以是任何表达式。其中的“&lt;i&gt;arg...&lt;/i&gt;”表示零个或更多个&quot;&lt;i&gt;arg&lt;/i&gt;&quot;。在“真正”的Scheme中，begin是一个语法关键字，但在这个Scheme实现中，它只是一个普通的函数。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;语言解释器做些什么？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;一个计算机语言的解释器分为两部分：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;分析(parse)&lt;/b&gt;：解释器的分析部分将程序以一串字符的形式读入，依照语法规则(&lt;i&gt;syntactic rules&lt;/i&gt;)验证其正确性并将程序转换成一种内部表达形式。在一个简单的解释器中，内部表达形式是一个树形结构，人们一般将其称之为&lt;i&gt;抽象语法树 (abstract syntax tree)&lt;/i&gt;。抽象语法树的结构和程序中层层嵌套的声明及表达式非常相近，几乎可以说是完美对应。在编译器之中往往存在多个内部表达形式，一开始先转换成抽象语法树，随后再转换成可以直接被计算器执行的指令序列。Lispy的语法分析器由parse函数实现。&lt;/li&gt;&lt;li&gt;&lt;b&gt;执行(execution)&lt;/b&gt;：内部表达形式被按照语言的语法规则进行处理，以此来进行计算。Lispy的执行函数叫做eval （注意，这会覆盖Python的同名内置函数）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;以下是对解释器工作流程的一个简单的演示：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;程序 ---&amp;gt; [parse] ---&amp;gt; 抽象语法树 ---&amp;gt; [eval] ---&amp;gt; 结果&lt;/code&gt;&lt;p&gt;下面这个例子则展示了我们希望eval和parse实现的功能：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt; program = &quot;(begin (define r 10) (* pi (* r r)))&quot;
+
+&amp;gt;&amp;gt;&amp;gt; parse(program)
+[&#39;begin&#39;, [&#39;define&#39;, &#39;r&#39;, 10], [&#39;*&#39;, &#39;pi&#39;, [&#39;*&#39;, &#39;r&#39;, &#39;r&#39;]]]
+
+&amp;gt;&amp;gt;&amp;gt; eval(parse(program))
+314.1592653589793&lt;/code&gt;&lt;h2&gt;&lt;b&gt;分析：parse, tokenize 以及 read_from_tokens&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;依照传统，分析被分为两个部分:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;词法分析(lexical analysis)：在这一部分中，输入的字符串被拆分为一系列的token。&lt;/li&gt;&lt;li&gt;语法分析(syntactic analysis)：将token汇编为抽象语法树。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Lispy token们由括号，符号和数字组成。由许多用来进行词法分析的工具（例如Mike Lesk和Eric Schmidt写的lex），但我们只需要用到一个十分简单的工具：Python的str.split函数。tokenize函数接受一个字符串，并在括号周围加上空格；随后调用str.split来得到一个由token组成的列表：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def tokenize(chars):
+    &quot;将字符串转换成由token组成的列表。&quot;
+    return chars.replace(&#39;(&#39;, &#39; ( &#39;).replace(&#39;)&#39;, &#39; ) &#39;).split()
+&amp;gt;&amp;gt;&amp;gt; program = &quot;(begin (define r 10) (* pi (* r r)))&quot;
+&amp;gt;&amp;gt;&amp;gt; tokenize(program)
+[&#39;(&#39;, &#39;begin&#39;, &#39;(&#39;, &#39;define&#39;, &#39;r&#39;, &#39;10&#39;, &#39;)&#39;, &#39;(&#39;, &#39;*&#39;, &#39;pi&#39;, &#39;(&#39;, &#39;*&#39;, &#39;r&#39;, &#39;r&#39;, &#39;)&#39;, &#39;)&#39;, &#39;)&#39;]&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们的parse函数接收一个字符串作为输入，然后调用tokenize函数获得一个由token组成的列表，再调用read_from_tokens来将token列表汇编成抽象语法树。read_from_token函数会查看第一个token，如果是“)”，那就报出一个语法错误。如果是“(”，那我们就开始构建一个由子表达式组成的列表，直到匹配到对应的“)”。所有非括号的token必须是符号或者数字。我们会让Python来识别它们之间的区别：对任何一个非括号token，先尝试将之转为整数，若失败则尝试转为浮点数，若还是失败，则转为符号。下边是parser的代码：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def parse(program):
+    &quot;从字符串中读取Scheme表达式&quot;
+    return read_from_tokens(tokenize(program))
+
+def read_from_tokens(tokens):
+    &quot;从一串token之中读取表达式&quot;
+    if len(tokens) == 0:
+        raise SyntaxError(&#39;unexpected EOF while reading&#39;)
+    token = tokens.pop(0)
+    if &#39;(&#39; == token:
+        L = []
+        while tokens[0] != &#39;)&#39;:
+            L.append(read_from_tokens(tokens))
+        tokens.pop(0) # pop off &#39;)&#39;
+        return L
+    elif &#39;)&#39; == token:
+        raise SyntaxError(&#39;unexpected )&#39;)
+    else:
+        return atom(token)
+
+def atom(token):
+    &quot;数字转为对应的Python数字，其余的转为符号&quot;
+    try: return int(token)
+    except ValueError:
+        try: return float(token)
+        except ValueError:
+            return Symbol(token)&lt;/code&gt;&lt;p&gt;parse函数的工作方式如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; program = &quot;(begin (define r 10) (* pi (* r r)))&quot;
+
+&amp;gt;&amp;gt;&amp;gt; parse(program)
+[&#39;begin&#39;, [&#39;define&#39;, &#39;r&#39;, 10], [&#39;*&#39;, &#39;pi&#39;, [&#39;*&#39;, &#39;r&#39;, &#39;r&#39;]]]&lt;/code&gt;&lt;p&gt;我们还需要决定一下各种Scheme对象在Python中的表示方法：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;Symbol = str          # Scheme符号由Python str表示
+List   = list         # Scheme列表由Python list表示
+Number = (int, float) # Scheme数字由Python的整数或浮点数表示&lt;/code&gt;&lt;p&gt;好了！定义eval的准备工作基本都做好了。但我们需要先了解更多的概念。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;环境(Environments)&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;eval函数接受两个参数：一个我们想要求值的表达式x，还有一个环境env，x将在这个环境中被求值。&lt;i&gt;环境&lt;/i&gt;指的是变量名和他们的值之间的映射。eval默认会使用全局环境(global environment)进行求值，全局环境包含着一系列的标准函数（比如sqrt, max和 * 这类操作符）。这一环境可以用用户定义的变量拓展，语法为 (&lt;i&gt;define variable value&lt;/i&gt;)。我们可以用Python自带的字典来实现环境，字典中的键对为{变量: 值}的形式。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;import math
+import operator as op
+
+Env = dict          # 环境是{变量: 值}之间的映射
+
+def standard_env():
+    &quot;一个包含着一些Scheme标准过程的环境。&quot;
+    env = Env()
+    env.update(vars(math)) # sin, cos, sqrt, pi, ...
+    env.update({
+        &#39;+&#39;:op.add, &#39;-&#39;:op.sub, &#39;*&#39;:op.mul, &#39;/&#39;:op.div, 
+        &#39;&amp;gt;&#39;:op.gt, &#39;&amp;lt;&#39;:op.lt, &#39;&amp;gt;=&#39;:op.ge, &#39;&amp;lt;=&#39;:op.le, &#39;=&#39;:op.eq, 
+        &#39;abs&#39;:     abs,
+        &#39;append&#39;:  op.add,  
+        &#39;apply&#39;:   apply,
+        &#39;begin&#39;:   lambda *x: x[-1],
+        &#39;car&#39;:     lambda x: x[0],
+        &#39;cdr&#39;:     lambda x: x[1:], 
+        &#39;cons&#39;:    lambda x,y: [x] + y,
+        &#39;eq?&#39;:     op.is_, 
+        &#39;equal?&#39;:  op.eq, 
+        &#39;length&#39;:  len, 
+        &#39;list&#39;:    lambda *x: list(x), 
+        &#39;list?&#39;:   lambda x: isinstance(x,list), 
+        &#39;map&#39;:     map,
+        &#39;max&#39;:     max,
+        &#39;min&#39;:     min,
+        &#39;not&#39;:     op.not_,
+        &#39;null?&#39;:   lambda x: x == [], 
+        &#39;number?&#39;: lambda x: isinstance(x, Number),   
+        &#39;procedure?&#39;: callable,
+        &#39;round&#39;:   round,
+        &#39;symbol?&#39;: lambda x: isinstance(x, Symbol),
+    })
+    return env
+
+global_env = standard_env()&lt;/code&gt;&lt;h2&gt;&lt;b&gt;求值：eval&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;现在，我们已经做好了实现eval函数的准备。来让我们重新看一遍Lispy计算器的语法形式表以加深一下记忆：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-dd978e5bb96fff4a144b3a27fef70c21.png_r.jpg&quot; data-rawwidth=&quot;725&quot; data-rawheight=&quot;567&quot;&gt;&lt;p&gt;来和eval的代码对比一下，是不是觉得很像？&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def eval(x, env=global_env):
+    &quot;对在某个环境下的表达式进行求值&quot;
+    if isinstance(x, Symbol):      # 变量引用
+        return env[x]
+    elif not isinstance(x, List):  # 字面常量
+        return x                
+    elif x[0] == &#39;if&#39;:             # 条件
+        (_, test, conseq, alt) = x
+        exp = (conseq if eval(test, env) else alt)
+        return eval(exp, env)
+    elif x[0] == &#39;define&#39;:         # 定义
+        (_, var, exp) = x
+        env[var] = eval(exp, env)
+    else:                          # 过程调用
+        proc = eval(x[0], env)
+        args = [eval(arg, env) for arg in x[1:]]
+        return proc(*args)&lt;/code&gt;&lt;p&gt;搞定！来试试吧：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; eval(parse(&quot;(define r 10)&quot;))
+&amp;gt;&amp;gt;&amp;gt; eval(parse(&quot;(* pi (* r r))&quot;))
+314.1592653589793&lt;/code&gt;&lt;h2&gt;&lt;b&gt;交互：来做一个REPL&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;一直打“eval(parse(...))”的话即便是耐心再好的人也会嫌烦。Lisp最伟大的遗产之一就是引入了read-eval-print loop（读取-求值-输出 循环，缩写为REPL，译者注）。运用REPL，程序员们可以即时地读取、求值、输出，而不用麻烦地先编译再运行。我们先定义一个名为repl的函数以实现这个功能，然后再定义一个schemestr函数来输出Scheme对象的字符串表示。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def repl(prompt=&#39;lis.py&amp;gt; &#39;):
+    &quot;REPL的懒人实现。&quot;
+    while True:
+        val = eval(parse(raw_input(prompt)))
+        if val is not None: 
+            print(schemestr(val))
+
+def schemestr(exp):
+    &quot;将一个Python对象转换回可以被Scheme读取的字符串。&quot;
+    if isinstance(exp, List):
+        return &#39;(&#39; + &#39; &#39;.join(map(schemestr, exp)) + &#39;)&#39; 
+    else:
+        return str(exp)&lt;/code&gt;&lt;p&gt;老样子，做完以后来试试：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; repl()
+lis.py&amp;gt; (define r 10)
+lis.py&amp;gt; (* pi (* r r))
+314.159265359
+lis.py&amp;gt; (if (&amp;gt; (* 11 11) 120) (* 7 6) oops)
+42
+lis.py&amp;gt; &lt;/code&gt;&lt;p&gt;这一章中，我们实现了一个简单的Lisp计算器，在下半部分中，我们将在此基础上写一个更完整的Scheme解释器。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;（破乎什么时候才能支持Markdown，不能插表格也就算了，图的质量还压得那么差。）&lt;/p&gt;</description>
+<author>李愚</author>
+<guid isPermaLink="false">2017-09-01-28989326</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang并发进阶</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-28-28859183.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang并发进阶&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28859183&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Getting Started with Erlang User’s Guide Version 9.0&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;写在前面的话&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;本文来源于官方教程 &lt;a href=&quot;http://link.zhihu.com/?target=http%3A//erlang.org/doc/getting_started/conc_prog.html&quot;&gt;Erlang -- Concurrent Programming&lt;/a&gt;。虽然没有逻辑上的关系，但建议在掌握了&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28154714&quot;&gt;Erlang入门系列教程&lt;/a&gt;的一些前置知识后继续阅读。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://w&quot;&gt;之前我是逐小结翻译然后发布，写到后面感觉并发这篇文章连贯性较强，分开不便于阅读，所以现在把它合并为一篇文章，刚好赶在开学前完成，也算对自己一个交待。希望能读得开心，如有错误恳请指正。&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;1. 进程&lt;/h2&gt;&lt;p&gt;使用Erlang而不是其他函数式编程语言的主要原因之一就是Erlang的并发处理能力和分布式编程。并发意味着程序可以在同一时刻执行多个线程。举个例子，操作系统允许你在同一时刻运行文字处理程序，电子表格程序，邮件客户端，和打印任务。系统中的每个处理器（CPU）有可能只处理一个线程，但是它以一定频率交换这些线程，给我们造成一种多个程序是在同一时刻执行的假象。在一个Erlang程序中很容易创建&lt;b&gt;并行执行（parallel execution）&lt;/b&gt;的线程，并且运行这些这些线程互相通信。Erlang中，每个执行线程称之为&lt;b&gt;进程（process）&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;（旁白：术语“进程（process）”通常用于各个执行线程不共享数据，术语‘’线程（thread）”用于当它们以某种方式共享数据。Erlang执行线程不共享数据，这就是为什么它们叫做进程的原因）&lt;/p&gt;&lt;p&gt;Erlang内置函数&lt;b&gt;spawn&lt;/b&gt;用于创建一个新进程：&lt;b&gt;spawn(Module, Exported_Function, List of Arguments)。&lt;/b&gt;考虑下面的模块&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut14).
+
+-export([start/0, say_something/2]).
+
+say_something(What, 0) -&amp;gt;
+    done;
+say_something(What, Times) -&amp;gt;
+    io:format(&quot;~p~n&quot;, [What]),
+    say_something(What, Times - 1).
+
+start() -&amp;gt;
+    spawn(tut14, say_something, [hello, 3]),
+    spawn(tut14, say_something, [goodbye, 3]).
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;5&amp;gt; c(tut14).
+{ok,tut14}
+6&amp;gt; tut14:say_something(hello, 3).
+hello
+hello
+hello
+done
+&lt;/code&gt;&lt;p&gt;如上所示，函数&lt;b&gt;say_something&lt;/b&gt;输出第一个参数，输出次数由第二个参数指定。函数&lt;b&gt;start&lt;/b&gt;启动两个进程，一个输出“hello”三次，一个输出“goodbye”三次。每个进程都使用&lt;b&gt;say_something&lt;/b&gt;函数。注意用spawn这种方式启动一个进程所用到的函数，必须从该模块导出。（即写在模块开头的&lt;b&gt;-export&lt;/b&gt;里面）&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;9&amp;gt; tut14:start().
+hello
+goodbye
+&amp;lt;0.63.0&amp;gt;
+hello
+goodbye
+hello
+goodbye
+&lt;/code&gt;&lt;p&gt;注意它没有先输出三次“hello”再输出三次“goodbye”。相反，第一个进程输出“hello”，第二个进程输出“goodbye”，然后第一个进程再输出“hello”，如此继续。但是&lt;b&gt;&amp;lt;0.63.0&amp;gt;&lt;/b&gt;从哪里来？一个函数的返回值是最后一行表达式的返回值。在start中最后一个表达式是&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;spawn(tut14, say_something, [goodbye, 3]).
+&lt;/code&gt;&lt;p&gt;spawn返回一个&lt;b&gt;进程标识符（process identifier）&lt;/b&gt; , 或者说&lt;b&gt;pid&lt;/b&gt;, 标明独一无二的进程。所以&amp;lt;0.63.0&amp;gt;是上面spawn函数调用返回的pid。下一个例子展示了怎么使用pid。&lt;/p&gt;&lt;p&gt;同时还要注意在&lt;b&gt;io:format&lt;/b&gt;中用~p代替~w。引用手册的话：“~p和~w以相同的方式输出标准语，但是如果输出表示的项比一行长会合理的折断成多行。它也尝试去检测一个可输出的字符列表并将至以字符串的形式输出。”&lt;/p&gt;&lt;p&gt;（译注：这里举个例子（数据来源于官方），在shell中输入：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;4&amp;gt; F = [{attributes,[[{id,age,1.50000},{mode,explicit},{typename,&quot;INTEGER&quot;}], [{id,cho},{mode,explicit},{typename,&#39;Cho&#39;}]]}, {typename,&#39;Person&#39;},{tag,{&#39;PRIVATE&#39;,3}},{mode,implicit}].
+5&amp;gt; io:format(&quot;~p&quot;,[F]).
+[{attributes,[[{id,age,1.5},{mode,explicit},{typename,&quot;INTEGER&quot;}],
+              [{id,cho},{mode,explicit},{typename,&#39;Cho&#39;}]]},
+ {typename,&#39;Person&#39;},
+ {tag,{&#39;PRIVATE&#39;,3}},
+ {mode,implicit}]ok
+6&amp;gt; io:format(&quot;~w&quot;,[F]).
+[{attributes,[[{id,age,1.5},{mode,explicit},{typename,[73,78,84,69,71,69,82]}],[{id,cho},{mode,explicit},{typename,&#39;Cho&#39;}]]},{typename,&#39;Person&#39;},{tag,{&#39;PRIVATE&#39;,3}},{mode,implicit}]ok
+&lt;/code&gt;&lt;p&gt;）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;2. 消息传递&lt;/h2&gt;&lt;p&gt;在接下来的例子中创建了两个进程，它们互相发送一些消息。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut15).
+
+-export([start/0, ping/2, pong/0]).
+
+ping(0, Pong_PID) -&amp;gt;
+    Pong_PID ! finished,
+    io:format(&quot;ping finished~n&quot;, []);
+
+ping(N, Pong_PID) -&amp;gt;
+    Pong_PID ! {ping, self()},
+    receive
+        pong -&amp;gt;
+            io:format(&quot;Ping received pong~n&quot;, [])
+    end,
+    ping(N - 1, Pong_PID).
+
+pong() -&amp;gt; receive
+        finished -&amp;gt;
+            io:format(&quot;Pong finished~n&quot;, []);
+        {ping, Ping_PID} -&amp;gt;
+            io:format(&quot;Pong received ping~n&quot;, []),
+            Ping_PID ! pong,
+            pong()
+    end.
+
+start() -&amp;gt;
+    Pong_PID = spawn(tut15, pong, []),
+    spawn(tut15, ping, [3, Pong_PID]).
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;1&amp;gt; c(tut15).
+{ok,tut15}
+2&amp;gt; tut15: start().
+&amp;lt;0.36.0&amp;gt;
+Pong received ping
+Ping received pong
+Pong received ping
+Ping received pong
+Pong received ping
+Ping received pong
+ping finished
+Pong finished
+&lt;/code&gt;&lt;p&gt;函数start创建了一个进程，让我们把它叫做“pong”：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Pong_PID = spawn(tut15, pong, [])
+&lt;/code&gt;&lt;p&gt;这个进程执行tut15:pong()。&lt;b&gt;Pong_PID&lt;/b&gt;是pong进程的进程标识符。接着创建一个名为“ping”的进程：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;spawn(tut15, ping, [3, Pong_PID]),
+&lt;/code&gt;&lt;p&gt;这个进程执行：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;tut15:ping(3, Pong_PID)
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;&amp;lt;0.36.0&amp;gt;&lt;/b&gt;是start函数的返回值。&lt;/p&gt;&lt;p&gt;“pong”进程现在这样：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;receive
+    finished -&amp;gt;
+        io:format(&quot;Pong finished~n&quot;, []);
+    {ping, Ping_PID} -&amp;gt;
+        io:format(&quot;Pong received ping~n&quot;, []),
+        Ping_PID ! pong,
+        pong()
+end.
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;receive&lt;/b&gt; 结构用于使进程等待另一个进程的消息。它有下面的格式：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;receive
+   pattern1 -&amp;gt;
+       actions1;
+   pattern2 -&amp;gt;
+       actions2;
+   ....
+   patternN
+       actionsN
+end.
+&lt;/code&gt;&lt;p&gt;注意在&lt;b&gt;end.&lt;/b&gt;前面没有&lt;b&gt;“;”&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Erlang进程之间传递的消息简单的被认为是有效的erlang项（term）。也即是说，它们可以是列表，tuple，整数，原子，pid等等。&lt;/p&gt;&lt;p&gt;每个进程有它自己的消息队列，用于接收消息。当新消息到达时会放入队列的尾部。当一个进程执行一个receive表达式，消息队列第一个接收到的消息（头部）会和receive结构进行模式匹配。如果匹配成功，消息将会移出队列并且执行模式后面指定的&lt;b&gt;action&lt;/b&gt;&lt;/p&gt;&lt;p&gt;然而，如果第一个模式没有匹配，第二个模式将会继续，如果成功就执行它对应的action，如果没有成功，继续匹配第三个模式，如此继续。如果到最后都没有模式匹配成功，第一个消息将会保留在消息队列，然后消息队列的第二个消息（头部下一个）继续进行匹配，如果有任何一个模式匹配成功，相应的action就会执行，然后第二个消息会移出队列（除第二个以外的消息全都保留）。如果第二个消息没有匹配，尝试第三个，如此继续。直到到达消息队列尾部。如果到达队列尾部，进程会阻塞（停止执行）并等待一个新消息到达，然后重复上述过程。&lt;/p&gt;&lt;p&gt;Erlang的实现是很机智的，在每个receive中它会尽可能的最小化每个消息的模式匹配次数。&lt;/p&gt;&lt;p&gt;现在回到ping pong的例子。&lt;/p&gt;&lt;p&gt;&quot;Pong&quot;等待消息。如果接收到原子&lt;b&gt;finished&lt;/b&gt;，“pong”就会输出“Pong finished”，然后什么也不做，终止。如果收到一个&lt;b&gt;{ping，Ping_PID}&lt;/b&gt;格式的消息，它会输出&quot;Pong received ping&quot; 并向“ping”进程发送一个原子pong消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Ping_PID ! pong
+&lt;/code&gt;&lt;p&gt;注意“！”运算符是如何发送消息的。“！”的语法是：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Pid ! Message
+&lt;/code&gt;&lt;p&gt;即将消息（任何Erlang项）发送到Pid表示的进程。&lt;/p&gt;&lt;p&gt;在向“ping”进程发送了pong消息后，“pong”函数会调用自身，导致它重新回到receive结构等待另一条消息。&lt;/p&gt;&lt;p&gt;现在让我们看看“ping”进程。回忆一下它是这样开始的：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;tut15:ping(3, Pong_PID)
+&lt;/code&gt;&lt;p&gt;请看函数ping/2，因为第一个参数是3（不是0）（第一个clause是 ping(0,Pong_PID)，第二个clause是ping(N,Pong_PID)，所以N成为3），所以ping/2的第二个clause被执行。&lt;/p&gt;&lt;p&gt;第二个clause向pong进程发送一条消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Pong_PID ! {ping, self()},
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;self()返回执行self()的进程的pid&lt;/b&gt;，在这个是“ping”进程的pid。（回忆一下“pong”的代码，self()的值最终会到达之前所说的receive结构中的Ping_PID变量。）&lt;/p&gt;&lt;p&gt;现在&quot;Ping&quot;等待一个来自“pong”的答复：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;receive
+    pong -&amp;gt;
+        io:format(&quot;Ping received pong~n&quot;, [])
+end,
+&lt;/code&gt;&lt;p&gt;当收到回复时它会输出&quot;Ping received pong&quot;，在这之后ping函数也会调用自己。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ping(N - 1, Pong_PID)
+&lt;/code&gt;&lt;p&gt;N-1使得第一个参数减一，直到它变成零。 当变成零时，ping/2的第一个clause就会被执行：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ping(0, Pong_PID) -&amp;gt;
+    Pong_PID !  finished,
+    io:format(&quot;ping finished~n&quot;, []);
+&lt;/code&gt;&lt;p&gt;该函数会向pong进程发送原子finished（正如上面描述的这会使得pong结束进程），接着会输 &quot;ping finished&quot;。 然后&quot;Ping&quot;会因为没有事情做而终止。&lt;/p&gt;&lt;h2&gt;3. 进程名注册&lt;/h2&gt;&lt;p&gt;在之前的例子中，“pong”进程最先被创建，并将它的进程标识符给接下来创建的“ping”进程作为参数。也即是说，“ping”必须通过某种方式知道“pong”进程才能向它发送消息。有时独立启动的进程需要知道彼此的标识符。鉴于此Erlang提供了一种进程机制来给进程命名而不是在一堆函数中混乱传递PID参数，这种机制是通过内置函数&lt;b&gt;register&lt;/b&gt;完成的。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;register(some_atom, Pid)
+&lt;/code&gt;&lt;p&gt;现在让我们使用下面的代码来重写ping pong 例子，给“pong”进程一个名字：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut16).
+
+-export([start/0, ping/1, pong/0]).
+
+ping(0) -&amp;gt;
+    pong ! finished,
+    io:format(&quot;ping finished~n&quot;, []);
+
+ping(N) -&amp;gt;
+    pong ! {ping, self()},
+    receive
+        pong -&amp;gt;
+            io:format(&quot;Ping received pong~n&quot;, [])
+    end,
+    ping(N - 1).
+
+pong() -&amp;gt; receive
+        finished -&amp;gt;
+            io:format(&quot;Pong finished~n&quot;, []);
+        {ping, Ping_PID} -&amp;gt;
+            io:format(&quot;Pong received ping~n&quot;, []),
+            Ping_PID ! pong,
+            pong()
+    end.
+
+start() -&amp;gt;
+    register(pong, spawn(tut16, pong, [])),
+    spawn(tut16, ping, [3]).
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;2&amp;gt; c(tut16).
+{ok, tut16}
+3&amp;gt; tut16:start().
+&amp;lt;0.38.0&amp;gt;
+Pong received ping
+Ping received pong
+Pong received ping
+Ping received pong
+Pong received ping
+Ping received pong
+ping finished
+Pong finished
+&lt;/code&gt;&lt;p&gt;这是&lt;b&gt;start/0&lt;/b&gt;函数，&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;register(pong, spawn(tut16, pong, [])),
+&lt;/code&gt;&lt;p&gt;同时做了启动“pong”线程，给线程命名两件事。在“ping”进程中，可以这样给“pong”进程发送消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;pong ! {ping, self()},
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;ping/2&lt;/b&gt; 现在变成了&lt;b&gt;ping/1&lt;/b&gt;，省去了&lt;b&gt;Pong_PID&lt;/b&gt;参数（避免在各个函数中混乱传递Ping_PID/Pong_PID参数）&lt;/p&gt;&lt;h2&gt;4. 分布式编程&lt;/h2&gt;&lt;p&gt;让我们重写ping pong这个例子，使“ping”和“pong”在不同电脑上运行。第一件事是&lt;b&gt;设置&lt;/b&gt;。Erlang的分布式实现提供了一个非常基础的验证机制来避免一台电脑不小心连接到Erlang分布式集群。Erlang集群的交流必须有一个相同的&lt;b&gt;magic cookie&lt;/b&gt;。要实现这个最简单的方法是通过一个&lt;b&gt;.erlang.cookie&lt;/b&gt;文件，将它放置于集群中的各台电脑（译注：即服务器，后文也译做“电脑（computer）”）的home目录，这样它们就能相互通信：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Windows系统上home目录可以由环境变量$HOME指定——你可能需要自行设置一下&lt;/li&gt;&lt;li&gt;Linux或UNIX可以忽略，只需要在你启动shell并执行cd（不附带任何参数）命令后所显示的目录下创建一个.erlang.cookie文件&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;.erlang.cookie&lt;/b&gt;文件包含了一行相同的原子。举个例子，在Linux或UNIX系统shell中&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;$ cd
+$ cat &amp;gt; .erlang.cookie
+this_is_very_secret
+$ chmod 400 .erlang.cookie
+&lt;/code&gt;&lt;p&gt;chmod命令将只允许文件的拥有者访问.erlang.cookie文件。这是需求不是必要。&lt;/p&gt;&lt;p&gt;当你启动一个Erlang系统，想和另一个Erlang系统通信，你必须给它一个名字，比如：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;$ erl -sname my_name&lt;/code&gt;&lt;p&gt;在后面我们会讨论更多关于这个的细节。如果你想实验一下分布式Erlang，但是你只有一台电脑，你可以在这台电脑上启动两个独立的Erlang系统，只需要给它们指定不同的名字。每个运行着Erlang系统的电脑叫做&lt;b&gt;Erlang节点（Erlang node）&lt;/b&gt;&lt;/p&gt;&lt;p&gt;(注意: erl -sname假定所有节点都是用相同的IP，如果我们想在不同的IP上运行Erlang系统请使用 -name代替。但是IP地址必须给全。)&lt;/p&gt;&lt;p&gt;像下面一样修改ping pong例子使之运行在不同的节点：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut17).
+
+-export([start_ping/1, start_pong/0,  ping/2, pong/0]).
+
+ping(0, Pong_Node) -&amp;gt;
+    {pong, Pong_Node} ! finished,
+    io:format(&quot;ping finished~n&quot;, []);
+
+ping(N, Pong_Node) -&amp;gt;
+    {pong, Pong_Node} ! {ping, self()},
+    receive
+        pong -&amp;gt;
+            io:format(&quot;Ping received pong~n&quot;, [])
+    end,
+    ping(N - 1, Pong_Node).
+
+pong() -&amp;gt; receive
+        finished -&amp;gt;
+            io:format(&quot;Pong finished~n&quot;, []);
+        {ping, Ping_PID} -&amp;gt;
+            io:format(&quot;Pong received ping~n&quot;, []),
+            Ping_PID ! pong,
+            pong()
+    end.
+
+start_pong() -&amp;gt;
+    register(pong, spawn(tut17, pong, [])).
+
+start_ping(Pong_Node) -&amp;gt;
+    spawn(tut17, ping, [3, Pong_Node]).
+&lt;/code&gt;&lt;p&gt;假设这两台电脑叫做gollum和kosken。第一个节点是kosken，启动ping，第二个是gollum，启动pong。&lt;/p&gt;&lt;p&gt;kosken如下：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;kosken&amp;gt; erl -sname ping
+Erlang (BEAM) emulator version 5.2.3.7 [hipe] [threads:0]
+
+Eshell V5.2.3.7  (abort with ^G)
+(ping@kosken)1&amp;gt;
+&lt;/code&gt;&lt;p&gt;这是 gollum:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;gollum&amp;gt; erl -sname pong
+Erlang (BEAM) emulator version 5.2.3.7 [hipe] [threads:0]
+
+Eshell V5.2.3.7  (abort with ^G)
+(pong@gollum)1&amp;gt;
+&lt;/code&gt;&lt;p&gt;接着在gollum上启动pong：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(pong@gollum)1&amp;gt; tut17:start_pong(). true
+&lt;/code&gt;&lt;p&gt;在kosken节点上启动ping进程：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(ping@kosken)1&amp;gt; tut17:start_ping(pong@gollum).
+&amp;lt;0.37.0&amp;gt;
+Ping received pong
+Ping received pong 
+Ping received pong
+ping finished
+&lt;/code&gt;&lt;p&gt;如上所示，ping pong都已经在运行了。在“pong”那边：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(pong@gollum)2&amp;gt;
+Pong received ping                 
+Pong received ping                 
+Pong received ping                 
+Pong finished                      
+(pong@gollum)2&amp;gt;
+&lt;/code&gt;&lt;p&gt;注意tut17的代码，你会注意到pong函数的代码没有改变，下面的代码也一样，它不关心ping进程所在的节点：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{ping, Ping_PID} -&amp;gt;
+    io:format(&quot;Pong received ping~n&quot;, []),
+    Ping_PID ! pong,
+&lt;/code&gt;&lt;p&gt;因此，Erlang pid包含了进程在哪执行的信息。如果你知道一个进程的pid，就可以用“！”运算符发送消息，而不用考虑进程在不在相同的节点。&lt;br&gt;有一点不同是消息怎样发送给另一个节点上已注册的进程：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{pong, Pong_Node} ! {ping, self()},
+&lt;/code&gt;&lt;p&gt;一个元组tuple {registered_name,node_name}用来代替 registered_name。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在钱的例子中，‘’ping”和“pong”由两个独立的Erlang节点的shell中启动，也就是说spawn可以在不同的节点上启动进程。&lt;/p&gt;&lt;p&gt;下面的例子又是ping pong程序，但是这一次“ping”在另一个节点启动：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut18).
+
+-export([start/1,  ping/2, pong/0]).
+
+ping(0, Pong_Node) -&amp;gt;
+    {pong, Pong_Node} ! finished,
+    io:format(&quot;ping finished~n&quot;, []);
+
+ping(N, Pong_Node) -&amp;gt;
+    {pong, Pong_Node} ! {ping, self()},
+    receive
+        pong -&amp;gt;
+            io:format(&quot;Ping received pong~n&quot;, [])
+    end,
+    ping(N - 1, Pong_Node).
+
+pong() -&amp;gt; receive
+        finished -&amp;gt;
+            io:format(&quot;Pong finished~n&quot;, []);
+        {ping, Ping_PID} -&amp;gt;
+            io:format(&quot;Pong received ping~n&quot;, []),
+            Ping_PID ! pong,
+            pong()
+    end.
+
+start(Ping_Node) -&amp;gt;
+    register(pong, spawn(tut18, pong, [])),
+    spawn(Ping_Node, tut18, ping, [3, node()]).
+&lt;/code&gt;&lt;p&gt;假设在kosken上被名为ping的Erlang系统已经启动，然后在gollum上这样做：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(pong@gollum)1&amp;gt; tut18:start(ping@kosken).
+&amp;lt;3934.39.0&amp;gt;
+Pong received ping
+Ping received pong
+Pong received ping
+Ping received pong
+Pong received ping
+Ping received pong
+Pong finished
+ping finished
+&lt;/code&gt;&lt;p&gt;注意gollum接收所有的输出。这是因为I/O系统会找到进程从哪启动，然后在那输出。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;5. 一个完整的例子&lt;/h2&gt;&lt;p&gt;现在写一个完整的例子，叫做“messenger”。messenger这个程序运行在不同的Erlang节点上登陆然后互相发送消息（message）。&lt;/p&gt;&lt;p&gt;在开始前，注意下面几点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;这个例子只显示了消息传递的逻辑——并不打算提供一个友好的GUI，虽然这也可以用Erlang完成&lt;/li&gt;&lt;li&gt;这类问题用OTP的一些设施更容易解决，因为它们能提供一些方法进行代码热更新等 (参见 &lt;b&gt;&lt;a href=&quot;http://erlang.org/doc/design_principles/des_princ.html#otp%20design%20principles&quot;&gt;OTP Design Principles&lt;/a&gt;&lt;/b&gt;).&lt;/li&gt;&lt;li&gt;第一个程序有一些缺陷。后续版本会逐步修复它。The first program contains some inadequacies regarding handling of nodes which disappear. These are corrected in a later version of the program.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;messenger允许创建客户端然后连接中央服务器，并服务器会知晓客户端是哪些、它们在哪。也就是说，用户不需要关系当前节点的名字和其他节点在哪就能发送消息。&lt;/p&gt;&lt;p&gt;messenger.erl文件如下:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;%%% Message passing utility.  
+%%% User interface:
+%%% logon(Name)
+%%%     One user at a time can log in from each Erlang node in the
+%%%     system messenger: and choose a suitable Name. If the Name
+%%%     is already logged in at another node or if someone else is
+%%%     already logged in at the same node, login will be rejected
+%%%     with a suitable error message.
+%%% logoff()
+%%%     Logs off anybody at that node
+%%% message(ToName, Message)
+%%%     sends Message to ToName. Error messages if the user of this 
+%%%     function is not logged on or if ToName is not logged on at
+%%%     any node.
+%%%
+%%% One node in the network of Erlang nodes runs a server which maintains
+%%% data about the logged on users. The server is registered as &quot;messenger&quot;
+%%% Each node where there is a user logged on runs a client process registered
+%%% as &quot;mess_client&quot; 
+%%%
+%%% Protocol between the client processes and the server
+%%% ----------------------------------------------------
+%%% 
+%%% To server: {ClientPid, logon, UserName}
+%%% Reply {messenger, stop, user_exists_at_other_node} stops the client
+%%% Reply {messenger, logged_on} logon was successful
+%%%
+%%% To server: {ClientPid, logoff}
+%%% Reply: {messenger, logged_off}
+%%%
+%%% To server: {ClientPid, logoff}
+%%% Reply: no reply
+%%%
+%%% To server: {ClientPid, message_to, ToName, Message} send a message
+%%% Reply: {messenger, stop, you_are_not_logged_on} stops the client
+%%% Reply: {messenger, receiver_not_found} no user with this name logged on
+%%% Reply: {messenger, sent} Message has been sent (but no guarantee)
+%%%
+%%% To client: {message_from, Name, Message},
+%%%
+%%% Protocol between the &quot;commands&quot; and the client
+%%% ----------------------------------------------
+%%%
+%%% Started: messenger:client(Server_Node, Name)
+%%% To client: logoff
+%%% To client: {message_to, ToName, Message}
+%%%
+%%% Configuration: change the server_node() function to return the
+%%% name of the node where the messenger server runs
+
+-module(messenger).
+-export([start_server/0, server/1, logon/1, logoff/0, message/2, client/2]).
+
+%%% Change the function below to return the name of the node where the
+%%% messenger server runs
+server_node() -&amp;gt;
+    messenger@bill.
+
+%%% This is the server process for the &quot;messenger&quot;
+%%% the user list has the format [{ClientPid1, Name1},{ClientPid22, Name2},...]
+server(User_List) -&amp;gt;
+    receive
+        {From, logon, Name} -&amp;gt;
+            New_User_List = server_logon(From, Name, User_List),
+            server(New_User_List);
+        {From, logoff} -&amp;gt;
+            New_User_List = server_logoff(From, User_List),
+            server(New_User_List);
+        {From, message_to, To, Message} -&amp;gt;
+            server_transfer(From, To, Message, User_List),
+            io:format(&quot;list is now: ~p~n&quot;, [User_List]),
+            server(User_List)
+    end.
+
+%%% Start the server
+start_server() -&amp;gt;
+    register(messenger, spawn(messenger, server, [[]])).
+
+
+%%% Server adds a new user to the user list
+server_logon(From, Name, User_List) -&amp;gt;
+    %% check if logged on anywhere else
+    case lists:keymember(Name, 2, User_List) of
+        true -&amp;gt;
+            From ! {messenger, stop, user_exists_at_other_node},  %reject logon
+            User_List;
+        false -&amp;gt;
+            From ! {messenger, logged_on},
+            [{From, Name} | User_List]        %add user to the list
+    end.
+
+%%% Server deletes a user from the user list
+server_logoff(From, User_List) -&amp;gt;
+    lists:keydelete(From, 1, User_List).
+
+
+%%% Server transfers a message between user
+server_transfer(From, To, Message, User_List) -&amp;gt;
+    %% check that the user is logged on and who he is
+    case lists:keysearch(From, 1, User_List) of
+        false -&amp;gt;
+            From ! {messenger, stop, you_are_not_logged_on};
+        {value, {From, Name}} -&amp;gt;
+            server_transfer(From, Name, To, Message, User_List)
+    end.
+%%% If the user exists, send the message
+server_transfer(From, Name, To, Message, User_List) -&amp;gt;
+    %% Find the receiver and send the message
+    case lists:keysearch(To, 2, User_List) of
+        false -&amp;gt;
+            From ! {messenger, receiver_not_found};
+        {value, {ToPid, To}} -&amp;gt;
+            ToPid ! {message_from, Name, Message}, 
+            From ! {messenger, sent} 
+    end.
+
+
+%%% User Commands
+logon(Name) -&amp;gt;
+    case whereis(mess_client) of 
+        undefined -&amp;gt;
+            register(mess_client, 
+                     spawn(messenger, client, [server_node(), Name]));
+        _ -&amp;gt; already_logged_on
+    end.
+
+logoff() -&amp;gt;
+    mess_client ! logoff.
+
+message(ToName, Message) -&amp;gt;
+    case whereis(mess_client) of % Test if the client is running
+        undefined -&amp;gt;
+            not_logged_on;
+        _ -&amp;gt; mess_client ! {message_to, ToName, Message},
+             ok
+end.
+
+
+%%% The client process which runs on each server node
+client(Server_Node, Name) -&amp;gt;
+    {messenger, Server_Node} ! {self(), logon, Name},
+    await_result(),
+    client(Server_Node).
+
+client(Server_Node) -&amp;gt;
+    receive
+        logoff -&amp;gt;
+            {messenger, Server_Node} ! {self(), logoff},
+            exit(normal);
+        {message_to, ToName, Message} -&amp;gt;
+            {messenger, Server_Node} ! {self(), message_to, ToName, Message},
+            await_result();
+        {message_from, FromName, Message} -&amp;gt;
+            io:format(&quot;Message from ~p: ~p~n&quot;, [FromName, Message])
+    end,
+    client(Server_Node).
+
+%%% wait for a response from the server
+await_result() -&amp;gt;
+    receive
+        {messenger, stop, Why} -&amp;gt; % Stop the client 
+            io:format(&quot;~p~n&quot;, [Why]),
+            exit(normal);
+        {messenger, What} -&amp;gt;  % Normal response
+            io:format(&quot;~p~n&quot;, [What])
+    end.&lt;/code&gt;&lt;p&gt;要运行这个程序，你需要：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;配置server_node()函数&lt;/li&gt;&lt;li&gt;把编译后的字节码 (messenger.beam) 复制到其它电脑，这样它们才能使用这些函数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;接下来的例子是使用这个程序，在四个不同电脑上启动Erlang节点。如果你没有那么多电脑那么可以考虑在一台机器上启动不同的节点（译注：-sname，具体可以参见前面小结）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;四个Erlang节点分别是：messenger@super, c1@bilbo, c2@kosken, c3@gollum.&lt;/p&gt;&lt;p&gt;首先启动服务器节点messenger@supe:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(messenger@super)1&amp;gt; messenger:start_server(). true&lt;/code&gt;&lt;p&gt;接着在c1@bilbo上登陆Peter:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c1@bilbo)1&amp;gt; messenger:logon(peter). true
+logged_on&lt;/code&gt;&lt;p&gt;在c2@kosken上登陆James:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c2@kosken)1&amp;gt; messenger:logon(james). true
+logged_on&lt;/code&gt;&lt;p&gt;Fred在c3@gollum上登陆:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c3@gollum)1&amp;gt; messenger:logon(fred). true
+logged_on&lt;/code&gt;&lt;p&gt;现在Peter给Fred发送消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c1@bilbo)2&amp;gt; messenger:message(fred, &quot;hello&quot;).
+ok
+sent&lt;/code&gt;&lt;p&gt;Fred收到消息并回复Peter一条消息然后注销：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Message from peter: &quot;hello&quot;
+(c3@gollum)2&amp;gt; messenger:message(peter, &quot;go away, I&#39;m busy&quot;).
+ok
+sent
+(c3@gollum)3&amp;gt; messenger:logoff().
+logoff&lt;/code&gt;&lt;p&gt;James现在尝试向Fred发送消息:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c2@kosken)2&amp;gt; messenger:message(fred, &quot;peter doesn&#39;t like you&quot;).
+ok
+receiver_not_found&lt;/code&gt;&lt;p&gt;但是失败了，因为Fred早就离线了。&lt;/p&gt;&lt;p&gt;让我们先看看这里引进的新概念。&lt;/p&gt;&lt;p&gt;有两个版本的server_transfer函数：一个有四个参数(server_transfer/4) 一个有五个参数(server_transfer/5)。Erlang将他们视作不同的函数。 &lt;/p&gt;&lt;p&gt;注意怎样写server函数让它调用自己，通过server(User_List)形成一个循环结构。Erlang编译器很“聪明”，它会进行代码优化，以至于它真的会变成一个循环而不是函数调用。但是这只限于在这个调用后没有其它工作。这会导致进程（译注：的内存占用）在每次循环后变得越来越大。&lt;/p&gt;&lt;p&gt;也使用了一些lists模块的函数。这是一个非常有用的模块，建议看看它的使用手册（erl -man lists）。lists:keymember(Key,Position,Lists)遍历tuple列表然后检查tuple的Position位置是否和Key匹配，tuple的第一个元素是1.如果寻找成功返回true，否则返回false。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;
+3&amp;gt; lists:keymember(a, 2, [{x,y,z},{b,b,b},{b,a,c},{q,r,s}]).
+true
+4&amp;gt; lists:keymember(p, 2, [{x,y,z},{b,b,b},{b,a,c},{q,r,s}]).
+false&lt;/code&gt;&lt;p&gt;lists:keydelete的工作方式类似，只是如果找到就删除它并返回剩余列表： &lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;5&amp;gt; lists:keydelete(a, 2, [{x,y,z},{b,b,b},{b,a,c},{q,r,s}]).
+[{x,y,z},{b,b,b},{q,r,s}]&lt;/code&gt;&lt;p&gt;lists:keysearch类似于lists:keymember，但是返回 {value,Tuple_Found}，或者寻找失败返回false原子。&lt;/p&gt;&lt;p&gt;在lists模块有很多有用的函数。&lt;/p&gt;&lt;p&gt;一个Erlang进程（概念上的）会一直运行直到它执行receive结构，直到遍历消息队列后没有发现和receive结构中的模式相匹配的消息。之所以说是“概念上的”是因为Erlang系统执行各个进程其实是会共享CPU时间的。&lt;/p&gt;&lt;p&gt;当一个进程没有事做的时候它会终止，即它调用的最后一个函数简单返回且不再调用其他函数。另一个终止进程的方法是调用exit/1,。exit/1的参数有特别的意义，我们将会在后面讨论。在这个例子中，调用exit(normal)即可，它会进程运行到没有事做再终止是一样的效果。&lt;/p&gt;&lt;p&gt;内置函数whereis(RegisteredName)检查一个名为RegisteredName的具名进程是否存在。如果存在，返回它的pid，如果不存在， ，返回原子undefined。&lt;/p&gt;&lt;p&gt;到目前为止你应该已经理解了messenger模块的大部分代码。让我们取一个片段看看它的细节。&lt;/p&gt;&lt;p&gt;第一个用户“发送”消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;messenger:message(fred, &quot;hello&quot;)&lt;/code&gt;&lt;p&gt;在测试了客户端进程存在之后：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;whereis(mess_client) &lt;/code&gt;&lt;p&gt;将会发送一条消息给mess_client：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;mess_client ! {message_to, fred, &quot;hello&quot;}&lt;/code&gt;&lt;p&gt;它的实现是客户端向服务器发送消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{messenger, messenger@super} ! {self(), message_to, fred, &quot;hello&quot;},&lt;/code&gt;&lt;p&gt;然后等待服务器的回复。&lt;/p&gt;&lt;p&gt;把目光转向服务器，它收到消息然后调用：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;server_transfer(From, fred, &quot;hello&quot;, User_List),&lt;/code&gt;&lt;p&gt;它检查User_List中的pid:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;lists:keysearch(From, 1, User_List) &lt;/code&gt;&lt;p&gt;如果keysearch返回原子false，引发错误，服务器会这样回复： &lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;From ! {messenger, stop, you_are_not_logged_on}&lt;/code&gt;&lt;p&gt;它将被客户端收到，然后客户端执行exit(normal)终止。如果keysearch返回{value,{From,Name}}，很明显用户已经登录，他的名字（peter）会被绑定到Name上。&lt;/p&gt;&lt;p&gt;现在让我们调用：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;server_transfer(From, peter, fred, &quot;hello&quot;, User_List)&lt;/code&gt;&lt;p&gt;注意server_transfer/5，它不同于server_transfer/4。另一个keysearch会在User_List上进行，然后返回fred客户端的pid：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;lists:keysearch(fred, 2, User_List)&lt;/code&gt;&lt;p&gt;这次Position指定为2，也就是tuple的第二个元素和fred进行匹配。如果返回原子false，fred就没有登录然后发送下面的消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;From ! {messenger, receiver_not_found};&lt;/code&gt;&lt;p&gt;客户端会收到该条消息。&lt;/p&gt;&lt;p&gt;如果keysearch返回：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{value, {ToPid, fred}}&lt;/code&gt;&lt;p&gt;会向fred发送：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ToPid ! {message_from, peter, &quot;hello&quot;}, &lt;/code&gt;&lt;p&gt;向peter发送：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;From ! {messenger, sent} &lt;/code&gt;&lt;p&gt;Fred&#39;收到该条消息然后输出：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{message_from, peter, &quot;hello&quot;} -&amp;gt;
+    io:format(&quot;Message from ~p: ~p~n&quot;, [peter, &quot;hello&quot;])&lt;/code&gt;&lt;p&gt;Peter客户端在await_result函数调用中接收消息。 &lt;/p&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-08-28-28859183</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 11. List进阶</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-30-28194753.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 11. List进阶&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28194753&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;记住”|”运算符可以用于获取列表的头元素：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;47&amp;gt; [M1|T1] = [paris, london, rome].
+[paris,london,rome]
+48&amp;gt; M1.
+paris
+49&amp;gt; T1.
+[london,rome]&lt;/code&gt;&lt;p&gt;“|”运算符也可以用于向列表头添加一个元素：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;50&amp;gt; L1 = [madrid | T1].
+[madrid,london,rome]
+51&amp;gt; L1.
+[madrid,london,rome]&lt;/code&gt;&lt;p&gt;现在举个例子说明它是如何工作的——反转列表：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut8).
+
+-export([reverse/1]).
+
+reverse(List) -&amp;gt;
+    reverse(List, []).
+
+reverse([Head | Rest], Reversed_List) -&amp;gt;
+    reverse(Rest, [Head | Reversed_List]);
+reverse([], Reversed_List) -&amp;gt;
+    Reversed_List.&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;52&amp;gt; c(tut8).
+{ok,tut8}
+53&amp;gt; tut8:reverse([1,2,3]).
+[3,2,1]&lt;/code&gt;&lt;p&gt;考虑一下&lt;b&gt;Reversed_List&lt;/b&gt;是如何构造出来的。它最开始是空列表”[]”，然后列表头元素被取走并添加到&lt;b&gt;Reversed_List&lt;/b&gt;里，如下所示：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;reverse([1|2,3], []) =&amp;gt;
+    reverse([2,3], [1|[]])
+
+reverse([2|3], [1]) =&amp;gt;
+    reverse([3], [2|[1])
+
+reverse([3|[]], [2,1]) =&amp;gt;
+    reverse([], [3|[2,1]])
+
+reverse([], [3,2,1]) =&amp;gt;
+    [3,2,1]&lt;/code&gt;&lt;p&gt;lists模块包含了很多操纵列表的函数，比如反转列表。所以在写一个列表操纵的函数之前最好先检查一下是否它早已存在。&lt;/p&gt;&lt;p&gt;现在让我们回到城市温度的例子，但使用更结构化的方法。首先让我们把列表转化成只包含摄氏度：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut7).
+-export([format_temps/1]).
+
+format_temps(List_of_cities) -&amp;gt;
+    convert_list_to_c(List_of_cities).
+
+convert_list_to_c([{Name, {f, F}} | Rest]) -&amp;gt;
+    Converted_City = {Name, {c, (F -32)* 5 / 9}},
+    [Converted_City | convert_list_to_c(Rest)];
+
+convert_list_to_c([City | Rest]) -&amp;gt;
+    [City | convert_list_to_c(Rest)];
+
+convert_list_to_c([]) -&amp;gt;
+    [].&lt;/code&gt;&lt;p&gt;测试这个函数：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;54&amp;gt; c(tut7).
+{ok, tut7}.
+55&amp;gt; tut7:format_temps([{moscow, {c, -10}}, {cape_town, {f, 70}},
+{stockholm, {c, -4}}, {paris, {f, 28}}, {london, {f, 36}}]).
+[{moscow,{c,-10}},
+ {cape_town,{c,21.11111111111111}},
+ {stockholm,{c,-4}},
+ {paris,{c,-2.2222222222222223}},
+ {london,{c,2.2222222222222223}}]&lt;/code&gt;&lt;p&gt;解释：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;format_temps(List_of_cities) -&amp;gt;
+    convert_list_to_c(List_of_cities).&lt;/code&gt;&lt;p&gt;在这里&lt;b&gt;format_temps/1&lt;/b&gt;调用&lt;b&gt;convert_list_to_c/1&lt;/b&gt;。而&lt;i&gt;convert_list_to_c/1&lt;/i&gt;取列表&lt;b&gt;List_of_cities&lt;/b&gt;头元素，如果是摄氏度就什么也不做如果是华氏度还需要转化为摄氏度。 “|”运算符用于把转化后的元素添加到转换后的列表中，像这样：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;[Converted_City | convert_list_to_c(Rest)];&lt;/code&gt;&lt;p&gt;或者：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;[City | convert_list_to_c(Rest)];&lt;/code&gt;&lt;p&gt;这个操作将会持续到到达列表尾部，即列表为空。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;convert_list_to_c([]) -&amp;gt;
+    [].&lt;/code&gt;&lt;p&gt;当列表完成转换后，添加一个输出的函数：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut7).
+-export([format_temps/1]).
+
+format_temps(List_of_cities) -&amp;gt;
+    Converted_List = convert_list_to_c(List_of_cities),
+    print_temp(Converted_List).
+
+convert_list_to_c([{Name, {f, F}} | Rest]) -&amp;gt;
+    Converted_City = {Name, {c, (F -32)* 5 / 9}},
+    [Converted_City | convert_list_to_c(Rest)];
+
+convert_list_to_c([City | Rest]) -&amp;gt;
+    [City | convert_list_to_c(Rest)];
+
+convert_list_to_c([]) -&amp;gt;
+    [].
+
+print_temp([{Name, {c, Temp}} | Rest]) -&amp;gt;
+    io:format(&quot;~-15w ~w c~n&quot;, [Name, Temp]),
+    print_temp(Rest);
+print_temp([]) -&amp;gt;
+    ok.&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;56&amp;gt; c(tut7).
+{ok,tut7}
+57&amp;gt; tut7:format_temps([{moscow, {c, -10}}, {cape_town, {f, 70}},
+{stockholm, {c, -4}}, {paris, {f, 28}}, {london, {f, 36}}]).
+moscow          -10 c
+cape_town       21.11111111111111 c
+stockholm       -4 c
+paris           -2.2222222222222223 c
+london          2.2222222222222223 c
+ok&lt;/code&gt;&lt;p&gt;还必须添加一个函数寻找城市最高气温最低气温。下面的程序不是最佳解决方案，因为它遍历了列表四次。但最好是先力求清晰和正确，并且只有在需要时才改善程序效率。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut7).
+-export([format_temps/1]).
+
+format_temps(List_of_cities) -&amp;gt;
+    Converted_List = convert_list_to_c(List_of_cities),
+    print_temp(Converted_List),
+    {Max_city, Min_city} = find_max_and_min(Converted_List),
+    print_max_and_min(Max_city, Min_city).
+
+convert_list_to_c([{Name, {f, Temp}} | Rest]) -&amp;gt;
+    Converted_City = {Name, {c, (Temp -32)* 5 / 9}},
+    [Converted_City | convert_list_to_c(Rest)];
+
+convert_list_to_c([City | Rest]) -&amp;gt;
+    [City | convert_list_to_c(Rest)];
+
+convert_list_to_c([]) -&amp;gt;
+    [].
+
+print_temp([{Name, {c, Temp}} | Rest]) -&amp;gt;
+    io:format(&quot;~-15w ~w c~n&quot;, [Name, Temp]),
+    print_temp(Rest);
+print_temp([]) -&amp;gt;
+    ok.
+
+find_max_and_min([City | Rest]) -&amp;gt;
+    find_max_and_min(Rest, City, City).
+
+find_max_and_min([{Name, {c, Temp}} | Rest], 
+         {Max_Name, {c, Max_Temp}}, 
+         {Min_Name, {c, Min_Temp}}) -&amp;gt;
+    if 
+        Temp &amp;gt; Max_Temp -&amp;gt;
+            Max_City = {Name, {c, Temp}};           % Change
+        true -&amp;gt; 
+            Max_City = {Max_Name, {c, Max_Temp}} % Unchanged
+    end,
+    if
+         Temp &amp;lt; Min_Temp -&amp;gt;
+            Min_City = {Name, {c, Temp}};           % Change
+        true -&amp;gt; 
+            Min_City = {Min_Name, {c, Min_Temp}} % Unchanged
+    end,
+    find_max_and_min(Rest, Max_City, Min_City);
+
+find_max_and_min([], Max_City, Min_City) -&amp;gt;
+    {Max_City, Min_City}.
+
+print_max_and_min({Max_name, {c, Max_temp}}, {Min_name, {c, Min_temp}}) -&amp;gt;
+    io:format(&quot;Max temperature was ~w c in ~w~n&quot;, [Max_temp, Max_name]),
+    io:format(&quot;Min temperature was ~w c in ~w~n&quot;, [Min_temp, Min_name]).&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;58&amp;gt; c(tut7).
+{ok, tut7}
+59&amp;gt; tut7:format_temps([{moscow, {c, -10}}, {cape_town, {f, 70}},
+{stockholm, {c, -4}}, {paris, {f, 28}}, {london, {f, 36}}]).
+moscow          -10 c
+cape_town       21.11111111111111 c
+stockholm       -4 c
+paris           -2.2222222222222223 c
+london          2.2222222222222223 c
+Max temperature was 21.11111111111111 c in cape_town
+Min temperature was -10 c in moscow
+ok&lt;/code&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-30-28194753</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 10. 模式匹配，Guard，变量作用域</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155890.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 10. 模式匹配，Guard，变量作用域&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155890&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;像这样如果能找出列表中最高/最低气温是很有用的。在扩展程序以寻找气温极值之前，让我们看看在函数中寻找列表最大值：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut6).
+-export([list_max/1]).
+
+list_max([Head|Rest]) -&amp;gt;
+   list_max(Rest, Head).
+
+list_max([], Res) -&amp;gt;
+    Res;
+list_max([Head|Rest], Result_so_far) when Head &amp;gt; Result_so_far -&amp;gt;
+    list_max(Rest, Head);
+list_max([Head|Rest], Result_so_far)  -&amp;gt;
+    list_max(Rest, Result_so_far).&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;37&amp;gt; c(tut6).
+{ok,tut6}
+38&amp;gt; tut6:list_max([1,2,3,4,5,7,4,3,2,1]).
+7&lt;/code&gt;&lt;p&gt;首先注意有两个函数名字一样，list_max（指&lt;b&gt;list_max([Head|Rest])&lt;/b&gt;和&lt;b&gt;list_max([], Res)&lt;/b&gt;）。然而，它们接受不同数目的参数。在Erlang中它们被视作完全不同的函数。 &lt;br&gt;当你需要区分这些函数的时候，你直接写 &lt;i&gt;Name/Arity&lt;/i&gt; 即可，Name是函数名，Arity是函数参数个数，在这是list_max/1,list_max/2。&lt;/p&gt;&lt;p&gt;在这个例子中你遍历一个列表然后“带走”一个值，即Result_so_far。list_max/1简单的假定列表的最大值是表头元素然后把表头元素和列表剩余部分传递给list_max/2进行调用。按上面代码给出的参数将会调用list_max([2,3,4,5,7,4,3,2,1],1)。如果你尝试给list_max/1一个空列表或者给它一个不是列表的值，将引发一个错误。Erlang的哲学是不在函数中处理这类错误，而是在其他地方处理。关于这点后面会讨论。&lt;/p&gt;&lt;p&gt;在list_max/2, 当Head &amp;gt; Result_so_far时使用Head代替Result_so_far。在&lt;b&gt;-&amp;gt;&lt;/b&gt;后使用&lt;b&gt;when&lt;/b&gt;表示你只在when后面的测试为true时才使用这个函数（clause）。这类测试叫做&lt;b&gt;guard&lt;/b&gt;。如果guard为false（即guard失败），就转而尝试下一个函数（clause）。在这里，如果Head不大于Result_so_far,那它一定小于或等于。这意味着下面函数（clause）不需要guard。&lt;/p&gt;&lt;p&gt;在guards中有这么一些有用的运算符：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&amp;lt; 小于&lt;/li&gt;&lt;li&gt;&amp;gt; 大于&lt;/li&gt;&lt;li&gt;== 等于&lt;/li&gt;&lt;li&gt;&amp;gt;= 大于等于&lt;/li&gt;&lt;li&gt;=&amp;lt; 小于等于&lt;/li&gt;&lt;li&gt;/= 不等于&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;要修改上面的程序让它找出列表中的最小值，你只需要把&lt;b&gt;&amp;gt;&lt;/b&gt;改成&lt;b&gt;&amp;lt;&lt;/b&gt;。（但那样做最好也把函数名改成&lt;b&gt;list_min&lt;/b&gt;）。&lt;/p&gt;&lt;p&gt;之前提到过一个变量在它的作用域内只能绑定一次值。但如你所见Result_so_far绑定了很多次值。这没问题，因为每次你调用list_max/2都会创建一个新的作用域，然后Result_so_far就在那个新作用域中进行绑定。&lt;/p&gt;&lt;p&gt;另一个创建变量并绑定值的方法是使用匹配运算符&lt;b&gt;=&lt;/b&gt;。当你写下M = 5，一个名为M的变量创建了并绑定值5。如果，在相同的作用域，你写下M =6，就会返回错误。在shell中试试：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;39&amp;gt; M = 5.
+5
+40&amp;gt; M = 6.
+** exception error: no match of right hand side value 6
+41&amp;gt; M = M + 1.
+** exception error: no match of right hand side value 6
+42&amp;gt; N = M + 1.
+6&lt;/code&gt;&lt;p&gt;匹配运算符在分离Erlang 一个项并创建新项时是非常有用的。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;43&amp;gt; {X, Y} = {paris, {f, 28}}.
+{paris,{f,28}}
+44&amp;gt; X.
+paris
+45&amp;gt; Y.
+{f,28}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这里X绑定为paris，Y绑定为{f,28}。&lt;/p&gt;&lt;p&gt;如果你尝试再使用其它城市，就会返回一个错误。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;46&amp;gt; {X, Y} = {london, {f, 36}}.
+** exception error: no match of right hand side value {london,{f,36}}&lt;/code&gt;&lt;p&gt;变量也可用于改善程序可读性。举个例子，在上面的list_max/2函数中，你可以这么写：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;list_max([Head|Rest], Result_so_far) when Head &amp;gt; Result_so_far -&amp;gt;
+    New_result_far = Head,
+    list_max(Rest, New_result_far);&lt;/code&gt;&lt;p&gt;这样可能更清晰一些。&lt;/p&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-27-28155890</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 9 更复杂的例子</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155847.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 9 更复杂的例子&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155847&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;现在给出一个更复杂的例子总结你到目前为止学到的东西。假设你现在有一个世界各城市的温度的列表。列表中有一些城市用的华氏度，有一些用的摄氏度。首先让我们把他们全部转化为摄氏度，然后漂亮的输出这些数据。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;%% This module is in file tut5.erl
+
+-module(tut5).
+-export([format_temps/1]).
+
+%% Only this function is exported
+format_temps([])-&amp;gt;                        % No output for an empty list
+    ok;
+format_temps([City | Rest]) -&amp;gt;
+    print_temp(convert_to_celsius(City)),
+    format_temps(Rest).
+
+convert_to_celsius({Name, {c, Temp}}) -&amp;gt;  % No conversion needed
+    {Name, {c, Temp}};
+convert_to_celsius({Name, {f, Temp}}) -&amp;gt;  % Do the conversion
+    {Name, {c, (Temp - 32) * 5 / 9}}.
+
+print_temp({Name, {c, Temp}}) -&amp;gt;
+    io:format(&quot;~-15w ~w c~n&quot;, [Name, Temp]).&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;35&amp;gt; c(tut5).
+{ok,tut5}
+36&amp;gt; tut5:format_temps([{moscow, {c, -10}}, {cape_town, {f, 70}},
+{stockholm, {c, -4}}, {paris, {f, 28}}, {london, {f, 36}}]).
+moscow          -10 c
+cape_town       21.11111111111111 c
+stockholm       -4 c
+paris           -2.2222222222222223 c
+london          2.2222222222222223 c
+ok&lt;/code&gt;&lt;p&gt;在说明程序是如何运行之前，注意代码中的注释。Erlang的注释以%字符开头直到行末。同时也要注意&lt;b&gt;-export([format_temps/1])&lt;/b&gt;. 只包含&lt;b&gt;format_temps/1&lt;/b&gt;函数，其他函数都是局部函数，它们在tut5模块外面不可见。&lt;/p&gt;&lt;p&gt;还要注意在shell中测试程序的时候，如果一行太长就展开成两行。&lt;/p&gt;&lt;p&gt;当初次调用format_temps时，City 绑定值{moscow,{c,-10}}，Rest绑定列表剩余部分。所以调用的是print_temp(convert_to_celsius({moscow,{c,-10}}))。&lt;/p&gt;&lt;p&gt;这个函数调用把convert_to_celsius({moscow,{c,-10}})的结果传递给print_temp 。当像这样函数嵌套调用时，执行顺序是从里到外。也就是说，convert_to_celsius({moscow,{c,-10}})先被求值，然后print_temp({moscow,{c,-10}})再被求值。函数convert_to_celsius的工作类似于前面例子的convert_length。&lt;/p&gt;&lt;p&gt;print_temp简单的调用io:format。注意&lt;b&gt;~-15w&lt;/b&gt;表示在左边输出15个空白之后再输出占位符w实际表示的值。&lt;/p&gt;&lt;p&gt;现在再对列表的剩余部分使用format_temps(Rest)。它所做的事类似于其他语言中的循环结构。（是的，这是递归，但是别担心）。所以同样的format_temps再次被调用。这时City的值绑定为{cape_town,{f,70}}，如此反复直至列表为空，匹配第一个clause即format_temps([])。这个clause简单的返回原子ok，程序结束。&lt;/p&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-27-28155847</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 8. 在终端上输出</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155800.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 8. 在终端上输出&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155800&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;如果上面这些例子能格式化输出一些内容就爽了，所以下面这个例子教我们一种的方法，使用io:format函数输出。像其他函数一样，你也可以在shell中测试&lt;b&gt;io:format&lt;/b&gt;函数。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;31&amp;gt; io:format(&quot;hello world~n&quot;, []).
+hello world
+ok
+32&amp;gt; io:format(&quot;this outputs one Erlang term: ~w~n&quot;, [hello]).
+this outputs one Erlang term: hello
+ok
+33&amp;gt; io:format(&quot;this outputs two Erlang terms: ~w~w~n&quot;, [hello, world]).
+this outputs two Erlang terms: helloworld
+ok
+34&amp;gt; io:format(&quot;this outputs two Erlang terms: ~w ~w~n&quot;, [hello, world]).
+this outputs two Erlang terms: hello world
+ok&lt;/code&gt;&lt;p&gt;函数format/2(即格式化两个参数)接受两个列表参数。第一个列表总是用引号&lt;b&gt;&quot; &quot;&lt;/b&gt;包含的。它是什么样就输出什么样，除了&lt;b&gt;~w&lt;/b&gt;有点特别，它表示一个占位符，第二个列表参数将会代替这些占位符。每个&lt;b&gt; ~n&lt;/b&gt;都被替换为一个新行。如果一切顺利，函数io:format/2 本身返回一个原子（atom）ok。像其他Erlang函数一样，如果有错误发生它就会crash。这不是Erlang的缺陷，这是有意为之。Erlang有一个复杂的错误处理机制，这点会在后面说明。 作为一个练习，试试让&lt;b&gt;io:format&lt;/b&gt; crash，应该很简单吧。 但是请注意虽然io:format 函数crash了，Erlang shell却不会crash。&lt;/p&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-27-28155800</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 7. 标准模块和帮助手册</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155768.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 7. 标准模块和帮助手册&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155768&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Erlang有很多标准模块帮你做一些事情。比如，io模块包含了很多用于格式化输入/输出的函数。要查找关于标准模块的信息，可以在shell或者命令提示符中使用&lt;b&gt;erl -man&lt;/b&gt;命令。试试在操作系统shell上输入命令：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;% erl -man io
+ERLANG MODULE DEFINITION                                    io(3)
+
+MODULE
+     io - Standard I/O Server Interface Functions
+
+DESCRIPTION
+     This module provides an  interface  to  standard  Erlang  IO
+     servers. The output functions all return ok if they are suc-
+     ...&lt;/code&gt;&lt;p&gt;如果在你的系统上不能正常工作，文档也以HTML的形式随Erlang/OPT release一起发布了。你可以在网页上阅读这些HTML文档，也可以下载&lt;a href=&quot;http://www.erlang.se/&quot;&gt;www.erlang.se（商业Erlang）&lt;/a&gt; 或 &lt;a href=&quot;http://www.erlang.org/&quot;&gt;www.erlang.org（开源Erlang）&lt;/a&gt; 的PDF来读。比如Erlang/OTP release R9B的文档:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://www.erlang.org/doc/r9b/doc/index.html&lt;/code&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-27-28155768</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 6. Maps</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155699.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 6. Maps&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155699&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Maps是一堆键值关联对的集合。键值对使用 “#{” 和”}”进行封装。要创建一个key关联value 42可以这么做：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;&amp;gt; #{ &quot;key&quot; =&amp;gt; 42 }.
+#{&quot;key&quot; =&amp;gt; 42}&lt;/code&gt;&lt;p&gt;让我们通过下面这个使用有趣特性的例子直接跳到一个深度。&lt;/p&gt;&lt;p&gt;下面的例子显示了如何通过maps引用颜色和α通道进而计算α混合(alpha blending)。在color.erl文件中输入下面代码：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(color).
+
+-export([new/4, blend/2]).
+
+-define(is_channel(V), (is_float(V) andalso V &amp;gt;= 0.0 andalso V =&amp;lt; 1.0)).
+
+new(R,G,B,A) when ?is_channel(R), ?is_channel(G),
+                  ?is_channel(B), ?is_channel(A) -&amp;gt;
+    #{red =&amp;gt; R, green =&amp;gt; G, blue =&amp;gt; B, alpha =&amp;gt; A}.
+
+blend(Src,Dst) -&amp;gt;
+    blend(Src,Dst,alpha(Src,Dst)).
+
+blend(Src,Dst,Alpha) when Alpha &amp;gt; 0.0 -&amp;gt;
+    Dst#{
+        red   := red(Src,Dst) / Alpha,
+        green := green(Src,Dst) / Alpha,
+        blue  := blue(Src,Dst) / Alpha,
+        alpha := Alpha
+    };
+blend(_,Dst,_) -&amp;gt;
+    Dst#{
+        red   := 0.0,
+        green := 0.0,
+        blue  := 0.0,
+        alpha := 0.0
+    }.
+
+alpha(#{alpha := SA}, #{alpha := DA}) -&amp;gt;
+    SA + DA*(1.0 - SA).
+
+red(#{red := SV, alpha := SA}, #{red := DV, alpha := DA}) -&amp;gt;
+    SV*SA + DV*DA*(1.0 - SA).
+green(#{green := SV, alpha := SA}, #{green := DV, alpha := DA}) -&amp;gt;
+    SV*SA + DV*DA*(1.0 - SA).
+blue(#{blue := SV, alpha := SA}, #{blue := DV, alpha := DA}) -&amp;gt;
+    SV*SA + DV*DA*(1.0 - SA).&lt;/code&gt;&lt;p&gt;编译并测试：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;&amp;gt; c(color).
+{ok,color}
+&amp;gt; C1 = color:new(0.3,0.4,0.5,1.0).
+#{alpha =&amp;gt; 1.0,blue =&amp;gt; 0.5,green =&amp;gt; 0.4,red =&amp;gt; 0.3}
+&amp;gt; C2 = color:new(1.0,0.8,0.1,0.3).
+#{alpha =&amp;gt; 0.3,blue =&amp;gt; 0.1,green =&amp;gt; 0.8,red =&amp;gt; 1.0}
+&amp;gt; color:blend(C1,C2).
+#{alpha =&amp;gt; 1.0,blue =&amp;gt; 0.5,green =&amp;gt; 0.4,red =&amp;gt; 0.3}
+&amp;gt; color:blend(C2,C1).
+#{alpha =&amp;gt; 1.0,blue =&amp;gt; 0.38,green =&amp;gt; 0.52,red =&amp;gt; 0.51}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;This example warrants some explanation:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-define(is_channel(V), (is_float(V) andalso V &amp;gt;= 0.0 andalso V =&amp;lt; 1.0)).&lt;/code&gt;&lt;p&gt;首先定义一个宏is_channel用于guard测试。为了方便起见这里使用它减少语法的杂糅。关于宏的更多信息,参见Preprocessor[8]。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;new(R,G,B,A) when ?is_channel(R), ?is_channel(G),
+                  ?is_channel(B), ?is_channel(A) -&amp;gt;
+    #{red =&amp;gt; R, green =&amp;gt; G, blue =&amp;gt; B, alpha =&amp;gt; A}.&lt;/code&gt;&lt;p&gt;函数new/4创建一个map并且让键red，green，blue，alpha关联一个初始值。 在这里, 将宏&lt;b&gt;?is_channel&lt;/b&gt;作用于每个参数，确保只有0.0到1.0之间的浮点值才被允许，只有在创建新map的时候才允许使用&lt;b&gt;=&amp;gt;&lt;/b&gt;运算符。&lt;/p&gt;&lt;p&gt;使用new/4创建一个color，然后将colors传递给blend/2，它就能计算出混合后的颜色。&lt;/p&gt;&lt;p&gt;首先blend/2做的事是计算混合后的α通道&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;alpha(#{alpha := SA}, #{alpha := DA}) -&amp;gt;
+    SA + DA*(1.0 - SA).&lt;/code&gt;&lt;p&gt;使用&lt;b&gt;:=&lt;/b&gt;运算符获取参数中键alpha所关联的value。参数中的其他键会被忽略掉，只要求键alpha。 &lt;br&gt;函数red/2, blue/2,green/2也是如此：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;red(#{red := SV, alpha := SA}, #{red := DV, alpha := DA}) -&amp;gt;
+    SV*SA + DV*DA*(1.0 - SA).&lt;/code&gt;&lt;p&gt;这里不同点是这几个函数获取参数中的两个键，其它的被忽略。&lt;/p&gt;&lt;p&gt;最后，让我们在blend/3中返回混合后的颜色：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;blend(Src,Dst,Alpha) when Alpha &amp;gt; 0.0 -&amp;gt;
+    Dst#{
+        red   := red(Src,Dst) / Alpha,
+        green := green(Src,Dst) / Alpha,
+        blue  := blue(Src,Dst) / Alpha,
+        alpha := Alpha
+    };&lt;/code&gt;&lt;p&gt;Dst使用新通道值进行更新。更新一个已有的键关联的值的语法是使用&lt;b&gt;:=&lt;/b&gt;运算符。&lt;/p&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-27-28155699</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Erlang入门教程 - 5. 列表</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155655.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Erlang入门教程 - 5. 列表&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155655&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;鉴于已经有tuple将元素分组，现在也需要一个工具表示一列元素。Erlang中列表由方括号“[” “]”表示。比如要表示世界各城市的温度可以：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;[{moscow, {c, -10}}, {cape_town, {f, 70}}, {stockholm, {c, -4}},
+ {paris, {f, 28}}, {london, {f, 36}}]&lt;/code&gt;&lt;p&gt;注意如果列表太长一行没法写完，没关系，Erlang允许我们在合理的地方换行。&lt;/p&gt;&lt;p&gt;在列表中获取一部分可以使用“|”，下面例子是最好的解释：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;17&amp;gt; [First |TheRest] = [1,2,3,4,5].
+[1,2,3,4,5]
+18&amp;gt; First.
+1
+19&amp;gt; TheRest.
+[2,3,4,5]&lt;/code&gt;&lt;p&gt;使用“|”分隔列表中的第一个元素和剩余元素。First绑定为1，TheRest绑定为[2,3,4,5]&lt;/p&gt;&lt;p&gt;另一个例子：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;20&amp;gt; [E1, E2 | R] = [1,2,3,4,5,6,7].
+[1,2,3,4,5,6,7]
+21&amp;gt; E1.
+1
+22&amp;gt; E2.
+2
+23&amp;gt; R.
+[3,4,5,6,7]&lt;/code&gt;&lt;p&gt;在这里可以看到使用“|”获取列表的头两个元素。如果你尝试获取更多元素，就会返回一个错误。注意列表没有元素这个特殊情况，“[]”:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;[1,2]
+25&amp;gt; A.
+1
+26&amp;gt; B.
+2
+27&amp;gt; C.
+[]&lt;/code&gt;&lt;p&gt;在上面的例子中，使用的是新变量名而不是复用之前的变量名：First,TheRest,E1,E2,R,A,B,C。这是因为一个变量名在相同作用域内只能绑定一次值。关于这点后面讨论。&lt;/p&gt;&lt;p&gt;下面的例子显示了如何获取列表的长度。在tut4.erl中输入下面代码：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut4).
+
+-export([list_length/1]).
+
+list_length([]) -&amp;gt;
+    0;    
+list_length([First | Rest]) -&amp;gt;
+    1 + list_length(Rest).&lt;/code&gt;&lt;p&gt;编译并测试：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;28&amp;gt; c(tut4).
+{ok,tut4}
+
+29&amp;gt; tut4:list_length([1,2,3,4,5,6,7]).
+7&lt;/code&gt;&lt;p&gt;解释：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;list_length([]) -&amp;gt;
+    0;&lt;/code&gt;&lt;p&gt;一个空列表的长度显然是0。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;list_length([First | Rest]) -&amp;gt;
+    1 + list_length(Rest).&lt;/code&gt;&lt;p&gt;包含第一个元素First和剩余元素Rest的列表的长度是1 + Rest长度 &lt;br&gt;（致高级读者：这不是尾递归，关于这个函数有一个更好的实现）&lt;/p&gt;&lt;p&gt;通常，tuple用于其它语言的“record”或者“struct”所用的地方。列表用于表示大小变化的事物，即用于其它语言的链表所用的地方。&lt;/p&gt;&lt;p&gt;Erlang没有字符串类型。作为代替，字符串可以表示为Unicode字符列表。这意味着例如列表[97,98,99]等价于“abc”。Erlang shell“机智”的猜测你给的列表的意思，并给出它认为最合适的构型的输出，比如：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;30&amp;gt; [97,98,99].
+&quot;abc&quot;&lt;/code&gt;</description>
+<author>racaljk</author>
+<guid isPermaLink="false">2017-07-27-28155655</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+</channel>
+</rss>
