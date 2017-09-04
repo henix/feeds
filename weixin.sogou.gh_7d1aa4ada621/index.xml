@@ -1,0 +1,1107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>ImFanny</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/</link>
+<description>Hello; I&#39;m Fanny. Nice to meet you.</description>
+<language>zh-cn</language>
+<lastBuildDate>Mon, 04 Sep 2017 16:31:00 +0800</lastBuildDate>
+<item>
+<title>AI学习笔记：[0]矩阵</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-09-03-1000000012.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;AI学习笔记：[0]矩阵&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFPT9x5OMnLUBAF9osARovsRxPh4sWQruRkpflZRNHPuIpAV1tzTl7Fb8M6Ij2-u47QejKQYKdK1oXDhWprvloB8=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    AI学习笔记：[0]矩阵                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-09-03&lt;/em&gt;
+
+                                        &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;Fanny&lt;/em&gt;
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;如果想获取本系列后续的新内容，请关注我的公众号，预计会以一周一篇的频率进行更新~&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;最近估计不少同志也终于开始撸起袖子学人工智能了。如果你像我一样分不清“人工智能”、“机器学习”、“深度学习”、“神经网络”各种词汇之间的关系的话，可以看下这个图：&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5633333333333334&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFvfHS8jMdFG3rTCEvOproc4STAecIs6fCfVddoicMzvTMOzgew8qJpXBw/0?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;600&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; background-color: rgb(255, 255, 255); color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我们（嗯对，就是我以及我家那位）准备在学习的过程中把相关笔记都记录下来。本篇的序号是0，意思就是在尚未正式开始之前的一些准备工作。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; background-color: rgb(255, 255, 255); color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;相信很多对AI持观望态度的开发者，都是卡在数学这关，因为随便翻开一个资料，一大堆数学公式，各种看不懂。其实学习AI的过程中可能涉及到的数学知识大概有这么几个：线性代数、微积分、概率论。其实也就是大一大二的知识，没什么深奥的东西——但是，对于大多数人来说，大学里面的数学课自己都不知道是怎么过的。比如对我而言，学得最不好的就是线性代数，如果不是查看维基百科，我都想不起来线性代数里面其实就是学的向量和矩阵相关的知识。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;所以，这篇笔记里面我来回顾一些矩阵的基础，尤其是要搞清楚，到底该如何理解矩阵。&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;矩阵&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;矩阵的数学定义：&lt;/p&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;box-sizing: border-box; line-height: 1.7; word-break: break-word !important;&quot;&gt;一个m×n的&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;矩阵&lt;/span&gt;是一个由m行n列元素排列成的矩形阵列&lt;/p&gt;&lt;/blockquote&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;矩阵乘法&lt;/h1&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;box-sizing: border-box; line-height: 1.7; word-break: break-word !important;&quot;&gt;两个矩阵的乘法仅当第一个矩阵A的列数和另一个矩阵B的行数相等时才能定义。如A是m×n矩阵和B是n×p矩阵，它们的乘积AB是一个m×p矩阵&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.8785942492012779&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFv5TZWZoauObmLicocDApY7ibkIPwM80FtzzwIJpjyFmm6VpAWHA9v2E4A/0?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;313&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;举个例子：&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.09702457956015524&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFvxBYkqkfQn3LsvNpx4yO0oHMck22XHJkko2SiaoFNIhwD2a7TEzoxqLA/0?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;773&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;矩阵的本质&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;大家应该对上述的矩阵与矩阵乘法并不陌生，毕竟线性代数是大学的必修课。我也学过，但我在学习线性代数的时候其实内心是抗拒的：我为什么要用一堆方框里的数字进行加减乘除？意义在哪里？另外，导数可以用函数曲线的斜率来想象，积分可以用函数覆盖面积来想象，但矩阵相关的一系列知识无法在我脑海中形成一个可以想象的物理模型，导致对里面的各种知识点我只能死记硬背，考完试就忘了。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;如果你也有类似的困惑，可以跟我一起来重新认识一下矩阵。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;有三篇网文非常直观地解释了矩阵的本质：&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;理解矩阵（一）&lt;br style=&quot;box-sizing: border-box;&quot;&gt;理解矩阵（二）&lt;br style=&quot;box-sizing: border-box;&quot;&gt;理解矩阵（三）&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;&lt;em&gt;（由于公众号无法添加外链，需要查看的同学请点击“阅读原文”到本文的简书版本中查看。）&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;其思路概括来说如下：&lt;/p&gt;&lt;ol style=&quot;margin-left: 22px;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p&gt;首先要有空间的概念，如果不考虑严谨的定义，你可以用我们熟知的二维或者三维空间来想象：里面有无穷多的点，通过某些动作，可以从一个点“移动”到另一个点，&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;容纳运动是空间的本质特征&lt;/span&gt;。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;线性空间也是一种空间，线性空间是容纳&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;向量&lt;/span&gt;对象运动的。如果选定了坐标系，那么一个向量可以用它在每个维度上的坐标值来表示，比如二维空间里可以表示为[x, y]，三维空间可以表示为[x, y, z]，更高维虽然无法想象，但仍然可以用类似的数学方式表示出来。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;向量共有两种形式，一种为列向量，一种为行向量。虽然我们可能比较习惯行向量，但在这里，我们默认使用列向量。比如[-1,2]就这样表示：&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.9841269841269841&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFvGYRicrG6MGPsqm0yoS69NbnnRYVunHcggqAx0tCltZYV2KRBybS99UQ/0?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;63&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;ol start=&quot;4&quot; style=&quot;margin-left: 22px;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p&gt;我们可以通过某种运算，把空间里的一个点“移动”另一个位置。比如我们想把[-1,2]移动到[5,2]，可以执行如下运算：&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.2765957446808511&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFvAEu5NJdLqIL4BNyMicpgU4hDeYHtmxAnpkGQYWsLwqXdmDu1cRGOvkQ/0?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;235&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;ol start=&quot;5&quot; style=&quot;margin-left: 22px;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p&gt;上图中左边的这个变量，就是一个矩阵，所以矩阵是线性空间中运动（变换）的描述。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;换言之，矩阵的乘法，本质是一种运动&lt;/span&gt;。但除此以外，还有另外一种理解方式。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我们知道，&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;运动是相对的&lt;/span&gt;，把[-1,2]变成[5,2]，除了“移动”，还可以通过&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;变换坐标系&lt;/span&gt;的方式实现。也就是说，找到这样的一个坐标系，在那里，同样的一个向量可以表示为[5,2]。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;在这个情况下，对上面那个矩阵相乘例子而言，里面的那个2x2方阵就可以理解为一个坐标系，在这个坐标系下，[-1,2]这个向量可以表示为[5,2]。&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5625&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_gif/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFvt7DlvdrES3MibdIWhqSKxxbbsdJYsOlzlLAlbfzmVXcdicuKUcofbQTw/0?wx_fmt=gif&quot; data-type=&quot;gif&quot; data-w=&quot;512&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;比如上面这个动图中，通过坐标系变化，把红色向量[0,1]、绿色向量[1,0]变成了[3,0]和[1,-2]。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;因此，&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;矩阵的实质就是将坐标整体线性变换&lt;/span&gt;&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;转置矩阵&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;这里顺带回顾一下转置矩阵的概念。&lt;/p&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;box-sizing: border-box; line-height: 1.7; word-break: break-word !important;&quot;&gt;m×n矩阵A的转置是一个n×m的矩阵，记为A&lt;span style=&quot; box-sizing: border-box; font-size: 12px; line-height: 0;  vertical-align: baseline; top: -0.5em; &quot;&gt;T&lt;/span&gt;，其中的第i个行向量是原矩阵A的第i个列向量&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot;text-align: left;&quot;&gt;举个例子：&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.3630952380952381&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLfQNBGFa3Gsd3NlY3ibFHBFvd9uResgNMCT5UnNlSyY8GKQctlwTxCfonXBXrvrEAVaPYZ4ffjstNw/0?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;336&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;之所以提这个，是因为后续在学习评分函数的时候会看到这个，如果你看到y=W&lt;span style=&quot; box-sizing: border-box; font-size: 12px; line-height: 0;  vertical-align: baseline; top: -0.5em; &quot;&gt;T&lt;/span&gt;*X+b，你就这么理解：如前文所说，所有的向量默认都是列向量，因此W&lt;span style=&quot; box-sizing: border-box; font-size: 12px; line-height: 0;  vertical-align: baseline; top: -0.5em; &quot;&gt;T&lt;/span&gt;就是一个行向量，和X都是两个列向量，根据矩阵相乘法则容易得出W&lt;span style=&quot; box-sizing: border-box; font-size: 12px; line-height: 0;  vertical-align: baseline; top: -0.5em; &quot;&gt;T&lt;/span&gt;*X就是一个标量，而b也是标量，所以y也是标量了。&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47);&quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;如果想获取本系列后续的新内容，请关注我的公众号，预计会以一周一篇的频率进行更新~&lt;/em&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;886595815&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;http://www.jianshu.com/p/f9826690133c&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author>Fanny</author>
+<guid isPermaLink="false">2017-09-03-1000000012</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>【干货】李明远《产品发展的五阶段》笔记大纲</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-08-27-1000000011.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;【干货】李明远《产品发展的五阶段》笔记大纲&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFCBs9yzbIUt*9R9fKkdVIcTYa5Z81vv74u082faMr0XkEHdBfOn23UtBv7C*Y4bu5MbbZ5V4MgJpxAGoqbq6EpI=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    【干货】李明远《产品发展的五阶段》笔记大纲                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-08-27&lt;/em&gt;
+
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;混沌大学（原混沌研习社）的付费课程整理而来。&lt;/p&gt;&lt;p&gt;点击“阅读原文”可免费观看该课程，仅有5个名额，先到先得。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img data-s=&quot;300,640&quot; data-type=&quot;png&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLdF4d1B33lqAVHBArTpNrjcrnpu8KfzSSKDAhiazyVicyteoo66pbIZHMQM0sDAYlia2C93eBkao4zUQ/0?wx_fmt=png&quot; class=&quot;&quot; data-ratio=&quot;0.635343618513324&quot; data-w=&quot;1426&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1032523610&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;http://hdyxs.hundun.cn/Repo/playLive/index.html?share_id=911917&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author></author>
+<guid isPermaLink="false">2017-08-27-1000000011</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>【译】反目标的力量：如何利用自己讨厌的事情来过好每一天</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-08-24-1000000010.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;【译】反目标的力量：如何利用自己讨厌的事情来过好每一天&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFC54fhSzUBBksPp2DA47a5rT49-cQpHeX0eZ8xkKWEsVMACqF3CHNf8k5fTpQ5ofGSUzQ5II0mMFrAKO9GOowLo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    【译】反目标的力量：如何利用自己讨厌的事情来过好每一天                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-08-24&lt;/em&gt;
+
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;原文标题：The Power of Anti-Goals&lt;br style=&quot;box-sizing: border-box;&quot;&gt;原文副标题：How I designed my perfect day by fixating on what I hate&lt;br style=&quot;box-sizing: border-box;&quot;&gt;原文链接：https://medium.com/@awilkinson/the-power-of-anti-goals-c38f5f46d23c （或点击文末的“阅读原文”）&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;作者/Andrew Wilkinson&lt;br style=&quot;box-sizing: border-box;&quot;&gt;翻译/Fanny&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-height=&quot;480&quot; data-ratio=&quot;0.5633802816901409&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLfCDiaQJXtshhCegUX2TKLibYibRX4LZSP7j0vshJeFnTDww8gmNlPoicXp629HWDcv79pfdZUSDGnVKA/0?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;852&quot; data-width=&quot;852&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;去年，我和我的合伙人Chris一起思考我们到底想在Tiny（作者所运营的投资公司 http://www.tiny.website ——译者注）中获得什么。我们想到了各种各样看起来很高尚的目标，但真的着手去做的时候却发现，我们真正想要的是很简单的东西。我们想要的其实是很多成功的商人都在追求的东西：希望做一些自己真正喜欢的事情。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我们有很多朋友，他们比我们更富有、也更成功，但客观上来说，他们其实过得很糟糕：排得满满当当的日程表、不是在飞机上就是在去飞机场的路上、一团乱麻似的婚姻、见不着自己的孩子、一天只能睡4个小时…….&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;主观感觉：&lt;/span&gt;富有、成功、徘徊在牛A和牛C之间&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;客观状况：&lt;/span&gt;每天过得跟狗一样&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我们一直标榜自己是离经叛道者，也确实成功避开了很多在运营一个大公司时容易踩的坑（比如会议、官僚主义、规定上班时间，等等），但几年下来，我们却发现我们的日常也开始被一些并不想做的事情给塞满了。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我们开始每天生活在日程表那残酷的节奏下，几乎喘不过气来。我们与自己并不喜欢的人打着交道，也为了迎合他人的需要而做着身不由己的事情。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;在今年的早些时候，我们终于下决心要作出改变，要想办法把我们的生活扳回正轨。为了达到这一点，我们使用了一些从查理·芒格——沃伦·巴菲特的合伙人——身上学到的技巧。芒格有句名言：“请告诉我我将死在哪里，我将永远避开那个地方。”&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;芒格说这句话的时候是在谈论反转思维，也就是说当你反过来思考问题时，往往能够找到最优的解决办法。与思考我们到底想要什么相比，通常我们更容易想明白自己不想要什么。他说：&lt;/p&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;box-sizing: border-box; margin-bottom: 25px; line-height: 1.7; word-break: break-word !important;&quot;&gt;“当你反过来思考问题的时候，问题往往会变得简单起来。换句话说，如果你想要帮助印度，你要问的问题不应该是&#39;我要怎样帮助印度&#39;，而是&#39;目前对印度造成最大伤害的是什么，而我应该如何避开它？&#39;”&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box; line-height: 1.7; word-break: break-word !important;&quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;“很多生活和商业上的成功都是源于懂得避开一些东西：比如过早的夭折、比如失败的婚姻，等等。”&lt;/span&gt;&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;所以，我们与其去想明白什么才是自己想要的完美生活，不如反过来思考一下，自己最不想看到的日子是怎样的，然后应该如何去规避它。我们使用了反向思考法后提出了我们称之为“反目标”的概念：&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;我们可能会经历的最糟糕的日子是这样的：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;1. 许多冗长的会议&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;2. 满满当当的日程表&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;3. 与我们不喜欢或不信任的人打交道&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;4. 欠别人东西/失去控制权/人情债&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;5. 被迫待在办公室里&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;6. 出差&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;7. 疲惫&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;从反面出发，我们设定了一系列的反目标：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;1. 能通过邮件或电话就能解决的事情就不要安排面对面会议&lt;/em&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;（或者根本不需要解决）&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;2. 一天的既定行程不超过2小时&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;3. 对我们不喜欢的人敬而远之，不要产生任何交集——即使只是稍微感觉不好，也坚决说不&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;4. 永远不要放弃我们事业的控制权，对那些可能对我们有所求的人，不要接受他们的恩惠（确保互惠准则不会生效）&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;5. 找一个面向一个美丽的公园的咖啡厅并在那里办公，我们可以随心所欲的来往而不受干扰&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;6. 使用视频会议或者付费让别人上门来&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;em style=&quot;box-sizing: border-box;&quot;&gt;7. 永远不要把会议安排在早上，睡到自然醒&lt;/em&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;问题得到解决。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;当然，我们偶尔还是会碰到一些无法避免的糟糕日子，但这些简单的反目标让我们的生活过得比以前好了很多。抽空试试吧，真的是不可思议地简单、直接、有效。&lt;/p&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我们长期努力保持不做傻事，所以我们的收获比那些努力做聪明事的人要多得多。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;—— 查理·芒格&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1740628997&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://medium.com/@awilkinson/the-power-of-anti-goals-c38f5f46d23c&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author></author>
+<guid isPermaLink="false">2017-08-24-1000000010</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>中岛美嘉：用生命在演唱的灵魂歌姬</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-08-20-1000000009.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;中岛美嘉：用生命在演唱的灵魂歌姬&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFMTnjGvZFNtW4BYYK-Cyl057Ce4VEnRn5AG-aEbDLMqcQDWIDePFAQL2CDyTnwqej0dPvYBzRc2DCS-lqa*eC88=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    中岛美嘉：用生命在演唱的灵魂歌姬                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-08-20&lt;/em&gt;
+
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我很少主动关注歌手，通常是通过一些作品主题曲来认识歌手。中岛美嘉就是其中一位。高中的时候看高达Seed，一曲沧桑的《Find The Way》让我记住了中岛美嘉的名字。这首歌的发行时间甚至早于她最有名的作品《雪の华》，估计其最早的一批中国粉丝都是通过这首歌认识她的吧。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;这个星期突然发现中岛美嘉10月要来杭州开演唱会了，于是在迅速买了票之后，就来回顾、顺便科普一下这位极具特色的日本歌姬。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;iframe class=&quot;video_iframe&quot; data-vidtype=&quot;2&quot; allowfullscreen=&quot;&quot; frameborder=&quot;0&quot; data-ratio=&quot;1.4678899082568808&quot; data-w=&quot;640&quot; data-src=&quot;https://v.qq.com/iframe/preview.html?vid=9E7UW4MGwli&amp;amp;width=500&amp;amp;height=375&amp;amp;auto=0&quot;&gt;&lt;/iframe&gt;&lt;br&gt;&lt;span style=&quot;color: rgb(136, 136, 136);&quot;&gt;《Find The Way》MV，2003年&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;中岛美嘉，1983年2月19日出生于日本鹿儿岛县日置市伊集院町，日本女歌手、演员。以下是从一些网络资料上摘抄的、中岛美嘉的一些经历：&lt;/p&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;box-sizing: border-box; line-height: 1.7; word-break: break-word !important;&quot;&gt;2001年，以主演日剧《新宿伤痕恋歌》及演唱单曲《STARS》出道。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2002年12月，获得第44届日本唱片大奖最佳新人奖。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;2003年10月，发行单曲《雪の华》&lt;/span&gt;。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2003年11月，发行专辑《LOVE 爱无止尽》，由于先行单曲的大热，该专辑连续两周登上公信榜首位，销量突破140万。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;2005年，主演电影《NANA》&lt;/span&gt;，并以“NANA starring MIKA NAKASHIMA”名义发行单曲《GLAMOROUS SKY》。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2007年，发行单曲《LIFE》，该单曲获得第35届日本有线大奖有线音乐优秀奖。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2008年，发行专辑《VOICE 美声嘉音》，发行首周再度登上公信榜首位。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;2010年，由于患上咽鼓管开放症而停止音乐活动 &lt;/span&gt;。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2011年4月27日，以单曲《Dear》复出。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2013年1月，发行专辑《TRUE 真实恋曲》。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;span style=&quot;box-sizing: border-box; font-weight: 700;&quot;&gt;2013年8月，发行单曲《僕が死のうと思ったのは 曾经我也想一了百了》&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/span&gt;2014年11月，发行精选辑《DEARS》和《TEARS》。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;2017年3月，发行专辑《TOUGH 为爱勇敢》。&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;纵观中岛美嘉的出道历史，大概可以总结为两起一落。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;第一起：中岛美嘉刚出道的时候就以其美艳的外表和独特的神秘感气质获得关注，但如果没有一首优秀的代表作支撑，也只是平平无奇的一颗小石头，扔进波涛汹涌、竞争激烈的日本乐坛也翻不出什么水花来，幸而她遇到了《雪の华》。这里有一个小故事是，《雪の华》的DEMO其实在两年前就交到中岛美嘉和制作人的手中，但当时的他们认为当下并不是一个很好的时机，于是等了两年之后才选择了一个时机让此曲问世。果不其然，此曲引起全日本甚至其他亚洲国家的热烈回响，后来也被许多中、韩、美等多地歌手翻唱，成为了中岛美嘉本人最广为人知的一首代表作。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;第二起：出演《NANA》。日本以漫画改编为题材的电影虽然很多，但叫座又叫好的却寥寥无几，《死亡笔记》可以算一个，而《NANA》也是其中之一。《NANA》是日本漫画家矢泽爱的少女漫画作品，讲述了大崎娜娜、小松奈奈这两位名字的发音都是NANA、但性格却截然相反的女孩相遇在一起，并由此衍生与编织出的种种故事。中岛美嘉本身的歌手身份、加上声音和外形也较好地契合了漫画中的女主角大崎娜娜的特质，推动了《NANA》电影成为该年日本国片年度票房冠军，而中岛美嘉本人也借此再次红遍了亚洲。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;大落：其实，2001年出道、2003年和2005年两次巅峰之后，中岛美嘉已经奠定了自己的乐坛地位。虽然达不到滨崎步、安室奈美惠那样的巅峰，但也是毫无争议的一线歌姬的水平。如果能继续稳定发挥下去，再多唱个几年不成问题。可是2010年的时候她却患上了咽鼓管异常开放症，具体被迫停止一切音乐活动，这个病的具体病症是会使她在唱歌时无法听到自己的声音，从而无法判断音准，对于一个歌手来说可以说是一个致命的打击。这次的病严重影响到了中岛美嘉的嗓音和唱功、加速了她的衰退。不过从另一方面来说，与病痛不屈不挠的斗争的经历也为她赢得了歌迷的喝彩与鼓励。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;2013年8月，中岛美嘉发行了单曲《僕が死のうと思ったのは/曾经我也想一了百了》，从资料上看，这首单曲在日本发行时反响平平，销售排行榜也只排到了第17位。但这首歌的Live现场版在微博上却是大热了一把，绝望中带着希望的歌词、震撼的现场演唱、与中岛美嘉本人的经历相结合，再次给中岛美嘉赢得了一批中国粉丝，被誉为“用生命在演唱”的“灵魂歌手”。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;说了这么多，放几张图吧：&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-height=&quot;424&quot; data-ratio=&quot;0.848&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcjZjbOoFEuGzJ0WNswGz1VMcPKicCgzW3dicJ6D9TMJdcdjJM9WPrMhEia7RERvrJSo0aMwgV9FWgSg/0?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;500&quot; data-width=&quot;500&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(136, 136, 136);&quot;&gt;早期的少女形象&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-height=&quot;500&quot; data-ratio=&quot;0.7142857142857143&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcjZjbOoFEuGzJ0WNswGz1VhIgzibXicjmJI9cu6JZqN8EBAfWXX9s8Bv1mCG3laib0XPtyWB2MCBzbw/0?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;700&quot; data-width=&quot;700&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(136, 136, 136);&quot;&gt;NANA中的形象，帅气中性&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-height=&quot;704&quot; data-ratio=&quot;1.408&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcjZjbOoFEuGzJ0WNswGz1VDpJsCHh4vXySrWWmAwFgxJ6oc9xpkpev5w8kc226UnNGu80KbRjcbg/0?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;500&quot; data-width=&quot;500&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out; width: 100%; height: auto;&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(136, 136, 136);&quot;&gt;最让我惊艳的一张CD封面。《ずっと好きだった ～ALL MY COVERS～》是中岛美嘉于2014年3月12日发行的翻唱专辑&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我不是专业乐评人士，只是凭自己的主观感受说几句：中岛美嘉其实算是一位挺成功的歌手，首先她的声音特点就不是受众面特别广的那种类型，遇到一首优秀的代表作和一部适合她的电影，这都是她的幸运，而她也很好地抓住了这两个机会从而登上巅峰。后期对病痛不屈不挠的经历更是让她洗尽铅华，蜕变成一位成熟稳重、具有厚度的歌者。人生如此，夫复何求？希望美嘉今后的生活，花开花落，云卷云舒，一切安好。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;Hi Mika，认识你也有十多年了，很感谢有你的声音的陪伴，10月见。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;2046974099&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                
+            &lt;/div&gt;</description>
+<author></author>
+<guid isPermaLink="false">2017-08-20-1000000009</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>《爆漫王》：致不忘初心的奋斗者</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-08-13-1000000008.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;《爆漫王》：致不忘初心的奋斗者&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFDbtllxVTeVjJ-Ctvbp4KXLO*Oum5PIbJooH-V5oLRwUQQoWd0Tz1cpG9AW73RxzZL1h1veQjXDZyiSAQNuBqyY=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    《爆漫王》：致不忘初心的奋斗者                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-08-13&lt;/em&gt;
+
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《爆漫王》是一部除二次元读者以外，普通读者也能看的优秀漫画。&lt;/blockquote&gt;&lt;p&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcBN38yKcwZCLkpaV5HBn1icn3WLiaF1CPlaHNO1FnibNyN4a89wDOT46ckIKthvE25jjbCCR1cy59tg/0?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot; class=&quot;&quot; data-ratio=&quot;1.586&quot; data-w=&quot;500&quot; data-type=&quot;jpeg&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(178, 178, 178); font-size: 14px;&quot;&gt;《BAKUMAN》第10卷封面&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《BAKUMAN》（バクマン。），一般译作《食梦者》或者《爆漫王》，是于2008~2012年连载于《周刊少年Jump》的另类热血漫画，之所以说另类，是因为其采用的并非一般少年漫画的冒险、战斗、体育竞技等常见套路，而是相对较为写实的题材：漫画家的故事。该漫画的作者有两个人，原作是大场鸫，作画是小畑健，他们俩的上一部合作的作品就是著名的《死亡笔记》（呃，你说你没看过？那我为你感到十分遗憾，你错过了一部非常精彩的经典作品，而且现在想补也不太容易，因为在国内已经被广电总局封禁了[摊手]）&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《BAKUMAN》的故事主线非常简单，一位名叫真诚最高的少年，小时候就有画画的天赋，并且很崇拜他的身为漫画家的叔叔，可叔叔的过劳死为他的梦想蒙上了阴影，被深埋心底不再提起。但后来一个偶然的机会受到同班同学高木秋人的盛(wei)情(bi)邀(li)约(you)，两人最终立志要成为《少年Jump》杂志上最受欢迎的漫画家。而真诚最高甚至还与他喜欢的女孩亚豆美保立下约定，待他们的漫画被动画化推出时，她将担当女主角的声优。于是，两位少年开始不断地创作，在此过程中，结识了一群既是对手、更是伙伴的漫画家，在你追我赶的竞争中、在起起落落的读者反馈中，不断地成长并攀越巅峰。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;就是这么看起来平淡无奇的写实题材，作者却依然画出了少年漫画该有的热血感，而正因为写实带来的真实感，读者在阅读过程中更容易受到感染与鼓舞，“我有什么理由不努力”的情感油然而生，实在是莘莘学子与迷途青年的必备良药：）&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcBN38yKcwZCLkpaV5HBn1icYv5yXdwVefN2HA2taOicbJejX2zpJNu4G71F3MbmRyVjvxicYjqanAnA/0?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot; class=&quot;&quot; data-ratio=&quot;1.595&quot; data-w=&quot;400&quot; data-type=&quot;jpeg&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 14px; color: rgb(178, 178, 178);&quot;&gt;出自《BAKUMAN》第162话&lt;/span&gt;&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/h1&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;少年Jump&lt;br&gt;&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《BAKUMAN》的故事舞台是少年Jump，少年Jump即日本漫画杂志《周刊少年Jump》（週刊少年ジャンプ），是由日本集英社发行的漫画周刊。在少年Jump上连载过的著名作品数不胜数，比较经典的如《阿拉蕾》、《七龙珠》、《圣斗士星矢》、《灌篮高手》、《幽游白书》，以及最近10年来有名的“死火海”：《海贼王ONE PIECE》、《火影忍者》、《死神BLEACH》，我相信这些作品即使不关心动漫的人也曾有所耳闻。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcBN38yKcwZCLkpaV5HBn1ic9AhedUjDu5oqTpibBYLIr4t79RibtEq6iatkgvPiazXENNovLue2KBGq8w/0?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot; class=&quot;&quot; data-ratio=&quot;1.4334600760456273&quot; data-w=&quot;263&quot; data-type=&quot;jpeg&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(178, 178, 178); font-size: 14px;&quot;&gt;周刊少年Jump（2011年第05－06期合并号）封面&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;少年Jump创刊于1968年7月。创刊时，市面上已有两本销量近百万的同类杂志《少年 Sunday》和《少年 Magazine》，但几十年之后的今天，少年Jump已经以绝对的优势占据三大少年漫画杂志之首。 少年Jump的关键字是“友情”、“努力”和“胜利”，所有得到连载机会的作品都必须宣扬其中一个，据说这三个词来自日本战后对儿童调查的结果：“最打动内心的词是努力，对自己最重要的词是友情，最喜欢的词是成功”。因此，连载漫画基本上都不外乎格斗、动作、喜剧、体育等较容易彰显热血的题材。不过为吸纳多元化的动漫社群，亦加入了科幻冒险、恋爱、社会话题及纪录形式的新兴作品。&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;少年Jump上的漫画创作&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;少年Jump上的每一期漫画连载基本上遵循这样的创作流程：作者先创作分镜稿，即草稿，给到责任编辑，与编辑一起讨论修改后，画成原稿，再进行一次修改后形成终稿，然后进入校对、付印、运输、发售。其中，如果作者是原作+作画二人组合，则在分镜稿之前还需要原作先创作故事剧情，比如《BAKUMAN》漫画中负责原作的高木秋人就先写出小说形式的原作，而《BAKUMAN》真实的原作大场鸫则是以分镜稿的形式提供原作，责任编辑确认剧情编排OK后，再由作画者创作正式的分镜稿。比如下图是《食梦者》的二次分镜稿创作以及最终原稿的对比：&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcBN38yKcwZCLkpaV5HBn1ic4x28XwlFplyJSluwyj6t1GtQBjpuqicVDg1KibAp5yCReQGPnORvdAZg/0?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot; class=&quot;&quot; data-ratio=&quot;0.8040322580645162&quot; data-w=&quot;1240&quot; data-type=&quot;jpeg&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(178, 178, 178); font-size: 14px;&quot;&gt;食梦者第1话和第164话的大场鸫vs小畑健分镜稿，&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(178, 178, 178); font-size: 14px;&quot;&gt;可以看出小畑健的分镜稿越画越潦草了233&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;少年Jump最大的特点是奉行“问卷至上主义”，即以读者反馈调查结果来决定所有作品的命运。具体规则是以新连载登场后的十期为基准，综合期间每一期的读者意见，再以此决定作品命运。若人气指数持续排名末端，不管作品质素如何都会被腰斩，让路于新连载，造成了许多只有10至20期的短期连载作品。此规则是少年Jump的特色，其实就是把“Customer Obsession”发挥到了极致，但带来的负面影响也很明显：为了保持作品排名，作家们每一周的连载都充满了压力，因此有不少知名作家如井上雄彦（《灌篮高手》作者）、车田正美（《圣斗士星矢》作者）等选择离开少年Jump、转战其他杂志。另外还有一个副作用是编辑部会想尽办法要求人气作品的作者延长作品的生命，这容易造成一些高人气的作品在后期发生剧情拖沓甚至崩坏的情况，比如《死神》《火影忍者》就是其中的例子——类似这种情况，各位美剧粉是不是也似曾相识：）&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;一个朴实的道理&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;一千个观众的眼中有一千个哈姆雷特，其实就是说不同的个体由于思想、经历的不同，对一部作品产生的见解或者感悟也不一样。作为一个互联网人，我看到的是责任编辑与漫画家们其实也像互联网行业的产品经理和运营一样，对漫画作品进行着产品运营。比如，读者调查统计排名这个制度本身，就是在以一种量化的手段（KPI）去衡量作品的效果好坏；再比如，在开始一部新的连载漫画之前，会先提炼出一部短篇漫画，来测试读者的反应，这不就是MVP（Minimum Viable Product，最小化可行产品）的做法吗？还有，漫画虽然是一个创意性工作，但也有一些套路可循，比如给人物安排一些口头禅或经典台词，从而加深读者对该人物的印象：&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcBN38yKcwZCLkpaV5HBn1icGia2ibRl1Fen3ltEa88nLibDCmt8jcgC1JNnH7QePK1eJOv0G7w28GY9g/0?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot; class=&quot;&quot; data-ratio=&quot;1.595&quot; data-w=&quot;400&quot; data-type=&quot;jpeg&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(178, 178, 178); font-size: 14px;&quot;&gt;出自《BAKUMAN》第63话&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;但是，作品中反复强调一个观点：一部漫画能否连载、能否长期连载，只取决于作品本身是否足够有趣。比如上图这个情节中主角与责编所讨论的漫画，虽然运用了很多技巧和套路，但该作品却一直无法成为最具人气的佳作。“有趣”就是一部漫画作品的灵魂，是决定其成败的根本。&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcBN38yKcwZCLkpaV5HBn1icceIUg0rVxlUE8CSMwlRubCaxNZAS0VkrcJDLZekYdWhy2HF9Xnia4Yg/0?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box; border-width: 0px; border-style: initial; border-color: initial; vertical-align: middle; cursor: zoom-in; transition: all 0.25s ease-in-out;&quot; class=&quot;&quot; data-ratio=&quot;1.595&quot; data-w=&quot;400&quot; data-type=&quot;jpeg&quot;&gt;&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(178, 178, 178); font-size: 14px;&quot;&gt;出自《BAKUMAN》第11话&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;小米联合创始人刘德曾经说过：“我们做任何行业，都要把这个行业的本质看清楚。因为只有当你知道它的生意本质的时候，才能掌握住节奏。” 其实很多事情都是这个道理：做产品，如果不能真正满足用户的刚需，那么再多的运营手段也无法把它推上更高的台阶；做管理，如果不能专注于为团队带来进步，那么再多的文化氛围建设也只是金玉其外；做人，如果没有一份真善美的内在，那么即使能赢得一时，也无法赢得一世。&lt;br style=&quot;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;这些种种的“本质”，其实就是“根”。这里虽然不是很合适，但我非常想引用我所喜爱的一部科幻小说的句子：&lt;/p&gt;&lt;blockquote style=&quot; box-sizing: border-box; padding: 20px; margin-bottom: 25px; font-size: 16px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: rgb(247, 247, 247); line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;box-sizing: border-box; margin-bottom: 25px; line-height: 1.7; word-break: break-word !important;&quot;&gt;对有一些东西是不应该过多地讲求回报的，你不应该要求它们长出漂亮的叶子和花来，因为它们是根。&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box; line-height: 1.7; word-break: break-word !important;&quot;&gt;—— 《伤心者》，何夕，2003年&lt;/p&gt;&lt;/blockquote&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《BAKUMAN》中的争议点&lt;/h1&gt;&lt;h2 style=&quot; box-sizing: border-box; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;对漫画创作方式的探讨&lt;/h2&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《BAKUMAN》中有一个最具“反派”意味的人物，名叫七峰透，是一个聪明的年轻人，他使用类似众包创作的机制成功赢取到Jump上的连载机会，对传统的责任编辑与漫画家共同创作的方式发起了挑战。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;虽然在《BAKUMAN》中，七峰透由于主角的反击造成自己心态的崩坏最终失败退场，但不得不承认他的这种创作方式其实有一定的可取之处，而且从整个故事情节来说，七峰透的败退是有些突兀和匆忙的，我大胆猜测这其实是《BAKUMAN》的原作大场鸫对漫画创作方式的演变所作出的假设性探讨&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;另外，这些相关情节里面也隐隐透着对问卷至上主义的质疑。正如前文所述，现实中的问卷调查制度一直备受质疑，也被批评为是把漫画家当做消耗品的制度。《BAKUMAN》中对无法再画出畅销作品的老作家也有令人唏嘘的描写，但只是点到即止，并没有深挖，可能是因为《BAKUMAN》就是在少年Jump上连载的，大场鸫也不好意思拆人台子吧：）&lt;/p&gt;&lt;h2 style=&quot; box-sizing: border-box; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;偶像文化现象&lt;/h2&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;作品中的女主角亚豆美保是一名偶像型声优，因此在作品的最后部分也对偶像文化进行了一些探讨。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;“偶像”在中国可能只是表示“受欢迎的艺人”，无论是天王还是小鲜肉，都能称之为偶像。但在日本，“偶像”是一种正式的职业，专指那些没有特别出众的专业技能、依靠自身魅力为卖点的年轻艺人，这里的“自身魅力”并不完全是外表（甚至有时候外表并不是最重要的因素），还包括综艺才艺是否讨好、性格是否让人亲近等各种因素。总之，就是有别于高高在上的“明星”，是亲民可人的“偶像”。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;日本偶像文化最典型的代表就是AKB48了，她们有一条最有名的规定就是团员被禁止谈恋爱。因为偶像一旦宣布恋情，就会造成极大的人气跌落，无数粉丝会做出砸CD、烧海报等过激行为。想了解具体情况可以看看知乎上的一些探讨：https://zhihu.com/question/45196191/answer/98768313  反正我是能理解但不能接收这些过激的粉丝行为、以及由此产生的“恋爱禁止”这种畸形的制度的了，可能大场鸫也不太喜欢（当然也可能是由于剧情效果所需），还让男女主角与这些粉丝“对抗”了一番。&lt;/p&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;不过值得一提的是，偶像文化目前在中国也有蔓延迹象，比如各种小鲜肉、TFBOYS、SNH48走红，这些文化现象后面是否隐藏着社会和经济的问题，是值得深入思考的。&lt;/p&gt;&lt;h1 style=&quot; box-sizing: border-box; font-size: 26px; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;结尾&lt;/h1&gt;&lt;p style=&quot; box-sizing: border-box; margin-bottom: 25px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;以上就是我对《BAKUMAN》的介绍。这部作品，我认为即使对二次元、对动漫并不感冒的人，都能一看。不知这颗安利你是否受用？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;PS. 《BAKUMAN》有国内引进版《爆漫王》，亚马逊有售。腾讯动漫上也有授权电子版，目前还可以免费阅读，以后就不一定了（之前免费就能看的《猎人》现在要收费了&lt;img src=&quot;https://res.wx.qq.com/mpres/htmledition/images/icon/common/emotion_panel/emoji_ios/u1F614.png&quot; data-ratio=&quot;1&quot; data-w=&quot;20&quot; style=&quot;display:inline-block;width:20px;vertical-align:text-bottom;&quot;&gt;）。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;PPS. 热烈祝贺本文入选简书首页投稿，小小地满足了一下虚荣心&lt;/span&gt;&lt;img src=&quot;https://res.wx.qq.com/mpres/htmledition/images/icon/common/emotion_panel/emoji_wx/2_11.png&quot; data-ratio=&quot;1&quot; data-w=&quot;20&quot; style=&quot;display:inline-block;width:20px;vertical-align:text-bottom;&quot;&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt; 观众老爷们点击↙左下角“阅读原文”，有钱随意打赏，没钱赏个点赞啊哈哈&lt;/span&gt;&lt;img src=&quot;https://res.wx.qq.com/mpres/htmledition/images/icon/common/emotion_panel/emoji_ios/u1F604.png&quot; data-ratio=&quot;1&quot; data-w=&quot;20&quot; style=&quot;display:inline-block;width:20px;vertical-align:text-bottom;&quot;&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1232456412&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;http://www.jianshu.com/p/046e2e23cbdd&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author></author>
+<guid isPermaLink="false">2017-08-13-1000000008</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>【译】从微软与Google的故障报告中学到的经验教训</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-08-06-1000000007.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;【译】从微软与Google的故障报告中学到的经验教训&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFHqBCcQlonu60k3weOgj9gU4FXSMNnnYsUsELLcEU9etU0LzMQIRhm5VbXnx-ROL4JCBkuCYk8T25vqeUoS2F0Q=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    【译】从微软与Google的故障报告中学到的经验教训                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-08-06&lt;/em&gt;
+
+                                        &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;Dan Luu&lt;/em&gt;
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;blockquote style=&quot; padding: 20px; margin-bottom: 25px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: whitesmoke; word-break: break-word; font-size: 16px; line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;line-height: 1.7; word-break: break-word;&quot;&gt;旧文，微信上进行重发。&lt;/p&gt;&lt;p style=&quot;line-height: 1.7; word-break: break-word;&quot;&gt;原文写得挺经典的，作者也是个经验丰富的大牛，可以翻出来时不时重温几遍，嘿嘿嘿~&lt;br&gt;&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;原文标题：《Lessons learned from reading postmortems》&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;原文链接：http://danluu.com/postmortem-lessons&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;作者：Dan Luu&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我喜欢阅读故障报告，因为它们很具有指导性，而且读起来不像大多数技术文档那么枯燥。我在Google和微软工作的时候，曾经花过大量的时间去阅读里面的故障报告，虽然我（暂时还）没有对里面的重大故障所反映的共性原因做一些正儿八经的分析，不过里面有好一些经典的案例是在我的阅读过程中反复出现的。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;strong&gt;异常处理&lt;/strong&gt;&lt;/span&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;适当的异常处理其实很难做。隐藏在异常处理的代码中的bug是大问题的主要来源。未被正确处理的异常通常会持续不断地出现，这种情况出现的概率绝对要高于几个不相干的异常出现概率的简单乘积，而持续大量的系统异常往往会导致严重的服务中断。“异常处理很难做好”这个观点在某种意义上其实并不新鲜。当我跟其他人谈起的时候，他们也会表示有相当多的重大故障都是由于未处理好的异常大量产生所导致。可是，虽然道理大家都懂，却没有多少人会重视对异常处理相关的代码做好充分的测试和静态分析工作。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;有一篇名为《Simple Testing Can Prevent Most Critical Failures: An Analysis of Production Failures in Distributed Data-Intensive Systems(简单的测试可以规避大多数的严重故障：对分布式数据集中型系统的生产故障的分析)》的论文（作者：Ding Yuan 等）对此问题有更详细的探讨。这篇论文的观点大致就如其标题所述，在文中作者把“严重故障”的标准定义为：可以导致一个集群崩溃或者导致数据损坏。作者搜集了来自Cassandra、HBase、HDFS、MapReduce以及Redis的数百个bug，并从中筛选出了48个严重错误，然后他们再去分析这些错误产生的原因，发现有92%的的严重错误实际上都是由于没有做好正确的异常处理而引起的。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLdqE2nOfDoJ7fpJQH9wrR1VqMcCZq4iaayOUkmw3I8jUjKJPMORrkZ17KShlsKo16PxW1IicWAOHnaA/0?wx_fmt=png&quot; style=&quot;vertical-align: middle; border-width: 0px; border-style: initial; border-color: initial;&quot; class=&quot;&quot; data-ratio=&quot;0.2679245283018868&quot; data-w=&quot;530&quot; data-type=&quot;png&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;对错误原因做更进一步细化的话，25%的bug是由于忽视了错误的产生，8%是由于捕获了错误的异常，2%是由于虽然捕获了异常但只留了个TODO就什么都没干，另外还有23%的bug是“可以被简单发现的(Easily detectable)”——此处的定义是，任何语句覆盖率检查或者开发者之间的更细致的代码审查都能够发现的、异常处理相关代码中的逻辑错误。另外说个题外话，大家普遍诟病Go语言风格的错误处理，因为它会侵入主代码逻辑，但我却不介意，因为如果你真的想构建一个鲁棒性强的系统，错误检查逻辑本身就是主逻辑的一部分！&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;那篇论文里面还有很多我没有提到的亮点。比如说，他们使用Jepsen框架带来的匪夷所思的效率提升（98%的严重故障都可以在只有3个节点的集群上重现），另外，他们还深入挖掘分析了非确定性错误的占比（在他们的样例中占比26%）以及这些错误的产生原因，并构建了一个可以发现很多常见故障错误的静态分析工具。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;配置&lt;/span&gt;&lt;/strong&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我所见到的大部分严重不可用故障(really bad outages)都是由于配置错误导致的，而不是代码Bug。当我查看可以公开获取的不可用故障报告时，搜索“global outage postmortem”，发现50%的不可用故障都是因为配置改动造成的。虽然这些公开报告并不能代表所有情况，但是我所抽样的公司内部故障报告数据也反映出“配置变动导致了相当一部分不可用故障”这个结论。虽然和异常处理（指本文的第一节Error Handling）一样，配置变更也很容易出问题，但是大多数公司在进行配置变更的时候并不会像发布代码变更一样进行测试以及预发布验证。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;除了异常紧急的情况，代码变更一般都不会同时发布到所有的机器上，因为这可能导致全范围的服务不可用。但是每家公司似乎都发生过因为配置变更而导致的全公司范围的服务不可用的故障，而这些配置变更看起来根本没啥问题。比如，发生于2014年11月的Azure宕机故障。我并不是在刻意针对微软，他们最大的竞争对手也发生过类似的事情，他们后来都通过严格执行规范流程来避免类似的事情再次发生。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我也不是刻意针对大公司，如果有什么不一样的话，绝大多数初创公司的情况只是更差，即便是一些不错的初创公司。我所知道的大多数独角兽企业根本就没有用于测试和预发布的环境让开发工程师测试高风险的配置变更。原因很简单，搭建一个和生产环境一样能进行配置变更验证的QA环境太难了。和不系安全带开车一样，绝大多数时间都不会出问题。但是如果开车前还是自己去制作一根安全带，那我肯定也会不系安全带开车了。因此，即便不经QA环境验证就进行配置变更和不系安全带开车一样危险，我还是这么做。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;实际上，早在1985年的时候，Jim Gray观察到“运维操作、系统配置，系统维护导致了42%的故障”。之后，也有相当多研究都反映出同样的结果。例如，Rabkin和Katz就总结了如下造成故障的原因：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLdqE2nOfDoJ7fpJQH9wrR1VVxv7wWfU4dTYric5aYa3y4SDS4NriaNkHju8nhZvRBDTbT2Y5QYkO2TQ/0?wx_fmt=png&quot; style=&quot;vertical-align: middle; border-width: 0px; border-style: initial; border-color: initial;&quot; class=&quot;&quot; data-ratio=&quot;0.7722772277227723&quot; data-w=&quot;303&quot; data-type=&quot;png&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;br&gt;&lt;/h1&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;strong&gt;硬件&lt;/strong&gt;&lt;/span&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;简单来说，机器的每一个部分都有可能发生故障。很多组件的故障都能导致数据损坏，而且故障概率通常都比其对外宣传的要高得多。比如，Schroeder, Pinherio和Weber等三人研究了DRAM的故障率后发现，其故障率的实际值要比声称的高一个数量级，静默错误的数量惊人地多，而这实际上也在Google转用ECC RAM之前引发过一些问题。硬件层面的错误检测也可能会出问题，比如网卡的校验和计算(checksums)就不是绝对可靠的，我亲眼见过有问题的数据包被当做合法包给校验通过了。如果你希望通过硬件检查去发现数据损坏错误，在大规模的情况下，你能碰到比想象中要多的问题。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;硬件的故障切换也可能会出问题。AWS的故障就是一个典型例子。尽管他们对发电机的故障切换过程有一整套听起来很靠谱的监控和定期检查方案，但当美国东部机房因为风暴造成断电时，其中有一组备用发电机就没有正常启动，导致了AWS的东部地区服务中的相当一部分发生宕机。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;人为失误&lt;/span&gt;&lt;/strong&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;其实这一部分应该叫做流程失误而非人为失误，因为我觉得把人放在一个有可能一不小心就导致灾难性故障的位置，这种流程本身就是个bug。众所周知，当系统规模变大之后，你必须让这个系统对机器故障有足够的容错性，因为如果你计算一下机器挂掉的频率，你就会发现对这种故障容错性不强的系统有多么的不靠谱。但人类出错的概率比机器挂掉的概率要多得多——请不要误会，我还是喜欢与人打交道的——但如果你不断地把人放在一个他们有可能造成灾难性故障的位置，那他们终究是会引发这个故障的。然而，以下这种情况还是很常见：&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;“这个操作是有风险的！OK，那我们就找一个&lt;strong&gt;非常认真仔细&lt;/strong&gt;的人来执行这个操作。卧槽！我们现在所有的服务都挂了！”&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;“因为这是一个高风险的操作，所以我们按照某某某高风险操作指南来执行”——以这种语句开头的故障报告比比皆是，这让我不禁觉得，为了减少人为失误而增加额外的人工检查操作，是一种典型的运维思路。一些常规的运维操作指南会要求好几个人来监控或确认这些操作的执行，或者要求运维人员随时待命以防万一。诚然这些要求是合理的，而且在某种程度上也降低了风险，但是更多的故障报告表明，自动化能把风险降到更低的程度、甚至能完全杜绝风险。例如在一些案例中，操作人员本应该滴水不漏地执行一系列的指令，但偏偏就出错了，而其实这些恰恰是程序所擅长的事情！另外还有一些情况是，操作人员会被要求进行人工的错误检查，这种做法有时候会比较难以自动化、甚至人工还稍微更有优势些（因为人工有可能会察觉程序无法检查出来的错误）。不过，在我所知道的大多数情况下，自动化仍然是相对更划算的选择。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLdqE2nOfDoJ7fpJQH9wrR1VceYLWmMiaUhNTPNnPVJnANmUYjah9BcZf8bL9vYyzIzb0Do8sloJpDA/0?wx_fmt=png&quot; style=&quot;vertical-align: middle; border-width: 0px; border-style: initial; border-color: initial;&quot; class=&quot;&quot; data-ratio=&quot;0.5351170568561873&quot; data-w=&quot;598&quot; data-type=&quot;png&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;在一份关于数据中心问题起因的IDC调查中，人为失误得到了最高票。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我还发现一个很有趣的现象，就是在公开的故障报告中来看，人为失误的因素其实是很少的。而据我所知，Google和微软的自动化程度比其他大部分公司都要高得多，所以我本以为在他们的故障报告中能找到的人为失误因素应该会更少，但事实却正好相反。我猜可能其他公司不太会在公开的报告中描述由于人为失误造成的故障吧，另一种潜在的可能性是，先进的技术提高了人为因素导致的问题的比重，这种情况在一些行业（比如飞行行业）中确实是存在的。不过我觉得后者的可能性不大，因为在很多公司里手动操作的流程肯定是非常的多。不过我这里也只能是猜测，因为我看不到那些公司内部的故障报告资料库。如果有公司想开展这种类似的分析（匿名的也可以），请与我联系。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;监控与告警&lt;/span&gt;&lt;/strong&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;缺乏合理的监控永远都不会是产生问题的唯一原因，但往往会是一个重要的因素。跟人为失误因素一样，它们在公开的故障报告中并不具备什么代表性。不过当我与其他公司的一些同行谈及他们近期发生的最严重的事故时，有蛮大一部分人都说是由于没有事先设定正确的告警。当一个严重到足以要写入公开报告的故障发生的时候，他们通常都是靠英勇的运维人员来解决的，但这种英雄主义终究不是长久之计。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;有些时候，那些几近灾难的故障是由一些细小的代码bug引起的，这其实也是可以理解的，更多的情况下是因为流程本身存在问题，比如没有一个清晰的告警分配机制，把问题分给了一个不相干的团队debug了半天也没搞好；再比如说，缺少oncall备份机制，如果系统发生了数据丢失或损坏的问题但oncall人员没有注意到（这种情况是不可避免的），这个问题可能会持续好几个小时都没人发现。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;2003年的美加大停电就是一个很好的例子。一开始可能只是一小范围的电力中断或者服务降级，但由于缺乏一系列的告警机制（当然还有其他原因）最终酿成大祸。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;并非结论&lt;/span&gt;&lt;/strong&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;我并不想在这里下什么结论或者号召大家做点什么，因为我还想再做一些更严谨的数据分析。我还应该查找哪些资料？还有什么常见的故障类型我需要考虑？我是真的不知道，希望有人能告诉我还有些什么我是没有考虑到的，请在推特上联系我（@danluu）。另外这里是我正在搜集的一些可公开的故障报告。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;后面我会再抽出时间来做一次全面、正规的分析。虽然这数千份的故障报告我还没分析完，但我也会从现在开始做一些改变。我会在code review的时候花相对更多的精力在异常处理的部分，而非正常的逻辑部分，另外我还会花更多的时间去检查流程问题并说服大家去修正这些问题。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;有个事情我觉得挺奇怪的，当我跟别人谈论上述的这些点时，总是有人告诉我这些道理大家都懂，但依然还是有很多故障是由这些“大家都懂”的事情引起的。比如有一次就有个人告诉我，他们公司刚发生了一起故障，导致一个价值好几十亿美金的服务中断，而故障的起因恰恰就是如我所述。有时候大家都懂的事情并不代表大家都能做到。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;其他&lt;/span&gt;&lt;/strong&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;Richard Cook写的How Complex Systems Fail提供了更通用的方法论，《The Checklist Manifesto》就是受此启发而来，这本书挽回过人命的损失。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;Allspaw与Robbin的Web Operations: Keeping the Data on Time在web app的场景中谈论了同样的话题，Allspaw还有一篇很不错的关于其他领域的相关文章值得一看.&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;在我更熟悉的一些领域，研究故障原因的历史更是由来已久，其中一些比较重要的如：Jim Gray写的Why Do Computers Stop and What Can Be Done About It?(1985)，Oppenheimer 等人写的Why Do Internet Services Fail, and What Can Be Done About It?(2003)，Nagaraja等人写的Understanding and Dealing with Operator Mistakes in Internet Services(2004)，Barroso 等人写的The Datacenter as a Computer(2009)，Rabkin与Katz写的How Hadoop Clusters Break(2013)，Xu等人写的Do Not Blame Users for Misconfigurations.&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;另外，在飞行器可靠性方面也有相当多的研究，这篇关于这数十年来的生产过程的演进的文章写得非常精彩，不过我不确定它是否具备通用的指导意义。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;说个题外话，我发现一个有趣的事情，就是提高系统的运行时间(uptime)和可靠性是有多么的困难。在1974年，Ritchie和Thompson写道一个系统“仅依靠40000美元”就能维持98%的运行时间，10年之后，Jim Gray把99.6%定义为一个合理的标准。当然现在我们可以做得更好，但这里面的复杂度依然是非常的高。&lt;/p&gt;&lt;h1 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;strong&gt;鸣谢&lt;/strong&gt;&lt;/span&gt;&lt;/h1&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;感谢Leah Hanson, 佚名, Marek Majkowski, Nat Welch, Joe Wilder, Julia Hansbrough对本文的初稿提供了意见，其中佚名的那位，如果你希望实名的话，请通过Zulip联系一下我。其余5位人士中，有3名来自Google，1名来自Cloudflare。我向来都是欢迎评论或批评的，不过这次我特别希望能听到来自小公司的同行的评价，本文的这些观点是否对你们具备通用性？&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;感谢gwern和Dan Reif对本文的指正。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;967873059&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;http://danluu.com/postmortem-lessons&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author>Dan Luu</author>
+<guid isPermaLink="false">2017-08-06-1000000007</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Fanny个人推荐第1弹——Sound Horizon</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-07-30-1000000006.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Fanny个人推荐第1弹——Sound Horizon&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFJsXdaYl2HeppKbeAiJWjINvEnpl2my4LycwWkni0-HyIQVIYah9ybvf6tov7Cu5wXpoiw*I3T**OkkTUWKRk*s=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    Fanny个人推荐第1弹——Sound Horizon                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-07-30&lt;/em&gt;
+
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote style=&quot; padding: 20px; margin-bottom: 25px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: whitesmoke; word-break: break-word; font-size: 16px; line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;margin-bottom: 25px; line-height: 1.7; word-break: break-word;&quot;&gt;&lt;strong&gt;前言&lt;/strong&gt;&lt;/p&gt;&lt;p style=&quot;margin-bottom: 25px; line-height: 1.7; word-break: break-word;&quot;&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;细数一下，入宅已超过10个年头，虽然总是嚷嚷着说自己“已经越来越脱宅了”，但每个季度还是会关心一下有什么新番值得一看，而且10年下来还是有不少心水存货值得向圈外好友、或者入宅尚浅的小朋友们推荐或安利的。起码我想让大家知道，ACG文化的独特魅力，并不是现在那些只是贪图可爱造型而忽略作品精神的Cosplay、也不仅仅是“海贼王”、“柯南”这种大众型作品所能代表的。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;line-height: 1.7; word-break: break-word;&quot;&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;嗯……不过话虽如此，Sound Horizon在严格意义上并不属于ACG的范畴，最多也就是同人音乐这一点跟ACG稍微有点沾边。But anyway，因为这是我在考虑到底要推荐什么作品的时候第一个想到的对象，所以，就这样吧，不要太过在意细节（笑&lt;/span&gt;&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;你可能没听说过Sound Horizon，但你可能知道Linked Horizon，即使你不知道，你可能也会无意中接触过他们的作品。近几年红得发紫的《进击的巨人》的片头曲都是Linked Horizon的作品。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;至于Sound Horizon（简称SH）和Linked Horizon（简称LH）到底是什么关系？简单来说，他们的核心都是同一个人，自称Revo，&lt;strong&gt;真名不详&lt;/strong&gt;，SH和LH都是以Revo为核心分别进行活动的乐团，但LH以对外商业合作为主，比如动画、游戏主题曲创作等（以前SH的对外合作以Revo本人的名义进行，从进击的巨人开始正式命名为Linked Horizon，取其“对外链接”之含义），作品难免要受制于内容载体，因此SH才是承载了Revo真正的音乐梦想的地方。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img data-s=&quot;300,640&quot; data-type=&quot;png&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_png/EWXKCU2hmLcztHvQJT5Fn1RaVghF19gQ0IHwAQ3FKfZQxLouPTurOIHCCK39jxSWaNiaTsqHPjAiashMF25Am3lw/0?wx_fmt=png&quot; class=&quot;&quot; data-ratio=&quot;1&quot; data-w=&quot;500&quot; style=&quot;width: auto; height: auto;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: left;&quot;&gt;（图为Revo）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Sound Horizon虽为“乐团”，但正式成员以及核心人物只有Revo一个人，所有作品的作词、作曲、编曲以及整体统筹都由Revo一人负责。其余的比如乐手、歌手、声优，都是根据作品的需求来进行相应的安排和邀约。曾经合作过的歌手众多，知名度较高的如霜月はるか、栗林みな実、下川みくに等，甚至还用过初音ミク及其声音来源者藤田咲的声音。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Sound Horizon起源于同人音乐，第一张同人CD《Chronicle》发售于2001年12月的第61届Comit Market，从此一鸣惊人，并与2004年开始进军商业化音乐领域。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;主要作品集列表（不包括Single单曲或精选集等）：&lt;/p&gt;&lt;p&gt;2001年：《Chronicle》&lt;/p&gt;&lt;p&gt;2002年：《Thanatos》&lt;/p&gt;&lt;p&gt;2004年：《Chronicle 2nd》（同年宣布开始商业化）&lt;/p&gt;&lt;p&gt;2005年：《Elysion ～楽园幻想物语组曲～》&lt;/p&gt;&lt;p&gt;2006年：《Roman》&lt;/p&gt;&lt;p&gt;2008年：《Moira》&lt;/p&gt;&lt;p&gt;2010年：《Märchen》&lt;/p&gt;&lt;p&gt;2015年：《Nein》&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;（没错，我这里偷懒了！其实每一张CD都可以展开很长的解读，但考虑到吃瓜群众其实并无兴趣看太长的作品赏析，此处简单略过！等你真的入坑了，你会自己去找的！——不过，如果你现在就有兴趣，可以查看“阅读原文”中的一篇关于Sound Horizon的超长长文）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLcztHvQJT5Fn1RaVghF19gQkwu6oWfanicpmnJmsJ4IoIb986Xnwtyz9f4ZyRn0kfoZodF6KscSIng/0?wx_fmt=jpeg&quot; class=&quot;&quot; data-ratio=&quot;0.6261538461538462&quot; data-w=&quot;650&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Sound Horizon自称“幻想乐团”，每一张Album专辑称为“Story CD”，也就是整个专辑不是单纯的音乐作品，而是有故事设定的，每一首歌都讲述了一个小故事，而整张专辑则叙述一个完整的故事，因此，如果你觉得Sound Horizon的音乐还不错的话，非常建议你配合歌词完整地听一下他们的每张Story CD，如果再有兴趣，可进一步观看他们的演唱会（所有歌手Cosplay成曲中人物进行演唱并演绎故事内容，比一般演唱会更有看点），再进一步的话，可看下网上的爱好者们对每一张CD的深入赏析和故事细节挖掘，因为Revo比较喜欢故弄玄虚，一些线索非常隐晦需要特别挖掘：）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后进入实际作品安利时间，由于QQ音乐里的乐库严重不全，而且一篇微信文章只能上传一个自定义音频，所以这里只能推荐一首来自4th Story CD的《Stardust》，如有需要，网易云音乐上有很全的歌单和歌库供君自取。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;mpvoice frameborder=&quot;0&quot; class=&quot;res_iframe js_editor_audio audio_iframe&quot; src=&quot;/cgi-bin/readtemplate?t=tmpl/audio_tmpl&amp;amp;name=Stardust&amp;amp;play_length=04:32&quot; low_size=&quot;526.48&quot; source_size=&quot;526.5&quot; high_size=&quot;2132.82&quot; name=&quot;Stardust&quot; play_length=&quot;272000&quot; voice_encode_fileid=&quot;MzUxMjAxMzU4M18yMjQ3NDgzNjcy&quot;&gt;&lt;/mpvoice&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外附加一记追加安利，《砂塵の彼方へ》，这是Sound Horizon与Fiction Junction合作的曲子，虽然只是事务所与事务所之间出于商业效果考虑的合作，但这里集合了我最喜欢的两位音乐人——Revo和梶浦由记，对我而言简直是梦幻一样的存在（感谢事务所！）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;iframe class=&quot;video_iframe&quot; data-vidtype=&quot;2&quot; allowfullscreen=&quot;&quot; frameborder=&quot;0&quot; data-ratio=&quot;1.7647058823529411&quot; data-w=&quot;480&quot; data-src=&quot;https://v.qq.com/iframe/preview.html?vid=y0023s1fxvc&amp;amp;width=500&amp;amp;height=375&amp;amp;auto=0&quot;&gt;&lt;/iframe&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;600221922&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://www.douban.com/note/539472497/&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author></author>
+<guid isPermaLink="false">2017-07-30-1000000006</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>硅谷已死与Give and Take</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-07-23-1000000005.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;硅谷已死与Give and Take&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFEVA-b6Gu5b2KoXaBgpASa21PPkSv1sgGYLpBlrPx7D1q2Da0xFuojRHiHpF*X0zbFp0VskWqDOzRPUoG2CxCSo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    硅谷已死与Give and Take                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-07-23&lt;/em&gt;
+
+                                        &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;Fanny&lt;/em&gt;
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;&lt;img data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLdJJCic06NTdLaiaPTxKq9NiaUfvzjk4Aibc7du51J7jhRgxJPv8QDbB3dcice49ZHBojOJn7Urt7ychqw/0?wx_fmt=jpeg&quot; class=&quot;&quot; data-ratio=&quot;0.496875&quot; data-w=&quot;640&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天看了一篇文章，叫《硅谷已死》（Silicon Valley is Dead，文末的“阅读原文”可前往），文章的作者叫Micah Baldwin，是一名在硅谷长大的前创业者、现Amazon员工。Micah成长于湾区、山景城一带，见证了硅谷的成长并深受硅谷创新精神影响，用他的话来说，“You couldn’t ride your bike past a garage without imagining what people were building inside. Innovation wasn’t a word, it was a way of life.” 而如今的他却感慨道硅谷的创新精神正在消失，Silicon Valley is Dead。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Micah这篇文章的核心观点是受Adam Grant的书《Give and Take》所影响。说个题外话，在找寻这本书对应的中文版的时候，我惊讶地发现它的中文版书名叫做《沃顿商学院最受欢迎的成功课》——这已经不知是我第几次对国内的图书出版与消费市场表示轻微的失望了：我感谢出版商及时地引入好书，也非常理解出版商的做法，不翻译成这种吸引眼球的标题，图书的销量就会大打折扣。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果嫌书太长，也可以通过Adam Grant的一个TED演讲来大致了解giver和taker的含义：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;iframe class=&quot;video_iframe&quot; data-vidtype=&quot;2&quot; allowfullscreen=&quot;&quot; frameborder=&quot;0&quot; data-ratio=&quot;1.7647058823529411&quot; data-w=&quot;480&quot; data-src=&quot;https://v.qq.com/iframe/preview.html?vid=b03734oo1he&amp;amp;width=500&amp;amp;height=375&amp;amp;auto=0&quot;&gt;&lt;/iframe&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Micah悲哀地发现，以前在硅谷充斥着大量的Giver，也就是专注如何给用户带来真正价值的人，而如今的硅谷则充斥着Taker，也就是那些追求投资回报、付出只是为了从用户身上获取更多价值的人。&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote style=&quot; margin-bottom: 25px; padding: 20px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); font-size: 16px; white-space: normal; background-color: whitesmoke; word-break: break-word; line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;line-height: 1.7; word-break: break-word;&quot;&gt;&lt;strong&gt;The givers (innovators) are getting replaced by the takers ($$$) and it’s strangling Silicon Valley.&lt;/strong&gt;&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;至于国内的情况如何，我并不想、也懒得展开详述，我认为，每个见证了中国互联网初期与快速成长阶段的人，都对文中所描述的情景有一股既视感，这是一个产业做大之后必然会带来的阵痛。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不过好在，Give and Take里面带来的信息是充满着乐观的，我也相信如Give and Take一书所述，最终赢得金字塔顶端的，必定是那些勇敢地“与名为现实的怪物战斗的人们”，那些不忘初心的永远的少年。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;PS. “与名为现实的怪物战斗的人们”（現実という名の怪物と戦う者たち）是《Bakuman》（食梦者/爆漫王）的片尾曲。Bakuman的漫画版我当时是追着连载看完的，最近又重温了一遍，又有了新的感悟，而动画我只看过部分，还原度还不错，如果不想看漫画而想看动画的也推荐一看。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;qqmusic class=&quot;res_iframe qqmusic_iframe js_editor_qqmusic&quot; scrolling=&quot;no&quot; frameborder=&quot;0&quot; musicid=&quot;101225436&quot; mid=&quot;004V1nxu4ZglFh&quot; albumurl=&quot;/n/c/002bxGz0077bnc.jpg&quot; audiourl=&quot;http://ws.stream.qqmusic.qq.com/C100004V1nxu4ZglFh.m4a?fromtag=46&quot; music_name=&quot;Genjitsutoyuunano Kaibutsuto Tatakaumonotachi&quot; singer=&quot;Anime Project - Anison Box Vol.5&quot; play_length=&quot;250000&quot; src=&quot;https://mp.weixin.qq.com/cgi-bin/readtemplate?t=tmpl/qqmusic_tmpl&amp;amp;singer=Anime%20Project%20-%20Anison%20Box%20Vol.5&amp;amp;music_name=Genjitsutoyuunano%20Kaibutsuto%20Tatakaumonotachi&quot; style=&quot;width: 556px; white-space: normal;&quot;&gt;&lt;/qqmusic&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;983659071&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+                                &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://medium.com/@micah/silicon-valley-is-dead-88ed34d943dc&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;</description>
+<author>Fanny</author>
+<guid isPermaLink="false">2017-07-23-1000000005</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>自利与成本——极简经济学读后感（1）</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-05-21-1000000004.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;自利与成本——极简经济学读后感（1）&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFNaqXnWjulYZ7HrPup5m2Lyy67Pd9S9BbiY6xoH7*p*f2kJKKdNyOnCG*RrCEkkr4f8thAh4*sFZawcfoiI4l20=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    自利与成本——极简经济学读后感（1）                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-05-21&lt;/em&gt;
+
+                                        &lt;em class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;Fanny&lt;/em&gt;
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                &lt;div class=&quot;rich_media_thumb_wrp&quot; id=&quot;media&quot;&gt;
+                    
+                                        &lt;script nonce=&quot;183909958&quot;&gt;
+                        (function(){
+                            &lt;/script&gt;&lt;img class=&quot;rich_media_thumb&quot; id=&quot;js_cover&quot; src=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/EWXKCU2hmLfUrLH0SHIVCxiaYumV4mnsL6ra740KVeD0F5bbD9xPWp9Dyz8ZZKWXGtmvocxLzD2LVxKlHOdUibXQ/0?wx_fmt=jpeg&quot;&gt;&lt;script&gt;
+                            document.write(&#39;&lt;img class=&quot;rich_media_thumb&quot; id=&quot;js_cover&quot; onerror=&quot;this.parentNode.removeChild(this)&quot; data-backsrc=&#39;+ cover +&#39;  src=&quot;&#39; + cover + &#39;&quot; /&gt;&#39;);
+                        })();
+                    &lt;/script&gt;
+                                    &lt;/div&gt;
+                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;《极简经济学》一书来自大玩家张磊的推荐，我对它感兴趣的起因是为了进阶理财技能，不过刚看了个开头，就真切感受到“人人都要懂点经济学”的正确性，特别是微观经济学里的观点，其实解释了很多为人处世的原理和方法。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;此处谈两个概念，一个是自利，一个是成本。&lt;/p&gt;&lt;h4 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;“自利（self-interest）是组成社会的有效方式。”&lt;/span&gt;&lt;/strong&gt;&lt;/h4&gt;&lt;blockquote style=&quot; padding: 20px; margin-bottom: 25px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: whitesmoke; word-break: break-word; font-size: 16px; line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;line-height: 1.7; word-break: break-word;&quot;&gt;“看不见的手”（invisible hand）的概念，就是你在追求自己的利益时，可能也会给别人带来好处。&lt;br&gt;&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;感觉无需过多解释，大部分人都能理解并认同这个道理（比如程序员之中肯定特别认同“科技进步的源动力来自人性的懒惰”、“不会给自己偷懒的程序员不是好程序员”之类的话语）。但站在更高的角度来看，你会发现“自利”一词在中文语境中是带有贬义色彩的，真正“政治正确”的应该是“为共产主义事件奋斗终生”，或者“公司是我家，发展靠大家”。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;这也不难理解，因为在战争年代以及解放初期，国家需要强调“集体主义”并借助其高效的力量来实现国家的快速复兴，这无可厚非。不过如果是在企业管理中就欠妥了，因为企业与雇员（employee）之间只有利益交换的关系，即使是全员持股的企业，这种股权也只是利益的一部分，因为它并没有投票权。真正拥有投票权、或者说是对企业发展具有决策权的，是合伙人（partner），以partner的标准来要求employee，本身就是在耍流氓。尊重“自利”的原则与雇员进行等价交换，这是一个成熟企业应该采取的态度。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;不过，企业本身也是一个追逐最大利益的个体（而企业的“自利”也是企业作为社会的一个组成部分来促进社会进步的价值所在），即使是再良心的企业家，也会从心底希望雇员能放弃部分个人利益，把企业的目标作为个人目标去完成。这就是我们每个人都学过的“资本主义的本质是追求剩余价值”。而此时，就需要第三个主体——政府——的出现了。正如政府会通过“经济法”、“环境保护法”等法律来保护市场秩序和环境一样，政府也会通过“劳动法”来保护雇员的权益。因此——举一个接地气一点的例子——应对“996”的公司的最正确方式应该是发挥公民的权利、推动相关法律法规的落地执行，当然，最正确不代表最有效，这就会牵涉到另一个不方便展开的话题了。&lt;/p&gt;&lt;h4 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;“所有的成本都是机会成本”&lt;/span&gt;&lt;/strong&gt;&lt;/h4&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;以下是维基百科对“机会成本”的解释：&lt;em&gt;机会成本（Opportunity Cost, OC）是指决策过程中面临多项选择，当中被放弃而价值最高的选择（highest-valued option foregone），又称为“替代性成本 (alternative cost)”。&lt;/em&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;机会成本的概念并不难理解，难的地方在于如何形成“机会成本”的思维方式。&lt;br&gt;&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;同样的资金，存一年的银行定期存款，利率1.75%，1000块钱一年可以赚17.5元，你觉得赚了；但是同样的资金拿来买低风险的货币基金（比如余额宝之类），年化利率3%~4%，1000块钱一年可以赚30元~40元，这么看的话，存定期反而是亏的。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;“少赚即亏”，这就是“机会成本”思维方式的基本原则。&lt;/p&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;但这里的陷阱在于，金钱只是资产的一部分，还有一些更重要的资产，比如时间，比如健康，比如家庭，比如个人的愉悦感。正如某一次我跟一位部下的对话，他说：“我既然花钱买了这本书，就得看完，不然就亏了”，而我说：“你要这么想，如果这不是一本好书，你已经浪费了钱，为什么还要浪费时间？” &lt;/p&gt;&lt;blockquote style=&quot; padding: 20px; margin-bottom: 25px; border-left-width: 6px; border-left-color: rgb(180, 180, 180); background-color: whitesmoke; word-break: break-word; font-size: 16px; line-height: 30px; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;p style=&quot;margin-bottom: 25px; line-height: 1.7; word-break: break-word;&quot;&gt;普通人（非经济学家）常常不计算“机会成本”，而经济学家则往往忽略“沉没成本”———这是一种睿智。&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;line-height: 1.7; word-break: break-word;&quot;&gt;——2001年诺贝尔经济学奖获得者 约瑟夫·斯蒂格利茨&lt;/p&gt;&lt;/blockquote&gt;&lt;h4 style=&quot; margin-bottom: 15px; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;&lt;strong&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;To be continued&lt;/span&gt;&lt;/strong&gt;&lt;/h4&gt;&lt;p style=&quot; margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47); ; ; ; ; ; ; ; ; ; ; ; ; ; &quot;&gt;正如本文开头所说，这只是《极简经济学》的开头。若后续的章节有其他值得分享的点的话，我会后续再写新篇，敬请期待：）&lt;/p&gt;&lt;p style=&quot;margin-bottom: 25px; word-break: break-word; color: rgb(47, 47, 47);&quot;&gt;PS. 本书的英文标题是“The Instant Economist - Everything You Need to Know About How the Economy Works”，翻译之后就变成“斯坦福极简经济学——如何果断地权衡利益得失”，个中的差异和原因很值得玩味。&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;183909958&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                
+            &lt;/div&gt;</description>
+<author>Fanny</author>
+<guid isPermaLink="false">2017-05-21-1000000004</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>爷爷，再见。</title>
+<link>https://henix.github.io/feeds/weixin.sogou.gh_7d1aa4ada621/2017-04-20-1000000003.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;爷爷，再见。&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1504513855&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=7pqVgBGLzjb7*PI*8qu3K2*ax7wKj7jakI9sIwlBraHd8AWCXU3i2KD61EjyU0KTUyouy5B2Rr3uJBfxDr8IFFB44ONm8XutLHKlPpayZU8qjQMXEXrezw6Eqbt03PJF6ung0YCP1l1yv-CV6VROg6m0W8qMDEdMl46lcRFLsBo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;img-content&quot;&gt;
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    爷爷，再见。                                    &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;em id=&quot;post-date&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;2017-04-20&lt;/em&gt;
+
+                                        &lt;a class=&quot;rich_media_meta rich_media_meta_link rich_media_meta_nickname&quot; href=&quot;##&quot; id=&quot;post-user&quot;&gt;ImFanny&lt;/a&gt;
+                    &lt;span class=&quot;rich_media_meta rich_media_meta_text rich_media_meta_nickname&quot;&gt;ImFanny&lt;/span&gt;
+
+                    &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;div class=&quot;profile_inner&quot;&gt;
+                            &lt;strong class=&quot;profile_nickname&quot;&gt;ImFanny&lt;/strong&gt;
+                            &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;&lt;/span&gt;
+                            &lt;/p&gt;
+
+                            &lt;p class=&quot;profile_meta&quot;&gt;
+                            &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                            &lt;span class=&quot;profile_meta_value&quot;&gt;Hello, I&#39;m Fanny. Nice to meet you.&lt;/span&gt;
+                            &lt;/p&gt;
+                            
+                        &lt;/div&gt;
+                        &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                            &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                            &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;在我还在上幼儿园的时候，外公因癌症去世了。我记得那天下着雨，爷爷打着伞来幼儿园接我放学，他在路上跟我说：“你外公今天出山了”。年幼的我并不知道“出山”是什么意思，由于“山”和“生”在清远话里面是谐音，我天真地反问：“外公返生了吗？”爷爷笑笑，没有解释。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;爷爷，今天，你出山了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;***&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;爷爷名叫谢礼培，1926年生，江西大余县人，是家中的次男。“礼”字是他这一辈的辈分，按照“诗礼传家”（前后可能还有其他字，但我不知道了）的顺序，我应该是“家”字辈，但一来因为爷爷已经远离老家、不太受约束，二来因为女孩本来也不用上族谱，所以我没有按照这个辈分来取名。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;爷爷的哥哥早年从军之后就杳无音讯，他爸爸因为这个事情经常喝酒、喝了酒之后就会哭，所以爷爷从来不喝酒。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;大余县虽然属于江西省，但其实离广东非常近，爷爷跟他的表哥、表弟三人一起到了广东工作，由于爷爷上过小学，有文化，所以虽然是外地人，但在50年代的时候就当上了本地粮食局的副局长，相当于现在的科级干部。不过——据我爸的评价——由于爷爷太过忠厚老实、也不会拍马屁，从那之后也就一直是这个职位、再也没有变过了。这点我确信，我记得奶奶也说过，80年代的时候，要不是她逼着爷爷去找局长去说分房子的事情，爷爷的房子也不知道啥时候能分下来——其实就是带点礼物说个情什么的，那个年代办点事情，不托点关系都没人会主动给你办。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但我还是很喜欢爷爷这种正直善良的性格。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我是跟着爷爷奶奶一起生活长大的，由于爷爷的粮食局的工作经常需要出差，比如广州肯定是经常要去的，我小时候也因此经常有机会跟着爷爷奶奶去广州玩，虽然从小就会晕车，但这种说走就走的机会我依然十分向往。除了这种短途出差，爷爷年轻的时候还走过全国很多地方，见过不少世面。比如有一年我在网上买了些阳澄湖大闸蟹寄回家，后来回家的时候问他好不好吃，他就说那蟹太小了，不如我以前吃过的大海蟹好吃——可惜我也没有机会带他去美国吃阿拉斯加帝王蟹了，我觉得那个他肯定喜欢。还有一次他在兰州出差完之后直接就坐火车去北京了，顺便去探望我当时在北京当兵的二叔，结果到北京的时候下雪了，他只穿了一条裤子，冷得不行，最后还得二叔带他去买毛裤还是秋裤——这件轶事爷爷后来提及过很多次，看来真的是冷坏了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;爷爷在退休之后参加了粮食局组织的老干部门球队，于是他每天早上的固定晨练活动就是打门球，一打就是十几年，直到他岁数大到连门球都打不了了才停止。除了偶尔跟着组织去参加全国各地的门球比赛以外，他们那些退休老干部差不多每年都会组织一次旅游，于是他带着奶奶又去了很多地方，什么庐山、杭州（华东五市）、井冈山、珠海、海南等等，我还是很羡慕的。我童年对杭州的第一印象就是来自爷爷他们带回来的西湖风景明信片，什么三潭印月、曲院风荷之类的，以致于多年后真的看到这些景色之后我反而觉得不过尔尔。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上了大学之后，我离家就远了，每年也就寒暑假两次机会，或者是工作之后的大小长假等机会能与家人聚聚。2012年的时候，爸妈跟爷爷奶奶到北京来玩，我们带爷爷奶奶到天安门、故宫、八达岭长城等经典景点故地重游（对，是重游，因为他们以前都去过了），尤其是爬传说中人满为患的长城上，他们俩所得到的回头率还是很高的，还记得当时在休息的时候，别人问爷爷有没有八十岁了，爷爷很自豪地说：“八十七了！”&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但那次北京之行我还是觉得挺感伤的，因为当爷爷在我前面上公交、脚步不稳差点往后倒的时候，我就知道，这也许是爷爷最后一次出远门了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;事实也差不多如此，2013年爷爷奶奶应该还参加了一次老干部旅行，但2014年奶奶就因为脑溢血从此生活不能自理，由于爸妈要在家照顾奶奶、爷爷又不能没人陪伴独自出行，因此，虽然后来我又到了杭州工作，但这次，爷爷奶奶没有机会再来一次“故地重游”了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;奶奶那次脑溢血有很多综合原因，其中有一个诱因可能是她跟爷爷由于一些小事吵了一架（奶奶的脾气比较火爆，时不时就会为一些鸡毛蒜皮的事情发爷爷的火）。虽然大家都劝说奶奶的发病与他无关，但我觉得爷爷还是会觉得很遗憾的吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;年老了的爷爷，耳朵越来越聋，脚步越来越慢，以前固执不愿意带助听器，后来即使带了也听不清楚了；以前看电视的时候为了让爷爷听得见，声音要开得很大，后来也不需要了，因为再大他也听不到，干脆调回正常音量，他看字幕好了；以前抗拒别人给他买拐杖，说“我能走，只是走得慢一点”，后来也必须要拄着拐杖才能上下楼梯了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;生命正在一点一滴地从爷爷身体上溜走，我看在眼里，但却无能为力。唯一可以做的，就是每次回家的时候，每天早上都陪他到他和奶奶以前常去的茶楼喝早茶，那个地方平常爸爸和叔叔们不会陪他去，因为离现在的家太远，而且也不够高档。爷爷说他想去那里是因为那里可能会碰到一些老朋友，而且我觉得可能也因为那里有他和奶奶每天喝茶的回忆吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;2017年3月26日，爷爷在早茶期间由于痰呛进了气管导致窒息，送院抢救后虽能靠仪器维持生命，但因缺氧造成的脑部损伤不可逆转，没有再醒过来，并于4月18日早上5点多的时候去世，享年92岁（虚岁）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天爷爷出山的时候，二婶上香时念道：“爷爷在天之灵保佑大家平平安安身体健康”。我在心里跟他说，爷爷你已经自由了，不用非要“保佑”我们，后人的事情后人自有办法，你就随着自己的想法，高兴就好，当然，如果你愿意的话，还可以多回来看看我。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;*** &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在很多年前，我就知道，每次离别的时候，都要好好地说再见，因为每一次再见，都可能是永别。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;爷爷，再见。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1719199121&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg/page_mp_article_improve_winwx31619e.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+                
+                
+                                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc&quot; id=&quot;js_preview_reward&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p id=&quot;js_preview_reward_wording&quot; class=&quot;tips_global reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_access&quot; id=&quot;js_preview_reward_link&quot; href=&quot;##&quot;&gt;赞赏&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+                                            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_primary tips_global meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                &lt;a id=&quot;js_report_article3&quot; style=&quot;display:none;&quot; class=&quot;media_tool_meta tips_global meta_extra&quot; href=&quot;##&quot;&gt;投诉&lt;/a&gt;
+
+            &lt;/div&gt;&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+                                
+            &lt;/div&gt;</description>
+<author></author>
+<guid isPermaLink="false">2017-04-20-1000000003</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+</channel>
+</rss>
