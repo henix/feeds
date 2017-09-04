@@ -9,7 +9,8 @@ cat <<EOF
 <ul>
 EOF
 for d in $(find . -maxdepth 1 -type d | sed -e 's|^./||' -e '/^\.\|\.git$/d' | sort) ; do
-	printf '<li><a href="%s/">%s</a></li>\n' "$d" "$d"
+	title=$(cut -f 1 "$d/index.meta")
+	printf '<li><a href="%s/">%s</a></li>\n' "$d" "$title"
 done
 cat <<EOF
 </ul>
