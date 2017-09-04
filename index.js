@@ -13,6 +13,7 @@ const feeds = [
 		"wxieshuo",
 		"yeka52",
 		"aloha-yaoyao",
+		"zhoudaobiji",
 		"gh_7d1aa4ada621",
 		"iamawguo",
 	]],
