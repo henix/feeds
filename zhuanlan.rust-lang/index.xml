@@ -5,7 +5,18 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 04 Sep 2017 16:25:38 +0800</lastBuildDate>
+<lastBuildDate>Wed, 06 Sep 2017 03:32:45 +0800</lastBuildDate>
+<item>
+<title>为什么我喜欢Rust</title>
+<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-09-05-29079046.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;为什么我喜欢Rust&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29079046&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;今天写了一个回答：&lt;a href=&quot;https://www.zhihu.com/question/64563945/answer/225704730&quot;&gt;F001：为什么要使用TypeScript？有哪些情景请简单介绍一下，或者来个例子?&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得这个回答也可以用来解释，为什么我喜欢Rust编程语言。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我感觉现在很多程序员并没有彻底接受这样的一个思想：产品设计既需要考虑如何方便好用，也需要考虑如何防止误用。大部分人过于强调方便好用的这一面，而忽略了防止误用的令一面。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不论是设计一个函数、类、框架、还是语言，都不仅要想到用户正常使用的时候是怎样的，还要想到哪些使用方式是有问题的，应该如何设计避免这些可能的误用。哪怕是枪械，也还要加个保险栓呢。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个思想，在绝大部分从业人员的大脑中都是薄弱的，哪怕是C/C++的标准库，都存在很多让人极易用错很难用对的设计，在很多编码规范中都要禁止使用这些功能，更不用说平均水平更低的普通开发者，能写出什么稀奇古怪的代码都不奇怪。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;作为一名源代码静态检查工具的开发者(Coverity)，我见过太多太多奇葩的C/C++用例，但是很遗憾的是编译器并没有阻止它们。Coverity的误报率和漏报率在行业内都算顶尖的，但是对某些问题，我们也无法保证百分百能检查出来。在C/C++里面，有些类别的错误，是没办法被“完整无遗漏”地检查出来的，这是C/C++的本质复杂性决定的，这个任务就是 mission impossible，我们能做的是尽最大可能覆盖尽可能多的用例。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust能够“保证”内存安全、保证线程安全，这是一个非常重要的能力，这不是因为Rust的静态检查用了什么特别的算法技术，而是因为他们作弊了，直接简化了被研究对象。从静态检查器的实现的角度来说，Rust比Coverity简单得多，但效果要更好。C/C++里面很多需要费了老劲检查的问题，在Rust中根本不存在。不存在的问题，当然不需要寻找解决方案。当然，这就是Rust设计组牛逼的地方。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>F001</author>
+<guid isPermaLink="false">2017-09-05-29079046</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>高阶类型 Higher Kinded Type</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-09-03-29021140.htm</link>
@@ -1140,37 +1151,6 @@ fn main() {
 &lt;/code&gt;&lt;p&gt;它的意思是这样的，对于非 Copy 类型，把实例从 Cell 中 get 出来是不正确的，因为这样的类型，只能 move 不能 copy，一旦发生了 move，那么 Cell 内部就存的是一个“未初始化”状态的值了，这样不安全。所以，新加的几个方法，都是为了处理这个问题而来的。replace 方法把 Cell 内部的值取出来，同时用参数传进去一个新的值替代原先的值。take 方法不携带参数，但它要求 Default 约束，它把 Cell 内部的值取出来，同时调用 default() 构造一个新的默认值，替代原来的值。&lt;/p&gt;&lt;p&gt;这样的设计，可以方便用户。因为有些时候，我们需要一个“具备内部可变性的非Copy类型”，同时这个类型很简单，用 RefCell 又显得太重量级，不好用，这种时候，换用 Cell 会更方便一点。&lt;/p&gt;&lt;p&gt;我看到这个设计之后，又去翻了一下源代码，感觉有点不对劲。在以前的 Cell 类型中，几乎所有的方法都有 Copy 约束，在做了上面这个扩展之后，以前的“Cell类型用于Copy类型”的推断不成立了。以前那些针对 PartialEq/PartialOrd 这种的实现没道理还是带 Copy 约束。于是，我兴冲冲地做了一个提交：&lt;a href=&quot;https://github.com/rust-lang/rust/pull/39715&quot;&gt;https://github.com/rust-lang/rust/pull/39715&lt;/a&gt;，将这些方法去掉 Copy 约束。结果，被一群人批评，alexcrichton 毫不犹豫地关掉了这个提交。&lt;/p&gt;&lt;p&gt;但是，我依然觉得这个类型的 API 设计有点问题，仔细观察之后，做了第二次尝试：&lt;a href=&quot;https://github.com/rust-lang/rust/pull/39716&quot;&gt;https://github.com/rust-lang/rust/pull/39716&lt;/a&gt;，为 Cell 类型添加一个 swap 方法。这个方法应该是安全的，它跟 replace take 的思路一样，都是把内部的数据取出来，然后通过参数传递一个合法的数据填充进去，它也可以不需要 Copy 约束。跟 std::mem::swap 相比，它不需要 &amp;amp;mut 型指针，因为这个类型本身是具备内部可变性的。这个方法按道理应该是有用的，而且是安全的。这一次，这个提交被通过了。&lt;/p&gt;&lt;p&gt;对于另外一批比较简单的方法，比如 as_ptr, get_mut, default 这些是否能放宽 Copy 的限制，我并不是特别确定，犹豫了一下没有做提交。结果被其它人果断抢先，RalfJung做了这个修复，并提交通过了。&lt;/p&gt;&lt;p&gt;做完这些之后，我又反过来去读了一下，这个 RFC 在合并之前的讨论。突然发现，其实像 swap 这样的方法，早就有人提出来，只是 RFC 作者忘记把它加入到最终文档中去罢了。还有像 PartialEq 之类的 trait 应该怎么处理的问题，半年前就有人提出来过。要是我在提交代码之前，多看看以前人家的讨论，就不会犯这样的错误了。在讨论中，有人提出了一个非常有用的场景。在构造某些数据结构的时候，需要一个内部可变的 Option&amp;lt;Rc&amp;lt;_&amp;gt;&amp;gt; 类型。对于这样的情况，用 Cell 比用 RefCell 简单轻量得多。aturon 和 nikomatsakis 也做了非常精彩的阐释。总而言之，从今以后，Cell 和 RefCell 之间的区别可以这么记忆：&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;如果你需要指向内部数据的引用，那么使用 RefCell，否则，使用 Cell。恰好，它们俩的名字也是刚好差一个Ref。&lt;/p&gt;&lt;/blockquote&gt;&lt;br&gt;&lt;p&gt;这个RFC只是一个非常小的并不那么重要的功能。Rust还有许多重量级的功能还在酝酿讨论之中，远没达到成熟的地步。各位对编程语言设计感兴趣的读者可以去观摩一下设计者都是怎么讨论问题的，许多疑难问题都可以在这里找到答案，还可以加入讨论提出自己的见解，影响设计走向。甚至可以自己写一个RFC提出自己的设计思路，或者动手去改编译器，用事实证明自己的设计。他们讨论的深度、广度、知识密度、友善度，不论干货水平还是表达能力，远远超过所有中文社区中能见到的内容。建议所有的有追求的Rust爱好者，多多参与这样的开源项目，贡献自己的力量。&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-02-19-25312066</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>答读者问：函数重载</title>
-<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-02-12-25197729.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;答读者问：函数重载&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25197729&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;有读者问问题：Rust有没有函数重载？&lt;br&gt;回答：没有。&lt;/p&gt;&lt;p&gt;本文结束。&lt;/p&gt;&lt;p&gt;－－－－－－－－－－－－－－－－－&lt;/p&gt;&lt;p&gt;开个玩笑。好，下面我们详细说一下重载(overloading)这个话题。&lt;/p&gt;&lt;p&gt;根据&lt;a href=&quot;http://Function%20overloading&quot;&gt;维基百科的定义&lt;/a&gt;，重载指的是：&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;function overloading or method overloading is the ability to create multiple methods of the same name with different implementations. &lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;C 语言是没有函数重载功能的，C++ 是有这个功能的。&lt;/p&gt;&lt;p&gt;在 C++ 中，一个非常常见的场景是，构造函数重载。比如说：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;std::vector&amp;lt;int&amp;gt; first;                                // empty vector of ints
-std::vector&amp;lt;int&amp;gt; second (4,100);                       // four ints with value 100
-std::vector&amp;lt;int&amp;gt; third (second.begin(),second.end());  // iterating through second
-std::vector&amp;lt;int&amp;gt; fourth (third);                       // a copy of third
-
-// the iterator constructor can also be used to construct from arrays:
-int myints[] = {16,2,77,29};
-std::vector&amp;lt;int&amp;gt; fifth (myints, myints + sizeof(myints) / sizeof(int) );
-&lt;/code&gt;&lt;p&gt;另外，参数类型的 const引用／非const引用，普通引用和右值引用等，都可以构成重载，来实现不同的语义。&lt;/p&gt;&lt;p&gt;所以C++中，每个函数调用，都不能简单的通过函数名字来判断，到底调用的是哪个函数，编译器需要根据使用的实际参数，找到那个最合理的匹配，这个叫 name resolution。函数重载会增加 name resolution 的复杂性。C++里面还有一些其它功能，把 name resolution 搞得更复杂。暂时能想到的相关的功能包括：名字遮蔽(name masking)，函数参数默认值，模板函数，参数隐式类型转换，不定长参数(variadic)，等等。当这些功能混杂到一起的时候，情况变得非常复杂。&lt;/p&gt;&lt;p&gt;Rust没有类似C++的这种函数重载功能，主要有几个方面的考虑。&lt;/p&gt;&lt;p&gt;一方面是因为复杂性。Rust的变量类型自动推理功能比C++强大得多，也复杂得多，这让函数重载更难实现。因为C++的逻辑是，通过函数的参数类型，来决定调用的函数。Rust中更常见的逻辑是，通过函数的类型，来推测参数的类型。如果在Rust中引入了函数重载功能，那么类型自动推导的难度将会成几何程度增加。&lt;/p&gt;&lt;p&gt;另一方面的原因是，函数重载这个功能并没有很大的必要性，这也是最根本的原因。Rust team 认为找不出什么场景，是其它功能完全无法做到的，非要函数重载不可的。&lt;/p&gt;&lt;p&gt;就拿上面这个C++构造函数重载的例子来说，Rust里面根本就没有构造函数这个概念，对象的构造就是通过各个成员直接赋值完成，如果要封装成函数，那么任何一个静态函数都可以完成这个功能，Rust中对应的可以生成Vec类型的函数有：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn new() -&amp;gt; Vec&amp;lt;T&amp;gt;;
-fn with_capacity(capacity: usize) -&amp;gt; Vec&amp;lt;T&amp;gt;;
-unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -&amp;gt; Vec&amp;lt;T&amp;gt;;
-&lt;/code&gt;&lt;p&gt;另外还有一堆的泛型 trait，比如 Default Into From Iterator::collect 等等，它们都可以生成新的 Vec 实例，在很多情况下都可以算作“构造器”。对于这种场景，强制要求所有函数名字都是一样的，并没有太大意义。不同的参数类型，执行的是不同的逻辑，取不同的名字，更具有可读性。&lt;/p&gt;&lt;p&gt;还有一种场景，对于不同参数类型，它们内部的逻辑是高度一致的，这种情况下，用同一个函数名，接受不同的参数类型，不仅恰当，而且更简洁。对于这种场景，Rust可以用泛型来实现。比如说，内置字符串类型，有一个 contains 方法，这个方法，就可以接受许多不同的参数类型：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn main() {
-    let s = &quot;hello&quot;;
-    s.contains(&quot;h&quot;);
-    s.contains(&#39;a&#39;);
-    s.contains(&amp;amp;[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;] as &amp;amp;[char]);
-    s.contains(| c: char | c.is_lowercase());
-}
-&lt;/code&gt;&lt;p&gt;这是因为 contains 方法接收的参数类型是一个泛型参数，它只要满足 Pattern 这个 trait 即可。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn contains&amp;lt;&#39;a, P&amp;gt;(&amp;amp;&#39;a self, pat: P) -&amp;gt; bool 
-    where P: Pattern&amp;lt;&#39;a&amp;gt;
-&lt;/code&gt;&lt;p&gt;我们可以为希望支持的参数类型，实现这个 trait，那么这个类型就可以被用到这个函数的参数中了。&lt;/p&gt;&lt;p&gt;从实现细节角度来说，泛型函数不等于重载。但从目的上来说，跟重载达到的目的一模一样。而且，这个做法比 C++ 那种 ad hoc 式的重载更有利于提高代码质量。C++ 对函数重载是没有任何检查规范的，用户可以为完全不同的逻辑起相同的函数名字，这个功能很容易滥用，很可能造成可读性的降低。Rust 的这种做法，实际上强制要求了不同参数类型，必须能够用一个 trait 将它们统一抽象，而函数体内部无需关心不同参数类型的区别，而只需针对这个统一抽象来写逻辑，逻辑一定是高度一致的。如果你做不到这一点，那么就说明这两组参数类型，对应的逻辑区别相当大，那么它们理应对应不同的函数名字，它们有权利为自己取不同的名字。&lt;/p&gt;&lt;p&gt;除此之外，C++中还有一些使用重载的场景，在Rust中也是可以通过其它功能替代的。比如，使用 Builder 模式，取代非常复杂的构造函数重载，参见 std::thread::Builder。再比如，使用 Option 类型描述可选参数，使用 Option::unwrap_or 函数实现参数默认值，等等。&lt;/p&gt;&lt;p&gt;总之，函数重载是一个开发代价非常大，而收益几乎等于0(甚至小于0)的一个功能。Rust现在不会，将来也不会加入ad hoc式的函数重载功能，这已经是整个社区的共识。&lt;/p&gt;&lt;br&gt;​</description>
-<author>F001</author>
-<guid isPermaLink="false">2017-02-12-25197729</guid>
 <pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
