@@ -5,14 +5,115 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Sep 2017 00:20:25 +0800</lastBuildDate>
+<lastBuildDate>Fri, 08 Sep 2017 00:36:15 +0800</lastBuildDate>
 <item>
 <title>如何编译函数闭包</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-04-28787934.htm</link>
 <description>&lt;meta charset=&quot;utf-8&quot;&gt;
 &lt;title&gt;如何编译函数闭包&lt;/title&gt;
 &lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28787934&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-</description>
+&lt;blockquote&gt;&lt;b&gt;闭包&lt;/b&gt;（英语：Closure），又称&lt;b&gt;词法闭包&lt;/b&gt;（Lexical Closure）或&lt;b&gt;函数闭包&lt;/b&gt;（function closures），是引用了自由变量的函数。这个被引用的自由变量将和这个函数一同存在，即使已经离开了创造它的环境也不例外。所以，有另一种说法认为闭包是由函数和与其相关的引用环境组合而成的实体。闭包在运行时可以有多个实例，不同的引用环境和相同的函数组合可以产生不同的实例。&lt;/blockquote&gt;&lt;p&gt;想要实现一个同时支持词法作用域与 first-class function 的编程语言，一个重要的转换就是所谓的 lambda-lifting：把嵌套函数定义（包括匿名函数）转换为独立的全局函数定义；把自由变量的引用转换为参数传递。&lt;/p&gt;&lt;p&gt;P.S.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;代码有省略&lt;/li&gt;&lt;li&gt;出于简化的目的，这里只考虑了最简单的情况，并且没有做任何有效性的检查，假设了表达式中出现的变量全都是定义过的。&lt;/li&gt;&lt;li&gt;同样是为了简化，这里不考虑类型。涉及到类型的情况下，需要在函数定义处保存自由变量的类型信息；这样视需求可能又要在转换过程中维护一个变量环境表来查找变量的类型。这里不累述，具体可以参考后附的一个简单的 OCaml 子集实现的源码。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;函数定义&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这里首先定义一个简单的语言表示&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} exp\ ::=\ &amp;amp;Lam(id,exp)\\ &amp;amp;App(exp,exp)\\ &amp;amp;Let(id,exp,exp)\\ &amp;amp;Var(id) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个语言类似于 untyped lambda calculus，有 lambda、apply 语句，只是多了一个 let 语句用于绑定一个变量。一般语言中的一些表达式形式（如 binary operator）一般则可以看作是 apply 的特殊形式。&lt;/p&gt;&lt;p&gt;用 Rust 代码写出来大概是这样&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Exp {
+    /// Lambda 抽象，参数名 -&amp;gt; 函数体
+    Abs(Id, Box&amp;lt;Exp&amp;gt;),
+    /// Let 定义，let 变量名 = 变量值 in 表达式
+    Let(Id, Box&amp;lt;Exp&amp;gt;, Box&amp;lt;Exp&amp;gt;),
+    /// 函数应用，变量名(参数)
+    App(Box&amp;lt;Exp&amp;gt;, Box&amp;lt;Exp&amp;gt;),
+    Var(Id),
+}&lt;/code&gt;&lt;p&gt;我们要做的事情是提取出一个匿名函数定义（lambda）中的自由变量，把匿名函数定义转换为全局函数定义，并将函数定义入口和自由变量列表打包成一个实体（即所谓闭包），替换原来的 lambda 节点。&lt;/p&gt;&lt;p&gt;这样，转换之后的 AST 中没有了 lambda 节点，取而代之的是类似 let 节点的闭包 closure 定义节点。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} term\ ::= \ &amp;amp;Cls(id,cls,term)\\ &amp;amp;App(term,term)\\ &amp;amp;Let(id,term,term)\\ &amp;amp;Var(id) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Term {
+    Cls(Id, Box&amp;lt;Cls&amp;gt;, Box&amp;lt;Term&amp;gt;),
+    App(Box&amp;lt;Term&amp;gt;, Box&amp;lt;Term&amp;gt;),
+    Let(Id, Box&amp;lt;Term&amp;gt;, Box&amp;lt;Term&amp;gt;),
+    Var(Id),
+}&lt;/code&gt;&lt;p&gt;闭包实体 Cls 中需要保存全局函数定义的入口和当前环境中自由变量的列表。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;cls\ ::=\ (label,(fv_1,fv_2,...,fv_n))&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Cls {
+    label: Id,
+    fvs: Vec&amp;lt;Id&amp;gt;,
+}&lt;/code&gt;&lt;p&gt;由于需要保持自由变量的信息，全局函数定义需要保存一个自由变量的列表。&lt;/p&gt;&lt;p&gt;这样我们有了全局函数定义的表示——入口 label，参数名，函数体，自由变量列表&lt;/p&gt;&lt;p&gt;&lt;equation&gt;fundef\ ::=\ fun(label,id,exp,(fv_1,fv_2,...,fv_n))&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Fundef {
+    pub label: Id,
+    pub param: Id,
+    pub body: Term,
+    pub fvs: Vec&amp;lt;Id&amp;gt;,
+}&lt;/code&gt;&lt;h2&gt;&lt;b&gt;自由变量的提取&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;自由变量的提取规则其实就是把变量加入符号表（环境）的逆过程。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;变量表达式（Var）的自由变量就是变量自己；&lt;/li&gt;&lt;li&gt;函数应用（Apply）的自由变量是 callee 的自由变量和参数的自由变量取并集；&lt;/li&gt;&lt;li&gt;Let 节点和 Cls 节点定义的变量，从其后继表达式的自由变量中剔除，然后与初始化值表达式的自由变量合并。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;即&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} fv(Var(v))&amp;amp;=\{v\}\\ fv(App(callee,arg))&amp;amp;=fv(callee) \ \cup \ fv(arg)\\ fv(Let(v,val,exp))&amp;amp;=(fv(exp)\ -\ \{v\}) \ \cup\ fv(val) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;最后，作为一个整体的函数定义，其参数要从自由变量中剔除。这个可以留到之后的转换过程中实现。&lt;/p&gt;&lt;p&gt;在 rust 中同样可以直截了当的实现。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn fv(&amp;amp;mut self, source: &amp;amp;Term) -&amp;gt; HashSet&amp;lt;Id&amp;gt; {
+    use self::Term::*;
+    match source {
+        &amp;amp;App(box ref callee, box ref body) =&amp;gt; {
+            let mut ret = fv(body);
+            ret.extend(fv(callee));
+            ret
+        }
+        &amp;amp;Let(ref var, box ref val, box ref body) =&amp;gt; {
+            let mut ret = fv(body);
+            ret.remove(var);
+            ret.extend(fv(val));
+            ret
+        }
+        &amp;amp;Cls(ref var, box ref cls, box ref body) =&amp;gt; {
+            let mut ret = cls.fv();
+            ret.extend(fv(body));
+            ret.remove(var);
+        }
+        &amp;amp;Var(v) =&amp;gt; HashSet::new(v)
+    }
+}
+impl Cls {
+    pub fn fv(&amp;amp;self) -&amp;gt; HashSet&amp;lt;Id&amp;gt; {
+        self.fvs.clone()
+    }
+}&lt;/code&gt;&lt;h2&gt;&lt;b&gt;函数闭包转化&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;显然，为了实现 lambda 到全局定义的转换，我们需要保持一个全局定义表。为了之后方便的生成函数名和临时变量名之类可能还需要一个生成器，这里省略。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Conversion {
+    global: HashMap&amp;lt;Id, Fundef&amp;gt;,
+}&lt;/code&gt;&lt;p&gt;综上所述，很容易写出转换过程。我们定义的 cls 节点有着类似与 let 的语义；当 lambda 单独出现时，这里直接将其转换成一个单独的定义了一个临时变量的 cls 子表达式（类似于嵌套 let）。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;impl Conversion {
+    fn define(&amp;amp;mut self, fun: Fundef) {
+        self.global.insert(fun.label.clone(), fun);
+    }
+    fn cvrt_cls(&amp;amp;mut self, param: Id, body: Exp) -&amp;gt; (Id, Vec&amp;lt;Id&amp;gt;) {
+        let cls_name = self.gen_cls_name();
+        let body = self.go(_body);
+        let fvs = {
+            let _fvs = self.fv(&amp;amp;body);
+            _fvs.remove(param);
+            _fvs.into_iter().collect()
+        };
+        self.define(Fundef {
+            label: cls_name.clone(),
+            param,
+            body,
+            fvs.clone()
+        });
+        (cls_name, fvs)
+    }
+    pub fn go(&amp;amp;mut self, exp: Exp) -&amp;gt; Term {
+        use self::Exp::*;
+        match exp {
+            Abs(param, box _body) =&amp;gt; {
+                let (cls_name, fvs) = self.cvrt_cls(param, _body);
+                let tmp_var = self.gen_tmp_name();
+                Term::Cls(tmp_var, Cls {
+                    label: cls_name,
+                    fvs
+                }, Term::Var(tmp_var))
+            }
+            Let(var, box _val, box _body) =&amp;gt; {
+                let body = self.go(_body);
+                if let Abs(param, box _body) = _val {
+                    let (cls_name, fvs) = self.cvrt_cls(param, _body);
+                    Term::Cls(var, Cls {
+                        label: cls_name,
+                        fvs
+                    }, body)
+                } else {
+                    let val = self.go(_val);
+                    Term::Let(var, box val, box body)
+                }
+            }
+            App(box _callee, box _arg) =&amp;gt; {
+                let callee = self.go(_callee);
+                let arg = self.go(_arg);
+                Term::App(callee, arg)
+            }
+            Var(v) =&amp;gt; Term::Var(v)
+        }
+    }
+}&lt;/code&gt;&lt;p&gt;这里对于 let 绑定 lambda 的处理是不把绑定的变量名剔除出自由变量。由于这里的 let 语义默认是不允许递归绑定的，而 lambda 很多时候有递归的需求，所以这里使用了灵活的办法：把lambda 自己的名称作为自由变量传进去。这样便可以通过后续代码生成的顺序控制能否递归：如果在完成函数名的绑定前先完成自由变量的绑定，便不允许递归，否则允许递归。&lt;/p&gt;&lt;p&gt;这样便完成了闭包转换的过程。后续便可以使用常规的编译技术生成所有的全局函数定义。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/esumii/min-caml&quot;&gt;min-caml&lt;/a&gt; &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://jeapostrophe.github.io/courses/2017/spring/406/notes/book.pdf&quot;&gt;Essentials of Compilation&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://matt.might.net/articles/closure-conversion/&quot;&gt;Closure conversion: How to compile lambda&lt;/a&gt;&lt;/p&gt;</description>
 <author>nameoverflow</author>
 <guid isPermaLink="false">2017-09-04-28787934</guid>
 <pubDate>Mon, 04 Sep 2017 00:00:00 +0800</pubDate>
