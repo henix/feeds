@@ -28,6 +28,7 @@ const feeds = [
 	["Security", [
 		"WeiranCrypto",
 		"fhe-blockchain",
+		"c_123166696",
 		"twosecurity",
 		"freebuf",
 		"drops",
