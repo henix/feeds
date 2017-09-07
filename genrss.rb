@@ -42,7 +42,7 @@ buf = %{<?xml version="1.0" encoding="utf-8"?>
 <description>#{e(IO.read(filename))}</description>
 <author>#{e(t[:author])}</author>
 <guid isPermaLink="false">#{e(guid)}</guid>
-<pubDate>#{e(Time.new(t[:date]).rfc822)}</pubDate>
+<pubDate>#{e(Time.parse(t[:date]).rfc822)}</pubDate>
 </item>
 }
 	}.join +
