@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 06 Sep 2017 03:32:45 +0800</lastBuildDate>
+<lastBuildDate>Thu, 07 Sep 2017 23:08:48 +0800</lastBuildDate>
 <item>
 <title>为什么我喜欢Rust</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-09-05-29079046.htm</link>
@@ -15,7 +15,7 @@
 &lt;p&gt;今天写了一个回答：&lt;a href=&quot;https://www.zhihu.com/question/64563945/answer/225704730&quot;&gt;F001：为什么要使用TypeScript？有哪些情景请简单介绍一下，或者来个例子?&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得这个回答也可以用来解释，为什么我喜欢Rust编程语言。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我感觉现在很多程序员并没有彻底接受这样的一个思想：产品设计既需要考虑如何方便好用，也需要考虑如何防止误用。大部分人过于强调方便好用的这一面，而忽略了防止误用的令一面。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不论是设计一个函数、类、框架、还是语言，都不仅要想到用户正常使用的时候是怎样的，还要想到哪些使用方式是有问题的，应该如何设计避免这些可能的误用。哪怕是枪械，也还要加个保险栓呢。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个思想，在绝大部分从业人员的大脑中都是薄弱的，哪怕是C/C++的标准库，都存在很多让人极易用错很难用对的设计，在很多编码规范中都要禁止使用这些功能，更不用说平均水平更低的普通开发者，能写出什么稀奇古怪的代码都不奇怪。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;作为一名源代码静态检查工具的开发者(Coverity)，我见过太多太多奇葩的C/C++用例，但是很遗憾的是编译器并没有阻止它们。Coverity的误报率和漏报率在行业内都算顶尖的，但是对某些问题，我们也无法保证百分百能检查出来。在C/C++里面，有些类别的错误，是没办法被“完整无遗漏”地检查出来的，这是C/C++的本质复杂性决定的，这个任务就是 mission impossible，我们能做的是尽最大可能覆盖尽可能多的用例。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust能够“保证”内存安全、保证线程安全，这是一个非常重要的能力，这不是因为Rust的静态检查用了什么特别的算法技术，而是因为他们作弊了，直接简化了被研究对象。从静态检查器的实现的角度来说，Rust比Coverity简单得多，但效果要更好。C/C++里面很多需要费了老劲检查的问题，在Rust中根本不存在。不存在的问题，当然不需要寻找解决方案。当然，这就是Rust设计组牛逼的地方。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-09-05-29079046</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Tue, 05 Sep 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>高阶类型 Higher Kinded Type</title>
@@ -181,7 +181,7 @@ impl CollectionFamily for ListFamily {
 }&lt;/code&gt;&lt;p&gt;上面这个设计圆满了，它满足了我们所有的需求。注意上面我们用到了针对 ATC 的约束：type Member&amp;lt;T&amp;gt;: Collection&amp;lt;T, Family = Self&amp;gt;;，它代表的真实含义实际上是：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;for&amp;lt;T&amp;gt; Self::Member&amp;lt;T&amp;gt;: Collection&amp;lt;T, Family = Self&amp;gt;;&lt;/code&gt;&lt;p&gt;所以，我们也同时做到了针对高阶类型的约束。ATC 这个设计，语法改动小，基本是现有语法的一个自然延伸，而且可以完成高阶类型的功能，非常契合Rust当前的状态，相比而言，直接支持高阶类型语法不是一个好的选择。&lt;/p&gt;&lt;p&gt;目前，Rust编译器里面关于trait的逻辑很乱，还有一些难以修复的bug。因此，niko开了一个新项目 &lt;a href=&quot;https://github.com/nikomatsakis/chalk&quot;&gt;https://github.com/nikomatsakis/chalk&lt;/a&gt;，重写整个trait系统。在这个新的架构下，ATC功能基本是水到渠成顺手就做了的事情。所以，只要等 chalk 什么时候合并到正式编译器里面，用户就可以使用这个功能了，目测2017年有点悬，2018年肯定能实现。&lt;/p&gt;&lt;p&gt;高阶类型的出现，很可能可以解锁一些以前难以实现的问题，这还需要社区做更多的探索。比如，最近就有人提到，Generator 生成器最好是基于ATC来实现，否则有些场景下会出现编译错误，限制用户的发挥，参考 &lt;a href=&quot;https://internals.rust-lang.org/t/streaming-generators/5850&quot;&gt;https://internals.rust-lang.org/t/streaming-generators/5850&lt;/a&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;很长一段时间以来，编程语言界出现了一大批换汤不换药的新语言，它们基本上都在朝一个方向努力，即降低开发难度。Rust偏偏剑走偏锋，主打底层和安全，是一个非常精明的举措。细看Rust的设计，其实也没有什么是独特的创新的，不论语法、安全、抽象、优化等等各方面，都有前人有过充分的研究和探讨。但是Rust设计组把它们组合起来，却进入了一个全新的境界，这应该是第一个把底层控制力、安全性、高级抽象能力各方面做得最平衡的一门语言。既面向底层，又有高级类型系统，恰好市面上没有竞争对手。&lt;/p&gt;&lt;p&gt;随着接下来 const generic 等 RFC 陆续设计完成，Rust在类型系统上的能力还会大幅提高。既要有高阶抽象能力，又要高性能，看起来并不是不可能完成的任务，不是么？或许在这个领域内，以后还会有其它更优秀的语言出现，但这没关系，方向已经指明，前途已经明朗，基础已经铺就，Rust证明了安全性、高级抽象能力、底层控制力，并非水火不相容。&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-09-03-29021140</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Sun, 03 Sep 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>协程 Coroutine</title>
@@ -359,7 +359,7 @@ fn print_lines() -&amp;gt; io::Result&amp;lt;()&amp;gt; {
 }&lt;/code&gt;&lt;p&gt;Future 可以用各种 adapter 不断组合起来，一样可以实现同样的功能。但是跟上文中的对比一样，这么写跟 async/await 的区别，就跟手写 Iterator 和 Generator 之间的区别一样。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果顺利的话，这个 feature 可能在一两周之内就能在 nightly 版本上让大家试用了，这个功能应该可以大幅提高Rust异步编程的用户友好度，对于Rust在服务器端的推广有重大意义。我们非常期望能看到Rust编写的网络服务与其它竞争对手之间的详细的性能对比。再加上Rust与生俱来的接近C语言的高性能特点，这应该是工业界中无GC的编程语言的coroutine的最佳实现之一。相比之下，C++的 coroutine 早在几年前就有提案，但是进展嘛，一声叹息。另外，coroutine 还有一种 stackful 风格的实现方式(比如Go语言)，stackless vs stackful的对比也相当令人关注。&lt;/p&gt;&lt;p&gt;相信在半年之内就会有相当多的实践数据出现。Rust 设计组也非常希望能推动这个功能在 2018 年初的时候进入稳定版，这个功能为Rust在服务器领域的优质框架打下了坚实基础，对Rust在工业界的实际应用推广有重大意义。&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-07-15-27900879</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Sat, 15 Jul 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Rust真难啊</title>
@@ -457,7 +457,7 @@ unsafe impl&amp;lt;T: ?Sized + Send&amp;gt; Sync for Mutex&amp;lt;T&amp;gt; { }
 &lt;/code&gt;&lt;p&gt;除此之外，这个 bug 也提醒我们，auto trait 的设计并不完美，它本该在一开始就不应该对 MutexGuard 这样的类型“自动” impl Sync。关于这方面的进一步的讨论，可以参见： &lt;a href=&quot;https://internals.rust-lang.org/t/unsafe-types-and-auto-traits/5385&quot; data-editable=&quot;true&quot; data-title=&quot;Unsafe types and auto traits&quot;&gt;Unsafe types and auto traits&lt;/a&gt; &lt;a href=&quot;https://internals.rust-lang.org/t/changing-the-impl-trait-for-syntax/3891&quot; data-editable=&quot;true&quot; data-title=&quot;Changing the `impl Trait for .. { }` syntax&quot;&gt;Changing the `impl Trait for .. { }` syntax&lt;/a&gt;&lt;/p&gt;&lt;p&gt;这是一个Rust特有的bug。在C/C++中是不存在这样的问题的。在C/C++中，没有哪个库会给用户提供“内存安全”或者“线程安全”之类的保证，所有这些问题是靠文档来保证的，编译器或者静态检查工具永远只能检查出其中一小部分问题。用户可以轻松触发此类问题，而编译器和标准库的作者不必对此负责。Rust做出了这样的保证，编译器和标准库的作者身上的责任要远大于C/C++中的同等角色。&lt;/p&gt;&lt;p&gt;同时，这也提醒我们，以Rust的代码质量标准，写出完全正确的 unsafe 代码是多么困难的一件事情。&lt;/p&gt;&lt;p&gt;这个bug之所以这么久都没人发现，主要是由于这样的写法在实践中没人真正这么用，因此它的实际影响很小。这个bug的发现者是一个专门研究编程语言的专家，他正在做的一个研究项目是&lt;a href=&quot;https://www.ralfj.de/blog/2015/10/12/formalizing-rust.html&quot; data-editable=&quot;true&quot; data-title=&quot;Rust类型系统形式化&quot;&gt;Rust类型系统形式化&lt;/a&gt;。本文也是参考他的这篇博客写成：&lt;a href=&quot;https://www.ralfj.de/blog/2017/06/09/mutexguard-sync.html&quot; data-editable=&quot;true&quot; data-title=&quot;How MutexGuard was Sync When It Should Not Have Been&quot;&gt;How MutexGuard was Sync When It Should Not Have Been&lt;/a&gt;。&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-06-17-27438530</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Sat, 17 Jun 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Rust 妙用：（一）增补标准库和统一错误</title>
@@ -605,7 +605,7 @@ fn main() {
 }&lt;/code&gt;&lt;p&gt;基本上对原代码破坏很小就实现了错误类型的统一。&lt;br&gt;&lt;br&gt;&lt;br&gt;以上。&lt;/p&gt;</description>
 <author>赵雪松</author>
 <guid isPermaLink="false">2017-05-26-27102546</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Fri, 26 May 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Rust 开发环境指北</title>
@@ -636,7 +636,7 @@ proxy = &quot;[socks5://]server:&amp;lt;port&amp;gt;&quot;&lt;/code&gt;&lt;p&gt;
 &lt;/code&gt;</description>
 <author>酿泉</author>
 <guid isPermaLink="false">2017-05-17-26944087</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Wed, 17 May 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>RFC导读：impl trait</title>
@@ -729,7 +729,7 @@ fn give_iter() -&amp;gt; Box&amp;lt;Iterator&amp;gt;
 &lt;/code&gt;&lt;p&gt;先不论这种写法是否可行，单说这个复杂度，就已经完全失去了这个 impl Trait 功能的意义了。所以，什么时候该用这个功能，什么时候不该用，应该仔细衡量一下。&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-04-22-26516100</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Sat, 22 Apr 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Rust 错误处理</title>
@@ -989,7 +989,7 @@ where T: Carrier&amp;lt;Success=Self::Success, Error=Self::Error&amp;gt;
 &lt;/code&gt;&lt;p&gt;Try trait 只允许语义上相同的类型通过问号语法糖进行转换，比如 Result&amp;lt;T, E&amp;gt; 和 Result&amp;lt;U, F&amp;gt;，而不允许 Result&amp;lt;T, E&amp;gt; 和 Option&amp;lt;T&amp;gt; 之间转，所以类型推断实现起来相对容易些。&lt;/p&gt;&lt;p&gt;由于这个 RFC 尚未合并，这里就不展开讲了，感兴趣的读者可以自己去读读&lt;a href=&quot;https://github.com/nikomatsakis/rfcs/blob/try-trait/text/0000-try-trait.md&quot; data-editable=&quot;true&quot; data-title=&quot;try-trait RFC&quot; class=&quot;&quot;&gt; try-trait RFC&lt;/a&gt; 和&lt;a href=&quot;https://github.com/rust-lang/rfcs/pull/1859&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;相关的讨论&quot;&gt;相关的讨论&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外 try/throw 的错误处理机制虽然在 RFC 243 里面提到了，不过官方已经放弃引入了。而上面提到的 catch 实际上只是用来将把问号的返回值在函数内部处理掉，如果外层函数的返回值不是 Result 类型，而函数内部又用到了问号语法糖，就会出现类型不匹配的错误， catch 的作用就是把含有问号的表达式或语句框住并处理掉，从而不让 Result 蔓延。&lt;/p&gt;</description>
 <author>tennix</author>
 <guid isPermaLink="false">2017-03-03-25506762</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Fri, 03 Mar 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Non Lexical Lifetime</title>
@@ -1121,7 +1121,7 @@ fn main() {
 &lt;/code&gt;&lt;p&gt;另外，需要强调的是，这个改进只会影响“引用”的生命周期，不影响对象的生命周期。也就是说，对于携带有析构函数的对象，析构函数的调用永远是当前 scope 结束的时候调用，同一个 scope 中，先声明的后调用。绝对不能在对象不被继续使用之后，就认为它失去了“活性”，从而提前调用析构函数。如果这么做的话，将会使 RAII 手法彻底失去意义。&lt;/p&gt;&lt;p&gt;当然，这样的改进对于某些初学者来说，可能更加难以理解了。但是不要紧，已经有人在努力提供更好的开发工具，让大家对生命周期的理解更加直观，更加深刻。基本想法就是，在 Rust Language Service 中，把各个对象的生命周期分析结果也暴露出来，让编辑器把生命周期范围显示出来。就像常用的代码自动提示一样，在开发过程中，哪个变量的生命周期在哪个范围内，一目了然。参考 &lt;a href=&quot;https://internals.rust-lang.org/t/borrow-visualizer-for-the-rust-language-service/4187&quot; data-editable=&quot;true&quot; data-title=&quot;Borrow visualizer for the Rust Language Service&quot; class=&quot;&quot;&gt;Borrow visualizer for the Rust Language Service&lt;/a&gt;&lt;/p&gt;&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0d2e56f6af76582af8fd0680116b69f2.png_r.jpg&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;431&quot;&gt;&lt;br&gt;&lt;p&gt;最后，关于 Non Lexical Lifetime 的小结：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;这个功能只影响静态分析结果，不影响程序的执行情况。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;以前能编译通过的程序，以后依然会编译通过，不会影响以前的代码。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;它依然保证了安全性，只是将以前过于保守的检查规则适当放宽。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;它依赖的依然是静态检查规则，不会涉及任何动态检查规则。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;它只影响“引用类型”的生命周期，不影响“对象”的生命周期，即维持现有的析构函数调用时机不变。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-02-25-25429005</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Sat, 25 Feb 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>RFC导读：MoveCell</title>
@@ -1151,7 +1151,7 @@ fn main() {
 &lt;/code&gt;&lt;p&gt;它的意思是这样的，对于非 Copy 类型，把实例从 Cell 中 get 出来是不正确的，因为这样的类型，只能 move 不能 copy，一旦发生了 move，那么 Cell 内部就存的是一个“未初始化”状态的值了，这样不安全。所以，新加的几个方法，都是为了处理这个问题而来的。replace 方法把 Cell 内部的值取出来，同时用参数传进去一个新的值替代原先的值。take 方法不携带参数，但它要求 Default 约束，它把 Cell 内部的值取出来，同时调用 default() 构造一个新的默认值，替代原来的值。&lt;/p&gt;&lt;p&gt;这样的设计，可以方便用户。因为有些时候，我们需要一个“具备内部可变性的非Copy类型”，同时这个类型很简单，用 RefCell 又显得太重量级，不好用，这种时候，换用 Cell 会更方便一点。&lt;/p&gt;&lt;p&gt;我看到这个设计之后，又去翻了一下源代码，感觉有点不对劲。在以前的 Cell 类型中，几乎所有的方法都有 Copy 约束，在做了上面这个扩展之后，以前的“Cell类型用于Copy类型”的推断不成立了。以前那些针对 PartialEq/PartialOrd 这种的实现没道理还是带 Copy 约束。于是，我兴冲冲地做了一个提交：&lt;a href=&quot;https://github.com/rust-lang/rust/pull/39715&quot;&gt;https://github.com/rust-lang/rust/pull/39715&lt;/a&gt;，将这些方法去掉 Copy 约束。结果，被一群人批评，alexcrichton 毫不犹豫地关掉了这个提交。&lt;/p&gt;&lt;p&gt;但是，我依然觉得这个类型的 API 设计有点问题，仔细观察之后，做了第二次尝试：&lt;a href=&quot;https://github.com/rust-lang/rust/pull/39716&quot;&gt;https://github.com/rust-lang/rust/pull/39716&lt;/a&gt;，为 Cell 类型添加一个 swap 方法。这个方法应该是安全的，它跟 replace take 的思路一样，都是把内部的数据取出来，然后通过参数传递一个合法的数据填充进去，它也可以不需要 Copy 约束。跟 std::mem::swap 相比，它不需要 &amp;amp;mut 型指针，因为这个类型本身是具备内部可变性的。这个方法按道理应该是有用的，而且是安全的。这一次，这个提交被通过了。&lt;/p&gt;&lt;p&gt;对于另外一批比较简单的方法，比如 as_ptr, get_mut, default 这些是否能放宽 Copy 的限制，我并不是特别确定，犹豫了一下没有做提交。结果被其它人果断抢先，RalfJung做了这个修复，并提交通过了。&lt;/p&gt;&lt;p&gt;做完这些之后，我又反过来去读了一下，这个 RFC 在合并之前的讨论。突然发现，其实像 swap 这样的方法，早就有人提出来，只是 RFC 作者忘记把它加入到最终文档中去罢了。还有像 PartialEq 之类的 trait 应该怎么处理的问题，半年前就有人提出来过。要是我在提交代码之前，多看看以前人家的讨论，就不会犯这样的错误了。在讨论中，有人提出了一个非常有用的场景。在构造某些数据结构的时候，需要一个内部可变的 Option&amp;lt;Rc&amp;lt;_&amp;gt;&amp;gt; 类型。对于这样的情况，用 Cell 比用 RefCell 简单轻量得多。aturon 和 nikomatsakis 也做了非常精彩的阐释。总而言之，从今以后，Cell 和 RefCell 之间的区别可以这么记忆：&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;如果你需要指向内部数据的引用，那么使用 RefCell，否则，使用 Cell。恰好，它们俩的名字也是刚好差一个Ref。&lt;/p&gt;&lt;/blockquote&gt;&lt;br&gt;&lt;p&gt;这个RFC只是一个非常小的并不那么重要的功能。Rust还有许多重量级的功能还在酝酿讨论之中，远没达到成熟的地步。各位对编程语言设计感兴趣的读者可以去观摩一下设计者都是怎么讨论问题的，许多疑难问题都可以在这里找到答案，还可以加入讨论提出自己的见解，影响设计走向。甚至可以自己写一个RFC提出自己的设计思路，或者动手去改编译器，用事实证明自己的设计。他们讨论的深度、广度、知识密度、友善度，不论干货水平还是表达能力，远远超过所有中文社区中能见到的内容。建议所有的有追求的Rust爱好者，多多参与这样的开源项目，贡献自己的力量。&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-02-19-25312066</guid>
-<pubDate>Sun, 01 Jan 2017 00:00:00 +0800</pubDate>
+<pubDate>Sun, 19 Feb 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
