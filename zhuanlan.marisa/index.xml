@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Sep 2017 00:36:15 +0800</lastBuildDate>
+<lastBuildDate>Fri, 08 Sep 2017 11:52:11 +0800</lastBuildDate>
 <item>
 <title>如何编译函数闭包</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-04-28787934.htm</link>
@@ -251,6 +251,44 @@ lis.py&amp;gt; &lt;/code&gt;&lt;p&gt;这一章中，我们实现了一个简单�
 <author>李愚</author>
 <guid isPermaLink="false">2017-09-01-28989326</guid>
 <pubDate>Fri, 01 Sep 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Continuation 与 Monad</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-28-28860343.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Continuation 与 Monad&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28860343&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;&lt;b&gt;结构&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Monad 与 Continuation 都用于表示计算。用两个例子可以看到它们的结构非常相似：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;foo :: Maybe Int
+foo =
+    Just 5 &amp;gt;&amp;gt;= \x -&amp;gt;
+    Just 4 &amp;gt;&amp;gt;= \y -&amp;gt;
+    return $ x + y
+add :: Int -&amp;gt; Int -&amp;gt; (Int -&amp;gt; Int) -&amp;gt; Int
+add x y k = k (x + y)
+
+bar :: Int
+bar =
+    add 1 2 $ \x -&amp;gt;
+    add x 4 $ \y -&amp;gt;
+    y&lt;/code&gt;&lt;p&gt;两者都有类似于 bind 的操作：Monad 中，&amp;gt;&amp;gt;= 用于将 context 中的值绑定到另一个函数的参数；而 CPS 里，函数主动将当前计算的结果传递给 continuation。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Monad of continuation&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;看到结构上的相似性之后我们可以尝试定义与 continuation 有关的 monad。出于历史原因，大多数文章都用 Scheme 介绍 continuation，而在 Haskell 这样的静态类型语言中 continuation 需要被赋予类型。显然，continuation 可以简单地表示为函数：a -&amp;gt; Answer 代表接受 a 类型的值的 continuation，而 Answer 则是计算的最终结果的类型。而 Haskell 定义的 Cont monad 形式如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Cont r a = Cont { runCont :: (a -&amp;gt; r) -&amp;gt; r }&lt;/code&gt;&lt;p&gt;Cont r a 代表一个 CPS 计算，其中 a -&amp;gt; r 表示一个 continuation， r 表示最终结果的类型（即 continuation 返回的类型），而 a 表示该计算本身的结果，它会将某个 a 类型的值传递给 continuation。只有当外界给它传递一个 continuation 时它才会将结果进一步传递，某种程度上这也是一种延迟计算（suspended computation），类似于 lazy-evalution 中的 thunk。看两个简单的例子：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;calculateLength :: [a] -&amp;gt; Cont r Int
+calculateLength l = return (length l)
+
+double :: Int -&amp;gt; Cont r Int
+double n = return (n * 2)&lt;/code&gt;&lt;p&gt;它们对应的 Lisp 代码如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (calculate-length xs k)
+  (k (length xs)))
+
+(define (double n k)
+  (k (* n 2)))&lt;/code&gt;&lt;p&gt;可以看到，CPS 式的函数不再是直接返回值，而是返回一个由  Cont monad 表示的计算过程。与 Scheme 代码相比，不用显式地在函数签名中指出额外需要的 continuation 参数，这也是 monad 这种抽象手段的好处之一。而 monad 的其他方便之处，则在于 return 和 bind 操作可以方便地构造、串联这种结构。Cont monad 的相关操作定义如下&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;return :: a -&amp;gt; Cont r a
+return a = Cont $ \c -&amp;gt; c a
+
+(&amp;gt;&amp;gt;=) :: Cont r a -&amp;gt; (a -&amp;gt; Cont r b) -&amp;gt; (Cont r b)
+m &amp;gt;&amp;gt;= k = Cont $ \c -&amp;gt; runCont m (\a -&amp;gt; runCont (k a) c)&lt;/code&gt;&lt;p&gt;可以看到，return 只是简单地将某个值传入 continuation，而 &amp;gt;&amp;gt;= 里则是通过 continuation-passing 的方式将 m 得到的结果绑定到了 a 然后传入函数 k 作进一步计算。下面的例子展示了如何用 bind 操作串联 Cont monad：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;main = do
+  runCont (calculateLength &quot;123&quot; &amp;gt;&amp;gt;= double) print&lt;/code&gt;&lt;p&gt;这个例子中，double 是 calculateLength 函数的 continuation，两者通过 bind 串联成为一个更大的 CPS 计算，最终由 runCont 将其结果输出。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;callCC&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;作了 CPS 变换之后，call-with-current-continuation 就很容易实现。假设在 Scheme 中我们已经对所有代码作了 CPS 变换，那么 call/cc 就可以这样实现：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (call/cc f k)
+  (f (lambda (x) (lambda (dc) (k x))) k))&lt;/code&gt;&lt;p&gt;其中，dc 即 escape function 被调用时的 continuation，它会被直接丢弃，转而将值传递给 call/cc 的 continuation 即 k，从而实现 escape。假如 escape function 没有被调用，那么 f 执行结束之后就会继续执行 call/cc 后面的部分，亦即 k。&lt;/p&gt;&lt;p&gt;同样地，在 Haskell 里，我们有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;calCC :: ((a -&amp;gt; Cont r b) -&amp;gt; Cont r a) -&amp;gt; Cont r a
+callCC f = Cont $ \h -&amp;gt; runCont (f (\a -&amp;gt; Cont $ \_ -&amp;gt; h a)) h&lt;/code&gt;&lt;p&gt;这里的 _ 即指明了调用 escape function 处的 continuation 会被丢弃。&lt;/p&gt;&lt;p&gt;而有了 callCC 之后我们就可以显式地合成各种控制流，可以参见知乎用户&lt;a href=&quot;https://www.zhihu.com/people/syntacticlosure&quot;&gt;御坂黒子&lt;/a&gt;的专栏文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25749077&quot;&gt;《用callcc合成控制流》&lt;/a&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;P. Wadler, The essence of functional programming&lt;/li&gt;&lt;li&gt;Wikibooks, &lt;a href=&quot;https://en.wikibooks.org/wiki/Haskell/Continuation_passing_style&quot;&gt;Haskell/Continuation passing style&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</description>
+<author>lsdsjy</author>
+<guid isPermaLink="false">2017-08-28-28860343</guid>
+<pubDate>Mon, 28 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Erlang并发进阶</title>
@@ -699,6 +737,175 @@ false&lt;/code&gt;&lt;p&gt;lists:keydelete的工作方式类似，只是如果�
 <pubDate>Mon, 28 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
+<title>最近一星期忙着做实验没看paper，愧对大家</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-27-28832682.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;最近一星期忙着做实验没看paper，愧对大家&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28832682&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;每周的paper导读这周就取笑掉吧，不过这周看到个很有意思的帖子，是rust他爹说编译语言的下一个热点是啥，可以自己慢慢爬&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://graydon2.dreamwidth.org/253769.html&quot;&gt;graydon2 | &quot;What next?&quot;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;其实paper还是看了一半的，可惜完读懂了一小半，就没办法写笔记，大家有兴趣的可以自己读读看，是&lt;a href=&quot;https://pdfs.semanticscholar.org/130c/a6c6b876d1bdce81e0f0c2e7b5e1498579c1.pdf&quot;&gt;The Development of the Emerald Programming Language&lt;/a&gt;，讲的是一个叫Emerald的分布式OO语言，里面有三个大特点：&lt;/p&gt;&lt;p&gt;0：任意一个object可以在运行中从一台机器move到另一台机器（不一定要是同种archeticture），并且不中断执行，move后也不会损失性能&lt;/p&gt;&lt;p&gt;1：在girard paradox出现以前就用type in type这设定。。。没有martin lof早，不过也很离谱了（换句话说，他们的generic就是靠type function搞的，什么鬼）&lt;/p&gt;&lt;p&gt;2：是UW的！他们里面有个Paul Allen building的黑白，然后竟然还在the ave画emerald的饼，想到自己学校搞过这么有意思的东西，荣誉感++（然而管你啥事，那年你还没出生233）&lt;/p&gt;&lt;p&gt;决定了，以后不吹smalltalk改吹emerald（特大雾）&lt;/p&gt;</description>
+<author>帅气可爱魔理沙</author>
+<guid isPermaLink="false">2017-08-27-28832682</guid>
+<pubDate>Sun, 27 Aug 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Dependently Typed Programming with Singletons</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-14-28496113.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Dependently Typed Programming with Singletons&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28496113&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这星期的文章是&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf&quot;&gt;http://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;这paper在codewars上，可以做做看：&lt;a href=&quot;http://www.codewars.com/kata/singletons/train/haskell&quot;&gt;Singletons | Codewars&lt;/a&gt;&lt;/p&gt;&lt;p&gt;这文章在说两件事情：&lt;/p&gt;&lt;p&gt;0：用一种design pattern来做DT&lt;/p&gt;&lt;p&gt;1：这个design pattern可以用库automate一大部分&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;0：&lt;/p&gt;&lt;p&gt;假设我们有普普通通的data Nat = Z | S Nat。&lt;/p&gt;&lt;p&gt;首先，如果我们要把这用上type level（因为dependent type就是value可以在typelevel使用），我们需要额外的两个类型，一个ZType :: *，一个SType :: * -&amp;gt; *，来表示Nat的type level表示。然后，type level的Nat函数，可以用type family写出。&lt;/p&gt;&lt;p&gt;然后，可以用GADT表示inductive dependent type，比如Vec之类的。如果不支持GADT（什么鬼，不支持还想玩奇怪特性）可以考虑考虑用gadtless programming，换句话说用Leibniz Equality手动解constraint。。。&lt;/p&gt;&lt;p&gt;但是，由于parametricity，这无法做到：给入一个type level Nat，输出一个该长度的Vec。。。所以，做法是，再弄一个GADT inductive type，这个GADT的value是indexed on type level nat的。换言之，每一个type level nat，都能在这个GADT中找到一个unique的对应值。这就叫singleton&lt;/p&gt;&lt;p&gt;最后，很多时候singleton可以隐式推出，所以可以弄成一个constraint。&lt;/p&gt;&lt;p&gt;总结，一个datatype有4种做法：普通的，type level的，singleton，singleton变成constraint（换句话说，typeclass）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1：&lt;/p&gt;&lt;p&gt;type level的可以由GHC的DataKinds扩展自动生成。&lt;/p&gt;&lt;p&gt;singleton constraint可以统一到一个typeclass&lt;/p&gt;&lt;p&gt;由template haskell可以从普通函数生成singleton函数跟type level函数（type family）&lt;/p&gt;&lt;p&gt;最后：singleton constraint跟Data.Constraint有异曲同工之妙:)&lt;/p&gt;&lt;p&gt;还有，下期想看啥接着私信我。。。no monad tutorial，no 女装=/\=&lt;/p&gt;</description>
+<author>帅气可爱魔理沙</author>
+<guid isPermaLink="false">2017-08-14-28496113</guid>
+<pubDate>Mon, 14 Aug 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>大家想看我写啥私信/回复</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-09-28398964.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;大家想看我写啥私信/回复&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28398964&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;最近搞了个笔记/导读？&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28346196?group_id=878257381073641472&quot;&gt;Embedded Probabilistic Programming&lt;/a&gt;，觉得这样挺不错的，大家可以向我题些paper去读（太难的读不来了DAZE&amp;gt;&amp;lt;）&lt;/p&gt;</description>
+<author>帅气可爱魔理沙</author>
+<guid isPermaLink="false">2017-08-09-28398964</guid>
+<pubDate>Wed, 09 Aug 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Embedded Probabilistic Programming</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-06-28346196.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Embedded Probabilistic Programming&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28346196&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;由于一直没找到好的并且能答得上的问题，以后打算时不时往这发点paper，然后对之进行一定的解释，练练手&amp;amp;降低阅读门槛（希望）。&lt;/p&gt;&lt;p&gt;这次的是 &lt;a href=&quot;http://okmij.org/ftp/kakuritu/dsl-paper.pdf&quot;&gt;Embedded Probabilistic Programming&lt;/a&gt;&lt;/p&gt;&lt;p&gt;建议前置知识：Probability Distribution，Monad，Continuation&lt;/p&gt;&lt;p&gt;P1-P6：我们想造一个编程语言，在这语言里面，所有变量都不是传统意义上的变量，而是Probability Distribution（PD）。&lt;/p&gt;&lt;p&gt;在本文中，一个a的PD&lt;b&gt;可以看成&lt;/b&gt;一个List (probability, a)，其中，probability（简称prob）是double的别名，一个PD的元素，(probability, a)，代表在该概率下a的可能性是多小（这文章不考虑无限&amp;amp;连续的PD）&lt;/p&gt;&lt;p&gt;一个PD要满足两个条件：所有prob加起来是1，所有不同元素的a都不一样&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这定义下，我们可以定义多个PD下的函数：（此文皆为伪代码）&lt;/p&gt;&lt;p&gt;return : a -&amp;gt; PD a，接受一个非随机的值，变成一个PD&lt;/p&gt;&lt;p&gt;return x = [(1.0, x)] （这个随机变量只可能取一个值，就是传进来的那个）&lt;/p&gt;&lt;p&gt;map : (a -&amp;gt; b) -&amp;gt; (PD a -&amp;gt; PD b)，把PD里的所有a 都变成b&lt;/p&gt;&lt;p&gt;map f [] = []&lt;/p&gt;&lt;p&gt;map f ((prob, value):: rest) = (prob, f value):: map f rest&lt;/p&gt;&lt;p&gt;join : PD (PD a) -&amp;gt; PD a，把一个概率分布的概率分布变成概率分布&lt;/p&gt;&lt;p&gt;join [] = []&lt;/p&gt;&lt;p&gt;join (prob_of_prob, prob_value): rest = loop prob_value ++join rest&lt;/p&gt;&lt;p&gt; where&lt;/p&gt;&lt;p&gt;    loop [] = []&lt;/p&gt;&lt;p&gt;    loop ((prob, value): rest) = (prob * prob_of_prob, value) : loop rest&lt;/p&gt;&lt;p&gt;（对于每一个PD of PD里面的a，都有两个概率，一个是这个a的概率，一个是a的PD的概率，两个相乘就能扁平化）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对于所有M，符合这些定义&lt;/p&gt;&lt;p&gt;（return: a -&amp;gt; M a, map : (a -&amp;gt; b) -&amp;gt; (M a -&amp;gt; M b), join : M (M a) -&amp;gt; M a）的，&lt;/p&gt;&lt;p&gt;就叫一个Monad。&lt;/p&gt;&lt;p&gt;另一套定义法是，(return : a -&amp;gt; M a, bind : M a -&amp;gt; (a -&amp;gt; M b) -&amp;gt; M b)），&lt;/p&gt;&lt;p&gt;两者等价，自己可以试试看从一套推出另一套。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过使用return，我们可以把普通的值看成PD，再通过bind，我们可以把任意PD的值当成普通的值使用，然后得出更多的PD。然后，需要随机性的时候，我们可以直接（通过构造列表）构造PD。比如说，如果要抛硬币，可以写[(0.5, Head), (0.5, Tail)]。这样，我们就可以在PD里面编程了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有的时候，我们需要对我们的程序做一些限制（比如说，如果我们抛了两次硬币，然后被告知不可能两个都是Head）。这个时候，我们可以生成一个空的PD来代表‘不可能发生’。&lt;/p&gt;&lt;p&gt;例如，刚刚那个例子，可以表达为&lt;/p&gt;&lt;p&gt;let a = [(0.5, Head), (0.5, Tail)] （第零个硬币）&lt;/p&gt;&lt;p&gt;let b = [(0.5, Head), (0.5, Tail)] （第一个硬币）&lt;/p&gt;&lt;p&gt;bind a (\a_obs -&amp;gt; （观察第零个硬币）&lt;/p&gt;&lt;p&gt;bind b (\b_obs -&amp;gt; （观察第二个硬币）&lt;/p&gt;&lt;p&gt;  if a_obs == Head &amp;amp;&amp;amp; b_obs == Head then [] （空的PD，代表不可能） else return (a, b) （把观察到的a, b记录下来）))&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这样，我们就有两个问题：&lt;/p&gt;&lt;p&gt;0：map, bind, join可能使得返回的PD（换句话说，List (prob, a)）中，两个元素的a一样的&lt;/p&gt;&lt;p&gt;1：bind x (\y -&amp;gt; [])会导致整个PD的概率的和不为1（如果只有特定的情况会fail，概率和就不是0也不是1）&lt;/p&gt;&lt;p&gt;这些问题都可以通过输出时，把同样的结果会合一起，再把整个PD的每一个prob乘一个数（使得概率和为1）解决。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P7:我们把这个语言放进OCaml里面，这样整个语言就是一推OCaml函数。这样就不需要自己写parser，typechecker，gc，然后OCaml也能自动帮你优化，还能用OCaml的库。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;然后，由于可以用很多种方法实现PD，我们把一个PD的需求变成个模块签名，这样就可以用不同的实现。在这里面，PD实现者可以自定义什么是一个PD（叫做pm，因为PD是个Monad）这种方法叫做Finally Tagless。用Finally Tagless而不是用一个AST有两个好处：一是AST不可扩展（不可增加新的constructor），一是Int的AST跟Bool的AST（往往）是同一类型，所以是unsafe的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P8:由于上面所述的PD的实现太慢，并且只能暴力算，无法做任何优化，所以用的是另一种数据结构。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P9:explore是尾递归的，susp是剩下的计算，ans是一个Map，用以把多个PD中一样的a会合到一起，解决问题0&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P12:一个continuation可以看成：给定一个（算出a在一个值下，符合observation的概率，的函数），返回一个a的PD符合该observation的概率&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P16-17:我们可以（通过explore）事先展开一个stochastic function，得出他的exact PD，然后就可以避免重复计算。这叫variable elimination。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P18:当Branching很大的时候，完全的展开不现实，这时候可以以一个branch的概率选择性的展开：这叫sampling。naive的sampling会很受指数爆炸的影响，所以可以只展开没展开过的，这叫importance sampling。&lt;/p&gt;</description>
+<author>帅气可爱魔理沙</author>
+<guid isPermaLink="false">2017-08-06-28346196</guid>
+<pubDate>Sun, 06 Aug 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>你的类型，0：基本的合一 详尽注释</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-04-28300506.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;你的类型，0：基本的合一 详尽注释&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28300506&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;原址: &lt;a href=&quot;https://zhuanlan.zhihu.com/p/24181997&quot;&gt;你的类型，0：基本的合一&lt;/a&gt;&lt;br&gt;&lt;br&gt;作者：Belleve&lt;br&gt;链接：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24181997&quot;&gt;你的类型，0：基本的合一&lt;/a&gt;&lt;br&gt;来源：知乎&lt;br&gt;著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/blockquote&gt;&lt;h2&gt;前言&lt;/h2&gt;&lt;p&gt;本文可认为是个人笔记、代码注释，尽量以通俗易懂的方式解释 Belleve 的原文，由于水平有限以及深夜精神恍惚，可能会存在较多错漏，可在评论区指出。&lt;/p&gt;&lt;p&gt;引用部分为 Belleve 原文。&lt;/p&gt;&lt;h2&gt;导读&lt;/h2&gt;&lt;p&gt;第零章，基本的合一，本章实现一个简单的合一算法，能够为两个类型生成一个替换，这个替换在 js 中体现为一个 map。&lt;/p&gt;&lt;p&gt;为了方便地使用这个函数，我们还定义了一些类型构造器，用于构造需要的类型。&lt;/p&gt;&lt;p&gt;我们使用两个不同的类型生成一个替换（映射），将这个替换应用在这个两个不同的类型上，就可以得到两个相同的类型，这就是合一。&lt;/p&gt;&lt;h2&gt;预备知识&lt;/h2&gt;&lt;p&gt;如果你想更好地理解合一的概念，可以参考这个问题：&lt;a href=&quot;https://www.zhihu.com/question/22256149&quot;&gt;如何通俗的解释计算机中“合一(unification)”这个概念 ？&lt;/a&gt;。&lt;/p&gt;&lt;h2&gt;1 目标与基本思路&lt;/h2&gt;&lt;blockquote&gt;简单粗暴的开始：用 JS 实现一个 ML 类的程序语言的类型推理系统。&lt;br&gt;在我们这里，所有的类型属于以下形式之一：&lt;br&gt;&lt;br&gt;一个基础类型（Primitive）&lt;br&gt;一个自由变量（Slot）&lt;br&gt;一个复合类型（Composite），由一个构造器（ctor）和一个参数（argument）复合得到。对于 (-&amp;gt;)、(\*) 之类的二元构造器，使用 Curryize 将他变换为嵌套的 Composite。&lt;/blockquote&gt;&lt;p&gt;ML 系的语言使用的是&lt;a href=&quot;https://zh.wikipedia.org/wiki/Hindley-Milner%E7%B1%BB%E5%9E%8B%E6%8E%A8%E8%AE%BA&quot;&gt;Hindley-Milner类型推论&lt;/a&gt;算法来推测大多数值的类型，而不需要四处使用注解。有关 HM 类型推论算法，可以参考我的这篇翻译：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26076902&quot;&gt;(译) Algorithm W Step By Step&lt;/a&gt;，这篇文章原文的代码简单易懂，但是我觉得我翻译得很不好（哭）。&lt;/p&gt;&lt;h2&gt;2 概念介绍&lt;/h2&gt;&lt;blockquote&gt;所谓的合一，指的是：给出两个类型 A 和 B，找到一组变量替换，使得两者的自由变量经过替换之后可以得到一个相同的类型 C。考虑&lt;/blockquote&gt;&lt;code lang=&quot;text&quot;&gt;A = ((α → β) × [γ]) → [β]， B = ((γ → δ) × [γ]) → ε&lt;/code&gt;&lt;blockquote&gt;这两个类型可以合一，对应的替换是&lt;/blockquote&gt;&lt;code lang=&quot;text&quot;&gt;〈α → α, β → β, γ → α, δ → β, ε → [β]〉&lt;/code&gt;&lt;p&gt;这是一个范例，无需注解。&lt;/p&gt;&lt;h2&gt;3 合一算法&lt;/h2&gt;&lt;blockquote&gt;实现合一的算法基本思路就是维护一个 slot 的映射。对于任意的类型 a 和 b，以及「当前状态」的映射 m：&lt;br&gt;&lt;br&gt;如果 a 和 b 都是 slot 并且 m[a] == m[b]，那么 a b 可以合一，m 不变。&lt;br&gt;如果 a 和 b 都是 primitive 并且相同，那么 a b 可以合一，m 不变。&lt;br&gt;如果 a 是 slot，可以合一，并且需要 m[a] 设置为 b；反之亦然。&lt;br&gt;如果 a 和 b 都是 composite，检查两者的构造器和参数是否都能合一，m 会最多被设置两次。&lt;br&gt;对于其他一切情况，a 和 b 不能合一。&lt;/blockquote&gt;&lt;p&gt;对于第一条，如果给定自由变量 a 与 b，而且均被记入映射表（替换）中，并且记录在映射表中的值依旧相等，那么显然，a 与 b 可以直接消去（合一）。例如，若 m[a] == m[b] == c，那么我们不再需要 a 与 b 了，因为 c 可以取代二者。&lt;/p&gt;&lt;p&gt;对于第二条，是因为基本类型不记入映射表，也不被替换，因此只有在二者相等时才能消去。&lt;/p&gt;&lt;p&gt;第三条，如果 a 或者 b 二者之一是自由变量，我们可以变可以构造一个映射使得二者可以等价。例如我们有 a 与 b，那么无论是 m[a] = b 还是 m[b] = a 都是可以接受的；若我们有 a 与 [b]，那么只要 m[a] = [b] 即可完成消去（合一）。&lt;/p&gt;&lt;p&gt;第四条，如果是复合类型，显然，由于柯里化，我们需要同时检查构造器与参数能否合一。&lt;/p&gt;&lt;h2&gt;4 具体实现&lt;/h2&gt;&lt;code lang=&quot;js&quot;&gt;// A monomorphic type
+class Monomorphic {
+	constructor() {}
+	inspect() {} // Pretty print type
+	applySub(m) {} // Apply a substitution m
+	equalTo(t) {
+		return false;
+	}
+}&lt;/code&gt;&lt;p&gt;没有什么特别的基类。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Slots for free variables
+class Slot extends Monomorphic {
+	constructor(name) {
+		super();
+                this.name = name;
+	}
+	inspect() {
+		return &quot;#&quot; + this.name;
+	}
+	applySub(m) {
+		const r = m.get(this);
+		if (!r || r === this) return this;
+		return r.applySub(m);
+	}
+	equalTo(t) {
+		return t &amp;amp;&amp;amp; t instanceof Slot &amp;amp;&amp;amp; this.name === t.name;
+	}
+}
+&lt;/code&gt;&lt;p&gt;inspect 为 pretty print方法，可以不去理会。&lt;/p&gt;&lt;p&gt;当我们对一个自由变量 a 套用替换（映射表）时，我们首先应当寻找是否有过记录过的替换，如果有，则返回 m[a].applySub(m)，再应用一次替换，因为我们需要保证 m[a] 也被完全合一了。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;if (!r || r === this) return this;&lt;/code&gt;&lt;p&gt;代表 a → a。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Primitive types
+class Primitive extends Monomorphic {
+	constructor(name, kind) {
+		super();
+                this.name = name;
+	}
+	inspect() {
+		return this.name;
+	}
+	applySub(m) {
+		return this;
+	}
+	equalTo(t) {
+		return t &amp;amp;&amp;amp; t instanceof Primitive &amp;amp;&amp;amp; this.name === t.name;
+	}
+}&lt;/code&gt;&lt;p&gt;因为是基本类型（相当于上面范例中的箭头和×），不能应用替换，所以 applySub 直接原样返回就行了。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Composite types, like [(-&amp;gt;) a b] or [List a]
+class Composite extends Monomorphic {
+	constructor(ctor, argument) {
+		super();
+		this.ctor = ctor;
+		this.argument = argument;
+	}
+	inspect() {
+		if (this.argument instanceof Composite) {
+			return this.ctor.inspect() + &quot; (&quot; + this.argument.inspect() + &quot;)&quot;;
+		} else {
+			return this.ctor.inspect() + &quot; &quot; + this.argument.inspect() + &quot;&quot;;
+		}
+	}
+	applySub(m) {
+		return new Composite(this.ctor.applySub(m), this.argument.applySub(m));
+	}
+	equalTo(t) {
+		return t &amp;amp;&amp;amp; t instanceof Composite &amp;amp;&amp;amp; this.ctor.equalTo(t.ctor) &amp;amp;&amp;amp; this.argument.equalTo(t.argument);
+	}
+}&lt;/code&gt;&lt;p&gt;定义了“复合类型”，其构造是手动柯里化的，具体构造方式可以参考下文。&lt;/p&gt;&lt;p&gt;因此，在applySub中，由于柯里化，构造器 `ctor`和参数 argument 都应当能被执行合一。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Unify two monomorphic types, p and q with slot mapping m.
+function unify(m, s, t) {
+	if (s instanceof Slot &amp;amp;&amp;amp; t instanceof Slot &amp;amp;&amp;amp; s.applySub(m).equalTo(t.applySub(m))) {
+		return true;
+	} else if (s instanceof Primitive &amp;amp;&amp;amp; t instanceof Primitive &amp;amp;&amp;amp; s.name === t.name &amp;amp;&amp;amp; s.kind === t.kind) {
+		return true;
+	} else if (s instanceof Composite &amp;amp;&amp;amp; t instanceof Composite) {
+		return unify(m, s.ctor, t.ctor) &amp;amp;&amp;amp; unify(m, s.argument, t.argument);
+	} else if (s instanceof Slot) {
+		m.set(s, t);
+		return true;
+	} else if (t instanceof Slot) {
+		m.set(t, s);
+		return true;
+	} else {
+		return false;
+	}
+}&lt;/code&gt;&lt;p&gt;这个方法就是对合一算法的一一对应。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Slot symbol table
+let st = {};
+function slot(name) {
+	if (st[name])return st[name];
+	const t = new Slot(name);
+	st[name] = t;
+	return t;
+}
+// Primitive symbol table
+let pt = {};
+function pm(name, kind) {
+	if (pt[name])return pt[name];
+	const t = new Primitive(name, kind);
+	pt[name] = t;
+	return t;
+}
+// Composite types
+function ct(ctor, argument) {
+	const t = new Composite(ctor, argument);
+	return t;
+}
+function arrow(p, q) {
+	return ct(ct(pm(&quot;[-&amp;gt;]&quot;), p), q);
+}
+function product(p, q) {
+	return ct(ct(pm(&quot;[*]&quot;), p), q);
+}&lt;/code&gt;&lt;p&gt;slot/pm 方法之前定义了变量表，方法内部只是往自由变量/基本类型表里加东西并返回一个构造出来的值而已。&lt;/p&gt;&lt;p&gt;ct 用于构造一个复合类型，注意到在使用方式上，是类似于手动柯里化的，可以方便我们处理。&lt;/p&gt;&lt;p&gt;arrow/product 用于构造我们较为复杂的类型，最后的结果是 `→ p q` 或者 `× p q`，也就是范例中的箭头与 ×。当然，可能更为直观的写法是&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;p → q 与 p × q&lt;/code&gt;&lt;p&gt;但其实上面的写法只是省略了括号而已，正如前文所说，→ 与 × 是二元函数。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;const type1 =
+arrow(
+	product(
+ 		arrow(slot(&quot;a1&quot;), slot(&quot;a2&quot;)),
+ 		ct(pm(&quot;list&quot;), slot(&quot;a3&quot;))),
+ ct(pm(&quot;list&quot;), slot(&quot;a2&quot;)));&lt;/code&gt;&lt;p&gt;它制造的类型是 `→ (× (→ a1 a2) ([] a3)) ([] a2)`。我们可以直观地理解为如下形式：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;( (a1 → a2) × [a3] ) → [a2]&lt;/code&gt;&lt;p&gt;并不复杂。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;const type2 =
+arrow(
+	product(
+ 		arrow(slot(&quot;a3&quot;), slot(&quot;a4&quot;)),
+ 		ct(pm(&quot;list&quot;), slot(&quot;a3&quot;))),
+ slot(&quot;a5&quot;));&lt;/code&gt;&lt;p&gt;它制造的类型是 `→ (× (→ a3 a4) ([] a3)) a5`，也就是&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;( (a3 → a4) × [a3] ) → a5&lt;/code&gt;&lt;h2&gt;5 测试&lt;/h2&gt;&lt;p&gt;测试代码就不贴了。&lt;/p&gt;&lt;p&gt;为更清除地理解这一算法，现在手动分析 `unify(m, type1, type2)` 这一过程。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;( (a1 → a2) × [a3] ) → [a2] 合一 ( (a3 → a4) × [a3] ) → a5，两者均为复合类型，因此检查构造器与参数是否能够合一。&lt;/li&gt;&lt;li&gt;也就是拆分成为 (a1 → a2) × [a3] → 合一 (a3 → a4) × [a3] → 以及 [a2] 合一 a5 两个问题。&lt;/li&gt;&lt;li&gt;首先检查 (a1 → a2) × [a3] → 合一 (a3 → a4) × [a3] →，两者均为复合类型，继续拆分，将基本类型 → 消去，得到 (a1 → a2) × [a3] 合一 (a3 → a4) × [a3]，继续拆分。&lt;/li&gt;&lt;li&gt;同理消去 ×，检查 a1 → a2 合一 a3 → a4，继续拆分。&lt;/li&gt;&lt;li&gt;检查 a1→ 合一 a3，可以合一，因此将 a1 → a3 写入映射表。&lt;/li&gt;&lt;li&gt;上溯到 a2 合一 a4，显然可以合一，将 a2 → a4 写入映射表。&lt;/li&gt;&lt;li&gt;上溯到 [] a3 合一 [] a3，消去基本类型 [] 后，消去成功，不修改映射表。&lt;/li&gt;&lt;li&gt;上溯到 [] a2 合一 a5，由于 a5 是 slot，因此可以合一，将 a5 → [a2] 写入映射表。&lt;/li&gt;&lt;li&gt;合一完成，合一替换为 a1 =&amp;gt; a3，a2 =&amp;gt; a4，a5 =&amp;gt; [a2]。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;现考虑对 `type1`&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;( (a1 → a2) × [a3] ) → [a2] &lt;/code&gt;&lt;p&gt;进行替换&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;a1 =&amp;gt; a3，a2 =&amp;gt; a4，a5 =&amp;gt; [a2]&lt;/code&gt;&lt;ul&gt;&lt;li&gt;首先，它是复合类型。因此我们需要对构造器 ( (a1 → a2) × [a3] ) → 和参数 [a2] 均进行替换。&lt;/li&gt;&lt;li&gt;由于基本类型不能进行合一替换，因此当我们遇到一个 →、×或者 [] 做构造器的时候，可以直接消去它。因此我们可以对上一部的构造器进行简化，得到 (a1 → a2) × [a3]。&lt;/li&gt;&lt;li&gt;继续考虑替换，我们拿到 (a1 → a2) × [a3] 后，检查 a1 → a2 与 [a3]。&lt;/li&gt;&lt;li&gt;检查 a1 → 与 a2，分别替换成 a3 与 a4，并且重新组合为一个复合类型，a3 → a4。&lt;/li&gt;&lt;li&gt;上溯，[] a3 无法替换，重新组合出 (a3 → a4) × [a3]。&lt;/li&gt;&lt;li&gt;上溯，[] a2 替换为 [] a4，与 (a3 → a4) × [a3] 重新组合出 ( (a3 → a4) × [a3] ) → [a4]。&lt;/li&gt;&lt;li&gt;替换完成。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;结语与预告&lt;/h2&gt;&lt;p&gt;我觉得最后一段的行文方式特别像老师上课一样，一步一步的讲……（&lt;/p&gt;&lt;p&gt;由于 Belleve 暴力而有效的行文方式（短句解释+直接贴代码），可能会劝退不少人，因此作了一些注释。后面几章也会慢慢更新。&lt;/p&gt;&lt;p&gt;本文没有经过任何人的校对，如有错误请直接指出。&lt;/p&gt;&lt;p&gt;一年前的东西重新挖出来，感觉就像盗墓贼一样。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下一篇《你的类型，1：基础推理》较长，我可能会分成几篇发出来。&lt;/p&gt;</description>
+<author>霜月琉璃</author>
+<guid isPermaLink="false">2017-08-04-28300506</guid>
+<pubDate>Fri, 04 Aug 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
 <title>Erlang入门教程 - 11. List进阶</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-30-28194753.htm</link>
 <description>&lt;meta charset=&quot;utf-8&quot;&gt;
@@ -854,237 +1061,6 @@ ok&lt;/code&gt;</description>
 <author>racaljk</author>
 <guid isPermaLink="false">2017-07-30-28194753</guid>
 <pubDate>Sun, 30 Jul 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang入门教程 - 10. 模式匹配，Guard，变量作用域</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155890.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang入门教程 - 10. 模式匹配，Guard，变量作用域&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155890&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;像这样如果能找出列表中最高/最低气温是很有用的。在扩展程序以寻找气温极值之前，让我们看看在函数中寻找列表最大值：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut6).
--export([list_max/1]).
-
-list_max([Head|Rest]) -&amp;gt;
-   list_max(Rest, Head).
-
-list_max([], Res) -&amp;gt;
-    Res;
-list_max([Head|Rest], Result_so_far) when Head &amp;gt; Result_so_far -&amp;gt;
-    list_max(Rest, Head);
-list_max([Head|Rest], Result_so_far)  -&amp;gt;
-    list_max(Rest, Result_so_far).&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;37&amp;gt; c(tut6).
-{ok,tut6}
-38&amp;gt; tut6:list_max([1,2,3,4,5,7,4,3,2,1]).
-7&lt;/code&gt;&lt;p&gt;首先注意有两个函数名字一样，list_max（指&lt;b&gt;list_max([Head|Rest])&lt;/b&gt;和&lt;b&gt;list_max([], Res)&lt;/b&gt;）。然而，它们接受不同数目的参数。在Erlang中它们被视作完全不同的函数。 &lt;br&gt;当你需要区分这些函数的时候，你直接写 &lt;i&gt;Name/Arity&lt;/i&gt; 即可，Name是函数名，Arity是函数参数个数，在这是list_max/1,list_max/2。&lt;/p&gt;&lt;p&gt;在这个例子中你遍历一个列表然后“带走”一个值，即Result_so_far。list_max/1简单的假定列表的最大值是表头元素然后把表头元素和列表剩余部分传递给list_max/2进行调用。按上面代码给出的参数将会调用list_max([2,3,4,5,7,4,3,2,1],1)。如果你尝试给list_max/1一个空列表或者给它一个不是列表的值，将引发一个错误。Erlang的哲学是不在函数中处理这类错误，而是在其他地方处理。关于这点后面会讨论。&lt;/p&gt;&lt;p&gt;在list_max/2, 当Head &amp;gt; Result_so_far时使用Head代替Result_so_far。在&lt;b&gt;-&amp;gt;&lt;/b&gt;后使用&lt;b&gt;when&lt;/b&gt;表示你只在when后面的测试为true时才使用这个函数（clause）。这类测试叫做&lt;b&gt;guard&lt;/b&gt;。如果guard为false（即guard失败），就转而尝试下一个函数（clause）。在这里，如果Head不大于Result_so_far,那它一定小于或等于。这意味着下面函数（clause）不需要guard。&lt;/p&gt;&lt;p&gt;在guards中有这么一些有用的运算符：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&amp;lt; 小于&lt;/li&gt;&lt;li&gt;&amp;gt; 大于&lt;/li&gt;&lt;li&gt;== 等于&lt;/li&gt;&lt;li&gt;&amp;gt;= 大于等于&lt;/li&gt;&lt;li&gt;=&amp;lt; 小于等于&lt;/li&gt;&lt;li&gt;/= 不等于&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;要修改上面的程序让它找出列表中的最小值，你只需要把&lt;b&gt;&amp;gt;&lt;/b&gt;改成&lt;b&gt;&amp;lt;&lt;/b&gt;。（但那样做最好也把函数名改成&lt;b&gt;list_min&lt;/b&gt;）。&lt;/p&gt;&lt;p&gt;之前提到过一个变量在它的作用域内只能绑定一次值。但如你所见Result_so_far绑定了很多次值。这没问题，因为每次你调用list_max/2都会创建一个新的作用域，然后Result_so_far就在那个新作用域中进行绑定。&lt;/p&gt;&lt;p&gt;另一个创建变量并绑定值的方法是使用匹配运算符&lt;b&gt;=&lt;/b&gt;。当你写下M = 5，一个名为M的变量创建了并绑定值5。如果，在相同的作用域，你写下M =6，就会返回错误。在shell中试试：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;39&amp;gt; M = 5.
-5
-40&amp;gt; M = 6.
-** exception error: no match of right hand side value 6
-41&amp;gt; M = M + 1.
-** exception error: no match of right hand side value 6
-42&amp;gt; N = M + 1.
-6&lt;/code&gt;&lt;p&gt;匹配运算符在分离Erlang 一个项并创建新项时是非常有用的。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;43&amp;gt; {X, Y} = {paris, {f, 28}}.
-{paris,{f,28}}
-44&amp;gt; X.
-paris
-45&amp;gt; Y.
-{f,28}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这里X绑定为paris，Y绑定为{f,28}。&lt;/p&gt;&lt;p&gt;如果你尝试再使用其它城市，就会返回一个错误。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;46&amp;gt; {X, Y} = {london, {f, 36}}.
-** exception error: no match of right hand side value {london,{f,36}}&lt;/code&gt;&lt;p&gt;变量也可用于改善程序可读性。举个例子，在上面的list_max/2函数中，你可以这么写：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;list_max([Head|Rest], Result_so_far) when Head &amp;gt; Result_so_far -&amp;gt;
-    New_result_far = Head,
-    list_max(Rest, New_result_far);&lt;/code&gt;&lt;p&gt;这样可能更清晰一些。&lt;/p&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-07-27-28155890</guid>
-<pubDate>Thu, 27 Jul 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang入门教程 - 9 更复杂的例子</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155847.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang入门教程 - 9 更复杂的例子&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155847&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;现在给出一个更复杂的例子总结你到目前为止学到的东西。假设你现在有一个世界各城市的温度的列表。列表中有一些城市用的华氏度，有一些用的摄氏度。首先让我们把他们全部转化为摄氏度，然后漂亮的输出这些数据。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;%% This module is in file tut5.erl
-
--module(tut5).
--export([format_temps/1]).
-
-%% Only this function is exported
-format_temps([])-&amp;gt;                        % No output for an empty list
-    ok;
-format_temps([City | Rest]) -&amp;gt;
-    print_temp(convert_to_celsius(City)),
-    format_temps(Rest).
-
-convert_to_celsius({Name, {c, Temp}}) -&amp;gt;  % No conversion needed
-    {Name, {c, Temp}};
-convert_to_celsius({Name, {f, Temp}}) -&amp;gt;  % Do the conversion
-    {Name, {c, (Temp - 32) * 5 / 9}}.
-
-print_temp({Name, {c, Temp}}) -&amp;gt;
-    io:format(&quot;~-15w ~w c~n&quot;, [Name, Temp]).&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;35&amp;gt; c(tut5).
-{ok,tut5}
-36&amp;gt; tut5:format_temps([{moscow, {c, -10}}, {cape_town, {f, 70}},
-{stockholm, {c, -4}}, {paris, {f, 28}}, {london, {f, 36}}]).
-moscow          -10 c
-cape_town       21.11111111111111 c
-stockholm       -4 c
-paris           -2.2222222222222223 c
-london          2.2222222222222223 c
-ok&lt;/code&gt;&lt;p&gt;在说明程序是如何运行之前，注意代码中的注释。Erlang的注释以%字符开头直到行末。同时也要注意&lt;b&gt;-export([format_temps/1])&lt;/b&gt;. 只包含&lt;b&gt;format_temps/1&lt;/b&gt;函数，其他函数都是局部函数，它们在tut5模块外面不可见。&lt;/p&gt;&lt;p&gt;还要注意在shell中测试程序的时候，如果一行太长就展开成两行。&lt;/p&gt;&lt;p&gt;当初次调用format_temps时，City 绑定值{moscow,{c,-10}}，Rest绑定列表剩余部分。所以调用的是print_temp(convert_to_celsius({moscow,{c,-10}}))。&lt;/p&gt;&lt;p&gt;这个函数调用把convert_to_celsius({moscow,{c,-10}})的结果传递给print_temp 。当像这样函数嵌套调用时，执行顺序是从里到外。也就是说，convert_to_celsius({moscow,{c,-10}})先被求值，然后print_temp({moscow,{c,-10}})再被求值。函数convert_to_celsius的工作类似于前面例子的convert_length。&lt;/p&gt;&lt;p&gt;print_temp简单的调用io:format。注意&lt;b&gt;~-15w&lt;/b&gt;表示在左边输出15个空白之后再输出占位符w实际表示的值。&lt;/p&gt;&lt;p&gt;现在再对列表的剩余部分使用format_temps(Rest)。它所做的事类似于其他语言中的循环结构。（是的，这是递归，但是别担心）。所以同样的format_temps再次被调用。这时City的值绑定为{cape_town,{f,70}}，如此反复直至列表为空，匹配第一个clause即format_temps([])。这个clause简单的返回原子ok，程序结束。&lt;/p&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-07-27-28155847</guid>
-<pubDate>Thu, 27 Jul 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang入门教程 - 8. 在终端上输出</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155800.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang入门教程 - 8. 在终端上输出&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155800&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;如果上面这些例子能格式化输出一些内容就爽了，所以下面这个例子教我们一种的方法，使用io:format函数输出。像其他函数一样，你也可以在shell中测试&lt;b&gt;io:format&lt;/b&gt;函数。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;31&amp;gt; io:format(&quot;hello world~n&quot;, []).
-hello world
-ok
-32&amp;gt; io:format(&quot;this outputs one Erlang term: ~w~n&quot;, [hello]).
-this outputs one Erlang term: hello
-ok
-33&amp;gt; io:format(&quot;this outputs two Erlang terms: ~w~w~n&quot;, [hello, world]).
-this outputs two Erlang terms: helloworld
-ok
-34&amp;gt; io:format(&quot;this outputs two Erlang terms: ~w ~w~n&quot;, [hello, world]).
-this outputs two Erlang terms: hello world
-ok&lt;/code&gt;&lt;p&gt;函数format/2(即格式化两个参数)接受两个列表参数。第一个列表总是用引号&lt;b&gt;&quot; &quot;&lt;/b&gt;包含的。它是什么样就输出什么样，除了&lt;b&gt;~w&lt;/b&gt;有点特别，它表示一个占位符，第二个列表参数将会代替这些占位符。每个&lt;b&gt; ~n&lt;/b&gt;都被替换为一个新行。如果一切顺利，函数io:format/2 本身返回一个原子（atom）ok。像其他Erlang函数一样，如果有错误发生它就会crash。这不是Erlang的缺陷，这是有意为之。Erlang有一个复杂的错误处理机制，这点会在后面说明。 作为一个练习，试试让&lt;b&gt;io:format&lt;/b&gt; crash，应该很简单吧。 但是请注意虽然io:format 函数crash了，Erlang shell却不会crash。&lt;/p&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-07-27-28155800</guid>
-<pubDate>Thu, 27 Jul 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang入门教程 - 7. 标准模块和帮助手册</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155768.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang入门教程 - 7. 标准模块和帮助手册&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155768&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Erlang有很多标准模块帮你做一些事情。比如，io模块包含了很多用于格式化输入/输出的函数。要查找关于标准模块的信息，可以在shell或者命令提示符中使用&lt;b&gt;erl -man&lt;/b&gt;命令。试试在操作系统shell上输入命令：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;% erl -man io
-ERLANG MODULE DEFINITION                                    io(3)
-
-MODULE
-     io - Standard I/O Server Interface Functions
-
-DESCRIPTION
-     This module provides an  interface  to  standard  Erlang  IO
-     servers. The output functions all return ok if they are suc-
-     ...&lt;/code&gt;&lt;p&gt;如果在你的系统上不能正常工作，文档也以HTML的形式随Erlang/OPT release一起发布了。你可以在网页上阅读这些HTML文档，也可以下载&lt;a href=&quot;http://www.erlang.se/&quot;&gt;www.erlang.se（商业Erlang）&lt;/a&gt; 或 &lt;a href=&quot;http://www.erlang.org/&quot;&gt;www.erlang.org（开源Erlang）&lt;/a&gt; 的PDF来读。比如Erlang/OTP release R9B的文档:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://www.erlang.org/doc/r9b/doc/index.html&lt;/code&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-07-27-28155768</guid>
-<pubDate>Thu, 27 Jul 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang入门教程 - 6. Maps</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155699.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang入门教程 - 6. Maps&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155699&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Maps是一堆键值关联对的集合。键值对使用 “#{” 和”}”进行封装。要创建一个key关联value 42可以这么做：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;&amp;gt; #{ &quot;key&quot; =&amp;gt; 42 }.
-#{&quot;key&quot; =&amp;gt; 42}&lt;/code&gt;&lt;p&gt;让我们通过下面这个使用有趣特性的例子直接跳到一个深度。&lt;/p&gt;&lt;p&gt;下面的例子显示了如何通过maps引用颜色和α通道进而计算α混合(alpha blending)。在color.erl文件中输入下面代码：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(color).
-
--export([new/4, blend/2]).
-
--define(is_channel(V), (is_float(V) andalso V &amp;gt;= 0.0 andalso V =&amp;lt; 1.0)).
-
-new(R,G,B,A) when ?is_channel(R), ?is_channel(G),
-                  ?is_channel(B), ?is_channel(A) -&amp;gt;
-    #{red =&amp;gt; R, green =&amp;gt; G, blue =&amp;gt; B, alpha =&amp;gt; A}.
-
-blend(Src,Dst) -&amp;gt;
-    blend(Src,Dst,alpha(Src,Dst)).
-
-blend(Src,Dst,Alpha) when Alpha &amp;gt; 0.0 -&amp;gt;
-    Dst#{
-        red   := red(Src,Dst) / Alpha,
-        green := green(Src,Dst) / Alpha,
-        blue  := blue(Src,Dst) / Alpha,
-        alpha := Alpha
-    };
-blend(_,Dst,_) -&amp;gt;
-    Dst#{
-        red   := 0.0,
-        green := 0.0,
-        blue  := 0.0,
-        alpha := 0.0
-    }.
-
-alpha(#{alpha := SA}, #{alpha := DA}) -&amp;gt;
-    SA + DA*(1.0 - SA).
-
-red(#{red := SV, alpha := SA}, #{red := DV, alpha := DA}) -&amp;gt;
-    SV*SA + DV*DA*(1.0 - SA).
-green(#{green := SV, alpha := SA}, #{green := DV, alpha := DA}) -&amp;gt;
-    SV*SA + DV*DA*(1.0 - SA).
-blue(#{blue := SV, alpha := SA}, #{blue := DV, alpha := DA}) -&amp;gt;
-    SV*SA + DV*DA*(1.0 - SA).&lt;/code&gt;&lt;p&gt;编译并测试：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;&amp;gt; c(color).
-{ok,color}
-&amp;gt; C1 = color:new(0.3,0.4,0.5,1.0).
-#{alpha =&amp;gt; 1.0,blue =&amp;gt; 0.5,green =&amp;gt; 0.4,red =&amp;gt; 0.3}
-&amp;gt; C2 = color:new(1.0,0.8,0.1,0.3).
-#{alpha =&amp;gt; 0.3,blue =&amp;gt; 0.1,green =&amp;gt; 0.8,red =&amp;gt; 1.0}
-&amp;gt; color:blend(C1,C2).
-#{alpha =&amp;gt; 1.0,blue =&amp;gt; 0.5,green =&amp;gt; 0.4,red =&amp;gt; 0.3}
-&amp;gt; color:blend(C2,C1).
-#{alpha =&amp;gt; 1.0,blue =&amp;gt; 0.38,green =&amp;gt; 0.52,red =&amp;gt; 0.51}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;This example warrants some explanation:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-define(is_channel(V), (is_float(V) andalso V &amp;gt;= 0.0 andalso V =&amp;lt; 1.0)).&lt;/code&gt;&lt;p&gt;首先定义一个宏is_channel用于guard测试。为了方便起见这里使用它减少语法的杂糅。关于宏的更多信息,参见Preprocessor[8]。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;new(R,G,B,A) when ?is_channel(R), ?is_channel(G),
-                  ?is_channel(B), ?is_channel(A) -&amp;gt;
-    #{red =&amp;gt; R, green =&amp;gt; G, blue =&amp;gt; B, alpha =&amp;gt; A}.&lt;/code&gt;&lt;p&gt;函数new/4创建一个map并且让键red，green，blue，alpha关联一个初始值。 在这里, 将宏&lt;b&gt;?is_channel&lt;/b&gt;作用于每个参数，确保只有0.0到1.0之间的浮点值才被允许，只有在创建新map的时候才允许使用&lt;b&gt;=&amp;gt;&lt;/b&gt;运算符。&lt;/p&gt;&lt;p&gt;使用new/4创建一个color，然后将colors传递给blend/2，它就能计算出混合后的颜色。&lt;/p&gt;&lt;p&gt;首先blend/2做的事是计算混合后的α通道&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;alpha(#{alpha := SA}, #{alpha := DA}) -&amp;gt;
-    SA + DA*(1.0 - SA).&lt;/code&gt;&lt;p&gt;使用&lt;b&gt;:=&lt;/b&gt;运算符获取参数中键alpha所关联的value。参数中的其他键会被忽略掉，只要求键alpha。 &lt;br&gt;函数red/2, blue/2,green/2也是如此：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;red(#{red := SV, alpha := SA}, #{red := DV, alpha := DA}) -&amp;gt;
-    SV*SA + DV*DA*(1.0 - SA).&lt;/code&gt;&lt;p&gt;这里不同点是这几个函数获取参数中的两个键，其它的被忽略。&lt;/p&gt;&lt;p&gt;最后，让我们在blend/3中返回混合后的颜色：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;blend(Src,Dst,Alpha) when Alpha &amp;gt; 0.0 -&amp;gt;
-    Dst#{
-        red   := red(Src,Dst) / Alpha,
-        green := green(Src,Dst) / Alpha,
-        blue  := blue(Src,Dst) / Alpha,
-        alpha := Alpha
-    };&lt;/code&gt;&lt;p&gt;Dst使用新通道值进行更新。更新一个已有的键关联的值的语法是使用&lt;b&gt;:=&lt;/b&gt;运算符。&lt;/p&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-07-27-28155699</guid>
-<pubDate>Thu, 27 Jul 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang入门教程 - 5. 列表</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-07-27-28155655.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang入门教程 - 5. 列表&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28155655&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;鉴于已经有tuple将元素分组，现在也需要一个工具表示一列元素。Erlang中列表由方括号“[” “]”表示。比如要表示世界各城市的温度可以：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;[{moscow, {c, -10}}, {cape_town, {f, 70}}, {stockholm, {c, -4}},
- {paris, {f, 28}}, {london, {f, 36}}]&lt;/code&gt;&lt;p&gt;注意如果列表太长一行没法写完，没关系，Erlang允许我们在合理的地方换行。&lt;/p&gt;&lt;p&gt;在列表中获取一部分可以使用“|”，下面例子是最好的解释：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;17&amp;gt; [First |TheRest] = [1,2,3,4,5].
-[1,2,3,4,5]
-18&amp;gt; First.
-1
-19&amp;gt; TheRest.
-[2,3,4,5]&lt;/code&gt;&lt;p&gt;使用“|”分隔列表中的第一个元素和剩余元素。First绑定为1，TheRest绑定为[2,3,4,5]&lt;/p&gt;&lt;p&gt;另一个例子：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;20&amp;gt; [E1, E2 | R] = [1,2,3,4,5,6,7].
-[1,2,3,4,5,6,7]
-21&amp;gt; E1.
-1
-22&amp;gt; E2.
-2
-23&amp;gt; R.
-[3,4,5,6,7]&lt;/code&gt;&lt;p&gt;在这里可以看到使用“|”获取列表的头两个元素。如果你尝试获取更多元素，就会返回一个错误。注意列表没有元素这个特殊情况，“[]”:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;[1,2]
-25&amp;gt; A.
-1
-26&amp;gt; B.
-2
-27&amp;gt; C.
-[]&lt;/code&gt;&lt;p&gt;在上面的例子中，使用的是新变量名而不是复用之前的变量名：First,TheRest,E1,E2,R,A,B,C。这是因为一个变量名在相同作用域内只能绑定一次值。关于这点后面讨论。&lt;/p&gt;&lt;p&gt;下面的例子显示了如何获取列表的长度。在tut4.erl中输入下面代码：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut4).
-
--export([list_length/1]).
-
-list_length([]) -&amp;gt;
-    0;    
-list_length([First | Rest]) -&amp;gt;
-    1 + list_length(Rest).&lt;/code&gt;&lt;p&gt;编译并测试：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;28&amp;gt; c(tut4).
-{ok,tut4}
-
-29&amp;gt; tut4:list_length([1,2,3,4,5,6,7]).
-7&lt;/code&gt;&lt;p&gt;解释：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;list_length([]) -&amp;gt;
-    0;&lt;/code&gt;&lt;p&gt;一个空列表的长度显然是0。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;list_length([First | Rest]) -&amp;gt;
-    1 + list_length(Rest).&lt;/code&gt;&lt;p&gt;包含第一个元素First和剩余元素Rest的列表的长度是1 + Rest长度 &lt;br&gt;（致高级读者：这不是尾递归，关于这个函数有一个更好的实现）&lt;/p&gt;&lt;p&gt;通常，tuple用于其它语言的“record”或者“struct”所用的地方。列表用于表示大小变化的事物，即用于其它语言的链表所用的地方。&lt;/p&gt;&lt;p&gt;Erlang没有字符串类型。作为代替，字符串可以表示为Unicode字符列表。这意味着例如列表[97,98,99]等价于“abc”。Erlang shell“机智”的猜测你给的列表的意思，并给出它认为最合适的构型的输出，比如：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;30&amp;gt; [97,98,99].
-&quot;abc&quot;&lt;/code&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-07-27-28155655</guid>
-<pubDate>Thu, 27 Jul 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

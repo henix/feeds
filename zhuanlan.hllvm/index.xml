@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Sep 2017 00:20:25 +0800</lastBuildDate>
+<lastBuildDate>Fri, 08 Sep 2017 11:52:11 +0800</lastBuildDate>
 <item>
 <title>谈寄存器分配器中Spiller的作用</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-07-29-28182330.htm</link>
@@ -446,256 +446,44 @@ Oracle Labs有一个“神秘项目”叫做Substrate VM，主要用于将使用
 <pubDate>Mon, 15 May 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
-<title>给 Idris 写 JS 后端</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-04-25-26544417.htm</link>
+<title>考不上三本也会实现数据绑定（一）</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-11-26855349.htm</link>
 <description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;给 Idris 写 JS 后端&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26544417&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;（听说最近写文章都流行配超大封面……）&lt;/p&gt;&lt;p&gt;在一票 FP 语言里面，Idris 是最特殊的之一，因为只有极少数语言能夸下海口说「It compiles, it must work!」，Idris 是其中之一。然而虽然 Coq 和 Agda 说这话底气更足，不过它们特性太偏 PA，做正经开发的话不如 Idris 和 F* 二位兄弟。而在这两者中只有 Idris 提供了多后端支持以及正经的 FFI。&lt;/p&gt;&lt;p&gt;然而在默认状况下，Idris 编译器会使用 C 后端生成 Native binary（我还给它的 RTS 上过代码……）。然后 EB 写了一个 JS 后端，只是这个后端写的实在不敢恭维：&lt;b&gt;它内嵌了一个堆栈式的虚拟机，然后使用 Tracing 的方式解释字节码&lt;/b&gt;。虽然和 C 版行为最一致，但性能和「可理解性」方面都远远不如其他的 Functional-to-js 编译器，像下面这段：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;module Main
+&lt;title&gt;考不上三本也会实现数据绑定（一）&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26855349&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;&lt;b&gt;你现在所阅读的并不是第一篇文章，你可能想看&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25959684&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;目录和前言&quot;&gt;目录和前言&lt;/a&gt;。&lt;/b&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;前言&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;经历了GacUI的一次超级大重构之后，终于又有空写文章了。这次重构在保留了所有功能的前提下，删掉了很多类跟接口，积累了很多魂来传火，过些日子再围绕相关的话题来谈一谈重构。今天先说一下数据绑定的事情。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;MVVM&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在我讲数据绑定的时候，背景是设定在 &lt;a href=&quot;https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel&quot; data-editable=&quot;true&quot; data-title=&quot;Model-view-viewmodel - Wikipedia&quot; class=&quot;&quot;&gt;MVVM模式&lt;/a&gt; 上面的，在这里简单介绍一下MVVM。MVVM把我们的程序——其实大多数时候就是UI或者网页——分成了三大块，分别是Model、ViewModel和View。Model很好理解，指的是数据源，通常是数据库或者文件。View也很好理解，就是最终的UI，或者是测试用例，或者是一些别的东西。那ViewModel是什么呢？大多数时候我们也不用死抠概念。ViewModel出现的根本原因就是，Model和View的结构经常是不一样的。&lt;/p&gt;&lt;p&gt;举个简单的例子，Model是每门科目各一份的成绩单，View是教室门口贴的总分前10名的大红榜。显然Model和View的结构就是完全不同的。在这里Model按照科目来分，告诉你每个人的成绩是多少。View则告诉你总分前10名都是什么人。那ViewModel是啥呢？其实ViewModel在这里就是红榜的内容了。View——红，ViewModel——榜，没毛病（逃&lt;/p&gt;&lt;p&gt;因此ViewModel大多数时候就是用来负责实现具体的计算过程的，譬如从一堆成绩单里面算出总分前10名，这就是ViewModel要做的事情。那么针对这份ViewModel，我们就可以做一堆View，譬如说：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;让老师把前10名念出来&lt;br&gt;&lt;/li&gt;&lt;li&gt;写进大红榜贴在教室门口&lt;br&gt;&lt;/li&gt;&lt;li&gt;打印成文件给校长用来做发奖学金的参考&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;这三个View虽然长的完全不同，但是其内容都是一致的，而且的格式跟Model有巨大的区别。所以这就是ViewModel存在的原因，你需要一些复杂的计算，而且这些计算可以被重复使用，所以要独立出来，正确处理好依赖：让View去依赖ViewModel。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;数据绑定&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;好了，那为什么会有数据绑定呢？因为到了这一步，ViewModel的格式跟View其实就差不多了，那么你把数据从ViewModel复制到View，或者从View反馈回ViewModel，&lt;b&gt;理论上只需要一些简单的步骤就可以实现&lt;/b&gt;。UWP就假设这些步骤可以简单到你只需要给一串（通常只有一个）属性的名字就好了，复杂点的可以用Converter，再复杂就证明你的ViewModel做的不好。&lt;/p&gt;&lt;blockquote&gt;GacUI的数据绑定并没有这个假设，我可以让你写无限复杂的表达式，不过同时也付出了没有双向绑定的代价——如果你需要双向绑定，那你就正反两边都绑定好了——因为GacUI的数据绑定除了联系View和ViewModel以外，还有别的事情要做。&lt;/blockquote&gt;&lt;p&gt;UWP的x:bind提供了三种绑定的形式，分别是一次性绑定、单向绑定跟双向绑定。其中一次性绑定就跟写在构造函数里没有区别，而双向绑定可以理解为从一个单向绑定计算出相反的单向绑定要怎么写然后自动替你写好，因此我们就只需要考虑单向绑定要怎么做就可以了。&lt;/p&gt;&lt;p&gt;在这里不得不提到的是，我看到有些JavaScript的界面库在实现数据绑定的时候，采用了一些花式作死的方法，其中我印象最深刻的一种就是，他先跑一下你的表达式，看看一共用到了多少属性，然后挨个给他们挂上事件处理程序。居然存在使用采样的方式来实现的编译器，不得不佩服作者的想象力实在是太强大了，是谁这么做我已经不记得了。不过他根本不需要这么做，只要把JavaScript换成TypeScript，这个事情就可以完美的解决。&lt;/p&gt;&lt;p&gt;为什么呢？因为你既然要做数据绑定，那你总要知道你写的这个表达式到底需要响应多少事件——其实也就是说，到底要在ViewModel的什么部分被修改的情况下刷新View——这样才能做出完整的功能。而JavaScript这个语言在阅读的时候是没有上下文的，所以你根本没办法做这样的计算，因此才需要用采样的方法。而采样的一个缺点就是，万一你的表达式有分支怎么办？有些人可能会说，你不应该写分支。其实这个说法很对，毕竟这么复杂的逻辑应该放进ViewModel里，但是与此配套的，你应该在遇到分支的时候直接爆炸，而不是就这么默默的接受了。TypeScript就是有上下文的，所以可以清楚地把依赖关系都计算出来。&lt;/p&gt;&lt;p&gt;所以这个系列的前提就这么确定了，我们在MVVM的模式下，使用一个强类型的语言做数据绑定。那我们需要依靠什么三本的知识来实现数据绑定，就是接下来的文章要讲述的事情。当然说是说系列，多半（二）就会把所有的事情都说完了，毕竟数据绑定的内容很少（逃&lt;/p&gt;&lt;h2&gt;&lt;b&gt;一个例子&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在文章结束之前，最后讲一下我们要如何对数据绑定这个功能进行建模。在GacUI使用的 &lt;a href=&quot;https://github.com/vczh-libraries/Workflow&quot; data-editable=&quot;true&quot; data-title=&quot;vczh-libraries/Workflow&quot; class=&quot;&quot;&gt;Workflow脚本语言&lt;/a&gt; 里面，我给了一个bind表达式，具体的用法就是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;bind(obj.A + obj.B)&lt;/code&gt;&lt;p&gt;这个表达式会返回下面的接口的实例：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;interface system::Subscription
+{
+    /* 一些无关紧要的其他函数 */
 
-range : Int
-range = 1000
+    event ValueChanged(object);
+}&lt;/code&gt;&lt;p&gt;然后只要obj.A + obj.B这个表达式改变了——其实也就是A或者B属性的其中一个发生了变化，ValueChanged事件就会触发，参数就是这个表达式当前的值。你只要挂了这个事件，自然就可以把最新的数据显示到UI上面了。譬如说下面的这个&lt;a href=&quot;https://github.com/vczh-libraries/Workflow/blob/master/Test/Resources/Codegen/BindFormat.txt&quot; data-editable=&quot;true&quot; data-title=&quot;github.com 的页面&quot; class=&quot;&quot;&gt;测试用例&lt;/a&gt;：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;module test;
+using test::*;
+using system::*;
 
-testProg : Int -&amp;gt; Int
-testProg n = loop n
-where
-	lmt : Int
-	lmt = min (n + 100) range
+var s = &quot;&quot;;
 
-	loop : Int -&amp;gt; Int
-	loop i = if i &amp;gt;= lmt then i else loop (i + 1)
-
-main : IO()
-main = printLn $ testProg 0
-&lt;/code&gt;&lt;p&gt;使用官方后端的话 testProg 相关的部分会变成这个德行（Idris 因为是全程序编译的，所以 JS 里面还带有 Prelude 的部分）：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var _idris_Main_46_testProg_58_lmt_58_0 = function(oldbase){
-  var myoldbase = new i$POINTER();
-  i$valstack_top += 2;
-  i$valstack[i$valstack_base + 1] = 100;
-  i$valstack[i$valstack_base + 1] = i$valstack[i$valstack_base] + i$valstack[i$valstack_base + 1];
-  i$valstack[i$valstack_base + 2] = 1000;
-  i$valstack[i$valstack_top] = i$valstack[i$valstack_base + 1];
-  i$valstack[i$valstack_top + 1] = i$valstack[i$valstack_base + 2];
-  i$SLIDE(2);
-  i$valstack_top = i$valstack_base + 2;
-  i$CALL(_idris_Prelude_46_Interfaces_46_Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33_min_58_0,[oldbase]);
-}
-var _idris_Main_46_testProg_58_loop_58_0$1 = function(oldbase,myoldbase){
-  i$valstack[i$valstack_base + 2] = i$ret;
-  switch(i$valstack[i$valstack_base + 2].tag){
-    case 0:
-      i$valstack[i$valstack_base + 3] = 1;
-      i$valstack[i$valstack_base + 3] = i$valstack[i$valstack_base + 1] + i$valstack[i$valstack_base + 3];
-      i$valstack[i$valstack_top] = i$valstack[i$valstack_base];
-      i$valstack[i$valstack_top + 1] = i$valstack[i$valstack_base + 3];
-      i$SLIDE(2);
-      i$valstack_top = i$valstack_base + 2;
-      i$CALL(_idris_Main_46_testProg_58_loop_58_0,[oldbase]);
-      break;
-    case 1:
-      i$ret = i$valstack[i$valstack_base + 1];
-      i$valstack_top = i$valstack_base;
-      i$valstack_base = oldbase.addr;
-      break;
-  };
-}
-var _idris_Main_46_testProg_58_loop_58_0$0 = function(oldbase,myoldbase){
-  i$valstack[i$valstack_base + 2] = i$ret;
-  i$valstack[i$valstack_top] = i$valstack[i$valstack_base + 1];
-  i$valstack[i$valstack_top + 1] = i$valstack[i$valstack_base + 2];
-  myoldbase.addr = i$valstack_base;
-  i$valstack_base = i$valstack_top;
-  i$valstack_top += 2;
-  i$CALL(_idris_Main_46_testProg_58_loop_58_0$1,[oldbase,myoldbase]);
-  i$CALL(_idris_Prelude_46_Interfaces_46_Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33__62__61__58_0,[myoldbase]);
-}
-var _idris_Main_46_testProg_58_loop_58_0 = function(oldbase){
-  var myoldbase = new i$POINTER();
-  i$valstack_top += 2;
-  i$valstack[i$valstack_top] = i$valstack[i$valstack_base];
-  myoldbase.addr = i$valstack_base;
-  i$valstack_base = i$valstack_top;
-  i$valstack_top += 1;
-  i$CALL(_idris_Main_46_testProg_58_loop_58_0$0,[oldbase,myoldbase]);
-  i$CALL(_idris_Main_46_testProg_58_lmt_58_0,[myoldbase]);
-}
-&lt;/code&gt;&lt;p&gt;对比下 &lt;a href=&quot;http://www.zhihu.com/people/2ff239f95aaa7f4612a23d220ff4ce48&quot; data-hash=&quot;2ff239f95aaa7f4612a23d220ff4ce48&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@张宏波&quot; data-hovercard=&quot;p$b$2ff239f95aaa7f4612a23d220ff4ce48&quot;&gt;@张宏波&lt;/a&gt; 每天广告的 Bucklescript&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;// Generated by BUCKLESCRIPT VERSION 1.2.1 , PLEASE EDIT WITH CARE
-&#39;use strict&#39;;
-
-var Pervasives = require(&quot;stdlib/pervasives&quot;);
-
-function testProg(n) {
-  var lmt = Pervasives.min(n + 100 | 0, 1000);
-  var _i = n;
-  while(true) {
-    var i = _i;
-    if (i &amp;gt;= lmt) {
-      return i;
-    }
-    else {
-      _i = i + 1 | 0;
-      continue ;
-      
-    }
-  };
+func Callback(value : object) : void
+{
+	s = $&quot;$(s)[$(cast string value)]&quot;;
 }
 
-var range = 1000;
+func main() : string
+{
+	var x = new ObservableValue^();
+	var subscription = bind($&quot;The value has been changed to $(x.Value)&quot;);
+	subscription.Open();
+	attach(subscription.ValueChanged, Callback);
 
-exports.range    = range;
-exports.testProg = testProg;
-&lt;/code&gt;&lt;p&gt;这是何等的差距……&lt;/p&gt;&lt;p&gt;不过好在，Idris 在设计的时候就考虑了对接多种后端，而且也确实有很多人在做后端的工作，那么，如果官方后端不够好的话，自己写一个不就行了么……（当然了，认为官方后端烂的不只我一个，没有必要真的从头去写。）&lt;/p&gt;&lt;p&gt;项目在这：&lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt;，分化自上游的 &lt;a href=&quot;https://github.com/rbarreiro/idrisjs&quot; data-editable=&quot;true&quot; data-title=&quot;rbarreiro/idrisjs&quot; class=&quot;&quot;&gt;rbarreiro/idrisjs&lt;/a&gt;。&lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 的目标就是打造一个高效和易于理解的 JS backend。&lt;/p&gt;&lt;h2&gt;Idris 的编译流程&lt;/h2&gt;&lt;p&gt;OK 说正经的吧，Idris 的编译流程大体如下图：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f7619c7a601fbc82ce7d32e3b19d626f_r.png&quot; data-rawwidth=&quot;1015&quot; data-rawheight=&quot;1708&quot;&gt;作为一个同样献祭了无数 PhD 的项目，Idris 最有技术含量的是第一个部分，LoadSource。在这个步骤中，Idris 使用一种类似 Coq 中执行 LTac 的方式将「上位」的 .idr 源码&lt;b&gt;繁饰&lt;/b&gt;（Elaboration）成一个下位的语言 TT，具体过程参阅 EB 的论文 &lt;a href=&quot;https://eb.host.cs.st-andrews.ac.uk/drafts/impldtp.pdf&quot; data-editable=&quot;true&quot; data-title=&quot;Idris, a General Purpose Dependently Typed Programming Language&quot; class=&quot;&quot;&gt;Idris, a General Purpose Dependently Typed Programming Language&lt;/a&gt;。（所以如果你关住比较早的话，估计还用过 Idris 的 Elaborator 脚本，那个就是直接操纵 Elaborator 的过程——当然这东西现在换成 Elaborator Reflection 了。）繁饰完成的 TT 会被写入相应的 .ibc 文件，同时也被 Idris REPL 使用。&lt;/p&gt;&lt;p&gt;而第二个部分，Compile，则是从 TT 开始一步一步地进行一系列语法变换，最终交给 Codegen 生成目标文件。这个步骤是在一个单独的进程中运行的，程序名 idris-codegen-#.exe，由 Idris 主程序调用，输入一组 .ibc，输出一个目标文件。给 Idris 写后端实际上就是写一个新的「idris-codegen-#.exe」，放在 idris 主程序相同目录下，然后就可以用了……&lt;/p&gt;&lt;p&gt;因此，如果你愿意的话完全可以想办法自己读 .ibc 文件，自己变换自己输出，可惜 ibc 不仅是二进制文件而且格式也没文档，这种想法也就真的是想想而已了。&lt;/p&gt;&lt;p&gt;更加务实的手段是复用 Idris 的架构，也即上图中的若干框里的表示，这些中间表示位于 IRTS 下的若干模块中：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;TT，这个是类型信息最完整的，但是较为复杂，而且还用了 HOAS 之类的高端特性，拿来做类型检查很合适，给后端用就未必了。&lt;/li&gt;&lt;li&gt;LDecl，这个是 TT 编译后的结果，一种类似 UTLC 的语言，但所有的函数调用都只会调用变量，但 Arity 可能不匹配，即可能产生闭包，也可能调用传入的参数。&lt;/li&gt;&lt;li&gt;DDecl，这个是在 LDecl 的基础上进行 Defunctinalize，通过显式构造数据结构消除闭包构造的产物。到了这一步，所有的函数调用不仅只调用顶层声明，还抱着 Arity 严格匹配。&lt;/li&gt;&lt;li&gt;SDecl 则在 DDecl 上进一步简化，所有的嵌套函数调用都被提出成 let 的形式。&lt;/li&gt;&lt;li&gt;字节码，这个没有在 IRTS.CodegenCommon.CodegenInfo 中直接给出，需要自己生成，官方的 C 后端就使用了字节码。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;TT、LDecl、DDecl、SDecl 到字节码可以看作一个函数式语言一步一步走向机器底层的路程。在 LDecl、DDecl、SDecl、字节码这四者中，LDecl 和各种脚本语言的模式最为相似；DDecl 的模型则接近于 C；SDecl 接近一些 SSA IR；字节码就不用说了。在写后端的时候可以使用其中任意一种作为处理。&lt;/p&gt;&lt;p&gt;考虑到现在是 target 到 JavaScript，属于一个带有原生闭包支持的脚本语言，因此使用 LDecl 对应的 Lang 层进行最为合适，不过我们会做一些优化，比如 uncurry 干掉嵌套函数之类。&lt;/p&gt;&lt;h2&gt;Lang 层的结构&lt;/h2&gt;&lt;p&gt;Lang 层的模块名是 IRTS.Lang，其核心部分是 LExp 和 LDecl，定义如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data LVar = Loc Int | Glob Name
-  deriving (Show, Eq)
+	x.Value = 10;
+	x.Value = 20;
+	x.Value = 30;
 
-data LExp = LV LVar
-          | LApp Bool LExp [LExp]    -- True = tail call
-          | LLazyApp Name [LExp]     -- True = tail call
-          | LLazyExp LExp            -- lifted out before compiling
-          | LForce LExp              -- make sure Exp is evaluted
-          | LLet Name LExp LExp      -- name just for pretty printing
-          | LLam [Name] LExp         -- lambda, lifted out before compiling
-          | LProj LExp Int           -- projection
-          | LCon (Maybe LVar)        -- Location to reallocate, if available
-                 Int Name [LExp]
-          | LCase CaseType LExp [LAlt]
-          | LConst Const
-          | LForeign FDesc           -- Function descriptor (usually name as string)
-                     FDesc           -- Return type descriptor
-                     [(FDesc, LExp)] -- first LExp is the FFI type description
-          | LOp PrimFn [LExp]
-          | LNothing
-          | LError String
-  deriving Eq
-
--- 中间省略 FFI 和 PrimFn 的部分
-
-data LAlt&#39; e = LConCase Int Name [Name] e
-             | LConstCase Const e
-             | LDefaultCase e
-  deriving (Show, Eq, Functor)
-
-type LAlt = LAlt&#39; LExp
-
-data LDecl = LFun [LOpt] Name [Name] LExp -- options, name, arg names, def
-           | LConstructor Name Int Int    -- constructor name, tag, arity
-  deriving (Show, Eq)
-
-type LDefs = Ctxt LDecl
-&lt;/code&gt;LExp 大体上就是一个支持闭包的脚本语言的样子，LDecl 则包含「函数」声明以及构造器声明两类（Name 是 Idris TT 层的类型，表示各种各样的名称，十分复杂）。不过你别看 LExp 分支那么多，实际上在 Lang 层的 Lambda lifting 之后，LLam 不会给你拿到，真正能出现的组合只有以下这么几类：&lt;code lang=&quot;text&quot;&gt;(LV (Glob n))
-(LApp tc (LV (Glob n)) args)
-(LLazyApp n args)
-(LForce e)
-(LLet n v sc)
-(LCon loc i n args)
-(LProj t i)
-(LCase up e alts)
-(LConst c)
-(LForeign t n args)
-(LOp f args)
-LNothing
-(LError e)
-&lt;/code&gt;&lt;p&gt;即使配合上 TCO（LApp 第一个字段就是是否为 tail call），一个 backend 也就大约 1000 行 Haskell 的篇幅，当然如果你把优化全去掉的话会更短，不过生成出来的 JS 会更慢就是了。&lt;/p&gt;&lt;h2&gt;去 Curry 化&lt;/h2&gt;&lt;p&gt;Idris 和其他一票函数式语言一样都是默认 Curry 化的，想要消除的话需要记录顶层声明的 Arity，然后在编译 LApp 的时候比对 args 的长度：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;如果两者相等，很好，生成一个简单的 JS 函数调用，返回即可；&lt;/li&gt;&lt;li&gt;如果声明的 arity 比传入的大，那么就需要刷一个 lambda，同时进行 curry；&lt;/li&gt;&lt;li&gt;如果声明的 arity 小于传入的，那么在「正常」的调用之后，生成一系列的 JS 调用，每次一个参数。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;IRTS 从 L 层到 D 层的实现也与之相似。&lt;/p&gt;&lt;h2&gt;对象的表示&lt;/h2&gt;&lt;p&gt;由于 Idris 大量使用 datatype，对于 LCon 可以做一个有趣的优化：如果某个构造是 0 元的，就不去刷出一个新对象出来，而是直接返回 tag 的数值，减少构造和解构的开销。&lt;/p&gt;&lt;p&gt;事实上，如果不考虑 LProj 的话，可以再这里做更多的 specialize，比如把 Idris 的 List 映射到 JS 的数组等等，不过最简单的 specialize 就是把 Idris 的 Bool 映射成 JS 的 Boolean，实现非常简单：查询出 constructor declaration 之后，如果它是 True 或者 False，改掉实现即可。&lt;/p&gt;&lt;p&gt;目前 &lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;be5invis/idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 使用 {type:tag,$1:arg1,$2:arg2,...} 生成 Idris 的对象，以后则会迁移到对每个构造器生成特化的类来实现。&lt;/p&gt;&lt;h2&gt;结果&lt;/h2&gt;&lt;p&gt;使用现在的 &lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 编译和上文同一段 Idris 结果是这样：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function x_Main_46_testProg_58_lmt_58_0(_e$0){
-   return q_Prelude$Interfaces$$Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33_min_58_0((_e$0 + 100), 1000)
-}
-
-function x_Main_46_testProg_58_loop_58_0(_e$0, _e$1){
-   for(;;) {
-      var cgIdris_2 = q_Prelude$Interfaces$$Prelude_46_Interfaces_46__64_Prelude_46_Interfaces_46_Ord_36_Int_58__33__62__61__58_0(_e$1, x_Main_46_testProg_58_lmt_58_0(_e$0));
-      if(( !cgIdris_2)) {
-         var cgIdris_3 = _e$0;
-         var cgIdris_4 = (_e$1 + 1);
-         _e$0 = cgIdris_3;
-         _e$1 = cgIdris_4;
-         continue
-      } else {
-         return _e$1
-      }
-      ;
-      break
-   }
-}
-
-var q_Main$$main = (function(){
-   return q_Prelude$Interactive$$putStr_39_(null, (q_Prelude$Show$$primNumShow(null, u_prim____toStrInt, 0, x_Main_46_testProg_58_loop_58_0(0, 0)) + &quot;\n&quot;))
-})()
-
-var _runMain$0 = (function(){
-   return js_idris_force(q_Main$$main(null))
-})()&lt;/code&gt;&lt;p&gt;可以看出几点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Idris 的编译器有内联的能力，同时会尽力消除重载函数的 dict passing 开销，这点比 purescript 强太多……&lt;/li&gt;&lt;li&gt;testProg 被内联了，连定义都不再导出。testProg 里的 loop 被提出同时改成了两个参数，lmt 也被提出，成为了函数。&lt;/li&gt;&lt;li&gt;常数 range 也被内联了。&lt;/li&gt;&lt;li&gt;Type term 和 Proof term 都在 LDecl 前消除，成为 null。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;对 &lt;a href=&quot;https://github.com/be5invis/idris-codegen-js&quot; data-editable=&quot;true&quot; data-title=&quot;be5invis/idris-codegen-js&quot; class=&quot;&quot;&gt;idris-codegen-js&lt;/a&gt; 感兴趣的可以去这儿拉源码编译、上 PR 等等。JS Binding 可以去上游 &lt;a href=&quot;https://github.com/rbarreiro/idrisjs&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;rbarreiro/idrisjs&quot;&gt;rbarreiro/idrisjs&lt;/a&gt; 获取。&lt;/p&gt;&lt;p&gt;感谢 &lt;a href=&quot;http://www.zhihu.com/people/2d8f51b6523e01a8529606f466d98198&quot; data-hash=&quot;2d8f51b6523e01a8529606f466d98198&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@Canto Ostinato&quot; data-hovercard=&quot;p$b$2d8f51b6523e01a8529606f466d98198&quot;&gt;@Canto Ostinato&lt;/a&gt; 帮忙配 stack。&lt;/p&gt;&lt;p&gt;图片来源：《&lt;a href=&quot;https://functor-fantasy.github.io/&quot; data-editable=&quot;true&quot; data-title=&quot;A Functor Fantasy&quot;&gt;A Functor Fantasy&lt;/a&gt;》章节封面&lt;/p&gt;&lt;p&gt;————————————————————————————————————————&lt;/p&gt;&lt;p&gt;附录：&lt;/p&gt;&lt;p&gt;Purescript 等效代码&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;module Main where
-import Prelude
-range = 1000
-
-testProg n = -- do some work
-  let lmt = min (n + 100) range 
-  in
-  let loop i =
-       if i &amp;gt;= lmt 
-        then i
-        else loop (i + 1) 
-  in
-  loop n
-&lt;/code&gt;&lt;p&gt;Purescript 生成结果&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&quot;use strict&quot;;
-var Data_Ord = require(&quot;../Data.Ord&quot;);
-var Data_Semiring = require(&quot;../Data.Semiring&quot;);
-var Prelude = require(&quot;../Prelude&quot;);
-var range = 1000;
-var testProg = function (n) {
-    var lmt = Data_Ord.min(Data_Ord.ordInt)(n + 100 | 0)(range);
-    var loop = function (__copy_i) {
-        var i = __copy_i;
-        var __tco_done = false;
-        var __tco_result;
-        var __tco_i;
-        function __tco_loop(i) {
-            var $0 = i &amp;gt;= lmt;
-            if ($0) {
-                __tco_done = true;
-                return i;
-            };
-            __tco_i = i + 1 | 0;
-            return;
-        };
-        while (!__tco_done) {
-            __tco_result = __tco_loop(i);
-            i = __tco_i;
-        };
-        return __tco_result;
-    };
-    return loop(n);
-};
-module.exports = {
-    range: range, 
-    testProg: testProg
-};
-&lt;/code&gt;&lt;p&gt;Elm 等效代码&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;range : Int
-range = 1000
-
-testProg : Int -&amp;gt; Int
-testProg n = -- do some work
-  let lmt = min (n + 100) range in
-  let loop i =
-    if i &amp;gt;= lmt then i else
-    loop (i + 1) in loop n
-&lt;/code&gt;&lt;p&gt;Elm 输出 JS&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var _user$project$Temp1482759649866537$range = 100;
-var _user$project$Temp1482759649866537$testProg = function (n) {
-	var lmt = A2(_elm_lang$core$Basics$min, n + 1000, _user$project$Temp1482759649866537$range);
-	var loop = function (i) {
-		loop:
-		while (true) {
-			if (_elm_lang$core$Native_Utils.cmp(i, lmt) &amp;gt; -1) {
-				return i;
-			} else {
-				var _v0 = i + 1;
-				i = _v0;
-				continue loop;
-			}
-		}
-	};
-	return loop(n);
-};
-&lt;/code&gt;</description>
-<author>Belleve</author>
-<guid isPermaLink="false">2017-04-25-26544417</guid>
-<pubDate>Tue, 25 Apr 2017 00:00:00 +0800</pubDate>
+	subscription.Close();
+	return s;
+}&lt;/code&gt;&lt;p&gt;最终就会返回下面这个字符串：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[The value has been changed to 10][The value has been changed to 20][The value has been changed to 30]&lt;/code&gt;&lt;p&gt;因为x.Value一共改变了3次。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;待续&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;今天这篇文章就说到这里了，接下来我们会重点描述下面的三个问题&lt;/p&gt;&lt;ul&gt;&lt;li&gt;如何跟踪属性变化&lt;br&gt;&lt;/li&gt;&lt;li&gt;如何分析属性之间的依赖关系&lt;br&gt;&lt;/li&gt;&lt;li&gt;如何把数据绑定重写为对回调函数的调用&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;这三个问题搞定了，数据绑定也就做出来了。敬请期待。&lt;/p&gt;</description>
+<author>vczh</author>
+<guid isPermaLink="false">2017-05-11-26855349</guid>
+<pubDate>Thu, 11 May 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
