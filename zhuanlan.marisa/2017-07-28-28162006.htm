@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>使用 Haskell 编写灵活的 Parser （下）</title>
 <p><a href="https://zhuanlan.zhihu.com/p/28162006">原文</a></p>
-<p>原文在我博客：<a href="http://ice1000.org/2017/07/27/HaskellParsers2/">使用 Haskell 编写灵活的 Parser （下）</a></p><p>上一篇也是：<a href="http://ice1000.org/2017/07/26/HaskellParsers/">使用 Haskell 编写灵活的 Parser （上）</a></p><p>本篇主要讲 Parser Combinator 的组合，比如二元运算符的解析以及优先级结合性的处理。</p><h2>some 与 many</h2><p>上篇还剩下一个内容，就是 some 和 many 。这两个函数是 Control.Applicative 内置的，可以直接拿来用。</p><p>比如我们可以有一个解析空字符串的 Parser ：</p><code lang="haskell">-- | one or more
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-5aa5b971b51772baaff0fc0ba7144d3d_r.jpg" alt=""></div><p>原文在我博客：<a href="http://ice1000.org/2017/07/27/HaskellParsers2/">使用 Haskell 编写灵活的 Parser （下）</a></p><p>上一篇也是：<a href="http://ice1000.org/2017/07/26/HaskellParsers/">使用 Haskell 编写灵活的 Parser （上）</a></p><p>本篇主要讲 Parser Combinator 的组合，比如二元运算符的解析以及优先级结合性的处理。</p><h2>some 与 many</h2><p>上篇还剩下一个内容，就是 some 和 many 。这两个函数是 Control.Applicative 内置的，可以直接拿来用。</p><p>比如我们可以有一个解析空字符串的 Parser ：</p><code lang="haskell">-- | one or more
 spacesP :: Parser String
 spacesP = some $ oneOf " \n\r\t"
 

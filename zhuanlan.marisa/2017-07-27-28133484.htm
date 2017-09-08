@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>使用 Haskell 编写灵活的 Parser （上）</title>
 <p><a href="https://zhuanlan.zhihu.com/p/28133484">原文</a></p>
-<p>为什么我会想到去用 Haskell 写 Parser 呢？因为 Haskell 的 do notation 对这种 Monad 组合子真的太友好了。</p><p>另一个原因是因为最近在 <a href="https://www.codewars.com/r/8-drmA">CodeWars</a> 上做了不少 Parser 题，刷分巨快(因为 Parser 题都是紫色的)，很快把我推上了 1kyu 。</p><p>全文代码如有误欢迎指出，我会诚恳地改正。本文讲的内容不多，主要是介绍，下篇文章会说怎么解析带优先级/结合性的表达式。</p><p>首先我说说 Parser Combinator （就是函数式编程中采用的编写 Parser 的方式） 的基本使用。 篇幅所限， Parsre Combinator 库的编写就不说了。它其实是将针对某种语法模块的 Parser 单元组合起来成为可以解析复杂语法的 Parser 。 比如我有一个可以解析数字的 Parser 和一个可以解析符号 + 的 Parser ，那么组合他们就可以得到加法运算的 Parser 。大概是这样：</p><code lang="haskell">plusParser :: Parser Char
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-f5b1fadb980eecc874f945addac3dc93_r.jpg" alt=""></div><p>为什么我会想到去用 Haskell 写 Parser 呢？因为 Haskell 的 do notation 对这种 Monad 组合子真的太友好了。</p><p>另一个原因是因为最近在 <a href="https://www.codewars.com/r/8-drmA">CodeWars</a> 上做了不少 Parser 题，刷分巨快(因为 Parser 题都是紫色的)，很快把我推上了 1kyu 。</p><p>全文代码如有误欢迎指出，我会诚恳地改正。本文讲的内容不多，主要是介绍，下篇文章会说怎么解析带优先级/结合性的表达式。</p><p>首先我说说 Parser Combinator （就是函数式编程中采用的编写 Parser 的方式） 的基本使用。 篇幅所限， Parsre Combinator 库的编写就不说了。它其实是将针对某种语法模块的 Parser 单元组合起来成为可以解析复杂语法的 Parser 。 比如我有一个可以解析数字的 Parser 和一个可以解析符号 + 的 Parser ，那么组合他们就可以得到加法运算的 Parser 。大概是这样：</p><code lang="haskell">plusParser :: Parser Char
 plusParser = xxxx
 
 numberParser :: Parser Int
