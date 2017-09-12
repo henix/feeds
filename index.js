@@ -39,6 +39,10 @@ const feeds = [
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
+	["法律", [
+		"mclawman",
+		"laodongfaquanji",
+	]],
 	["算法", [
 		"algorithmicliberalartsdegree",
 	]],
