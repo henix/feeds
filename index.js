@@ -53,6 +53,7 @@ const feeds = [
 	["心理", [
 		"knowyourself",
 		"PSY_Jile",
+		"bhahhltmusic",
 	]],
 	["科学", [
 		"liweitan2014",
