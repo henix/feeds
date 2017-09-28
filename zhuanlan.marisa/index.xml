@@ -5,7 +5,344 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 20 Sep 2017 23:36:14 +0800</lastBuildDate>
+<lastBuildDate>Thu, 28 Sep 2017 17:14:45 +0800</lastBuildDate>
+<item>
+<title>Simon Peyton Jones - Compiling without continuations</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-27-29722926.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Simon Peyton Jones - Compiling without continuations&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29722926&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-213c8aee9a2371e3336bb6eefc6f057c_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;这是 SPJ 在 &lt;a href=&quot;https://pldi17.sigplan.org/&quot;&gt;PLDI 2017&lt;/a&gt;  上发表的关于 &lt;a href=&quot;https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/join-points-pldi17.pdf&quot;&gt;join point&lt;/a&gt;  的 talk，十分有趣， &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/73c168246af1fab79b28736c311466e1&quot; data-hash=&quot;73c168246af1fab79b28736c311466e1&quot; data-hovercard=&quot;p$b$73c168246af1fab79b28736c311466e1&quot;&gt;@韩冬&lt;/a&gt;  听译整理。&lt;/p&gt;&lt;video id=&quot;None&quot; data-swfurl=&quot;&quot; poster=&quot;https://pic2.zhimg.com/v2-b41bb43f595293c7db0cce11570fcefd.jpg&quot; data-sourceurl=&quot;http://www.iqiyi.com/w_19rvbow2a1.html&quot; data-name=&quot;Compiling without continuations&quot; data-video-id=&quot;896416823258537984&quot; data-video-playable=&quot;false&quot; data-lens-id=&quot;&quot;&gt;&lt;/video&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外欢迎关注本人开通的订阅号：冬的自由地。预计定期更新些编程相关文章 XD&lt;/p&gt;</description>
+<author>韩冬</author>
+<guid isPermaLink="false">2017-09-27-29722926</guid>
+<pubDate>Wed, 27 Sep 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>0x05: SICP 的魔法 - 实例:数字电路模拟</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-26-29695168.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;0x05: SICP 的魔法 - 实例:数字电路模拟&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29695168&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3076ebc172bbb1203c811053d6b5872a_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;知乎的编辑器好烦啊，总是代码块语言总是掉。。。&lt;br&gt;我的github地址：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/lfkdsk&quot;&gt;lfkdsk &lt;/a&gt;&lt;br&gt;还创建了相关的仓库，可以clone下来看：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/lfkdsk/SICP-Magical-Book&quot;&gt;SICP 的魔法&lt;/a&gt; &lt;br&gt;这个仓库还绑定了 gitbook 可以去下载。&lt;br&gt;我的原文地址：&lt;a href=&quot;http://lfkdsk.github.io/2017/08/08/learn-sicp-5/&quot;&gt;0x05: SICP 的魔法 - 实例:数字电路模拟&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;在第二章我们学到的和 &lt;b&gt;数据抽象&lt;/b&gt; 相关的知识指出，如果想构造数据抽象，我们需要两个部分：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;创建构造函数包含数据&lt;/li&gt;&lt;li&gt;创建选择函数 &lt;b&gt;分派&lt;/b&gt; 数据&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;但是在经过了解了第三章相关的 &lt;i&gt;模块化、状态、环境&lt;/i&gt; 的知识之后，我们认识到了新的问题，在实际编程之中，需要依赖程序的状态进行编程，那么程序中就要根据我们的环境求值的方式进行计算，那我们在重新设计和模拟系统大的时候就要多考虑几点了：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;在系统中我们带状态的数据抽象&lt;/li&gt;&lt;li&gt;创建 &lt;b&gt;改变函数(mutator)&lt;/b&gt; 去对数据进行重新修改&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;基于变动的模拟&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在构建复杂的系统之中，我们最先面对的部分就是关于 &lt;i&gt;同一性&lt;/i&gt; 的知识，这部分知识我们已经在上一章的 &lt;b&gt;同一性发生了变化&lt;/b&gt; 的那个小节中简单的讨论过一次，我们可以在这个再重新讨论一下 &lt;b&gt;共享和相等&lt;/b&gt; 的知识。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;共享和相等&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们通过引入赋值的方式为系统引入了状态，但是造成了引用透明的危机，我们没办法再通过相同的结构来判断对象西相同，两个相同结构的对象并不能确定两个对象是否相同：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define x (list &#39;a &#39;b))
+(define z1 (cons x x))&lt;/code&gt;&lt;p&gt;我们定义了这样的一个结构，&lt;i&gt;x&lt;/i&gt; 是&#39;a 和 &#39;b 组成的序对，然后 &lt;i&gt;z1&lt;/i&gt; 是由两个 &lt;i&gt;x&lt;/i&gt; 的组成的序对，我们还要在另外定义一个 &lt;i&gt;z2&lt;/i&gt;：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define z2 (cons (list &#39;a &#39;b) (list &#39;a &#39;b)))&lt;/code&gt;&lt;p&gt;这两个结构的定义起来，看起来的结构是一样的：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7cb8d6a314747e5d2827361f56b7d84d_r.jpg&quot; data-rawwidth=&quot;675&quot; data-rawheight=&quot;348&quot;&gt;&lt;p&gt;这里我们能看到放置 &#39;a 和 &#39;b 两个序对中的节点都指向了同一个节点，这是因为在 Scheme 中符号引用是共享的，因而他们都指向了同一个节点。但是很明显虽然 &lt;b&gt;符号引用&lt;/b&gt; 都指向了同一个节点，但是整体的结构是两个结构指向了两个结构，直接使用：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(eq? z1 z2)&lt;/code&gt;&lt;p&gt;的结果肯定是不相等的，这意味着我们每次使用 cons 方法结成一个新的序对都是生成了一个新的对象并返回的是可操作该对象的 &lt;i&gt;指针/引用&lt;/i&gt; （虽然 Scheme 中没有显示的这种概念）。&lt;/p&gt;&lt;p&gt;这时候我们需要考虑另一个问题，就是在整个 &lt;i&gt;数据抽象&lt;/i&gt; 都是不可变的情况下，我们对于数据结构是否使用了同样的引用是不可知的，但是当我们引入 &lt;i&gt;赋值&lt;/i&gt; 我们共享的数据因为使用了同一个贡献的结构而变得复杂起来，修改其中的一个会导致另一个收到影响。&lt;/p&gt;&lt;p&gt;比如我们上文中提到的 &lt;i&gt;z1&lt;/i&gt; 和 &lt;i&gt;z2&lt;/i&gt; 就是这样结构，z1 的两个子结构全都是 x ，如果我们修改一个另一个肯定会受到影响，但是 z2 序对中的两个元素是两个不同的序对，并不会有这个的问题。&lt;/p&gt;&lt;p&gt;引入共享结构会带来一些好处：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;扩充数据抽象能够定义的数据范围&lt;/li&gt;&lt;li&gt;作为内部状态引入的结构，能够在程序的运行过程中不断地变化，这就可以承担我们需要让他们模拟更为复杂可变的需求&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;但是上面的这个例子（关于 z1 和 z2 的）也表明了，我们在构建复杂结构的时候需要自己清楚那些结构是共享的，在对这些共享的进行修改的时候我们也要谨慎。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;以赋值改变结构&lt;/b&gt;&lt;/h2&gt;&lt;blockquote&gt;Tips 基于改变函数的新 API，我们的数据依赖 &lt;b&gt;序对&lt;/b&gt; 进行构造，那我们的改造函数需要和构造函数类似的结构&lt;br&gt;set-car!  修改序对中的首项&lt;br&gt;set-cdr!  修改序对中的第二项&lt;/blockquote&gt;&lt;p&gt;在之前我们使用该通过过程来存储数据和模拟序对的表示，当时我们通过  作为 Tag 模拟了序对的分派，这里我们可以对这个程序略作修改：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (cons x y)
+  (define (dispatch m)
+    (cond ((eq? m &#39;car) x)
+          ((eq? m &#39;cdr) y)
+          (else (error &quot;Undefined operation -- cons&quot; m))))
+  dispatch)
+
+(define (car z) (z &#39;car))
+(define (cdr z) (z &#39;cdr))&lt;/code&gt;&lt;p&gt;这个程序的变化其实不大，我们这是利用了 Scheme 中的符号引用的唯一性的这点，本质上和用 &lt;b&gt;0 1&lt;/b&gt; 没有什么区别。我们再跟着这个改造的理念可以为这个程序进行扩充，添加我们之前提到的 set-car! 和 set-cdr! 函数：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (cons x y)
+  (define (set-x! v) (set! x v))
+  (define (set-y! v) (set! y v))
+  (define (dispatch m)
+    (cond ((eq? m &#39;car) x)
+          ((eq? m &#39;cdr) y)
+          ((eq? m &#39;set-car!) set-x!)
+          ((eq? m &#39;set-cdr!) set-y!)
+          (else (error &quot;Undefined operation -- cons&quot; m))))
+  dispatch)
+
+(define (car z) (z &#39;car))
+(define (cdr z) (z &#39;cdr))
+(define (set-car! z new-value) ((z &#39;set-car!) new-value) z)
+(define (set-cdr! z new-value) ((z &#39;set-cdr!) new-value) z)&lt;/code&gt;&lt;p&gt;这里面我们通过增加了程序的内部状态，并且增加了两个内部方法来搞定了这个问题。&lt;/p&gt;&lt;p&gt;接下来部分是几个非常有趣的实例学习，包括对表格，队列和数字电路的模拟。这里面前面的表格、队列的知识都比较的简单，这里我们主要关注这个 &lt;i&gt;数字电路模拟&lt;/i&gt; 的学习。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;数字电路模拟&lt;/b&gt;&lt;/h2&gt;&lt;blockquote&gt;本节中的代码可以到 Github 仓库 &lt;b&gt;&lt;a href=&quot;https://github.com/lfkdsk/SICP-Magical-Book&quot;&gt;SICP-Magical-Book&lt;/a&gt;&lt;/b&gt; 中获取&lt;/blockquote&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-1f6fa8198befb0f82f9b3c6c6f78e306_r.jpg&quot; data-rawwidth=&quot;372&quot; data-rawheight=&quot;125&quot;&gt;&lt;p&gt;这是一个比较有趣的实例，一个数字电路的模拟器本身是完成一种基于状态的系统模拟，而且本身从设计构建系统的角度中来看数字电路的模拟也是非常好玩，因为本身数字电路是由更多的细小的部件来构成的，本身带有一种自底向上进行程序设计的思路。另外，数字电路模拟还包含了另一种思想，一种基于事件驱动的模拟系统，我们用 &lt;i&gt;事件信号&lt;/i&gt; 模拟实际的 &lt;i&gt;数字信号&lt;/i&gt; 流过整个模拟的电路程序。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;事件驱动设计&lt;/b&gt;&lt;/h2&gt;&lt;blockquote&gt;&lt;b&gt;事件驱动程序设计&lt;/b&gt;（英语：&lt;b&gt;Event-driven programming&lt;/b&gt;）是一种电脑&lt;a href=&quot;http://www.wikiwand.com/zh-sg/%E7%A8%8B%E5%BC%8F%E8%A8%AD%E8%A8%88&quot;&gt;程序设计&lt;/a&gt;&lt;a href=&quot;http://www.wikiwand.com/zh-sg/%E6%A8%A1%E5%9E%8B&quot;&gt;模型&lt;/a&gt;。这种模型的程序运行流程是由用户的动作（如&lt;a href=&quot;http://www.wikiwand.com/zh-sg/%E6%BB%91%E9%BC%A0&quot;&gt;鼠标&lt;/a&gt;的按键，键盘的按键动作）或者是由其他程序的&lt;a href=&quot;http://www.wikiwand.com/zh-sg/%E8%A8%8A%E6%81%AF&quot;&gt;消息&lt;/a&gt;来决定的。相对于批处理程序设计（batch programming）而言，程序运行的流程是由&lt;a href=&quot;http://www.wikiwand.com/zh-sg/%E7%A8%8B%E5%BC%8F%E8%A8%AD%E8%A8%88%E5%B8%AB&quot;&gt;程序员&lt;/a&gt;来决定。批量的程序设计在初级程序设计教学课程上是一种方式。然而，事件驱动程序设计这种设计模型是在交互程序（Interactive program）的情况下孕育而生的。&lt;br&gt;—— Wikipedia&lt;/blockquote&gt;&lt;p&gt;从这段维基百科中摘取出来的关于 &lt;i&gt;事件驱动程序&lt;/i&gt; 的介绍，我们对事件驱动可能已经有了一定的理解。其实简单的去理解事件驱动设计，其实就是和传统的基于批处理的程序设计不同，因为那么去写过程式的程序，只能根据程序开发者的编写顺序对程序进行运行，但是事件驱动的程序设计，就像是设定了某些条件，当某些事件触发了这些条件的时候，程序会自动对事件进行处理。&lt;/p&gt;&lt;p&gt;这里我们的数字电路的模拟也是类似，一个数字电路由更细粒度的一系列的组件构成，在整个数字电路的操作中，各个部件的活动构成了这个整体的活动。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;电路系统的构建的过程中会遇到一些事件，这些事件是由某些部件遇到一些情况而引发的，并且引发可能是有时间顺序的（很正常，数字信号的传播肯定有顺序）。&lt;/li&gt;&lt;li&gt;还有一个是事件会引起状态的继续改变，状态的改变又会继续带来事件的产生和传播。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;基础部件&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;实际的数字电路线路由一些电子元件和它们之间的连线组成，一个电子元件可能有几个输入端口和一个输出端口，功能就是从多个接入信号经过一系列处理然后输出一个信号：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a5f6255b8492d6a228bc76d80fc58bdf_r.jpg&quot; data-rawwidth=&quot;261&quot; data-rawheight=&quot;432&quot;&gt;&lt;p&gt;就向我们上图的这些部件，可以提供一些 &lt;i&gt;与、或、非门&lt;/i&gt; 这些基础部件，另外我们还需要各种部件之间的连线，这些连线会需要传递 &lt;i&gt;0、1&lt;/i&gt; 这样的信号，除此之外各种功能块都会有不同的输出并且产生删除出信号都会有一些信号延迟。&lt;/p&gt;&lt;p&gt;在不断地通过基本构造块和连线进行数字链路的搭建的过程中，实际的数字电路程序已经实际成了一种结构设计语言，并且通过模块的不断构造我们语言的中使用的基本模块也在不断的在扩充，我们用这种语言能够构造结构任意复杂的数字电路：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;模块化&lt;/b&gt; —— 基本构造块是基本元素&lt;/li&gt;&lt;li&gt;&lt;b&gt;组合机制&lt;/b&gt; —— 通过基本元素和连线进行组合&lt;/li&gt;&lt;li&gt;&lt;b&gt;抽象机制&lt;/b&gt; —— 我们可以进一步将复杂的组合过程抽象成过程&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;连线&lt;/b&gt;&lt;/h2&gt;&lt;blockquote&gt;Tips 半加器：&lt;br&gt;半加器的功能是将两个一位二进制数相加。它具有两个输入和两个输出（分别是和、进位）。输出的进位信号代表了输入两个数相加溢出的高一位数值。因此，这两2个一位二级制数的和等于2&lt;i&gt;C&lt;/i&gt; + &lt;i&gt;S&lt;/i&gt;。根据两个一位二进制数相加的结果，可以通过真值表、&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E5%8D%A1%E8%AF%BA%E5%9B%BE&quot;&gt;卡诺图&lt;/a&gt;得到右图所描绘的简易半加器设计。它使用了一个&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E5%BC%82%E6%88%96%E9%97%A8&quot;&gt;异或门&lt;/a&gt;来产生和&lt;i&gt;S&lt;/i&gt;，并使用了一个&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E4%B8%8E%E9%97%A8&quot;&gt;与门&lt;/a&gt;来产生进位信号&lt;i&gt;C&lt;/i&gt;。如果再添加一个&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E6%88%96%E9%97%A8&quot;&gt;或门&lt;/a&gt;来接收低位的进位输出信号，则两个半加器就构成了一个全加器。&lt;/blockquote&gt;&lt;p&gt;电路需要由连线来连接我们的基础功能块，由基础的功能块组成更大的功能块，我们这里先使用一个定义生成基础连线的方法 &lt;i&gt;(make-wire)&lt;/i&gt; 生成一条连线，我们可以通过这个方法生成连线，然后把各个部件绑定在一起：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;; 生成六根连线
+(define a (make-wire))
+(define b (make-wire))
+(define c (make-wire))
+(define d (make-wire))
+(define e (make-wire))
+(define s (make-wire))
+
+; 使用与或非门构建半加器 参考之前的半加器图片
+(or-gate a b d)
+(and-gate a b c)
+(inverter c e)
+(and-gate d e s)&lt;/code&gt;&lt;p&gt;这里面的 A 和 B 是数据输入，S 和 C 是数据输出，其中S 是和，C 是进位，我们能看到抽象出来连接线、和与、或、非门之后我们对电路的的描述能被抽象到非常简洁形式，我们还可以把这几个过程结合成一个流程生成出一个 半加器的过程：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (half-adder a b s c)
+  (let ((d (make-wire))
+        (e (make-wire)))
+    (or-gate a b d)
+    (and-gate a b c)
+    (inverter c e)
+    (and-gate d e s)
+    &#39;ok))&lt;/code&gt;&lt;p&gt;两个半加器和一个或门能够成一个全加器：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-43bd392258485a9d80a28b9c9a3828f5_r.jpg&quot; data-rawwidth=&quot;965&quot; data-rawheight=&quot;392&quot;&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (full-adder a b c-in sum c-out)
+  (let ((s (make-wire))
+        (c1 (make-wire))
+        (c2 (make-wire)))
+    (half-adder b c-in s c1)
+    (half-adder a s sum c2)
+    (or-gate c1 c2 c-out)
+    &#39;ok))&lt;/code&gt;&lt;p&gt;这就是像是我们之前提到的，使用抽象机制将全加器、半加器这些复杂组件封装成构建过程。&lt;/p&gt;&lt;p&gt;我们在这里还可以给出连线上的发送信号的基本操作：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(get-signal &amp;lt;wire&amp;gt;) ; 返回当前线上的信号值
+(set-signal! &amp;lt;wire&amp;gt; &amp;lt;new-value&amp;gt;) ; 重设线上的信号值
+(add-action! &amp;lt;wire&amp;gt; &amp;lt;procedure of no arguments&amp;gt;) ; 在线上的信号改变的时候运行过程
+(after-delay &amp;lt;time&amp;gt; &amp;lt;procedure&amp;gt; ; 设定一个时间延迟和对应的过程，时间过后触发过程&lt;/code&gt;&lt;p&gt;这就能试着写出 make-wire 的定义，肯定是包含上面三个函数的 dispatch 的 &lt;b&gt;分发器&lt;/b&gt;，还要有针对多个属性的 &lt;b&gt;修改器&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;; 创建一条连线
+(define (make-wire)
+  (let ((signal-value 0)
+        (action-procedures &#39;()))
+    ; set new value and call procedures
+    (define (set-my-signal! new-value)
+      (if (not (= signal-value new-value))
+          (begin (set! signal-value new-value)
+                 (call-each action-procedures))
+          &#39;done))
+    
+    (define (accept-action-procedure! proc)
+      (set! action-procedures
+            (cons proc action-procedures))
+      (proc))
+    
+    (define (dispatch m)
+      (cond ((eq? m &#39;get-signal) signal-value)
+            ((eq? m &#39;set-signal!) set-my-signal!)
+            ((eq? m &#39;add-action!) accept-action-procedure!)
+            (else (error &quot;Unknown operation -- WIRE&quot; m))))
+    
+    dispatch))&lt;/code&gt;&lt;p&gt;我们注意到刚才提到的东西我们几乎都有，并且通过过程 accept-action-proceduer 能知道每条线包含的过程不只有一个，是一个列表的形式，而且 set-my-signal! 中我们看到，每当有一个线上的数据修改，我们会重新调用所有监听这条线上的过程。&lt;/p&gt;&lt;p&gt;其中还有一些其他的方法：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;; 遍历调用
+(define (call-each procedures)
+  (if (null? procedures)
+      &#39;done
+      (begin
+        ((car procedures))
+        (call-each (cdr procedures)))))
+
+(define (get-signal wire)
+    (wire &#39;get-signal))
+
+(define (set-signal! wire new-value)
+    ((wire &#39;set-signal!) new-value))
+
+(define (add-action! wire action-procedure)
+    ((wire &#39;add-action!) action-procedure))&lt;/code&gt;&lt;p&gt;执行一些 dispatch 方法而已。&lt;/p&gt;&lt;blockquote&gt;Tips 书中的一到课后题也提到了，例如：&lt;br&gt;&lt;/blockquote&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (accept-action-proceduer! proc) 
+   (set! action-procedures  (cons proc action-procedures))  (proc))&lt;/code&gt;&lt;blockquote&gt;这个方法，为什么要把 proc 在最后返回，其实这里就是为了让 proc 在那个返回的位置展开，在后面会调用 after-delay ，after-delay 会调用 add-to-agenda! ，将指定的动作添加到模拟器的待处理列表中，当调用 (propagate) 时，这个指定的动作会被执行。&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;逻辑电路门&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;scheme&quot;&gt;; 算数逻辑非
+(define (logical-not s)
+  (cond ((= s 0) 1)
+        ((= s 1) 0)
+        (else (error &quot; Invalid signal &quot; s))))
+
+; 算数逻辑与
+(define (logical-and a b)
+  (if (and (= a 1) (b = 1))
+      1
+      0))
+      
+
+; 逻辑或
+(define (logical-or a b)
+  (if (or (= a 1) (= b 1))
+      1
+      0))
+
+; 与门 给两个线路都绑上一个监控器
+; 当某个值变化的时候 会重新计算 new-value 设置到输出端口
+(define (and-gate a1 a2 output)
+  (define (and-action-procedure)
+    (let ((new-value
+           (logical-and (get-signal a1) (get-signal a2))))
+      (after-delay and-gate-delay
+                   (lambda ()
+                     (set-signal! output new-value)))))
+  (add-action! a1 and-action-procedure)
+  (add-action! a2 and-action-procedure)
+  &#39;ok)
+
+; 或门 
+(define (or-gate input-1 input-2 output)
+  (define (or-action-procedure)
+    (let ((new-value
+           (logical-or (get-signal input-1) (get-signal input-2))))
+      (after-delay or-gate-delay
+                   (lambda ()
+                     (set-sign! output new-new-value)))))
+    (add-action! input-1 or-action-procedure)
+    (add-action! input-2 or-action-procedure)
+    &#39;ok)
+
+; 反门
+(define (inverter-gate input output)
+  (define (invert-input)
+    (let ((new-value (logical-not (get-signal input))))
+      (after-delay inverter-delay
+                   (lambda () (set-signal! output new-value)))))
+  (add-action! input invert-input)
+  &#39;ok)         &lt;/code&gt;&lt;p&gt;如果我们理清了前面的给连线添加信号的内容，那逻辑电路门部分的代码就很简单了，甚至有点冗余。与或非门的唯一区别在于如何生成 new-value ，每个过程都包含一个内部过程，负责生成新的值，把这个过程绑定到输入线上，这里面我们的输入值一旦改变，就会重新进行计算，然后重设当前线路中的数值。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;待处理表&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;待处理表的问题主要是我们之前在程序中的使用 after-delay 操作控制程序在某个时间段之后执行一个过程，能控制一定的操作的时序性，这个功能本质上就是在维护一张 &lt;i&gt;待处理表&lt;/i&gt; ，使用队列的结构控制我们执行过程，先给出各个 API 的内容：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;; 返回新建的空待处理表
+(make-agenda) 
+; 判断待处理表是否为空
+(empty-agenda? &amp;lt;agenda&amp;gt;) 
+; 返回待处理表中第一个项
+(first-agenda-item &amp;lt;agenda&amp;gt;) 
+; 删除待处理表里的第一项
+(remove-first-agenda-item! &amp;lt;agenda&amp;gt;) 
+; 向待处理表中加入一 项，其意义是要求在给定时间运行的过程
+(add-to-agenda! &amp;lt;time&amp;gt; &amp;lt;action&amp;gt; &amp;lt;agenda&amp;gt;) 
+; 返回当前时间
+(current-time &amp;lt;agenda&amp;gt;) &lt;/code&gt;&lt;p&gt;这些 API 的实现都很容易，我们可以逐个的来讲解一下：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;; segment
+
+(define (make-time-segment time queue)
+  (cons time queue))
+
+(define (segment-time s) (car s))
+
+(define (segment-queue s) (cdr s))
+
+; agenda
+
+(define (make-agenda) (list 0))
+
+; 当前时间
+(define (current-time agenda) (car agenda))
+
+(define (set-current-time! agenda time)
+  (set-car! agenda time))
+
+(define (segments agenda) (cdr agenda))
+
+(define (set-segments! agenda segments)
+    (set-cdr! agenda segments))
+
+(define (first-segment agenda) (car (segments agenda)))
+
+(define (rest-segments agenda) (cdr (segments agenda)))
+
+(define (empty-agenda? agenda)
+  (null? (segments agenda)))&lt;/code&gt;&lt;p&gt;关于segment 这个几个过程式构建 &lt;i&gt;时间&lt;/i&gt; 和 &lt;i&gt;队列&lt;/i&gt; 的绑定关系，待处理表中的每一项是由时间和时间队列的一个绑定，agenda 本身是一个关于时间的一维表格，在表头存储当前的时间，表头之后存储的是 segments 的段落，还提供了几个 API 做存取。&lt;/p&gt;&lt;p&gt;还有就是如何插入处理表，通过时间片加队列的形式进行查找管理：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;; 向待处理表中添加一项
+(define (add-to-agenda! time action agenda)
+  ; 检查是否为空 或者当前时间小于 segment 的时间
+    (define (belongs-before? segments)
+        (or (null? segments)
+            (&amp;lt; time (segment-time (car segments)))))
+  ; 创建一个新的时间片 生成新的队列 插入过程
+    (define (make-new-time-segment time action)
+        (let ((q (make-queue)))
+              (insert-queue! q action)
+              (make-time-segment time q)))
+  ; 添加时间片
+    (define (add-to-segments! segments)
+        ; 找到合适的时间插进去
+        (if (= (segment-time (car segments)) time)
+            (insert-queue! (segment-queue (car segments))
+                           action)
+            (let ((rest (cdr segments)))
+                (if (belongs-before? rest)
+                    (set-cdr!
+                        segments
+                        (cons (make-new-time-segment time action)
+                              (cdr segments)))
+                        (add-to-segments! rest)))))
+    ; 遍历时间片 找到合适的时间插进去
+        (let ((segments (segments agenda)))
+            (if (belongs-before? segments)
+                (set-segments!
+                    agenda
+                    (cons (make-new-time-segment time action)
+                          segments))
+                    (add-to-segments! segments))))&lt;/code&gt;&lt;p&gt;上面的注释应该是介绍的已经很详细的了，还提供了一些方法去对处理表进行一些管理，无非就是如何消耗处理事件之类的：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (remove-first-agenda-item! agenda)
+    (let ((q (segment-queue (first-segment agenda))))
+        (delete-queue! q)
+        (if (empty-queue? q)
+            (set-segments! agenda (rest-segments agenda)))))
+
+(define (first-agenda-item agenda)
+    (if (empty-agenda? agenda)
+        (error &quot;Agenda is empty -- FIRST-AGENDA-ITEM&quot;)
+        (let ((first-seg (first-segment agenda)))
+            (set-current-time! agenda (segment-time first-seg))
+            (front-queue (segment-queue first-seg)))))&lt;/code&gt;&lt;p&gt;最红我们终于要说到 after-delay 的实现定义了：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (after-delay delay action)
+    (add-to-agenda! (+ delay (current-time the-agenda))
+                    action
+                    the-agenda))&lt;/code&gt;&lt;p&gt;可见我们为让某个事件延迟执行的本质就是给某个处理表添加一条处理事件，通过获取当前时间增加一定的延迟的把事件放进对应的序列。&lt;/p&gt;&lt;p&gt;我们还需要一个过程去模拟驱动整个表的执行过程，propagate 对整个待处理表进行操作，不断地处理其中的项目进行处理：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (propagate)
+    (if (empty-agenda? the-agenda)
+        &#39;done
+        (let ((first-item (first-agenda-item the-agenda)))
+            (first-item)
+            (remove-first-agenda-item! the-agenda)
+            (propagate))))&lt;/code&gt;&lt;h2&gt;&lt;b&gt;简单的模拟实例&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Github 仓库中提供了相应的代码，只需要 load 其中的 simular.rkt 就可以进行编写模拟实例的操作。这里面我们添加一个监控器过程放到线路上面，用来监听数字电路模拟中的数字电路模拟的运行情况：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (probe name wire)
+    (add-action! wire
+                 (lambda ()        
+                    (newline)
+                    (display name)
+                    (display &quot; &quot;)
+                    (display (current-time the-agenda))
+                    (display &quot;  New-value = &quot;)
+                    (display (get-signal wire)))))&lt;/code&gt;&lt;p&gt;这段代码很简单，就是给某根线注册名字和一个相应的回调，当数据发生变化的时候打印出目前的消息。&lt;/p&gt;&lt;p&gt;接下来的模拟是为了模拟一个半加器的运行情况：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;初始化待处理表，定义延迟相关的常量：&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;scheme&quot;&gt;(define the-agenda (make-agenda)) (define inverter-delay 2)
+(define and-gate-delay 3)
+(define or-gate-delay 5)&lt;/code&gt;&lt;ol&gt;&lt;li&gt;定义四条线路，安装监控器：&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;scheme&quot;&gt;(define input-1 (make-wire)) 
+(define input-2 (make-wire)) 
+(define sum (make-wire)) 
+(define carry (make-wire)) 
+(probe &#39;sum sum)
+(probe &#39;carry carry)&lt;/code&gt;&lt;p&gt;运行一次的效果是：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-18b78ab4ae784579e9fc3d37b202c983_r.jpg&quot; data-rawwidth=&quot;439&quot; data-rawheight=&quot;245&quot;&gt;&lt;ol&gt;&lt;li&gt;接着我们把线路连接到半加器上，测试半加器的输入：&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;scheme&quot;&gt;(half-adder input-1 input-2 sum carry)&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-ebe449b11aa9dae246ecd0a4b254f58c_r.jpg&quot; data-rawwidth=&quot;379&quot; data-rawheight=&quot;67&quot;&gt;&lt;p&gt;测试输入，即将 input-1 设置为 1 ，然后将 input-2 设置为 1 ：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(set-signal! input-1 1)
+(propagate)&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-8998257ce80b89eb3b92000bfd3d1278_r.jpg&quot; data-rawwidth=&quot;333&quot; data-rawheight=&quot;116&quot;&gt;&lt;p&gt;这时候时间片为 8 ，设定值为 1。&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(set-signal! input-2 2)
+(propagate)&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-931c433974bb355f9af3b1d37b3bbf1a_r.jpg&quot; data-rawwidth=&quot;295&quot; data-rawheight=&quot;123&quot;&gt;&lt;p&gt;时间片为 11 时，carry 被设置为 1，之后 sum 被设置为 0，这表明我们在这的模拟是有效的。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;小结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这篇文章的内容并没有特别多的复杂的理论知识内容没有特别多，主要是进行介绍了书中出现的第一个比较复杂的程序实例，但是这个稍有一些复杂的程序实例中包含了从本书开始就介绍的很多和抽象、模拟相关的知识，也算是用某种实例程序去又温习了之前的知识。&lt;/p&gt;&lt;p&gt;除了对之前的知识的温习之外，这个关于 数字电路模拟程序 的程序设计更多的是关注变动程序的程序设计，程序中和第二章不同的是整个程序都是基于状态变动建立起来的。基础模块和连线相互绑定，在数据出现变动的时候作出响应，使用待处理表对过程调用进行处理，使用时间排序建立时序性的程序设计，整个程序无处不体现着基于变动的程序模拟的思想。&lt;/p&gt;&lt;p&gt;上一篇专栏文章中说文章坑了很久，没想到这篇文章坑了更长时间，看了一下居然四个月过去了，这四个月基本上都是在杭州某厂实习，写文章的时间不是很多，而且这篇文章其实其中的很多文字都是很早就写好的，但是迟迟没有写完也是因为在思考怎么介绍这个实例的程序设计比较好，因为很久以前再读书的时候，感觉书里的步骤虽然由浅入深但是失于冗长，到读者能整的跑整个程序之前，对程序的理解仅限于能读懂书上的代码，所以这部最后还是打算从各个部分的代码分析入手，事先提供好能够跑通运行的程序，能让读者一步步的通过运行代码和阅读文章去理解整个程序。&lt;/p&gt;</description>
+<author>刘丰恺</author>
+<guid isPermaLink="false">2017-09-26-29695168</guid>
+<pubDate>Tue, 26 Sep 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>【C++ 模板元编程入门】在编译期实现 Peano 数</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-22-29587930.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;【C++ 模板元编程入门】在编译期实现 Peano 数&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29587930&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-543b93b5d424a32ef501e544c6a29f9c_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;基本知识&lt;/h2&gt;&lt;p&gt;&lt;b&gt;类型的函数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们都知道模板可以接受类型作为「参数」。同样地我们也可以有「返回值」，从而构造类型的函数。基本的范式是：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T&amp;gt;
+struct Computed {
+  using type = T;
+}&lt;/code&gt;&lt;p&gt;这就构造了一个名为 `Computed` 的，接收一个类型参数，返回这个类型本身的函数，用法如 `Computed&amp;lt;float&amp;gt;::type`，这个类型应当还是 `float`。&lt;/p&gt;&lt;p&gt;为什么要包一层 struct？这是因为 C++ 不支持对 using 的特化。这样的代码是不行的：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template &amp;lt;class T&amp;gt;
+using computed&amp;lt;T&amp;gt; = T;
+
+template&amp;lt;&amp;gt;
+using computed&amp;lt;int&amp;gt; = double;&lt;/code&gt;&lt;p&gt;至于为什么不支持，我没有了解。&lt;/p&gt;&lt;p&gt;&lt;b&gt;特化&lt;/b&gt;&lt;/p&gt;&lt;p&gt;什么是特化？你可以理解为模式匹配，就像 Haskell 中的写法一样。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T&amp;gt;
+struct Computed {
+  using type = T;
+}
+
+template&amp;lt;&amp;gt;
+struct Computed&amp;lt;int&amp;gt; {
+  using type = double;
+}&lt;/code&gt;&lt;p&gt;这样当你调用 `Computed&amp;lt;bool&amp;gt;::type` 时，得到的结果是 `bool`，而调用`Computed&amp;lt;int&amp;gt;::type`得到的结果却是`double`。当然这种匹配是遵循一定规则的，比如更「具体」的特化优先匹配，这跟 Haskell 谁在前谁先试着匹配不太一样。在 Haskell 中就好比：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Type = Bool | Double | Int
+
+computed :: Type -&amp;gt; Type
+computed Int = Double
+computed t = t&lt;/code&gt;&lt;p&gt;实际上有了这层对应，如果你知道怎么在 Haskell 中实现 Peano 数，那么 C++ 中的实现基本就是无脑翻译了。如果你不知道怎么在 Haskell 中实现 Peano 数，那你知道 Peano 数是什么，也能大差不差知道答案了。&lt;/p&gt;&lt;h2&gt;Peano 数&lt;/h2&gt;&lt;p&gt;Peano 数是什么？Peano 数是归纳定义的自然数，准确地说应该是一个表现形如直觉中「自然数」的公理系统，也就是「自然数」的形式化。这个系统里只有两个符号，`Zero`——表示 0，以及 `Succ`——表示后继。那么 1 就是 `Succ&amp;lt;Zero&amp;gt;`，2 就是 `Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;`，以此类推（归纳，其实就是「以此类推」的形式化）。&lt;/p&gt;&lt;p&gt;我们可以在 C++ 中如此表述：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;struct Peano {};
+struct Zero: Peano {};
+template&amp;lt;class T&amp;gt;
+struct Succ: Peano {};&lt;/code&gt;&lt;p&gt;那么加法又是什么呢？从例子出发，我们需要定义一个两个类型参数的模板：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T1, class T2&amp;gt;
+struct Add {
+  using type = ???;
+}&lt;/code&gt;&lt;p&gt;满足直觉中的运算规律，比如 2+1=3，翻译成 C++ 就是 `Add&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;, Succ&amp;lt;Zero&amp;gt;&amp;gt;::type = Succ&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;&amp;gt;`。当然类型之间没有等于号，准确地说应该用 `std::is_same&amp;lt;T1, T2&amp;gt;`，这其实也是通过偏特化实现的，比如（示意，非官方实现）：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T, class U&amp;gt;
+struct is_same {
+  static constexpr bool value = false;
+};
+ 
+template&amp;lt;class T&amp;gt;
+struct is_same&amp;lt;T, T&amp;gt; {
+  static constexpr bool value = true;
+};&lt;/code&gt;&lt;p&gt;那么如何定义加法呢？对于有限的元素，我们当然可以为每一个实例做特化，比如：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;&amp;gt;
+struct Add&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;, Succ&amp;lt;Zero&amp;gt;&amp;gt; {
+  using type = Succ&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;&amp;gt;;
+}&lt;/code&gt;&lt;p&gt;也就是打表。C++ 编译器的模板深度一般都是有限的，所以这理论上是可以在实际操作中覆盖所有用例的。但是这明显太傻了。其实加法的定义只需要两条规则就可以覆盖：`0 + b = b, (Succ a) + b = Succ (a + b)`。翻译成 C++ 就是：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T1, class T2&amp;gt;
+struct Add;
+
+template&amp;lt;class T&amp;gt;
+struct Add&amp;lt;Zero, T&amp;gt; {
+  using type = T;
+};
+
+template&amp;lt;class T1, class T2&amp;gt;
+struct Add&amp;lt;Succ&amp;lt;T1&amp;gt;, T2&amp;gt; {
+  using type = Succ&amp;lt;typename Add&amp;lt;T1, T2&amp;gt;::type&amp;gt;
+};&lt;/code&gt;&lt;p&gt;注意那个 `typename`，gcc 并不知道后面那个 `::type` 成员是类型还是变量，所以需要 `typename` 关键字的提示。&lt;/p&gt;&lt;p&gt;这就算写完了，你可以测试看看，是不是满足 `std::is_same&amp;lt;Add&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;, Succ&amp;lt;Zero&amp;gt;&amp;gt;::type, Succ&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;&amp;gt;&amp;gt;::value == true`（需要 `&amp;lt;type_traits&amp;gt;` 头文件，或者上面自己写的那个模板（那就不用加 std::）。这么嵌套着写 `Succ` 太繁琐了，也不方便看，你可以简单地写一个模板来从整数生成类型：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;int v&amp;gt;
+struct peano {
+  using type = Succ&amp;lt;typename peano&amp;lt;v - 1&amp;gt;::type&amp;gt;;
+};
+
+template&amp;lt;&amp;gt;
+struct peano&amp;lt;0&amp;gt; {
+  using type = Zero;
+};&lt;/code&gt;&lt;p&gt;然后就可以去验证 `Add&amp;lt;&amp;lt;peano&amp;lt;2&amp;gt;::type, peano&amp;lt;1&amp;gt;::type&amp;gt;::type` 是不是等于 `peano&amp;lt;3&amp;gt;::type` 了。&lt;/p&gt;&lt;p&gt;至于加减乘除的其他运算，比较啊奇偶性啊其他的函数，只要你懂得了加法，恐怕就不难了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 &lt;a href=&quot;https://www.codewars.com/kata/peano-numbers/train/cpp&quot;&gt;Peano numbers | Codewars&lt;/a&gt; 完成加减乘除、奇偶性和比较大小的撰写，并通过测试。&lt;/p&gt;&lt;p&gt;&lt;b&gt;广告时间：&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b1b3d0fbe1f3145b69f5d1b0d5388ded_r.jpg&quot; data-rawwidth=&quot;712&quot; data-rawheight=&quot;209&quot;&gt;&lt;p&gt;&lt;a href=&quot;http://www.codewars.com/r/KvWTsA&quot;&gt;Codewars.com&lt;/a&gt; 是一个很好的综合性、游戏化 OJ，除了算法（多是入门级的）之外，考察语言特性（较为深入）是其一大亮点，同时有很多 Haskell 方面的内容，包括我们喜闻乐见的&lt;u&gt;读论文然后完形填空&lt;/u&gt;。题图是 Codewars 上上述练习的界面截图。&lt;/p&gt;&lt;h2&gt;后记&lt;/h2&gt;&lt;p&gt;当然我们还可以进一步「证明」我们印象中的结论，比如加法是满足交换律的，加法和乘法是满足分配率的，等等。这就是后话了。&lt;/p&gt;</description>
+<author>Colliot</author>
+<guid isPermaLink="false">2017-09-22-29587930</guid>
+<pubDate>Fri, 22 Sep 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>stateful metaprogramming不只是数数啊</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-20-29500606.htm</link>
@@ -995,39 +1332,6 @@ false&lt;/code&gt;&lt;p&gt;lists:keydelete的工作方式类似，只是如果�
 <author>帅气可爱魔理沙</author>
 <guid isPermaLink="false">2017-08-27-28832682</guid>
 <pubDate>Sun, 27 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Dependently Typed Programming with Singletons</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-14-28496113.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Dependently Typed Programming with Singletons&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28496113&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;这星期的文章是&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf&quot;&gt;http://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;这paper在codewars上，可以做做看：&lt;a href=&quot;http://www.codewars.com/kata/singletons/train/haskell&quot;&gt;Singletons | Codewars&lt;/a&gt;&lt;/p&gt;&lt;p&gt;这文章在说两件事情：&lt;/p&gt;&lt;p&gt;0：用一种design pattern来做DT&lt;/p&gt;&lt;p&gt;1：这个design pattern可以用库automate一大部分&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;0：&lt;/p&gt;&lt;p&gt;假设我们有普普通通的data Nat = Z | S Nat。&lt;/p&gt;&lt;p&gt;首先，如果我们要把这用上type level（因为dependent type就是value可以在typelevel使用），我们需要额外的两个类型，一个ZType :: *，一个SType :: * -&amp;gt; *，来表示Nat的type level表示。然后，type level的Nat函数，可以用type family写出。&lt;/p&gt;&lt;p&gt;然后，可以用GADT表示inductive dependent type，比如Vec之类的。如果不支持GADT（什么鬼，不支持还想玩奇怪特性）可以考虑考虑用gadtless programming，换句话说用Leibniz Equality手动解constraint。。。&lt;/p&gt;&lt;p&gt;但是，由于parametricity，这无法做到：给入一个type level Nat，输出一个该长度的Vec。。。所以，做法是，再弄一个GADT inductive type，这个GADT的value是indexed on type level nat的。换言之，每一个type level nat，都能在这个GADT中找到一个unique的对应值。这就叫singleton&lt;/p&gt;&lt;p&gt;最后，很多时候singleton可以隐式推出，所以可以弄成一个constraint。&lt;/p&gt;&lt;p&gt;总结，一个datatype有4种做法：普通的，type level的，singleton，singleton变成constraint（换句话说，typeclass）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1：&lt;/p&gt;&lt;p&gt;type level的可以由GHC的DataKinds扩展自动生成。&lt;/p&gt;&lt;p&gt;singleton constraint可以统一到一个typeclass&lt;/p&gt;&lt;p&gt;由template haskell可以从普通函数生成singleton函数跟type level函数（type family）&lt;/p&gt;&lt;p&gt;最后：singleton constraint跟Data.Constraint有异曲同工之妙:)&lt;/p&gt;&lt;p&gt;还有，下期想看啥接着私信我。。。no monad tutorial，no 女装=/\=&lt;/p&gt;</description>
-<author>帅气可爱魔理沙</author>
-<guid isPermaLink="false">2017-08-14-28496113</guid>
-<pubDate>Mon, 14 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>大家想看我写啥私信/回复</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-09-28398964.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;大家想看我写啥私信/回复&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28398964&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;最近搞了个笔记/导读？&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28346196?group_id=878257381073641472&quot;&gt;Embedded Probabilistic Programming&lt;/a&gt;，觉得这样挺不错的，大家可以向我题些paper去读（太难的读不来了DAZE&amp;gt;&amp;lt;）&lt;/p&gt;</description>
-<author>帅气可爱魔理沙</author>
-<guid isPermaLink="false">2017-08-09-28398964</guid>
-<pubDate>Wed, 09 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Embedded Probabilistic Programming</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-06-28346196.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Embedded Probabilistic Programming&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28346196&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;由于一直没找到好的并且能答得上的问题，以后打算时不时往这发点paper，然后对之进行一定的解释，练练手&amp;amp;降低阅读门槛（希望）。&lt;/p&gt;&lt;p&gt;这次的是 &lt;a href=&quot;http://okmij.org/ftp/kakuritu/dsl-paper.pdf&quot;&gt;Embedded Probabilistic Programming&lt;/a&gt;&lt;/p&gt;&lt;p&gt;建议前置知识：Probability Distribution，Monad，Continuation&lt;/p&gt;&lt;p&gt;P1-P6：我们想造一个编程语言，在这语言里面，所有变量都不是传统意义上的变量，而是Probability Distribution（PD）。&lt;/p&gt;&lt;p&gt;在本文中，一个a的PD&lt;b&gt;可以看成&lt;/b&gt;一个List (probability, a)，其中，probability（简称prob）是double的别名，一个PD的元素，(probability, a)，代表在该概率下a的可能性是多小（这文章不考虑无限&amp;amp;连续的PD）&lt;/p&gt;&lt;p&gt;一个PD要满足两个条件：所有prob加起来是1，所有不同元素的a都不一样&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这定义下，我们可以定义多个PD下的函数：（此文皆为伪代码）&lt;/p&gt;&lt;p&gt;return : a -&amp;gt; PD a，接受一个非随机的值，变成一个PD&lt;/p&gt;&lt;p&gt;return x = [(1.0, x)] （这个随机变量只可能取一个值，就是传进来的那个）&lt;/p&gt;&lt;p&gt;map : (a -&amp;gt; b) -&amp;gt; (PD a -&amp;gt; PD b)，把PD里的所有a 都变成b&lt;/p&gt;&lt;p&gt;map f [] = []&lt;/p&gt;&lt;p&gt;map f ((prob, value):: rest) = (prob, f value):: map f rest&lt;/p&gt;&lt;p&gt;join : PD (PD a) -&amp;gt; PD a，把一个概率分布的概率分布变成概率分布&lt;/p&gt;&lt;p&gt;join [] = []&lt;/p&gt;&lt;p&gt;join (prob_of_prob, prob_value): rest = loop prob_value ++join rest&lt;/p&gt;&lt;p&gt; where&lt;/p&gt;&lt;p&gt;    loop [] = []&lt;/p&gt;&lt;p&gt;    loop ((prob, value): rest) = (prob * prob_of_prob, value) : loop rest&lt;/p&gt;&lt;p&gt;（对于每一个PD of PD里面的a，都有两个概率，一个是这个a的概率，一个是a的PD的概率，两个相乘就能扁平化）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对于所有M，符合这些定义&lt;/p&gt;&lt;p&gt;（return: a -&amp;gt; M a, map : (a -&amp;gt; b) -&amp;gt; (M a -&amp;gt; M b), join : M (M a) -&amp;gt; M a）的，&lt;/p&gt;&lt;p&gt;就叫一个Monad。&lt;/p&gt;&lt;p&gt;另一套定义法是，(return : a -&amp;gt; M a, bind : M a -&amp;gt; (a -&amp;gt; M b) -&amp;gt; M b)），&lt;/p&gt;&lt;p&gt;两者等价，自己可以试试看从一套推出另一套。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过使用return，我们可以把普通的值看成PD，再通过bind，我们可以把任意PD的值当成普通的值使用，然后得出更多的PD。然后，需要随机性的时候，我们可以直接（通过构造列表）构造PD。比如说，如果要抛硬币，可以写[(0.5, Head), (0.5, Tail)]。这样，我们就可以在PD里面编程了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有的时候，我们需要对我们的程序做一些限制（比如说，如果我们抛了两次硬币，然后被告知不可能两个都是Head）。这个时候，我们可以生成一个空的PD来代表‘不可能发生’。&lt;/p&gt;&lt;p&gt;例如，刚刚那个例子，可以表达为&lt;/p&gt;&lt;p&gt;let a = [(0.5, Head), (0.5, Tail)] （第零个硬币）&lt;/p&gt;&lt;p&gt;let b = [(0.5, Head), (0.5, Tail)] （第一个硬币）&lt;/p&gt;&lt;p&gt;bind a (\a_obs -&amp;gt; （观察第零个硬币）&lt;/p&gt;&lt;p&gt;bind b (\b_obs -&amp;gt; （观察第二个硬币）&lt;/p&gt;&lt;p&gt;  if a_obs == Head &amp;amp;&amp;amp; b_obs == Head then [] （空的PD，代表不可能） else return (a, b) （把观察到的a, b记录下来）))&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这样，我们就有两个问题：&lt;/p&gt;&lt;p&gt;0：map, bind, join可能使得返回的PD（换句话说，List (prob, a)）中，两个元素的a一样的&lt;/p&gt;&lt;p&gt;1：bind x (\y -&amp;gt; [])会导致整个PD的概率的和不为1（如果只有特定的情况会fail，概率和就不是0也不是1）&lt;/p&gt;&lt;p&gt;这些问题都可以通过输出时，把同样的结果会合一起，再把整个PD的每一个prob乘一个数（使得概率和为1）解决。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P7:我们把这个语言放进OCaml里面，这样整个语言就是一推OCaml函数。这样就不需要自己写parser，typechecker，gc，然后OCaml也能自动帮你优化，还能用OCaml的库。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;然后，由于可以用很多种方法实现PD，我们把一个PD的需求变成个模块签名，这样就可以用不同的实现。在这里面，PD实现者可以自定义什么是一个PD（叫做pm，因为PD是个Monad）这种方法叫做Finally Tagless。用Finally Tagless而不是用一个AST有两个好处：一是AST不可扩展（不可增加新的constructor），一是Int的AST跟Bool的AST（往往）是同一类型，所以是unsafe的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P8:由于上面所述的PD的实现太慢，并且只能暴力算，无法做任何优化，所以用的是另一种数据结构。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P9:explore是尾递归的，susp是剩下的计算，ans是一个Map，用以把多个PD中一样的a会合到一起，解决问题0&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P12:一个continuation可以看成：给定一个（算出a在一个值下，符合observation的概率，的函数），返回一个a的PD符合该observation的概率&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P16-17:我们可以（通过explore）事先展开一个stochastic function，得出他的exact PD，然后就可以避免重复计算。这叫variable elimination。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;P18:当Branching很大的时候，完全的展开不现实，这时候可以以一个branch的概率选择性的展开：这叫sampling。naive的sampling会很受指数爆炸的影响，所以可以只展开没展开过的，这叫importance sampling。&lt;/p&gt;</description>
-<author>帅气可爱魔理沙</author>
-<guid isPermaLink="false">2017-08-06-28346196</guid>
-<pubDate>Sun, 06 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
