@@ -5,7 +5,238 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 28 Sep 2017 17:14:45 +0800</lastBuildDate>
+<lastBuildDate>Sat, 07 Oct 2017 23:00:36 +0800</lastBuildDate>
+<item>
+<title>EBNFParser的原理解析以及使用教程</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-07-29908056.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;EBNFParser的原理解析以及使用教程&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29908056&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-78761dc79f02fa543f016e8cceedf4ba_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;(题图的来源，图上就有&lt;/p&gt;&lt;p&gt;前段时间有人在我答案底下说看不懂，所以我今天来讲一下我是怎么写成某个Parser框架的。&lt;/p&gt;&lt;p&gt;在此之前，我说一点别的话。&lt;/p&gt;&lt;p&gt;非常感谢CPython项目，深入阅读了Python码源的一部分，我从中获益良多。&lt;/p&gt;&lt;p&gt;虽然我并没有学过编译原理，但我想，我从这份源代码里得到的东西，应该能够囊括很多编译相关的东西，教会了我许多关于编程语言设计、C和Python的令人智熄的操作。当然还有一些非思想层面的的收获，比如，阅读Python码源的课后作业就是我的&lt;a href=&quot;https://github.com/thautwarm/flowpython&quot;&gt;Flowpython&lt;/a&gt;，作为一个完全兼容CPython3.5和CPython3.6的解释器，它提供了一些强力而有用的语法(糖)，应该说是个非常实用的东西。&lt;/p&gt;&lt;p&gt;向开源世界的一切贡献者(包括我自己hhh)致敬！&lt;/p&gt;&lt;p&gt;然后我们来看看EBNFParser效果。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;EBNFParser的作用可不仅仅是快速写出一门语言的前端，平常像解析json啊，yaml啊，xml啊这种数据文件，也是可以秒着玩的。更有甚者，你要是觉得正则表达式用着不够自由，你可以通过折中执行效率和功能来写一个用起来更顺手的正则引擎。&lt;/p&gt;&lt;p&gt;我的github项目有一个简短的介绍，让你用几行代码写一个Lisp的Parser。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser&quot;&gt;EBNFParser主页&lt;/a&gt;&lt;/p&gt;&lt;p&gt;当然，要解析完整的Lisp, 不考虑注释，应该需要5行。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/blob/master/tests/Python/Lang/Lisp/grammar&quot;&gt;较为完整的Lisp语法解析文件&lt;/a&gt;&lt;/p&gt;&lt;p&gt;在完成EBNFParser的稳定版本后，除开上面的Lisp，我给出的示例还有以下几门语言的。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/Python&quot;&gt;Python表达式&lt;/a&gt;&lt;br&gt;Python的全部语法在&lt;a href=&quot;https://github.com/python/cpython/blob/master/Grammar/Grammar&quot;&gt;CPython的Grammar文件&lt;/a&gt;里有定义，你按照这个来，完成整个Python的解析仅仅是小菜一碟。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/EBNF&quot;&gt;旧版本的EEBNF语言自省&lt;/a&gt;。&lt;br&gt;我所使用的EBNF语法并不是标准的，为了区别我打算暂时称呼其为&lt;b&gt;EEBNF&lt;/b&gt;, 它比起标准的EBNF更像是一门编程语言，扩展能力更加强大。此处的&lt;b&gt;旧版本的EEBNF&lt;/b&gt;缺少了一些新的非常有用的语法，比如AST的过滤，以及取消字面量Parser对自动生成的Tokenizer的影响(后者对于实现类似Java的嵌套多重注释(/*.../*...*/...*/)非常方便)。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/Expy&quot;&gt;Extra Py&lt;/a&gt;&lt;br&gt;这是一门还未诞生的语言，我创造它的意图是解决使用科学计算语言的混乱现状。除开能力碾压其它的Julia，其他科学计算语言的特性都非常接近，而且都有些不太令人愉悦的地方。而Extra Py是一门语法及特性更加合理(内部结构的一致性，在这一点上Matlab非常的糟糕)的语言，应该可以符合很多人的口味。&lt;br&gt;同时，因为Extra Py非常的合理、优雅以及简单，解析到其他语言的方法可能非常得灵活。&lt;b&gt;非常欢迎有兴趣和能力的朋友参与Extra Py的后端开发，这会是又一个有趣又有用的开源项目&lt;/b&gt;。&lt;br&gt;未来，如果Extra Py如期出现，我打算弄一个科学计算主题的公共项目，该项目的Extra Py代码轻易地编译或解释到R、 Python、Matlab、Julia、C++甚至Mathematica(甚至如果你会写Perl和Fortran...)，接受任何人符合标准的、任何科学领域的代码。&lt;br&gt;我并不是要去取代这些科学计算语言，我要做的是让新手学会一门能很快转向这些语言的轻量级语言。然后，很多时候，库的编写者只需要写写Extra Py，就可以发布多门语言的库了(按照R语言的三方库代码质量，我相信即便是简单的代码转换生成，也算得上是质量上乘的库了，更何况我相信未来的后端处理者们一定有很多骚操作的，比如我会把Extra Py的代码编译到Cython然后使用gcc优化，就非常棒了)。&lt;br&gt;这是我的宏愿，暂且说这么多。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/Cm&quot;&gt;EBNFParser.tests.Cm&lt;/a&gt;  以及 &lt;a href=&quot;https://github.com/Cm-lang&quot;&gt;Cm-lang项目&lt;/a&gt;&lt;br&gt;这是一门非常非常非常非常非常优雅的、高性能的、静态编译的语言。虽然它暂时还没发布。它的创建者是伟大的后宫王，世界Online的主角 &lt;a class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/67ebe1bd8e4a63f17a42572e40afaac7&quot; data-hash=&quot;67ebe1bd8e4a63f17a42572e40afaac7&quot; data-hovercard=&quot;p$b$67ebe1bd8e4a63f17a42572e40afaac7&quot;&gt;@大笨蛋千里冰封&lt;/a&gt; 。&lt;br&gt;我有一个愿望，就是&lt;b&gt;让小括号可以远离这门可以表现得像C一样迅捷&lt;/b&gt;的语言。虽然我暂时并没有想到一个没有语意冲突又没有小括号的解决方案。&lt;br&gt;Cm应该是EBNFParser的第一个挑战，&lt;b&gt;事实上我是为了给Cm写Parser&lt;/b&gt;(在此控诉某号称图形学帝球，有商业级音乐才能的无良be)&lt;b&gt;才写的EBNFParser。&lt;br&gt;&lt;/b&gt;Cm的&lt;b&gt;语法优雅，但设计上有相当程度的复杂&lt;/b&gt;，&lt;b&gt;可能是它吸取了kotlin、scala、rust的很多特点。&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;rust&quot;&gt;let $ = i:i32 -&amp;gt; (f:[i32=&amp;gt;i32]) -&amp;gt; f(i)  // 我倾向于可以不要分号，Parser不需要...
+var x = 1;  // 但是大佬近期考sat，关于分号的事情未下结论。
+until ({x&amp;gt;1})  //其实， until是个函数哦，你可以用这种方式造DSL啊
+{
+   doSomething
+}   &lt;/code&gt;&lt;p&gt;      来个类型标注的完全版(&lt;b&gt;虽然你实际上一定不需要写这么多&lt;/b&gt;)，但我觉得&lt;b&gt;真是超好看&lt;/b&gt;...&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let F:[[i32=&amp;gt;i32]=&amp;gt;i32=&amp;gt;i32] = (f:[i32=&amp;gt;i32])=&amp;gt;[i32=&amp;gt;i32]-&amp;gt;{
+      (x:i32)=&amp;gt;i32 -&amp;gt; f(x)*x
+} :[[i32=&amp;gt;i32]=&amp;gt;i32=&amp;gt;i32]  //好吧这个尾标注我抄了一下scala
+// 这个类型标注是我想出来的哇哈哈，详见我的Squirrel语言，那是我搞编译器的开始...
+// https://github.com/thautwarm/SquirrelLanguage&lt;/code&gt;&lt;p&gt;好的，效果预览完毕。&lt;/p&gt;&lt;p&gt;让我们进入EBNFParser的原理解析。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;模式匹配&lt;/h2&gt;&lt;p&gt;在早些的时候，我非常恨Python为什么没有模式匹配。于是呢，我造了一个轮子。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/Stardust&quot;&gt;thautwarm/Stardust&lt;/a&gt; 看ReadMe的Pattern Matching部分。&lt;/p&gt;&lt;p&gt;这个轮子还是挺强的，比如一个对象，你可以用简单的语法匹配它是否有某些成员或者，对这些成员的值在匹配。同时你可以去匹配像列表啊、元组啊、字典啊这样的结构。总之万事万物都可以匹配。&lt;/p&gt;&lt;p&gt;不到两百行代码，还是很短的(但当时代码太丑了…)。&lt;/p&gt;&lt;p&gt;然后在我写这个Parser框架的时候，经过半天的瞎搞(我已经忘了那半天我在想什么策略了...)，我的脑袋里涌出了两个东西，一个是Python的Grammar文件(当时flowpython项目已经完成)，一个是我曾经给Python写的那个模式匹配扩展。&lt;/p&gt;&lt;p&gt;来我们看看EBNF是如何定义语法的。(具体语法我参照的是Python的Grammar文件和我数理逻辑书上的BNF语法...)&lt;/p&gt;&lt;code lang=&quot;ebnf&quot;&gt;lambdaDef ::= &#39;lambda&#39; argList &#39;:&#39; test&lt;/code&gt;&lt;p&gt;啊！这不就是个模式匹配嘛。。&lt;/p&gt;&lt;p&gt;来一个token好的词组&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[&#39;lambda&#39;,
+&#39;x&#39;,&#39;,&#39;,&#39;y&#39;,
+&#39;:&#39;,
+&#39;x&#39;,&#39;+&#39;,&#39;y&#39;,...]&lt;/code&gt;&lt;p&gt;你看看你看看。看不出来的话，我们来个模式匹配。&lt;/p&gt;&lt;p&gt;我用Python的部分语法做一个可爱的例子。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;    好的，现在先把词组交到我们的lambdaDef小可爱手上。
+    哇！第一个匹配成功,正好是我们要的 lambda 啊！
+    好的，lambdaDef同学把lambda放到一个叫做AST的东西的第一个位置。
+    继续...
+    啊，下一个单元好像需要别人的帮助了，lambdaDef同学查了查自己的模式表，找到
+一个熟悉的名字。
+    &quot;argList同学在吗？&quot;lambdaDef大声地朝某索引区域喊道。
+    &quot;啊？找我嘛？姐姐你把当前的词组递给我一下，对了，把当前解析到第几个词也说一下.&quot;
+    索引区域里传来argList同学的声音，她把自己的一个方法委托到某个lambdaDef也
+能碰到的地方。
+    lambdaDef见状，急忙将词组和已解析词数1放到了argList同学的委托里。
+    之后，argList同学那里发生了很多事情，她和argDef同学、Name同学以及Test老
+师一起处理了词组，得到了一个结果(如下)。
+----------------------------
+    argList[argDef[Name[x]]]
+----------------------------
+// 注: argList ::= argDef (&#39;,&#39; argDef)*
+//     argDef  ::= Name [&#39;=&#39; Test]
+//     Test为Python表达式语法的最高级节点，能表述一切表达式。
+
+同时，这个结果使得已解析词数变成了4。
+    当然，这些事情，lambdaDef同学是不知道的，她看着argList同学满脸大汗地,
+把结果和已解析词数交给了自己。
+    &quot;谢谢你了，&quot;lambdaDef同学把这个结果放到了AST的第二个位置，然后更新了已解析
+词数，&quot;辛苦啦... 不过，我听说我们的努力会被更高层的人给扔掉了。他们说选择我们一开
+始就错了呢。&quot;
+    &quot;啊咧，为什么要说这个呢，我们最高层的人是Test老师吧，不过我听说，有时候，较低
+层的Atom妹妹也会把Test老师的工作扔掉呢。她说有些时候, 左括号匹配了，Test老师
+也递交了结果，但是之后却没有跟着一个右括号呢。&quot;
+// Atom的简化定义(去除列表解析等) ::= ... | &#39;(&#39; Test &#39;)&#39; | ...
+    &quot;啊，是这样呀，而且我发现，其实我们也会做同样的事情呀。&quot;lambdaDef稍微有些
+释然.
+    &quot;哼，上次那个垃圾程序员以为自己在写JS, 写了一个 lambda x=&amp;gt;x，然后lambdaDef
+姐姐就把我和大家辛苦合作完成的东西给扔掉了呢！&quot;
+
+// 以上节选自某存在于我脑海的书 &amp;lt;&amp;lt;ParserGenerator娘的日常&amp;gt;&amp;gt;
+    &lt;/code&gt;&lt;p&gt;好的，我觉得自己真有才呀。。&lt;/p&gt;&lt;p&gt;上面那个故事，基本讲清了所有的解析方法，最后lambdaDef和argList两位同学的对话，还稍微提到了一个我没有说但很重要的东西：&lt;b&gt;回溯。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;为什么需要回溯？&lt;/p&gt;&lt;p&gt;因为有死结。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;CppType ::= CppType &#39;(&#39; CppType* &#39;)&#39; | Name&lt;/code&gt;&lt;p&gt;很经典的死结是左递归。&lt;/p&gt;&lt;p&gt;我们怎么解决死结的呢？&lt;/p&gt;&lt;h2&gt;死结与周期&lt;/h2&gt;&lt;p&gt;如果，我们把每次解析出的新结果，和当前解析的词数对应起来，构成一个元组。用一个东西按顺序存储这些元组。&lt;/p&gt;&lt;p&gt;来，看官们，想想看，出现死结时，如果你打印最新的元组，会出现什么样的情况。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Name      ParsedCount
+...       ...
+CppType   50
+CppType   50
+CppType   50
+CppType   50
+CppType   50
+...&lt;/code&gt;&lt;p&gt;为什么呢？&lt;/p&gt;&lt;p&gt;因为死结必然什么都没做。&lt;/p&gt;&lt;p&gt;我们看一个聪明的CppType。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// CppType ::= CppType &#39;(&#39; CppType* &#39;)&#39; | Name
+CppType : 哈，我拿到词组和已解析数啦。打印一个。
+Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
+CppType : 好的，第一个就是我自己呀。继续。
+CppType : 哈，我拿到词组和已解析数啦。打印一个。
+Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
+CppType : 好的，第一个就是我自己呀。继续——
+CppType : 不对，这话我说过一样的，&quot;Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50&quot;.
+CppType : 我去，玩我呢这是。。赶紧跳过。&lt;/code&gt;&lt;p&gt;好的，左递归问题解决了。应该说所有的死结问题都解决了。&lt;/p&gt;&lt;p&gt;但是左递归解析有时候还是需要的(暂时的EBNFParser还是会跳过，虽然我打补丁地很容易解决它，但出于性能考虑，我将加入新语法，使得可以指定某个Parser 能进行左递归解析。全局支持左递归会导致不必要的性能损失)。&lt;/p&gt;&lt;p&gt;我把我的想法告诉CppType，它真聪明，一学就懂。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// CppType ::= CppType &#39;(&#39; CppType* &#39;)&#39; | Name
+CppType : 哈，我拿到词组和已解析数啦。打印一个。计数1.
+Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
+CppType : 好的，第一个就是我自己呀。继续。
+CppType : 哈，我拿到词组和已解析数啦。打印一个。计数2大于1，发现重复.
+Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
+CppType : 按照红教主的指示，我现在应该处理保留计数1时的自己，然后对
+当前计数2的自己，去解析后面其他的情况，解析失败就报个解析失败——计数2时
+解析后面的情况失败的话，计数1时的自己就跳过左递归去看后面的情况。
+...&lt;/code&gt;&lt;p&gt;是不是很简单呢？&lt;/p&gt;&lt;p&gt;原理暂时就讲到这里，我觉得差不多了呀。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;基本使用&lt;/h2&gt;&lt;p&gt;我想你已经看到项目上那个骚气的pypi了。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pip install EBNFParser&lt;/code&gt;&lt;p&gt;就ok了。&lt;/p&gt;&lt;p&gt;当然，因为Python3.6以下的版本不支持字符串插值，写起来比较不爽，我现在就只支持Python3.6+的Python。不需要任何语言及标准库以外的依赖。&lt;/p&gt;&lt;p&gt;不久的未来，EBNFParser会优化性能，还会渐渐推出无数新语言的版本。第二门支持EBNFParser的语言将会是C#，其实你如果不用自动代码生成，已经可以在C#手写ebnf来用parser了。&lt;/p&gt;&lt;p&gt;好的，我们看主页的第一个例子。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d054f5c2847425272e9f1ca69cce5b76_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1366&quot; data-rawheight=&quot;768&quot;&gt;&lt;p&gt;按照这个简介写一个Lisp的解析器就大概知道怎么用了。&lt;/p&gt;&lt;p&gt;然后介绍一下我的EEBNF的语法。&lt;/p&gt;&lt;p&gt;&lt;b&gt;字面量Parser&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;l := R&#39;&amp;lt;正则表达式&amp;gt;&#39; 
+# 该正则表达式将会按顺序加入token构造器
+
+l := &#39;字符串&#39;  
+# 该字符串会按顺序加入token构造器，
+# 但所有的非R模式的字面量Parser的影响在R模式的Parser之前
+
+l := K&#39;&amp;lt;正则表达式&amp;gt;&#39;
+# 该Parser不对token做任何贡献.
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;AstParser&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 声明 l指代任意字面量Parser
+
+X ::= l | l X l 
+# 抽象语法书的Parser 可以由任意Parser 由 并运算符 | 组合。有先后顺序。
+# 其中出现的字面量Parser将按出现顺序和字面量Parser模式, 去贡献token。
+
+# 声明 y 是任意Parser(字面量或者Ast的)
+X ::= y*
+# *表示y至少出现0次，最多出现无穷次
+
+X ::= y+
+# +表示y至少出现1次，最多出现无穷次
+
+X ::= y{n}
+# 表示y至少出现n次，最多出现无穷次
+
+X ::= y{n m}
+# 表示y至少出现n次，最多出现m次
+
+X ::= [y] z
+# 表示 y 可能出现，等价于 X ::= y{0 1} z
+
+X ::= (y z)+
+X ::= (y z)*
+X ::= (y z){1}
+X ::= (y z){1 5}
+# 把(y z)当成整体&lt;/code&gt;&lt;p&gt;&lt;b&gt;过滤&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Stmts Throw Newline ::=  (Newline* Stmt* Newline*)*
+# 解析之后， Stmts不含有Newline  &lt;/code&gt;&lt;p&gt;暂时就这么多。&lt;/p&gt;&lt;p&gt;然后说明一下Ast的结构。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/blob/master/Python/Misakawa/ObjectRegex/Node.py&quot;&gt;看里面的Ast类&lt;/a&gt;&lt;/p&gt;&lt;p&gt;现在可以支持Dump到JSON或者SExpr。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a6ea2a38fe9228ce1ffd25aa88b45d89_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1366&quot; data-rawheight=&quot;768&quot;&gt;&lt;p&gt;现在，尝试用EBNFParser去写一点好玩的东西吧。&lt;/p&gt;&lt;p&gt;造语言的话，前端太枯燥无味。解决好Parser，后面都是在做有趣的分析。&lt;/p&gt;&lt;p&gt;祝为梦想奋斗的各位晚安。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;（添一句，EBNFParser的错误提示还是有点智能的呀...&lt;/p&gt;&lt;p&gt;(EEBNF默认不支持注释语法和多行语句，但有可选项。例子详见项目主页的testCm.sh文件。&lt;/p&gt;</description>
+<author>NightyNight</author>
+<guid isPermaLink="false">2017-10-07-29908056</guid>
+<pubDate>Sat, 07 Oct 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>搭建 Emacs 的 Haskell/Idris 环境教程</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-05-29881268.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;搭建 Emacs 的 Haskell/Idris 环境教程&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29881268&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-01d44acb509148aa16658d3590521dd1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;原文发表在我的博客： &lt;a href=&quot;http://ice1000.org/2017/10/03/EmacsIdrisHaskellEnv/&quot;&gt;搭建 Emacs 的 Haskell/Idris 环境教程&lt;/a&gt;&lt;/p&gt;&lt;p&gt;最近看见 Haskell 群的萌新费尽心思也没成功搭建环境，而且很多都是用浏览器编程，很不清真。为了拯救苍生，顺便为考 SAT 攒人品，我决定写一篇搭建环境教程，来扩大 Emacs 势力。&lt;/p&gt;&lt;p&gt;由于 Idris 用户需要进行的操作基本上是 Haskell 用户的超集，因此未说明的地方就是都要进行的，针对 Idris 用户的额外步骤会说明。&lt;/p&gt;&lt;p&gt;编译 Idris 是一种浪漫，我的笔记本 5 分钟就编译好了，湛忠胜说编译了一下午。本文将讲述编译而不是下载二进制 Idris 的方法。&lt;/p&gt;&lt;p&gt;本文针对的操作系统是 Linux ，只要能用 apt 就可以了。&lt;/p&gt;&lt;h2&gt;本文使用的工具及版本&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;Emacs 25&lt;/li&gt;&lt;li&gt;GHC 8.2.2&lt;/li&gt;&lt;li&gt;Cabal 1.24&lt;/li&gt;&lt;li&gt;Idris 1.1.1&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;本文使用的镜像源&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://mirrors.tuna.tsinghua.edu.cn/&quot;&gt;清华大学 tuna 镜像源&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;tuna 在本文发布的时候暂时挂掉了，因此在国庆期间搭建环境的同学们可以把下文中的 tuna 源智能替换为 ustc 源。 但是你就会遇到很多其它问题，所以我还是推荐等 tuna 活过来后用 tuna 。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://mirrors.ustc.edu.cn/&quot;&gt;ustc 源&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;apt 准备&lt;/h2&gt;&lt;p&gt;先加源，然后安装，下面的指令直接复制进终端执行：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ sudo add-apt-repository ppa:hvr/ghc
+$ sudo add-apt-repository ppa:ubuntu-elisp/ppa
+$ sudo apt-get update
+$ sudo apt-get install emacs25
+$ sudo apt-get install ghc-8.2.2
+$ sudo apt-get install cabal-install-1.24&lt;/code&gt;&lt;h2&gt;配置&lt;/h2&gt;&lt;p&gt;打开你的 ~/.bashrc ，加入下面的配置：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;alias ec=&quot;emacsclient25 -nw&quot;
+alias en=&quot;emacs25 -nw&quot;
+alias ecw=&quot;emacsclient25&quot;
+export PATH=~/.cabal/bin:/opt/ghc/bin:/opt/cabal/bin:$PATH &lt;/code&gt;&lt;p&gt;以上代码节选自&lt;a href=&quot;https://github.com/ice1000/xjb-config/blob/master/.bashrc&quot;&gt;我的 bashrc&lt;/a&gt; 。&lt;/p&gt;&lt;p&gt;然后执行以下命令，以重新加载这些配置：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ source ~/.bashrc&lt;/code&gt;&lt;h2&gt;配置 Cabal&lt;/h2&gt;&lt;p&gt;根据上面给出的 tuna 源的指示进行操作。 这对于 Haskell 来说不是必须的，但却是非常非常非常建议的。 Idris 用户请确保完成这一步。&lt;/p&gt;&lt;h2&gt;编译 Idris&lt;/h2&gt;&lt;p&gt;直接输指令就行：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ cabal-1.24 update
+$ cabal-1.24 install idris&lt;/code&gt;&lt;h2&gt;搞懂啥是 emacsclient&lt;/h2&gt;&lt;p&gt;其实是因为我使用了 linum-mode 这个插件，导致每次 Emacs 打开都特别慢 ，正好应了古人那句 EMACS == Emacs Makes A Computer Slower 。 因此我将会采用 Emacs Daemon 来加速 Emacs 启动。 这个东西的原理就是先开个 Emacs 进程，在后台运行，把插件啥的都加载好，蓝后每次使用 Emacs 的时候启动一个客户端，连上这个后台进程就是了。 于是就可以超级快了。&lt;/p&gt;&lt;p&gt;首先，在开始启动第一个 Emacs 前，先启动守护进程：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ emacs25 --daemon&lt;/code&gt;&lt;p&gt;蓝后在命令行使用 Emacs 打开一个文件，请输入&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ ec [你要打开的文件路径]&lt;/code&gt;&lt;p&gt;若要在 GUI 下使用 Emacs ，请使用&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ ecw [你要打开的文件路径]&lt;/code&gt;&lt;p&gt;推荐使用命令行。&lt;/p&gt;&lt;p&gt;这时如果你更新了你的配置，需要重启 Emacs ，那么你需要杀了 Emacs 并让他复活：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ pkill emacs
+$ emacs25 --daemon&lt;/code&gt;&lt;p&gt;这时候你的 Emacs 还是裸的，现在我们来配置它。&lt;/p&gt;&lt;p&gt;哦，差点忘了，为了防止一些悲剧发生，请在杀死 Emacs 前终止所有正在运行的 emacsclient 。&lt;/p&gt;&lt;p&gt;为了防止另一些悲剧的发生，请记下退出 Emacs 的快捷键： Ctrl+X Ctrl+C 。按法：按住 Ctrl 不放，然后分别按 X 和 C 。&lt;/p&gt;&lt;p&gt;你打开你的 Emacs 之后应该看到它是这样的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;File Edit Options Buffers Tools Help
+Welcome to GNU Emacs, one component of the GNU/Linux operating system.
+
+Get help           C-h  (Hold down CTRL and press h)
+Emacs manual       C-h r        Browse manuals     C-h i
+Emacs tutorial     C-h t        Undo changes       C-x u
+Buy manuals        C-h RET      Exit Emacs         C-x C-c
+Activate menubar   M-`
+(‘C-’ means use the CTRL key.  ‘M-’ means use the Meta (or Alt) key.
+If you have no Meta key, you may instead type ESC followed by the character.)
+Useful tasks:
+Visit New File                  Open Home Directory
+Customize Startup               Open *scratch* buffer
+
+GNU Emacs 25.3.50.2 (x86_64-pc-linux-gnu, GTK+ Version 3.18.9)
+ of 2017-09-16
+Copyright (C) 2017 Free Software Foundation, Inc.
+
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type C-h C-c to see the conditions.
+Type C-h C-o for information on getting the latest version.
+-UUU:%%--F1  *GNU Emacs*    Top of 1.0k (1,0)      (Fundamental) ---------------
+For information about GNU Emacs and the GNU system, type C-h C-a.
+&lt;/code&gt;&lt;h2&gt;配置 Emacs&lt;/h2&gt;&lt;p&gt;把下面的东西原封不动地抄进 ~/.emacs 里面。&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(require &#39;package)
+(setq package-archives
+			&#39;((&quot;gnu&quot;   . &quot;http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/&quot;)
+				(&quot;melpa&quot; . &quot;http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/&quot;)))
+
+(package-initialize)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won&#39;t work right.
+ &#39;(ac-auto-show-menu 0.1)
+ &#39;(ac-modes
+	 (quote
+		(emacs-lisp-mode lisp-mode lisp-interaction-mode slime-repl-mode nim-mode c-mode cc-mode c++-mode objc-mode
+                     swift-mode go-mode java-mode malabar-mode clojure-mode clojurescript-mode scala-mode
+                     scheme-mode ocaml-mode tuareg-mode coq-mode haskell-mode agda-mode agda2-mode perl-mode
+                     cperl-mode python-mode ruby-mode lua-mode tcl-mode ecmascript-mode javascript-mode
+                     js-mode js-jsx-mode js2-mode js2-jsx-mode coffee-mode php-mode css-mode scss-mode
+                     less-css-mode elixir-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode
+                     sgml-mode web-mode ts-mode sclang-mode verilog-mode qml-mode apples-mode
+                     haskell-mode fundamental-mode
+                     idris-mode ; 这一行仅 Idris 用户添加
+  )))
+ &#39;(blink-cursor-mode t)
+ &#39;(column-number-mode t)
+ &#39;(custom-enabled-themes nil)
+ &#39;(flyspell-abbrev-p t)
+ &#39;(flyspell-after-incorrect-word-string nil)
+ &#39;(font-use-system-font t)
+ &#39;(global-auto-complete-mode t)
+ &#39;(global-linum-mode t)
+ &#39;(idris-interpreter-path &quot;~/.cabal/bin/idris&quot;) ; 这一行仅 Idris 用户添加
+ &#39;(show-paren-mode t)
+ &#39;(size-indication-mode t))&lt;/code&gt;&lt;p&gt;上面的配置有两行是只有 Idris 用户需要添加的，请注意阅读注释。&lt;/p&gt;&lt;p&gt;配置节选自&lt;a href=&quot;https://github.com/ice1000/xjb-config/blob/master/.emacs&quot;&gt;我的 .emacs&lt;/a&gt; ，原本还有一些其他内容，与 Haskell Idris 无关我就删了。&lt;/p&gt;&lt;p&gt;这时候重启 Emacs ，你会发现你的配置可能加载不起，因为你没装对应的插件。 我们首先在 Emacs 里按下 Alt+X ，然后这时你的光标出现在最下面。&lt;br&gt;输入 package-list-package ，然后它应该是这样的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;-UUU:%%--F1  *GNU Emacs*    Top of 1.0k (1,0)      (Fundamental) ---------------
+M-x package-list-packages&lt;/code&gt;&lt;p&gt;等一会(这时开始下载 tuna 上的 elpa/gnu 源的内容)，然后你会发现出现了插件列表。&lt;/p&gt;&lt;p&gt;大概是这样的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt; 1  ace-window         0.9.0         available  Quickly switch windows.
+  2  ack                1.5           available  interface to ack-like tools
+  3  ada-mode           5.3.1         available  major-mode for editing Ada sou$
+  4  ada-ref-man        2012.3        available  Ada Reference Manual 2012
+  5  adaptive-wrap      0.5.1         available  Smart line-wrapping with wrap-$
+  6  adjust-parens      3.0           available  Indent and dedent Lisp code, a$
+  7  aggressive-indent  1.8.3         available  Minor mode to aggressively kee$
+  8  ahungry-theme      1.5.0         available  Ahungry color theme for Emacs.$
+  9  all                1.0           available  Edit all lines matching a give$
+ 10  ampc               0.2           available  Asynchronous Music Player Cont$
+ 11  arbitools          0.71          available  Package for chess tournaments $
+ 12  ascii-art-to-un... 1.11          available  a small artist adjunct
+ 13  async              1.9.2         available  Asynchronous processing in Ema$
+ 14  auctex             11.91.0       available  Integrated environment for *Te$
+ 15  aumix-mode         7             available  run the aumix program in a buf$
+ 16  auto-correct       1.1           available  Remembers and automatically fi$
+ 17  auto-overlays      0.10.9        available  Automatic regexp-delimited ove$
+ 18  beacon             1.3.2         available  Highlight the cursor whenever $
+ 19  bug-hunter         1.3.1         available  Hunt down errors by bisecting $
+ 20  caps-lock          1.0           available  Caps-lock as a minor mode
+-UUU:%%--F1  *Packages*     Top of 25k  (1,0)      (Package Menu) --------------&lt;/code&gt;&lt;p&gt;使用快捷键 Ctrl+S 进入搜索，这时你的光标在最下面。 输入 auto-complete ，找到叫这个名字的插件。搜索结果之间用 Ctrl+S 切换。&lt;br&gt;蓝后对它按下回车，看到半个屏幕变成了它的安装说明。&lt;br&gt;我的是安装好了的，看起来和你们的会不大一样，不过基本上是这样的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;-UUU:%%--F1  *Packages*     65% of 25k  (199,9)    (Package Menu) --------------
+ 1auto-complete is a dependency package.
+ 2
+ 3     Status: Installed in ‘auto-complete-20170124.1845/’ (unsigned).
+ 4    Version: 20170124.1845
+ 5    Summary: Auto Completion for GNU Emacs
+ 6   Requires: popup-0.5.0, cl-lib-0.5
+ 7Required by: ac-c-headers-20151021.134
+ 8
+ 9This extension provides a way to complete with popup menu like:
+10
+-UU-:%%--F1  *Help*         Top of 618  (1,0)      (Help) ----------------------
+Type C-x 1 to delete the help window, C-M-v to scroll help.&lt;/code&gt;&lt;p&gt;用 Ctrl+X O 切到这半个屏幕，然后把光标移动到 [Install] 上（上面就没有，因为我已经装好了），回车安装。&lt;/p&gt;&lt;p&gt;按理说安装是很快的，然后用 Ctrl+0 关掉这半个窗口。 你会发现原本的插件列表界面变成了一些编译信息。用 Ctrl+X K (输完这快捷键它会让你确认一下，这时回车就好)关掉它，回到原本的插件列表。&lt;/p&gt;&lt;p&gt;按照同样的步骤搜索并安装 haskell-mode 。 Idris 用户请安装 idris-mode 。&lt;/p&gt;&lt;p&gt;然后就什么都没有了！再用 Emacs 打开一个 .hs 结尾的文件，就可以看到漂亮的高亮了！&lt;/p&gt;&lt;h2&gt;快乐生活每一天&lt;/h2&gt;&lt;p&gt;你可以使用 Tab 键来调整缩进(而不是输入 Tab)， Haskell 插件会自动告诉你可以用哪些缩进，不会让你吃缩进的亏。&lt;/p&gt;&lt;p&gt;这个插件很牛逼。比如，你会发现，只有开启了 TypeFamilies 插件后，&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;type family Xxx &lt;/code&gt;&lt;p&gt;才会高亮出来。&lt;/p&gt;&lt;h2&gt;对于 Idris&lt;/h2&gt;&lt;p&gt;一样的，只是可以用 Ctrl+C Ctrl+L 自动进行 type check ，而且报错时还会把报错那一行高亮出来。&lt;/p&gt;&lt;p&gt;填 hole 请用 Ctrl+C Ctrl+A 。&lt;/p&gt;&lt;h2&gt;健康生活一辈子&lt;/h2&gt;&lt;p&gt;建议开启一个终端里两个 Tab ，一个开 Emacs ，一个开 ghci 。 Idris 同理。&lt;/p&gt;</description>
+<author>大笨蛋千里冰封</author>
+<guid isPermaLink="false">2017-10-05-29881268</guid>
+<pubDate>Thu, 05 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Simon Peyton Jones - Compiling without continuations</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-27-29722926.htm</link>
@@ -875,463 +1106,6 @@ callCC f = Cont $ \h -&amp;gt; runCont (f (\a -&amp;gt; Cont $ \_ -&amp;gt; h a)
 <author>lsdsjy</author>
 <guid isPermaLink="false">2017-08-28-28860343</guid>
 <pubDate>Mon, 28 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Erlang并发进阶</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-28-28859183.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Erlang并发进阶&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28859183&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f41939c06818a01f3e00990b6cd5e2d9_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;Getting Started with Erlang User’s Guide Version 9.0&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;写在前面的话&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;本文来源于官方教程 &lt;a href=&quot;http://link.zhihu.com/?target=http%3A//erlang.org/doc/getting_started/conc_prog.html&quot;&gt;Erlang -- Concurrent Programming&lt;/a&gt;。虽然没有逻辑上的关系，但建议在掌握了&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28154714&quot;&gt;Erlang入门系列教程&lt;/a&gt;的一些前置知识后继续阅读。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://w&quot;&gt;之前我是逐小结翻译然后发布，写到后面感觉并发这篇文章连贯性较强，分开不便于阅读，所以现在把它合并为一篇文章，刚好赶在开学前完成，也算对自己一个交待。希望能读得开心，如有错误恳请指正。&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;1. 进程&lt;/h2&gt;&lt;p&gt;使用Erlang而不是其他函数式编程语言的主要原因之一就是Erlang的并发处理能力和分布式编程。并发意味着程序可以在同一时刻执行多个线程。举个例子，操作系统允许你在同一时刻运行文字处理程序，电子表格程序，邮件客户端，和打印任务。系统中的每个处理器（CPU）有可能只处理一个线程，但是它以一定频率交换这些线程，给我们造成一种多个程序是在同一时刻执行的假象。在一个Erlang程序中很容易创建&lt;b&gt;并行执行（parallel execution）&lt;/b&gt;的线程，并且运行这些这些线程互相通信。Erlang中，每个执行线程称之为&lt;b&gt;进程（process）&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;（旁白：术语“进程（process）”通常用于各个执行线程不共享数据，术语‘’线程（thread）”用于当它们以某种方式共享数据。Erlang执行线程不共享数据，这就是为什么它们叫做进程的原因）&lt;/p&gt;&lt;p&gt;Erlang内置函数&lt;b&gt;spawn&lt;/b&gt;用于创建一个新进程：&lt;b&gt;spawn(Module, Exported_Function, List of Arguments)。&lt;/b&gt;考虑下面的模块&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut14).
-
--export([start/0, say_something/2]).
-
-say_something(What, 0) -&amp;gt;
-    done;
-say_something(What, Times) -&amp;gt;
-    io:format(&quot;~p~n&quot;, [What]),
-    say_something(What, Times - 1).
-
-start() -&amp;gt;
-    spawn(tut14, say_something, [hello, 3]),
-    spawn(tut14, say_something, [goodbye, 3]).
-&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;5&amp;gt; c(tut14).
-{ok,tut14}
-6&amp;gt; tut14:say_something(hello, 3).
-hello
-hello
-hello
-done
-&lt;/code&gt;&lt;p&gt;如上所示，函数&lt;b&gt;say_something&lt;/b&gt;输出第一个参数，输出次数由第二个参数指定。函数&lt;b&gt;start&lt;/b&gt;启动两个进程，一个输出“hello”三次，一个输出“goodbye”三次。每个进程都使用&lt;b&gt;say_something&lt;/b&gt;函数。注意用spawn这种方式启动一个进程所用到的函数，必须从该模块导出。（即写在模块开头的&lt;b&gt;-export&lt;/b&gt;里面）&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;9&amp;gt; tut14:start().
-hello
-goodbye
-&amp;lt;0.63.0&amp;gt;
-hello
-goodbye
-hello
-goodbye
-&lt;/code&gt;&lt;p&gt;注意它没有先输出三次“hello”再输出三次“goodbye”。相反，第一个进程输出“hello”，第二个进程输出“goodbye”，然后第一个进程再输出“hello”，如此继续。但是&lt;b&gt;&amp;lt;0.63.0&amp;gt;&lt;/b&gt;从哪里来？一个函数的返回值是最后一行表达式的返回值。在start中最后一个表达式是&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;spawn(tut14, say_something, [goodbye, 3]).
-&lt;/code&gt;&lt;p&gt;spawn返回一个&lt;b&gt;进程标识符（process identifier）&lt;/b&gt; , 或者说&lt;b&gt;pid&lt;/b&gt;, 标明独一无二的进程。所以&amp;lt;0.63.0&amp;gt;是上面spawn函数调用返回的pid。下一个例子展示了怎么使用pid。&lt;/p&gt;&lt;p&gt;同时还要注意在&lt;b&gt;io:format&lt;/b&gt;中用~p代替~w。引用手册的话：“~p和~w以相同的方式输出标准语，但是如果输出表示的项比一行长会合理的折断成多行。它也尝试去检测一个可输出的字符列表并将至以字符串的形式输出。”&lt;/p&gt;&lt;p&gt;（译注：这里举个例子（数据来源于官方），在shell中输入：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;4&amp;gt; F = [{attributes,[[{id,age,1.50000},{mode,explicit},{typename,&quot;INTEGER&quot;}], [{id,cho},{mode,explicit},{typename,&#39;Cho&#39;}]]}, {typename,&#39;Person&#39;},{tag,{&#39;PRIVATE&#39;,3}},{mode,implicit}].
-5&amp;gt; io:format(&quot;~p&quot;,[F]).
-[{attributes,[[{id,age,1.5},{mode,explicit},{typename,&quot;INTEGER&quot;}],
-              [{id,cho},{mode,explicit},{typename,&#39;Cho&#39;}]]},
- {typename,&#39;Person&#39;},
- {tag,{&#39;PRIVATE&#39;,3}},
- {mode,implicit}]ok
-6&amp;gt; io:format(&quot;~w&quot;,[F]).
-[{attributes,[[{id,age,1.5},{mode,explicit},{typename,[73,78,84,69,71,69,82]}],[{id,cho},{mode,explicit},{typename,&#39;Cho&#39;}]]},{typename,&#39;Person&#39;},{tag,{&#39;PRIVATE&#39;,3}},{mode,implicit}]ok
-&lt;/code&gt;&lt;p&gt;）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;2. 消息传递&lt;/h2&gt;&lt;p&gt;在接下来的例子中创建了两个进程，它们互相发送一些消息。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut15).
-
--export([start/0, ping/2, pong/0]).
-
-ping(0, Pong_PID) -&amp;gt;
-    Pong_PID ! finished,
-    io:format(&quot;ping finished~n&quot;, []);
-
-ping(N, Pong_PID) -&amp;gt;
-    Pong_PID ! {ping, self()},
-    receive
-        pong -&amp;gt;
-            io:format(&quot;Ping received pong~n&quot;, [])
-    end,
-    ping(N - 1, Pong_PID).
-
-pong() -&amp;gt; receive
-        finished -&amp;gt;
-            io:format(&quot;Pong finished~n&quot;, []);
-        {ping, Ping_PID} -&amp;gt;
-            io:format(&quot;Pong received ping~n&quot;, []),
-            Ping_PID ! pong,
-            pong()
-    end.
-
-start() -&amp;gt;
-    Pong_PID = spawn(tut15, pong, []),
-    spawn(tut15, ping, [3, Pong_PID]).
-&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;1&amp;gt; c(tut15).
-{ok,tut15}
-2&amp;gt; tut15: start().
-&amp;lt;0.36.0&amp;gt;
-Pong received ping
-Ping received pong
-Pong received ping
-Ping received pong
-Pong received ping
-Ping received pong
-ping finished
-Pong finished
-&lt;/code&gt;&lt;p&gt;函数start创建了一个进程，让我们把它叫做“pong”：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Pong_PID = spawn(tut15, pong, [])
-&lt;/code&gt;&lt;p&gt;这个进程执行tut15:pong()。&lt;b&gt;Pong_PID&lt;/b&gt;是pong进程的进程标识符。接着创建一个名为“ping”的进程：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;spawn(tut15, ping, [3, Pong_PID]),
-&lt;/code&gt;&lt;p&gt;这个进程执行：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;tut15:ping(3, Pong_PID)
-&lt;/code&gt;&lt;p&gt;&lt;b&gt;&amp;lt;0.36.0&amp;gt;&lt;/b&gt;是start函数的返回值。&lt;/p&gt;&lt;p&gt;“pong”进程现在这样：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;receive
-    finished -&amp;gt;
-        io:format(&quot;Pong finished~n&quot;, []);
-    {ping, Ping_PID} -&amp;gt;
-        io:format(&quot;Pong received ping~n&quot;, []),
-        Ping_PID ! pong,
-        pong()
-end.
-&lt;/code&gt;&lt;p&gt;&lt;b&gt;receive&lt;/b&gt; 结构用于使进程等待另一个进程的消息。它有下面的格式：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;receive
-   pattern1 -&amp;gt;
-       actions1;
-   pattern2 -&amp;gt;
-       actions2;
-   ....
-   patternN
-       actionsN
-end.
-&lt;/code&gt;&lt;p&gt;注意在&lt;b&gt;end.&lt;/b&gt;前面没有&lt;b&gt;“;”&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Erlang进程之间传递的消息简单的被认为是有效的erlang项（term）。也即是说，它们可以是列表，tuple，整数，原子，pid等等。&lt;/p&gt;&lt;p&gt;每个进程有它自己的消息队列，用于接收消息。当新消息到达时会放入队列的尾部。当一个进程执行一个receive表达式，消息队列第一个接收到的消息（头部）会和receive结构进行模式匹配。如果匹配成功，消息将会移出队列并且执行模式后面指定的&lt;b&gt;action&lt;/b&gt;&lt;/p&gt;&lt;p&gt;然而，如果第一个模式没有匹配，第二个模式将会继续，如果成功就执行它对应的action，如果没有成功，继续匹配第三个模式，如此继续。如果到最后都没有模式匹配成功，第一个消息将会保留在消息队列，然后消息队列的第二个消息（头部下一个）继续进行匹配，如果有任何一个模式匹配成功，相应的action就会执行，然后第二个消息会移出队列（除第二个以外的消息全都保留）。如果第二个消息没有匹配，尝试第三个，如此继续。直到到达消息队列尾部。如果到达队列尾部，进程会阻塞（停止执行）并等待一个新消息到达，然后重复上述过程。&lt;/p&gt;&lt;p&gt;Erlang的实现是很机智的，在每个receive中它会尽可能的最小化每个消息的模式匹配次数。&lt;/p&gt;&lt;p&gt;现在回到ping pong的例子。&lt;/p&gt;&lt;p&gt;&quot;Pong&quot;等待消息。如果接收到原子&lt;b&gt;finished&lt;/b&gt;，“pong”就会输出“Pong finished”，然后什么也不做，终止。如果收到一个&lt;b&gt;{ping，Ping_PID}&lt;/b&gt;格式的消息，它会输出&quot;Pong received ping&quot; 并向“ping”进程发送一个原子pong消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Ping_PID ! pong
-&lt;/code&gt;&lt;p&gt;注意“！”运算符是如何发送消息的。“！”的语法是：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Pid ! Message
-&lt;/code&gt;&lt;p&gt;即将消息（任何Erlang项）发送到Pid表示的进程。&lt;/p&gt;&lt;p&gt;在向“ping”进程发送了pong消息后，“pong”函数会调用自身，导致它重新回到receive结构等待另一条消息。&lt;/p&gt;&lt;p&gt;现在让我们看看“ping”进程。回忆一下它是这样开始的：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;tut15:ping(3, Pong_PID)
-&lt;/code&gt;&lt;p&gt;请看函数ping/2，因为第一个参数是3（不是0）（第一个clause是 ping(0,Pong_PID)，第二个clause是ping(N,Pong_PID)，所以N成为3），所以ping/2的第二个clause被执行。&lt;/p&gt;&lt;p&gt;第二个clause向pong进程发送一条消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Pong_PID ! {ping, self()},
-&lt;/code&gt;&lt;p&gt;&lt;b&gt;self()返回执行self()的进程的pid&lt;/b&gt;，在这个是“ping”进程的pid。（回忆一下“pong”的代码，self()的值最终会到达之前所说的receive结构中的Ping_PID变量。）&lt;/p&gt;&lt;p&gt;现在&quot;Ping&quot;等待一个来自“pong”的答复：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;receive
-    pong -&amp;gt;
-        io:format(&quot;Ping received pong~n&quot;, [])
-end,
-&lt;/code&gt;&lt;p&gt;当收到回复时它会输出&quot;Ping received pong&quot;，在这之后ping函数也会调用自己。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ping(N - 1, Pong_PID)
-&lt;/code&gt;&lt;p&gt;N-1使得第一个参数减一，直到它变成零。 当变成零时，ping/2的第一个clause就会被执行：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ping(0, Pong_PID) -&amp;gt;
-    Pong_PID !  finished,
-    io:format(&quot;ping finished~n&quot;, []);
-&lt;/code&gt;&lt;p&gt;该函数会向pong进程发送原子finished（正如上面描述的这会使得pong结束进程），接着会输 &quot;ping finished&quot;。 然后&quot;Ping&quot;会因为没有事情做而终止。&lt;/p&gt;&lt;h2&gt;3. 进程名注册&lt;/h2&gt;&lt;p&gt;在之前的例子中，“pong”进程最先被创建，并将它的进程标识符给接下来创建的“ping”进程作为参数。也即是说，“ping”必须通过某种方式知道“pong”进程才能向它发送消息。有时独立启动的进程需要知道彼此的标识符。鉴于此Erlang提供了一种进程机制来给进程命名而不是在一堆函数中混乱传递PID参数，这种机制是通过内置函数&lt;b&gt;register&lt;/b&gt;完成的。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;register(some_atom, Pid)
-&lt;/code&gt;&lt;p&gt;现在让我们使用下面的代码来重写ping pong 例子，给“pong”进程一个名字：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut16).
-
--export([start/0, ping/1, pong/0]).
-
-ping(0) -&amp;gt;
-    pong ! finished,
-    io:format(&quot;ping finished~n&quot;, []);
-
-ping(N) -&amp;gt;
-    pong ! {ping, self()},
-    receive
-        pong -&amp;gt;
-            io:format(&quot;Ping received pong~n&quot;, [])
-    end,
-    ping(N - 1).
-
-pong() -&amp;gt; receive
-        finished -&amp;gt;
-            io:format(&quot;Pong finished~n&quot;, []);
-        {ping, Ping_PID} -&amp;gt;
-            io:format(&quot;Pong received ping~n&quot;, []),
-            Ping_PID ! pong,
-            pong()
-    end.
-
-start() -&amp;gt;
-    register(pong, spawn(tut16, pong, [])),
-    spawn(tut16, ping, [3]).
-&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;2&amp;gt; c(tut16).
-{ok, tut16}
-3&amp;gt; tut16:start().
-&amp;lt;0.38.0&amp;gt;
-Pong received ping
-Ping received pong
-Pong received ping
-Ping received pong
-Pong received ping
-Ping received pong
-ping finished
-Pong finished
-&lt;/code&gt;&lt;p&gt;这是&lt;b&gt;start/0&lt;/b&gt;函数，&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;register(pong, spawn(tut16, pong, [])),
-&lt;/code&gt;&lt;p&gt;同时做了启动“pong”线程，给线程命名两件事。在“ping”进程中，可以这样给“pong”进程发送消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;pong ! {ping, self()},
-&lt;/code&gt;&lt;p&gt;&lt;b&gt;ping/2&lt;/b&gt; 现在变成了&lt;b&gt;ping/1&lt;/b&gt;，省去了&lt;b&gt;Pong_PID&lt;/b&gt;参数（避免在各个函数中混乱传递Ping_PID/Pong_PID参数）&lt;/p&gt;&lt;h2&gt;4. 分布式编程&lt;/h2&gt;&lt;p&gt;让我们重写ping pong这个例子，使“ping”和“pong”在不同电脑上运行。第一件事是&lt;b&gt;设置&lt;/b&gt;。Erlang的分布式实现提供了一个非常基础的验证机制来避免一台电脑不小心连接到Erlang分布式集群。Erlang集群的交流必须有一个相同的&lt;b&gt;magic cookie&lt;/b&gt;。要实现这个最简单的方法是通过一个&lt;b&gt;.erlang.cookie&lt;/b&gt;文件，将它放置于集群中的各台电脑（译注：即服务器，后文也译做“电脑（computer）”）的home目录，这样它们就能相互通信：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Windows系统上home目录可以由环境变量$HOME指定——你可能需要自行设置一下&lt;/li&gt;&lt;li&gt;Linux或UNIX可以忽略，只需要在你启动shell并执行cd（不附带任何参数）命令后所显示的目录下创建一个.erlang.cookie文件&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;.erlang.cookie&lt;/b&gt;文件包含了一行相同的原子。举个例子，在Linux或UNIX系统shell中&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;$ cd
-$ cat &amp;gt; .erlang.cookie
-this_is_very_secret
-$ chmod 400 .erlang.cookie
-&lt;/code&gt;&lt;p&gt;chmod命令将只允许文件的拥有者访问.erlang.cookie文件。这是需求不是必要。&lt;/p&gt;&lt;p&gt;当你启动一个Erlang系统，想和另一个Erlang系统通信，你必须给它一个名字，比如：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;$ erl -sname my_name&lt;/code&gt;&lt;p&gt;在后面我们会讨论更多关于这个的细节。如果你想实验一下分布式Erlang，但是你只有一台电脑，你可以在这台电脑上启动两个独立的Erlang系统，只需要给它们指定不同的名字。每个运行着Erlang系统的电脑叫做&lt;b&gt;Erlang节点（Erlang node）&lt;/b&gt;&lt;/p&gt;&lt;p&gt;(注意: erl -sname假定所有节点都是用相同的IP，如果我们想在不同的IP上运行Erlang系统请使用 -name代替。但是IP地址必须给全。)&lt;/p&gt;&lt;p&gt;像下面一样修改ping pong例子使之运行在不同的节点：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut17).
-
--export([start_ping/1, start_pong/0,  ping/2, pong/0]).
-
-ping(0, Pong_Node) -&amp;gt;
-    {pong, Pong_Node} ! finished,
-    io:format(&quot;ping finished~n&quot;, []);
-
-ping(N, Pong_Node) -&amp;gt;
-    {pong, Pong_Node} ! {ping, self()},
-    receive
-        pong -&amp;gt;
-            io:format(&quot;Ping received pong~n&quot;, [])
-    end,
-    ping(N - 1, Pong_Node).
-
-pong() -&amp;gt; receive
-        finished -&amp;gt;
-            io:format(&quot;Pong finished~n&quot;, []);
-        {ping, Ping_PID} -&amp;gt;
-            io:format(&quot;Pong received ping~n&quot;, []),
-            Ping_PID ! pong,
-            pong()
-    end.
-
-start_pong() -&amp;gt;
-    register(pong, spawn(tut17, pong, [])).
-
-start_ping(Pong_Node) -&amp;gt;
-    spawn(tut17, ping, [3, Pong_Node]).
-&lt;/code&gt;&lt;p&gt;假设这两台电脑叫做gollum和kosken。第一个节点是kosken，启动ping，第二个是gollum，启动pong。&lt;/p&gt;&lt;p&gt;kosken如下：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;kosken&amp;gt; erl -sname ping
-Erlang (BEAM) emulator version 5.2.3.7 [hipe] [threads:0]
-
-Eshell V5.2.3.7  (abort with ^G)
-(ping@kosken)1&amp;gt;
-&lt;/code&gt;&lt;p&gt;这是 gollum:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;gollum&amp;gt; erl -sname pong
-Erlang (BEAM) emulator version 5.2.3.7 [hipe] [threads:0]
-
-Eshell V5.2.3.7  (abort with ^G)
-(pong@gollum)1&amp;gt;
-&lt;/code&gt;&lt;p&gt;接着在gollum上启动pong：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(pong@gollum)1&amp;gt; tut17:start_pong(). true
-&lt;/code&gt;&lt;p&gt;在kosken节点上启动ping进程：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(ping@kosken)1&amp;gt; tut17:start_ping(pong@gollum).
-&amp;lt;0.37.0&amp;gt;
-Ping received pong
-Ping received pong 
-Ping received pong
-ping finished
-&lt;/code&gt;&lt;p&gt;如上所示，ping pong都已经在运行了。在“pong”那边：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(pong@gollum)2&amp;gt;
-Pong received ping                 
-Pong received ping                 
-Pong received ping                 
-Pong finished                      
-(pong@gollum)2&amp;gt;
-&lt;/code&gt;&lt;p&gt;注意tut17的代码，你会注意到pong函数的代码没有改变，下面的代码也一样，它不关心ping进程所在的节点：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{ping, Ping_PID} -&amp;gt;
-    io:format(&quot;Pong received ping~n&quot;, []),
-    Ping_PID ! pong,
-&lt;/code&gt;&lt;p&gt;因此，Erlang pid包含了进程在哪执行的信息。如果你知道一个进程的pid，就可以用“！”运算符发送消息，而不用考虑进程在不在相同的节点。&lt;br&gt;有一点不同是消息怎样发送给另一个节点上已注册的进程：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{pong, Pong_Node} ! {ping, self()},
-&lt;/code&gt;&lt;p&gt;一个元组tuple {registered_name,node_name}用来代替 registered_name。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在钱的例子中，‘’ping”和“pong”由两个独立的Erlang节点的shell中启动，也就是说spawn可以在不同的节点上启动进程。&lt;/p&gt;&lt;p&gt;下面的例子又是ping pong程序，但是这一次“ping”在另一个节点启动：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;-module(tut18).
-
--export([start/1,  ping/2, pong/0]).
-
-ping(0, Pong_Node) -&amp;gt;
-    {pong, Pong_Node} ! finished,
-    io:format(&quot;ping finished~n&quot;, []);
-
-ping(N, Pong_Node) -&amp;gt;
-    {pong, Pong_Node} ! {ping, self()},
-    receive
-        pong -&amp;gt;
-            io:format(&quot;Ping received pong~n&quot;, [])
-    end,
-    ping(N - 1, Pong_Node).
-
-pong() -&amp;gt; receive
-        finished -&amp;gt;
-            io:format(&quot;Pong finished~n&quot;, []);
-        {ping, Ping_PID} -&amp;gt;
-            io:format(&quot;Pong received ping~n&quot;, []),
-            Ping_PID ! pong,
-            pong()
-    end.
-
-start(Ping_Node) -&amp;gt;
-    register(pong, spawn(tut18, pong, [])),
-    spawn(Ping_Node, tut18, ping, [3, node()]).
-&lt;/code&gt;&lt;p&gt;假设在kosken上被名为ping的Erlang系统已经启动，然后在gollum上这样做：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(pong@gollum)1&amp;gt; tut18:start(ping@kosken).
-&amp;lt;3934.39.0&amp;gt;
-Pong received ping
-Ping received pong
-Pong received ping
-Ping received pong
-Pong received ping
-Ping received pong
-Pong finished
-ping finished
-&lt;/code&gt;&lt;p&gt;注意gollum接收所有的输出。这是因为I/O系统会找到进程从哪启动，然后在那输出。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;5. 一个完整的例子&lt;/h2&gt;&lt;p&gt;现在写一个完整的例子，叫做“messenger”。messenger这个程序运行在不同的Erlang节点上登陆然后互相发送消息（message）。&lt;/p&gt;&lt;p&gt;在开始前，注意下面几点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;这个例子只显示了消息传递的逻辑——并不打算提供一个友好的GUI，虽然这也可以用Erlang完成&lt;/li&gt;&lt;li&gt;这类问题用OTP的一些设施更容易解决，因为它们能提供一些方法进行代码热更新等 (参见 &lt;b&gt;&lt;a href=&quot;http://erlang.org/doc/design_principles/des_princ.html#otp%20design%20principles&quot;&gt;OTP Design Principles&lt;/a&gt;&lt;/b&gt;).&lt;/li&gt;&lt;li&gt;第一个程序有一些缺陷。后续版本会逐步修复它。The first program contains some inadequacies regarding handling of nodes which disappear. These are corrected in a later version of the program.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;messenger允许创建客户端然后连接中央服务器，并服务器会知晓客户端是哪些、它们在哪。也就是说，用户不需要关系当前节点的名字和其他节点在哪就能发送消息。&lt;/p&gt;&lt;p&gt;messenger.erl文件如下:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;%%% Message passing utility.  
-%%% User interface:
-%%% logon(Name)
-%%%     One user at a time can log in from each Erlang node in the
-%%%     system messenger: and choose a suitable Name. If the Name
-%%%     is already logged in at another node or if someone else is
-%%%     already logged in at the same node, login will be rejected
-%%%     with a suitable error message.
-%%% logoff()
-%%%     Logs off anybody at that node
-%%% message(ToName, Message)
-%%%     sends Message to ToName. Error messages if the user of this 
-%%%     function is not logged on or if ToName is not logged on at
-%%%     any node.
-%%%
-%%% One node in the network of Erlang nodes runs a server which maintains
-%%% data about the logged on users. The server is registered as &quot;messenger&quot;
-%%% Each node where there is a user logged on runs a client process registered
-%%% as &quot;mess_client&quot; 
-%%%
-%%% Protocol between the client processes and the server
-%%% ----------------------------------------------------
-%%% 
-%%% To server: {ClientPid, logon, UserName}
-%%% Reply {messenger, stop, user_exists_at_other_node} stops the client
-%%% Reply {messenger, logged_on} logon was successful
-%%%
-%%% To server: {ClientPid, logoff}
-%%% Reply: {messenger, logged_off}
-%%%
-%%% To server: {ClientPid, logoff}
-%%% Reply: no reply
-%%%
-%%% To server: {ClientPid, message_to, ToName, Message} send a message
-%%% Reply: {messenger, stop, you_are_not_logged_on} stops the client
-%%% Reply: {messenger, receiver_not_found} no user with this name logged on
-%%% Reply: {messenger, sent} Message has been sent (but no guarantee)
-%%%
-%%% To client: {message_from, Name, Message},
-%%%
-%%% Protocol between the &quot;commands&quot; and the client
-%%% ----------------------------------------------
-%%%
-%%% Started: messenger:client(Server_Node, Name)
-%%% To client: logoff
-%%% To client: {message_to, ToName, Message}
-%%%
-%%% Configuration: change the server_node() function to return the
-%%% name of the node where the messenger server runs
-
--module(messenger).
--export([start_server/0, server/1, logon/1, logoff/0, message/2, client/2]).
-
-%%% Change the function below to return the name of the node where the
-%%% messenger server runs
-server_node() -&amp;gt;
-    messenger@bill.
-
-%%% This is the server process for the &quot;messenger&quot;
-%%% the user list has the format [{ClientPid1, Name1},{ClientPid22, Name2},...]
-server(User_List) -&amp;gt;
-    receive
-        {From, logon, Name} -&amp;gt;
-            New_User_List = server_logon(From, Name, User_List),
-            server(New_User_List);
-        {From, logoff} -&amp;gt;
-            New_User_List = server_logoff(From, User_List),
-            server(New_User_List);
-        {From, message_to, To, Message} -&amp;gt;
-            server_transfer(From, To, Message, User_List),
-            io:format(&quot;list is now: ~p~n&quot;, [User_List]),
-            server(User_List)
-    end.
-
-%%% Start the server
-start_server() -&amp;gt;
-    register(messenger, spawn(messenger, server, [[]])).
-
-
-%%% Server adds a new user to the user list
-server_logon(From, Name, User_List) -&amp;gt;
-    %% check if logged on anywhere else
-    case lists:keymember(Name, 2, User_List) of
-        true -&amp;gt;
-            From ! {messenger, stop, user_exists_at_other_node},  %reject logon
-            User_List;
-        false -&amp;gt;
-            From ! {messenger, logged_on},
-            [{From, Name} | User_List]        %add user to the list
-    end.
-
-%%% Server deletes a user from the user list
-server_logoff(From, User_List) -&amp;gt;
-    lists:keydelete(From, 1, User_List).
-
-
-%%% Server transfers a message between user
-server_transfer(From, To, Message, User_List) -&amp;gt;
-    %% check that the user is logged on and who he is
-    case lists:keysearch(From, 1, User_List) of
-        false -&amp;gt;
-            From ! {messenger, stop, you_are_not_logged_on};
-        {value, {From, Name}} -&amp;gt;
-            server_transfer(From, Name, To, Message, User_List)
-    end.
-%%% If the user exists, send the message
-server_transfer(From, Name, To, Message, User_List) -&amp;gt;
-    %% Find the receiver and send the message
-    case lists:keysearch(To, 2, User_List) of
-        false -&amp;gt;
-            From ! {messenger, receiver_not_found};
-        {value, {ToPid, To}} -&amp;gt;
-            ToPid ! {message_from, Name, Message}, 
-            From ! {messenger, sent} 
-    end.
-
-
-%%% User Commands
-logon(Name) -&amp;gt;
-    case whereis(mess_client) of 
-        undefined -&amp;gt;
-            register(mess_client, 
-                     spawn(messenger, client, [server_node(), Name]));
-        _ -&amp;gt; already_logged_on
-    end.
-
-logoff() -&amp;gt;
-    mess_client ! logoff.
-
-message(ToName, Message) -&amp;gt;
-    case whereis(mess_client) of % Test if the client is running
-        undefined -&amp;gt;
-            not_logged_on;
-        _ -&amp;gt; mess_client ! {message_to, ToName, Message},
-             ok
-end.
-
-
-%%% The client process which runs on each server node
-client(Server_Node, Name) -&amp;gt;
-    {messenger, Server_Node} ! {self(), logon, Name},
-    await_result(),
-    client(Server_Node).
-
-client(Server_Node) -&amp;gt;
-    receive
-        logoff -&amp;gt;
-            {messenger, Server_Node} ! {self(), logoff},
-            exit(normal);
-        {message_to, ToName, Message} -&amp;gt;
-            {messenger, Server_Node} ! {self(), message_to, ToName, Message},
-            await_result();
-        {message_from, FromName, Message} -&amp;gt;
-            io:format(&quot;Message from ~p: ~p~n&quot;, [FromName, Message])
-    end,
-    client(Server_Node).
-
-%%% wait for a response from the server
-await_result() -&amp;gt;
-    receive
-        {messenger, stop, Why} -&amp;gt; % Stop the client 
-            io:format(&quot;~p~n&quot;, [Why]),
-            exit(normal);
-        {messenger, What} -&amp;gt;  % Normal response
-            io:format(&quot;~p~n&quot;, [What])
-    end.&lt;/code&gt;&lt;p&gt;要运行这个程序，你需要：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;配置server_node()函数&lt;/li&gt;&lt;li&gt;把编译后的字节码 (messenger.beam) 复制到其它电脑，这样它们才能使用这些函数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;接下来的例子是使用这个程序，在四个不同电脑上启动Erlang节点。如果你没有那么多电脑那么可以考虑在一台机器上启动不同的节点（译注：-sname，具体可以参见前面小结）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;四个Erlang节点分别是：messenger@super, c1@bilbo, c2@kosken, c3@gollum.&lt;/p&gt;&lt;p&gt;首先启动服务器节点messenger@supe:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(messenger@super)1&amp;gt; messenger:start_server(). true&lt;/code&gt;&lt;p&gt;接着在c1@bilbo上登陆Peter:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c1@bilbo)1&amp;gt; messenger:logon(peter). true
-logged_on&lt;/code&gt;&lt;p&gt;在c2@kosken上登陆James:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c2@kosken)1&amp;gt; messenger:logon(james). true
-logged_on&lt;/code&gt;&lt;p&gt;Fred在c3@gollum上登陆:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c3@gollum)1&amp;gt; messenger:logon(fred). true
-logged_on&lt;/code&gt;&lt;p&gt;现在Peter给Fred发送消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c1@bilbo)2&amp;gt; messenger:message(fred, &quot;hello&quot;).
-ok
-sent&lt;/code&gt;&lt;p&gt;Fred收到消息并回复Peter一条消息然后注销：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;Message from peter: &quot;hello&quot;
-(c3@gollum)2&amp;gt; messenger:message(peter, &quot;go away, I&#39;m busy&quot;).
-ok
-sent
-(c3@gollum)3&amp;gt; messenger:logoff().
-logoff&lt;/code&gt;&lt;p&gt;James现在尝试向Fred发送消息:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;(c2@kosken)2&amp;gt; messenger:message(fred, &quot;peter doesn&#39;t like you&quot;).
-ok
-receiver_not_found&lt;/code&gt;&lt;p&gt;但是失败了，因为Fred早就离线了。&lt;/p&gt;&lt;p&gt;让我们先看看这里引进的新概念。&lt;/p&gt;&lt;p&gt;有两个版本的server_transfer函数：一个有四个参数(server_transfer/4) 一个有五个参数(server_transfer/5)。Erlang将他们视作不同的函数。 &lt;/p&gt;&lt;p&gt;注意怎样写server函数让它调用自己，通过server(User_List)形成一个循环结构。Erlang编译器很“聪明”，它会进行代码优化，以至于它真的会变成一个循环而不是函数调用。但是这只限于在这个调用后没有其它工作。这会导致进程（译注：的内存占用）在每次循环后变得越来越大。&lt;/p&gt;&lt;p&gt;也使用了一些lists模块的函数。这是一个非常有用的模块，建议看看它的使用手册（erl -man lists）。lists:keymember(Key,Position,Lists)遍历tuple列表然后检查tuple的Position位置是否和Key匹配，tuple的第一个元素是1.如果寻找成功返回true，否则返回false。&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;
-3&amp;gt; lists:keymember(a, 2, [{x,y,z},{b,b,b},{b,a,c},{q,r,s}]).
-true
-4&amp;gt; lists:keymember(p, 2, [{x,y,z},{b,b,b},{b,a,c},{q,r,s}]).
-false&lt;/code&gt;&lt;p&gt;lists:keydelete的工作方式类似，只是如果找到就删除它并返回剩余列表： &lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;5&amp;gt; lists:keydelete(a, 2, [{x,y,z},{b,b,b},{b,a,c},{q,r,s}]).
-[{x,y,z},{b,b,b},{q,r,s}]&lt;/code&gt;&lt;p&gt;lists:keysearch类似于lists:keymember，但是返回 {value,Tuple_Found}，或者寻找失败返回false原子。&lt;/p&gt;&lt;p&gt;在lists模块有很多有用的函数。&lt;/p&gt;&lt;p&gt;一个Erlang进程（概念上的）会一直运行直到它执行receive结构，直到遍历消息队列后没有发现和receive结构中的模式相匹配的消息。之所以说是“概念上的”是因为Erlang系统执行各个进程其实是会共享CPU时间的。&lt;/p&gt;&lt;p&gt;当一个进程没有事做的时候它会终止，即它调用的最后一个函数简单返回且不再调用其他函数。另一个终止进程的方法是调用exit/1,。exit/1的参数有特别的意义，我们将会在后面讨论。在这个例子中，调用exit(normal)即可，它会进程运行到没有事做再终止是一样的效果。&lt;/p&gt;&lt;p&gt;内置函数whereis(RegisteredName)检查一个名为RegisteredName的具名进程是否存在。如果存在，返回它的pid，如果不存在， ，返回原子undefined。&lt;/p&gt;&lt;p&gt;到目前为止你应该已经理解了messenger模块的大部分代码。让我们取一个片段看看它的细节。&lt;/p&gt;&lt;p&gt;第一个用户“发送”消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;messenger:message(fred, &quot;hello&quot;)&lt;/code&gt;&lt;p&gt;在测试了客户端进程存在之后：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;whereis(mess_client) &lt;/code&gt;&lt;p&gt;将会发送一条消息给mess_client：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;mess_client ! {message_to, fred, &quot;hello&quot;}&lt;/code&gt;&lt;p&gt;它的实现是客户端向服务器发送消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{messenger, messenger@super} ! {self(), message_to, fred, &quot;hello&quot;},&lt;/code&gt;&lt;p&gt;然后等待服务器的回复。&lt;/p&gt;&lt;p&gt;把目光转向服务器，它收到消息然后调用：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;server_transfer(From, fred, &quot;hello&quot;, User_List),&lt;/code&gt;&lt;p&gt;它检查User_List中的pid:&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;lists:keysearch(From, 1, User_List) &lt;/code&gt;&lt;p&gt;如果keysearch返回原子false，引发错误，服务器会这样回复： &lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;From ! {messenger, stop, you_are_not_logged_on}&lt;/code&gt;&lt;p&gt;它将被客户端收到，然后客户端执行exit(normal)终止。如果keysearch返回{value,{From,Name}}，很明显用户已经登录，他的名字（peter）会被绑定到Name上。&lt;/p&gt;&lt;p&gt;现在让我们调用：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;server_transfer(From, peter, fred, &quot;hello&quot;, User_List)&lt;/code&gt;&lt;p&gt;注意server_transfer/5，它不同于server_transfer/4。另一个keysearch会在User_List上进行，然后返回fred客户端的pid：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;lists:keysearch(fred, 2, User_List)&lt;/code&gt;&lt;p&gt;这次Position指定为2，也就是tuple的第二个元素和fred进行匹配。如果返回原子false，fred就没有登录然后发送下面的消息：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;From ! {messenger, receiver_not_found};&lt;/code&gt;&lt;p&gt;客户端会收到该条消息。&lt;/p&gt;&lt;p&gt;如果keysearch返回：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{value, {ToPid, fred}}&lt;/code&gt;&lt;p&gt;会向fred发送：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;ToPid ! {message_from, peter, &quot;hello&quot;}, &lt;/code&gt;&lt;p&gt;向peter发送：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;From ! {messenger, sent} &lt;/code&gt;&lt;p&gt;Fred&#39;收到该条消息然后输出：&lt;/p&gt;&lt;code lang=&quot;erlang&quot;&gt;{message_from, peter, &quot;hello&quot;} -&amp;gt;
-    io:format(&quot;Message from ~p: ~p~n&quot;, [peter, &quot;hello&quot;])&lt;/code&gt;&lt;p&gt;Peter客户端在await_result函数调用中接收消息。 &lt;/p&gt;</description>
-<author>racaljk</author>
-<guid isPermaLink="false">2017-08-28-28859183</guid>
-<pubDate>Mon, 28 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>最近一星期忙着做实验没看paper，愧对大家</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-08-27-28832682.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;最近一星期忙着做实验没看paper，愧对大家&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28832682&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;每周的paper导读这周就取笑掉吧，不过这周看到个很有意思的帖子，是rust他爹说编译语言的下一个热点是啥，可以自己慢慢爬&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://graydon2.dreamwidth.org/253769.html&quot;&gt;graydon2 | &quot;What next?&quot;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;其实paper还是看了一半的，可惜完读懂了一小半，就没办法写笔记，大家有兴趣的可以自己读读看，是&lt;a href=&quot;https://pdfs.semanticscholar.org/130c/a6c6b876d1bdce81e0f0c2e7b5e1498579c1.pdf&quot;&gt;The Development of the Emerald Programming Language&lt;/a&gt;，讲的是一个叫Emerald的分布式OO语言，里面有三个大特点：&lt;/p&gt;&lt;p&gt;0：任意一个object可以在运行中从一台机器move到另一台机器（不一定要是同种archeticture），并且不中断执行，move后也不会损失性能&lt;/p&gt;&lt;p&gt;1：在girard paradox出现以前就用type in type这设定。。。没有martin lof早，不过也很离谱了（换句话说，他们的generic就是靠type function搞的，什么鬼）&lt;/p&gt;&lt;p&gt;2：是UW的！他们里面有个Paul Allen building的黑白，然后竟然还在the ave画emerald的饼，想到自己学校搞过这么有意思的东西，荣誉感++（然而管你啥事，那年你还没出生233）&lt;/p&gt;&lt;p&gt;决定了，以后不吹smalltalk改吹emerald（特大雾）&lt;/p&gt;</description>
-<author>帅气可爱魔理沙</author>
-<guid isPermaLink="false">2017-08-27-28832682</guid>
-<pubDate>Sun, 27 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
