@@ -5,7 +5,44 @@
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Sep 2017 20:55:05 +0800</lastBuildDate>
+<lastBuildDate>Sat, 07 Oct 2017 14:59:02 +0800</lastBuildDate>
+<item>
+<title>SIMD via C#</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-10-02-29842129.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;SIMD via C#&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29842129&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a9d7b3fb01037396184a7f74097298b7_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;简介 TL;DR&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们为C#（准确地说是.NET Core）引入了一套全新的机制，使得C# 以后可以像C/C++ 一样直接使用intrinsic functions 来直接操作Intel CPU 的大多数SIMD 指令了（从SSE 到AVX2）。&lt;/p&gt;&lt;p&gt;（注意是&lt;b&gt;以后&lt;/b&gt;！这个项目还没有完成！）&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Vectors in .NET&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在最开始我想先说一说SIMD 编程在C#/.NET 中的现状，以及为什么我们要引入这套全新的intrinsic。 &lt;/p&gt;&lt;p&gt;微软在之前的.NET Framework 和.NET Core 中引入了一个新的库： &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/dn858218&quot;&gt;System.Numerics.Vectors&lt;/a&gt; ，其中包含几个重要的值类型（Vector&amp;lt;T&amp;gt;, Vector2, Vector3, 等等）和操作它们的一些静态方法。程序员可以用这个库在.NET 环境中编写SIMD 程序。以下我假定大家都大概知道SIMD 编程的概念，来具体讲讲这个库 的设计与实现。&lt;/p&gt;&lt;p&gt;System.Numerics.Vectors 库中的这些静态方法的实际功能不能用C# 等.NET managed language 直接写出来(虽然它们都有一份&lt;a href=&quot;https://github.com/dotnet/corefx/blob/master/src/System.Numerics.Vectors/src/System/Numerics/Vector.cs&quot;&gt;C# 的实现&lt;/a&gt;)，而是由编译器特殊对待从而生成特殊代码(SSE, AVX, AVX2, 等指令集的指令)，我们称这些方法（函数）为intrinsic。这些intrinsic 大部分都操作在上面说到的这些值类型上（Vector&amp;lt;T&amp;gt;, Vector2, Vector3, 等等），这些类型的实例也会被编译器特殊对待。其中最主要的是Vector&amp;lt;T&amp;gt;，这个类型的设计不同于传统&lt;a href=&quot;https://software.intel.com/sites/landingpage/IntrinsicsGuide/&quot;&gt;C/C++ intrinsic&lt;/a&gt; 中的vector 类型：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;泛型：.NET 中的这个vector类型采用了泛型设计，泛型Vector&amp;lt;T&amp;gt;的类型参数只接受numeric types，即C# 的基础数字类型（byte, sbyte, short, ushort, long, ulong, float, double)。如果试图创建一个Vector&amp;lt;UserDefinedStruct&amp;gt;的实例，运行时会抛出异常（一大波来自Haskell 的鄙视正在路上……）。&lt;/li&gt;&lt;li&gt;长度可变（length-agnostic）：大家都知道随着微处理器历史的发展SIMD 计算单元和寄存器的长度也在不断地进化，Intel 从最初MMX 的64-bit 寄存器到后来SSE 系列128-bit 寄存器，再到AVX 扩展为256-bit，最新的AVX-512 已经有了512-bit 的SIMD 寄存器。C/C++ intrinsic 使用不同长度的vector 类型来抽象这些SIMD 寄存器，比如__m128, __m256d。然而借助.NET 的JIT 编译，Vector&amp;lt;T&amp;gt; 的长度可以随着程序运行的硬件环境的不同而改变，例如一个使用了System.Numerics.Vectors 来加速的程序在Sandy Bridge 等稍微老一点的CPU 上看到Vector&amp;lt;byte&amp;gt; 的长度为16，而同一个程序运行在Haswell 以上的新CPU 上看到的Vector&amp;lt;byte&amp;gt; 的长度为32，但程序行为保持不变，并且开发者也不需要重新编译他们的源码就可以得到更多的提速。这个设计乍一看起来非常酷，但是也为这个库的命运埋下了巨大的隐患。&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;System.Numerics.Vectors 的缺陷&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;System.Numerics.Vectors 库的设计初衷是要做一个跨平台的通用的SIMD 编程库。可以看出它的最终目标是要在统一的API 下支持不同的硬件指令集(SSE, AVX, NEON, etc.)，虽然现在只做了x86/x64 平台的支持，但一些设计缺陷已经暴露出来了。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;当『通用』成为设计目的时，『可用』成了重中之重。众所周知，SIMD 编程或者叫向量化编程相对来说是比较困难的，当一个程序想使用SIMD 来加速时开发者关注的第一点肯定是『性能』。然而这个『通用』和『可用』的设计目的并不能保证『性能』。举个最简单的例子，不同硬件提供的指令集一般在功能上是不会完全重合的，当一个指令在Intel CPU 上存在而在ARM CPU 上不存在的时候，通用SIMD 库就要想办法绕着弯来在不直接提供支持的硬件上实现这个API。然而这个『弯儿』一旦开始绕了，性能提升就不能保证了（在一些极端情况下不绕弯都不能保证）。试想一个程序员发现一个函数foo在他的程序中调用非常频繁，并且可以被向量化，于是欣喜地使用Vectors&amp;lt;T&amp;gt; 重写了。然后他发现整个程序在他装备了Skylake CPU的 Macbook Pro 上性能提升了50%，但在发布新版本几天后所有ARM 用户全来骂娘了（这只是个例子，性能退化在所有硬件平台之间都有可能出现，不是针对某些硬件架构）。以下列出的其他缺陷都或多或少来自这一条设计原则。&lt;/li&gt;&lt;li&gt;可变长度的Vector&amp;lt;T&amp;gt; 上无法抽象某些硬件指令的语义。比如很重要的shuffle 这族指令就没法抽象到变长Vector&amp;lt;T&amp;gt;, Github 已经有人多次要求提供这些API，但最终都没有很好的解决方案。再比如，对于AVX/AVX2 来说，很多时候我们需要同时操作YMM 和XMM 寄存器，但这在Vector&amp;lt;T&amp;gt; 的设计中不被允许。&lt;/li&gt;&lt;li&gt;System.Numerics.Vectors 中的类型和函数在JIT 编译器不支持生成SIMD 指令的环境下会退回到C# 的软件实现。这点对性能是很致命的，尤其是有些时候这种『不支持生成SIMD 指令的环境』是不可避免的，比如反射调用。&lt;/li&gt;&lt;li&gt;还有很多细节性的缺点我就不一一列举了，比较这篇文章重点不在System.Numerics.Vectors。有兴趣的同学可以去CoreCLR 和CoreFX 的GitHub repo 翻一翻相关的issue。&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;Intel Hardware Intrinsic&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;说了那么多终于进入正题了。为了探索一个新的SIMD 方案，我代表牙膏厂为.NET 提供了&lt;a href=&quot;https://github.com/dotnet/corefx/issues/22940&quot;&gt;API Proposal: Add Intel hardware intrinsic functions and namespace #22940&lt;/a&gt;。总体的设计都在这份API proposal 里了，我简单总结一下：&lt;/p&gt;&lt;p&gt;1) 加入两个新的namespace：System.Runtime.Intrinsics和System.Runtime.Intrinsics.X86。其中System.Runtime.Intrinsics只包含跨平台类型，目前有两个新的值类型Vector128&amp;lt;T&amp;gt;和Vector256&amp;lt;T&amp;gt; 来抽象SIMD 寄存器。每个硬件平台提供各自平台相关的类型和方法用来操作Vector128&amp;lt;T&amp;gt;和Vector256&amp;lt;T&amp;gt;，比如x86 平台的所有intrinsic 都在System.Runtime.Intrinsics.X86namespace 下，它提供了在managed language 中直接访问以下指令集的能力：SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2, FMA, AES, BMI1, BMI2, LZCNT, POPCNT, PCLMULQDQ&lt;/p&gt;&lt;p&gt;2) 每一个指令集封装成一个static class（例如Sse,Aes, Avx2, 等.），每个class 都有一个IsSupported 方法用来检测当前硬件，从而为不同的硬件提供不同的优化方案。&lt;/p&gt;&lt;code lang=&quot;csharp&quot;&gt;if (Avx2.IsSupported)
+{
+    // 为AVX2 CPU 优化的算法  
+}
+else if (Sse41.IsSupported)
+{
+    // 为SSE4.1 CPU 优化的算法 
+}
+else if (Neon.IsSupported)
+{
+    // 为ARM NEON CPU 优化的算法
+}
+else
+{
+    // software-fallback
+}&lt;/code&gt;&lt;p&gt;3) 要求一个新的C# 语言特性，const 参数。因为Intel hardware intrinsic 直接通过C# 代码来控制最终的代码生成，而一些SIMD 指令明确要求立即数操作数。比如&lt;a href=&quot;http://www.felixcloutier.com/x86/SHUFPD.html&quot;&gt;shufpd&lt;/a&gt; 对应的C# intrinsic 是&lt;/p&gt;&lt;code lang=&quot;csharp&quot;&gt;public static Vector128&amp;lt;double&amp;gt; Shuffle(Vector128&amp;lt;double&amp;gt; left, Vector128&amp;lt;double&amp;gt; right, byte control);&lt;/code&gt;&lt;p&gt;参数control 对应shufpd 的imm8 操作数，它必须是编译时确定的，如果用户传入一个『变量』可能导致程序无法编译。所以我们向C# 语言特性的开发组请求了一个新的语言特性：将const 关键字用于方法的形式参数。最终Shuffle 的方法签名为：&lt;/p&gt;&lt;code lang=&quot;csharp&quot;&gt;public static Vector128&amp;lt;double&amp;gt; Shuffle(Vector128&amp;lt;double&amp;gt; left, Vector128&amp;lt;double&amp;gt; right, const byte control);&lt;/code&gt;&lt;p&gt;这样C# 编译器（Roslyn）就只允许byte 字面量值流入control 参数。&lt;/p&gt;&lt;p&gt;4) Intel hardware intrinsic 在.NET Core 中所有环境下都会被编译为直接对应的硬指令，比如JIT编译、AOT编译（Crossgen）、MSCorlib 内部调用（比如用来优化String）、Debugging 调用、反射调用等等。而相对的System.Numerics.Vectors 只能在第三方JIT 编译的普通调用中才会生成SIMD 指令。&lt;/p&gt;&lt;p&gt;具体的API 请移步 &lt;a href=&quot;https://github.com/dotnet/coreclr/tree/master/src/mscorlib/src/System/Runtime/Intrinsics&quot;&gt;https://github.com/dotnet/coreclr/tree/master/src/mscorlib/src/System/Runtime/Intrinsics&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;.NET Managed Intrinsic 与C/C++ Native Intrinsic&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果有SIMD 编程经验的读者看到这里一定会觉得我们做的这套新的intrinsic 和&lt;a href=&quot;https://software.intel.com/sites/landingpage/IntrinsicsGuide/&quot;&gt;Intel C/C++ intrinsic&lt;/a&gt; 很相似。对，这套新的hardware intrinsic 是比原先System.Numerics.Vectors 更偏底层的一套intrinsic 机制，我们希望可以通过managed language （目前只有C#）来直接对应编译器的代码生成。然而，他还是有一些区别于C/C++ intrinsic 的地方。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;.NET Core 的JIT 编译为hardware intrinsic 的使用和实现提供了更大的便利。因为C/C++ 都是AOT 编译的，所以一般在编译SIMD 程序时开发者需要选用不同的编译器选项来编译多分二进制分发文件来保证各个在硬件平台都达到最优性能。然而JIT 编译就不会有这份顾虑，JIT 编译器会在启动前自动探知当前的硬件参数，来自动生成最有性能的代码。也许有人会说.NET Core 也有AOT 编译啊！可是.NET Core 的AOT 编译器（Crossgen）依然可以从JIT 编译器中获利，比如我们可以AOT 编译一个程序的大部分，但留下硬件相关的代码，待到运行时再JIT 编译这些代码（intrinsic）然后动态插入到原先AOT 编译好的程序中。&lt;/li&gt;&lt;li&gt;当然.NET Core 的hardware intrinsic 相比C/C++ 也有劣势。一般SIMD 计算对内存数据都有对齐要求，CoreCLR 却没有提供完整的对齐内存的接口给用户。但是这一点可以通过unsafe 代码（目前所有和内存交互的intrinsic 都是操作指针）和后续的值类型对齐机制来逐渐解决。还有一点就是managed language 对底层硬件的控制不如native language 灵活。举个例子，在C/C++ 中我们可以这么写代码来节省Load和Store：&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;c&quot;&gt;// __m256 a, float* b
+__m256* v = (__m256*)b;
+__m256 result = _mm256_add_ps(a, *v); // vaddps ymm0, ymm0, ymmword ptr [rdi]&lt;/code&gt;&lt;p&gt;上面这段两行代码可以只生成一条memory-flavor 的指令，但在C# 中我们不能持有一个泛型struct 的指针，所以我们必须写成：&lt;/p&gt;&lt;code lang=&quot;csharp&quot;&gt;// Vector&amp;lt;float&amp;gt; a, float* b
+Vector&amp;lt;float&amp;gt; v = Avx.Load(b);
+Vector&amp;lt;float&amp;gt; result = Avx.Add(a, v);&lt;/code&gt;&lt;p&gt;直觉上这个程序是两条指令，但可以被编译器优化折叠为和上面C/C++ 程序一样的编译结果。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;小福利&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;能看到这儿还没有关掉文章的一定是对SIMD 计算和编译器实现都很有兴趣的同学，那我顺便放点编译器实现的细节在这作为坚持到最后的奖励。&lt;br&gt;如果你点进了我上面给出的API 连接就会发现，所有的hardware intrinsic 有一个C# 的实现：&lt;/p&gt;&lt;code lang=&quot;csharp&quot;&gt;/// &amp;lt;summary&amp;gt;
+/// __m256 _mm256_add_ps (__m256 a, __m256 b)
+/// &amp;lt;/summary&amp;gt;
+public static Vector256&amp;lt;float&amp;gt; Add(Vector256&amp;lt;float&amp;gt; left, Vector256&amp;lt;float&amp;gt; right) =&amp;gt; Add(left, right);
+/// &amp;lt;summary&amp;gt;
+/// __m256d _mm256_add_pd (__m256d a, __m256d b)
+/// &amp;lt;/summary&amp;gt;
+public static Vector256&amp;lt;double&amp;gt; Add(Vector256&amp;lt;double&amp;gt; left, Vector256&amp;lt;double&amp;gt; right) =&amp;gt; Add(left, right);&lt;/code&gt;&lt;p&gt;每个intrinsic 在C# API 中都是一个直接递归方法。这是为什么呢？&lt;br&gt;原因是&lt;b&gt;我们需要intrinsic 在某些环境下既是intrinsic 又是function(method)&lt;/b&gt;。&lt;br&gt;首先我们可以将在intrinsic 理解为必须内联的函数（方法），对它的调用会被直接替换为一条或多条汇编指令，而不遵循普通函数/方法的调用约定(calling convention)。然而这一定义在某些情况下是无法工作的，比如deugger 和反射。例如.NET 在反射机制中提供了『方法调用』却没有提供『intrinsic调用』，那么typeof(Avx).GetMethod(&quot;Add&quot;).Invoke(null, args) 是无法工作的。但是我们可以这么做：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;在某些环境中编译器看到用户调用Avx.Add(a, b) 时不对其进行特殊处理，而只当成是普通的函数调用。&lt;/li&gt;&lt;li&gt;编译器如果看到Avx.Add(a, b) 是被自身调用的（递归），则强制将其编译为相应的汇编指令。 &lt;/li&gt;&lt;/ol&gt;&lt;p&gt;这样，我们就完美解决了intrinsic 既是intrinsic （递归调用）又是function（用户调用）的问题。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;最后&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果大家对这项功能感兴趣，我会在这里持续更新项目进展，也请大家耐心等候！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本文同步发布在：&lt;a href=&quot;http://fiigii.com/&quot;&gt;fiigii.com&lt;/a&gt;&lt;/p&gt;</description>
+<author>彭飞</author>
+<guid isPermaLink="false">2017-10-02-29842129</guid>
+<pubDate>Mon, 02 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>谈寄存器分配器中Spiller的作用</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-07-29-28182330.htm</link>
@@ -444,46 +481,6 @@ Oracle Labs有一个“神秘项目”叫做Substrate VM，主要用于将使用
 <author>Shijie XU</author>
 <guid isPermaLink="false">2017-05-15-26900569</guid>
 <pubDate>Mon, 15 May 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>考不上三本也会实现数据绑定（一）</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-11-26855349.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;考不上三本也会实现数据绑定（一）&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26855349&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;&lt;b&gt;你现在所阅读的并不是第一篇文章，你可能想看&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25959684&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;目录和前言&quot;&gt;目录和前言&lt;/a&gt;。&lt;/b&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;前言&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;经历了GacUI的一次超级大重构之后，终于又有空写文章了。这次重构在保留了所有功能的前提下，删掉了很多类跟接口，积累了很多魂来传火，过些日子再围绕相关的话题来谈一谈重构。今天先说一下数据绑定的事情。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;MVVM&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在我讲数据绑定的时候，背景是设定在 &lt;a href=&quot;https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel&quot; data-editable=&quot;true&quot; data-title=&quot;Model-view-viewmodel - Wikipedia&quot; class=&quot;&quot;&gt;MVVM模式&lt;/a&gt; 上面的，在这里简单介绍一下MVVM。MVVM把我们的程序——其实大多数时候就是UI或者网页——分成了三大块，分别是Model、ViewModel和View。Model很好理解，指的是数据源，通常是数据库或者文件。View也很好理解，就是最终的UI，或者是测试用例，或者是一些别的东西。那ViewModel是什么呢？大多数时候我们也不用死抠概念。ViewModel出现的根本原因就是，Model和View的结构经常是不一样的。&lt;/p&gt;&lt;p&gt;举个简单的例子，Model是每门科目各一份的成绩单，View是教室门口贴的总分前10名的大红榜。显然Model和View的结构就是完全不同的。在这里Model按照科目来分，告诉你每个人的成绩是多少。View则告诉你总分前10名都是什么人。那ViewModel是啥呢？其实ViewModel在这里就是红榜的内容了。View——红，ViewModel——榜，没毛病（逃&lt;/p&gt;&lt;p&gt;因此ViewModel大多数时候就是用来负责实现具体的计算过程的，譬如从一堆成绩单里面算出总分前10名，这就是ViewModel要做的事情。那么针对这份ViewModel，我们就可以做一堆View，譬如说：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;让老师把前10名念出来&lt;br&gt;&lt;/li&gt;&lt;li&gt;写进大红榜贴在教室门口&lt;br&gt;&lt;/li&gt;&lt;li&gt;打印成文件给校长用来做发奖学金的参考&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;这三个View虽然长的完全不同，但是其内容都是一致的，而且的格式跟Model有巨大的区别。所以这就是ViewModel存在的原因，你需要一些复杂的计算，而且这些计算可以被重复使用，所以要独立出来，正确处理好依赖：让View去依赖ViewModel。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;数据绑定&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;好了，那为什么会有数据绑定呢？因为到了这一步，ViewModel的格式跟View其实就差不多了，那么你把数据从ViewModel复制到View，或者从View反馈回ViewModel，&lt;b&gt;理论上只需要一些简单的步骤就可以实现&lt;/b&gt;。UWP就假设这些步骤可以简单到你只需要给一串（通常只有一个）属性的名字就好了，复杂点的可以用Converter，再复杂就证明你的ViewModel做的不好。&lt;/p&gt;&lt;blockquote&gt;GacUI的数据绑定并没有这个假设，我可以让你写无限复杂的表达式，不过同时也付出了没有双向绑定的代价——如果你需要双向绑定，那你就正反两边都绑定好了——因为GacUI的数据绑定除了联系View和ViewModel以外，还有别的事情要做。&lt;/blockquote&gt;&lt;p&gt;UWP的x:bind提供了三种绑定的形式，分别是一次性绑定、单向绑定跟双向绑定。其中一次性绑定就跟写在构造函数里没有区别，而双向绑定可以理解为从一个单向绑定计算出相反的单向绑定要怎么写然后自动替你写好，因此我们就只需要考虑单向绑定要怎么做就可以了。&lt;/p&gt;&lt;p&gt;在这里不得不提到的是，我看到有些JavaScript的界面库在实现数据绑定的时候，采用了一些花式作死的方法，其中我印象最深刻的一种就是，他先跑一下你的表达式，看看一共用到了多少属性，然后挨个给他们挂上事件处理程序。居然存在使用采样的方式来实现的编译器，不得不佩服作者的想象力实在是太强大了，是谁这么做我已经不记得了。不过他根本不需要这么做，只要把JavaScript换成TypeScript，这个事情就可以完美的解决。&lt;/p&gt;&lt;p&gt;为什么呢？因为你既然要做数据绑定，那你总要知道你写的这个表达式到底需要响应多少事件——其实也就是说，到底要在ViewModel的什么部分被修改的情况下刷新View——这样才能做出完整的功能。而JavaScript这个语言在阅读的时候是没有上下文的，所以你根本没办法做这样的计算，因此才需要用采样的方法。而采样的一个缺点就是，万一你的表达式有分支怎么办？有些人可能会说，你不应该写分支。其实这个说法很对，毕竟这么复杂的逻辑应该放进ViewModel里，但是与此配套的，你应该在遇到分支的时候直接爆炸，而不是就这么默默的接受了。TypeScript就是有上下文的，所以可以清楚地把依赖关系都计算出来。&lt;/p&gt;&lt;p&gt;所以这个系列的前提就这么确定了，我们在MVVM的模式下，使用一个强类型的语言做数据绑定。那我们需要依靠什么三本的知识来实现数据绑定，就是接下来的文章要讲述的事情。当然说是说系列，多半（二）就会把所有的事情都说完了，毕竟数据绑定的内容很少（逃&lt;/p&gt;&lt;h2&gt;&lt;b&gt;一个例子&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在文章结束之前，最后讲一下我们要如何对数据绑定这个功能进行建模。在GacUI使用的 &lt;a href=&quot;https://github.com/vczh-libraries/Workflow&quot; data-editable=&quot;true&quot; data-title=&quot;vczh-libraries/Workflow&quot; class=&quot;&quot;&gt;Workflow脚本语言&lt;/a&gt; 里面，我给了一个bind表达式，具体的用法就是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;bind(obj.A + obj.B)&lt;/code&gt;&lt;p&gt;这个表达式会返回下面的接口的实例：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;interface system::Subscription
-{
-    /* 一些无关紧要的其他函数 */
-
-    event ValueChanged(object);
-}&lt;/code&gt;&lt;p&gt;然后只要obj.A + obj.B这个表达式改变了——其实也就是A或者B属性的其中一个发生了变化，ValueChanged事件就会触发，参数就是这个表达式当前的值。你只要挂了这个事件，自然就可以把最新的数据显示到UI上面了。譬如说下面的这个&lt;a href=&quot;https://github.com/vczh-libraries/Workflow/blob/master/Test/Resources/Codegen/BindFormat.txt&quot; data-editable=&quot;true&quot; data-title=&quot;github.com 的页面&quot; class=&quot;&quot;&gt;测试用例&lt;/a&gt;：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;module test;
-using test::*;
-using system::*;
-
-var s = &quot;&quot;;
-
-func Callback(value : object) : void
-{
-	s = $&quot;$(s)[$(cast string value)]&quot;;
-}
-
-func main() : string
-{
-	var x = new ObservableValue^();
-	var subscription = bind($&quot;The value has been changed to $(x.Value)&quot;);
-	subscription.Open();
-	attach(subscription.ValueChanged, Callback);
-
-	x.Value = 10;
-	x.Value = 20;
-	x.Value = 30;
-
-	subscription.Close();
-	return s;
-}&lt;/code&gt;&lt;p&gt;最终就会返回下面这个字符串：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[The value has been changed to 10][The value has been changed to 20][The value has been changed to 30]&lt;/code&gt;&lt;p&gt;因为x.Value一共改变了3次。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;待续&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;今天这篇文章就说到这里了，接下来我们会重点描述下面的三个问题&lt;/p&gt;&lt;ul&gt;&lt;li&gt;如何跟踪属性变化&lt;br&gt;&lt;/li&gt;&lt;li&gt;如何分析属性之间的依赖关系&lt;br&gt;&lt;/li&gt;&lt;li&gt;如何把数据绑定重写为对回调函数的调用&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;p&gt;这三个问题搞定了，数据绑定也就做出来了。敬请期待。&lt;/p&gt;</description>
-<author>vczh</author>
-<guid isPermaLink="false">2017-05-11-26855349</guid>
-<pubDate>Thu, 11 May 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
