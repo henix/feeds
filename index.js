@@ -2,10 +2,10 @@ const feeds = [
 	["Finance", [
 		"chinaetfs",
 		"SmartGAA",
-		"touyanbang88",
 		"forex-analysis",
-		"Chouma2016",
+		"touyanbang88",
 		"GlobalMacroHedge",
+		"Chouma2016",
 		"sishimiao",
 		"DimensionsCapital",
 	]],
@@ -25,6 +25,27 @@ const feeds = [
 		"hllvm",
 		"rust-lang",
 	]],
+	["政治 / 人文", [
+		"knowledgewealth",
+		"mzmojo",
+		"zhidaoxue",
+		"zhidaoshe",
+	]],
+	["心理", [
+		"knowyourself",
+		"PSY_Jile",
+		"bhahhltmusic",
+	]],
+	["商业", [
+		"caozsay",
+		"Professor-Li",
+	]],
+	["ACG", [
+		"c_126395105",
+	]],
+	["科学", [
+		"liweitan2014",
+	]],
 	["Security", [
 		"WeiranCrypto",
 		"fhe-blockchain",
@@ -33,30 +54,12 @@ const feeds = [
 		"freebuf",
 		"drops",
 	]],
-	["政治 / 人文", [
-		"knowledgewealth",
-		"mzmojo",
-		"zhidaoxue",
-		"zhidaoshe",
-	]],
 	["法律", [
 		"mclawman",
 		"laodongfaquanji",
 	]],
 	["算法", [
 		"algorithmicliberalartsdegree",
-	]],
-	["商业", [
-		"caozsay",
-		"Professor-Li",
-	]],
-	["心理", [
-		"knowyourself",
-		"PSY_Jile",
-		"bhahhltmusic",
-	]],
-	["科学", [
-		"liweitan2014",
 	]],
 ];
 
