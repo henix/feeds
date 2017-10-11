@@ -60,6 +60,7 @@ const feeds = [
 	]],
 	["算法", [
 		"algorithmicliberalartsdegree",
+		"c_131397850",
 	]],
 ];
 
