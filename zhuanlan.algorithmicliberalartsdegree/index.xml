@@ -5,7 +5,18 @@
 <link>https://henix.github.io/feeds/zhuanlan.algorithmicliberalartsdegree/</link>
 <description>一些看起来好像很酷的算法结论. 来自于UIUC理论CS PhD学生.</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Sep 2017 11:52:10 +0800</lastBuildDate>
+<lastBuildDate>Sat, 14 Oct 2017 08:28:02 +0800</lastBuildDate>
+<item>
+<title>洁癖朋友吃寿司卷</title>
+<link>https://henix.github.io/feeds/zhuanlan.algorithmicliberalartsdegree/2017-10-11-30007391.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;洁癖朋友吃寿司卷&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30007391&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ab8dd95e6824d6a17543fa68fff03242_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;这是很久远的问题了, 认识我的人应该都听过这题的样子. 但是这次在伯克利碰到两个CS本科生&lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/b81d09436441d8ecbcfc90e1003ed384&quot; data-hash=&quot;b81d09436441d8ecbcfc90e1003ed384&quot; data-hovercard=&quot;p$b$b81d09436441d8ecbcfc90e1003ed384&quot;&gt;@林习习&lt;/a&gt;和另一个人时, 给了他们这个题. 因为我常用的另一个题他们竟然听过了.&lt;/p&gt;&lt;p&gt;我喜欢这种题当做面试题. 因为这题可以看人解决问题的思路. &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;现实模型&lt;/p&gt;&lt;p&gt;有两种寿司卷, a个红色寿司卷和b个蓝色寿司卷(a和b都可以被2整除). 填满在一个nxm的矩阵里. 所以nxm=a+b. &lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e116e9c2b748b6372b78bebd187b3099_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;960&quot; data-rawheight=&quot;609&quot;&gt;&lt;p&gt;两个有洁癖的人分寿司卷. 因为寿司卷放的很紧. 用筷子夹的时候要么碰到上下两个寿司卷(如果存在的话), 要么会碰到左右两个寿司卷(如果存在的话). 而另一个人是不会吃这个人碰到的寿司卷的. &lt;/p&gt;&lt;p&gt;设计一个算法. 告诉这两个人如何轮流夹寿司卷. 使得每个人都吃到a/2个红色寿司卷b/2个蓝色寿司卷.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;某个解答的方法&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们假设 &lt;equation&gt;n\leq m&lt;/equation&gt; . &lt;/p&gt;&lt;p&gt;让 &lt;equation&gt;r_i&lt;/equation&gt; 为第 &lt;equation&gt;i&lt;/equation&gt; 列的红色寿司的个数. 假设对于任意 &lt;equation&gt;i&lt;/equation&gt; , &lt;equation&gt;r_i\leq r_{i+1}&lt;/equation&gt;. 因为我们暂时不会横着夹任何东西, 所以可以有这样的assumption. &lt;/p&gt;&lt;p&gt;我们的目标是让两个人取走一样多的行.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;case 1: 存在 &lt;equation&gt;i\neq j&lt;/equation&gt; 使得 &lt;equation&gt;r_i=r_j&lt;/equation&gt; . 这样两个人各取一列. （这包含了n+1&amp;lt;m的case) 后面case假设case 1不成立.&lt;/p&gt;&lt;p&gt;case 2: 如果 &lt;equation&gt;n+1=m&lt;/equation&gt; , &lt;equation&gt;m\geq 4&lt;/equation&gt; . 则对于任意 &lt;equation&gt;i&lt;/equation&gt; ,  &lt;equation&gt;r_i = i-1&lt;/equation&gt; . 所以我们有 &lt;equation&gt;r_1 + r_m = r_2 + r_{m-1}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;case 3: 如果 &lt;equation&gt;n=m&lt;/equation&gt; ,  &lt;equation&gt;m\geq 4&lt;/equation&gt; ,  &lt;equation&gt;r_1\neq 0&lt;/equation&gt; . 则对于任意 &lt;equation&gt;i&lt;/equation&gt; , &lt;equation&gt;r_i=i&lt;/equation&gt; .  &lt;equation&gt;r_1 + r_m = r_2 + r_{m-1}&lt;/equation&gt; . &lt;/p&gt;&lt;p&gt;case 4: 如果 &lt;equation&gt;n=m&lt;/equation&gt; ,  &lt;equation&gt;m\geq 4&lt;/equation&gt; ,  &lt;equation&gt;r_1=0&lt;/equation&gt; . 则矩阵里每行都有一个蓝色的寿司卷. 我们可以红色蓝色对调并且旋转一下矩阵获得case 3.&lt;/p&gt;&lt;p&gt;case 5. n和m之间必须有一个是偶数. 现在只剩下要考虑 &lt;equation&gt;(n,m)&lt;/equation&gt; 为下列三种情况 &lt;equation&gt;\{(1,2),(2,2),(2,3)\}&lt;/equation&gt; . 利用a,b都是偶数这个属性. 可以搞定最后的几个可能.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果足够careful可以利用这个写出一个O(nm)的算法... 有点麻烦就是了...&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;更多问题:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;如果矩阵没有被摆满呢?&lt;/li&gt;&lt;li&gt;如果第一个人想吃到k个红寿司卷, l个蓝寿司卷, 第二个人要吃a-k个红寿司卷, b-l个蓝寿司卷呢? 这时对a,b的偶数要求也没有了. &lt;/li&gt;&lt;li&gt;寿司卷摆在一个nxmxr的cube里, 有两个有洁癖的四维生物用二维的筷子呢?&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;题图是游戏 Asami&#39;s Sushi Shop. &lt;/p&gt;</description>
+<author>Chao Xu</author>
+<guid isPermaLink="false">2017-10-11-30007391</guid>
+<pubDate>Wed, 11 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>亲属术语以及其算法</title>
 <link>https://henix.github.io/feeds/zhuanlan.algorithmicliberalartsdegree/2017-08-28-25012875.htm</link>
@@ -109,20 +120,6 @@
 <author>Chao Xu</author>
 <guid isPermaLink="false">2015-12-17-20424897</guid>
 <pubDate>Thu, 17 Dec 2015 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>代数的方法丢掉了太多的信息怎么办</title>
-<link>https://henix.github.io/feeds/zhuanlan.algorithmicliberalartsdegree/2015-08-06-20147371.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;代数的方法丢掉了太多的信息怎么办&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20147371&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-前段时间我在知乎问了这个问题: &lt;a href=&quot;http://www.zhihu.com/question/31743688&quot; data-editable=&quot;true&quot; data-title=&quot;Convolution计算A+B并且获得witness? - 算法&quot;&gt;Convolution计算A+B并且获得witness? - 算法&lt;/a&gt;&lt;p&gt;对于懒得点开链接的人. 问题是:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;让A+B = {a+b|a in A, b in B}, A和B都是{0,...,n}的子集.
-input是A和B, 则可以用fft来计算convolution从而计算A+B. 需要时间O(n log n).
-a in A叫做witness of c如果存在b in B使得a+b = c.
-是否可以相同的时间为A+B里面每一个值找到一个witness?&lt;/code&gt;&lt;p&gt;我原先以为这个问题应该不困难, 可能早就已知了. 看到一个匿名用户的回答后想了下发现并没有原来那么简单. 并不是打开FFT的黑盒子多记录一点点信息就可以搞定的.&lt;/p&gt;&lt;br&gt;&lt;p&gt;于是我去了&lt;a href=&quot;http://cstheory.stackexchange.com/questions/32036/finding-witness-in-minkowski-sum-of-integers&quot; data-editable=&quot;true&quot; data-title=&quot;CStheory上问了这个问题&quot;&gt;CStheory上问了这个问题&lt;/a&gt;, 获得了两个随机算法. 概念都差不多: 对于一个x, 如果只有一个a和b使得a+b=x的话, 那么就能很容易的找到这答案. 所以就sample到保证任何一个属于A+B的x都在某个sample里只有一个解. &lt;/p&gt;&lt;p&gt;但是我不满足于随机算法啊. &lt;/p&gt;&lt;p&gt;有个类似的问题: 给两个boolean matrix A和B. 它们的乘积C也可以有witness. 如果&lt;equation&gt;c_{ij} = 1&lt;/equation&gt;, 找到一个k使得&lt;equation&gt;a_{ik}&lt;/equation&gt;和&lt;equation&gt;b_{kj}&lt;/equation&gt;都为1. boolean matrix multiplication一般是直接做integer matrix multiplication, 这样就能利用&lt;equation&gt;O(n^\omega)&lt;/equation&gt;的矩阵乘法算法了. 然后把获得的结果里所有大于0的数字写成1. 但是那些算法并没有方法获得witness. &lt;/p&gt;&lt;p&gt;存在随机算法解决这个问题, 和convolution找witness的方法很像, 都用那个如果&quot;只有一个解的话那就很容易&quot;的概念. Alon和Naor用一个很聪明的方法derandomize了随机算法.[2] 那个方法看起来可以derandomize cstheory上的那两个随机算法. &lt;/p&gt;&lt;p&gt;不过, 有一个叫做k-reconstruction的问题, 利用这个可以瞬间获得deterministic的O(n polylog n)的算法.&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;&lt;strong&gt;k-reconstruction问题&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;有一些隐藏的集合&lt;equation&gt;S_1,\ldots,S_n \subset \{0,\ldots,m\}&lt;/equation&gt;. 我们有两个函数Size和Sum. 输入一个集合&lt;equation&gt;Q&lt;/equation&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;equation&gt;Size(Q) = (|S_1\cap Q|,|S_2\cap Q|, \ldots , |S_n\cap Q|)&lt;/equation&gt;, 每个交集的大小&lt;/li&gt;&lt;li&gt;&lt;equation&gt;Sum(Q) =  (\sum_{s\in S_1 \cap Q} s,\sum_{s\in S_2 \cap Q} s,\ldots,\sum_{s\in S_n \cap Q} s)&lt;/equation&gt; , 每个交集里的数字的和&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;p&gt;k-reconstruction问题让我们找到集合&lt;equation&gt;S_1&#39;,\ldots,S_n&#39;&lt;/equation&gt;, 使得&lt;equation&gt;S_i&#39;\subset S_i&lt;/equation&gt;并且&lt;equation&gt;|S_i&#39;| = \min(k,|S_i|)&lt;/equation&gt;.&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;如果这个两个函数需要花O(f)的时间的话(&lt;equation&gt;f=\Omega(m+n)&lt;/equation&gt;), 可以保证k-reconstruction问题能在&lt;equation&gt;O(f k \log n ~\mathrm{polylog}~m)&lt;/equation&gt;时间内被解出.[1] 而我们可以很容易的把原先的问题规约到1-reconstruction, 其中m=2n, 两个函数都可以用convolution. 最终得到&lt;equation&gt;O(n~\mathrm{polylog}~ n)&lt;/equation&gt;的算法. &lt;/p&gt;&lt;p&gt;[1] Yonatan Aumann, Moshe Lewenstein, Noa Lewenstein, Dekel Tsur: &lt;a href=&quot;http://www.cs.bgu.ac.il/~dekelts/publications/peeling.pdf&quot; data-editable=&quot;true&quot; data-title=&quot;Finding witnesses by peeling&quot; class=&quot;&quot;&gt;Finding witnesses by peeling&lt;/a&gt;. ACM Transactions on Algorithms 7(2): 24 (2011)&lt;br&gt;&lt;/p&gt;&lt;p&gt;[2] Noga Alon, Moni Naor: Derandomization, witnesses for Boolean matrix multiplication and construction of perfect hash functions. Algorithmica 16(4-5) (1996)&lt;/p&gt;</description>
-<author>Chao Xu</author>
-<guid isPermaLink="false">2015-08-06-20147371</guid>
-<pubDate>Thu, 06 Aug 2015 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
