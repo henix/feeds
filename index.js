@@ -45,6 +45,7 @@ const feeds = [
 	]],
 	["科学", [
 		"liweitan2014",
+		"zhishexueshuquan",
 	]],
 	["Security", [
 		"WeiranCrypto",
