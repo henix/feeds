@@ -5,7 +5,114 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 10 Oct 2017 05:07:38 +0800</lastBuildDate>
+<lastBuildDate>Sun, 22 Oct 2017 09:49:08 +0800</lastBuildDate>
+<item>
+<title>Dafny与程序验证</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-21-30321583.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Dafny与程序验证&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30321583&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-8f49af88768b20c6808b564c74a43abe_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;B大以前写过一个&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25568785&quot;&gt;怎样写出没有 bug 的程序：程序证明的简单例子&lt;/a&gt; ，是用Idris写的，我也来写一个，不过方法不太一样。&lt;/p&gt;&lt;p&gt;Dafny是MSR开发的程序设计语言，它混合了OOP和FP编程范式，并且自带程序验证功能，可以通过霍尔逻辑证明程序正确性。&lt;/p&gt;&lt;p&gt;它的语法非常简单，看起来就像C++，Scala和Haskell的混合。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;变量(scala风格，只是没有val)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;var x:Tree;
+var y:nat := 0;&lt;/code&gt;&lt;ul&gt;&lt;li&gt;ADT(Haskell风格)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)
+datatype List&amp;lt;T&amp;gt; = Nil | Cons(head: T, tail: List&amp;lt;T&amp;gt;)
+Cons(5,Nil).Cons? &amp;amp;&amp;amp; Cons(5, Nil).head == 5&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Methed/Lemma(命令式风格的函数)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;expr表示表达式，col表示集合&lt;/p&gt;&lt;p&gt;modifies用来标记函数的副作用，requires是前置命题，ensures是后置命题，decreses用来证明递归函数可终止。&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;method/lemma Abs(x: int) returns (y: int)
+    modifies &amp;lt;col&amp;gt;
+    requires &amp;lt;expr&amp;gt;
+    ensures &amp;lt;expr&amp;gt;
+    decreases &amp;lt;expr&amp;gt;
+{
+    if x &amp;lt; 0 { return -x;}
+    else {return x;}
+}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Function/Predicate(函数式风格的函数)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;reads用来标记函数捕获的外部变量&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;function abs(x: int):int
+    requires &amp;lt;expr&amp;gt;
+    ensures &amp;lt;expr&amp;gt;
+    reads &amp;lt;col&amp;gt;
+    decreases &amp;lt;expr&amp;gt;
+{
+    if x &amp;lt; 0 then -x else x
+}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Assert用来下断言，只不过这个断言不是运行期的，而是编译期的，支持forall和exist量词以及基本的逻辑运算符。把Assert改为Assume，可以用来假定某些命题成立。&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;assert forall x :: P(x) ==&amp;gt; Q(x)
+assert forall(i | 0 &amp;lt;= i&amp;lt; n - m) { b[i] := a[m + i];}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;模式匹配(Scala风格，match的位置略有差异)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;match t
+	case Empty =&amp;gt; …
+	case Node(l:Empty,v,r) =&amp;gt; …&lt;/code&gt;&lt;ul&gt;&lt;li&gt;循环&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;可用invariant标记循环不变量&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;var i:=0
+while i&amp;lt;n
+	invariant i&amp;lt;=n
+	decreases n-i
+{}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;支持C++类的写法，支持Lambda表达式，支持Trait，支持yield惰性流，有复杂的模块系统，支持泛型类和高阶类型（都是用&amp;lt;&amp;gt;表达）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;以上就是Dafny常用的语法，还有一些不常用的语法可以参考&lt;a href=&quot;https://github.com/Microsoft/dafny/blob/master/Docs/DafnyRef/out/DafnyRef.pdf&quot;&gt;DafnyRef&lt;/a&gt;&lt;/p&gt;&lt;p&gt;一起来看一个稍微复杂一点的例子吧！写一个二叉搜索树的插入函数&lt;/p&gt;&lt;p&gt;定义二叉树&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)&lt;/code&gt;&lt;p&gt;在类里定义变量&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;class BST
+{
+    var tree:Tree;&lt;/code&gt;&lt;p&gt;定义in_tree和is_ordered函数，分别表示某个元素在树内和树符合二叉搜索树的条件&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;predicate method is_intree(t:Tree,x:real)
+{
+    match t
+        case Empty =&amp;gt; false
+        case Node(l,v,r) =&amp;gt; x==v || is_intree(l,x) || is_intree(r,x)
+}
+predicate is_ordered(t:Tree)
+{
+    match t
+        case Empty =&amp;gt; true
+        case Node(l,v,r) =&amp;gt; is_ordered(l) &amp;amp;&amp;amp; is_ordered(r) &amp;amp;&amp;amp;
+            (forall x::is_intree(l,x) ==&amp;gt; x&amp;lt;v) &amp;amp;&amp;amp;
+            (forall y::is_intree(r,y) ==&amp;gt; y&amp;gt;=v)
+}&lt;/code&gt;&lt;p&gt;定义函数insert_into_left和insert_into_right&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;protected function method insert_into_left(t:Tree,x:real):Tree
+    requires t!=Empty
+    requires is_ordered(t)
+    ensures is_ordered(insert_into_left(t,x))
+{
+    match t.left
+        case Empty =&amp;gt; Node(Empty,x,Empty)
+        case Node(l,v,r) =&amp;gt;
+            if x&amp;gt;=v then
+                insert_into_right(t.left,x)
+            else
+                insert_into_left(t.left,x)
+}
+
+protected function method insert_into_right(t:Tree,x:real):Tree
+    requires t!=Empty
+    requires is_ordered(t)
+    ensures is_ordered(insert_into_right(t,x))
+{
+    match t.right
+        case Empty =&amp;gt; Node(Empty,x,Empty)
+        case Node(l,v,r) =&amp;gt;
+            if x&amp;gt;=v then
+                insert_into_right(t.right,x)
+            else
+                insert_into_left(t.right,x)
+}
+&lt;/code&gt;&lt;p&gt;以上全是pure function，最后，我们回到oop的世界，定义dirty的类成员函数&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;method insert(x:real)
+    requires is_ordered(tree)
+    modifies this
+    ensures is_ordered(tree)
+{
+    match tree
+        case Empty =&amp;gt; {tree:=Node(Empty,x,Empty);}
+        case Node(l,v,r) =&amp;gt; 
+        {
+            if x&amp;gt;=v
+            {
+                tree:=insert_into_right(tree,x);
+            }
+            else
+            {
+                tree:=insert_into_left(tree,x);
+            }
+        }
+}&lt;/code&gt;&lt;p&gt;编译的时候，编译器会帮你验证你写的那些requires,ensures,assert是否满足，如果不满足，它会告诉你哪些命题无法证明。经过验证之后，你可以选择将Dafny代码编译为C#或编译成dll被其他.Net程序调用。&lt;/p&gt;&lt;p&gt;以上只是一个简单介绍，具体代码在&lt;a href=&quot;https://github.com/NiceKingWei/algorithm/blob/master/dafny/bst.dfy&quot;&gt;bst.dfy&lt;/a&gt;&lt;/p&gt;&lt;p&gt;我的slides &lt;a href=&quot;https://github.com/zju-lambda/slides/blob/master/Verification%20in%20Dafny.pdf&quot;&gt;Verification in Dafny&lt;/a&gt;&lt;/p&gt;&lt;p&gt;关于Dafny的更多精彩内容， 可以关注Dafny的项目主页，里面有一些学习资源 &lt;a href=&quot;https://www.microsoft.com/en-us/research/project/dafny-a-language-and-program-verifier-for-functional-correctness/?from=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fprojects%2Fdafny%2Freference.aspx&quot;&gt;MSR:Dafny&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>魏王雅望非常</author>
+<guid isPermaLink="false">2017-10-21-30321583</guid>
+<pubDate>Sat, 21 Oct 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>关于AlphaGo</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-21-30319620.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;关于AlphaGo&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30319620&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;最近被Zero刷屏了，我也来蹭热点。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;既然大家都分析得差不多了，我就不分析，提一个问题。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;无可置疑，AlphaGo战胜李世石，柯洁，无人能胜，是一个成功。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但是，为什么AlphaGo成功了，然而其他跟推理有关的任务没有？（假设，成功=达到顶尖人类水平）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如说，OpenAI搞Dota，1V1下失败：被找出漏洞，当ATM刷。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如说，Deepmind搞星际争霸，失败：打不过bot，连小任务（控制几个小兵消灭对方的小兵）都很困难。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如说，MS搞程序生成，失败（或者更准确的说，根本没尝试更难的task）：DeepCoder的确取得好成绩，但是无法scale到普通程序员。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;又比如说，Visual Question Answering，Natrual Language Processing也不能在复杂的数据集上超越人类。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我拿这个问题问了很多人，得到各个不同的答案，先别跳到‘Go搜索空间很低，并且是Partial Information上去’，我们想想有什么理论，然后能如何测试这些理论。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;答案0：Go空间很低。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;按照这个答案，我们可以试试看把各个问题的空间再降低，差不多的时候就能超越人类了。&lt;/p&gt;&lt;p&gt;或者相反的，我们可以试试看39*39 Go棋盘，199*199 Go棋盘等等。。。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不过其实我挺不买账的，因为我可以很简单的给出一个搜索空间巨大，但是很简单的例子：ShakeSphere游戏。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;ShakeSphere游戏很简单，你可以打a-z，还有空格，各类标点等，要求打出一个莎士比亚全集。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很明显这个空间巨大，并且可以任意大（打两次，打三次），如果加入del键还能到达无限搜索空间，但是这个问题任何一个编程入门的人都会解。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;更何况，人类也怕大的搜索空间啊。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;答案1：Partial Information疼&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果是这样，试试看给Go加上迷雾，或者给Dota, StarCraft去掉迷雾呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这也无法解释VQA，NLP等task。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;答案2：Go能利用CNN架构，但是NLP，Dota，套CNN，LSTM没有太大意义，都不能很好的encode信息。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得有点靠谱。如果是这样，我们是不是应该去更多研究GraphCNN，然后找LSTM的替代品？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;答案3：推理需要搜索，而AlphaGo成功的把搜索外包出去，由神经网络做&lt;/p&gt;&lt;p&gt;答案4：越需要推理的task越离散，越不平滑，于是NN不喜欢，也不stable。搜索能变得stable一些。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Dota/StarCraft或许能通过imagination做搜索，但是什么叫‘在阅读理解上搜索’？Hmmm。。。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，很可能答案是多个上面解释的组合，或者是上面没有列举的。如果你有想法，评论/私信我！&lt;/p&gt;</description>
+<author>脚本少女魔理沙</author>
+<guid isPermaLink="false">2017-10-21-30319620</guid>
+<pubDate>Sat, 21 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>EBNFParser的原理解析以及使用教程</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-07-29908056.htm</link>
@@ -833,252 +940,6 @@ def eval(x, env=global_env):
 <author>李愚</author>
 <guid isPermaLink="false">2017-09-09-29186794</guid>
 <pubDate>Sat, 09 Sep 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>如何编译函数闭包</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-04-28787934.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;如何编译函数闭包&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28787934&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d2fa8a85b1b086b96b786b6d71cfc1c6_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;&lt;b&gt;闭包&lt;/b&gt;（英语：Closure），又称&lt;b&gt;词法闭包&lt;/b&gt;（Lexical Closure）或&lt;b&gt;函数闭包&lt;/b&gt;（function closures），是引用了自由变量的函数。这个被引用的自由变量将和这个函数一同存在，即使已经离开了创造它的环境也不例外。所以，有另一种说法认为闭包是由函数和与其相关的引用环境组合而成的实体。闭包在运行时可以有多个实例，不同的引用环境和相同的函数组合可以产生不同的实例。&lt;/blockquote&gt;&lt;p&gt;想要实现一个同时支持词法作用域与 first-class function 的编程语言，一个重要的转换就是所谓的 lambda-lifting：把嵌套函数定义（包括匿名函数）转换为独立的全局函数定义；把自由变量的引用转换为参数传递。&lt;/p&gt;&lt;p&gt;P.S.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;代码有省略&lt;/li&gt;&lt;li&gt;出于简化的目的，这里只考虑了最简单的情况，并且没有做任何有效性的检查，假设了表达式中出现的变量全都是定义过的。&lt;/li&gt;&lt;li&gt;同样是为了简化，这里不考虑类型。涉及到类型的情况下，需要在函数定义处保存自由变量的类型信息；这样视需求可能又要在转换过程中维护一个变量环境表来查找变量的类型。这里不累述，具体可以参考后附的一个简单的 OCaml 子集实现的源码。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;函数定义&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这里首先定义一个简单的语言表示&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} exp\ ::=\ &amp;amp;Lam(id,exp)\\ &amp;amp;App(exp,exp)\\ &amp;amp;Let(id,exp,exp)\\ &amp;amp;Var(id) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个语言类似于 untyped lambda calculus，有 lambda、apply 语句，只是多了一个 let 语句用于绑定一个变量。一般语言中的一些表达式形式（如 binary operator）一般则可以看作是 apply 的特殊形式。&lt;/p&gt;&lt;p&gt;用 Rust 代码写出来大概是这样&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Exp {
-    /// Lambda 抽象，参数名 -&amp;gt; 函数体
-    Abs(Id, Box&amp;lt;Exp&amp;gt;),
-    /// Let 定义，let 变量名 = 变量值 in 表达式
-    Let(Id, Box&amp;lt;Exp&amp;gt;, Box&amp;lt;Exp&amp;gt;),
-    /// 函数应用，变量名(参数)
-    App(Box&amp;lt;Exp&amp;gt;, Box&amp;lt;Exp&amp;gt;),
-    Var(Id),
-}&lt;/code&gt;&lt;p&gt;我们要做的事情是提取出一个匿名函数定义（lambda）中的自由变量，把匿名函数定义转换为全局函数定义，并将函数定义入口和自由变量列表打包成一个实体（即所谓闭包），替换原来的 lambda 节点。&lt;/p&gt;&lt;p&gt;这样，转换之后的 AST 中没有了 lambda 节点，取而代之的是类似 let 节点的闭包 closure 定义节点。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} term\ ::= \ &amp;amp;Cls(id,cls,term)\\ &amp;amp;App(term,term)\\ &amp;amp;Let(id,term,term)\\ &amp;amp;Var(id) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Term {
-    Cls(Id, Box&amp;lt;Cls&amp;gt;, Box&amp;lt;Term&amp;gt;),
-    App(Box&amp;lt;Term&amp;gt;, Box&amp;lt;Term&amp;gt;),
-    Let(Id, Box&amp;lt;Term&amp;gt;, Box&amp;lt;Term&amp;gt;),
-    Var(Id),
-}&lt;/code&gt;&lt;p&gt;闭包实体 Cls 中需要保存全局函数定义的入口和当前环境中自由变量的列表。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;cls\ ::=\ (label,(fv_1,fv_2,...,fv_n))&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Cls {
-    label: Id,
-    fvs: Vec&amp;lt;Id&amp;gt;,
-}&lt;/code&gt;&lt;p&gt;由于需要保持自由变量的信息，全局函数定义需要保存一个自由变量的列表。&lt;/p&gt;&lt;p&gt;这样我们有了全局函数定义的表示——入口 label，参数名，函数体，自由变量列表&lt;/p&gt;&lt;p&gt;&lt;equation&gt;fundef\ ::=\ fun(label,id,exp,(fv_1,fv_2,...,fv_n))&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Fundef {
-    pub label: Id,
-    pub param: Id,
-    pub body: Term,
-    pub fvs: Vec&amp;lt;Id&amp;gt;,
-}&lt;/code&gt;&lt;h2&gt;&lt;b&gt;自由变量的提取&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;自由变量的提取规则其实就是把变量加入符号表（环境）的逆过程。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;变量表达式（Var）的自由变量就是变量自己；&lt;/li&gt;&lt;li&gt;函数应用（Apply）的自由变量是 callee 的自由变量和参数的自由变量取并集；&lt;/li&gt;&lt;li&gt;Let 节点和 Cls 节点定义的变量，从其后继表达式的自由变量中剔除，然后与初始化值表达式的自由变量合并。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;即&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} fv(Var(v))&amp;amp;=\{v\}\\ fv(App(callee,arg))&amp;amp;=fv(callee) \ \cup \ fv(arg)\\ fv(Let(v,val,exp))&amp;amp;=(fv(exp)\ -\ \{v\}) \ \cup\ fv(val) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;最后，作为一个整体的函数定义，其参数要从自由变量中剔除。这个可以留到之后的转换过程中实现。&lt;/p&gt;&lt;p&gt;在 rust 中同样可以直截了当的实现。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn fv(&amp;amp;mut self, source: &amp;amp;Term) -&amp;gt; HashSet&amp;lt;Id&amp;gt; {
-    use self::Term::*;
-    match source {
-        &amp;amp;App(box ref callee, box ref body) =&amp;gt; {
-            let mut ret = fv(body);
-            ret.extend(fv(callee));
-            ret
-        }
-        &amp;amp;Let(ref var, box ref val, box ref body) =&amp;gt; {
-            let mut ret = fv(body);
-            ret.remove(var);
-            ret.extend(fv(val));
-            ret
-        }
-        &amp;amp;Cls(ref var, box ref cls, box ref body) =&amp;gt; {
-            let mut ret = cls.fv();
-            ret.extend(fv(body));
-            ret.remove(var);
-        }
-        &amp;amp;Var(v) =&amp;gt; HashSet::new(v)
-    }
-}
-impl Cls {
-    pub fn fv(&amp;amp;self) -&amp;gt; HashSet&amp;lt;Id&amp;gt; {
-        self.fvs.clone()
-    }
-}&lt;/code&gt;&lt;h2&gt;&lt;b&gt;函数闭包转化&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;显然，为了实现 lambda 到全局定义的转换，我们需要保持一个全局定义表。为了之后方便的生成函数名和临时变量名之类可能还需要一个生成器，这里省略。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Conversion {
-    global: HashMap&amp;lt;Id, Fundef&amp;gt;,
-}&lt;/code&gt;&lt;p&gt;综上所述，很容易写出转换过程。我们定义的 cls 节点有着类似与 let 的语义；当 lambda 单独出现时，这里直接将其转换成一个单独的定义了一个临时变量的 cls 子表达式（类似于嵌套 let）。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;impl Conversion {
-    fn define(&amp;amp;mut self, fun: Fundef) {
-        self.global.insert(fun.label.clone(), fun);
-    }
-    fn cvrt_cls(&amp;amp;mut self, param: Id, body: Exp) -&amp;gt; (Id, Vec&amp;lt;Id&amp;gt;) {
-        let cls_name = self.gen_cls_name();
-        let body = self.go(_body);
-        let fvs = {
-            let _fvs = self.fv(&amp;amp;body);
-            _fvs.remove(param);
-            _fvs.into_iter().collect()
-        };
-        self.define(Fundef {
-            label: cls_name.clone(),
-            param,
-            body,
-            fvs.clone()
-        });
-        (cls_name, fvs)
-    }
-    pub fn go(&amp;amp;mut self, exp: Exp) -&amp;gt; Term {
-        use self::Exp::*;
-        match exp {
-            Abs(param, box _body) =&amp;gt; {
-                let (cls_name, fvs) = self.cvrt_cls(param, _body);
-                let tmp_var = self.gen_tmp_name();
-                Term::Cls(tmp_var, Cls {
-                    label: cls_name,
-                    fvs
-                }, Term::Var(tmp_var))
-            }
-            Let(var, box _val, box _body) =&amp;gt; {
-                let body = self.go(_body);
-                if let Abs(param, box _body) = _val {
-                    let (cls_name, fvs) = self.cvrt_cls(param, _body);
-                    Term::Cls(var, Cls {
-                        label: cls_name,
-                        fvs
-                    }, body)
-                } else {
-                    let val = self.go(_val);
-                    Term::Let(var, box val, box body)
-                }
-            }
-            App(box _callee, box _arg) =&amp;gt; {
-                let callee = self.go(_callee);
-                let arg = self.go(_arg);
-                Term::App(callee, arg)
-            }
-            Var(v) =&amp;gt; Term::Var(v)
-        }
-    }
-}&lt;/code&gt;&lt;p&gt;这里对于 let 绑定 lambda 的处理是不把绑定的变量名剔除出自由变量。由于这里的 let 语义默认是不允许递归绑定的，而 lambda 很多时候有递归的需求，所以这里使用了灵活的办法：把lambda 自己的名称作为自由变量传进去。这样便可以通过后续代码生成的顺序控制能否递归：如果在完成函数名的绑定前先完成自由变量的绑定，便不允许递归，否则允许递归。&lt;/p&gt;&lt;p&gt;这样便完成了闭包转换的过程。后续便可以使用常规的编译技术生成所有的全局函数定义。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/esumii/min-caml&quot;&gt;min-caml&lt;/a&gt; &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://jeapostrophe.github.io/courses/2017/spring/406/notes/book.pdf&quot;&gt;Essentials of Compilation&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://matt.might.net/articles/closure-conversion/&quot;&gt;Closure conversion: How to compile lambda&lt;/a&gt;&lt;/p&gt;</description>
-<author>nameoverflow</author>
-<guid isPermaLink="false">2017-09-04-28787934</guid>
-<pubDate>Mon, 04 Sep 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>（如何（用Python）写一个（Lisp）解释器（上））</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-01-28989326.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;（如何（用Python）写一个（Lisp）解释器（上））&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28989326&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b613df87f6ac9ef472a73332a2b20f5b_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&amp;gt; 译自&lt;a href=&quot;http://norvig.com/lispy.html&quot;&gt;Peter Norvig的博客&lt;/a&gt;，有少量魔改&lt;/p&gt;&lt;p&gt;这篇文章有两个目的：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;通用地介绍如何实现计算机语言的解释器。&lt;/li&gt;&lt;li&gt;介绍如何利用Python实现Lisp方言Scheme的一个子集。&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;Scheme程序的语法和语义&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;一门语言的语法（syntax）指的是字母排列成正确表达式或声明的顺序；语义（semantics）则是这些表达式或声明的意义。例如在数学和许多编程语言之中，一加二的语法是“1 + 2”， 语义则是将加法运算符应用于数字1和2之上，得到结果3。我们将计算表达式的值称之为求值（evaluating）；“1 + 2”求值得到结果3，我们将之记为“1 + 2” =&amp;gt; 3。&lt;/p&gt;&lt;p&gt;Scheme的语法与你熟悉的大部分语言不同。例如：&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;// Java
-if (x.val() &amp;gt; 0) { 
-  fn(A[i] + 1, 
-     return new String[] {&quot;one&quot;, &quot;two&quot;}); 
-}&lt;/code&gt;&lt;p&gt;-&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;;; Scheme
-(if (&amp;gt; (val x) 0) 
-    (fn (+ (aref A i) 1) 
-        (quote (one two)))&lt;/code&gt;&lt;p&gt;Java有大量不同的语法约规（关键字、中置操作符、三种括号、操作符优先级、点、引号、逗号、分号等等），而Scheme的语法则简单很多：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Scheme程序中只有表达式。表达式和声明之间并无区别。&lt;/li&gt;&lt;li&gt;数字（例如 1）和符号（例如 A）被称之为原子表达式（atomic expression）；他们无法被拆分成更小的表达式。这部分和Java类似，但在Scheme中，诸如 + 和 &amp;gt; 这种操作符也被认为是符号（symbol），处理方式与A或是fn这种符号别无二致。&lt;/li&gt;&lt;li&gt;除此之外的一切都是列表表达式（list expression）：以“(”为首，“)”为尾，中间包括着零个或更多表达式。列表的第一个元素决定了它的含义：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;若第一个元素是关键字，例如(if ...)，那这个列表是一个特殊形式（special form）；特殊形式的意义取决于关键字。&lt;/li&gt;&lt;li&gt;若第一个元素并非关键字，例如(fn ...)，那这个列表则是函数调用。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Scheme之美在于她的简洁性：整个语言由5个关键字和8个语法形式构成。相较之下，Python有33个关键字和110个语法形式，Java有50个关键字和133个语法形式。Scheme中的大量括号初看起来可能显得古怪陌生，但括号为Scheme提供了简洁性和一致性。（有些人开玩笑说Lisp的意思是“大量又蠢又烦的括号（Lots of Irritating Silly Parentheses）”；我觉得应该是“Lisp拥有纯净的语法（Lisp Is Syntactically Pure）。”）&lt;/p&gt;&lt;p&gt;在这篇文章中我们会涉及到Scheme中所有的关键点（除了一些琐碎的细节）。但罗马城不是一天建成的，我们需要分两步。首先，我们会定义一个相对简单的语言，再在它的基础上定义一个几近完整的Scheme语言。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1号语言：Lispy计算器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Lispy计算器是Scheme语言的一个子集，它只包含五种语法形式（两种原子，两个特殊形式，以及过程调用）。只要你习惯了Lisp前置运算符的古怪语法，你就能利用Lispy计算器干一般计算器的活。你还能干一般计算器干不了的活：使用&quot;if&quot;表达式进行条件判断以及定义新的变量。我们来举个例子，以下是一个计算圆面积的程序，圆的半径为10，计算公式为πr^2：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(begin
-    (define r 10)
-    (* pi (* r r)))&lt;/code&gt;&lt;p&gt;下面这张表列举了所有可用的语法形式：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-dd978e5bb96fff4a144b3a27fef70c21_r.png&quot; data-rawwidth=&quot;725&quot; data-rawheight=&quot;567&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在表中“语法”一列中，&lt;i&gt;var&lt;/i&gt;必须为一个符号，&lt;i&gt;number&lt;/i&gt;必须为一个整数或浮点数，其他斜体字可以是任何表达式。其中的“&lt;i&gt;arg...&lt;/i&gt;”表示零个或更多个&quot;&lt;i&gt;arg&lt;/i&gt;&quot;。在“真正”的Scheme中，begin是一个语法关键字，但在这个Scheme实现中，它只是一个普通的函数。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;语言解释器做些什么？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;一个计算机语言的解释器分为两部分：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;分析(parse)&lt;/b&gt;：解释器的分析部分将程序以一串字符的形式读入，依照语法规则(&lt;i&gt;syntactic rules&lt;/i&gt;)验证其正确性并将程序转换成一种内部表达形式。在一个简单的解释器中，内部表达形式是一个树形结构，人们一般将其称之为&lt;i&gt;抽象语法树 (abstract syntax tree)&lt;/i&gt;。抽象语法树的结构和程序中层层嵌套的声明及表达式非常相近，几乎可以说是完美对应。在编译器之中往往存在多个内部表达形式，一开始先转换成抽象语法树，随后再转换成可以直接被计算器执行的指令序列。Lispy的语法分析器由parse函数实现。&lt;/li&gt;&lt;li&gt;&lt;b&gt;执行(execution)&lt;/b&gt;：内部表达形式被按照语言的语法规则进行处理，以此来进行计算。Lispy的执行函数叫做eval （注意，这会覆盖Python的同名内置函数）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;以下是对解释器工作流程的一个简单的演示：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;程序 ---&amp;gt; [parse] ---&amp;gt; 抽象语法树 ---&amp;gt; [eval] ---&amp;gt; 结果&lt;/code&gt;&lt;p&gt;下面这个例子则展示了我们希望eval和parse实现的功能：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt; program = &quot;(begin (define r 10) (* pi (* r r)))&quot;
-
-&amp;gt;&amp;gt;&amp;gt; parse(program)
-[&#39;begin&#39;, [&#39;define&#39;, &#39;r&#39;, 10], [&#39;*&#39;, &#39;pi&#39;, [&#39;*&#39;, &#39;r&#39;, &#39;r&#39;]]]
-
-&amp;gt;&amp;gt;&amp;gt; eval(parse(program))
-314.1592653589793&lt;/code&gt;&lt;h2&gt;&lt;b&gt;分析：parse, tokenize 以及 read_from_tokens&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;依照传统，分析被分为两个部分:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;词法分析(lexical analysis)：在这一部分中，输入的字符串被拆分为一系列的token。&lt;/li&gt;&lt;li&gt;语法分析(syntactic analysis)：将token汇编为抽象语法树。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Lispy token们由括号，符号和数字组成。由许多用来进行词法分析的工具（例如Mike Lesk和Eric Schmidt写的lex），但我们只需要用到一个十分简单的工具：Python的str.split函数。tokenize函数接受一个字符串，并在括号周围加上空格；随后调用str.split来得到一个由token组成的列表：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def tokenize(chars):
-    &quot;将字符串转换成由token组成的列表。&quot;
-    return chars.replace(&#39;(&#39;, &#39; ( &#39;).replace(&#39;)&#39;, &#39; ) &#39;).split()
-&amp;gt;&amp;gt;&amp;gt; program = &quot;(begin (define r 10) (* pi (* r r)))&quot;
-&amp;gt;&amp;gt;&amp;gt; tokenize(program)
-[&#39;(&#39;, &#39;begin&#39;, &#39;(&#39;, &#39;define&#39;, &#39;r&#39;, &#39;10&#39;, &#39;)&#39;, &#39;(&#39;, &#39;*&#39;, &#39;pi&#39;, &#39;(&#39;, &#39;*&#39;, &#39;r&#39;, &#39;r&#39;, &#39;)&#39;, &#39;)&#39;, &#39;)&#39;]&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们的parse函数接收一个字符串作为输入，然后调用tokenize函数获得一个由token组成的列表，再调用read_from_tokens来将token列表汇编成抽象语法树。read_from_token函数会查看第一个token，如果是“)”，那就报出一个语法错误。如果是“(”，那我们就开始构建一个由子表达式组成的列表，直到匹配到对应的“)”。所有非括号的token必须是符号或者数字。我们会让Python来识别它们之间的区别：对任何一个非括号token，先尝试将之转为整数，若失败则尝试转为浮点数，若还是失败，则转为符号。下边是parser的代码：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def parse(program):
-    &quot;从字符串中读取Scheme表达式&quot;
-    return read_from_tokens(tokenize(program))
-
-def read_from_tokens(tokens):
-    &quot;从一串token之中读取表达式&quot;
-    if len(tokens) == 0:
-        raise SyntaxError(&#39;unexpected EOF while reading&#39;)
-    token = tokens.pop(0)
-    if &#39;(&#39; == token:
-        L = []
-        while tokens[0] != &#39;)&#39;:
-            L.append(read_from_tokens(tokens))
-        tokens.pop(0) # pop off &#39;)&#39;
-        return L
-    elif &#39;)&#39; == token:
-        raise SyntaxError(&#39;unexpected )&#39;)
-    else:
-        return atom(token)
-
-def atom(token):
-    &quot;数字转为对应的Python数字，其余的转为符号&quot;
-    try: return int(token)
-    except ValueError:
-        try: return float(token)
-        except ValueError:
-            return Symbol(token)&lt;/code&gt;&lt;p&gt;parse函数的工作方式如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; program = &quot;(begin (define r 10) (* pi (* r r)))&quot;
-
-&amp;gt;&amp;gt;&amp;gt; parse(program)
-[&#39;begin&#39;, [&#39;define&#39;, &#39;r&#39;, 10], [&#39;*&#39;, &#39;pi&#39;, [&#39;*&#39;, &#39;r&#39;, &#39;r&#39;]]]&lt;/code&gt;&lt;p&gt;我们还需要决定一下各种Scheme对象在Python中的表示方法：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;Symbol = str          # Scheme符号由Python str表示
-List   = list         # Scheme列表由Python list表示
-Number = (int, float) # Scheme数字由Python的整数或浮点数表示&lt;/code&gt;&lt;p&gt;好了！定义eval的准备工作基本都做好了。但我们需要先了解更多的概念。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;环境(Environments)&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;eval函数接受两个参数：一个我们想要求值的表达式x，还有一个环境env，x将在这个环境中被求值。&lt;i&gt;环境&lt;/i&gt;指的是变量名和他们的值之间的映射。eval默认会使用全局环境(global environment)进行求值，全局环境包含着一系列的标准函数（比如sqrt, max和 * 这类操作符）。这一环境可以用用户定义的变量拓展，语法为 (&lt;i&gt;define variable value&lt;/i&gt;)。我们可以用Python自带的字典来实现环境，字典中的键对为{变量: 值}的形式。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;import math
-import operator as op
-
-Env = dict          # 环境是{变量: 值}之间的映射
-
-def standard_env():
-    &quot;一个包含着一些Scheme标准过程的环境。&quot;
-    env = Env()
-    env.update(vars(math)) # sin, cos, sqrt, pi, ...
-    env.update({
-        &#39;+&#39;:op.add, &#39;-&#39;:op.sub, &#39;*&#39;:op.mul, &#39;/&#39;:op.div, 
-        &#39;&amp;gt;&#39;:op.gt, &#39;&amp;lt;&#39;:op.lt, &#39;&amp;gt;=&#39;:op.ge, &#39;&amp;lt;=&#39;:op.le, &#39;=&#39;:op.eq, 
-        &#39;abs&#39;:     abs,
-        &#39;append&#39;:  op.add,  
-        &#39;apply&#39;:   apply,
-        &#39;begin&#39;:   lambda *x: x[-1],
-        &#39;car&#39;:     lambda x: x[0],
-        &#39;cdr&#39;:     lambda x: x[1:], 
-        &#39;cons&#39;:    lambda x,y: [x] + y,
-        &#39;eq?&#39;:     op.is_, 
-        &#39;equal?&#39;:  op.eq, 
-        &#39;length&#39;:  len, 
-        &#39;list&#39;:    lambda *x: list(x), 
-        &#39;list?&#39;:   lambda x: isinstance(x,list), 
-        &#39;map&#39;:     map,
-        &#39;max&#39;:     max,
-        &#39;min&#39;:     min,
-        &#39;not&#39;:     op.not_,
-        &#39;null?&#39;:   lambda x: x == [], 
-        &#39;number?&#39;: lambda x: isinstance(x, Number),   
-        &#39;procedure?&#39;: callable,
-        &#39;round&#39;:   round,
-        &#39;symbol?&#39;: lambda x: isinstance(x, Symbol),
-    })
-    return env
-
-global_env = standard_env()&lt;/code&gt;&lt;h2&gt;&lt;b&gt;求值：eval&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;现在，我们已经做好了实现eval函数的准备。来让我们重新看一遍Lispy计算器的语法形式表以加深一下记忆：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-dd978e5bb96fff4a144b3a27fef70c21_r.png&quot; data-rawwidth=&quot;725&quot; data-rawheight=&quot;567&quot;&gt;&lt;p&gt;来和eval的代码对比一下，是不是觉得很像？&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def eval(x, env=global_env):
-    &quot;对在某个环境下的表达式进行求值&quot;
-    if isinstance(x, Symbol):      # 变量引用
-        return env[x]
-    elif not isinstance(x, List):  # 字面常量
-        return x                
-    elif x[0] == &#39;if&#39;:             # 条件
-        (_, test, conseq, alt) = x
-        exp = (conseq if eval(test, env) else alt)
-        return eval(exp, env)
-    elif x[0] == &#39;define&#39;:         # 定义
-        (_, var, exp) = x
-        env[var] = eval(exp, env)
-    else:                          # 过程调用
-        proc = eval(x[0], env)
-        args = [eval(arg, env) for arg in x[1:]]
-        return proc(*args)&lt;/code&gt;&lt;p&gt;搞定！来试试吧：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; eval(parse(&quot;(define r 10)&quot;))
-&amp;gt;&amp;gt;&amp;gt; eval(parse(&quot;(* pi (* r r))&quot;))
-314.1592653589793&lt;/code&gt;&lt;h2&gt;&lt;b&gt;交互：来做一个REPL&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;一直打“eval(parse(...))”的话即便是耐心再好的人也会嫌烦。Lisp最伟大的遗产之一就是引入了read-eval-print loop（读取-求值-输出 循环，缩写为REPL，译者注）。运用REPL，程序员们可以即时地读取、求值、输出，而不用麻烦地先编译再运行。我们先定义一个名为repl的函数以实现这个功能，然后再定义一个schemestr函数来输出Scheme对象的字符串表示。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def repl(prompt=&#39;lis.py&amp;gt; &#39;):
-    &quot;REPL的懒人实现。&quot;
-    while True:
-        val = eval(parse(raw_input(prompt)))
-        if val is not None: 
-            print(schemestr(val))
-
-def schemestr(exp):
-    &quot;将一个Python对象转换回可以被Scheme读取的字符串。&quot;
-    if isinstance(exp, List):
-        return &#39;(&#39; + &#39; &#39;.join(map(schemestr, exp)) + &#39;)&#39; 
-    else:
-        return str(exp)&lt;/code&gt;&lt;p&gt;老样子，做完以后来试试：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; repl()
-lis.py&amp;gt; (define r 10)
-lis.py&amp;gt; (* pi (* r r))
-314.159265359
-lis.py&amp;gt; (if (&amp;gt; (* 11 11) 120) (* 7 6) oops)
-42
-lis.py&amp;gt; &lt;/code&gt;&lt;p&gt;这一章中，我们实现了一个简单的Lisp计算器，在下半部分中，我们将在此基础上写一个更完整的Scheme解释器。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;（破乎什么时候才能支持Markdown，不能插表格也就算了，图的质量还压得那么差。）&lt;/p&gt;</description>
-<author>李愚</author>
-<guid isPermaLink="false">2017-09-01-28989326</guid>
-<pubDate>Fri, 01 Sep 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
