@@ -41,6 +41,7 @@ const feeds = [
 		"Professor-Li",
 	]],
 	["ACG", [
+		"yumenaka",
 		"c_126395105",
 	]],
 	["科学", [
@@ -50,6 +51,7 @@ const feeds = [
 	["Security", [
 		"WeiranCrypto",
 		"fhe-blockchain",
+		"dong-tian-yang",
 		"c_123166696",
 		"twosecurity",
 		"freebuf",
