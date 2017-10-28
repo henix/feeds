@@ -68,7 +68,7 @@ const feeds = [
 	]],
 ];
 
-const lis = R.fromPairs([].slice.call(document.getElementsByTagName("li")).map(li => [/(?:^|\.)([^.]+)\/$/.exec(li.getElementsByTagName("a")[0].getAttribute("href"))[1], li]))
+const lis = R.fromPairs(Array.from(document.getElementsByTagName("li")).map(li => [/(?:^|\.)([^.]+)\/$/.exec(li.getElementsByTagName("a")[0].getAttribute("href"))[1], li]))
 
 document.body.appendChild(DIV.apply(null, R.flatten(feeds.map(cate => [
 	H2(cate[0]),
