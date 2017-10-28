@@ -10,6 +10,7 @@ const feeds = [
 		"DimensionsCapital",
 	]],
 	["独立", [
+		"hiyeka",
 		"wxieshuo",
 		"yeka52",
 		"aloha-yaoyao",
