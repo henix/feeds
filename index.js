@@ -45,11 +45,8 @@ const feeds = [
 		"yumenaka",
 		"c_126395105",
 	]],
-	["科学", [
-		"liweitan2014",
-		"zhishexueshuquan",
-	]],
 	["Security", [
+		"chaitin-tech",
 		"WeiranCrypto",
 		"fhe-blockchain",
 		"dong-tian-yang",
@@ -57,6 +54,10 @@ const feeds = [
 		"twosecurity",
 		"freebuf",
 		"drops",
+	]],
+	["科学", [
+		"liweitan2014",
+		"zhishexueshuquan",
 	]],
 	["法律", [
 		"mclawman",
