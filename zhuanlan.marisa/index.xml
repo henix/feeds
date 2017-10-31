@@ -5,7 +5,88 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 22 Oct 2017 09:49:08 +0800</lastBuildDate>
+<lastBuildDate>Tue, 31 Oct 2017 19:36:10 +0800</lastBuildDate>
+<item>
+<title>Lens：从入门到入门</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-29-30544410.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Lens：从入门到入门&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30544410&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-aaf2eb05bd1a9cdd7418bb083208767d_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;概览&lt;/h2&gt;&lt;p&gt;Haskell 语言中操作一个复杂的数据结构往往会成为一个问题。&lt;/p&gt;&lt;p&gt;例如我们用 Haskell 做一个RPG游戏，有下面的定义：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Hero = Hero {
+  heroLevel :: Int, weapon :: Weapon
+}
+
+data Weapon = Weapon {
+  basicAttack :: Int, weaponLevel :: Int, magicGem :: Gem
+}
+data Gem = Gem {
+  gemLevel :: Int,
+  gemName :: String
+} 
+setHeroLevel :: Hero -&amp;gt; Int -&amp;gt; Hero
+setWeapon    :: Weapon -&amp;gt; Hero -&amp;gt; Hero
+-- and so on. &lt;/code&gt;&lt;p&gt;对于简单的从深层结构中提取出一个值仍然是可接受的：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;gemLevel.magicGem.weapon $ hero
+-- Or
+hero &amp;amp; (weapon&amp;gt;&amp;gt;&amp;gt;magicGem&amp;gt;&amp;gt;&amp;gt;gemLevel)&lt;/code&gt;&lt;p&gt;但修改内层数据（并返回一个新的对象）则显得过于繁杂：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;hero&#39; = hero {
+    weapon = (weapon hero) {
+        magicGem = (magicGem.weapon $ hero){
+            gemName = &quot;WTF&quot; }}}&lt;/code&gt;&lt;p&gt;可以看到，这里仅仅三层嵌套，一个修改的操作就已经及其复杂了。&lt;/p&gt;&lt;p&gt;为了解决这个问题 Haskell 语言中有一种被称为「Lens」的工具，可是实现下面这样的写法：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;view (weaponLens.magicGemLens.gemLevelLens) hero
+hero&#39;  = set (weaponLens.magicGemLens.gemNameLens) &quot;Gem&quot; hero
+hero&#39;&#39; = over (weaponLens.magicGemLens.gemLevelLens) (+1) hero
+
+-- 中缀版本
+hero .^ weaponLens.magicGemLens.gemLevelLens 
+hero&#39;  = hero &amp;amp; weaponLens.magicGemLens.gemNameLens .~ &quot;Gem&quot; 
+hero&#39;&#39; = hero &amp;amp; weaponLens.magicGemLens.gemLevelLens) %~ (+1)&lt;/code&gt;&lt;p&gt;这里的代码已经非常接近于普通的命令式语言中的写法了，非常自然、易用。&lt;/p&gt;&lt;p&gt;普通的命令式语言中用 &lt;code class=&quot;inline&quot;&gt;.&lt;/code&gt; 从一个结构中提取它的一个子域，而这里我们在 Haskell 中通过 Lens 实现了类似的效果。同时我们注意到，这里的&lt;code class=&quot;inline&quot;&gt;.&lt;/code&gt; 不是凭空出现的，而是我们熟悉的 Haskell 中的函数复合。即 Lens 完成上面这些复杂操作的一个基本思路是复合。&lt;/p&gt;&lt;h2&gt;简版 Lens   &lt;/h2&gt;&lt;p&gt;实际上，如果我们已经有了这些对象对应的 getter 和 setter 函数，那么我们不难将他们之间互相复合形成操作深层数据的新的 getter 和 setter。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type L a b = (a -&amp;gt; b, b -&amp;gt; a -&amp;gt; a)
+
+(.&amp;gt;) :: L a b -&amp;gt; L b c -&amp;gt; L a c
+(g1, s1) .&amp;gt; (g2, s2) = (g2 . g1, \c a -&amp;gt; s1 (s2 c (g1 a)) a)
+
+viewL :: L a b -&amp;gt; a -&amp;gt; b
+viewL (g, _) = g
+
+setL :: L a b -&amp;gt; b -&amp;gt; a -&amp;gt; a
+setL (_, s) = s
+
+overL :: L a b -&amp;gt; (b -&amp;gt; b) -&amp;gt; a -&amp;gt; a 
+overL (g, s) f a = s (f $ g a) a&lt;/code&gt;&lt;p&gt;我们直接将一个 getter 与 setter 包装成二元组。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponL   = (weapon, setWeapon)
+gemLevelL = (gemLevel, setGemLevel) &lt;/code&gt;&lt;p&gt;这种情况下，我们定义的“简版 Lens ”的使用与前文演示的 Lens 是极其相似的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;viewL (weaponL.&amp;gt;magicGemL.&amp;gt;gemLevelL) hero
+hero&#39; = setL (weaponL.&amp;gt;magicGemL.&amp;gt;gemLevelL) 2 hero&lt;/code&gt;&lt;p&gt;我们的实现仍然借助了复合的思想，但是需要我们自己来实现针对 getter 和 setter 的复合，而前文演示的却是真正的函数复合。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;实现 Lens 的准备工作&lt;/h2&gt;&lt;p&gt;我们已经注意到文章开头的 Lens 有几个特点&lt;/p&gt;&lt;ul&gt;&lt;li&gt;是普通的函数类型，可以互相复合；&lt;/li&gt;&lt;li&gt;与对象类型&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt; 和域类型 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 相关；&lt;/li&gt;&lt;li&gt;可以用来实现看似相反的两个操作 get 和 set。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;下面我们尝试找出这个类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = (???  ) -&amp;gt; (???)&lt;/code&gt;&lt;p&gt;考虑它的复合特点，按照结构的嵌套顺序，从前向后依次是从内向外：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;aL :: Lens b a
+cL :: Lens a c
+aL.cL :: Lens b c&lt;/code&gt;&lt;p&gt;要实现这样的复合特性，应当是&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type SomeType a = ...
+
+aL :: SomeType a -&amp;gt; SomeType b
+cL :: SomeType c -&amp;gt; SoemType a
+aL.cL :: SomeType c -&amp;gt; SomeType b&lt;/code&gt;&lt;p&gt;即上面的第一个 (???) 与&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;有关，第二个与&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;有关。&lt;/p&gt;&lt;p&gt;同时，&lt;code class=&quot;inline&quot;&gt;Lens b a&lt;/code&gt;一定会接受一个&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;类型的参数作为要操作的主体对象，我们可以进一步写成&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = (???) -&amp;gt; (b -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;而上面的复合特性要求前后是两个类似的类型&lt;code class=&quot;inline&quot;&gt;SomeType&lt;/code&gt;，我们进一步改写为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = (a -&amp;gt; ???) -&amp;gt; (b -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;我们可以猜测到，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt; 等函数调用&lt;code class=&quot;inline&quot;&gt;Lens&lt;/code&gt;，传递进一个函数&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; ???)&lt;/code&gt;来实现了不同的操作。&lt;/p&gt;&lt;h2&gt;View Lens 的实现&lt;/h2&gt;&lt;p&gt;我们先尝试写出一个特定类型的 Lens ，来只支持&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;操作，根据上文的分析，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数的定义应该形如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: VLens b a -&amp;gt; b -&amp;gt; a
+view lens b = lens ??? b&lt;/code&gt;&lt;p&gt;考虑我们之前的例子&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens   :: (Weapon -&amp;gt; ???) -&amp;gt; (Hero -&amp;gt; ???)
+magicGemVLens :: (Gem -&amp;gt; ???)    -&amp;gt; (Weapon -&amp;gt; ???)
+gemLevelVLens :: (Int -&amp;gt; ???)    -&amp;gt; (Gem -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;如果我们想要获得英雄的武器上的宝石的宝石等级，那么我们想要的可能是这样的东西：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens.magicGemVLens.gemLevelVLens :: (Int -&amp;gt; Int) -&amp;gt; (Hero -&amp;gt; Int)&lt;/code&gt;&lt;p&gt;这样，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数便可以对这个复合的&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;传入某个函数，再传入我们的英雄，就可以得到宝石等级了。为了让这样的复合成为可能，上面的所有 ??? 都必须是&lt;code class=&quot;inline&quot;&gt;Int&lt;/code&gt;。我们可以想象到那个代表&lt;code class=&quot;inline&quot;&gt;GemLevel&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;Int&lt;/code&gt;在函数间传递的效果。&lt;/p&gt;&lt;p&gt;同理，如果我们只想得到武器上的宝石的话，我们需要的是这样的东西：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens.magicGemVLens :: (Gem -&amp;gt; Gem) -&amp;gt; (Hero -&amp;gt; Gem)&lt;/code&gt;&lt;p&gt;这时候这些&lt;code class=&quot;inline&quot;&gt;???&lt;/code&gt;又成为了&lt;code class=&quot;inline&quot;&gt;Gem&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;由此可见，在&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的场合下，这里的类型&lt;code class=&quot;inline&quot;&gt;???&lt;/code&gt;随着提取的东西不同而变化，并且等于我们要提取的东西的类型。这样&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;的类型定义便得到了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type VLens b a = forall c. (a -&amp;gt; c) -&amp;gt; (b -&amp;gt; c)&lt;/code&gt;&lt;p&gt;所有的&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;在复合时都接受内层的一个提取操作，并返回一个嵌套了的提取操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens  :: VLens Hero Weapon
+weaponVLens f = \h -&amp;gt; f (weapon h)
+
+magicGemVLens :: VLens Weapon Gem
+magicGemVLens f = \w -&amp;gt; f (magicGem w)
+
+gemLevelVLens :: VLens Gem Int
+gemLevelVLens f = \g -&amp;gt; f (gemLevel g)&lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-eb3ff4069ec471c1c69250a6355a85a1_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;503&quot; data-rawheight=&quot;417&quot;&gt;&lt;p&gt;而最终传入我们要操作的外层对象之后，则用相仿的顺序，一层层地完成了提取操作，直到最内层，这时我们只需要使用&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;函数使其原样返回即可。&lt;/p&gt;&lt;p&gt;由此，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数的定义便可以得到了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;viewV vlens b = vlens id b&lt;/code&gt;&lt;h2&gt;Over Lens 的实现&lt;/h2&gt;&lt;p&gt;再次考虑我们的例子&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens   :: (Weapon -&amp;gt; ???) -&amp;gt; (Hero -&amp;gt; ???)
+magicGemOLens :: (Gem -&amp;gt; ???)    -&amp;gt; (Weapon -&amp;gt; ???)
+gemNameOLens  :: (Int -&amp;gt; ???)    -&amp;gt; (Gem -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;现在我们希望对一个对象的某个域进行修改，并返回修改过了的对象。那么后面的 ??? 则应该与和它紧靠着的类型相同，而为了使这些&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;可以互相复合，前面的 ??? 应该与紧靠着的前面类型相同。例如：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens.magicGemOLens :: (Gem -&amp;gt; Gem) -&amp;gt; (Hero -&amp;gt; Hero)&lt;/code&gt;&lt;p&gt;可以看到 &lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;的类型比较简单&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type OLens b a =  (a -&amp;gt; a) -&amp;gt; (b -&amp;gt; b)&lt;/code&gt;&lt;p&gt;观察一下便可以得到，第一个参数&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; a)&lt;/code&gt;便是我们对域进行操作的更新函数了。此时&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;函数不需要再做其他多余的事情，只需要将&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;原样返回。而各个&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;的定义也只不过是产生一个新的修改函数，这个修改函数将自己管辖的域修改为已经被修改过了的内层对象。而最内层则会使用用户传入的修改函数f来完成相应的操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens ::  OLens Hero Weapon
+weaponOLens f = \h -&amp;gt; (`setWeapon` h) $ f (weapon h)
+
+magicGemOLens :: OLens Weapon Gem
+magicGemOLens f = \w -&amp;gt; (`setMagicGem` w) $ f (magicGem w)
+
+gemLevelOLens :: OLens Gem Int
+gemLevelOLens f = \g -&amp;gt; (`setGemLevel` g) $ f (gemLevel g)&lt;/code&gt;&lt;p&gt;这样，当最终传入需要处理的外层对象时，&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;便会一层层地完成修改的工作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;而言，只不过是一种特殊的&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;setO vlens s = vlens (const s)&lt;/code&gt;&lt;h2&gt;最终实现 Lens&lt;/h2&gt;&lt;p&gt;现在，我们已经分别实现了&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;，而且发现他们之间有相似之处。实际上他们都是从一个相同的&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; ???) -&amp;gt; (b -&amp;gt; ???)&lt;/code&gt; 经过我们一系列对其性质的分析得到的。我们的最终目的是通过单一的&lt;code class=&quot;inline&quot;&gt;Lens&lt;/code&gt;类型，来实现&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;这样不同的行为，即需要某种多态。而下面的类型却无法为这种多态提供帮助。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a -&amp;gt; forall c d. (a -&amp;gt; c) -&amp;gt; (b -&amp;gt; d)&lt;/code&gt;&lt;p&gt;我们需要某种类型，我们可以对其中的内容进行操作，并且这种操作的行为随使用者的需求而可以多态变化。符合这样特点的，正是我们熟悉的 Functor 。所以我们便可以这样做了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = Functor f =&amp;gt; (a -&amp;gt; f a) -&amp;gt; (b -&amp;gt; f b)&lt;/code&gt;&lt;p&gt;这个类型定义非常类似前面的&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;，同时这里的f具有任意性，又可以满足&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;的需求。而实际上，如果这里的&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;是 Identity Functor 的话，这个类型所表达的与&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;毫无区别。我们只需要对原有&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;进行一层 Identity Functor 的包装就保证了其语义不变：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;over lens f = runIdentity . lens (Identity . f)&lt;/code&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens ::  (a -&amp;gt; a) -&amp;gt; (b -&amp;gt; b)
+weaponOLens f h = (`setWeapon` h) $ f (weapon h)&lt;/code&gt;&lt;p&gt;我们也仅需要对调用的修改本层次域的函数进行升格，上下结构保持了极好的相似性。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponLens ::  Functor f =&amp;gt; (a -&amp;gt; f a) -&amp;gt; (b -&amp;gt; f b)
+weaponLens f h = (`setWeapon` h) &amp;lt;$&amp;gt; f (weapon h)&lt;/code&gt;&lt;p&gt;那么我们剩余的问题就在于如何利用 Functor 提供的多态能力来实现&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的语义了。&lt;/p&gt;&lt;p&gt;我们观察一下先前的&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;实现&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type VLens b a = forall c. (a -&amp;gt; c) -&amp;gt; (b -&amp;gt; c)
+viewV vlens b = vlens id b&lt;/code&gt;&lt;p&gt;我们发现&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的实现有如下特点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;对象的内容完全没有被改变&lt;/li&gt;&lt;li&gt;每一层的作用是返回内层的内容&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;我们只要找到一个Functor符合上面的特点就可以实现&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;，而 Const Functor 恰好符合我们的需求。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Const a b = Const {getConst :: a}
+instance Functor (Const a) where
+  fmap f c = c&lt;/code&gt;&lt;p&gt;Const Functor 的&lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;并不改变值，实际上，其中根本没有值。一个 Const Functor 在创建之后，经历过多次&lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;可能其类型发生变化，但getConst所取出的内容永远不会变化。&lt;/p&gt;&lt;p&gt;考虑下面的&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;定义，最内层的值被应用到&lt;code class=&quot;inline&quot;&gt;Const&lt;/code&gt;构建函数上。之后经历过若干次&lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;，最后&lt;code class=&quot;inline&quot;&gt;getConst&lt;/code&gt;取得的仍是原来的值，于是便实现了&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的行为。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Lens b a -&amp;gt; b -&amp;gt; a
+view lens b = getConst $ lens Const b&lt;/code&gt;&lt;p&gt;到这里为止，我们便实现了文章开头所演示的 Lens 的功能。&lt;/p&gt;&lt;p&gt;附上在Zju Lambda报告的Slides：&lt;a href=&quot;https://github.com/zju-lambda/slides/blob/master/The%20Overview%20of%20Lens.pdf&quot;&gt;The Overview of Lens&lt;/a&gt;&lt;/p&gt;</description>
+<author>孙浩然</author>
+<guid isPermaLink="false">2017-10-29-30544410</guid>
+<pubDate>Sun, 29 Oct 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Dafny与程序验证</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-21-30321583.htm</link>
@@ -702,244 +783,6 @@ struct peano&amp;lt;0&amp;gt; {
 <author>6hu2t32</author>
 <guid isPermaLink="false">2017-09-20-29500606</guid>
 <pubDate>Wed, 20 Sep 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>（如何（用Python）写一个（Lisp）解释器（下））</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-09-29186794.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;（如何（用Python）写一个（Lisp）解释器（下））&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29186794&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5940731697c13382291a0780984d10a6_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;上篇：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28989326&quot;&gt;（如何（用Python）写一个（Lisp）解释器（上））&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2号语言：完整的Lispy&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;现在我们来加上3个新的语法形式，构造一个更加完整的Scheme子集：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-ff17e616e45c0909a2c1283355f1271f_r.png&quot; data-rawwidth=&quot;722&quot; data-rawheight=&quot;352&quot;&gt;&lt;p&gt;lambda特殊形式会创建一个过程(procedure)。（lambda这个名字来源于Alonzo Church的&lt;a href=&quot;http://en.wikipedia.org/wiki/Lambda_calculus&quot;&gt;lambda calculus&lt;/a&gt;）&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;lis.py&amp;gt; (define circle-area (lambda (r) (* pi (* r r)))
-lis.py&amp;gt; (circle-area 10)
-314.159265359&lt;/code&gt;&lt;p&gt;过程调用(circle-area 10)使我们对过程的主体部分(* pi (* r r))进行求值。求值所在的环境中pi与*的值同全局环境相同，而r的值为10。事实上，解释器并不会简单地在全局环境之中将r的值设为10。如果我们将r用于其他用途会怎么样？我们不希望对circle-area的调用改变r的值，因此我们希望将一个局部变量r设为10，这样就不会影响到其他同名的变量。因此，我们需要构建一种新的环境，允许同时创建局部和全局变量。&lt;/p&gt;&lt;p&gt;想法如下：在我们对(circle-area 10)求值时，首先提取过程主体部分(* pi (* r r))，随后在仅有一个本地变量r的环境中求值，但该环境同时也能访问全局环境。下图演示了这种环境模型，局部环境（蓝色）嵌套在全局环境（红色）之中：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4c7af0a1ae2d66ed796eeb27b4728583_r.png&quot; data-rawwidth=&quot;247&quot; data-rawheight=&quot;117&quot;&gt;&lt;p&gt;当我们在一个被嵌套的环境中查找变量时，首先在本层查找，如果没有找到对应值的话就到外一层查找。&lt;/p&gt;&lt;p&gt;显然，过程和环境相关，所以我们把他们放到一起：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;class Procedure(object):
-    &quot;用户定义的Scheme过程。&quot;
-    def __init__(self, parms, body, env):
-        self.parms, self.body, self.env = parms, body, env
-    def __call__(self, *args): 
-        return eval(self.body, Env(self.parms, args, self.env))
-
-class Env(dict):
-    &quot;环境是以{&#39;var&#39;:val}为键对的字典，它还带着一个指向外层环境的引用。&quot;
-    def __init__(self, parms=(), args=(), outer=None):
-        self.update(zip(parms, args))
-        self.outer = outer
-    def find(self, var):
-        &quot;寻找变量出现的最内层环境。&quot;
-        return self if (var in self) else self.outer.find(var)
-
-global_env = standard_env()&lt;/code&gt;&lt;p&gt;我们看到每个过程有3个组成部分：一个包含变量名的列表，一个主体表达式，以及一个外层环境。外层环境使得我们在局部环境中无法找到变量时有下一个地方可以寻找。&lt;/p&gt;&lt;p&gt;环境是dict的子类，因此它含有dict拥有的所有方法。除此之外还有两个额外的方法：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;构造器__init__接受一个变量名列表及对应的变量值列表，构造创造一个新环境，内部形式为{variable: value}键对，并拥有一个指向外层环境的引用。&lt;/li&gt;&lt;li&gt;find函数用于找到某个变量所在的正确环境，可能是内层环境也可能是更外层的环境。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;要想知道这部分的工作原理，我们首先来看看eval的定义。注意，现在我们需要调用env.find(x)来寻找变量处于哪一层环境之中；随后我们才能从那一层环境之中提取x。（define分支的定义没有改变，因为define总是向最内一层的环境添加变量。）同时我们还增加了两个判定分支：set!分支中，我们寻找变量所处的环境并将其设为新的值。通过lambda，我们可以传入参数列表、主体以及环境以创建一个新的过程。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def eval(x, env=global_env):
-    &quot;在某环境中对一个表达式进行求值。&quot;
-    if isinstance(x, Symbol):      # 变量引用
-        return env.find(x)[x]
-    elif not isinstance(x, List):  # 直面产量
-        return x                
-    elif x[0] == &#39;quote&#39;:          # 引用
-        (_, exp) = x
-        return exp
-    elif x[0] == &#39;if&#39;:             # 条件判断
-        (_, test, conseq, alt) = x
-        exp = (conseq if eval(test, env) else alt)
-        return eval(exp, env)
-    elif x[0] == &#39;define&#39;:         # 定义
-        (_, var, exp) = x
-        env[var] = eval(exp, env)
-    elif x[0] == &#39;set!&#39;:           # 赋值
-        (_, var, exp) = x
-        env.find(var)[var] = eval(exp, env)
-    elif x[0] == &#39;lambda&#39;:         # 过程
-        (_, parms, body) = x
-        return Procedure(parms, body, env)
-    else:                          # 过程调用
-        proc = eval(x[0], env)
-        args = [eval(arg, env) for arg in x[1:]]
-        return proc(*args)&lt;/code&gt;&lt;p&gt;为了更好地理解过程和环境是怎样协同运作的，我们来看看下面这段程序。思考一下，在我们对(account1 -20.00)求值的时候，程序会生成一个怎样的环境呢？&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-661295633d0cd932e45f4ba22874758c_r.png&quot; data-rawwidth=&quot;768&quot; data-rawheight=&quot;208&quot;&gt;&lt;p&gt;每个矩形框代表一个环境，环境的颜色和程序中新定义变量的颜色相对应。在程序的最后两行中，我们定义了account1并调用了(account1 -20.00)，这表示我们创建了一个拥有100美金余额的账户，并从中取出20美金。在对(account1 -20.00)进行求值的过程中，我们会对黄色高亮部分进行求值。该表达式中有三个变量：amt可以直接在最内层环境（绿色）中找到。但balance不在那一层环境之中，我们需要查找绿色的外一层环境（蓝色）。然而变量‘+’依然不能在这两个环境之中找到，所以我们需要在更外一层环境中寻找（红色的全局环境）。这一先在内层环境查找，再在外层环境中查找的方式被称为“词法作用域”(Lexical Scoping)。Env.find(var)依照词法作用域规则查找变量所处的正确环境。&lt;/p&gt;&lt;p&gt;现在我们能做的事又多了不少：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;&amp;gt;&amp;gt;&amp;gt; repl()
-lis.py&amp;gt; (define circle-area (lambda (r) (* pi (* r r))))
-lis.py&amp;gt; (circle-area 3)
-28.274333877
-lis.py&amp;gt; (define fact (lambda (n) (if (&amp;lt;= n 1) 1 (* n (fact (- n 1))))))
-lis.py&amp;gt; (fact 10)
-3628800
-lis.py&amp;gt; (fact 100)
-9332621544394415268169923885626670049071596826438162146859296389521759999322991
-5608941463976156518286253697920827223758251185210916864000000000000000000000000
-lis.py&amp;gt; (circle-area (fact 10))
-4.1369087198e+13
-lis.py&amp;gt; (define first car)
-lis.py&amp;gt; (define rest cdr)
-lis.py&amp;gt; (define count (lambda (item L) (if L (+ (equal? item (first L)) (count item (rest L))) 0)))
-lis.py&amp;gt; (count 0 (list 0 1 2 3 0 0))
-3
-lis.py&amp;gt; (count (quote the) (quote (the more the merrier the bigger the better)))
-4
-lis.py&amp;gt; (define twice (lambda (x) (* 2 x)))
-lis.py&amp;gt; (twice 5)
-10
-lis.py&amp;gt; (define repeat (lambda (f) (lambda (x) (f (f x)))))
-lis.py&amp;gt; ((repeat twice) 10)
-40
-lis.py&amp;gt; ((repeat (repeat twice)) 10)
-160
-lis.py&amp;gt; ((repeat (repeat (repeat twice))) 10)
-2560
-lis.py&amp;gt; ((repeat (repeat (repeat (repeat twice)))) 10)
-655360
-lis.py&amp;gt; (pow 2 16)
-65536.0
-lis.py&amp;gt; (define fib (lambda (n) (if (&amp;lt; n 2) 1 (+ (fib (- n 1)) (fib (- n 2))))))
-lis.py&amp;gt; (define range (lambda (a b) (if (= a b) (quote ()) (cons a (range (+ a 1) b)))))
-lis.py&amp;gt; (range 0 10)
-(0 1 2 3 4 5 6 7 8 9)
-lis.py&amp;gt; (map fib (range 0 10))
-(1 1 2 3 5 8 13 21 34 55)
-lis.py&amp;gt; (map fib (range 0 20))
-(1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181 6765)&lt;/code&gt;&lt;p&gt;如此一来，我们的语言中就有了过程、变量、条件判断（if）和顺序执行（begin）。如果你熟悉其他语言的话，你可能会觉得我们还需要while或者for循环，但Scheme认为自己不需要这两种循环结构。Scheme标准中说：“Scheme展示了只需要极少量构造表达式的规则，无需规定表达式的组成方式，就足以构建出一个实用而高效的语言。”在Scheme中，我们通过构建递归函数的方式来实现迭代。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Lispy有多小/快/完整/好？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们以以下的标准来评判Lispy：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;小：&lt;/b&gt;Lispy十分简短：不算空行和注释的话一共只有117行，源码只有4K大小。（更早的一个版本只有90行，但包含的标准过程更少，也显得过于简陋了。）我用Java实现的最小Scheme（Jscheme）包含1664行代码，源码有57K大。Jscheme之前叫SILK（Scheme in Fifty Kilobytes，缩写对不上...anyway），不过实际上只有在编译成bytecode的情况下才小于50k。在“小”这一方面，Lispy做得要好很多，我想它符合&lt;a href=&quot;http://gagne.homedns.org/~tgagne/contrib/EarlyHistoryST.html&quot;&gt;Alan Kay在1972年所说的&lt;/a&gt;：“你可以用‘一页代码’定义出‘世界上最强大的语言’”。（其实我觉得Alan Kay本人不会同意，因为Python解释器的代码量远高于一页。）&lt;/li&gt;&lt;li&gt;&lt;b&gt;快：&lt;/b&gt;Lispy可以在0.003秒内计算出(fact 100)的值。对我来说够快了（尽管比大部分语言慢很多）。&lt;/li&gt;&lt;li&gt;&lt;b&gt;完整：&lt;/b&gt;Lispy和Scheme标准比起来算不上完整。一下是主要的一些缺少处：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;语法：&lt;/b&gt;缺少注释，quote符和quasiquote符，#常量，延伸的表达式（从if中延伸出的cond，从lambda中延伸出的let），和dotted list标记。&lt;/li&gt;&lt;li&gt;&lt;b&gt;语义：&lt;/b&gt;缺少call/cc和尾递归。&lt;/li&gt;&lt;li&gt;&lt;b&gt;数据类型：&lt;/b&gt;缺少String, character, boolean, ports, vectors, exact/inexact numbers。Python的列表相比于Scheme里的列表实际上更接近于Scheme里的vector。&lt;/li&gt;&lt;li&gt;&lt;b&gt;过程：&lt;/b&gt;少了100多种原始过程：包含与所有缺少的数据类型有关的过程，以及set-car!和set-cdr!之类的过程，因为我们没法用Python列表直接实现这一功能。&lt;/li&gt;&lt;li&gt;&lt;b&gt;错误修复：&lt;/b&gt;Lispy不会尝试去侦测，报告以及修复错误。想用Lispy编程的话你需要一个从不犯错的程序员。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;b&gt;好：&lt;/b&gt;这项的评判就交由读者去定了。对我来说，它不错地完成了预定目标——解释Lisp解释器的工作原理。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;附录：完整代码&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;################ Lispy: Scheme Interpreter in Python
-
-## (c) Peter Norvig, 2010-16; See http://norvig.com/lispy.html
-
-from __future__ import division
-import math
-import operator as op
-
-################ Types
-
-Symbol = str          # A Lisp Symbol is implemented as a Python str
-List   = list         # A Lisp List is implemented as a Python list
-Number = (int, float) # A Lisp Number is implemented as a Python int or float
-
-################ Parsing: parse, tokenize, and read_from_tokens
-
-def parse(program):
-    &quot;Read a Scheme expression from a string.&quot;
-    return read_from_tokens(tokenize(program))
-
-def tokenize(s):
-    &quot;Convert a string into a list of tokens.&quot;
-    return s.replace(&#39;(&#39;,&#39; ( &#39;).replace(&#39;)&#39;,&#39; ) &#39;).split()
-
-def read_from_tokens(tokens):
-    &quot;Read an expression from a sequence of tokens.&quot;
-    if len(tokens) == 0:
-        raise SyntaxError(&#39;unexpected EOF while reading&#39;)
-    token = tokens.pop(0)
-    if &#39;(&#39; == token:
-        L = []
-        while tokens[0] != &#39;)&#39;:
-            L.append(read_from_tokens(tokens))
-        tokens.pop(0) # pop off &#39;)&#39;
-        return L
-    elif &#39;)&#39; == token:
-        raise SyntaxError(&#39;unexpected )&#39;)
-    else:
-        return atom(token)
-
-def atom(token):
-    &quot;Numbers become numbers; every other token is a symbol.&quot;
-    try: return int(token)
-    except ValueError:
-        try: return float(token)
-        except ValueError:
-            return Symbol(token)
-
-################ Environments
-
-def standard_env():
-    &quot;An environment with some Scheme standard procedures.&quot;
-    env = Env()
-    env.update(vars(math)) # sin, cos, sqrt, pi, ...
-    env.update({
-        &#39;+&#39;:op.add, &#39;-&#39;:op.sub, &#39;*&#39;:op.mul, &#39;/&#39;:op.truediv, 
-        &#39;&amp;gt;&#39;:op.gt, &#39;&amp;lt;&#39;:op.lt, &#39;&amp;gt;=&#39;:op.ge, &#39;&amp;lt;=&#39;:op.le, &#39;=&#39;:op.eq, 
-        &#39;abs&#39;:     abs,
-        &#39;append&#39;:  op.add,  
-        &#39;apply&#39;:   apply,
-        &#39;begin&#39;:   lambda *x: x[-1],
-        &#39;car&#39;:     lambda x: x[0],
-        &#39;cdr&#39;:     lambda x: x[1:], 
-        &#39;cons&#39;:    lambda x,y: [x] + y,
-        &#39;eq?&#39;:     op.is_, 
-        &#39;equal?&#39;:  op.eq, 
-        &#39;length&#39;:  len, 
-        &#39;list&#39;:    lambda *x: list(x), 
-        &#39;list?&#39;:   lambda x: isinstance(x,list), 
-        &#39;map&#39;:     map,
-        &#39;max&#39;:     max,
-        &#39;min&#39;:     min,
-        &#39;not&#39;:     op.not_,
-        &#39;null?&#39;:   lambda x: x == [], 
-        &#39;number?&#39;: lambda x: isinstance(x, Number),   
-        &#39;procedure?&#39;: callable,
-        &#39;round&#39;:   round,
-        &#39;symbol?&#39;: lambda x: isinstance(x, Symbol),
-    })
-    return env
-
-class Env(dict):
-    &quot;An environment: a dict of {&#39;var&#39;:val} pairs, with an outer Env.&quot;
-    def __init__(self, parms=(), args=(), outer=None):
-        self.update(zip(parms, args))
-        self.outer = outer
-    def find(self, var):
-        &quot;Find the innermost Env where var appears.&quot;
-        return self if (var in self) else self.outer.find(var)
-
-global_env = standard_env()
-
-################ Interaction: A REPL
-
-def repl(prompt=&#39;lis.py&amp;gt; &#39;):
-    &quot;A prompt-read-eval-print loop.&quot;
-    while True:
-        val = eval(parse(raw_input(prompt)))
-        if val is not None: 
-            print(lispstr(val))
-
-def lispstr(exp):
-    &quot;Convert a Python object back into a Lisp-readable string.&quot;
-    if isinstance(exp, List):
-        return &#39;(&#39; + &#39; &#39;.join(map(lispstr, exp)) + &#39;)&#39; 
-    else:
-        return str(exp)
-
-################ Procedures
-
-class Procedure(object):
-    &quot;A user-defined Scheme procedure.&quot;
-    def __init__(self, parms, body, env):
-        self.parms, self.body, self.env = parms, body, env
-    def __call__(self, *args): 
-        return eval(self.body, Env(self.parms, args, self.env))
-
-################ eval
-
-def eval(x, env=global_env):
-    &quot;Evaluate an expression in an environment.&quot;
-    if isinstance(x, Symbol):      # variable reference
-        return env.find(x)[x]
-    elif not isinstance(x, List):  # constant literal
-        return x                
-    elif x[0] == &#39;quote&#39;:          # (quote exp)
-        (_, exp) = x
-        return exp
-    elif x[0] == &#39;if&#39;:             # (if test conseq alt)
-        (_, test, conseq, alt) = x
-        exp = (conseq if eval(test, env) else alt)
-        return eval(exp, env)
-    elif x[0] == &#39;define&#39;:         # (define var exp)
-        (_, var, exp) = x
-        env[var] = eval(exp, env)
-    elif x[0] == &#39;set!&#39;:           # (set! var exp)
-        (_, var, exp) = x
-        env.find(var)[var] = eval(exp, env)
-    elif x[0] == &#39;lambda&#39;:         # (lambda (var...) body)
-        (_, parms, body) = x
-        return Procedure(parms, body, env)
-    else:                          # (proc arg...)
-        proc = eval(x[0], env)
-        args = [eval(exp, env) for exp in x[1:]]
-        return proc(*args)&lt;/code&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>李愚</author>
-<guid isPermaLink="false">2017-09-09-29186794</guid>
-<pubDate>Sat, 09 Sep 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
