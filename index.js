@@ -21,8 +21,8 @@ const feeds = [
 	["FP", [
 		"yinwang",
 		"marisa",
-		"zju-lambda",
 		"hllvm",
+		"zju-lambda",
 		"impress-your-cat",
 		"yangbo",
 		"rust-lang",
