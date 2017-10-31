@@ -20,10 +20,11 @@ const feeds = [
 	]],
 	["FP", [
 		"yinwang",
-		"impress-your-cat",
 		"marisa",
-		"yangbo",
+		"zju-lambda",
 		"hllvm",
+		"impress-your-cat",
+		"yangbo",
 		"rust-lang",
 	]],
 	["政治 / 人文", [
