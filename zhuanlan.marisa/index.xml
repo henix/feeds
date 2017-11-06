@@ -5,7 +5,25 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 06 Nov 2017 18:26:51 +0800</lastBuildDate>
+<lastBuildDate>Mon, 06 Nov 2017 22:28:36 +0800</lastBuildDate>
+<item>
+<title>Agda 中的证明，从一到一点五</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-05-30749528.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Agda 中的证明，从一到一点五&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30749528&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-367c5bb1a32bb3ddc98041b0b5435fa1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;终于写完了，还请各位聚聚多多包涵哈。原文在这里&lt;a href=&quot;http://ice1000.org/2017/11/02/ProofInAgda2/&quot;&gt;Agda 中的证明，从一到一点五&lt;/a&gt;&lt;/p&gt;&lt;p&gt;上一篇我们说到了一个只有一步的证明，这一篇我们来看一个稍微复杂点的，组合命题的例子。 到目前为止，按理说所有的字符都还能正常显示。&lt;/p&gt;&lt;p&gt;为什么是一点五？看完你就知道啦。&lt;/p&gt;&lt;h2&gt;前置知识&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://127.0.0.1:4000/2017/11/01/ProofInAgda/&quot;&gt;上一篇文章&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;以及，由于 Agda 语言的特殊性，本文将继续使用 LaTeX 和代码块来共同展示代码。 代码块唯一的作用在于便于复制，主要的呈现途径为 LaTeX 。 （其实是因为我的手机显示不出来很多字符，我又要自己看自己写的东西）&lt;/p&gt;&lt;h2&gt;关于复合命题&lt;/h2&gt;&lt;p&gt;这里修正一个概念。&lt;/p&gt;&lt;p&gt;前文说的 &quot;条件&quot; ，即前文一直强调的 &quot;类型则命题&quot; 中命题的最基本组成元素（好像 Wikipedia 上也称之为 “命题变元” ，反正我对这个名称不负责，就是用来表示命题 &lt;equation&gt;p \rightarrow q&lt;/equation&gt; 中的 &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 的东西）其实也是一种命题，而我之前称为命题的东西则是 &quot;复合命题&quot; 。&lt;/p&gt;&lt;p&gt;下文将使用 &quot;命题&quot; 统称他们。&lt;/p&gt;&lt;h2&gt;介绍符号&lt;/h2&gt;&lt;p&gt;都是初中数学里面的，并且是只需要小学数学就可以看懂的符号。&lt;/p&gt;&lt;h2&gt;与和或&lt;/h2&gt;&lt;p&gt;我们知道，门电路里面都有与门和或门，对应逻辑上的与和或。 与的符号是：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\land&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;，或的符号是：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\lor&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;。 比如， &lt;equation&gt;p \land q \rightarrow r&lt;/equation&gt; 表示 &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 都必须成立， &lt;code class=&quot;inline&quot;&gt;r&lt;/code&gt; 才成立。 而 &lt;equation&gt;p \lor q \rightarrow r&lt;/equation&gt; 表示 &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 中任意成立一个， &lt;code class=&quot;inline&quot;&gt;r&lt;/code&gt; 就成立。&lt;/p&gt;&lt;h2&gt;充要条件&lt;/h2&gt;&lt;p&gt;我们知道，如果两个条件 &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 能使 &lt;equation&gt;p \rightarrow q&lt;/equation&gt; 和 &lt;equation&gt;q \rightarrow p&lt;/equation&gt; 同时成立，我们称他们互为充要条件，使用：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\Leftrightarrow&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;表示，比如 &lt;equation&gt;p \Leftrightarrow q&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;我们将在接下来的代码里面使用这些符号。&lt;/p&gt;&lt;h2&gt;定义 GADT&lt;/h2&gt;&lt;p&gt;首先定义 &lt;equation&gt;\land&lt;/equation&gt; 对应的 GADT ：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} \begin{align*} &amp;amp; \data\ \_{\land}\_\ (P\ Q : \Set) : \Set \where \\ &amp;amp; \ \ {\land}{-}{\intro} : P \rightarrow Q \rightarrow (P \land Q) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;data _∧_ (P Q : Set) : Set where
+  ∧-intro : P → Q → (P ∧ Q) &lt;/code&gt;&lt;p&gt;这个命题是两个其他命题的组合，它拿到两个命题变成一个新命题。这也体现在 Agda 代码中， &lt;equation&gt;\_{\land}\_&lt;/equation&gt; 这个类型拿到两个 &lt;code class=&quot;inline&quot;&gt;Set&lt;/code&gt; 作为 &lt;a href=&quot;http://people.inf.elte.hu/divip/AgdaTutorial/Sets.Parametric.html#1&quot;&gt;类型 _∧_ 的参数&lt;/a&gt;， 返回一个新类型。 对应的类型构造器我们称之为 &lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\intro} &lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;有了这个类型，我们首先可以做一些很简单的证明。&lt;/p&gt;&lt;h2&gt;例〇：充要条件&lt;/h2&gt;&lt;p&gt;比如，根据充要条件 &lt;equation&gt;(p \rightarrow q) \land (q \rightarrow p)&lt;/equation&gt; 的定义，我们可以把它表达成一个函数：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} \begin{align*} &amp;amp; \_{\Leftrightarrow}\_ : (P\ Q : \Set) \rightarrow \Set \\ &amp;amp; p \Leftrightarrow q = (p \rightarrow q) \land (q \rightarrow p) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_⇔_ : (P Q : Set) → Set
+p ⇔ q = (p → q) ∧ (q → p) &lt;/code&gt;&lt;p&gt;这里我们在函数体（证明）里面使用了 &lt;equation&gt;\rightarrow&lt;/equation&gt; ，这样的话 &lt;equation&gt; (p \rightarrow q) &lt;/equation&gt; 就是一个类型为 &lt;equation&gt;\DeclareMathOperator{Set}{Set} \Set _1&lt;/equation&gt; 的东西。 因此，这实际上是一个 “命题组合” ，有点 “高阶函数” 感觉（顺带一提，这个名词也是我为了便于理解自己编的，不知道有没有其他人在用 （顺带一提，类型的阶（顺带一提， Agda 中表示类型的阶的类型正好是 &lt;code class=&quot;inline&quot;&gt;Level&lt;/code&gt; ，中文意思就有阶的意思， 因此这个说法可以说是很通用了） 在 dependent type 里面已经变得很模糊了，因此这个 “高阶” 的比喻是不太恰当的，这里就拿 Haskell 之类的简单语言的概念将就一下））。&lt;/p&gt;&lt;p&gt;再根据前文已经讲过的：&lt;/p&gt;&lt;blockquote&gt;只要有 &lt;equation&gt;p \rightarrow q&lt;/equation&gt; 这个函数成立，那么就证明了 “ &lt;equation&gt;p \rightarrow q&lt;/equation&gt; “ 这个命题&lt;/blockquote&gt;&lt;p&gt;这个函数的作用便变得很清晰了。 不理解没关系，下面会用到这个东西，然后你或许能从它的应用看懂它的意义。&lt;/p&gt;&lt;p&gt;另外，看到没有？函数体（证明）（下文不再进行这样的强调，感觉很辣鸡） 和定义 &lt;equation&gt;(p \rightarrow q) \land (q \rightarrow p) &lt;/equation&gt; 写起来都是完全一样的。 这里可以体现一些 Agda 语言的优势，就是因为 Unicode 语法的存在，它可以把代码写的很接近数学语言。&lt;/p&gt;&lt;p&gt;不过这并不代表 Agda 就只能用于学术，毕竟类型安全的社区和人气火爆的社区结合起来才是最好的， Idris 都用强大的 ffi 和官方强推的 &lt;code class=&quot;inline&quot;&gt;Control.ST&lt;/code&gt; 了，为什么 Agda 不能写成 imperative language 呢。&lt;/p&gt;&lt;h2&gt;例一：定义&lt;/h2&gt;&lt;p&gt;比如，在 &lt;equation&gt;p \land q&lt;/equation&gt; 成立的时候， &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 分别成立（就是 &lt;equation&gt;\land&lt;/equation&gt; 的定义啦，很简单的）。 用数学语言表达的话，就是（几乎就是废话）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;p \land q \rightarrow p \\ p \land q \rightarrow q&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;写成代码的话，就是（这里关于这个证明讲的比较略，是因为下文有个更详细的讲解， 已经完全覆盖了这个证明所需要用到的知识，这个证明放在前面只是因为它本身很简单，用 Haskell 知识即可理解， 如果读者看不懂这个证明可以先看后面的，不过我觉得应该都看得懂，因为它太简单了）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} \begin{align*} &amp;amp; \proof _3 : \forall \{P\ Q\} \rightarrow (P \land Q) \rightarrow P \\ &amp;amp; \proof _3\ ({\land}{-}{\intro}\ p\ q) = p \\ \\ &amp;amp; \proof _4 : \forall \{P\ Q\} \rightarrow (P \land Q) \rightarrow Q \\ &amp;amp; \proof _4\ ({\land}{-}{\intro}\ p\ q) = q \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;proof₃ : ∀ {P Q} → (P ∧ Q) → P
+proof₃ (∧-intro p q) = p
+
+proof₄ : ∀ {P Q} → (P ∧ Q) → Q
+proof₄ (∧-intro p q) = q &lt;/code&gt;&lt;h2&gt;例二(详)：交换律&lt;/h2&gt;&lt;p&gt;然后还有一个很简单的例子——交换律（ Commutative Law ）。 用数学语言表达的话，就是（几乎也是废话）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(P \land Q) \Leftrightarrow (Q \land P) &lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个命题写成 Agda 代码，就是这样的类型（我们称之为  &lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\comm}&lt;/equation&gt; ）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\comm} : \forall \{P\ Q\} \rightarrow (P \land Q) \Leftrightarrow (Q \land P) &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;∧-comm : ∀ {P Q} → (P ∧ Q) ⇔ (Q ∧ P) &lt;/code&gt;&lt;p&gt;这里我们就已经使用到之前的定义—— &lt;equation&gt;\Leftrightarrow&lt;/equation&gt; 啦。&lt;/p&gt;&lt;p&gt;如何证明它呢？&lt;/p&gt;&lt;p&gt;首先，我们的证明需要返回一个由 &lt;equation&gt;\Leftrightarrow&lt;/equation&gt; 组合的两个类型（命题）。 由于这个组合类型是一个由 &lt;equation&gt;\land&lt;/equation&gt; 组合而成的两个类型，我们可以先把类型构造器写上，然后两个参数留白：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\comm} = {\land}{-}{\intro}\ ?\ ? &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;∧-comm = ∧-intro ? ?
+&lt;/code&gt;&lt;p&gt;我们发现，在 &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 两个变量可以互相交换的情况下， 这两个参数的类型（复合命题）都是 &lt;equation&gt; (p \land q) \rightarrow (q \land p)&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;因此，为了代码复用，我们不妨把这两部分提取出来，作为一个单独的命题去证明它。 这个命题写成 Agda 代码，就是：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\comm}&#39; : \forall \{P\ Q\} \rightarrow (P \land Q) \rightarrow (Q \land P) &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;∧-comm′ : ∀ {P Q} → (P ∧ Q) → (Q ∧ P) &lt;/code&gt;&lt;p&gt;它的第一个显式参数（隐式参数就自动传递了，我们不用管）是 &lt;equation&gt;(P \land Q)&lt;/equation&gt; ，我们可以使用模式匹配将它拆开：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\comm}&#39;\ ({\land}{-}{\intro}\ p\ q) =\ ? &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;∧-comm′ (∧-intro p q) = ? &lt;/code&gt;&lt;p&gt;然后我们把 &lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;q&lt;/code&gt; 换个顺序，重新使用类型构造器把它们组合起来：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} {\land}{-}{\comm}&#39;\ ({\land}{-}{\intro}\ p\ q) = ({\land}{-}{\intro}\ q\ p) &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;∧-comm′ (∧-intro p q) = (∧-intro q p) &lt;/code&gt;&lt;p&gt;然后再把这个命题填入刚才的 ∧−comm∧−comm 中：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} \DeclareMathOperator{elim}{elim} {\land}{-}{\comm} = {\land}{-}{\intro}\ {\land}{-}{\comm}&#39;\ {\land}{-}{\comm}&#39; &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;∧-comm = ∧-intro ∧-comm′ ∧-comm′ &lt;/code&gt;&lt;p&gt;然后我们就可以喊 Q.E.D. 啦。&lt;/p&gt;&lt;h2&gt;例三：结合律&lt;/h2&gt;&lt;p&gt;这个结合律（ Associative Law ）的例子其实已经不是例子了（因为我不想详细讲 （因为思路和交换律差不多）），我就只给出类型签名就可以了。&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{where}{where} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{intro}{intro} \DeclareMathOperator{comm}{comm} \DeclareMathOperator{assoc}{assoc} {\land}{-}{\assoc} : \forall \{P\ Q\ R\} \rightarrow (P \land (Q \land R)) \Leftrightarrow ((P \land Q) \land R) &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;∧-assoc : ∀ {P Q R} → (P ∧ (Q ∧ R)) ⇔ ((P ∧ Q) ∧ R) &lt;/code&gt;&lt;p&gt;为什么我只给类型签名呢？因为这个证明啊，&lt;/p&gt;&lt;blockquote&gt;即得易见平凡，仿照上例显然。留作习题答案略，读者自证不难。&lt;/blockquote&gt;&lt;h2&gt;为什么是一点五&lt;/h2&gt;&lt;p&gt;因为原计划是把 &lt;equation&gt;\land&lt;/equation&gt; 和 &lt;equation&gt;\lor&lt;/equation&gt; 放在一起讲的，但是我发现到目前为止的证明在模式匹配上都只有一个分支， 到了 &lt;equation&gt;\lor&lt;/equation&gt; 就有两个了，因此关于它和另外几个有两个分支的证明就单独再开一篇吧 （其实是因为这篇写长了，我写博客会控制篇幅的） 。&lt;/p&gt;&lt;p&gt;我说完了。&lt;/p&gt;</description>
+<author>大笨蛋千里冰封</author>
+<guid isPermaLink="false">2017-11-05-30749528</guid>
+<pubDate>Sun, 05 Nov 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Agda 中的证明，从零到一</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-02-30686586.htm</link>
@@ -721,72 +739,6 @@ Type C-x 1 to delete the help window, C-M-v to scroll help.&lt;/code&gt;&lt;p&gt
 <author>刘丰恺</author>
 <guid isPermaLink="false">2017-09-26-29695168</guid>
 <pubDate>Tue, 26 Sep 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>【C++ 模板元编程入门】在编译期实现 Peano 数</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-09-22-29587930.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;【C++ 模板元编程入门】在编译期实现 Peano 数&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29587930&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-543b93b5d424a32ef501e544c6a29f9c_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;基本知识&lt;/h2&gt;&lt;p&gt;&lt;b&gt;类型的函数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们都知道模板可以接受类型作为「参数」。同样地我们也可以有「返回值」，从而构造类型的函数。基本的范式是：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T&amp;gt;
-struct Computed {
-  using type = T;
-}&lt;/code&gt;&lt;p&gt;这就构造了一个名为 `Computed` 的，接收一个类型参数，返回这个类型本身的函数，用法如 `Computed&amp;lt;float&amp;gt;::type`，这个类型应当还是 `float`。&lt;/p&gt;&lt;p&gt;为什么要包一层 struct？这是因为 C++ 不支持对 using 的特化。这样的代码是不行的：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template &amp;lt;class T&amp;gt;
-using computed&amp;lt;T&amp;gt; = T;
-
-template&amp;lt;&amp;gt;
-using computed&amp;lt;int&amp;gt; = double;&lt;/code&gt;&lt;p&gt;至于为什么不支持，我没有了解。&lt;/p&gt;&lt;p&gt;&lt;b&gt;特化&lt;/b&gt;&lt;/p&gt;&lt;p&gt;什么是特化？你可以理解为模式匹配，就像 Haskell 中的写法一样。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T&amp;gt;
-struct Computed {
-  using type = T;
-}
-
-template&amp;lt;&amp;gt;
-struct Computed&amp;lt;int&amp;gt; {
-  using type = double;
-}&lt;/code&gt;&lt;p&gt;这样当你调用 `Computed&amp;lt;bool&amp;gt;::type` 时，得到的结果是 `bool`，而调用`Computed&amp;lt;int&amp;gt;::type`得到的结果却是`double`。当然这种匹配是遵循一定规则的，比如更「具体」的特化优先匹配，这跟 Haskell 谁在前谁先试着匹配不太一样。在 Haskell 中就好比：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Type = Bool | Double | Int
-
-computed :: Type -&amp;gt; Type
-computed Int = Double
-computed t = t&lt;/code&gt;&lt;p&gt;实际上有了这层对应，如果你知道怎么在 Haskell 中实现 Peano 数，那么 C++ 中的实现基本就是无脑翻译了。如果你不知道怎么在 Haskell 中实现 Peano 数，那你知道 Peano 数是什么，也能大差不差知道答案了。&lt;/p&gt;&lt;h2&gt;Peano 数&lt;/h2&gt;&lt;p&gt;Peano 数是什么？Peano 数是归纳定义的自然数，准确地说应该是一个表现形如直觉中「自然数」的公理系统，也就是「自然数」的形式化。这个系统里只有两个符号，`Zero`——表示 0，以及 `Succ`——表示后继。那么 1 就是 `Succ&amp;lt;Zero&amp;gt;`，2 就是 `Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;`，以此类推（归纳，其实就是「以此类推」的形式化）。&lt;/p&gt;&lt;p&gt;我们可以在 C++ 中如此表述：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;struct Peano {};
-struct Zero: Peano {};
-template&amp;lt;class T&amp;gt;
-struct Succ: Peano {};&lt;/code&gt;&lt;p&gt;那么加法又是什么呢？从例子出发，我们需要定义一个两个类型参数的模板：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T1, class T2&amp;gt;
-struct Add {
-  using type = ???;
-}&lt;/code&gt;&lt;p&gt;满足直觉中的运算规律，比如 2+1=3，翻译成 C++ 就是 `Add&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;, Succ&amp;lt;Zero&amp;gt;&amp;gt;::type = Succ&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;&amp;gt;`。当然类型之间没有等于号，准确地说应该用 `std::is_same&amp;lt;T1, T2&amp;gt;`，这其实也是通过偏特化实现的，比如（示意，非官方实现）：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T, class U&amp;gt;
-struct is_same {
-  static constexpr bool value = false;
-};
- 
-template&amp;lt;class T&amp;gt;
-struct is_same&amp;lt;T, T&amp;gt; {
-  static constexpr bool value = true;
-};&lt;/code&gt;&lt;p&gt;那么如何定义加法呢？对于有限的元素，我们当然可以为每一个实例做特化，比如：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;&amp;gt;
-struct Add&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;, Succ&amp;lt;Zero&amp;gt;&amp;gt; {
-  using type = Succ&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;&amp;gt;;
-}&lt;/code&gt;&lt;p&gt;也就是打表。C++ 编译器的模板深度一般都是有限的，所以这理论上是可以在实际操作中覆盖所有用例的。但是这明显太傻了。其实加法的定义只需要两条规则就可以覆盖：`0 + b = b, (Succ a) + b = Succ (a + b)`。翻译成 C++ 就是：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;class T1, class T2&amp;gt;
-struct Add;
-
-template&amp;lt;class T&amp;gt;
-struct Add&amp;lt;Zero, T&amp;gt; {
-  using type = T;
-};
-
-template&amp;lt;class T1, class T2&amp;gt;
-struct Add&amp;lt;Succ&amp;lt;T1&amp;gt;, T2&amp;gt; {
-  using type = Succ&amp;lt;typename Add&amp;lt;T1, T2&amp;gt;::type&amp;gt;
-};&lt;/code&gt;&lt;p&gt;注意那个 `typename`，gcc 并不知道后面那个 `::type` 成员是类型还是变量，所以需要 `typename` 关键字的提示。&lt;/p&gt;&lt;p&gt;这就算写完了，你可以测试看看，是不是满足 `std::is_same&amp;lt;Add&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;, Succ&amp;lt;Zero&amp;gt;&amp;gt;::type, Succ&amp;lt;Succ&amp;lt;Succ&amp;lt;Zero&amp;gt;&amp;gt;&amp;gt;&amp;gt;::value == true`（需要 `&amp;lt;type_traits&amp;gt;` 头文件，或者上面自己写的那个模板（那就不用加 std::）。这么嵌套着写 `Succ` 太繁琐了，也不方便看，你可以简单地写一个模板来从整数生成类型：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;template&amp;lt;int v&amp;gt;
-struct peano {
-  using type = Succ&amp;lt;typename peano&amp;lt;v - 1&amp;gt;::type&amp;gt;;
-};
-
-template&amp;lt;&amp;gt;
-struct peano&amp;lt;0&amp;gt; {
-  using type = Zero;
-};&lt;/code&gt;&lt;p&gt;然后就可以去验证 `Add&amp;lt;&amp;lt;peano&amp;lt;2&amp;gt;::type, peano&amp;lt;1&amp;gt;::type&amp;gt;::type` 是不是等于 `peano&amp;lt;3&amp;gt;::type` 了。&lt;/p&gt;&lt;p&gt;至于加减乘除的其他运算，比较啊奇偶性啊其他的函数，只要你懂得了加法，恐怕就不难了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 &lt;a href=&quot;https://www.codewars.com/kata/peano-numbers/train/cpp&quot;&gt;Peano numbers | Codewars&lt;/a&gt; 完成加减乘除、奇偶性和比较大小的撰写，并通过测试。&lt;/p&gt;&lt;p&gt;&lt;b&gt;广告时间：&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b1b3d0fbe1f3145b69f5d1b0d5388ded_r.jpg&quot; data-rawwidth=&quot;712&quot; data-rawheight=&quot;209&quot;&gt;&lt;p&gt;&lt;a href=&quot;http://www.codewars.com/r/KvWTsA&quot;&gt;Codewars.com&lt;/a&gt; 是一个很好的综合性、游戏化 OJ，除了算法（多是入门级的）之外，考察语言特性（较为深入）是其一大亮点，同时有很多 Haskell 方面的内容，包括我们喜闻乐见的&lt;u&gt;读论文然后完形填空&lt;/u&gt;。题图是 Codewars 上上述练习的界面截图。&lt;/p&gt;&lt;h2&gt;后记&lt;/h2&gt;&lt;p&gt;当然我们还可以进一步「证明」我们印象中的结论，比如加法是满足交换律的，加法和乘法是满足分配率的，等等。这就是后话了。&lt;/p&gt;</description>
-<author>Colliot</author>
-<guid isPermaLink="false">2017-09-22-29587930</guid>
-<pubDate>Fri, 22 Sep 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
