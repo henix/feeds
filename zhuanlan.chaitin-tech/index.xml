@@ -5,7 +5,174 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 30 Oct 2017 11:02:37 +0800</lastBuildDate>
+<lastBuildDate>Wed, 08 Nov 2017 05:37:06 +0800</lastBuildDate>
+<item>
+<title>Unity游戏菜鸡玩家的制胜之路</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-11-07-30703785.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Unity游戏菜鸡玩家的制胜之路&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30703785&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-6de83ed6f668f836c15e2e6f1b2dbf37_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;作者：赵奇&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;笔者一直自认玩过不少游戏，无奈水平太菜，日常送人头。痛定思痛，决定冲(xie)冠(xiu)一(gai)怒(qi)，经过几次失败的尝试之后，终于搞定了几款时下热门的Unity游戏。出于各种原因，本文以一款不具名的国外游戏作为实例，分享笔者研究过程中的一些心得，与各位分享。&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X00 打包党的鶸改法&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先采用最简单的打包党策略，演示一下如何快速修改一款单机游戏的金币/宝石等资源。这部分快速带过，主要负责熟悉 Unity 游戏结构，时至今日已经不算一种技术了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先将游戏安装 APK 解包，这里使用 apktool 或者直接看作 zip 解包是没有区别的，因为游戏严重依赖框架，Java 层和 Manifest 等文件价值不大。作为 Unity 游戏的一个特征点，可以很明显的发现这样一个文件夹。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f9320e6f5de0d528d1a8bd36a5bc0e05_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;607&quot; data-rawheight=&quot;377&quot;&gt;&lt;p&gt;Assembly-CSharp.dll 等几个文件是 Unity 游戏最鲜明的特点。通过 file 或者 binwalk 查看可以发现它们是 C# 字节码格式（ IL ），这种格式如果不进行加密，可以轻松的还原 C#指令。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来在手机中安装一次游戏，看一下大致的游戏逻辑，确定需要修改什么。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9dd04206c80d68d8d1f883a87870941e_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1440&quot; data-rawheight=&quot;999&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看起来右上角的宝石不错。。。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一般来说在游戏里边宝石都是稀缺资源，这里以其作为目标。为了快速定位，尝试使用 diamond ，gem 等字符串在 cs源码中进行全局搜索，很快就能定位到关键位置。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;private void SetupFirebaseDefault()
+	{
+		this.Defaults.Add(&quot;EnergyStart&quot;, 20);
+		this.Defaults.Add(&quot;InitialEnergy&quot;, 75);
+		this.Defaults.Add(&quot;EnergyFillerSecs&quot;, 420);
+		this.Defaults.Add(&quot;InitialGold&quot;, 200);
+		this.Defaults.Add(&quot;InitialGems&quot;, 50);
+		this.Defaults.Add(&quot;XpRequirement&quot;, 75);
+		this.Defaults.Add(&quot;XpReqIncremental&quot;, 75);
+		this.Defaults.Add(&quot;XpAttackBonus&quot;, 5);
+		this.Defaults.Add(&quot;BubblesRequired&quot;, 6);
+		this.Defaults.Add(&quot;StoreBubbleCostsAddOn&quot;, 2);
+		this.Defaults.Add(&quot;ReviveCost&quot;, 100);
+		this.Defaults.Add(&quot;ShopTokenCost&quot;, 100);
+		this.Defaults.Add(&quot;ShopTokenCostIncremental&quot;, 75);
+		this.Defaults.Add(&quot;ShopTokenMax&quot;, 10);
+		this.Defaults.Add(&quot;ShopFigMax&quot;, 3);
+		this.Defaults.Add(&quot;ShopKeyMax&quot;, 5);
+		this.Defaults.Add(&quot;EnergyPricesInGemsBig&quot;, 200);
+		this.Defaults.Add(&quot;EnergyPricesInGemsSmall&quot;, 50);
+		this.Defaults.Add(&quot;EnergyPackageBig&quot;, 60);
+		this.Defaults.Add(&quot;EnergyPackageSmallMin&quot;, 5);
+		this.Defaults.Add(&quot;RepeatedFigurineTokenConversion&quot;, 7);
+		this.Defaults.Add(&quot;RefreshLootCost&quot;, 20);
+  		...
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;InitialGems&lt;/b&gt; 字段明显是初始宝石数的意思，OK就它了。C# 字节码的修改有很多种方式，比较方便的工具是 Reflector ，这里因为没有这个工具，使用 ILDASM 反编译，随后修改， ILASM 重编译回去的方法。这两个工具都是微软官方提供的，当然可以百度搜到。 ILDASM 具有图形化界面，直接从其中 dump 出来即可，随后修改 dump 出的 IL 文件如下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-15e025904749d92edc40d35aa06a10e5_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1053&quot; data-rawheight=&quot;122&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来使用 ILASM 命令 ilasm.exe &lt;a href=&quot;http://name.il/&quot;&gt;name.il&lt;/a&gt; /DLL 可以将 IL 文件回编译成 DLL ，将其替换 APK 包中的对应 DLL ，签名，安装之后可以发现修改生效了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5f36c27ef8344b7b5789693438fb3de2_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1440&quot; data-rawheight=&quot;1019&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这就是 Unity 游戏打包党快速修改的过程，看起来很简单，但是却存在不少问题：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;这个游戏没有做任何保护，一旦存在保护，比如IL字节码加密，就需要去跟IL字节码加载的逻辑，伺机恢复明文IL字节码。&lt;/li&gt;&lt;li&gt;加壳问题，好在加壳是针对Java层的，考查了国内几款主流游戏之后发现基本没有加壳，因为壳并不能保证ELF文件的安全，ELF文件很可能使用其他安全策略。&lt;/li&gt;&lt;li&gt;重打包问题，国内游戏是不可能让你修改数据重打包的，特别是联网游戏，会有多处完整性校验，因此修改工作必须在运行过程中进行。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;综合以上，我们虽然完成了对一款毫无安全保护的 Unity 游戏的修改，但是为了进一步研究适用于更复杂条件下的修改策略，还需要进一步研究心得方案。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X01  注入与hook&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;考虑到国内主流游戏的安全机制，必须使用运行时修改的方式。比较理想的方式是先注入 zygote 进程。zygote 进程是 Dalvik 虚拟机的孵化器进程。众所周知，常规的 Android APP 是运行在 Dalvik 虚拟机（或者其继承者 ART ）中的，虚拟机需要加载很多运行所需的库（&lt;a href=&quot;http://xn--libdvm-hh4k.so/&quot;&gt;如&lt;/a&gt; &lt;a href=&quot;http://xn--libdvm-hh4k.so/&quot;&gt;libdvm.so&lt;/a&gt; ），并且初始化虚拟机对象。这个过程费时费力，为了保证应用的启动速度，zygote被设计为虚拟机进程的父进程。当应用启动时，直接从 zygote 上 fork() 出来，继承其虚拟内存空间。因此，注入到 zygote 进程的好处是先于应用代码执行，可以有效避免注入过程被应用的 anti-ptrace 机制检测到。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Android 平台上的注入已经是相对成熟的一套代码，最初是由看雪版主古河大大发布，随后出现了很多的更新、优化版本。其基本思路是利用 Linux 平台上的跨进程控制机制 ptrace ，通过对 ptrace 的封装实现目标进程的读、写，寄存器获取、保存、恢复，页状态变更、写入一段施工程序、远程调用施工程序，负责将待注入模块加载到目标内存中。这些内容前人之述备矣，这里贴几个相关链接，不在做具体展开。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://bbs.pediy.com/thread-141355.htm&quot;&gt;[原创]发个Android平台上的注入代码-『Android安全』-看雪安全论坛&lt;/a&gt; libinject&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://www.cnblogs.com/jiayy/p/4286828.html&quot;&gt;android hook 框架 libinject2 简介、编译、运行&lt;/a&gt; libinject2&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://blog.csdn.net/qq1084283172/article/details/53869796&quot;&gt;Android进程的so注入--Poison（稳定注入版） - 水汐。2014 的专栏 - CSDN博客&lt;/a&gt; Poison注入框架&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在完成注入之后，我们的功能代码即可在目标进程中执行，接下来需要在目标进程中执行 hook 过程。通过 hook 技术，可以截断一个函数的执行流程并插入自定义的代码。针对 zygote 注入，这个问题稍微复杂。因为在我们注入 zygote 的时机，游戏进程还没有启动，因此无法直接 hook 到目标函数。后面将会介绍到，我们的目标函数是 native 层的 c 函数。因为 zygote 进程最后会 fork 成游戏进程，为了感知游戏进程中目标函数的加载，可以监控该函数所在的库的加载，那么就需要用到 linker 中的 dlopen 函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;void *dlopen(const char *filename, int flags);&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过 hook dlopen 函数并检查 filename 参数确定目标库的加载，随后再一次进行实际的功能性 hook ，hook 目标函数达到修改目的。也就是说，通过 zygote hook 的方式 hook 一个目标函数，需要进行两次 hook ，第一次是 hook linker 中的 dlopen 以确定目标模块的基址，第二次是在该模块中 hook 目标函数。这里有一个小问题是由于 dlopen 函数在每一个 zygote 的子进程中都会被 hook ，导致系统性能下降，一个解决方案是定期查看&lt;b&gt; /proc/pid/cmdline&lt;/b&gt; 如果自身不是目标进程那么就解除 hook 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;针对 Unity 游戏的 hook 思路大体如上，本节的最后再讲讲关于使用的 hook 框架。Hook 操作的原理可以理解为强行修改程序的代码段，通过修改目标地址上的字节码为 B ，JMP 等指令将指令流跳转到 hook 者控制的位置执行另一段指令。当然实际实现中复杂性远远大于这句描述，因为指令执行完毕之后通常需要返回到 hook 前的位置，如何保证 hook 点处指令、寄存器值等各种信息完好，是需要很大工作量的。Java 层的 hook 框架可以使用 XScript 、frida 、cydia substrate 等等，native 层笔者尝试过的有效工具有 cydia substrate和android-inline-hook ( &lt;a href=&quot;https://github.com/ele7enxxh/Android-Inline-Hook&quot;&gt;ele7enxxh/Android-Inline-Hook&lt;/a&gt; )。ARM 平台上的 hook 工具开发有几个坑点，一个原因是由于 ARM 有大量位置相关代码，如果 hook 点在这种指令上，那么想要在异地恢复这条指令相当困难；另一个原因是 ARM 上存在 Thumb 指令集，需要考虑判断当前指令集并执行不同的操作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有了注入和 hook 两种工具，就可以完成对目标函数的运行时修改。下一节探讨针对 Unity 游戏，具体修改哪些函数可以完成对游戏逻辑的控制。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X02  Mono加载C#字节码过程分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&amp;gt;  可能很多人都像我一样好奇过，Android 是一个类 Java 虚拟机部署在 Linux 平台上，怎么就跑起来了微软的 C# ？其实 C# 已经被 ECMA 组织标准化（虽然这组织和微软渊源颇深），并且标准基础上出现了一套运行时（ Common Language Runtime , CLR ）。这套运行时的具体实现是一个叫做 mono 的开源项目。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本节介绍 mono 执行 C# 字节码的过程。Android 上的 Unity 正是通过 mono 的 Just-in-time Compile 机制完成了从 C# 语言世界到 ARM 机器码世界的转化。接下来对 Mono 项目的源码中对 DLL 处理的逻辑做一个分析。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先，mono 加载 DLL 文件之后，会进行预编译，首先调用 &lt;b&gt;/mono/mini/mini.c&lt;/b&gt; 中的 mono_precompile_assemblies 函数，该函数对所有需要加载的 assembly 文件逐个调用 mono_precompile_assembly 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;void mono_precompile_assemblies ()
+{
+	GHashTable *assemblies = g_hash_table_new (NULL, NULL);
+
+	mono_assembly_foreach ((GFunc)mono_precompile_assembly, assemblies);
+
+	g_hash_table_destroy (assemblies);
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;static void
+mono_precompile_assembly (MonoAssembly *ass, void *user_data)
+{
+	...
+	for (i = 0; i &amp;lt; mono_image_get_table_rows (image, MONO_TABLE_METHOD); ++i) {
+		method = mono_get_method (image, MONO_TOKEN_METHOD_DEF | (i + 1), NULL);
+		mono_compile_method (method);
+		if (strcmp (method-&amp;gt;name, &quot;Finalize&quot;) == 0) {
+			invoke = mono_marshal_get_runtime_invoke (method, FALSE);
+			mono_compile_method (invoke);
+		}
+	...
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里摘取了 mono_precompile_assembly 函数的关键步骤。该函数中针对当前需要处理的的 assembly ，对其中每一个函数调用 mono_compile_method 进行编译，同时编译 invoke 。这个 invoke 是对应函数的一个包装器，当  mono最终调用函数时，会通过包装器调用而不是直接调用。因此在函数 compile 完成之后，会生成并编译 invoke 函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来分析的关键是 mono_compile_method 函数，真正的编译过程发生在这个函数中。该函数不是唯一的，因为 mono 同时支持 AOT（ ahead of time ）编译，未来也可能添加其他功能。因此这个函数这里为一个函数指针，在 JIT 编译环境下执行的是 mono_jit_compile_method 函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;gpointer
+mono_jit_compile_method (MonoMethod *method)
+{
+	MonoException *ex = NULL;
+	gpointer code;
+
+	code = mono_jit_compile_method_with_opt (method, mono_get_optimizations_for_method (method, default_opt), &amp;amp;ex);
+	if (!code) {
+		g_assert (ex);
+		mono_raise_exception (ex);
+	}
+
+	return code;
+}
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个函数调用了 mono_jit_compile_method_with_opt 函数做具体操作，注意这里返回的是 gpointer 指针，其实这个指针指向的就是 DLL 脚本最终编译成汇编所在的地址，后续如果我们需要修改生成的汇编代码，修改这个指针即可。接下来我们稍微深入跟进一些。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;static gpointer
+mono_jit_compile_method_with_opt (MonoMethod *method, guint32 opt, MonoException **ex)
+{
+	...
+    target_domain = mono_get_root_domain ();
+	info = lookup_method (target_domain, method); //先查表判断是否已经编译
+	if (info) {
+		/* We can&#39;t use a domain specific method in another domain */
+		if (! ((domain != target_domain) &amp;amp;&amp;amp; !info-&amp;gt;domain_neutral)) {
+			MonoVTable *vtable;
+			MonoException *tmpEx;
+
+			mono_jit_stats.methods_lookups++;
+			vtable = mono_class_vtable (domain, method-&amp;gt;klass);
+			g_assert (vtable);
+			tmpEx = mono_runtime_class_init_full (vtable, ex == NULL);
+			if (tmpEx) {
+				*ex = tmpEx;
+				return NULL;
+			}
+			return mono_create_ftnptr (target_domain, info-&amp;gt;code_start);
+		}
+	}
+
+	code = mono_jit_compile_method_inner (method, target_domain, opt, ex);//实际编译点
+	···
+	p = mono_create_ftnptr (target_domain, code);
+    ···
+	return p;
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里隐去了编译 invoke 函数的代码和一些细枝末节的 check 。可以看到， mono_jit_compile_method_with_opt 函数的主要流程是首先查表看当前要编译的函数是否已经编译，如果已经编译，则直接返回编译好的结果；否则，调用 mono_jit_compile_method_inner 函数实际编译并注册到 target_domain 中，随后通过 mono_create_ftnptr 函数获取函数指针。因为这部分代码是复用的，除了首次加载 DLL 之外的一些情景也会调用该函数，其中存在一些函数已经编译的情况。 mono_jit_compile_method_inner 函数以下是一些与机器相关的具体机器码生成过程，对虚拟机感兴趣的朋友可以进一步学习，这里就不继续深究了，简单把整个调用过程整理一下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;graph TD;
+start--&amp;gt;mono_precompile_assemblies
+mono_precompile_assemblies--&amp;gt;|foreach|mono_precompile_assembly
+mono_precompile_assembly--&amp;gt;|函数体|mono_jit_compile_method
+mono_precompile_assembly--&amp;gt;|invoke|mono_marshal_get_runtime_invoke
+mono_marshal_get_runtime_invoke--&amp;gt;mono_jit_compile_method
+mono_jit_compile_method--&amp;gt;mono_jit_compile_method_with_opt
+mono_jit_compile_method_with_opt--&amp;gt;|已经编译过|mono_create_ftnptr
+mono_jit_compile_method_with_opt--&amp;gt;|没有编译过|mono_jit_compile_method_inner
+mono_jit_compile_method_inner--&amp;gt;mini_method_compile
+mini_method_compile--&amp;gt;mono_codegen
+mono_codegen--&amp;gt;mono_create_ftnptr
+mono_create_ftnptr--&amp;gt;finish&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;至此我们的分析完成了，尽管虚拟机可以使用花样繁多的语言开发，但是最终在执行前一需要恢复成本地机器码去执行。这就给了我们下 hook 的机会，下一节介绍通过修改 mono 编译出来的汇编函数逻辑，完成对游戏流程的动态修改。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X03  通过修改虚拟机生成的汇编指令修改游戏逻辑&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来我们尝试利用前面两节介绍的知识，修改游戏的执行逻辑.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;private void MainButtonClicked()
+{
+	...
+		case UI_ConfirmationPopup.ScreenType.BuyCoins:
+		{
+			int num = Tuning.ShopCoinPackagesPrices[this.coinIndex];
+			int num2 = Tuning.ShopCoinPackages[this.coinIndex];
+			if (UserProfile.Gems &amp;gt;= num)
+			{
+				UserProfile.Gold += num2;
+				UserProfile.Gems -= num;
+				this.purchasedAmount = num2;
+				this.screenType = UI_ConfirmationPopup.ScreenType.CoinsPurchased;
+				Events.Instance.UI_MARKET_PURCHASED();
+				GeneralManager.Analytics.ReportGoldPurchased(this.coinIndex, num);
+				this.CallItQuits();
+			}
+			else
+			{
+				this.DisableAssets(true);
+				this.LaunchOutOfGems();
+			}
+			break;
+		}
+	...
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们选择 MainButtonClicked 这个函数作为目标，其中的购买金币分支会检测当前钻石数量，如果数量够则进行购买，否则不进行购买。在 mono_jit_compile_method_with_opt 函数上下钩子，检查第一个参数 method 的 name 字段是否包含“ MainButtonClicked ”，在包含这个字段时，将 gpointer 指向的函数 dump 出来。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;	if(!strstr(name, &quot;MainButtonClicked&quot;)) return target(arg1, arg2, arg3);
+	LOGE(&quot;find MainButtonClicked&quot;);
+	void* funcptr = target(arg1, arg2, arg3);
+	LOGE(&quot;function MainButtonClicked base is: %0lx&quot;, funcptr);
+	int fd = open(&quot;/data/local/tmp/dump&quot;, O_WRONLY | O_CREAT);
+	if(fd == -1){
+		LOGE(&quot;open error: %s&quot;, strerror(errno));
+		exit(-1);
+	}
+	if(write(fd, funcptr, 0x1000 * 0x1000) == -1){
+		LOGE(&quot;write error: %s&quot;, strerror(errno));
+		exit(-1);
+	}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如上述代码所示，这次 hook 在 mono_jit_compile_method_with_opt 函数每次编译 C# 函数点进行判断，当被编译的函数是我们的目标 MainButtonClicked 时，对内存进行 dump ，将编译成机器码的 MainButtonClicked 输出出来，接下来，使用 IDA 对该函数进行分析。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在加载该函数时需要注意，由于 dump 出来的是部分内存，不像标准的 elf 文件一样有各种配置能够加载，识别为 binary file ，需要手动指定处理器架构，这里是 ARM 。另外需要指定硬盘文件偏移和程序在内存中偏移的映射关系，注意上边代码中第四行输出了程序在内存中的地址，IDA 能够利用 file_offset+memory_base 计算出相当一部分的跳转指令的跳转地址（当然，由于我们只 dump 了很小一部分内存，仍然有很多依赖相对偏移寻址的跳转目标无法恢复，但对程序结构的分析无太大影响）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过 IDA 加载后，可以看出函数明显是一个 switch-case 结构：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-18af552a8585f0802182b8d233b5501a_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;726&quot; data-rawheight=&quot;485&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个结构与 MainButtonClicked 函数原始形式一致，通过分析二者关系可以定位到金币购买时点击确定按键对应到的 case ：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;		case UI_ConfirmationPopup.ScreenType.BuyCoins:
+		{
+			int num = Tuning.ShopCoinPackagesPrices[this.coinIndex];
+			int num2 = Tuning.ShopCoinPackages[this.coinIndex];
+			if (UserProfile.Gems &amp;gt;= num)
+			{
+				UserProfile.Gold += num2;
+				UserProfile.Gems -= num;
+				this.purchasedAmount = num2;
+				this.screenType = UI_ConfirmationPopup.ScreenType.CoinsPurchased;
+				Events.Instance.UI_MARKET_PURCHASED();
+				GeneralManager.Analytics.ReportGoldPurchased(this.coinIndex, num);
+				this.CallItQuits();
+			}
+			else
+			{
+				this.DisableAssets(true);
+				this.LaunchOutOfGems();
+			}
+			break;
+		}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-cdc0d4b206e0401f62255f720f602fe9_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;574&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;途中的两个分支就是 C# 中的 if-else 。由于高级语言数据结构比较复杂，反应在机器码层面取数据涉及问题较多，因此修改取数据比较困难。但是可以看到，上面的 block 中 R5 是最后取出的当前剩余宝石，当与其进行比较之后，如果宝石充足，则会跳转到红色分支开始购买，增加金币扣除宝石。因此应当修改的逻辑是图中 1 处，通过 nop（mov r0, r0）掉跳转强制执行购买流程。为了在修改金币的同时不减少宝石，将2处宝石运算改为 add r0 , r0 , r5 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;确定了修改点之后将上述两条命令汇编，使用之前的 hook 稍作修改，当执行到 MainButtonClicked 编译时修改程序机器码（ mono 已经很贴心的 mprotect 过了），完成对游戏的修改，接下来尝试购买宝石，哇，奇迹发生了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X04  后记&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本文从一个简单小游戏的破解出发，介绍了 Unity3D 引擎使用 mono 进行 C# JIT 编译的思路，并设计了实验性质的 hook 方案。其实针对这款简单的小游戏，更简单的破解方式还有很多种，牛刀杀鸡是为了以后更容易杀牛。因为在实际的环境中，分析游戏面临着过反调试、脱壳、对抗去符号、DLL 解密等多重挑战。限于篇幅不可能对这些技术一一介绍，感兴趣的朋友可以自行百度/谷歌。另外，由于使用了 AOT 机制，文章中介绍的 hook 思路可能会更适用于 iOS ，条件所限没有尝试。攻击是为了更好的防御，使用的实例，介绍的工具都为了更好的说明技术本身，请不要用违法的目的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;参考文献&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;[1]: &lt;a href=&quot;http://www.cnblogs.com/murongxiaopifu/p/4211964.html&quot;&gt;Mono为何能跨平台？聊聊CIL(MSIL) - 慕容小匹夫 - 博客园&lt;/a&gt;	&quot;Mono为何能跨平台？聊聊CIL(MSIL)&quot;&lt;/p&gt;&lt;p&gt;[2]: &lt;a href=&quot;http://www.ecma-international.org/&quot;&gt;Welcome to Ecma International&lt;/a&gt;	&quot;EMCA官网&quot;&lt;/p&gt;&lt;p&gt;[3]: &lt;a href=&quot;https://github.com/ele7enxxh/Android-Inline-Hook&quot;&gt;ele7enxxh/Android-Inline-Hook&lt;/a&gt;	&quot;Android Inline Hook&quot;&lt;/p&gt;&lt;p&gt;[4]: &lt;a href=&quot;https://github.com/mono/mono&quot;&gt;mono/mono&lt;/a&gt;	&quot;Mono Project on Github&quot;&lt;/p&gt;&lt;p&gt;[5]: &lt;a href=&quot;https://bbs.pediy.com/thread-141355.htm&quot;&gt;[原创]发个Android平台上的注入代码-『Android安全』-看雪安全论坛&lt;/a&gt;	&quot;古河大大libinject&quot;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>perhaps</author>
+<guid isPermaLink="false">2017-11-07-30703785</guid>
+<pubDate>Tue, 07 Nov 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Z3一把梭：用约束求解搞定一类CTF题</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-10-29-30548907.htm</link>
@@ -767,131 +934,6 @@ memcpy(buf, other_data, other_data_len);
 <author>Jinzhao Liu</author>
 <guid isPermaLink="false">2017-05-12-26815897</guid>
 <pubDate>Fri, 12 May 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Pwn2Own 2017 Linux 内核提权漏洞分析</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-05-02-26674557.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Pwn2Own 2017 Linux 内核提权漏洞分析&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26674557&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b8be0d30a9433bde321d233c7e5dface_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;0.前言&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在2017年PWN2OWN大赛中，长亭安全研究实验室（Chaitin Security Research Lab）成功演示了Ubuntu 16.10 Desktop的本地提权。本次攻击主要利用了linux内核IPSEC框架(自linux2.6开始支持)中的一个内存越界漏洞，CVE编号为CVE-2017-7184。&lt;/p&gt;&lt;p&gt;众所周知，Linux的应用范围甚广,我们经常使用的Android、Redhat、CentOS、Ubuntu、Fedora等都使用了Linux操作系统。在PWN2OWN之后，Google、Redhat也针对相应的产品发出了漏洞公告或补丁(见参考资料)。并表示了对长亭安全研究实验室的致谢，在此也建议还没有升级服务器内核的小伙伴们及时更新内核到最新版本:P&lt;/p&gt;&lt;p&gt;不同于通常的情况，为了增加比赛难度，本次PWN2OWN大赛使用的Linux版本开启了诸多漏洞缓解措施，kASLR、SMEP、SMAP都默认开启，在这种情况下，漏洞变得极难利用，很多漏洞可能仅仅在这些缓解措施面前就会败下阵来。&lt;/p&gt;&lt;p&gt;另外值得一提的是，本次利用的漏洞隐蔽性极高，在linux内核中存在的时间也非常长。因为触发这个漏洞不仅需要排布内核数据结构，而且需要使内核处理攻击者精心构造的数据包，使用传统的fuzz方式几乎是不可能发现此漏洞的。&lt;/p&gt;&lt;br&gt;&lt;p&gt;最终，长亭安全研究实验室成功利用这个漏洞在PWN2OWN的赛场上弹出了PWN2OWN历史上的第一个xcalc, ZDI的工作人员们看到了之后也表示惊喜不已。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-501fff7430c7f2ec24267dd1c66adea8_r.png&quot; data-rawwidth=&quot;593&quot; data-rawheight=&quot;200&quot;&gt;&lt;p&gt;下面一起来看一下整个漏洞的发现和利用过程。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1.IPSEC协议简介&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;IPSEC是一个协议组合，它包含AH、ESP、IKE协议，提供对数据包的认证和加密功能。&lt;/p&gt;&lt;p&gt;为了帮助更好的理解漏洞成因，下面有几个概念需要简单介绍一下&lt;/p&gt;&lt;p&gt;&lt;b&gt;(1) SA(Security Associstion)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;SA由spi、ip、安全协议标识(AH或ESP)这三个参数唯一确定。SA定义了ipsec双方的ip地址、ipsec协议、加密算法、密钥、模式、抗重放窗口等。&lt;/p&gt;&lt;p&gt;&lt;b&gt;(2) AH(Authentication Header)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;AH为ip包提供数据完整性校验和身份认证功能，提供抗重放能力，验证算法由SA指定。&lt;/p&gt;&lt;p&gt;&lt;b&gt;(3) ESP(Encapsulating security payload)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;ESP为ip数据包提供完整性检查、认证和加密。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2.Linux内核的IPSEC实现&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在linux内核中的IPSEC实现即是xfrm这个框架，关于xfrm的代码主要在net/xfrm以及net/ipv4下。&lt;/p&gt;&lt;p&gt;以下是/net/xfrm下的代码的大概功能&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;xfrm_state.c     状态管理
-xfrm_policy.c    xfrm策略管理
-xfrm_algo.c      算法管理
-xfrm_hash.c      哈希计算函数
-xfrm_input.c     安全路径(sec_path)处理， 用于处理进入的ipsec包
-xfrm_user.c      netlink接口的SA和SP(安全策略)管理
-&lt;/code&gt;&lt;br&gt;&lt;p&gt;其中xfrm_user.c中的代码允许我们向内核发送netlink消息来调用相关handler实现对SA和SP的配置，其中涉及处理函数如下。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;xfrm_dispatch[XFRM_NR_MSGTYPES] = {
-[XFRM_MSG_NEWSA       - XFRM_MSG_BASE] = { .doit = xfrm_add_sa        },
-[XFRM_MSG_DELSA       - XFRM_MSG_BASE] = { .doit = xfrm_del_sa        },
-[XFRM_MSG_GETSA       - XFRM_MSG_BASE] = { .doit = xfrm_get_sa,
-	.dump = xfrm_dump_sa,
-	.done = xfrm_dump_sa_done  },
-[XFRM_MSG_NEWPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_add_policy    },
-[XFRM_MSG_DELPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_get_policy    },
-[XFRM_MSG_GETPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_get_policy,
-	                                   .dump = xfrm_dump_policy,
-	                                   .done = xfrm_dump_policy_done },
-[XFRM_MSG_ALLOCSPI    - XFRM_MSG_BASE] = { .doit = xfrm_alloc_userspi },
-[XFRM_MSG_ACQUIRE     - XFRM_MSG_BASE] = { .doit = xfrm_add_acquire   },
-[XFRM_MSG_EXPIRE      - XFRM_MSG_BASE] = { .doit = xfrm_add_sa_expire },
-[XFRM_MSG_UPDPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_add_policy    },
-[XFRM_MSG_UPDSA       - XFRM_MSG_BASE] = { .doit = xfrm_add_sa        },
-[XFRM_MSG_POLEXPIRE   - XFRM_MSG_BASE] = { .doit = xfrm_add_pol_expire},
-[XFRM_MSG_FLUSHSA     - XFRM_MSG_BASE] = { .doit = xfrm_flush_sa      },
-[XFRM_MSG_FLUSHPOLICY - XFRM_MSG_BASE] = { .doit = xfrm_flush_policy  },
-[XFRM_MSG_NEWAE       - XFRM_MSG_BASE] = { .doit = xfrm_new_ae  },
-[XFRM_MSG_GETAE       - XFRM_MSG_BASE] = { .doit = xfrm_get_ae  },
-[XFRM_MSG_MIGRATE     - XFRM_MSG_BASE] = { .doit = xfrm_do_migrate    },
-[XFRM_MSG_GETSADINFO  - XFRM_MSG_BASE] = { .doit = xfrm_get_sadinfo   },
-[XFRM_MSG_NEWSPDINFO  - XFRM_MSG_BASE] = { .doit = xfrm_set_spdinfo,
-		                           .nla_pol = xfrma_spd_policy,
-				           .nla_max = XFRMA_SPD_MAX },
-[XFRM_MSG_GETSPDINFO  - XFRM_MSG_BASE] = { .doit = xfrm_get_spdinfo   },
-};&lt;/code&gt;&lt;p&gt;下面简单介绍一下其中几个函数的功能:&lt;/p&gt;&lt;p&gt;&lt;b&gt;xfrm_add_sa&lt;/b&gt;&lt;/p&gt;&lt;p&gt;创建一个新的SA，并可以指定相关attr，在内核中，是用一个xfrm_state结构来表示一个SA的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;xfrm_del_sa&lt;/b&gt;&lt;/p&gt;&lt;p&gt;删除一个SA，也即删除一个指定的xfrm_state。&lt;/p&gt;&lt;p&gt;&lt;b&gt;xfrm_new_ae&lt;/b&gt;&lt;/p&gt;&lt;p&gt;根据传入参数，更新指定xfrm_state结构中的内容。&lt;/p&gt;&lt;p&gt;&lt;b&gt;xfrm_get_ae&lt;/b&gt;&lt;/p&gt;&lt;p&gt;根据传入参数，查询指定xfrm_state结构中的内容(包括attr)。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;3.漏洞成因&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当我们发送一个XFRM_MSG_NEWSA类型的消息时，即可调用xfrm_add_sa函数来创建一个新的SA，一个新的xfrm_state也会被创建。在内核中，其实SA就是使用xfrm_state这个结构来表示的。&lt;/p&gt;&lt;br&gt;&lt;p&gt;若在netlink消息里面使用XFRMA_REPLAY_ESN_VAL这个attr，一个replay_state_esn结构也会被创建。它的结构如下所示，可以看到它包含了一个bitmap，这个bitmap的长度是由bmp_len这个成员变量动态标识的。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;struct xfrm_replay_state_esn {
-    unsigned int bmp_len;
-    __u32   oseq;
-    __u32   seq;
-    __u32   oseq_hi;
-    __u32   seq_hi;
-    __u32   replay_window;
-    __u32   bmp[0];
-};
-&lt;/code&gt;&lt;p&gt;内核对这个结构的检查主要有以下几种情况:&lt;/p&gt;&lt;p&gt;首先，xfrm_add_sa函数在调用verify_newsa_info检查从用户态传入的数据时，会调用verify_replay来检查传入的replay_state_esn结构。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;static inline int verify_replay(struct xfrm_usersa_info *p,
-				struct nlattr **attrs)
-{
-	struct nlattr *rt = attrs[XFRMA_REPLAY_ESN_VAL];
-	struct xfrm_replay_state_esn *rs;
-
-	if (p-&amp;gt;flags &amp;amp; XFRM_STATE_ESN) {
-		if (!rt)
-			return -EINVAL;
-
-		rs = nla_data(rt);
-
-		if (rs-&amp;gt;bmp_len &amp;gt; XFRMA_REPLAY_ESN_MAX / sizeof(rs-&amp;gt;bmp[0]) / 8)
-			return -EINVAL;
-
-		if (nla_len(rt) &amp;lt; xfrm_replay_state_esn_len(rs) &amp;amp;&amp;amp;
-		    nla_len(rt) != sizeof(*rs))
-			return -EINVAL;
-	}
-
-	if (!rt)
-		return 0;
-
-	/* As only ESP and AH support ESN feature. */
-	if ((p-&amp;gt;id.proto != IPPROTO_ESP) &amp;amp;&amp;amp; (p-&amp;gt;id.proto != IPPROTO_AH))
-		return -EINVAL;
-
-	if (p-&amp;gt;replay_window != 0)
-		return -EINVAL;
-
-	return 0;
-}
-&lt;/code&gt;&lt;p&gt;这个函数要求replay_state_esn结构的bmp_len不可以超过最大限制XFRMA_REPLAY_ESN_MAX。&lt;/p&gt;&lt;br&gt;&lt;p&gt;另外，在这个创建xfrm_state的过程中，如果检查到成员中有xfrm_replay_state_esn结构，如下函数中的检查便会被执行。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int xfrm_init_replay(struct xfrm_state *x)
-{
-	struct xfrm_replay_state_esn *replay_esn = x-&amp;gt;replay_esn;
-
-	if (replay_esn) {
-		if (replay_esn-&amp;gt;replay_window &amp;gt;
-		    replay_esn-&amp;gt;bmp_len * sizeof(__u32) * 8) &amp;lt;-----检查replay_window
-			return -EINVAL;
-
-		if (x-&amp;gt;props.flags &amp;amp; XFRM_STATE_ESN) {
-			if (replay_esn-&amp;gt;replay_window == 0)
-				return -EINVAL;
-			x-&amp;gt;repl = &amp;amp;xfrm_replay_esn;
-		} else
-			x-&amp;gt;repl = &amp;amp;xfrm_replay_bmp;
-	} else
-		x-&amp;gt;repl = &amp;amp;xfrm_replay_legacy;
-
-	return 0;
-}
-&lt;/code&gt;&lt;p&gt;这个函数确保了replay_window不会比bitmap的长度大，否则函数会直接退出。&lt;/p&gt;&lt;br&gt;&lt;p&gt;下面再来看一下xfrm_new_ae这个函数,它首先会解析用户态传入的几个attr，然后根据spi的哈希值以及ip找到指定的xfrm_state，之后xfrm_replay_verify_len中会对传入的replay_state_esn结构做一个检查，通过后即会调用xfrm_update_ae_params函数来更新对应的xfrm_state结构。下面我们来看一下xfrm_replay_verify_len这个函数。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;static inline int xfrm_replay_verify_len(struct xfrm_replay_state_esn *replay_esn,
-					 struct nlattr *rp)
-{
-	struct xfrm_replay_state_esn *up;
-	int ulen;
-
-	if (!replay_esn || !rp)
-		return 0;
-
-	up = nla_data(rp);
-	ulen = xfrm_replay_state_esn_len(up);
-
-	if (nla_len(rp) &amp;lt; ulen || xfrm_replay_state_esn_len(replay_esn) != ulen)
-		return -EINVAL;
-
-	return 0;
-}
-&lt;/code&gt;&lt;p&gt;我们可以看到这个函数没有对replay_window做任何的检查，只需要提供的bmp_len与xfrm_state中原来的bmp_len一致就可以通过检查。所以此时我们可以控制replay_window超过bmp_len。之后内核在处理相关IPSEC数据包进行重放检测相关的操作时，对这个bitmap结构的读写操作都可能会越界。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;4.漏洞利用&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;(1).权限不满足&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;	/* All operations require privileges, even GET */
-	if (!netlink_net_capable(skb, CAP_NET_ADMIN))
-		return -EPERM;
-&lt;/code&gt;&lt;p&gt;在&lt;b&gt;xfrm_user_rcv_msg&lt;/b&gt;函数中，我们可以看到，对于相关的操作，其实都是需要CAP_NET_ADMIN权限的。那是不是我们就无法触发这个漏洞了呢？&lt;/p&gt;&lt;p&gt;答案是否定的，在这里我们可以利用好linux的命名空间机制，在ubuntu，Fedora等发行版，User namespace是默认开启的。非特权用户可以创建用户命名空间、网络命名空间。在命名空间内部，我们就可以有相应的capability来触发漏洞了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;(2).越界写&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当内核在收到ipsec的数据包时，最终会在xfrm_input解包并进行相关的一些操作。在xfrm_input中，找到对应的xfrm_state之后，根据数据包内容进行重放检测的时候会执行x-&amp;gt;repl-&amp;gt;advance(x, seq);，即xfrm_replay_advance_esn这个函数。&lt;br&gt;这个函数会对bitmap进行如下操作&lt;/p&gt;&lt;p&gt;1.清除[last seq, current seq)的bit&lt;br&gt;2.设置bmp[current seq] = 1&lt;/p&gt;&lt;br&gt;&lt;p&gt;我们可以指定好spi、seq等参数(内核是根据spi的哈希值以及ip地址来确定SA的)，并让内核来处理我们发出的ESP数据包，多次进行这个操作即可达到对越界任意长度进行写入任意值。&lt;/p&gt;&lt;p&gt;&lt;b&gt;(3).越界读&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们的思路是使用越界写，改大下一个replay_state_esn的结构中的bmp_len。之后我们就可以利用下一个bitmap结构进行越界读。所以我们需要两个相邻的replay_state结构。我们可以使用defragment技巧来达到这个效果。即首先分配足够多的同样大小的replay_state结构把堆上原来的坑填满，之后便可大概率保证连续分配的replay_state结构是相邻的。&lt;/p&gt;&lt;p&gt;如上所述，使用越界写的能力将下一个bitmap长度改大，即可使用这个bitmap结构做越界读了。&lt;/p&gt;&lt;br&gt;&lt;p&gt;图中所示为被改掉bmp_len的bitmap结构。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cbbdaf449949bbe2dfb8f4c35d594f86_r.png&quot; data-rawwidth=&quot;994&quot; data-rawheight=&quot;352&quot;&gt;&lt;p&gt;&lt;b&gt;(4).绕过kASLR&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们通过xfrm_del_sa接口把没用的xfrm_state都给删掉。这样就可以在堆上留下很多的坑。之后我们可以向内核喷射很多struct file结构体填在这些坑里。&lt;/p&gt;&lt;br&gt;&lt;p&gt;如下，利用上面已经构造出的越界读能力，我们可以泄露一些内核里的指针来算出内核的加载地址和bitmap的位置。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-03a554f1cb085f935864d6dfc92cfcc4_r.png&quot; data-rawwidth=&quot;876&quot; data-rawheight=&quot;582&quot;&gt;&lt;br&gt;&lt;h3&gt;&lt;b&gt;5.内核任意地址读写及代码执行&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;因为已经绕过了内核地址随机化,这时我们可以进行内核ROP构造了。&lt;/p&gt;&lt;p&gt;1.在这个漏洞的利用当中，我们可以在bitmap中伪造一个file_operations结构。&lt;/p&gt;&lt;br&gt;&lt;p&gt;2.之后通过越界写可以改写掉我们刚刚在内核中喷射的struct file结构体的file_operations指针，使其指向合适的ROPgadget。&lt;/p&gt;&lt;p&gt;3.调用llseek函数(实际上已经是rop gadget)来执行我们事先已经准备好的ROP链。&lt;/p&gt;&lt;p&gt;4.通过多次改写file_operations结构中的llseek函数指针来实现多次执行ROPgadget实现提权。&lt;/p&gt;&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-85c692073833115861cb228708db24ce_r.png&quot; data-rawwidth=&quot;926&quot; data-rawheight=&quot;375&quot;&gt;&lt;br&gt;&lt;p&gt;如上所述，因为我们的数据都是伪造在内核里面，所以这种利用方式其实是可以同时绕过SMEP和SMAP的。&lt;/p&gt;&lt;h3&gt;&lt;b&gt;6.权限提升&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;下面是长亭安全研究实验室在pwn2own2017上弹出xcalc的瞬间。&lt;/p&gt;&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-dc7307c80c802c866f0e8d7c42cf5ca8_r.png&quot; data-rawwidth=&quot;2104&quot; data-rawheight=&quot;1466&quot;&gt;&lt;h2&gt;&lt;b&gt;5.后记&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;非常感谢slipper老师的指导和讲解 :P&lt;/p&gt;&lt;p&gt;感谢长亭安全研究实验室的所有小伙伴:P&lt;/p&gt;&lt;h2&gt;&lt;b&gt;6.参考资料&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;IPSEC协议: &lt;a href=&quot;https://en.wikipedia.org/wiki/IPsec&quot; data-editable=&quot;true&quot; data-title=&quot;IPsec - Wikipedia&quot; class=&quot;&quot;&gt;IPsec - Wikipedia&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;linux命名空间机制: &lt;a href=&quot;https://lwn.net/Articles/531114/&quot; data-editable=&quot;true&quot; data-title=&quot;Namespaces in operation, part 1: namespaces overview&quot; class=&quot;&quot;&gt;Namespaces in operation, part 1: namespaces overview&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;CVE-2017-7184: &lt;a href=&quot;http://www.openwall.com/lists/oss-security/2017/03/29/2&quot; data-editable=&quot;true&quot; data-title=&quot;CVE-2017-7184: kernel: Local privilege escalation in XFRM framework&quot; class=&quot;&quot;&gt;CVE-2017-7184: kernel: Local privilege escalation in XFRM framework&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;@thezdi: &lt;a href=&quot;https://twitter.com/thezdi/status/842132539330375684&quot; class=&quot;&quot;&gt;https://twitter.com/thezdi/status/842132539330375684&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;Android漏洞公告:&lt;a href=&quot;https://source.android.com/security/bulletin/2017-05-01&quot;&gt;https://source.android.com/security/bulletin/2017-05-01&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;Redhat:&lt;a href=&quot;https://access.redhat.com/security/cve/cve-2017-7184&quot; data-editable=&quot;true&quot; data-title=&quot;Red Hat Customer Portal&quot;&gt;Red Hat Customer Portal&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;</description>
-<author>赵汉青</author>
-<guid isPermaLink="false">2017-05-02-26674557</guid>
-<pubDate>Tue, 02 May 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
