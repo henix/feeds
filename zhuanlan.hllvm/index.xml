@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 14 Nov 2017 10:17:10 +0800</lastBuildDate>
+<lastBuildDate>Wed, 22 Nov 2017 18:00:46 +0800</lastBuildDate>
 <item>
 <title>JSR292: InvokeDynamic和MethodHandle的优化</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-11-11-30936412.htm</link>
@@ -16,6 +16,102 @@
 <author>Shijie XU</author>
 <guid isPermaLink="false">2017-11-11-30936412</guid>
 <pubDate>Sat, 11 Nov 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Dafny与程序验证</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-10-21-30321583.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Dafny与程序验证&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30321583&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-8f49af88768b20c6808b564c74a43abe_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;B大以前写过一个&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25568785&quot;&gt;怎样写出没有 bug 的程序：程序证明的简单例子&lt;/a&gt; ，是用Idris写的，我也来写一个，不过方法不太一样。&lt;/p&gt;&lt;p&gt;Dafny是MSR开发的程序设计语言，它混合了OOP和FP编程范式，并且自带程序验证功能，可以通过霍尔逻辑证明程序正确性。&lt;/p&gt;&lt;p&gt;它的语法非常简单，看起来就像C++，Scala和Haskell的混合。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;变量(scala风格，只是没有val)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;var x:Tree;
+var y:nat := 0;&lt;/code&gt;&lt;ul&gt;&lt;li&gt;ADT(Haskell风格)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)
+datatype List&amp;lt;T&amp;gt; = Nil | Cons(head: T, tail: List&amp;lt;T&amp;gt;)
+Cons(5,Nil).Cons? &amp;amp;&amp;amp; Cons(5, Nil).head == 5&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Methed/Lemma(命令式风格的函数)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;expr表示表达式，col表示集合&lt;/p&gt;&lt;p&gt;modifies用来标记函数的副作用，requires是前置命题，ensures是后置命题，decreses用来证明递归函数可终止。&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;method/lemma Abs(x: int) returns (y: int)
+    modifies &amp;lt;col&amp;gt;
+    requires &amp;lt;expr&amp;gt;
+    ensures &amp;lt;expr&amp;gt;
+    decreases &amp;lt;expr&amp;gt;
+{
+    if x &amp;lt; 0 { return -x;}
+    else {return x;}
+}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Function/Predicate(函数式风格的函数)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;reads用来标记函数捕获的外部变量&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;function abs(x: int):int
+    requires &amp;lt;expr&amp;gt;
+    ensures &amp;lt;expr&amp;gt;
+    reads &amp;lt;col&amp;gt;
+    decreases &amp;lt;expr&amp;gt;
+{
+    if x &amp;lt; 0 then -x else x
+}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Assert用来下断言，只不过这个断言不是运行期的，而是编译期的，支持forall和exist量词以及基本的逻辑运算符。把Assert改为Assume，可以用来假定某些命题成立。&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;assert forall x :: P(x) ==&amp;gt; Q(x)
+assert forall(i | 0 &amp;lt;= i&amp;lt; n - m) { b[i] := a[m + i];}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;模式匹配(Scala风格，match的位置略有差异)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;match t
+	case Empty =&amp;gt; …
+	case Node(l:Empty,v,r) =&amp;gt; …&lt;/code&gt;&lt;ul&gt;&lt;li&gt;循环&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;可用invariant标记循环不变量&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;var i:=0
+while i&amp;lt;n
+	invariant i&amp;lt;=n
+	decreases n-i
+{}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;支持C++类的写法，支持Lambda表达式，支持Trait，支持yield惰性流，有复杂的模块系统，支持泛型类和高阶类型（都是用&amp;lt;&amp;gt;表达）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;以上就是Dafny常用的语法，还有一些不常用的语法可以参考&lt;a href=&quot;https://github.com/Microsoft/dafny/blob/master/Docs/DafnyRef/out/DafnyRef.pdf&quot;&gt;DafnyRef&lt;/a&gt;&lt;/p&gt;&lt;p&gt;一起来看一个稍微复杂一点的例子吧！写一个二叉搜索树的插入函数&lt;/p&gt;&lt;p&gt;定义二叉树&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)&lt;/code&gt;&lt;p&gt;在类里定义变量&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;class BST
+{
+    var tree:Tree;&lt;/code&gt;&lt;p&gt;定义in_tree和is_ordered函数，分别表示某个元素在树内和树符合二叉搜索树的条件&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;predicate method is_intree(t:Tree,x:real)
+{
+    match t
+        case Empty =&amp;gt; false
+        case Node(l,v,r) =&amp;gt; x==v || is_intree(l,x) || is_intree(r,x)
+}
+predicate is_ordered(t:Tree)
+{
+    match t
+        case Empty =&amp;gt; true
+        case Node(l,v,r) =&amp;gt; is_ordered(l) &amp;amp;&amp;amp; is_ordered(r) &amp;amp;&amp;amp;
+            (forall x::is_intree(l,x) ==&amp;gt; x&amp;lt;v) &amp;amp;&amp;amp;
+            (forall y::is_intree(r,y) ==&amp;gt; y&amp;gt;=v)
+}&lt;/code&gt;&lt;p&gt;定义函数insert_into_left和insert_into_right&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;protected function method insert_into_left(t:Tree,x:real):Tree
+    requires t!=Empty
+    requires is_ordered(t)
+    ensures is_ordered(insert_into_left(t,x))
+{
+    match t.left
+        case Empty =&amp;gt; Node(Empty,x,Empty)
+        case Node(l,v,r) =&amp;gt;
+            if x&amp;gt;=v then
+                insert_into_right(t.left,x)
+            else
+                insert_into_left(t.left,x)
+}
+
+protected function method insert_into_right(t:Tree,x:real):Tree
+    requires t!=Empty
+    requires is_ordered(t)
+    ensures is_ordered(insert_into_right(t,x))
+{
+    match t.right
+        case Empty =&amp;gt; Node(Empty,x,Empty)
+        case Node(l,v,r) =&amp;gt;
+            if x&amp;gt;=v then
+                insert_into_right(t.right,x)
+            else
+                insert_into_left(t.right,x)
+}
+&lt;/code&gt;&lt;p&gt;以上全是pure function，最后，我们回到oop的世界，定义dirty的类成员函数&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;method insert(x:real)
+    requires is_ordered(tree)
+    modifies this
+    ensures is_ordered(tree)
+{
+    match tree
+        case Empty =&amp;gt; {tree:=Node(Empty,x,Empty);}
+        case Node(l,v,r) =&amp;gt; 
+        {
+            if x&amp;gt;=v
+            {
+                tree:=insert_into_right(tree,x);
+            }
+            else
+            {
+                tree:=insert_into_left(tree,x);
+            }
+        }
+}&lt;/code&gt;&lt;p&gt;编译的时候，编译器会帮你验证你写的那些requires,ensures,assert是否满足，如果不满足，它会告诉你哪些命题无法证明。经过验证之后，你可以选择将Dafny代码编译为C#或编译成dll被其他.Net程序调用。&lt;/p&gt;&lt;p&gt;以上只是一个简单介绍，具体代码在&lt;a href=&quot;https://github.com/NiceKingWei/algorithm/blob/master/dafny/bst.dfy&quot;&gt;bst.dfy&lt;/a&gt;&lt;/p&gt;&lt;p&gt;我的slides &lt;a href=&quot;https://github.com/zju-lambda/slides/blob/master/Verification%20in%20Dafny.pdf&quot;&gt;Verification in Dafny&lt;/a&gt;&lt;/p&gt;&lt;p&gt;关于Dafny的更多精彩内容， 可以关注Dafny的项目主页，里面有一些学习资源 &lt;a href=&quot;https://www.microsoft.com/en-us/research/project/dafny-a-language-and-program-verifier-for-functional-correctness/?from=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fprojects%2Fdafny%2Freference.aspx&quot;&gt;MSR:Dafny&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>魏王雅望非常</author>
+<guid isPermaLink="false">2017-10-21-30321583</guid>
+<pubDate>Sat, 21 Oct 2017 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>SIMD via C#</title>
@@ -470,17 +566,6 @@ Oracle Labs有一个“神秘项目”叫做Substrate VM，主要用于将使用
 <author>RednaxelaFX</author>
 <guid isPermaLink="false">2017-05-19-26988266</guid>
 <pubDate>Fri, 19 May 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Google I/O 2017的编程语言实现相关演讲</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-05-18-26966166.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Google I/O 2017的编程语言实现相关演讲&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26966166&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-放个笔记给自己关注一下：&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://events.google.com/io/schedule/?section=may-17&amp;amp;sid=1ce10bee-3c21-4115-b01c-f7bf4d977064&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Compiling for the Web with WebAssembly&quot;&gt;Compiling for the Web with WebAssembly&lt;/a&gt;, Wed. May 17, 5PM - 6PM&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;录像：&lt;a href=&quot;https://www.youtube.com/watch?v=6v4E6oksar0&amp;amp;list=PLNYkxOF6rcICniLJ2rfj0FexlA-9zmJJE&amp;amp;index=5&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Compiling for the Web with WebAssembly (Google I/O &#39;17)&quot;&gt;Compiling for the Web with WebAssembly (Google I/O &#39;17)&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;https://events.google.com/io/schedule/?section=may-17&amp;amp;sid=06ad955b-2387-45b8-9a5b-9ebd00a6f952&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;V8, Advanced JavaScript, &amp;amp; the next performance frontier&quot;&gt;V8, Advanced JavaScript, &amp;amp; the next performance frontier&lt;/a&gt;, Thu. May 18, 5:30PM - 6:30PM&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;录像：&lt;a href=&quot;https://www.youtube.com/watch?v=EdFDJANJJLs&quot; data-editable=&quot;true&quot; data-title=&quot;V8, Advanced JavaScript, &amp;amp; the Next Performance Frontier (Google I/O &#39;17)&quot; class=&quot;&quot;&gt;V8, Advanced JavaScript, &amp;amp; the Next Performance Frontier (Google I/O &#39;17)&lt;/a&gt;&lt;/li&gt;&lt;li&gt;这个演讲的内容还挺不错，主要介绍了V8新的Ignition+TurboFan执行引擎的设计取舍，V8在新benchmark上的表现，提了一句V8 GC方面的改进Orinoco，然后展示了一些炫酷的devtools的新功能。能在表达式中间下断点真的非常有用。&lt;/li&gt;&lt;li&gt;但是演讲者的水平实在是太糟糕了。不知道是紧张还是怎样。而且一些细节描述得颇不正确。果然技术细节就不应该找PM来讲么。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;https://events.google.com/io/schedule/?section=may-17&amp;amp;sid=ed94ee38-d88b-44a9-833f-1df7c51472e0&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;Performance and Memory Improvements in Android Run Time (ART)&quot;&gt;Performance and Memory Improvements in Android Run Time (ART)&lt;/a&gt;, Fri. May 19, 9:30AM - 10:30AM&lt;/li&gt;&lt;ul&gt;&lt;li&gt;录像：&lt;a href=&quot;https://www.youtube.com/watch?v=iFE2Utbv1Oo&quot; class=&quot;&quot; data-title=&quot;Performance and Memory Improvements in Android Run Time (ART) (Google I/O &#39;17)&quot; data-editable=&quot;true&quot;&gt;Performance and Memory Improvements in Android Run Time (ART) (Google I/O &#39;17)&lt;/a&gt;&lt;/li&gt;&lt;li&gt;关注点：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;DEX layout：Android N开始恢复使用JIT并且收集profile信息；Android O可以使用该信息来优化DEX文件的布局，将实际被用到的数据与不常用的数据分别集中在一起，减少应用启动时要加载的memory page数。以前在.NET MPGO里也有类似的优化，可以参考：&lt;a href=&quot;https://blogs.msdn.microsoft.com/dotnet/2012/03/20/improving-launch-performance-for-your-desktop-applications/&quot; data-editable=&quot;true&quot; data-title=&quot;Improving Launch Performance for Your Desktop Applications&quot; class=&quot;&quot;&gt;Improving Launch Performance for Your Desktop Applications&lt;/a&gt;&lt;/li&gt;&lt;li&gt;并发GC：Concurrent Copying GC终于上位，准备替代掉先前的CMS GC。这是一个使用read barrier实现并发的、region-based的、不分代的copying GC。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;仍然使用一个短暂的pause来做root scanning&lt;/li&gt;&lt;li&gt;然后做concurrent copy和concurrent reclaiming&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Optimizing Compiler的新改进：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;Inliner改进：允许内联更多代码&lt;/li&gt;&lt;li&gt;Code sinking：看起来是一种global scheduling (Global Code Motion) / Partial Redundancy Elimination的实现&lt;/li&gt;&lt;li&gt;基于Class Hierarchy Analysis对虚方法做去虚化（devirtualize）&lt;/li&gt;&lt;li&gt;新的循环优化，特别是对某些循环做向量化（vectorization）来更好地利用SIMD（例如NEON指令集）。向量化的算法是从&lt;a href=&quot;https://android.googlesource.com/platform/art/+/5f80500bba3df590f0bfffea2ebe2adee7c40763/compiler/optimizing/loop_optimization.cc#521&quot;&gt;这块代码&lt;/a&gt;的作者Aart Bik自己的书里来了：&lt;a href=&quot;http://www.aartbik.com/SSE/index.html&quot; data-editable=&quot;true&quot; data-title=&quot;Vectorization for Multimedia Extensions&quot;&gt;Vectorization for Multimedia Extensions&lt;/a&gt;&lt;/li&gt;&lt;li&gt;嗯基本上ART就是更看齐于成熟的桌面/服务器端JVM的技术水平了&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;/ul&gt;</description>
-<author>RednaxelaFX</author>
-<guid isPermaLink="false">2017-05-18-26966166</guid>
-<pubDate>Thu, 18 May 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
