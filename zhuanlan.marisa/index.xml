@@ -5,7 +5,122 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 22 Nov 2017 17:00:32 +0800</lastBuildDate>
+<lastBuildDate>Sat, 25 Nov 2017 00:19:28 +0800</lastBuildDate>
+<item>
+<title>Lens: 从入门到再次入门</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-24-31328798.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Lens: 从入门到再次入门&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31328798&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-28c51979d43ba132a98057d07b183025_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;类型补全计画&lt;/h2&gt;&lt;p&gt;从上一篇我们可以看出，Lens 就是整合在一起的 &lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;和 &lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;，借助&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;&lt;i&gt;, &lt;/i&gt;&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;&lt;i&gt;, &lt;/i&gt;&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;这三个函数，我们可以分别使用 Lens 的&lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;。但是我们目前的 Lens 类型定义并不是完整的，因此我们首先对 Lens 的类型进行补全。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens s a = Functor f =&amp;gt; (a -&amp;gt; f a) -&amp;gt; (s -&amp;gt; f s)&lt;/code&gt;&lt;p&gt;首先让我们看这样一个例子： &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;set _1 ((1,2),3) 3
+set _1 ((1,2),3) True&lt;/code&gt;&lt;p&gt;在我们目前的类型定义上面的代码第一行可以正常工作，而第二行则不可以。但是第二行确实是合乎逻辑的，我们的确有时候需要讲一个原本是数字的地方设置为布尔值或是其他的什么东西。&lt;/p&gt;&lt;p&gt;让我们将原先的 Lens 类型定义进行简单的改变，这样就可以在通过 Lens 对数据操作时改变数据的类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens s t a b = Functor f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; (s -&amp;gt; f t)&lt;/code&gt;&lt;p&gt;我们可以可以直观地解读这个新的类型定义的含义，对&lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;类型的量的一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;类型的域进行某种操作，之后该域变为&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;，相应的&lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;变为&lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;。当然这里的&lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;的关系并不是随意的，而是依赖于&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;的关系。&lt;/p&gt;&lt;p&gt;现在我们之前使用的 Lens 类型将定义如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens&#39; s a = Lens s s a a
+-- Or
+{-# LANGUAGE LiberalTypeSynonyms #-}
+type Simple f a b = f a a b b
+type Lens&#39; = Simple Lens &lt;/code&gt;&lt;p&gt;在这个定义下我们可以定义出由&lt;code class=&quot;inline&quot;&gt;getter&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;setter&lt;/code&gt;构建 Lens 的函数&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;lens :: (s -&amp;gt; a) -&amp;gt; (s -&amp;gt; b -&amp;gt; t) -&amp;gt; Lens s t a b
+lens getter setter f s = setter s &amp;lt;$&amp;gt; f (getter s)&lt;/code&gt;&lt;p&gt;下面让我们来回忆一下&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的定义&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;over lens f = runIdentity . lens (Identity . f)
+view lens b = getConst $ lens Const b &lt;/code&gt;&lt;p&gt;我们发现在&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;分别取&lt;code class=&quot;inline&quot;&gt;Identity&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;Const&lt;/code&gt;的时候，Lens 就分别表现出了 &lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;的特性。对于&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;而言，他们只需要使用单一的 Functor ，因此我们可以专门定义&lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;的类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Getting r s a = (a -&amp;gt; Const r a) -&amp;gt; s -&amp;gt; Const r s
+type Setter s t a b = (a -&amp;gt; Identity b) -&amp;gt; s -&amp;gt; Identity t
+type Setting = Simple Setter &lt;/code&gt;&lt;p&gt;在有了这个定义之后，我们就可以修改之前三个常用函数的类型签名：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Getting a s a -&amp;gt; b -&amp;gt; a
+over :: Setter s t a b -&amp;gt; (a -&amp;gt; b) -&amp;gt; s -&amp;gt; t
+set  :: Setter s t a b -&amp;gt; b -&amp;gt; s -&amp;gt; t&lt;/code&gt;&lt;p&gt;这样的改变看似没有什么作用，但通过这样的改变，三个常用函数不再以 Lens 为作用对象，而是更加聚焦于一类更加通用的类型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;作为概念积类型的类型与作为概念的值&lt;/h2&gt;&lt;p&gt;通过之前的例子，我们可以看到我们用 Lens 来操作一个&lt;b&gt;积类型(Product Type)&lt;/b&gt;，例如元组、Record 或是列表；于此相对，Lens 不能用来操作&lt;b&gt;和类型(Sum Type)&lt;/b&gt;。我们可以用 Lens 改变或是读取积类型的某个&lt;b&gt;部分(Component)&lt;/b&gt;的值。但是实际上，我们不需要一个&lt;b&gt;实在的&lt;/b&gt;积类型，也不需要一个实在的部分，只需要概念上的积类型与概念上的部分即可。这样的表述显得非常抽象，让我们来看几个例子。&lt;/p&gt;&lt;p&gt;第一个例子是列表，从定义来看，列表的确是一个积类型，它由相继的元素组成，它的各个部分就是各个组成元素。但是，我们将要操作的却不是这些实在的部分，而是抽象的部分，&lt;b&gt;列表的长度&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;让我们定义这个玄乎的&lt;code class=&quot;inline&quot;&gt;_length&lt;/code&gt;Lens ：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_length :: Lens&#39; [a] Int
+_length f l = const l &amp;lt;$&amp;gt; f (length l)&lt;/code&gt;&lt;p&gt;可以看出，它可以从一个列表中提取出它的长度，但是不会改变它的长度&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view (_1._length) (&quot;hello&quot;, 3)
+--&amp;gt; 5
+set (_1._length) 9 (&quot;world&quot;, 3) 
+--&amp;gt; (&quot;world&quot;,3)&lt;/code&gt;&lt;p&gt;在这个例子中，长度并不是列表的一个实在的部分，我们操作的积类型也不是一个实在的积类型，而是概念中的某种包含长度的积类型。&lt;/p&gt;&lt;p&gt;再看第二个例子，我们操作一个数字的绝对值。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_abs :: (Num a, Ord a) =&amp;gt; Lens&#39; a a
+_abs f i = setabs &amp;lt;$&amp;gt; f (abs i)
+  where sgn x
+            | x &amp;gt;= 0 = 1
+            | x &amp;lt;  0 = -1
+        setabs x
+               | x &amp;gt;= 0 = x*sgn i
+               | x &amp;lt;  0 = error &quot;Abs must be non-negative&quot;
+view _abs -123
+--&amp;gt; 123
+set _abs 13 -99
+--&amp;gt; -13&lt;/code&gt;&lt;p&gt;可以看出，概念上，数字确实含有“绝对值”这一部分的值，但是数字与绝对值的关系同样也不是“元组与每个元素”之间的关系，也不是“记录与它的域”的关系。同时，数字本身，并不明显是那种积类型，这里我们同样是将其看作了概念上的积类型。&lt;/p&gt;&lt;p&gt;引入这两个例子的目的是说明，Lens 是某种更加抽象与普遍化的工具，它不仅仅用来处理具体的数据结构与数据结构内部的值，也可以用来处理各种各样的情况；Lens 聚焦于某个数据结构（实在的或是概念上的）的某个值上，这无关乎这个值是实在地存在于这个数据结构里，还是抽象地、概念上地存在于这个数据上，这为我们以后利用 Lens 完成语义的表达提供了可行性。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;多焦点数据操作&lt;/h2&gt;&lt;p&gt;Lens 在工作的过程中，对某个数据结构内某个值应用了一个&lt;code class=&quot;inline&quot;&gt;a -&amp;gt; f b&lt;/code&gt;的函数，并最终得到一个&lt;code class=&quot;inline&quot;&gt;f t&lt;/code&gt;类型的新数据结构。假设现在我们想要操作某个列表&lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt;中的所有元素，那么我们期望对列表中的每个元素应用&lt;code class=&quot;inline&quot;&gt;a -&amp;gt; f b&lt;/code&gt;的函数，并且最终得到一个&lt;code class=&quot;inline&quot;&gt;f [b]&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;对于应用某个函数于列表中的每个元素这一任务，我们有非常熟悉的解决方案&lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt;。 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;f :: a -&amp;gt; f b
+xs :: [a]
+---
+map f xs :: [f b] &lt;/code&gt;&lt;p&gt;但是我们期望得到的类型是&lt;code class=&quot;inline&quot;&gt;f [b]&lt;/code&gt;而不是&lt;code class=&quot;inline&quot;&gt;[f b]&lt;/code&gt;，我们需要一个将函子的列表转换为列表的函子的函数，而实际上，函子没有足够的约束来支持这样的操作，最简单的例子就是，一个空函子的列表我们没法直接找到对应的空列表的函子；此外更一般的场合我们需要将&lt;code class=&quot;inline&quot;&gt;f a&lt;/code&gt;合并至&lt;code class=&quot;inline&quot;&gt;f [a]&lt;/code&gt;得到一个新的&lt;code class=&quot;inline&quot;&gt;f [a]&lt;/code&gt;的函数，其类型为&lt;code class=&quot;inline&quot;&gt;f a -&amp;gt; f [a] -&amp;gt; f [a]&lt;/code&gt;，而我们有的列表拼接函数的类型为&lt;code class=&quot;inline&quot;&gt;a -&amp;gt; [a] -&amp;gt; [a]&lt;/code&gt;，这也不是函子的升格可以直接完成的。而应用函子恰巧有我们需要的&lt;code class=&quot;inline&quot;&gt;pure&lt;/code&gt;函数处理第一种情况，又有可以对双参数函数升格的&lt;code class=&quot;inline&quot;&gt;liftA2&lt;/code&gt;。由此看来，我们需要的是使用应用函子代替函子完成我们的需要。&lt;/p&gt;&lt;p&gt;有了这些分析，我们不难写出将函子的列表提取为列表的函子的函数。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;(&amp;lt;:&amp;gt;) :: Applicative f =&amp;gt; f a -&amp;gt; f [a] -&amp;gt; f [a],
+(&amp;lt;:&amp;gt;) = liftA2 (:)
+sequenceA :: (Applicative f) =&amp;gt; [f a] -&amp;gt; f [a]  
+sequenceA [] = pure []  
+sequenceA (x:xs) = x &amp;lt;:&amp;gt; sequenceA xs&lt;/code&gt;&lt;p&gt;接下来我们需要的操作列表中全部元素的 Lens 的实现也可以容易给出，因为我们先前已经通过&lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt;实现了&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; f b) -&amp;gt; [a] -&amp;gt; [f b]&lt;/code&gt;，只需再对结果应用刚实现的&lt;code class=&quot;inline&quot;&gt;sequenceA&lt;/code&gt;就可以恰好得到我们需要的 Lens 类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_every :: Applicative f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; [a] -&amp;gt; f [b]
+_every f xs = sequenceA $ map f xs
+
+over _every (+1) [2,3,4]
+--&amp;gt; [3,4,5]&lt;/code&gt;&lt;p&gt;由于应用函子是特殊的函子，所以&lt;code class=&quot;inline&quot;&gt;_every&lt;/code&gt;是特殊的 Lens， 我们将这类 Lens 命名为 Traversal。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Traversal s t a b = Applicative f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; s -&amp;gt; f t
+type Traversal&#39; s a = Traversal s s a a&lt;/code&gt;&lt;p&gt;取这个名字的原因是，在标准库&lt;code class=&quot;inline&quot;&gt;Data.Traversal&lt;/code&gt;中实际上恰好有一个函数&lt;code class=&quot;inline&quot;&gt;traverse&lt;/code&gt;符合我们的要求， 这个函数并非为 Lens 专门设计，但它的类型恰好与我们先前的&lt;code class=&quot;inline&quot;&gt;_every&lt;/code&gt; 相同，不仅如此这个函数不仅可以在列表上工作，也可以在所有&lt;code class=&quot;inline&quot;&gt;Traversable&lt;/code&gt;类型上工作。由于这类 Lens 操作均依赖于&lt;code class=&quot;inline&quot;&gt;traverse&lt;/code&gt;， 所以取名为 Traversal 。&lt;/p&gt;&lt;p&gt;让我们简单地看一下 Traversal 是如何与&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;一通工作的： &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;traverse :: Applicative f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; t a -&amp;gt; f (t b)
+over traverse (+1) [2,3,4]
+runIdentity . traverse (Identity . (+1)) [2,3,4]
+runIdentity $ sequenceA $ map (Identity . (+1)) [2,3,4]
+runIdentity $ sequenceA [Identity 3, Identity 4, Identity 5]
+runIdentity $ Identity 3 &amp;lt;:&amp;gt; Identity 4 &amp;lt;:&amp;gt; Identity 5 &amp;lt;:&amp;gt; Identity []
+runIdentity $ Identity [3, 4, 5]
+--&amp;gt; [3,4,5]&lt;/code&gt;&lt;p&gt;但是，现在我们的 Traversal 不能正确与&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;工作。 例如，对于下面的代码&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+view traverse [1,2,3]&lt;/code&gt;&lt;p&gt;我们期望的结果是这样的，我们只需要它原封不动地返回即可&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+[1,2,3]&lt;/code&gt;&lt;p&gt;而实际上，我们得到了看似匪夷所思的结果&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&quot;123&quot;
+--Ambiguous type variable ‘a0’ arising from a use of ‘print’&lt;/code&gt;&lt;p&gt;让我们展开 Traversal 与&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;工作的过程 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+getConst $ traverse (Const b) [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+getConst $ sequenceA $ map (Const b) [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+getConst $ sequenceA  [Const &quot;1&quot;, Const &quot;2&quot;, Const &quot;3&quot;]
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot; &amp;lt;:&amp;gt; pure []&lt;/code&gt;&lt;p&gt;我们实际上清楚&lt;code class=&quot;inline&quot;&gt;Const a&lt;/code&gt;本身并非应用函子,&lt;code class=&quot;inline&quot;&gt;Monoid a =&amp;gt; Const a&lt;/code&gt;才是 ，这个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;类型的值不是“容器”内的值，而是“容器”的一部分，容器内并不存在值。于是，将应用函子范畴上的值应用到应用函子范畴上的函数时，内部并无操作，有的只是“容器”的合并。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;instance Monoid a =&amp;gt; Applicative (Const a) where
+  pure _ = Const empty
+  (Const x) &amp;lt;*&amp;gt; (Const y) = Const (x &amp;lt;&amp;gt; y)&lt;/code&gt;&lt;p&gt;列表的默认&lt;code class=&quot;inline&quot;&gt;mappend&lt;/code&gt;操作 列表合并，所以我们就可以将上面的计算继续写下去了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot; &amp;lt;:&amp;gt; pure []
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot; &amp;lt;:&amp;gt; Const &quot;&quot;
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot;
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;23&quot;
+getConst $ sequenceA  Const &quot;123&quot;
+&quot;123&quot;&lt;/code&gt;&lt;p&gt;可以看出，这并不是匪夷所思的结果，而是在这些定义下的合理结果。实际上，从&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;类型上我们也可以看出它的确做了它应当的工作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Getting a s a -&amp;gt; s -&amp;gt; a
+
+view traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+-- view :: Getting String [String] String -&amp;gt; [String] -&amp;gt; String&lt;/code&gt;&lt;p&gt;它最终确实给了我们一个字符串。&lt;/p&gt;&lt;p&gt;所以，我们需要构建专用于 Traversal 的&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数。考虑之前&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的定义&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Getting a b a -&amp;gt; b -&amp;gt; a
+view lens = getConst . lens Const &lt;/code&gt;&lt;p&gt;这里他将原来的值不加改变地喂给了&lt;code class=&quot;inline&quot;&gt;getConst&lt;/code&gt;， 我们可以讲原始值套在一个 Monoid 里完成我们需要的效果。这里，我们需要的就是最终得到一个列表，因此只需要再套一层列表的 Monoid 即可，外面套的这层 Monoid 会互相合并，最终只剩下一个列表，里面排满了原来的元素。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;toListOf :: Getting [a] s a -&amp;gt; s -&amp;gt; [a]
+toListOf lens = getConst . lens (\x -&amp;gt; Const [x])
+
+toListOf traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+--&amp;gt; [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+toListOf traverse [1,2,3]
+--&amp;gt; [1,2,3]&lt;/code&gt;&lt;p&gt;这个函数似乎没有多大用处，它原封不动地返回了原本的列表。但是，我们可以依托于&lt;code class=&quot;inline&quot;&gt;traverse&lt;/code&gt; 构建更多更有用的 Traversal。&lt;/p&gt;&lt;p&gt;例如聚焦于一个列表中全部满足某个条件的 Traversal&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_all :: Eq a =&amp;gt; a -&amp;gt; Traversal&#39; [a] a
+_all st f s = traverse update s
+  where
+    update old = if st old then f old else pure old
+    
+toListOf (_all (/=0)) [1,2,0,3,4,0,5]
+--&amp;gt; [1,2,3,4,5] &lt;/code&gt;&lt;p&gt;同时，我们描述过 Traversal 是一种特殊的 Lens， 所以它具有 Lens 各种有用的性质，例如通过互相复合来处理嵌套的列表。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;toListOf (traverse.traverse) [[1,2],[1,2,3,4]]
+--&amp;gt; [1,2,1,2,3,4]
+xs = [[1,2],[1,2,3,4],[4,5,6],[23,4,5,5,4],[1],[2,3]]
+over (_all (\x-&amp;gt; length x &amp;lt;= 3 ) .traverse) (+1) xs
+-- &amp;gt;[[2,3],[1,2,3,4],[5,6,7],[23,4,5,5,4],[2],[3,4]]&lt;/code&gt;&lt;p&gt;或者与普通的 Lens 复合，来完成复杂的操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;toListOf (traverse._1) [(1,2),(3,4),(5,6)]
+--&amp;gt; [1,3,5]&lt;/code&gt;&lt;p&gt;需要注意的是，Traversal 是特殊的 Lens，也就是说在 Lens 上多出一些特定的限制，因此 Traversal 与普通 Lens 的复合将会仍然继承这些限制，即 Traversal 与 Lens 的复合仍是 Traversal。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;使用更多 Monoid 来获得多种效果&lt;/h2&gt;&lt;p&gt;在上面我们使用了&lt;code class=&quot;inline&quot;&gt;[]&lt;/code&gt;这一 Monoid 来实现了合成列表的效果，实际上，我们还可以使用其他Monoid。下面让我们看几个例子。&lt;/p&gt;&lt;p&gt;第一个例子是将包装过的 &lt;code class=&quot;inline&quot;&gt;Maybe&lt;/code&gt;作为一个 Monoid，并取名为 &lt;code class=&quot;inline&quot;&gt;First&lt;/code&gt; 。从名字我们也可以看出来，它的作用就是取出列表的首个元素。 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype First a = First (Maybe a)
+
+instance Monoid (First a) where
+  mempty = First Nothing
+  mappend (First Nothing) y = y
+  mappend        x        _ = x
+
+preview :: Getting (First a) s a -&amp;gt; s -&amp;gt; Maybe a
+preview lens = getFirst . getConst . lens (Const . First . Just)
+
+preview (_all (/=0)) [3, 2, 1, 0]
+--&amp;gt; Just 3
+
+preview (_all (/=0)) [0,0,0]
+--&amp;gt; Nothing&lt;/code&gt;&lt;p&gt;同样，修改 &lt;code class=&quot;inline&quot;&gt;mappend&lt;/code&gt;的定义我们可以得到 &lt;code class=&quot;inline&quot;&gt;Last&lt;/code&gt;，这里不再具体给出。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二个例子是包装过的&lt;code class=&quot;inline&quot;&gt;Bool&lt;/code&gt;，我们可以用它来判断一个列表中是否含有某个元素&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Any = Any { getAny :: Bool }
+
+instance Monoid Any where
+  mempty = Any False
+  Any x `mappend` Any y = Any (x || y)
+  
+has :: Getting Any s a -&amp;gt; s -&amp;gt; Bool
+has l = getAny . getConst . l (const $ Const (Any True)) 
+
+has (_all (==0)) [3, 2, 1, 0]
+--&amp;gt; True&lt;/code&gt;&lt;p&gt;我们发现，由于 Traversal 具有良好的抽象能力，我们仅仅选用不同的 Monoid 就实现了多种多用的效果，这无疑是非常令人振奋的。&lt;/p&gt;</description>
+<author>孙浩然</author>
+<guid isPermaLink="false">2017-11-24-31328798</guid>
+<pubDate>Fri, 24 Nov 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>SKI组合子演算入门</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-21-31269072.htm</link>
@@ -357,125 +472,6 @@ protected function method insert_into_right(t:Tree,x:real):Tree
 <author>脚本少女魔理沙</author>
 <guid isPermaLink="false">2017-10-21-30319620</guid>
 <pubDate>Sat, 21 Oct 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>EBNFParser的原理解析以及使用教程</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-07-29908056.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;EBNFParser的原理解析以及使用教程&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29908056&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-78761dc79f02fa543f016e8cceedf4ba_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;(题图的来源，图上就有&lt;/p&gt;&lt;p&gt;前段时间有人在我答案底下说看不懂，所以我今天来讲一下我是怎么写成某个Parser框架的。&lt;/p&gt;&lt;p&gt;在此之前，我说一点别的话。&lt;/p&gt;&lt;p&gt;非常感谢CPython项目，深入阅读了Python码源的一部分，我从中获益良多。&lt;/p&gt;&lt;p&gt;虽然我并没有学过编译原理，但我想，我从这份源代码里得到的东西，应该能够囊括很多编译相关的东西，教会了我许多关于编程语言设计、C和Python的令人智熄的操作。当然还有一些非思想层面的的收获，比如，阅读Python码源的课后作业就是我的&lt;a href=&quot;https://github.com/thautwarm/flowpython&quot;&gt;Flowpython&lt;/a&gt;，作为一个完全兼容CPython3.5和CPython3.6的解释器，它提供了一些强力而有用的语法(糖)，应该说是个非常实用的东西。&lt;/p&gt;&lt;p&gt;向开源世界的一切贡献者(包括我自己hhh)致敬！&lt;/p&gt;&lt;p&gt;然后我们来看看EBNFParser效果。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;EBNFParser的作用可不仅仅是快速写出一门语言的前端，平常像解析json啊，yaml啊，xml啊这种数据文件，也是可以秒着玩的。更有甚者，你要是觉得正则表达式用着不够自由，你可以通过折中执行效率和功能来写一个用起来更顺手的正则引擎。&lt;/p&gt;&lt;p&gt;我的github项目有一个简短的介绍，让你用几行代码写一个Lisp的Parser。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser&quot;&gt;EBNFParser主页&lt;/a&gt;&lt;/p&gt;&lt;p&gt;当然，要解析完整的Lisp, 不考虑注释，应该需要5行。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/blob/master/tests/Python/Lang/Lisp/grammar&quot;&gt;较为完整的Lisp语法解析文件&lt;/a&gt;&lt;/p&gt;&lt;p&gt;在完成EBNFParser的稳定版本后，除开上面的Lisp，我给出的示例还有以下几门语言的。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/Python&quot;&gt;Python表达式&lt;/a&gt;&lt;br&gt;Python的全部语法在&lt;a href=&quot;https://github.com/python/cpython/blob/master/Grammar/Grammar&quot;&gt;CPython的Grammar文件&lt;/a&gt;里有定义，你按照这个来，完成整个Python的解析仅仅是小菜一碟。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/EBNF&quot;&gt;旧版本的EEBNF语言自省&lt;/a&gt;。&lt;br&gt;我所使用的EBNF语法并不是标准的，为了区别我打算暂时称呼其为&lt;b&gt;EEBNF&lt;/b&gt;, 它比起标准的EBNF更像是一门编程语言，扩展能力更加强大。此处的&lt;b&gt;旧版本的EEBNF&lt;/b&gt;缺少了一些新的非常有用的语法，比如AST的过滤，以及取消字面量Parser对自动生成的Tokenizer的影响(后者对于实现类似Java的嵌套多重注释(/*.../*...*/...*/)非常方便)。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/Expy&quot;&gt;Extra Py&lt;/a&gt;&lt;br&gt;这是一门还未诞生的语言，我创造它的意图是解决使用科学计算语言的混乱现状。除开能力碾压其它的Julia，其他科学计算语言的特性都非常接近，而且都有些不太令人愉悦的地方。而Extra Py是一门语法及特性更加合理(内部结构的一致性，在这一点上Matlab非常的糟糕)的语言，应该可以符合很多人的口味。&lt;br&gt;同时，因为Extra Py非常的合理、优雅以及简单，解析到其他语言的方法可能非常得灵活。&lt;b&gt;非常欢迎有兴趣和能力的朋友参与Extra Py的后端开发，这会是又一个有趣又有用的开源项目&lt;/b&gt;。&lt;br&gt;未来，如果Extra Py如期出现，我打算弄一个科学计算主题的公共项目，该项目的Extra Py代码轻易地编译或解释到R、 Python、Matlab、Julia、C++甚至Mathematica(甚至如果你会写Perl和Fortran...)，接受任何人符合标准的、任何科学领域的代码。&lt;br&gt;我并不是要去取代这些科学计算语言，我要做的是让新手学会一门能很快转向这些语言的轻量级语言。然后，很多时候，库的编写者只需要写写Extra Py，就可以发布多门语言的库了(按照R语言的三方库代码质量，我相信即便是简单的代码转换生成，也算得上是质量上乘的库了，更何况我相信未来的后端处理者们一定有很多骚操作的，比如我会把Extra Py的代码编译到Cython然后使用gcc优化，就非常棒了)。&lt;br&gt;这是我的宏愿，暂且说这么多。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/tree/master/tests/Python/Lang/Cm&quot;&gt;EBNFParser.tests.Cm&lt;/a&gt;  以及 &lt;a href=&quot;https://github.com/Cm-lang&quot;&gt;Cm-lang项目&lt;/a&gt;&lt;br&gt;这是一门非常非常非常非常非常优雅的、高性能的、静态编译的语言。虽然它暂时还没发布。它的创建者是伟大的后宫王，世界Online的主角 &lt;a class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/67ebe1bd8e4a63f17a42572e40afaac7&quot; data-hash=&quot;67ebe1bd8e4a63f17a42572e40afaac7&quot; data-hovercard=&quot;p$b$67ebe1bd8e4a63f17a42572e40afaac7&quot;&gt;@大笨蛋千里冰封&lt;/a&gt; 。&lt;br&gt;我有一个愿望，就是&lt;b&gt;让小括号可以远离这门可以表现得像C一样迅捷&lt;/b&gt;的语言。虽然我暂时并没有想到一个没有语意冲突又没有小括号的解决方案。&lt;br&gt;Cm应该是EBNFParser的第一个挑战，&lt;b&gt;事实上我是为了给Cm写Parser&lt;/b&gt;(在此控诉某号称图形学帝球，有商业级音乐才能的无良be)&lt;b&gt;才写的EBNFParser。&lt;br&gt;&lt;/b&gt;Cm的&lt;b&gt;语法优雅，但设计上有相当程度的复杂&lt;/b&gt;，&lt;b&gt;可能是它吸取了kotlin、scala、rust的很多特点。&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;rust&quot;&gt;let $ = i:i32 -&amp;gt; (f:[i32=&amp;gt;i32]) -&amp;gt; f(i)  // 我倾向于可以不要分号，Parser不需要...
-var x = 1;  // 但是大佬近期考sat，关于分号的事情未下结论。
-until ({x&amp;gt;1})  //其实， until是个函数哦，你可以用这种方式造DSL啊
-{
-   doSomething
-}   &lt;/code&gt;&lt;p&gt;      来个类型标注的完全版(&lt;b&gt;虽然你实际上一定不需要写这么多&lt;/b&gt;)，但我觉得&lt;b&gt;真是超好看&lt;/b&gt;...&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let F:[[i32=&amp;gt;i32]=&amp;gt;i32=&amp;gt;i32] = (f:[i32=&amp;gt;i32])=&amp;gt;[i32=&amp;gt;i32]-&amp;gt;{
-      (x:i32)=&amp;gt;i32 -&amp;gt; f(x)*x
-} :[[i32=&amp;gt;i32]=&amp;gt;i32=&amp;gt;i32]  //好吧这个尾标注我抄了一下scala
-// 这个类型标注是我想出来的哇哈哈，详见我的Squirrel语言，那是我搞编译器的开始...
-// https://github.com/thautwarm/SquirrelLanguage&lt;/code&gt;&lt;p&gt;好的，效果预览完毕。&lt;/p&gt;&lt;p&gt;让我们进入EBNFParser的原理解析。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;模式匹配&lt;/h2&gt;&lt;p&gt;在早些的时候，我非常恨Python为什么没有模式匹配。于是呢，我造了一个轮子。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/Stardust&quot;&gt;thautwarm/Stardust&lt;/a&gt; 看ReadMe的Pattern Matching部分。&lt;/p&gt;&lt;p&gt;这个轮子还是挺强的，比如一个对象，你可以用简单的语法匹配它是否有某些成员或者，对这些成员的值在匹配。同时你可以去匹配像列表啊、元组啊、字典啊这样的结构。总之万事万物都可以匹配。&lt;/p&gt;&lt;p&gt;不到两百行代码，还是很短的(但当时代码太丑了…)。&lt;/p&gt;&lt;p&gt;然后在我写这个Parser框架的时候，经过半天的瞎搞(我已经忘了那半天我在想什么策略了...)，我的脑袋里涌出了两个东西，一个是Python的Grammar文件(当时flowpython项目已经完成)，一个是我曾经给Python写的那个模式匹配扩展。&lt;/p&gt;&lt;p&gt;来我们看看EBNF是如何定义语法的。(具体语法我参照的是Python的Grammar文件和我数理逻辑书上的BNF语法...)&lt;/p&gt;&lt;code lang=&quot;ebnf&quot;&gt;lambdaDef ::= &#39;lambda&#39; argList &#39;:&#39; test&lt;/code&gt;&lt;p&gt;啊！这不就是个模式匹配嘛。。&lt;/p&gt;&lt;p&gt;来一个token好的词组&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[&#39;lambda&#39;,
-&#39;x&#39;,&#39;,&#39;,&#39;y&#39;,
-&#39;:&#39;,
-&#39;x&#39;,&#39;+&#39;,&#39;y&#39;,...]&lt;/code&gt;&lt;p&gt;你看看你看看。看不出来的话，我们来个模式匹配。&lt;/p&gt;&lt;p&gt;我用Python的部分语法做一个可爱的例子。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;    好的，现在先把词组交到我们的lambdaDef小可爱手上。
-    哇！第一个匹配成功,正好是我们要的 lambda 啊！
-    好的，lambdaDef同学把lambda放到一个叫做AST的东西的第一个位置。
-    继续...
-    啊，下一个单元好像需要别人的帮助了，lambdaDef同学查了查自己的模式表，找到
-一个熟悉的名字。
-    &quot;argList同学在吗？&quot;lambdaDef大声地朝某索引区域喊道。
-    &quot;啊？找我嘛？姐姐你把当前的词组递给我一下，对了，把当前解析到第几个词也说一下.&quot;
-    索引区域里传来argList同学的声音，她把自己的一个方法委托到某个lambdaDef也
-能碰到的地方。
-    lambdaDef见状，急忙将词组和已解析词数1放到了argList同学的委托里。
-    之后，argList同学那里发生了很多事情，她和argDef同学、Name同学以及Test老
-师一起处理了词组，得到了一个结果(如下)。
-----------------------------
-    argList[argDef[Name[x]]]
-----------------------------
-// 注: argList ::= argDef (&#39;,&#39; argDef)*
-//     argDef  ::= Name [&#39;=&#39; Test]
-//     Test为Python表达式语法的最高级节点，能表述一切表达式。
-
-同时，这个结果使得已解析词数变成了4。
-    当然，这些事情，lambdaDef同学是不知道的，她看着argList同学满脸大汗地,
-把结果和已解析词数交给了自己。
-    &quot;谢谢你了，&quot;lambdaDef同学把这个结果放到了AST的第二个位置，然后更新了已解析
-词数，&quot;辛苦啦... 不过，我听说我们的努力会被更高层的人给扔掉了。他们说选择我们一开
-始就错了呢。&quot;
-    &quot;啊咧，为什么要说这个呢，我们最高层的人是Test老师吧，不过我听说，有时候，较低
-层的Atom妹妹也会把Test老师的工作扔掉呢。她说有些时候, 左括号匹配了，Test老师
-也递交了结果，但是之后却没有跟着一个右括号呢。&quot;
-// Atom的简化定义(去除列表解析等) ::= ... | &#39;(&#39; Test &#39;)&#39; | ...
-    &quot;啊，是这样呀，而且我发现，其实我们也会做同样的事情呀。&quot;lambdaDef稍微有些
-释然.
-    &quot;哼，上次那个垃圾程序员以为自己在写JS, 写了一个 lambda x=&amp;gt;x，然后lambdaDef
-姐姐就把我和大家辛苦合作完成的东西给扔掉了呢！&quot;
-
-// 以上节选自某存在于我脑海的书 &amp;lt;&amp;lt;ParserGenerator娘的日常&amp;gt;&amp;gt;
-    &lt;/code&gt;&lt;p&gt;好的，我觉得自己真有才呀。。&lt;/p&gt;&lt;p&gt;上面那个故事，基本讲清了所有的解析方法，最后lambdaDef和argList两位同学的对话，还稍微提到了一个我没有说但很重要的东西：&lt;b&gt;回溯。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;为什么需要回溯？&lt;/p&gt;&lt;p&gt;因为有死结。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;CppType ::= CppType &#39;(&#39; CppType* &#39;)&#39; | Name&lt;/code&gt;&lt;p&gt;很经典的死结是左递归。&lt;/p&gt;&lt;p&gt;我们怎么解决死结的呢？&lt;/p&gt;&lt;h2&gt;死结与周期&lt;/h2&gt;&lt;p&gt;如果，我们把每次解析出的新结果，和当前解析的词数对应起来，构成一个元组。用一个东西按顺序存储这些元组。&lt;/p&gt;&lt;p&gt;来，看官们，想想看，出现死结时，如果你打印最新的元组，会出现什么样的情况。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Name      ParsedCount
-...       ...
-CppType   50
-CppType   50
-CppType   50
-CppType   50
-CppType   50
-...&lt;/code&gt;&lt;p&gt;为什么呢？&lt;/p&gt;&lt;p&gt;因为死结必然什么都没做。&lt;/p&gt;&lt;p&gt;我们看一个聪明的CppType。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// CppType ::= CppType &#39;(&#39; CppType* &#39;)&#39; | Name
-CppType : 哈，我拿到词组和已解析数啦。打印一个。
-Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
-CppType : 好的，第一个就是我自己呀。继续。
-CppType : 哈，我拿到词组和已解析数啦。打印一个。
-Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
-CppType : 好的，第一个就是我自己呀。继续——
-CppType : 不对，这话我说过一样的，&quot;Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50&quot;.
-CppType : 我去，玩我呢这是。。赶紧跳过。&lt;/code&gt;&lt;p&gt;好的，左递归问题解决了。应该说所有的死结问题都解决了。&lt;/p&gt;&lt;p&gt;但是左递归解析有时候还是需要的(暂时的EBNFParser还是会跳过，虽然我打补丁地很容易解决它，但出于性能考虑，我将加入新语法，使得可以指定某个Parser 能进行左递归解析。全局支持左递归会导致不必要的性能损失)。&lt;/p&gt;&lt;p&gt;我把我的想法告诉CppType，它真聪明，一学就懂。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// CppType ::= CppType &#39;(&#39; CppType* &#39;)&#39; | Name
-CppType : 哈，我拿到词组和已解析数啦。打印一个。计数1.
-Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
-CppType : 好的，第一个就是我自己呀。继续。
-CppType : 哈，我拿到词组和已解析数啦。打印一个。计数2大于1，发现重复.
-Name =&amp;gt; CppType, ParsedCount =&amp;gt; 50
-CppType : 按照红教主的指示，我现在应该处理保留计数1时的自己，然后对
-当前计数2的自己，去解析后面其他的情况，解析失败就报个解析失败——计数2时
-解析后面的情况失败的话，计数1时的自己就跳过左递归去看后面的情况。
-...&lt;/code&gt;&lt;p&gt;是不是很简单呢？&lt;/p&gt;&lt;p&gt;原理暂时就讲到这里，我觉得差不多了呀。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;基本使用&lt;/h2&gt;&lt;p&gt;我想你已经看到项目上那个骚气的pypi了。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pip install EBNFParser&lt;/code&gt;&lt;p&gt;就ok了。&lt;/p&gt;&lt;p&gt;当然，因为Python3.6以下的版本不支持字符串插值，写起来比较不爽，我现在就只支持Python3.6+的Python。不需要任何语言及标准库以外的依赖。&lt;/p&gt;&lt;p&gt;不久的未来，EBNFParser会优化性能，还会渐渐推出无数新语言的版本。第二门支持EBNFParser的语言将会是C#，其实你如果不用自动代码生成，已经可以在C#手写ebnf来用parser了。&lt;/p&gt;&lt;p&gt;好的，我们看主页的第一个例子。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d054f5c2847425272e9f1ca69cce5b76_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1366&quot; data-rawheight=&quot;768&quot;&gt;&lt;p&gt;按照这个简介写一个Lisp的解析器就大概知道怎么用了。&lt;/p&gt;&lt;p&gt;然后介绍一下我的EEBNF的语法。&lt;/p&gt;&lt;p&gt;&lt;b&gt;字面量Parser&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;l := R&#39;&amp;lt;正则表达式&amp;gt;&#39; 
-# 该正则表达式将会按顺序加入token构造器
-
-l := &#39;字符串&#39;  
-# 该字符串会按顺序加入token构造器，
-# 但所有的非R模式的字面量Parser的影响在R模式的Parser之前
-
-l := K&#39;&amp;lt;正则表达式&amp;gt;&#39;
-# 该Parser不对token做任何贡献.
-&lt;/code&gt;&lt;p&gt;&lt;b&gt;AstParser&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 声明 l指代任意字面量Parser
-
-X ::= l | l X l 
-# 抽象语法书的Parser 可以由任意Parser 由 并运算符 | 组合。有先后顺序。
-# 其中出现的字面量Parser将按出现顺序和字面量Parser模式, 去贡献token。
-
-# 声明 y 是任意Parser(字面量或者Ast的)
-X ::= y*
-# *表示y至少出现0次，最多出现无穷次
-
-X ::= y+
-# +表示y至少出现1次，最多出现无穷次
-
-X ::= y{n}
-# 表示y至少出现n次，最多出现无穷次
-
-X ::= y{n m}
-# 表示y至少出现n次，最多出现m次
-
-X ::= [y] z
-# 表示 y 可能出现，等价于 X ::= y{0 1} z
-
-X ::= (y z)+
-X ::= (y z)*
-X ::= (y z){1}
-X ::= (y z){1 5}
-# 把(y z)当成整体&lt;/code&gt;&lt;p&gt;&lt;b&gt;过滤&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Stmts Throw Newline ::=  (Newline* Stmt* Newline*)*
-# 解析之后， Stmts不含有Newline  &lt;/code&gt;&lt;p&gt;暂时就这么多。&lt;/p&gt;&lt;p&gt;然后说明一下Ast的结构。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/EBNFParser/blob/master/Python/Misakawa/ObjectRegex/Node.py&quot;&gt;看里面的Ast类&lt;/a&gt;&lt;/p&gt;&lt;p&gt;现在可以支持Dump到JSON或者SExpr。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a6ea2a38fe9228ce1ffd25aa88b45d89_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1366&quot; data-rawheight=&quot;768&quot;&gt;&lt;p&gt;现在，尝试用EBNFParser去写一点好玩的东西吧。&lt;/p&gt;&lt;p&gt;造语言的话，前端太枯燥无味。解决好Parser，后面都是在做有趣的分析。&lt;/p&gt;&lt;p&gt;祝为梦想奋斗的各位晚安。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;（添一句，EBNFParser的错误提示还是有点智能的呀...&lt;/p&gt;&lt;p&gt;(EEBNF默认不支持注释语法和多行语句，但有可选项。例子详见项目主页的testCm.sh文件。&lt;/p&gt;</description>
-<author>NightyNight</author>
-<guid isPermaLink="false">2017-10-07-29908056</guid>
-<pubDate>Sat, 07 Oct 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
