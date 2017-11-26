@@ -5,7 +5,119 @@
 <link>https://henix.github.io/feeds/zhuanlan.zju-lambda/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 03 Nov 2017 12:56:19 +0800</lastBuildDate>
+<lastBuildDate>Mon, 27 Nov 2017 02:31:39 +0800</lastBuildDate>
+<item>
+<title>Lens: 从入门到再次入门</title>
+<link>https://henix.github.io/feeds/zhuanlan.zju-lambda/2017-11-24-31328798.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Lens: 从入门到再次入门&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31328798&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-28c51979d43ba132a98057d07b183025_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;类型补全计画&lt;/h2&gt;&lt;p&gt;从上一篇我们可以看出，Lens 就是整合在一起的 &lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;和 &lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;，借助&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;&lt;i&gt;, &lt;/i&gt;&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;&lt;i&gt;, &lt;/i&gt;&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;这三个函数，我们可以分别使用 Lens 的&lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;。但是我们目前的 Lens 类型定义并不是完整的，因此我们首先对 Lens 的类型进行补全。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens s a = Functor f =&amp;gt; (a -&amp;gt; f a) -&amp;gt; (s -&amp;gt; f s)&lt;/code&gt;&lt;p&gt;首先让我们看这样一个例子： &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;set _1 ((1,2),3) 3
+set _1 ((1,2),3) True&lt;/code&gt;&lt;p&gt;在我们目前的类型定义上面的代码第一行可以正常工作，而第二行则不可以。但是第二行确实是合乎逻辑的，我们的确有时候需要讲一个原本是数字的地方设置为布尔值或是其他的什么东西。&lt;/p&gt;&lt;p&gt;让我们将原先的 Lens 类型定义进行简单的改变，这样就可以在通过 Lens 对数据操作时改变数据的类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens s t a b = Functor f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; (s -&amp;gt; f t)&lt;/code&gt;&lt;p&gt;我们可以可以直观地解读这个新的类型定义的含义，对&lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;类型的量的一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;类型的域进行某种操作，之后该域变为&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;，相应的&lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;变为&lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;。当然这里的&lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;的关系并不是随意的，而是依赖于&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;的关系。&lt;/p&gt;&lt;p&gt;现在我们之前使用的 Lens 类型将定义如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens&#39; s a = Lens s s a a
+-- Or
+{-# LANGUAGE LiberalTypeSynonyms #-}
+type Simple f a b = f a a b b
+type Lens&#39; = Simple Lens &lt;/code&gt;&lt;p&gt;在这个定义下我们可以定义出由&lt;code class=&quot;inline&quot;&gt;getter&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;setter&lt;/code&gt;构建 Lens 的函数&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;lens :: (s -&amp;gt; a) -&amp;gt; (s -&amp;gt; b -&amp;gt; t) -&amp;gt; Lens s t a b
+lens getter setter f s = setter s &amp;lt;$&amp;gt; f (getter s)&lt;/code&gt;&lt;p&gt;下面让我们来回忆一下&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的定义&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;over lens f = runIdentity . lens (Identity . f)
+view lens b = getConst $ lens Const b &lt;/code&gt;&lt;p&gt;我们发现在&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;分别取&lt;code class=&quot;inline&quot;&gt;Identity&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;Const&lt;/code&gt;的时候，Lens 就分别表现出了 &lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;的特性。对于&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;而言，他们只需要使用单一的 Functor ，因此我们可以专门定义&lt;code class=&quot;inline&quot;&gt;Getter&lt;/code&gt;与&lt;code class=&quot;inline&quot;&gt;Setter&lt;/code&gt;的类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Getting r s a = (a -&amp;gt; Const r a) -&amp;gt; s -&amp;gt; Const r s
+type Setter s t a b = (a -&amp;gt; Identity b) -&amp;gt; s -&amp;gt; Identity t
+type Setting = Simple Setter &lt;/code&gt;&lt;p&gt;在有了这个定义之后，我们就可以修改之前三个常用函数的类型签名：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Getting a s a -&amp;gt; s -&amp;gt; a
+over :: Setter s t a b -&amp;gt; (a -&amp;gt; b) -&amp;gt; s -&amp;gt; t
+set  :: Setter s t a b -&amp;gt; b -&amp;gt; s -&amp;gt; t&lt;/code&gt;&lt;p&gt;这样的改变看似没有什么作用，但通过这样的改变，三个常用函数不再以 Lens 为作用对象，而是更加聚焦于一类更加通用的类型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;作为概念积类型的类型与作为概念的值&lt;/h2&gt;&lt;p&gt;通过之前的例子，我们可以看到我们用 Lens 来操作一个&lt;b&gt;积类型(Product Type)&lt;/b&gt;，例如元组、Record ；于此相对，Lens 不能用来操作&lt;b&gt;和类型(Sum Type)&lt;/b&gt;。我们可以用 Lens 改变或是读取积类型的某个&lt;b&gt;部分(Component)&lt;/b&gt;的值。但是实际上，我们不需要一个&lt;b&gt;实在的&lt;/b&gt;积类型，也不需要一个实在的部分，只需要概念上的积类型与概念上的部分即可。这样的表述显得非常抽象，让我们来看几个例子。&lt;/p&gt;&lt;p&gt;第一个例子是列表，我们将要操作的不是列表的元素这些实在的部分，而是抽象的部分，&lt;b&gt;列表的长度&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;让我们定义这个玄乎的&lt;code class=&quot;inline&quot;&gt;_length&lt;/code&gt;Lens ：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_length :: Lens&#39; [a] Int
+_length f l = const l &amp;lt;$&amp;gt; f (length l)&lt;/code&gt;&lt;p&gt;可以看出，它可以从一个列表中提取出它的长度，但是不会改变它的长度&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view (_1._length) (&quot;hello&quot;, 3)
+--&amp;gt; 5
+set (_1._length) 9 (&quot;world&quot;, 3) 
+--&amp;gt; (&quot;world&quot;,3)&lt;/code&gt;&lt;p&gt;在这个例子中，长度并不是列表的一个实在的部分，我们操作的积类型也不是一个实在的积类型，而是概念中的某种包含长度的积类型。&lt;/p&gt;&lt;p&gt;再看第二个例子，我们操作一个数字的绝对值。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_abs :: (Num a, Ord a) =&amp;gt; Lens&#39; a a
+_abs f i = setabs &amp;lt;$&amp;gt; f (abs i)
+  where sgn x
+            | x &amp;gt;= 0 = 1
+            | x &amp;lt;  0 = -1
+        setabs x
+               | x &amp;gt;= 0 = x*sgn i
+               | x &amp;lt;  0 = error &quot;Abs must be non-negative&quot;
+view _abs -123
+--&amp;gt; 123
+set _abs 13 -99
+--&amp;gt; -13&lt;/code&gt;&lt;p&gt;可以看出，概念上，数字确实含有“绝对值”这一部分的值，但是数字与绝对值的关系同样也不是“元组与每个元素”之间的关系，也不是“记录与它的域”的关系。同时，数字本身，并不明显是那种积类型，这里我们同样是将其看作了概念上的积类型。&lt;/p&gt;&lt;p&gt;引入这两个例子的目的是说明，Lens 是某种更加抽象与普遍化的工具，它不仅仅用来处理具体的数据结构与数据结构内部的值，也可以用来处理各种各样的情况；Lens 聚焦于某个数据结构（实在的或是概念上的）的某个值上，这无关乎这个值是实在地存在于这个数据结构里，还是抽象地、概念上地存在于这个数据上，这为我们以后利用 Lens 完成语义的表达提供了可行性。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;多焦点数据操作&lt;/h2&gt;&lt;p&gt;Lens 在工作的过程中，对某个数据结构内某个值应用了一个&lt;code class=&quot;inline&quot;&gt;a -&amp;gt; f b&lt;/code&gt;的函数，并最终得到一个&lt;code class=&quot;inline&quot;&gt;f t&lt;/code&gt;类型的新数据结构。假设现在我们想要操作某个列表&lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt;中的所有元素，那么我们期望对列表中的每个元素应用&lt;code class=&quot;inline&quot;&gt;a -&amp;gt; f b&lt;/code&gt;的函数，并且最终得到一个&lt;code class=&quot;inline&quot;&gt;f [b]&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;对于应用某个函数于列表中的每个元素这一任务，我们有非常熟悉的解决方案&lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt;。 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;map (f::a-&amp;gt;f b) (xs::[a]) :: [f b] &lt;/code&gt;&lt;p&gt;但是我们期望得到的类型是&lt;code class=&quot;inline&quot;&gt;f [b]&lt;/code&gt;而不是&lt;code class=&quot;inline&quot;&gt;[f b]&lt;/code&gt;，我们需要一个将函子的列表转换为列表的函子的函数，而实际上，函子没有足够的约束来支持这样的操作，最简单的例子就是，一个空函子的列表我们没法直接找到对应的空列表的函子；此外更一般的场合我们需要将&lt;code class=&quot;inline&quot;&gt;f a&lt;/code&gt;合并至&lt;code class=&quot;inline&quot;&gt;f [a]&lt;/code&gt;得到一个新的&lt;code class=&quot;inline&quot;&gt;f [a]&lt;/code&gt;的函数，其类型为&lt;code class=&quot;inline&quot;&gt;f a -&amp;gt; f [a] -&amp;gt; f [a]&lt;/code&gt;，而我们有的列表拼接函数的类型为&lt;code class=&quot;inline&quot;&gt;a -&amp;gt; [a] -&amp;gt; [a]&lt;/code&gt;，这也不是函子的升格可以直接完成的。而应用函子恰巧有我们需要的&lt;code class=&quot;inline&quot;&gt;pure&lt;/code&gt;函数处理第一种情况，又有可以对双参数函数升格的&lt;code class=&quot;inline&quot;&gt;liftA2&lt;/code&gt;。由此看来，我们需要的是使用应用函子代替函子完成我们的需要。&lt;/p&gt;&lt;p&gt;有了这些分析，我们不难写出将函子的列表提取为列表的函子的函数。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;(&amp;lt;:&amp;gt;) :: Applicative f =&amp;gt; f a -&amp;gt; f [a] -&amp;gt; f [a],
+(&amp;lt;:&amp;gt;) = liftA2 (:)
+sequenceA :: (Applicative f) =&amp;gt; [f a] -&amp;gt; f [a]  
+sequenceA [] = pure []  
+sequenceA (x:xs) = x &amp;lt;:&amp;gt; sequenceA xs&lt;/code&gt;&lt;p&gt;接下来我们需要的操作列表中全部元素的 Lens 的实现也可以容易给出，因为我们先前已经通过&lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt;实现了&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; f b) -&amp;gt; [a] -&amp;gt; [f b]&lt;/code&gt;，只需再对结果应用刚实现的&lt;code class=&quot;inline&quot;&gt;sequenceA&lt;/code&gt;就可以恰好得到我们需要的 Lens 类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_every :: Applicative f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; [a] -&amp;gt; f [b]
+_every f xs = sequenceA $ map f xs
+
+over _every (+1) [2,3,4]
+--&amp;gt; [3,4,5]&lt;/code&gt;&lt;p&gt;由于应用函子是特殊的函子，所以&lt;code class=&quot;inline&quot;&gt;_every&lt;/code&gt;是特殊的 Lens， 我们将这类 Lens 命名为 Traversal。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Traversal s t a b = Applicative f =&amp;gt; (a -&amp;gt; f b) -&amp;gt; s -&amp;gt; f t
+type Traversal&#39; s a = Traversal s s a a&lt;/code&gt;&lt;p&gt;取这个名字的原因是，在标准库&lt;code class=&quot;inline&quot;&gt;Data.Traversal&lt;/code&gt;中实际上恰好有一个函数&lt;code class=&quot;inline&quot;&gt;traverse&lt;/code&gt;符合我们的要求， 这个函数并非为 Lens 专门设计，但它的类型恰好与我们先前的&lt;code class=&quot;inline&quot;&gt;_every&lt;/code&gt; 相同，不仅如此这个函数不仅可以在列表上工作，也可以在所有&lt;code class=&quot;inline&quot;&gt;Traversable&lt;/code&gt;类型上工作。由于这类 Lens 操作均依赖于&lt;code class=&quot;inline&quot;&gt;traverse&lt;/code&gt;， 所以取名为 Traversal 。&lt;/p&gt;&lt;p&gt;让我们简单地看一下 Traversal 是如何与&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;一通工作的： &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;traverse :: Traversable t =&amp;gt; Traversal (t a) (t b) a b
+over traverse (+1) [2,3,4]
+runIdentity . traverse (Identity . (+1)) [2,3,4]
+runIdentity $ sequenceA $ map (Identity . (+1)) [2,3,4]
+runIdentity $ sequenceA [Identity 3, Identity 4, Identity 5]
+runIdentity $ Identity 3 &amp;lt;:&amp;gt; Identity 4 &amp;lt;:&amp;gt; Identity 5 &amp;lt;:&amp;gt; Identity []
+runIdentity $ Identity [3, 4, 5]
+--&amp;gt; [3,4,5]&lt;/code&gt;&lt;p&gt;但是，现在我们的 Traversal 不能正确与&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;工作。 例如，对于下面的代码&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+view traverse [&#39;1&#39;,&#39;2&#39;,&#39;3&#39;]&lt;/code&gt;&lt;p&gt;我们期望的结果是这样的，我们只需要它原封不动地返回即可&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+[1,2,3]&lt;/code&gt;&lt;p&gt;而实际上，我们得到了看似匪夷所思的结果&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&quot;123&quot;
+-- error: No instance for (Monoid Char) arising from a use of ‘traverse’&lt;/code&gt;&lt;p&gt;让我们展开 Traversal 与&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;工作的过程 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+getConst $ traverse (Const b) [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+getConst $ sequenceA $ map (Const b) [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+getConst $ sequenceA  [Const &quot;1&quot;, Const &quot;2&quot;, Const &quot;3&quot;]
+getConst $ sequenceA $ Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot; &amp;lt;:&amp;gt; pure []&lt;/code&gt;&lt;p&gt;我们实际上清楚&lt;code class=&quot;inline&quot;&gt;Const a&lt;/code&gt;本身并非应用函子,&lt;code class=&quot;inline&quot;&gt;Monoid a =&amp;gt; Const a&lt;/code&gt;才是 ，这个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;类型的值不是“容器”内的值，而是“容器”的一部分，容器内并不存在值。于是，将应用函子范畴上的值应用到应用函子范畴上的函数时，内部并无操作，有的只是“容器”的合并。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;instance Monoid a =&amp;gt; Applicative (Const a) where
+  pure _ = Const empty
+  (Const x) &amp;lt;*&amp;gt; (Const y) = Const (x &amp;lt;&amp;gt; y)&lt;/code&gt;&lt;p&gt;列表的默认&lt;code class=&quot;inline&quot;&gt;mappend&lt;/code&gt;操作是列表合并，所以我们就可以将上面的计算继续写下去了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot; &amp;lt;:&amp;gt; pure []
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot; &amp;lt;:&amp;gt; Const &quot;&quot;
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;2&quot; &amp;lt;:&amp;gt; Const &quot;3&quot;
+getConst $ sequenceA  Const &quot;1&quot; &amp;lt;:&amp;gt; Const &quot;23&quot;
+getConst $ sequenceA  Const &quot;123&quot;
+&quot;123&quot;&lt;/code&gt;&lt;p&gt;可以看出，这并不是匪夷所思的结果，而是在这些定义下的合理结果。实际上，从&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;类型上我们也可以看出它的确做了它应当的工作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Getting a s a -&amp;gt; s -&amp;gt; a
+
+view traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+-- view :: Getting String [String] String -&amp;gt; [String] -&amp;gt; String&lt;/code&gt;&lt;p&gt;它最终确实给了我们一个字符串。&lt;/p&gt;&lt;p&gt;所以，我们需要构建专用于 Traversal 的&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数。考虑之前&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的定义&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Getting a b a -&amp;gt; b -&amp;gt; a
+view lens = getConst . lens Const &lt;/code&gt;&lt;p&gt;这里他将原来的值不加改变地喂给了&lt;code class=&quot;inline&quot;&gt;getConst&lt;/code&gt;， 我们可以讲原始值套在一个 Monoid 里完成我们需要的效果。这里，我们需要的就是最终得到一个列表，因此只需要再套一层列表的 Monoid 即可，外面套的这层 Monoid 会互相合并，最终只剩下一个列表，里面排满了原来的元素。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;toListOf :: Getting [a] s a -&amp;gt; s -&amp;gt; [a]
+toListOf lens = getConst . lens (\x -&amp;gt; Const [x])
+
+toListOf traverse [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+--&amp;gt; [&quot;1&quot;,&quot;2&quot;,&quot;3&quot;]
+toListOf traverse [&#39;1&#39;,&#39;2&#39;,&#39;3&#39;]
+--&amp;gt; [&#39;1&#39;,&#39;2&#39;,&#39;3&#39;]&lt;/code&gt;&lt;p&gt;这个函数似乎没有多大用处，它原封不动地返回了原本的列表。但是，我们可以依托于&lt;code class=&quot;inline&quot;&gt;traverse&lt;/code&gt; 构建更多更有用的 Traversal。&lt;/p&gt;&lt;p&gt;例如聚焦于一个列表中全部满足某个条件的 Traversal&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;_all :: (a -&amp;gt; Bool) -&amp;gt; Traversal&#39; [a] a
+_all st f s = traverse update s
+  where
+    update old = if st old then f old else pure old
+    
+toListOf (_all (/=0)) [1,2,0,3,4,0,5]
+--&amp;gt; [1,2,3,4,5] &lt;/code&gt;&lt;p&gt;同时，我们描述过 Traversal 是一种特殊的 Lens， 所以它具有 Lens 各种有用的性质，例如通过互相复合来处理嵌套的列表。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;toListOf (traverse.traverse) [[1,2],[1,2,3,4]]
+--&amp;gt; [1,2,1,2,3,4]
+xs = [[1,2],[1,2,3,4],[4,5,6],[23,4,5,5,4],[1],[2,3]]
+over (_all (\x-&amp;gt; length x &amp;lt;= 3 ) .traverse) (+1) xs
+-- &amp;gt;[[2,3],[1,2,3,4],[5,6,7],[23,4,5,5,4],[2],[3,4]]&lt;/code&gt;&lt;p&gt;或者与普通的 Lens 复合，来完成复杂的操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;toListOf (traverse._1) [(1,2),(3,4),(5,6)]
+--&amp;gt; [1,3,5]&lt;/code&gt;&lt;p&gt;需要注意的是，Traversal 是特殊的 Lens，也就是说在 Lens 上多出一些特定的限制，因此 Traversal 与普通 Lens 的复合将会仍然继承这些限制，即 Traversal 与 Lens 的复合仍是 Traversal。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;使用更多 Monoid 来获得多种效果&lt;/h2&gt;&lt;p&gt;在上面我们使用了&lt;code class=&quot;inline&quot;&gt;[]&lt;/code&gt;这一 Monoid 来实现了合成列表的效果，实际上，我们还可以使用其他Monoid。下面让我们看几个例子。&lt;/p&gt;&lt;p&gt;第一个例子是将包装过的 &lt;code class=&quot;inline&quot;&gt;Maybe&lt;/code&gt;作为一个 Monoid，并取名为 &lt;code class=&quot;inline&quot;&gt;First&lt;/code&gt; 。从名字我们也可以看出来，它的作用就是取出列表的首个元素。 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype First a = First (Maybe a)
+
+instance Monoid (First a) where
+  mempty = First Nothing
+  mappend (First Nothing) y = y
+  mappend        x        _ = x
+
+preview :: Getting (First a) s a -&amp;gt; s -&amp;gt; Maybe a
+preview lens = getFirst . getConst . lens (Const . First . Just)
+
+preview (_all (/=0)) [3, 2, 1, 0]
+--&amp;gt; Just 3
+
+preview (_all (/=0)) [0,0,0]
+--&amp;gt; Nothing&lt;/code&gt;&lt;p&gt;同样，修改 &lt;code class=&quot;inline&quot;&gt;mappend&lt;/code&gt;的定义我们可以得到 &lt;code class=&quot;inline&quot;&gt;Last&lt;/code&gt;，这里不再具体给出。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二个例子是包装过的&lt;code class=&quot;inline&quot;&gt;Bool&lt;/code&gt;，我们可以用它来判断一个列表中是否含有某个元素&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Any = Any { getAny :: Bool }
+
+instance Monoid Any where
+  mempty = Any False
+  Any x `mappend` Any y = Any (x || y)
+  
+has :: Getting Any s a -&amp;gt; s -&amp;gt; Bool
+has l = getAny . getConst . l (const $ Const (Any True)) 
+
+has (_all (==0)) [3, 2, 1, 0]
+--&amp;gt; True&lt;/code&gt;&lt;p&gt;我们发现，由于 Traversal 具有良好的抽象能力，我们仅仅选用不同的 Monoid 就实现了多种多用的效果，这无疑是非常令人振奋的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;-- 2017/11/25日更新&lt;/p&gt;&lt;p&gt;出现了各种错误（捂脸），谢谢 &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hash=&quot;0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hovercard=&quot;p$b$0251012c87c2d3f56ac34de7d71cdcbc&quot;&gt;@脚本少女魔理沙&lt;/a&gt; 指正╮(╯▽╰)╭&lt;/p&gt;</description>
+<author>孙浩然</author>
+<guid isPermaLink="false">2017-11-24-31328798</guid>
+<pubDate>Fri, 24 Nov 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Agda 中的证明，从零到一</title>
 <link>https://henix.github.io/feeds/zhuanlan.zju-lambda/2017-11-02-30686586.htm</link>
