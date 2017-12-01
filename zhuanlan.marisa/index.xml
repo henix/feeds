@@ -5,7 +5,207 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 28 Nov 2017 13:39:21 +0800</lastBuildDate>
+<lastBuildDate>Fri, 01 Dec 2017 11:16:58 +0800</lastBuildDate>
+<item>
+<title>Programming Languages: Application and Interpretation【译12】</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-01-31582536.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Programming Languages: Application and Interpretation【译12】&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31582536&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b71b632ed7974538bb2e812bcd20914e_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;审校：&lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/802e5a4b8b40cc8d665968a2ad620302&quot; data-hash=&quot;802e5a4b8b40cc8d665968a2ad620302&quot; data-hovercard=&quot;p$b$802e5a4b8b40cc8d665968a2ad620302&quot;&gt;@MrMathematica&lt;/a&gt;&lt;/p&gt;&lt;p&gt;原文：&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//cs.brown.edu/courses/cs173/2012/book/index.html&quot;&gt;PLAI 第二版&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GitHub：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/lotuc/PLAI-cn&quot;&gt;PLAI-cn&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GitBook：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.gitbook.com/book/lotuc/plai-cn&quot;&gt;PLAI-cn&lt;/a&gt;&lt;/p&gt;&lt;p&gt;翻译声明见 Github 仓库&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;12 表示层抉择&lt;/h2&gt;&lt;p&gt;回去看看我们将函数作为值的那个解释器，你能找到其中不一致的地方吗？&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;找到了吗？&lt;/blockquote&gt;&lt;p&gt;考虑一下我们是怎么表示这两种值的：数和函数。忽略其外面&lt;code class=&quot;inline&quot;&gt;numV&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;closV&lt;/code&gt;这一层，注意它们底层的数据表示。我们使用Racket中的数来表示要解释的语言中的数，但是我们没有使用Racket中的函数（闭包）来表示要解释的语言中的函数（闭包）。&lt;/p&gt;&lt;p&gt;这就是不一致的地方。更一致的做法是，要么都用Racket中的值表示，要么都&lt;b&gt;不&lt;/b&gt;用。那么我们为什么要做出这种决定呢？&lt;/p&gt;&lt;p&gt;这么做是要说明一个问题。本章我们就讨论此问题。&lt;/p&gt;&lt;h2&gt;12.1 改变表示&lt;/h2&gt;&lt;p&gt;我们暂且探究一下数。Racket中数很强大所以我们重用它：它支持任意大小的整数（&lt;b&gt;bignum&lt;/b&gt;）、有理数（这点受益于整数的bignum表示）、复数等等。因此，它能表示出大部分常规语言中的数系统。然而，这并不意味着它就是我们&lt;b&gt;想要的&lt;/b&gt;：它可能过于简单或者过于复杂：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;如果我们需要的是某种受限的数系统，它就过于复杂了。例如Java中规定了一组定长的数的表示（如：int被指定为32位的）。超出这个规定范围的数在Java中将不能直接被表示，同时算术运算也遵循此范围（例如：由于溢出，1加2147483647将&lt;b&gt;不能&lt;/b&gt;得到2147483648）。&lt;/li&gt;&lt;li&gt;如果我们需要更为丰富的数系统，它又会捉襟见肘，比如包含四元数或者和概率相关的数。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;糟糕的是，我们根本没有想过自己的需求，就直接轻率的使用Racket中的数作为我们语言中数的表示。&lt;/p&gt;&lt;p&gt;之所以这样做，是因为我们并不关心数本身；我们关心的是诸如将函数作为值这样的编程语言特性。然而，作为语言设计者，你应当在最开始的时候就考虑到这些问题。&lt;/p&gt;&lt;p&gt;接下来讨论闭包的表示。我们其实可以利用Racket的闭包来表示目标语言中的对应概念，与之对应的，用Racket中最基本的函数调用来实现目标语言中的函数调用。&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;使用Racket函数替换之前闭包的实现。&lt;/blockquote&gt;&lt;p&gt;答案在此：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-type Value
+  [numV (n : number)]
+  [closV (f : (Value -&amp;gt; Value))])
+
+(define (interp [expr : ExprC] [env : Env]) : Value
+  (type-case ExprC expr
+    [numC (n) (numV n)]
+    [idC (n) (lookup n env)]
+    [appC (f a) (local ([define f-value (interp f env)]
+                        [define a-value (interp a env)])
+                  ((closV-f f-value) a-value))]
+    [plusC (l r) (num+ (interp l env) (interp r env))]
+    [multC (l r) (num* (interp l env) (interp r env))]
+    [lamC (a b) (closV (lambda (arg-val)
+                         (interp b
+                                 (extend-env (bind a arg-val)
+                                             env))))]))
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;注意到一个有趣的变化。之前的实现中，环境是在解释appC时被扩展的。这里它是在lamC的解释过程中被扩展的。是这两个中有一个出错了吗？如果不是的话，为什么会出现这种情况？&lt;/blockquote&gt;&lt;p&gt;这种实现方式显然更为简洁，但是我们失去了一项重要的东西：&lt;b&gt;理解&lt;/b&gt;。告诉别人源语言中的函数对应于lambda等于什么都没说：如果我们已经知道lambda是干嘛的我们可能就不会花时间去研究它；如果不知道的话，这种直接映射的实现方式也不会教给我们啥（而且很可能会让本来就对该概念一无所知的我们更加困惑）。出于同样的理由，我们没有使用Racket中的状态去理解各种对状态的操作。&lt;/p&gt;&lt;p&gt;然而，一旦我们理解了某个特性，使用它来表示将不再是问题。实际上，这样做会使得我们的解释器更为简洁，毕竟我们不再手工实现所有事情。事实上，如果不使用这种表示方式，后面的一些解释器会变得毫无可读性。【注释】尽管如此，我们还是应该注意防范过度使用宿主语言的特性可能招致的风险。&lt;/p&gt;&lt;blockquote&gt;有点像是，“现在我们已经能够通过加一来理解加法，我们可以用加法来定义乘法：不再需要使用加一来定义乘法。”&lt;/blockquote&gt;&lt;h2&gt;12.2 错误&lt;/h2&gt;&lt;p&gt;当程序出错时，程序员需要得到相应的错误信息。直接使用宿主语言特性可能导致用户收到宿主语言中抛出的错误，这些错误将无法被理解。因此，我们需要谨慎的将各种情况的错误翻译成我们语言的用户所能理解的术语，且不让宿主语言中的错误信息“泄漏过来”。&lt;/p&gt;&lt;p&gt;更糟糕的情形是，那些本应出错的程序可能不会报错！例如，假设我们设计时决定让函数只出现在顶层位置，如果我们没有特意地检测这点，其被去语法糖后得到lambda，最后可能在解释器中被解释得到结果，而它本来应该使解释器出错停止。因此，我们应该极其注意，&lt;b&gt;仅允许符合期望的表层语言被映射到宿主语言中&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;再举个例子，考虑不同的赋值操作。在我们的语言中，给未绑定的变量赋值会导致错误。但是在有些语言中，这种操作会导致该变量被定义。语言设计者常犯的错误是没有很好的确定想要的语义，然后推脱说“它就是实现出来的那个样子”。这种态度（a）是懒惰、马虎的，（b）可能招致不可预料、负面的后果，（c）它使得将语言从一个实现平台移到另一个实现平台变得困难。不要犯这个错误！&lt;/p&gt;&lt;h2&gt;12.3 改变含义&lt;/h2&gt;&lt;p&gt;将作为值的函数映射为lambda之所以可行是因为我们本来就希望它们&lt;b&gt;拥有相同的含义&lt;/b&gt;。但是这种实现方式使得改变函数的含义变得极为困难。让我给你设想一个情形：假设我们想要实现动态作用域。【注释】在我们原来的解释器中，这很简单（历史告诉我们，简直太简单了）。试着在使用了lambda的解释器中实现动态作用域。同样的，将及早求值（eager evaluation）特性映射到惰性求值（lazy application）的语言中（译注，第17章）也是挺有难度的，或者说至少不太容易。&lt;/p&gt;&lt;blockquote&gt;只是假设而已。&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;将上面的解释器改成动态作用域的。&lt;/blockquote&gt;&lt;p&gt;重点是，使用自己构造的数据结构并不会使事情更为简单，但一般来说也不会使事情变得更为复杂；与之相对，映射成语言本身特性的方式会使某些特性——通常是宿主语言中已有的特性——的实现极为简单，但是使其他特性的实现变得微妙或困难。还有一个风险是，我们可能并不十分清楚宿主语言的某个特性具体实现了些什么（比如，“lambda”是否真的实现了静态作用域？）。&lt;/p&gt;&lt;p&gt;教训是，仅当我们想要“保留”底层语言的意义时，这才是好用的——甚至是特别明智的，因为它确保我们不会意外地改变其意义。但是，如果我们要利用基础语言的重要组成部分，而只是扩展它的含义，那么其他的实现策略可能也不错（译注，第13章），而不是编写解释器。&lt;/p&gt;&lt;h2&gt;12.4 另一个例子&lt;/h2&gt;&lt;p&gt;我们再考虑改变一个特性的表示方式。还记得环境是什么吗？&lt;/p&gt;&lt;p&gt;环境是名字到值（如果有赋值的话，那么是名字到地址）的&lt;b&gt;映射&lt;/b&gt;。我们通过自建的数据结构实现了这种映射，但是我们可以通过其他方式实现映射吗？当然可以，使用函数就行！这样，环境就变成了读入名字为参数、返回其绑定值（或者报错）的函数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-type-alias Env (symbol -&amp;gt; Value))
+&lt;/code&gt;&lt;p&gt;空的环境是什么？对于任何名字的查询都抛出错误的函数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (mt-env [name : symbol])
+  (error &#39;lookup &quot;name not found&quot;))
+&lt;/code&gt;&lt;p&gt;（原则上我们应该给它的返回值添加类型注解，应该是Value，但是在这里没啥意义）。给环境添加新的绑定就是创建新函数，该函数检查该名字是不是正在扩展的那个绑定；如果是，直接放回对应的绑定值，如果不是，往被扩展的环境传就行。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (extend-env [b : Binding] [e : Env])
+  (lambda ([name : symbol]) : Value
+    (if (symbol=? name (bind-name b))
+        (bind-val b)
+        (lookup name e))))
+&lt;/code&gt;&lt;p&gt;最后，怎么再环境中查询某个名称呢？&lt;b&gt;调用&lt;/b&gt;该环境即可。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (lookup [n : symbol] [e : Env]) : Value
+  (e n))
+&lt;/code&gt;&lt;p&gt;大功告成！&lt;/p&gt;</description>
+<author>lotuc</author>
+<guid isPermaLink="false">2017-12-01-31582536</guid>
+<pubDate>Fri, 01 Dec 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Programming Languages: Application and Interpretation【译11】</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-01-31582483.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Programming Languages: Application and Interpretation【译11】&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31582483&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b71b632ed7974538bb2e812bcd20914e_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;审校：&lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/802e5a4b8b40cc8d665968a2ad620302&quot; data-hash=&quot;802e5a4b8b40cc8d665968a2ad620302&quot; data-hovercard=&quot;p$b$802e5a4b8b40cc8d665968a2ad620302&quot;&gt;@MrMathematica&lt;/a&gt;&lt;/p&gt;&lt;p&gt;原文：&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//cs.brown.edu/courses/cs173/2012/book/index.html&quot;&gt;PLAI 第二版&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GitHub：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/lotuc/PLAI-cn&quot;&gt;PLAI-cn&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GitBook：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.gitbook.com/book/lotuc/plai-cn&quot;&gt;PLAI-cn&lt;/a&gt;&lt;/p&gt;&lt;p&gt;翻译声明见 Github 仓库&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;11 内存管理&lt;/h2&gt;&lt;h2&gt;11.1 垃圾&lt;/h2&gt;&lt;p&gt;&lt;b&gt;垃圾&lt;/b&gt;（garbage）指的是已分配但是不再需要的内存。典型的编程语言的运行时系统采用两种不同的内存分配方式。一种是分配给环境；这种分配方式要和静态作用域保持一致，所以它只需要支持推入（push）和弹出（pop）操作。函数调用返回时，为其环境分配的空间也被返回，供后续函数使用，看似没有成本。【注释】与之相对，在贮存中分配的内存必须伴随某个值的一生，可能要超过其创建位置的作用域——事实上，它可能一直存活下去。因此，我们需要不同的策略来回收在贮存中分配空间所产生的垃圾。&lt;/p&gt;&lt;blockquote&gt;并非没有成本。硬件必须执行“弹出”指令。这&lt;b&gt;不见得&lt;/b&gt;就一定比其他内存管理策略更高效。&lt;/blockquote&gt;&lt;p&gt;空间回收的方法有很多，大体可以分到两个阵营中：人工和自动。人工的方式依赖于开发者能够了解内存的使用，并正确的释放不需要的内存。一般认为，人并不擅长做这种事（虽然在某些情况下，人类拥有机器所无法获取的知识）。因此，几十年来，自动化的方法越来越普及。&lt;/p&gt;&lt;h2&gt;11.2 什么样的垃圾回收是“正确的”？&lt;/h2&gt;&lt;p&gt;垃圾回收既不应该太早地收回空间（&lt;b&gt;可靠性&lt;/b&gt;，soundness）也不能太晚（&lt;b&gt;完备性&lt;/b&gt;，completeness）。虽然两者都可以被视为缺陷，但是它们的影响并不是对称的：可以说，过早收回糟糕得多。这是因为，如果过早回收了某个贮存地址，计算将继续，并可能将其他数据写入该地址，从而访问到无意义的数据。往好了说，这会导致程序不正确，极端情况下后果更严重，比如可能会导致安全问题。反之，过迟收回会导致性能损失，并且可能最终导致程序终止，尽管此时理论上存在理论上可用的内存。这种性能损失以及程序过早终止很令人讨厌，在某些关键任务系统中可能会导致重大问题，不过，至少程序不会进行无意义的运算。&lt;/p&gt;&lt;p&gt;理想情况下，我们希望拥有所有的这三项：自动化（automation），可靠性和完备性。然而，这里我们面对的是不可兼得的情形，最多只能选择两项。理想的人类能够做到可靠性和完备性，但实践中实现其中一个都很少见。【注释】计算机可以实现自动化，同时可以提供可靠性和完备性中的一个，但可计算性论证表明，自动化的计算过程不能同时达成这两者。实践中，自动化技术一般选择实现可靠性，出于以下原因：（a）它造成的损害最小；（b）它相对更容易实现；（c）在添加一些人工帮助的情况下，可以接近完备性。&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;你&lt;/b&gt;当然是完美的，但是你的程序员同行呢？顺便说一下，经济学理论在等你验证呢。&lt;/blockquote&gt;&lt;h2&gt;11.3 人工回收&lt;/h2&gt;&lt;p&gt;人工的最彻底的方式是将所有内存回收交由人操作。例如，在C语言中提供了两个基本指令：&lt;code class=&quot;inline&quot;&gt;malloc&lt;/code&gt;用于分配内存，&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;用于释放内存。&lt;code class=&quot;inline&quot;&gt;malloc&lt;/code&gt;的输入是（内存的）大小，返回是对贮存的引用；&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;的输入是这种引用，释放其占用的内存。&lt;/p&gt;&lt;blockquote&gt;&lt;code class=&quot;inline&quot;&gt;       “在当代欧美语言，&quot;Moloch&quot;摩洛这个词有特定的引申义，指代需要极大牺牲的人物或者事业。”——维基百科，摩洛词条&lt;br&gt;        “我不认为这个名字听起来像malloc是巧合。”——Ian Barland&lt;br&gt;&lt;/code&gt;&lt;/blockquote&gt;&lt;h2&gt;11.3.1 完全人工回收的代价&lt;/h2&gt;&lt;p&gt;先来考虑一下这些操作的复杂度。首先我们假设&lt;code class=&quot;inline&quot;&gt;malloc&lt;/code&gt;有个指向贮存的关联寄存器（比如&lt;code class=&quot;inline&quot;&gt;new-loc&lt;/code&gt;），每次分配的时候直接获取下一个可用地址。这个模型非常简单——可惜只是看上去简单而已。问题出在当你需要用&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;释放内存时。如果调用&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;针对的是最后一次&lt;code class=&quot;inline&quot;&gt;malloc&lt;/code&gt;分配的内存，那么没有问题；但是贮存中数据一般不遵堆栈的规律。如果释放的不是最新分配的内存，将会在贮存中留下空洞。空洞会导致&lt;b&gt;碎片化&lt;/b&gt;（fragmentation），最坏的情况下，即使贮存中有足够的空间，也无法分配任何对象——许多分割的碎片，没有一个足够大。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;原则上，我们可以通过使所有空余空间相邻来解决碎片化的问题。怎么达成这一点？仔细考虑所有的后果，然后描述一下如何手工进行这项工作。&lt;/blockquote&gt;&lt;p&gt;在大多数手动内存管理方案中，碎片化仍然是个不可克服的问题，不过在这个看上去很简单的方案里还有其他东西值得考虑。释放某个值之后会发生什么？运行时系统需要用某种方式记录这块内存可被分配。它是通过维护&lt;b&gt;空闲表&lt;/b&gt;——空闲空间的链表——来达成这点的。稍作思考就会想到问题，空闲表存在哪，&lt;b&gt;它的&lt;/b&gt;内存又由谁来管理呢？答案是空闲表存放在空闲的内存单元格中，这就意味着内存分配时存在最小分配单元。&lt;/p&gt;&lt;p&gt;那么，原则上，每次&lt;code class=&quot;inline&quot;&gt;malloc&lt;/code&gt;现在必须遍历空闲表以找到合适的位置。说“合适”是因为分配者必须做出复杂的决定。遇到第一个匹配的空间就分配呢还是继续找找？而且“匹配”又是怎么定义的呢？应该选取那些大小刚好的空间，还是将大些的空间拆分成小块（从而增加创建不可用的小空间的可能性）？还有其它诸多问题。&lt;/p&gt;&lt;p&gt;程序员希望内存分配高效。【注释1】因此，实践中，分配系统倾向于只使用一组固定的尺寸，通常是2的幂。这样我们就可以不是只维护一个空闲表，而是为每个尺寸（都是2的幂）维护一个空闲表。然后再维护一个指向这些表的数组，位操作可以减小数组索引的代价。当然，这样会浪费一些空间，因为当需要那些不是2的幂尺寸的内存时，最终分配给其的内存尾部将会有空余。（这是计算机科学中经典的取舍(trade-off)：空间换时间）。&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;需要将释放的内存放到合适的链表中，有时候还需要将较大块的内存分割成小块以为将来的分配做准备。这个模型中的任何部分都不像看上去的那样高效。【注释2】&lt;/p&gt;&lt;blockquote&gt;如果内存分配不够高效，开发者会尝试各种奇技赢巧来重用程序中的值，这会降低代码的清晰性，很有可能会导致错误。&lt;br&gt;特别地，&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;并不免费（译注：双关）。&lt;/blockquote&gt;&lt;p&gt;当然，所有这些都基于程序员可以写出可靠（忽略完备）程序的基础上。但是他们做不到。&lt;/p&gt;&lt;h2&gt;11.3.2 引用计数&lt;/h2&gt;&lt;p&gt;由于完全手工内存回收给程序员带来极大的负担，一些半自动化技术被广为使用，最为人知的便是&lt;b&gt;引用计数&lt;/b&gt;（reference counting）。&lt;/p&gt;&lt;p&gt;使用引用计数的方式，每个值都关联一个计数，记录对其引用的个数。程序员负责负责递增和递减这些计数。当计数降为0时，该值的空间可以安全的回收供未来使用。&lt;/p&gt;&lt;p&gt;请注意，上面简单的定义中隐藏了两个重要假设：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;程序员可以记录每一次引用。回忆一下，别名也是引用。因此，当写出下面的代码时，&lt;code class=&quot;inline&quot;&gt; (let ([x &amp;lt;some value&amp;gt;])&lt;br&gt;   (let ([y x])&lt;br&gt;     ..))&lt;br&gt;&lt;/code&gt;&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;text&quot;&gt;程序员需要记住y是对x引用的那个值的第二次引用，因此要增加该值的引用计数。&lt;/code&gt;&lt;ol&gt;&lt;li&gt;每个值只有有限个引用。如果数据中存在环路，这条假设不成立。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;由于需要手动递增和递减引用，这种技术缺乏可靠性与完备性。事实上，上述第二个假设自然导致完备性的丧失，而第一个假设则指出了最简单的方式来打破可靠性。&lt;/p&gt;&lt;p&gt;手工管理内存的弊端还可以更为深层隐晦。由于程序员负责释放内存（或者，等效的，管理引用计数），内存管理策略必须成为每个库接口的一部分：即，“库中分配的值谁来释放？库会否释放传递给它的值？”很不幸，用文档准确记录、并遵守这种策略信息极其困难，更糟的是，它会导致文档中充斥关于底层的细节，它们通常与库要封装的行为毫无关系。&lt;/p&gt;&lt;p&gt;一个有趣的想法是将计数值的增减&lt;b&gt;自动化&lt;/b&gt;。另一个想法是在实现中添加循环检测（cycle-detection）。引入这两者将解决上述的很多问题，但是引用计数还有一些其它问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;引用计数会增加每个对象的大小。计数器需要足够大以防止溢出，又要足够小以避免过多的内存占用。&lt;/li&gt;&lt;li&gt;对这些计数器值的增减花费的时间会相当可观。&lt;/li&gt;&lt;li&gt;如果一个对象的引用计数降至0，那么它所引用的所有内容的计数值都需要减一，这种行为可能会是递归的。这意味着一次释放操作可能会花费大量时间，除非使用聪明的“惰性（lazy）”技巧（这样的话又会导致内存占用增加）。&lt;/li&gt;&lt;li&gt;为了减少计数值，我们需要遍历已经是垃圾的对象。这看上去很违反直觉：遍历我们已经不感兴趣的对象。工程实践中这会产生后果：这些我们不感兴趣的对象有可能已经很久没有被访问过了，这意味着它们可能被换页换出内存了。引用计数器需要将它们换页回内存，仅为了告诉它们它们不再被需要了。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;出于所有这些原因，应谨慎引用计数。你不应接受它作为默认，而是应该问自己，为什么拒绝通常被认为更好的自动化技术。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;如果引用计数溢出了，哪些正确性属性被破坏，是怎么被破坏的？权衡利弊。&lt;/blockquote&gt;&lt;h2&gt;11.4 自动回收，或垃圾收集&lt;/h2&gt;&lt;blockquote&gt;有些人认为引用计数是“垃圾收集”技术的一种。我更喜欢用后一个术语来指完全自动的技术。但是浏览网页时请注意可能的混淆。&lt;/blockquote&gt;&lt;p&gt;现在让我们来简要地考察一下让语言的运行时系统自动化回收垃圾的过程。我们将使用缩写GC（&lt;b&gt;Garbage Collection&lt;/b&gt;）同时指代垃圾回收的算法与垃圾回收的过程，上下文可以帮你区分具体指代哪个。&lt;/p&gt;&lt;h2&gt;11.4.1 概览&lt;/h2&gt;&lt;p&gt;所有GC算法的核心是通过值间引用关系遍历内存。遍历从&lt;b&gt;根集&lt;/b&gt;（root set）开始，也就是是程序可能引用贮存中值的所有地方。通常，根集由环境中的绑定变量以及全局变量组成。在实际实现中，还需要考虑到类似寄存器中的引用这种易逝值。从根集开始，算法使用一系列算法——通常是深度优先搜索【注释】的变体——来遍历所有可访问的值，以识别所有&lt;b&gt;存活的&lt;/b&gt;值（即，通过一些程序操作的序列可用到的值）。按定义所有其它数据就是垃圾。不同的算法使用不同的方式回收这些空间。&lt;/p&gt;&lt;blockquote&gt;通常选用深度优先搜索，因为它适用于基于堆栈的实现。当然，你可能（也应该）想知道GC自己的栈存储在哪里！&lt;/blockquote&gt;&lt;h2&gt;11.4.2 事实和可证性&lt;/h2&gt;&lt;p&gt;如果你仔细阅读的话，你会发现上面我描述了一个&lt;b&gt;算法&lt;/b&gt;。这是&lt;b&gt;实现的细节&lt;/b&gt;，而不是&lt;b&gt;规范&lt;/b&gt;的一部分！垃圾回收的规范是&lt;b&gt;事实&lt;/b&gt;（truth）的表述：我们要准确地回收所有是垃圾的值，不多也不少。但是对于任何图灵完备的编程语言，我们都没法得出这一事实，于是我们退而求其次，寻求&lt;b&gt;可证性&lt;/b&gt;（provability）。上述的算法描述提供了存活性的有效“证明”，其补集就是垃圾。这个方案当然还有变种，收集更多或更少的垃圾，取决于证明“垃圾性”的不同强度。&lt;/p&gt;&lt;p&gt;上面的说的最后一点指出了严格规范术语描述中的缺陷，对于要回收多少垃圾它完全没有说明。考虑一下极端情况实际上是有益的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;定义一个可靠的垃圾回收策略很简单。同样，定义一个完备的的垃圾回收策略也非常简单。你能想到怎么做吗？&lt;/blockquote&gt;&lt;p&gt;要做到可靠，我们只要确保不会错误的移除任何可能存活的数据。一种确保无疑的方式就是&lt;b&gt;完全不回收垃圾&lt;/b&gt;。与之对应，完备的GC回收&lt;b&gt;所有东西&lt;/b&gt;。显然这两者都是无用的（后者显然极其危险）。这为我们的工程实践指明了一点，我们不仅需要GC是可靠的，也希望它足够完备，同时还要足够高效。&lt;/p&gt;&lt;h2&gt;11.4.3 核心假设&lt;/h2&gt;&lt;p&gt;能够可靠地执行GC依赖于两条关键的假设。一条有关语言的实现，另一条有关语言的语义。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;对语言中的值，GC需要知道该值的类型以及它在内存中的表示法。例如，当遍历到&lt;code class=&quot;inline&quot;&gt;cons&lt;/code&gt;单元，它必须知道：&lt;/li&gt;&lt;ol&gt;&lt;li&gt;这是一个&lt;code class=&quot;inline&quot;&gt;cons&lt;/code&gt;单元；因此，&lt;/li&gt;&lt;li&gt;它的&lt;code class=&quot;inline&quot;&gt;first&lt;/code&gt;在哪里，例如位于4个字节的偏移量的地方，&lt;/li&gt;&lt;li&gt;它的&lt;code class=&quot;inline&quot;&gt;rest&lt;/code&gt;在哪里，例如位于8个字节的偏移量的地方。&lt;/li&gt;&lt;/ol&gt;&lt;/ol&gt;&lt;p&gt;显然，这个属性必须递归地保持，使得遍历算法能够正确映射内存中的值。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;程序不能通过下面两种方式&lt;b&gt;生成&lt;/b&gt;引用：&lt;/li&gt;&lt;ol&gt;&lt;li&gt;对象引用不能发生在语言实现预先定义的根集之外。&lt;/li&gt;&lt;li&gt;对象引用只能指向对象中明确定义的点。&lt;/li&gt;&lt;/ol&gt;&lt;/ol&gt;&lt;p&gt;违反第二条时，GC将完全乱套，错误的解释数据。第一条看上去显而易见，如果它被违反，意味着运行时系统错误地理解语言的语义。然而这条的后果有点微妙，下面将会讨论。&lt;/p&gt;&lt;h2&gt;11.5 保守垃圾回收&lt;/h2&gt;&lt;p&gt;上文说过，一般根集包含环境、全局变量和一些易逝值。引用还可能出现在什么地方？&lt;/p&gt;&lt;p&gt;在大部分语言中，没有其他地方了。但是有些语言（说的就是你们，C和C++）允许将引用转换成数，以及将任意数转换成引用。因此，原则上，程序中的&lt;b&gt;任何&lt;/b&gt;数值（由于C和C++类型系统的特性，程序中几乎任何值）都可以被视为引用。&lt;/p&gt;&lt;p&gt;两个原因使得它问题重重。首先，GC不能只将其注意力集中到一个较小的根集；现在整个贮存都是潜在的根集。其次，如果GC试图以任何方式修改某个对象——例如在遍历时记录一个“访问”位——这时它可能修改了一个&lt;b&gt;非引用&lt;/b&gt;值：例如，它可能实际上改变了程序中某个（看似无关的）数型常量。因此，像C和C++这样的语言中的特征组合起来，使得合理而有效的GC非常困难。&lt;/p&gt;&lt;p&gt;但并不是不可能。一个令人兴奋的研究方向——称为&lt;b&gt;保守&lt;/b&gt;GC——成功的为此类语言创造了足够高效的GC系统。保守（conservative）GC背后的基本原则是，尽管理论上每个贮存地址都可能属于根集，但实际上它们大部分都不是。它会通过一系列聪明的观察来推断出哪些位置肯定不是引用（这点和传统GC相反），然后将它们安全地&lt;b&gt;忽略&lt;/b&gt;掉：例如，在字节对齐的体系架构中，奇数值不可能为引用。通过忽略大部分贮存，通过对程序行为作出一些基本的假定（例如程序不可能产生某种类型的引用），并且小心操作不去修改贮存（例如，不改变值中的比特，不移动数据）的情况下，可以得到一个还算有效的GC策略。&lt;/p&gt;&lt;blockquote&gt;刻鹄类鹜。&lt;/blockquote&gt;&lt;p&gt;保守GC在那些使用或者依赖C和C++实现的编程语言中比较常见。例如，早期的Racket就完全依靠它。这是基于以下原因：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;它是种便捷的自举技术，语言实现者能得以将精力集中在其它更富革新性的特性上。&lt;/li&gt;&lt;li&gt;如果语言能控制所有的引用（比如Racket），那么可以使用便于提高GC效率的内存表示法（例如，用1填充所有(真正的)数的最低有效位）。&lt;/li&gt;&lt;li&gt;它使得该语言和C以及C++实现的库交互变得容易（当然前提是这些库也符合该技术的要求）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;这里需要解释一下名词。如前所述，&lt;b&gt;所有&lt;/b&gt;实用的GC技术都是“保守的”，也就是说它们用（潜在的）可访问性代替真实中的是否访问。然而，“保守”这个词已经成为专门的术语，指在&lt;b&gt;不合作&lt;/b&gt;（但不是&lt;b&gt;故意对抗&lt;/b&gt;）的运行时系统中工作的GC技术。&lt;/p&gt;&lt;h2&gt;11.6 精确垃圾回收&lt;/h2&gt;&lt;p&gt;在传统的GC术语中，“保守”的反义词是&lt;b&gt;精确&lt;/b&gt;（precise）。这也是误称，因为GC不可是精确的，即同时做到可靠和完备。这里精确更多是对识别引用能力的表述：当面对值时，精确GC知道什么是和不是引用，以及引用的位置在哪。相对保守GC，这省去了猜测哪些值不是引用（并以此尽可能多地消除潜在引用）这项繁重的工作。&lt;/p&gt;&lt;p&gt;大多数当代语言的运行时系统使用精确GC，而精确GC领域中存在大量的实现技术。我推荐&lt;a href=&quot;ftp://ftp.cs.utexas.edu/pub/garbage/gcsurvey.ps&quot;&gt;Paul Wilson 的调查报告&lt;/a&gt;（虽然这份材料有点显老，但在这个快速发展的领域中仍是很好的资源）和&lt;a href=&quot;https://www.cs.kent.ac.uk/people/staff/rej/gc.html&quot;&gt;Richard Jones&lt;/a&gt; 的书和资料。最后，对于世代垃圾收集器的概述，可以读一下&lt;a href=&quot;http://www.cs.princeton.edu/~appel/papers/143.ps&quot;&gt;简单的世代垃圾收集器和快速分配&lt;/a&gt;。&lt;/p&gt;</description>
+<author>lotuc</author>
+<guid isPermaLink="false">2017-12-01-31582483</guid>
+<pubDate>Fri, 01 Dec 2017 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Haskell 中的“定理证明”</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-30-31567423.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Haskell 中的“定理证明”&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31567423&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-24cc9824870cdcc4194b2c0ec0097d23_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;题图：鲸 | 花生( •̀ ω •́ ) [pixiv] &lt;a href=&quot;https://www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=66023124&quot;&gt;https://www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=66023124&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;这篇文章讲了什么&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;i&gt;这是一篇休闲向文章&lt;/i&gt;&lt;/p&gt;&lt;p&gt;总结了 Codewars 上面的几道证明题的思想并加以延拓，希望读者能在看完这篇文章之前/之后解决练习中的题目。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面是正文&lt;/p&gt;&lt;hr&gt;&lt;p&gt;众所周知，Haskell 并没有真正意义上的 dependent type，但通过一些技巧 （利用GADT）可以“模拟”dependent type，并可以通过其证明一些定理。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;利用 GADT 模拟 Dependent Type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先我们需要作为&lt;b&gt;值&lt;/b&gt;的类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Z
+ data S n&lt;/code&gt;&lt;p&gt;注意到，这里的 &lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;n 都只是单纯的类型，你甚至不能构造出相应类型的值出来。&lt;/p&gt;&lt;p&gt;所以我们需要把它们与实际存在的值联系起来&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Nat a where
+      Zero :: Nat Z
+      Succ :: Nat a -&amp;gt; Nat (S a)&lt;/code&gt;&lt;p&gt;于是我们有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (Succ Zero) :: Nat (S Z)
+  (Succ (Succ Zero)) :: Nat (S (S Z))&lt;/code&gt;&lt;p&gt;这样我们获得了在类型层次上的自然数，并保持了它与实际的值的同构关系。&lt;/p&gt;&lt;p&gt;光有自然数是没有意义的，我们需要赋予它们运算的能力。&lt;/p&gt;&lt;p&gt;那么 &lt;code class=&quot;inline&quot;&gt;Nat n&lt;/code&gt; 与 &lt;code class=&quot;inline&quot;&gt;Nat m&lt;/code&gt; 相加的结果应该是什么呢？&lt;/p&gt;&lt;p&gt;首先它应该是一个 &lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt; ，其次它的类型应该对应于两数相加的结果。&lt;/p&gt;&lt;p&gt;借助于 GHC 的 Type Family 与 Type Operator 扩展，我们可以定义出 合理的 类型层面上的自然数的加法与乘法&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  type family (:+:) (n :: *) (m :: *) :: *
+  type instance Z   :+: m = m
+  type instance S n :+: m = S (n :+: m)
+  
+  type family (:*:) (n :: *) (m :: *) :: *
+  type instance Z   :*: m = Z
+  type instance S n :*: m = m :+: (n :*: m)&lt;/code&gt;&lt;p&gt;然后是数据层面的自然数&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  infixl 4 +
+  (+) :: Nat n -&amp;gt; Nat m -&amp;gt; Nat (n :+: m)
+  Zero + a = a
+  (Succ x) + a = Succ (x + a)
+  
+  infixl 5 *
+  (*) :: Nat n -&amp;gt; Nat m -&amp;gt; Nat (n :*: m)
+  Zero * _ = Zero
+  (Succ x) * m = m + x * m&lt;/code&gt;&lt;p&gt;有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (Succ (Succ Zero)) * (Succ (Succ Zero)) :: Nat (S (S (S (S Z))))&lt;/code&gt;&lt;p&gt;基于类型上的自然数，我们可以定义 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; (在类型中包含了长度信息的 &lt;code class=&quot;inline&quot;&gt;List&lt;/code&gt;)了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  data Vec a n where
+      VNil :: Vec a Z
+      VCons :: a -&amp;gt; Vec a n -&amp;gt; Vec a (S n)&lt;/code&gt;&lt;p&gt;长度为 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 与长度为 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 连接起来之后的长度为 &lt;code class=&quot;inline&quot;&gt;n + m&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (++) :: Vec a n -&amp;gt; Vec a m -&amp;gt; Vec a (n :+: m)
+  VNil ++ ys = ys
+  VCons x xs ++ y = VCons x (xs ++ y)&lt;/code&gt;&lt;p&gt;把长度为 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 重复 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 次之后得到的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 的长度为 &lt;code class=&quot;inline&quot;&gt;n * m&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  repeat :: Nat n -&amp;gt; Vec a m -&amp;gt; Vec a (n :*: m)
+  repeat Zero _ = VNil
+  repeat (Succ x) xs = xs ++ repeat x xs&lt;/code&gt;&lt;p&gt;有了长度信息，就有类型安全的 &lt;code class=&quot;inline&quot;&gt;head&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;tail&lt;/code&gt; 了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  headV :: Vec a (S n) -&amp;gt; a
+  headV (VCons x _) = x
+  
+  tailV :: Vec a (S n) -&amp;gt; Vec a n
+  tailV (VCons _ xs) = xs&lt;/code&gt;&lt;p&gt;因为 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 作为 GADT 的类型在这里受到了第二个类型参数为 &lt;code class=&quot;inline&quot;&gt;S n&lt;/code&gt; 的束缚，所以可以保证这里的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 不会是 &lt;code class=&quot;inline&quot;&gt;VNil&lt;/code&gt; ，这两个函数都是 &lt;b&gt;完全&lt;/b&gt; 的。&lt;/p&gt;&lt;p&gt;借鉴之前定义类型层面上自然数的加法与乘法的思想，我们可以定义相应的减法、求最大值、最小值等。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  type family (:-:) (n :: *) (m :: *) :: *
+  type instance n :-: Z = n
+  type instance Z :-: m = Z
+  type instance S n :-: S m = n :-: m
+  
+  type family (:^:) (n :: *) (m :: *) :: *
+  type instance Z :^: n = n
+  type instance n :^: Z = n
+  type instance S n :^: S m = S (n :^: m)
+  
+  type family (:~:) (n :: *) (m :: *) :: *
+  type instance Z :~: m = Z
+  type instance n :~: Z = Z
+  type instance S n :~: S m = S (n :~: m)&lt;/code&gt;&lt;p&gt;(这里使用了 &lt;code class=&quot;inline&quot;&gt;:~:&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;:^:&lt;/code&gt; 分别代表求最大值和最小值)&lt;/p&gt;&lt;p&gt;于是有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  zip :: Vec a n -&amp;gt; Vec b m -&amp;gt; Vec (a, b) (n :~: m)
+  zip VNil _ = VNil
+  zip _ VNil = VNil
+  zip (VCons x xs) (VCons y ys) = VCons (x, y) (zip xs ys)&lt;/code&gt;&lt;h2&gt;&lt;b&gt;进行简单的定理证明&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Haskell&lt;/code&gt; 中没有 Prop ，所以我们得从头开始描述“相等”这个概念。&lt;/p&gt;&lt;p&gt;首先定义代表两个类型层面的自然数相等的类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Equal a b where
+      EqZ :: Equal Z Z
+      EqS :: Equal a b -&amp;gt; Equal (S a) (S b)&lt;/code&gt;&lt;p&gt;借助于 Type Operator 我们可以写成&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; type a === b = Equal a b&lt;/code&gt;&lt;p&gt;相等关系具有自反性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  refl :: Nat n -&amp;gt; n === n
+  refl Zero = EqZ
+  refl (Succ x) = EqS $ refl x&lt;/code&gt;&lt;p&gt;相等关系具有对称性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  symm :: a === b -&amp;gt; b === a
+  symm EqZ = EqZ
+  symm (EqS x) = EqS $ symm x&lt;/code&gt;&lt;p&gt;相等关系具有传递性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (&amp;lt;=&amp;gt;) :: a === b -&amp;gt; b === c -&amp;gt; a === c
+  EqZ &amp;lt;=&amp;gt; EqZ = EqZ
+  EqS x &amp;lt;=&amp;gt; EqS y = EqS $ x &amp;lt;=&amp;gt; y&lt;/code&gt;&lt;p&gt;因为 Type Operator 也能定义优先级，所以下面给出：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  infixl 2 ===
+  infixl 4 :+:
+  infixr 4 :-:
+  infixl 5 :*:&lt;/code&gt;&lt;p&gt; 来减少括号的个数&lt;/p&gt;&lt;h2&gt;加法结合律&lt;/h2&gt;&lt;p&gt;那么我们来试着证明一下加法的结合律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plusComb :: Nat n -&amp;gt; Nat m -&amp;gt; Nat p -&amp;gt; n :+: (m :+: p) === n :+: m :+: p&lt;/code&gt;&lt;p&gt;我们对 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 进行归纳：&lt;/p&gt;&lt;p&gt; 当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 0 的时，在加法中的 0 会直接消除，所以使用 &lt;code class=&quot;inline&quot;&gt;refl (m + p)&lt;/code&gt; 就好了；&lt;/p&gt;&lt;p&gt; 当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S n1&lt;/code&gt; 时，把等式两边的 S 用 &lt;code class=&quot;inline&quot;&gt;EqS&lt;/code&gt; 提取出来，再使用归纳假设就可以了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plusComb :: Nat n -&amp;gt; Nat m -&amp;gt; Nat p -&amp;gt; n :+: (m :+: p) === n :+: m :+: p
+  plusComb Zero p q = refl (p + q)
+  plusComb (Succ n) m p = EqS $ plusComb n m p&lt;/code&gt;&lt;h2&gt;加法交换律&lt;/h2&gt;&lt;p&gt;那么再尝试一下稍微困难一点的加法交换律吧&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plusCommutes :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: m === m :+: n&lt;/code&gt;&lt;p&gt;当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 0 的时，证明很平凡。我们需要的是这么一个类型：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  Nat n -&amp;gt; n :+: Z === n&lt;/code&gt;&lt;p&gt;只需要对 n 进行归纳就好了。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  nPlusZero :: n === n -&amp;gt; n === n :+: Z
+  nPlusZero EqZ        = EqZ
+  nPlusZero (EqS eq) = EqS $ nPlusZero eq&lt;/code&gt;&lt;p&gt;当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S m1&lt;/code&gt; 时，我们需要的东西的类型为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (n :+: S m1) === S (m1 :+: n)&lt;/code&gt;&lt;p&gt;根据归纳法，我们可以得到&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;EqS (plusCommutes n m1) :: S (m1 :+: n) === S (n :+: m1)&lt;/code&gt;&lt;p&gt;借助于相等关系的传递性，目标变成了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; (n :+: S m1) === S (n :+: m1)&lt;/code&gt;&lt;p&gt;而这个命题的证明也只需要对 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 进行归纳&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  nPlusSm :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: S m === S (n :+: m)
+  nPlusSm Zero      m = EqS $ refl m
+  nPlusSm (Succ n) m = EqS $ nPlusSm n m&lt;/code&gt;&lt;p&gt;把这些步骤拼起来，就得到了我们最终的证明&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plus2 :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: m === m :+: n
+  plus2 n Zero = symm $ nPlusZero $ refl n
+  plus2 n (Succ m) = nPlusSm n m &amp;lt;=&amp;gt; symm (EqS $ plus2 m n)&lt;/code&gt;&lt;h2&gt;乘法交换律&lt;/h2&gt;&lt;p&gt;看了加法我们再来看乘法&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; multCommute :: Nat n -&amp;gt; Nat m -&amp;gt; n :*: m === m :*: n&lt;/code&gt;&lt;p&gt;证明的方法和加法几乎一样，仍然从归纳法入手，对 n 进行归纳。中间需要用到一些引理，比如&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  multCommuteS :: Nat n -&amp;gt; Nat m -&amp;gt; m :*: S n === m :+: m :*: n
+  plusSwap :: Nat a -&amp;gt; Nat b -&amp;gt; Nat c -&amp;gt; a :+: (b :+: c) === b :+: (a :+: c)&lt;/code&gt;&lt;p&gt;等等，这里不再详细说明具体的推导，直接给出实现，有兴趣的同学可以试着自己写一遍&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; equalPlus :: Nat a -&amp;gt; Nat b -&amp;gt; a === b -&amp;gt; Nat c -&amp;gt; a :+: c === b :+: c
+ equalPlus a b eq Zero = symm (nPlusZero a) &amp;lt;=&amp;gt; eq &amp;lt;=&amp;gt; nPlusZero b
+ equalPlus a b eq (Succ c) = nPlusSm a c &amp;lt;=&amp;gt; Fuck (equalPlus a b eq c) &amp;lt;=&amp;gt; symm (nPlusSm b c)
+  
+ equalPlus&#39; :: Nat a -&amp;gt; Nat b -&amp;gt; a === b -&amp;gt; Nat c -&amp;gt; c :+: a === c :+: b
+ equalPlus&#39; a b eq c = plusCommutes c a &amp;lt;=&amp;gt; equalPlus a b eq c &amp;lt;=&amp;gt; plusCommutes b c
+  
+ plusSwap&#39; :: Nat a -&amp;gt; Nat b -&amp;gt; Nat c -&amp;gt; a :+: b :+: c === b :+: a :+: c
+ plusSwap&#39; a b = equalPlus (a + b) (b + a) (plusCommutes a b)
+  
+ plusSwap :: Nat a -&amp;gt; Nat b -&amp;gt; Nat c -&amp;gt; a :+: (b :+: c) === b :+: (a :+: c)
+ plusSwap a b c = plusCommute a b c &amp;lt;=&amp;gt; plusSwap&#39; a b c &amp;lt;=&amp;gt; symm (plusCommute b a c)
+  
+ multCommuteS_1 :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: (m :*: S n) === m :+: (n :+: (m :*: n))
+ multCommuteS_1 n m = equalPlus&#39; (m * Succ n) (m + m * n) (multCommuteS n m) n &amp;lt;=&amp;gt; plusSwap n m (m * n)
+  
+ multCommuteS :: Nat n -&amp;gt; Nat m -&amp;gt; m :*: S n === m :+: m :*: n
+ multCommuteS _ Zero = Refl
+ multCommuteS n (Succ m) = Fuck $ multCommuteS_1 n m
+  
+ multCommutes :: Nat n -&amp;gt; Nat m -&amp;gt; n :*: m === m :*: n
+ multCommutes Zero m = symm $ multNZero m
+ multCommutes (Succ n) m = symm
+      (multCommuteS n m &amp;lt;=&amp;gt; equalPlus&#39; (m * n) (n * m) (multCommutes m n) m)&lt;/code&gt;&lt;h2&gt;&lt;b&gt;从自然数说开去&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们在上面定义的“相等”中，只对自然数进行了规定，那么我们怎么表示任何一种东西相等的概念呢？我们需要对 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 进行修改。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Equal a b where
+      Refl :: Equal a a
+      Derive :: Equal a b -&amp;gt; Equal (p a) (p b)&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 对应之前的 &lt;code class=&quot;inline&quot;&gt;EqZ&lt;/code&gt; , &lt;code class=&quot;inline&quot;&gt;Derive&lt;/code&gt; 对应 &lt;code class=&quot;inline&quot;&gt;EqS&lt;/code&gt; 。从定义上我们就能知道相等关系的自反性。&lt;/p&gt;&lt;p&gt;重新定义之后，我们就再也不需要 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; 这个函数了，因为直接使用 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 就可以了。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;symm&lt;/code&gt; 的定义和原来类似，&lt;code class=&quot;inline&quot;&gt;trans&lt;/code&gt; 则需要一点小小的修改：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; (&amp;lt;=&amp;gt;) :: a === b -&amp;gt; b === c -&amp;gt; a === c
+ Refl        &amp;lt;=&amp;gt; Refl        = Refl
+ Derive x &amp;lt;=&amp;gt; Refl        = Derive $ x      &amp;lt;=&amp;gt; Refl
+ Refl        &amp;lt;=&amp;gt; Derive y = Derive $ Refl &amp;lt;=&amp;gt; y
+ Derive x &amp;lt;=&amp;gt; Derive y = Derive $ x      &amp;lt;=&amp;gt; y&lt;/code&gt;&lt;p&gt;为了证明我们定义的 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 不仅仅对自然数有用，我们引入了类型层面的 &lt;code class=&quot;inline&quot;&gt;Bool&lt;/code&gt; 来增加多样性。&lt;/p&gt;&lt;p&gt;首先是类型定义&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data T
+data F&lt;/code&gt;&lt;p&gt;然后是对应的数据类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Boolean :: * -&amp;gt; * where
+      Tr :: Boolean T
+      Fa :: Boolean F&lt;/code&gt;&lt;p&gt;对于每一个需要参与证明的函数，我们需要在类型上实现一遍。&lt;/p&gt;&lt;p&gt;对于 &lt;code class=&quot;inline&quot;&gt;Boolean&lt;/code&gt; 而言，先实现与或非 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; type family Inv (n :: *) :: *
+ type instance Inv T = F
+ type instance Inv F = T
+  
+ type family (||) (n :: *) (m :: *) :: *
+ type instance T || T = T
+ type instance F || T = T
+ type instance T || F = T
+ type instance F || F = F
+  
+ type family (&amp;amp;&amp;amp;) (n :: *) (m :: *) :: *
+ type instance T &amp;amp;&amp;amp; T = T
+ type instance T &amp;amp;&amp;amp; F = F
+ type instance F &amp;amp;&amp;amp; T = F
+ type instance F &amp;amp;&amp;amp; F = F&lt;/code&gt;&lt;p&gt;首先证明双重否定律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  doubleNeg :: Boolean b -&amp;gt; Inv (Inv b) === b
+  doubleNeg Tr = Refl
+  doubleNeg Fa = Refl&lt;/code&gt;&lt;p&gt;要注意的是，这里并不能把两个分支合在一起写，因为它并不能直接把 &lt;code class=&quot;inline&quot;&gt;Inv (Inv b)&lt;/code&gt; 推导到 &lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;&lt;/p&gt;&lt;p&gt;然后是德摩根律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; demorgan :: Boolean a -&amp;gt; Boolean b -&amp;gt; Inv (a &amp;amp;&amp;amp; b) === Inv a || Inv b
+ demorgan Tr Tr = Refl
+ demorgan Tr Fa = Refl
+ demorgan Fa Tr = Refl
+ demorgan Fa Fa = Refl&lt;/code&gt;&lt;p&gt;仍然要进行详细的分类讨论，理由同上&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;同样的，我们还能利用 Type Family 描述一些性质 ，比如自然数的奇偶性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; type family IsOdd (n :: *) :: *
+ type instance IsOdd Z = F
+ type instance IsOdd (S Z) = T
+ type instance IsOdd (S (S n)) = IsOdd n
+  
+ type family IsEven (n :: *) :: *
+ type instance IsEven Z = T
+ type instance IsEven (S Z) = F
+ type instance IsEven (S (S n)) = IsEven n&lt;/code&gt;&lt;p&gt;试着证明一下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus :: Nat n -&amp;gt; Nat m -&amp;gt; IsOdd (n :+: m) === IsOdd n ^ IsOdd m&lt;/code&gt;&lt;p&gt;因为 &lt;code class=&quot;inline&quot;&gt;IsEven&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;IsOdd&lt;/code&gt; 的递归定义中都有两层的预设，所以我们在用归纳法证明时也需要考虑相应的 3 种情况&lt;/p&gt;&lt;ol&gt;&lt;li&gt;当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt; 时&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus Zero m :: IsOdd m === (F ^ IsOdd m)&lt;/code&gt;&lt;p&gt;只需要实现这两个函数（它们的实现都是平凡的）&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; falseXor :: Boolean b -&amp;gt; b === F ^ b
+ isodd :: Nat a -&amp;gt; Boolean (IsOdd a)&lt;/code&gt;&lt;p&gt;就有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus Zero x = falseXor $ isodd x&lt;/code&gt;&lt;ol&gt;&lt;li&gt;当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S Z&lt;/code&gt; 时&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;对 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 进行归纳，当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;S Z&lt;/code&gt; 时，结果就是 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ，而当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S (S m&#39;)&lt;/code&gt; 时，我们需要的类型为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus (Succ Zero) (Succ (Succ x)) :: IsOdd (S n3) === (T ^ IsOdd n3)&lt;/code&gt;&lt;p&gt;同样的，只需要把它拎出去，用归纳法再证一遍就好了&lt;/p&gt;&lt;ol&gt;&lt;li&gt;当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S (S n&#39;)&lt;/code&gt; 时&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;我们需要的类型为：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus (Succ (Succ x)) y :: IsOdd (n2 :+: m) === (IsOdd n2 ^ IsOdd m)&lt;/code&gt;&lt;p&gt;利用归纳假设就能直接证明了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus (Succ (Succ x)) y = oddPlus x y&lt;/code&gt;&lt;h2&gt;&lt;b&gt;还有什么？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;注意到我们的很多证明，实际上都只是在类型层面的变化。比如下面这个&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddEvenS :: Nat n -&amp;gt; IsOdd n === IsEven (S n)
+ oddEvenS Zero = Refl
+ oddEvenS (Succ Zero) = Refl
+ oddEvenS (Succ (Succ x)) = oddEvenS x&lt;/code&gt;&lt;p&gt;把递归展开的话就能发现它所有情况下的 “值” 都是 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ，但我们不能直接对所有的情况赋 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ，因为这个递归是对 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 上的类型进行修改的过程。类型推导不会对 Type Family 中的递归定义进行展开，所以我们还是得自己动手证明一遍。&lt;/p&gt;&lt;h2&gt;“性质” 的表示方法&lt;/h2&gt;&lt;p&gt;我们使用了 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 表示两个类型相等的概念，那么同样的，我们还可以用这种方法描述其它的一元/二元/多元关系，比如我们可以换一种方式表示奇偶性：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Even :: * -&amp;gt; * where
+      ZeroEven :: Even Z
+      Add2Even :: Even n -&amp;gt; Even (S (S n))
+  
+data Odd :: * -&amp;gt; * where
+      OneOdd :: Odd (S Z)
+      Add2Odd :: Odd n -&amp;gt; Odd (S (S n))&lt;/code&gt;&lt;p&gt;或者描述两个自然数的大小关系：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Greater :: * -&amp;gt; * where
+      GreZ :: Greater (S Z) Z
+      GreS1 :: Greater x y -&amp;gt; Greater (S x) y
+      GreS2 :: Greater x y -&amp;gt; Greater (S x) (S y)&lt;/code&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Derive&lt;/code&gt; 的局限&lt;/h2&gt;&lt;p&gt;事实上，我们在 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 中定义的 &lt;code class=&quot;inline&quot;&gt;Derive&lt;/code&gt; 并不是万能的，比如我们不能这样&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; deriveOdd :: Nat n -&amp;gt; n === m -&amp;gt; IsOdd n === IsOdd m
+ deriveOdd _ eq = Derive eq -- wrong !&lt;/code&gt;&lt;p&gt;报错信息为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;Couldn&#39;t match type ‘IsOdd n’ with ‘p0 n’
+      Expected type : IsOdd n === IsOdd m
+      Actual   type    : p0 n === p0 m&lt;/code&gt;&lt;p&gt;它只能对字面量进行推导，比如&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; deriveS :: n === m -&amp;gt; S n === S m&lt;/code&gt;&lt;h2&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;你现在应该可以解决下面几道题目&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/singletons&quot;&gt;https://www.codewars.com/kata/singletons&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/odd-plus-even-equals-odd-prove-it&quot;&gt;https://www.codewars.com/kata/odd-plus-even-equals-odd-prove-it&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/a-plus-b-equals-b-plus-a-prove-it&quot;&gt;https://www.codewars.com/kata/a-plus-b-equals-b-plus-a-prove-it&lt;/a&gt;&lt;/p&gt;&lt;p&gt;最后一道题证明的是加法交换律，除了文中给出的方法，还有一种更精妙的写法，读者可以试着找一找&lt;/p&gt;&lt;h2&gt;更多练习&lt;/h2&gt;&lt;p&gt;证明乘法交换律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; multCommute :: Nat n -&amp;gt; Nat m -&amp;gt; Nat p -&amp;gt; n :*: m :*: p === n :*: (m :*: p)&lt;/code&gt;&lt;p&gt;以及更多你能想到的东西&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>zjuwyd</author>
+<guid isPermaLink="false">2017-11-30-31567423</guid>
+<pubDate>Thu, 30 Nov 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Taba Taba!</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-28-31466428.htm</link>
@@ -280,198 +480,6 @@ proof₄ (∧-intro p q) = q &lt;/code&gt;&lt;h2&gt;例二(详)：交换律&lt;/
 <author>大笨蛋千里冰封</author>
 <guid isPermaLink="false">2017-11-05-30749528</guid>
 <pubDate>Sun, 05 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Agda 中的证明，从零到一</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-02-30686586.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Agda 中的证明，从零到一&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30686586&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-461e72ecf40a21b6804d43e7201d21de_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;最近在学 Agda ，感觉摸到了定理证明的门，希望各路大神不吝赐教。这是一个系列，这篇文章讲的太基础是因为它是第一篇哈。原文链接：&lt;a href=&quot;http://ice1000.org/2017/11/01/ProofInAgda/&quot;&gt;Agda 中的证明，从零到一&lt;/a&gt;&lt;/p&gt;&lt;p&gt;类型则命题，程序则证明。这句话表达了定理证明的一个很重要的思想。&lt;/p&gt;&lt;p&gt;我一开始就没有搞懂这句话在说什么。 在我自认为搞懂的时候，我把我以前没有搞懂的原因归结为我看的教程太垃圾了。&lt;/p&gt;&lt;p&gt;一开始我理解这个问题的同时，我以为我也理解了之前一个 Haskell 关于 &lt;code class=&quot;inline&quot;&gt;IO Monad&lt;/code&gt; 的问题，但实际上不是我想的那样。 &lt;a href=&quot;https://zhuanlan.zhihu.com/p/30686586/h%3Ccode%3Ettps://h%3C/code%3Eackage.haskell.org/package/base-4.10.0.0/docs/src/GHC.Base.html#line-1173&quot;&gt;Haskell 的 IO Monad 的实现&lt;/a&gt; 比我想象的要复杂一些，因此本文不谈 Haskell 。&lt;/p&gt;&lt;h2&gt;前置知识&lt;/h2&gt;&lt;p&gt;这是一篇面向略懂 dependent type 的人的定理证明教程，然后你要看得懂类 Haskell 的语法。 因为我在学这个的时候就是只会点 Haskell ，然后用过 GADT 和 type family 模拟过 dependent type 。&lt;/p&gt;&lt;p&gt;给出一些参考资料：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://learn%3Ci%3Eyouahaskell.com/cha%3C/i%3Epters&quot;&gt;一个比较简单的 Haskell 入门教程 Learn you a Haskell&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.zhihu.com/question/67043774/answer/249019401&quot;&gt;虎哥介绍的 GADT&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.codewars.com/kata/singletons&quot;&gt;介绍 GADT 的 CodeWars Kata: Singletons&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.codewars.com/kata/scott-encoding&quot;&gt;介绍 GADT 的 CodeWars Kata: Scott Encoding&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;声明在前面&lt;/h2&gt;&lt;p&gt;由于 Agda 语言的特殊性，本文将使用 LaTeX 和代码块来共同展示代码。 前者是为了保证字符的正确显示，后者是为了方便读者复制代码。&lt;/p&gt;&lt;p&gt;本文不讲 Agda 基本语法和 Emacs 的使用。可能以后会有另外的文章。&lt;/p&gt;&lt;p&gt;本文主要内容是帮助一个没接触过定理证明但是接触过 dependent type 的人（这就是我接触定理证明之前的状态）理解一个非常非常简单的定理证明的例子。&lt;/p&gt;&lt;h2&gt;如何理解定理证明&lt;/h2&gt;&lt;p&gt;首先，我们已经知道，我们这是要用类型表达命题，类型对应的实现来证明这个命题的正确性。&lt;/p&gt;&lt;p&gt;命题中的基本元素一般是值的类型(而且很多时候都是代数数据类型)，也就是 &lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} p \rightarrow q&lt;/equation&gt; 的那个 &lt;equation&gt;p&lt;/equation&gt; 或者 &lt;equation&gt;q&lt;/equation&gt; 。 而这个 &lt;equation&gt;\rightarrow&lt;/equation&gt; 对应的就是 “函数” 这一概念，它组合了两个类型，表达了 “推出” 这一逻辑概念。&lt;/p&gt;&lt;p&gt;比如，我实现了一个这样的类型的函数：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;p \rightarrow q&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;p → q &lt;/code&gt;&lt;p&gt;那么这个函数的实现就是&lt;/p&gt;&lt;blockquote&gt;如果 p 成立，则 q 成立&lt;/blockquote&gt;&lt;p&gt;，或者说，&lt;/p&gt;&lt;blockquote&gt;&lt;equation&gt;p \rightarrow q&lt;/equation&gt; &lt;/blockquote&gt;&lt;p&gt;这个命题的证明。&lt;/p&gt;&lt;p&gt;再比如，我实现了一个这样的类型的函数：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;p \rightarrow q \rightarrow r &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;p → q → r &lt;/code&gt;&lt;p&gt;那么这个函数的实现就是&lt;/p&gt;&lt;blockquote&gt;如果 p 成立，那么 “如果 q 成立，那么 r 成立” 这一命题成立&lt;/blockquote&gt;&lt;p&gt;，或者说，&lt;/p&gt;&lt;blockquote&gt;&lt;equation&gt;p \rightarrow ( q \rightarrow r )&lt;/equation&gt; &lt;/blockquote&gt;&lt;p&gt;这个命题的证明。&lt;/p&gt;&lt;p&gt;其实我们原本想表达的意思是&lt;/p&gt;&lt;blockquote&gt;&lt;equation&gt; p\ \land \ q\rightarrow r &lt;/equation&gt; &lt;/blockquote&gt;&lt;p&gt;但是这个 &lt;equation&gt;\land&lt;/equation&gt; 关系暂时没讲所以先就这样。&lt;/p&gt;&lt;p&gt;这就是 “类型则命题，程序则证明” 的含义。&lt;/p&gt;&lt;p&gt;在 Agda 中，上面的代码应该写成这样：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \proof : \{p\ q\ r : \Set\} \rightarrow p \rightarrow q \rightarrow r &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;proof : {p q r : Set} → p → q → r &lt;/code&gt;&lt;p&gt;下面我们看一些实例。&lt;/p&gt;&lt;h2&gt;refl 与相等性&lt;/h2&gt;&lt;p&gt;之所以我没有再学习 Idris 就是因为那些教程没说 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 是啥 (Idris 叫 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ， Agda 叫 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt;) 就直接在代码里面用了，我看的时候就一脸蒙蔽，还以为是我智商太低没看懂他 implicit 的东西。 但是好在我看了一坨很友好的 Agda 代码后民白了。&lt;/p&gt;&lt;p&gt;首先，我们可以定义这样一个用来表示相等关系的 GADT ，它对于任何一个 Level 的任何一个实例都成立。 这里我们用了 Universal Polymorphism 表达这个 “对于任何一个 Level “ 的概念。&lt;/p&gt;&lt;p&gt;然后我们使用 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; 这个类型构造器表达 “这个相等关系成立” 这一事实。&lt;/p&gt;&lt;p&gt;我们用 &lt;equation&gt;\equiv&lt;/equation&gt; 表示他（标准库的定义在 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;http://agda.readthedocs.io/en/v2.5.3/language/built-ins.html#equality&quot;&gt;Agda.Builtin.Equality&lt;/a&gt;&lt;/code&gt; 中）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \begin{align*} &amp;amp; \data\ \_{\equiv}\_\ \{a\} \{A : \Set a\} (x : A) : A \rightarrow \Set a\where \\ &amp;amp;\ \ \refl : x \equiv x \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;data _≡_ {a} {A : Set a} (x : A) : A → Set a where
-  refl : x ≡ x &lt;/code&gt;&lt;p&gt;如果你看不懂这个类型签名也没有关系，只需要接受”这个 GADT 只有一个叫 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; 的类型构造器”这一事实就好了。&lt;/p&gt;&lt;p&gt;然后我们可以用它进行一些证明。比如我们来证明相等性的传递性，也就是&lt;/p&gt;&lt;blockquote&gt;如果 a &lt;equation&gt;\equiv&lt;/equation&gt; b 并且 b &lt;equation&gt;\equiv&lt;/equation&gt; c ，那么 a &lt;equation&gt;\equiv&lt;/equation&gt; c&lt;/blockquote&gt;&lt;p&gt;。然后我们来看看这个命题对应的类型：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \_{\leftrightarrows}\_ : \{A : \Set\} \{a\ b\ c : A\} \rightarrow a \equiv b \rightarrow b \equiv c \rightarrow a \equiv c &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_⇆_ : {A : Set} {a b c : A} → a ≡ b → b ≡ c → a ≡ c &lt;/code&gt;&lt;p&gt;那么我们要怎么实现它，也就是证明它呢？&lt;/p&gt;&lt;p&gt;我一开始写下了这样的东西：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \_{\leftrightarrows}\_\ ab\ bc = ? &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_⇆_ ab bc = ? &lt;/code&gt;&lt;p&gt;然后我就不知道该怎么办了。&lt;/p&gt;&lt;p&gt;事实上，这个原本就很简单的证明被我想复杂了。 因为这个定理是不证则明的，那么我们要如何表达，如何通过 &lt;code class=&quot;inline&quot;&gt;ab&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;bc&lt;/code&gt; 这两个模式匹配出来的结果进行变换得到这个不证则明的定理呢？&lt;/p&gt;&lt;p&gt;首先这个模式匹配的参数就不应该这样通配地用 &lt;code class=&quot;inline&quot;&gt;ab&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;bc&lt;/code&gt; 来表达。 我们应该把这两个相等关系 (他们的本质是 GADT) 给模式匹配出来。&lt;/p&gt;&lt;p&gt;由于直接写 &lt;code class=&quot;inline&quot;&gt;ab&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;bc&lt;/code&gt; 什么都得不出来，我于是尝试将 &lt;code class=&quot;inline&quot;&gt;ab&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;bc&lt;/code&gt; 用模式匹配消耗掉，然后 Agda 直接在右边给我自动填入了 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; ，然后好像就 Q.E.D 了：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \_{\leftrightarrows}\_\ \refl\ \refl =\refl &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;_⇆_ refl refl = refl -- 编译通过！ &lt;/code&gt;&lt;p&gt;这是为什么呢？我们来分别看下这两种写法的含义。&lt;/p&gt;&lt;h2&gt;使用 ab bc&lt;/h2&gt;&lt;p&gt;这样的话实际上是把 &lt;equation&gt;a \equiv b&lt;/equation&gt; 和 &lt;equation&gt; b \equiv c&lt;/equation&gt; 两个条件当成了”变量”而不是作为”条件”。 也就是说，当使用 &lt;code class=&quot;inline&quot;&gt;abbc&lt;/code&gt; 时，右边就需要”通过 &lt;equation&gt;a \equiv b&lt;/equation&gt; 和 &lt;equation&gt;b \equiv c&lt;/equation&gt; 这两个条件，再对这两个条件套用一些变换，得出 &lt;equation&gt;a \equiv c&lt;/equation&gt; ”。&lt;/p&gt;&lt;p&gt;在这个时候，编译器并没有把 &lt;equation&gt;a \equiv b&lt;/equation&gt; 和 &lt;equation&gt;b \equiv c &lt;/equation&gt; 当成既成条件，而是当成了 “变量” 。&lt;/p&gt;&lt;p&gt;这就回到了我们原本的需求，我们原本就是需要写出一个 &lt;equation&gt;a \equiv b\ \land\ b \equiv c \rightarrow a \equiv c&lt;/equation&gt; 的变换。&lt;/p&gt;&lt;p&gt;如果要用变换强行实现的话，可以使用 &lt;code class=&quot;inline&quot;&gt;with&lt;/code&gt; 语句（就是 Agda 的 &lt;code class=&quot;inline&quot;&gt;case of&lt;/code&gt;）把这两个变量模式匹配出来，然后直接得证。 这里给出一个代码实现。&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \begin{eqnarray} \_{\leftrightarrows}_1\_\ ab\ bc \with ab\ &amp;amp;|&amp;amp;bc \\ ... \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \refl\ &amp;amp;|&amp;amp;\refl = \refl \end{eqnarray}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_⇆₁_ ab bc with ab   | bc
-...           | refl | refl = refl &lt;/code&gt;&lt;p&gt;这种方法和下面的做法是等价的。&lt;/p&gt;&lt;p&gt;如果你没有看懂这一坨，可以尝试继续读下去，说不定看完下面那坨你就懂了。&lt;/p&gt;&lt;h2&gt;使用 refl&lt;/h2&gt;&lt;p&gt;由于 &lt;equation&gt;a \equiv b&lt;/equation&gt; 已经是一个条件了，我们直接把它的值取出来。 这时，右边的代码就 &lt;b&gt;已经是建立在&lt;/b&gt; &lt;equation&gt;a \equiv b&lt;/equation&gt; &lt;b&gt;和&lt;/b&gt; &lt;equation&gt;b \equiv c&lt;/equation&gt; &lt;b&gt;这两个既成条件下&lt;/b&gt; 的了，因此这时 Agda 已经认为 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;c&lt;/code&gt; 三者相等了。&lt;/p&gt;&lt;p&gt;利用这一点，我们直接使用 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; 是没有问题的。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\_{\leftrightarrows}_0\_\ \refl\ \refl = \refl &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_⇆₀_ refl refl = refl &lt;/code&gt;&lt;h2&gt;顺带一提&lt;/h2&gt;&lt;p&gt;当然我们也可以这样写，这是一个语法糖：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \refl {\leftrightarrows}_0\refl = \refl &lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;refl ⇆₀ refl = refl&lt;/code&gt;&lt;p&gt;之前那个比较 trivial 的模式匹配也可以这样写：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect}\begin{eqnarray} ab\ {\leftrightarrows}_1\ ab \with ab\ &amp;amp;|&amp;amp;bc \\ ... \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \refl\ &amp;amp;|&amp;amp;\refl = \refl \end{eqnarray}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;ab ⇆₁ bc with ab   | bc
-...         | refl | refl = refl &lt;/code&gt;&lt;h2&gt;另一个例子&lt;/h2&gt;&lt;p&gt;现在你肯定有点感觉了，但是这个例子太 trivial 你又感觉自己有点没懂， 那么我们再来看看这个稍微复杂点的例子帮你加深一下理解。&lt;/p&gt;&lt;p&gt;首先：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \forall\ \{ a \}\ \{ A : \Set a \} &lt;/equation&gt; &lt;/p&gt;&lt;p&gt;表示 Universal Polymorphism 。然后考虑一个函数，我们有：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\DeclareMathOperator{Set}{Set} \DeclareMathOperator{refl}{refl} \DeclareMathOperator{proof}{proof} \DeclareMathOperator{data}{data} \DeclareMathOperator{where}{where} \DeclareMathOperator{with}{with} \DeclareMathOperator{Vect}{Vect} \begin{align*} &amp;amp; \ggg : \forall\ \{a\ b\}\ \{A : \Set a\}\ \{B : \Set b\} \{m\ n\} \{f : A \rightarrow B\} \rightarrow m \equiv n \rightarrow f\ m \equiv f\ n \\ &amp;amp; \ggg \refl = \refl \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;⋙ : ∀ {a b} {A : Set a} {B : Set b} {m n} {f : A → B} → m ≡ n → f m ≡ f n
-⋙ refl = refl &lt;/code&gt;&lt;p&gt;和上面一样，在建立了 &lt;equation&gt;m \equiv n&lt;/equation&gt; 的基础上，可以直接用 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; 表达他们对于同一个函数应用的结果相等。&lt;/p&gt;&lt;p&gt;我是在 &lt;a href=&quot;https://stackoverflow.com/questions/27091668/refl-in-agda-explaining-congruence-property&quot;&gt;这个 StackOverflow 问题&lt;/a&gt; 里看到这个代码的，唯一的回答里面还有更多的解释。&lt;/p&gt;&lt;p&gt;这个我就暂时不作过多讲解了，以后再说。&lt;/p&gt;&lt;h2&gt;结束&lt;/h2&gt;&lt;p&gt;这个证明太简单了，只有一步，没有什么实际意义，仅用于入门理解。 下一篇文章我们将会进行一个稍微复杂点的关于与或关系的证明。&lt;/p&gt;&lt;p&gt;我说完了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;执壶的代码块高亮竟然支持 Agda ，感动中国简直&lt;/p&gt;</description>
-<author>大笨蛋千里冰封</author>
-<guid isPermaLink="false">2017-11-02-30686586</guid>
-<pubDate>Thu, 02 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Lens：从入门到入门</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-29-30544410.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Lens：从入门到入门&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30544410&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-aaf2eb05bd1a9cdd7418bb083208767d_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;概览&lt;/h2&gt;&lt;p&gt;Haskell 语言中操作一个复杂的数据结构往往会成为一个问题。&lt;/p&gt;&lt;p&gt;例如我们用 Haskell 做一个RPG游戏，有下面的定义：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Hero = Hero {
-  heroLevel :: Int, weapon :: Weapon
-}
-
-data Weapon = Weapon {
-  basicAttack :: Int, weaponLevel :: Int, magicGem :: Gem
-}
-data Gem = Gem {
-  gemLevel :: Int,
-  gemName :: String
-} 
-setHeroLevel :: Hero -&amp;gt; Int -&amp;gt; Hero
-setWeapon    :: Weapon -&amp;gt; Hero -&amp;gt; Hero
--- and so on. &lt;/code&gt;&lt;p&gt;对于简单的从深层结构中提取出一个值仍然是可接受的：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;gemLevel.magicGem.weapon $ hero
--- Or
-hero &amp;amp; (weapon&amp;gt;&amp;gt;&amp;gt;magicGem&amp;gt;&amp;gt;&amp;gt;gemLevel)&lt;/code&gt;&lt;p&gt;但修改内层数据（并返回一个新的对象）则显得过于繁杂：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;hero&#39; = hero {
-    weapon = (weapon hero) {
-        magicGem = (magicGem.weapon $ hero){
-            gemName = &quot;WTF&quot; }}}&lt;/code&gt;&lt;p&gt;可以看到，这里仅仅三层嵌套，一个修改的操作就已经及其复杂了。&lt;/p&gt;&lt;p&gt;为了解决这个问题 Haskell 语言中有一种被称为「Lens」的工具，可是实现下面这样的写法：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;view (weaponLens.magicGemLens.gemLevelLens) hero
-hero&#39;  = set (weaponLens.magicGemLens.gemNameLens) &quot;Gem&quot; hero
-hero&#39;&#39; = over (weaponLens.magicGemLens.gemLevelLens) (+1) hero
-
--- 中缀版本
-hero .^ weaponLens.magicGemLens.gemLevelLens 
-hero&#39;  = hero &amp;amp; weaponLens.magicGemLens.gemNameLens .~ &quot;Gem&quot; 
-hero&#39;&#39; = hero &amp;amp; weaponLens.magicGemLens.gemLevelLens) %~ (+1)&lt;/code&gt;&lt;p&gt;这里的代码已经非常接近于普通的命令式语言中的写法了，非常自然、易用。&lt;/p&gt;&lt;p&gt;普通的命令式语言中用 &lt;code class=&quot;inline&quot;&gt;.&lt;/code&gt; 从一个结构中提取它的一个子域，而这里我们在 Haskell 中通过 Lens 实现了类似的效果。同时我们注意到，这里的&lt;code class=&quot;inline&quot;&gt;.&lt;/code&gt; 不是凭空出现的，而是我们熟悉的 Haskell 中的函数复合。即 Lens 完成上面这些复杂操作的一个基本思路是复合。&lt;/p&gt;&lt;h2&gt;简版 Lens   &lt;/h2&gt;&lt;p&gt;实际上，如果我们已经有了这些对象对应的 getter 和 setter 函数，那么我们不难将他们之间互相复合形成操作深层数据的新的 getter 和 setter。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type L a b = (a -&amp;gt; b, b -&amp;gt; a -&amp;gt; a)
-
-(.&amp;gt;) :: L a b -&amp;gt; L b c -&amp;gt; L a c
-(g1, s1) .&amp;gt; (g2, s2) = (g2 . g1, \c a -&amp;gt; s1 (s2 c (g1 a)) a)
-
-viewL :: L a b -&amp;gt; a -&amp;gt; b
-viewL (g, _) = g
-
-setL :: L a b -&amp;gt; b -&amp;gt; a -&amp;gt; a
-setL (_, s) = s
-
-overL :: L a b -&amp;gt; (b -&amp;gt; b) -&amp;gt; a -&amp;gt; a 
-overL (g, s) f a = s (f $ g a) a&lt;/code&gt;&lt;p&gt;我们直接将一个 getter 与 setter 包装成二元组。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponL   = (weapon, setWeapon)
-gemLevelL = (gemLevel, setGemLevel) &lt;/code&gt;&lt;p&gt;这种情况下，我们定义的“简版 Lens ”的使用与前文演示的 Lens 是极其相似的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;viewL (weaponL.&amp;gt;magicGemL.&amp;gt;gemLevelL) hero
-hero&#39; = setL (weaponL.&amp;gt;magicGemL.&amp;gt;gemLevelL) 2 hero&lt;/code&gt;&lt;p&gt;我们的实现仍然借助了复合的思想，但是需要我们自己来实现针对 getter 和 setter 的复合，而前文演示的却是真正的函数复合。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;实现 Lens 的准备工作&lt;/h2&gt;&lt;p&gt;我们已经注意到文章开头的 Lens 有几个特点&lt;/p&gt;&lt;ul&gt;&lt;li&gt;是普通的函数类型，可以互相复合；&lt;/li&gt;&lt;li&gt;与对象类型&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt; 和域类型 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 相关；&lt;/li&gt;&lt;li&gt;可以用来实现看似相反的两个操作 get 和 set。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;下面我们尝试找出这个类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = (???  ) -&amp;gt; (???)&lt;/code&gt;&lt;p&gt;考虑它的复合特点，按照结构的嵌套顺序，从前向后依次是从内向外：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;aL :: Lens b a
-cL :: Lens a c
-aL.cL :: Lens b c&lt;/code&gt;&lt;p&gt;要实现这样的复合特性，应当是&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type SomeType a = ...
-
-aL :: SomeType a -&amp;gt; SomeType b
-cL :: SomeType c -&amp;gt; SoemType a
-aL.cL :: SomeType c -&amp;gt; SomeType b&lt;/code&gt;&lt;p&gt;即上面的第一个 (???) 与&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;有关，第二个与&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;有关。&lt;/p&gt;&lt;p&gt;同时，&lt;code class=&quot;inline&quot;&gt;Lens b a&lt;/code&gt;一定会接受一个&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;类型的参数作为要操作的主体对象，我们可以进一步写成&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = (???) -&amp;gt; (b -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;而上面的复合特性要求前后是两个类似的类型&lt;code class=&quot;inline&quot;&gt;SomeType&lt;/code&gt;，我们进一步改写为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = (a -&amp;gt; ???) -&amp;gt; (b -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;我们可以猜测到，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt; 等函数调用&lt;code class=&quot;inline&quot;&gt;Lens&lt;/code&gt;，传递进一个函数&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; ???)&lt;/code&gt;来实现了不同的操作。&lt;/p&gt;&lt;h2&gt;View Lens 的实现&lt;/h2&gt;&lt;p&gt;我们先尝试写出一个特定类型的 Lens ，来只支持&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;操作，根据上文的分析，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数的定义应该形如下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: VLens b a -&amp;gt; b -&amp;gt; a
-view lens b = lens ??? b&lt;/code&gt;&lt;p&gt;考虑我们之前的例子&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens   :: (Weapon -&amp;gt; ???) -&amp;gt; (Hero -&amp;gt; ???)
-magicGemVLens :: (Gem -&amp;gt; ???)    -&amp;gt; (Weapon -&amp;gt; ???)
-gemLevelVLens :: (Int -&amp;gt; ???)    -&amp;gt; (Gem -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;如果我们想要获得英雄的武器上的宝石的宝石等级，那么我们想要的可能是这样的东西：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens.magicGemVLens.gemLevelVLens :: (Int -&amp;gt; Int) -&amp;gt; (Hero -&amp;gt; Int)&lt;/code&gt;&lt;p&gt;这样，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数便可以对这个复合的&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;传入某个函数，再传入我们的英雄，就可以得到宝石等级了。为了让这样的复合成为可能，上面的所有 ??? 都必须是&lt;code class=&quot;inline&quot;&gt;Int&lt;/code&gt;。我们可以想象到那个代表&lt;code class=&quot;inline&quot;&gt;GemLevel&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;Int&lt;/code&gt;在函数间传递的效果。&lt;/p&gt;&lt;p&gt;同理，如果我们只想得到武器上的宝石的话，我们需要的是这样的东西：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens.magicGemVLens :: (Gem -&amp;gt; Gem) -&amp;gt; (Hero -&amp;gt; Gem)&lt;/code&gt;&lt;p&gt;这时候这些&lt;code class=&quot;inline&quot;&gt;???&lt;/code&gt;又成为了&lt;code class=&quot;inline&quot;&gt;Gem&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;由此可见，在&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的场合下，这里的类型&lt;code class=&quot;inline&quot;&gt;???&lt;/code&gt;随着提取的东西不同而变化，并且等于我们要提取的东西的类型。这样&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;的类型定义便得到了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type VLens b a = forall c. (a -&amp;gt; c) -&amp;gt; (b -&amp;gt; c)&lt;/code&gt;&lt;p&gt;所有的&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;在复合时都接受内层的一个提取操作，并返回一个嵌套了的提取操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponVLens  :: VLens Hero Weapon
-weaponVLens f = \h -&amp;gt; f (weapon h)
-
-magicGemVLens :: VLens Weapon Gem
-magicGemVLens f = \w -&amp;gt; f (magicGem w)
-
-gemLevelVLens :: VLens Gem Int
-gemLevelVLens f = \g -&amp;gt; f (gemLevel g)&lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-eb3ff4069ec471c1c69250a6355a85a1_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;503&quot; data-rawheight=&quot;417&quot;&gt;&lt;p&gt;而最终传入我们要操作的外层对象之后，则用相仿的顺序，一层层地完成了提取操作，直到最内层，这时我们只需要使用&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;函数使其原样返回即可。&lt;/p&gt;&lt;p&gt;由此，&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;函数的定义便可以得到了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;viewV vlens b = vlens id b&lt;/code&gt;&lt;h2&gt;Over Lens 的实现&lt;/h2&gt;&lt;p&gt;再次考虑我们的例子&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens   :: (Weapon -&amp;gt; ???) -&amp;gt; (Hero -&amp;gt; ???)
-magicGemOLens :: (Gem -&amp;gt; ???)    -&amp;gt; (Weapon -&amp;gt; ???)
-gemNameOLens  :: (Int -&amp;gt; ???)    -&amp;gt; (Gem -&amp;gt; ???)&lt;/code&gt;&lt;p&gt;现在我们希望对一个对象的某个域进行修改，并返回修改过了的对象。那么后面的 ??? 则应该与和它紧靠着的类型相同，而为了使这些&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;可以互相复合，前面的 ??? 应该与紧靠着的前面类型相同。例如：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens.magicGemOLens :: (Gem -&amp;gt; Gem) -&amp;gt; (Hero -&amp;gt; Hero)&lt;/code&gt;&lt;p&gt;可以看到 &lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;的类型比较简单&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type OLens b a =  (a -&amp;gt; a) -&amp;gt; (b -&amp;gt; b)&lt;/code&gt;&lt;p&gt;观察一下便可以得到，第一个参数&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; a)&lt;/code&gt;便是我们对域进行操作的更新函数了。此时&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;函数不需要再做其他多余的事情，只需要将&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;原样返回。而各个&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;的定义也只不过是产生一个新的修改函数，这个修改函数将自己管辖的域修改为已经被修改过了的内层对象。而最内层则会使用用户传入的修改函数f来完成相应的操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens ::  OLens Hero Weapon
-weaponOLens f = \h -&amp;gt; (`setWeapon` h) $ f (weapon h)
-
-magicGemOLens :: OLens Weapon Gem
-magicGemOLens f = \w -&amp;gt; (`setMagicGem` w) $ f (magicGem w)
-
-gemLevelOLens :: OLens Gem Int
-gemLevelOLens f = \g -&amp;gt; (`setGemLevel` g) $ f (gemLevel g)&lt;/code&gt;&lt;p&gt;这样，当最终传入需要处理的外层对象时，&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;便会一层层地完成修改的工作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;而言，只不过是一种特殊的&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;setO vlens s = vlens (const s)&lt;/code&gt;&lt;h2&gt;最终实现 Lens&lt;/h2&gt;&lt;p&gt;现在，我们已经分别实现了&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;，而且发现他们之间有相似之处。实际上他们都是从一个相同的&lt;code class=&quot;inline&quot;&gt;(a -&amp;gt; ???) -&amp;gt; (b -&amp;gt; ???)&lt;/code&gt; 经过我们一系列对其性质的分析得到的。我们的最终目的是通过单一的&lt;code class=&quot;inline&quot;&gt;Lens&lt;/code&gt;类型，来实现&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;这样不同的行为，即需要某种多态。而下面的类型却无法为这种多态提供帮助。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a -&amp;gt; forall c d. (a -&amp;gt; c) -&amp;gt; (b -&amp;gt; d)&lt;/code&gt;&lt;p&gt;我们需要某种类型，我们可以对其中的内容进行操作，并且这种操作的行为随使用者的需求而可以多态变化。符合这样特点的，正是我们熟悉的 Functor 。所以我们便可以这样做了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Lens b a = Functor f =&amp;gt; (a -&amp;gt; f a) -&amp;gt; (b -&amp;gt; f b)&lt;/code&gt;&lt;p&gt;这个类型定义非常类似前面的&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;，同时这里的f具有任意性，又可以满足&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;的需求。而实际上，如果这里的&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;是 Identity Functor 的话，这个类型所表达的与&lt;code class=&quot;inline&quot;&gt;OLens&lt;/code&gt;毫无区别。我们只需要对原有&lt;code class=&quot;inline&quot;&gt;over&lt;/code&gt;进行一层 Identity Functor 的包装就保证了其语义不变：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;over lens f = runIdentity . lens (Identity . f)&lt;/code&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;VLens&lt;/code&gt;类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponOLens ::  (a -&amp;gt; a) -&amp;gt; (b -&amp;gt; b)
-weaponOLens f h = (`setWeapon` h) $ f (weapon h)&lt;/code&gt;&lt;p&gt;我们也仅需要对调用的修改本层次域的函数进行升格，上下结构保持了极好的相似性。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;weaponLens ::  Functor f =&amp;gt; (a -&amp;gt; f a) -&amp;gt; (b -&amp;gt; f b)
-weaponLens f h = (`setWeapon` h) &amp;lt;$&amp;gt; f (weapon h)&lt;/code&gt;&lt;p&gt;那么我们剩余的问题就在于如何利用 Functor 提供的多态能力来实现&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的语义了。&lt;/p&gt;&lt;p&gt;我们观察一下先前的&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;实现&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type VLens b a = forall c. (a -&amp;gt; c) -&amp;gt; (b -&amp;gt; c)
-viewV vlens b = vlens id b&lt;/code&gt;&lt;p&gt;我们发现&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的实现有如下特点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;对象的内容完全没有被改变&lt;/li&gt;&lt;li&gt;每一层的作用是返回内层的内容&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;我们只要找到一个Functor符合上面的特点就可以实现&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;，而 Const Functor 恰好符合我们的需求。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Const a b = Const {getConst :: a}
-instance Functor (Const a) where
-  fmap f c = c&lt;/code&gt;&lt;p&gt;Const Functor 的&lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;并不改变值，实际上，其中根本没有值。一个 Const Functor 在创建之后，经历过多次&lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;可能其类型发生变化，但getConst所取出的内容永远不会变化。&lt;/p&gt;&lt;p&gt;考虑下面的&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;定义，最内层的值被应用到&lt;code class=&quot;inline&quot;&gt;Const&lt;/code&gt;构建函数上。之后经历过若干次&lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;，最后&lt;code class=&quot;inline&quot;&gt;getConst&lt;/code&gt;取得的仍是原来的值，于是便实现了&lt;code class=&quot;inline&quot;&gt;view&lt;/code&gt;的行为。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;view :: Lens b a -&amp;gt; b -&amp;gt; a
-view lens b = getConst $ lens Const b&lt;/code&gt;&lt;p&gt;到这里为止，我们便实现了文章开头所演示的 Lens 的功能。&lt;/p&gt;&lt;p&gt;附上在Zju Lambda报告的Slides：&lt;a href=&quot;https://github.com/zju-lambda/slides/blob/master/The%20Overview%20of%20Lens.pdf&quot;&gt;The Overview of Lens&lt;/a&gt;&lt;/p&gt;</description>
-<author>孙浩然</author>
-<guid isPermaLink="false">2017-10-29-30544410</guid>
-<pubDate>Sun, 29 Oct 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Dafny与程序验证</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-10-21-30321583.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Dafny与程序验证&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30321583&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-8f49af88768b20c6808b564c74a43abe_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;B大以前写过一个&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25568785&quot;&gt;怎样写出没有 bug 的程序：程序证明的简单例子&lt;/a&gt; ，是用Idris写的，我也来写一个，不过方法不太一样。&lt;/p&gt;&lt;p&gt;Dafny是MSR开发的程序设计语言，它混合了OOP和FP编程范式，并且自带程序验证功能，可以通过霍尔逻辑证明程序正确性。&lt;/p&gt;&lt;p&gt;它的语法非常简单，看起来就像C++，Scala和Haskell的混合。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;变量(scala风格，只是没有val)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;var x:Tree;
-var y:nat := 0;&lt;/code&gt;&lt;ul&gt;&lt;li&gt;ADT(Haskell风格)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)
-datatype List&amp;lt;T&amp;gt; = Nil | Cons(head: T, tail: List&amp;lt;T&amp;gt;)
-Cons(5,Nil).Cons? &amp;amp;&amp;amp; Cons(5, Nil).head == 5&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Methed/Lemma(命令式风格的函数)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;expr表示表达式，col表示集合&lt;/p&gt;&lt;p&gt;modifies用来标记函数的副作用，requires是前置命题，ensures是后置命题，decreses用来证明递归函数可终止。&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;method/lemma Abs(x: int) returns (y: int)
-    modifies &amp;lt;col&amp;gt;
-    requires &amp;lt;expr&amp;gt;
-    ensures &amp;lt;expr&amp;gt;
-    decreases &amp;lt;expr&amp;gt;
-{
-    if x &amp;lt; 0 { return -x;}
-    else {return x;}
-}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Function/Predicate(函数式风格的函数)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;reads用来标记函数捕获的外部变量&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;function abs(x: int):int
-    requires &amp;lt;expr&amp;gt;
-    ensures &amp;lt;expr&amp;gt;
-    reads &amp;lt;col&amp;gt;
-    decreases &amp;lt;expr&amp;gt;
-{
-    if x &amp;lt; 0 then -x else x
-}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;Assert用来下断言，只不过这个断言不是运行期的，而是编译期的，支持forall和exist量词以及基本的逻辑运算符。把Assert改为Assume，可以用来假定某些命题成立。&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;assert forall x :: P(x) ==&amp;gt; Q(x)
-assert forall(i | 0 &amp;lt;= i&amp;lt; n - m) { b[i] := a[m + i];}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;模式匹配(Scala风格，match的位置略有差异)&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;scala&quot;&gt;match t
-	case Empty =&amp;gt; …
-	case Node(l:Empty,v,r) =&amp;gt; …&lt;/code&gt;&lt;ul&gt;&lt;li&gt;循环&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;可用invariant标记循环不变量&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;var i:=0
-while i&amp;lt;n
-	invariant i&amp;lt;=n
-	decreases n-i
-{}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;支持C++类的写法，支持Lambda表达式，支持Trait，支持yield惰性流，有复杂的模块系统，支持泛型类和高阶类型（都是用&amp;lt;&amp;gt;表达）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;以上就是Dafny常用的语法，还有一些不常用的语法可以参考&lt;a href=&quot;https://github.com/Microsoft/dafny/blob/master/Docs/DafnyRef/out/DafnyRef.pdf&quot;&gt;DafnyRef&lt;/a&gt;&lt;/p&gt;&lt;p&gt;一起来看一个稍微复杂一点的例子吧！写一个二叉搜索树的插入函数&lt;/p&gt;&lt;p&gt;定义二叉树&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)&lt;/code&gt;&lt;p&gt;在类里定义变量&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;class BST
-{
-    var tree:Tree;&lt;/code&gt;&lt;p&gt;定义in_tree和is_ordered函数，分别表示某个元素在树内和树符合二叉搜索树的条件&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;predicate method is_intree(t:Tree,x:real)
-{
-    match t
-        case Empty =&amp;gt; false
-        case Node(l,v,r) =&amp;gt; x==v || is_intree(l,x) || is_intree(r,x)
-}
-predicate is_ordered(t:Tree)
-{
-    match t
-        case Empty =&amp;gt; true
-        case Node(l,v,r) =&amp;gt; is_ordered(l) &amp;amp;&amp;amp; is_ordered(r) &amp;amp;&amp;amp;
-            (forall x::is_intree(l,x) ==&amp;gt; x&amp;lt;v) &amp;amp;&amp;amp;
-            (forall y::is_intree(r,y) ==&amp;gt; y&amp;gt;=v)
-}&lt;/code&gt;&lt;p&gt;定义函数insert_into_left和insert_into_right&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;protected function method insert_into_left(t:Tree,x:real):Tree
-    requires t!=Empty
-    requires is_ordered(t)
-    ensures is_ordered(insert_into_left(t,x))
-{
-    match t.left
-        case Empty =&amp;gt; Node(Empty,x,Empty)
-        case Node(l,v,r) =&amp;gt;
-            if x&amp;gt;=v then
-                insert_into_right(t.left,x)
-            else
-                insert_into_left(t.left,x)
-}
-
-protected function method insert_into_right(t:Tree,x:real):Tree
-    requires t!=Empty
-    requires is_ordered(t)
-    ensures is_ordered(insert_into_right(t,x))
-{
-    match t.right
-        case Empty =&amp;gt; Node(Empty,x,Empty)
-        case Node(l,v,r) =&amp;gt;
-            if x&amp;gt;=v then
-                insert_into_right(t.right,x)
-            else
-                insert_into_left(t.right,x)
-}
-&lt;/code&gt;&lt;p&gt;以上全是pure function，最后，我们回到oop的世界，定义dirty的类成员函数&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;method insert(x:real)
-    requires is_ordered(tree)
-    modifies this
-    ensures is_ordered(tree)
-{
-    match tree
-        case Empty =&amp;gt; {tree:=Node(Empty,x,Empty);}
-        case Node(l,v,r) =&amp;gt; 
-        {
-            if x&amp;gt;=v
-            {
-                tree:=insert_into_right(tree,x);
-            }
-            else
-            {
-                tree:=insert_into_left(tree,x);
-            }
-        }
-}&lt;/code&gt;&lt;p&gt;编译的时候，编译器会帮你验证你写的那些requires,ensures,assert是否满足，如果不满足，它会告诉你哪些命题无法证明。经过验证之后，你可以选择将Dafny代码编译为C#或编译成dll被其他.Net程序调用。&lt;/p&gt;&lt;p&gt;以上只是一个简单介绍，具体代码在&lt;a href=&quot;https://github.com/NiceKingWei/algorithm/blob/master/dafny/bst.dfy&quot;&gt;bst.dfy&lt;/a&gt;&lt;/p&gt;&lt;p&gt;我的slides &lt;a href=&quot;https://github.com/zju-lambda/slides/blob/master/Verification%20in%20Dafny.pdf&quot;&gt;Verification in Dafny&lt;/a&gt;&lt;/p&gt;&lt;p&gt;关于Dafny的更多精彩内容， 可以关注Dafny的项目主页，里面有一些学习资源 &lt;a href=&quot;https://www.microsoft.com/en-us/research/project/dafny-a-language-and-program-verifier-for-functional-correctness/?from=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fprojects%2Fdafny%2Freference.aspx&quot;&gt;MSR:Dafny&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>魏王雅望非常</author>
-<guid isPermaLink="false">2017-10-21-30321583</guid>
-<pubDate>Sat, 21 Oct 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
