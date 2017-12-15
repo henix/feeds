@@ -5,7 +5,18 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Dec 2017 19:32:09 +0800</lastBuildDate>
+<lastBuildDate>Fri, 15 Dec 2017 15:30:49 +0800</lastBuildDate>
+<item>
+<title>Ad Infinitum!</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-15-32045442.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Ad Infinitum!&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32045442&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;最近读了一篇paper，Duplication and Partial Evaluation，讲的是一门很。。奇怪的语言，&lt;/p&gt;&lt;p&gt;这门语言，可以大致想象是有无数个interpreter，一个stack着一个，interpret下一个，在最下，则是被解释的用户输入的代码。&lt;/p&gt;&lt;p&gt;你可以更改各种built in function，或者打印出来。比如说，你可以更改第1层（第0层为用户代码，第n+1层解释第n层代码）的apply，输入值print一次，输出值print一次，这样就实现了简陋debugger了。又或者对第二层解释器这样做，运行代码的时候就知道内部执行了啥&lt;/p&gt;&lt;p&gt;实现方法自然不能靠构造无限个interpreter，所以要先上laziness，按需增加，然后任何时刻，都有一个被解释的解释器去解释当下代码，然后有个被编译的解释器解释前一个解释器，这样就只有两轮。但是，这样，如果你更改n+2的代码，不会由n+1暴露到n层（换句话说n层看不出有啥区别），因为n层的时候，n+1层是被预编译的解释器执行，只有在n+1层看的到。这样，就顶多是两个编译器的开销。&lt;/p&gt;&lt;p&gt;‘顶多’，双重编译很疼，于是用了下Partial Evaluation，手动优化成一个编译器。&lt;/p&gt;&lt;p&gt;什么鬼啊这是。&lt;/p&gt;&lt;p&gt;可以在&lt;a href=&quot;http://io.livecode.ch/learn/readevalprintlove/black&quot;&gt;The reflective language Black&lt;/a&gt;试试看。&lt;/p&gt;</description>
+<author>脚本少女魔理沙</author>
+<guid isPermaLink="false">2017-12-15-32045442</guid>
+<pubDate>Fri, 15 Dec 2017 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Programming Languages: Application and Interpretation【译13】</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-08-31817926.htm</link>
@@ -580,56 +591,6 @@ f = (.) (flip foo) . bar&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当�
 <author>mirone</author>
 <guid isPermaLink="false">2017-11-15-31069901</guid>
 <pubDate>Wed, 15 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Folding infinite list through F-algebra</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-08-30833827.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Folding infinite list through F-algebra&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30833827&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6765c36a65c96091e2d1fb5522da91a0_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;嘛，在知乎写的第一篇文章，参考了很多现有文章的格式及表达思路www。主要目的还是讨论一些F-algebra的概念和锻炼自己的表达能力。起因是最近刷到codewars上一道题：&lt;a href=&quot;https://www.codewars.com/kata/folding-through-a-fixed-point&quot;&gt;Folding through a fixed point&lt;/a&gt;，其中涉及到一些以前接触过的F-algebra的概念，但题中并没有详细解释清楚F-algebra，评论区存在做完题但没明白到底发生了啥的评论。我也是在codewars上写了一个简单的解释，这里在不剧透题目的情况下搬运一些自己写的东西，并给出一个实际的例子：constructing, folding infinite list&lt;/p&gt;&lt;p&gt;注意：本文中存在一些伪代码，主要是类型签名用来说明类型。&lt;/p&gt;&lt;h2&gt;前置知识&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;对范畴论的一个大概的认识会有很大帮助&lt;/li&gt;&lt;li&gt;Haskell的基础语法及Functor typeclass的使用&lt;/li&gt;&lt;li&gt;对交换图表的相关知识&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;什么是Algebra&lt;/h2&gt;&lt;p&gt;简单来说，Algebra可以理解为能以某种方式组织表达式，以及能以某种方式对表达式进行规约的结构。这里我们所关心的表达式是其中的一种：recursively defined的表达式。比如，在Haskell中我们可以通过如下语法来组织一个列表：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data List a = Nil | Cons a (List a)&lt;/code&gt;&lt;p&gt;接着，我们可以通过value constructor构造我们需要的列表，通过pattern matching以我们想要的方式对列表进行规约。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;list :: List String
-list = Cons &quot;9&quot; $ Cons &quot;9&quot; $ Cons &quot;6&quot; $ Cons &quot;1&quot; $ Nil
-
-stringify :: List String -&amp;gt; String
-stringify Nil = &quot;&quot;
-stringify (Cons x xs) = x ++ stringify xs
-
-result :: String
-result = stringify list&lt;/code&gt;&lt;h2&gt;非递归的定义我们的List&lt;/h2&gt;&lt;p&gt;我们可以将List中的递归定义提出来，增加一个Type constructor的参数：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data ListF a l = Nil | Cons a l&lt;/code&gt;&lt;p&gt;哪如何通过这个type来重新定义刚才的List呢？我们通过fixed point来实现，这里我们所选用的fixed point的定义least fixed point和greatest fixed point相等，且能直观的表现我们的意图：将非递归的type变成递归的。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Fix f = In (f (Fix f))&lt;/code&gt;&lt;p&gt;这样，我们可以重新定义我们的List：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type List a = Fix (ListF a)
-
-list :: List String
-list = In $ Cons &quot;9&quot; $ In $ Cons &quot;9&quot; $ In $ Cons &quot;6&quot; $ In $ Cons &quot;1&quot; $ In Nil&lt;/code&gt;&lt;h2&gt;一个F-Algebra的定义是什么&lt;/h2&gt;&lt;p&gt;不同代数结构会存在共有的特性，在猫论中，F-Algebra可以用来generalize algebraic structure，F-Algebra可以用来表示各种数据结构。具体的来说C是一个category，F: C → C是一个endofunctor，X是C中一个object，alg是C中F X → X的一个态射，那么F-Algebra就是一个(X, alg)的二元组。&lt;/p&gt;&lt;p&gt;对应到Haskell中则是在Hask范畴，f是一个Functor typeclass的instance，x是一个type，alg的类型则是：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;alg :: f x -&amp;gt; x&lt;/code&gt;&lt;h2&gt;一个F-Coalgebra的定义是什么&lt;/h2&gt;&lt;p&gt;既然名字里带co了，那么很容易想到是F-Algebra的dual。具体来说C是一个category，F: C → C是一个endofunctor，X是C中一个object，coalg是C中X → F X的一个态射，那么F-Coalgebra就是一个(X, coalg)的二元组。&lt;/p&gt;&lt;p&gt;对应到Haskell中则是在Hask范畴，f是一个Functor typeclass的instance，x是一个type，coalg的类型则是：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;coalg :: x -&amp;gt; f x&lt;/code&gt;&lt;h2&gt;理解Algebra间的态射&lt;/h2&gt;&lt;p&gt;根据不同的x的type，我们可以写出不同的algebra，猫论是一个研究不同东西间相同结构的理论，这里，我们要找出相同Functor间不同algebra的关系。&lt;/p&gt;&lt;p&gt;如果我们有以下两个type A和B，以及其algebra：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data A = A
-newtype B = B A
-
-mkA :: B -&amp;gt; A
-mkA (B a) = a
-mkB :: A -&amp;gt; B
-mkB a = (B a)
-
-algA :: F A -&amp;gt; A
-algB :: F B -&amp;gt; B
-
-coalgA :: A -&amp;gt; F A
-coalgB :: B -&amp;gt; F B&lt;/code&gt;&lt;p&gt;那么我们有如下所示的态射关系，我们以Commutative Diagram表示：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{equation} \tag{F-Algebra} \begin{CD} {F A} @&amp;gt;{fmap \ mkB}&amp;gt;&amp;gt; {F B} \\ @V{algA}VV @VV{algB}V \\ {A} @&amp;gt;{mkB}&amp;gt;&amp;gt; {B} \\ \end{CD} \end{equation}&lt;/equation&gt; &lt;equation&gt;\begin{equation} \tag{F-Coalgebra} \begin{CD} {F A} @&amp;lt;{fmap \ mkA}&amp;lt;&amp;lt; {F B} \\ @A{coalgA}AA @AA{coalgB}A \\ {A} @&amp;lt;{mkA}&amp;lt;&amp;lt; {B} \\ \end{CD} \end{equation}&lt;/equation&gt; &lt;/p&gt;&lt;h2&gt;Initial F-Algebra和Terminal F-Coalgebra&lt;/h2&gt;&lt;p&gt;Initial F-Algebra和Terminal F-Coalgebra是一类具有特殊性质的F-Algebra和F-Coalgebra。对于一个endofunctor F: C → C来说，存在从其Initial F-Algebra到其他所有F-Algebra的唯一态射，存在从其他所有F-Coalgebra到其Terminal F-Coalgebra的唯一态射。我们将其分别称之为&lt;i&gt;catamorphism和&lt;/i&gt;anamorphism。&lt;/p&gt;&lt;p&gt;这里，我们的不动点Fix的In :: f (Fix f) -&amp;gt; Fix f就是Initial F-Algebra（和Terminal F-Coalgebra），根据Lambek’s Lemma我们可以知道存在unIn :: Fix f -&amp;gt; f (Fix f)，我们也很容易将其写出来，存在非常简单的isomorphism：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;In :: f (Fix f) -&amp;gt; Fix f
-unIn :: Fix f -&amp;gt; f (Fix f)
-
-newtype Fix f = In (f (Fix f))
-unIn (In x) = x&lt;/code&gt;&lt;p&gt;那么如果我们构造出g和cog：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;g :: Fix f -&amp;gt; x
-cog :: x -&amp;gt; Fix f&lt;/code&gt;&lt;p&gt;我们就可以很方便的将一个用Fix表示的代数表达式规约成我们想要的形式（或者反过来），我们用Commutative Diagram表示出来：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{equation} \tag{Initial F-Algebra} \begin{CD} {F (Fix \ F)} @&amp;gt;{fmap \ g}&amp;gt;&amp;gt; {F A} \\ @V{In}VV @VV{algA}V \\ {Fix \ F} @&amp;gt;{g}&amp;gt;&amp;gt; {A} \\ \end{CD} \end{equation}&lt;/equation&gt; &lt;equation&gt;\begin{equation} \tag{Terminal F-Coalgebra} \begin{CD} {F (Fix \ F)} @&amp;lt;{fmap \ cog}&amp;lt;&amp;lt; {F A} \\ @A{unIn}AA @AA{coalgA}A \\ {Fix \ F} @&amp;lt;{cog}&amp;lt;&amp;lt; {A} \\ \end{CD} \end{equation}&lt;/equation&gt; &lt;/p&gt;&lt;h2&gt;构造&lt;i&gt;catamorphism与&lt;/i&gt;anamorphism&lt;/h2&gt;&lt;p&gt;根据上面的Commutative Diagram，我们可以轻易发现，简单的将In和unIn交换，我们就能轻易从特定F-Algebra、F-Coalgebra构造出g和cog：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{equation} \tag{Initial F-Algebra} \begin{CD} {F (Fix \ F)} @&amp;gt;{fmap \ g}&amp;gt;&amp;gt; {F A} \\ @A{unIn}AA @VV{algA}V \\ {Fix \ F} @&amp;gt;{g}&amp;gt;&amp;gt; {A} \\ \end{CD} \end{equation}&lt;/equation&gt; &lt;equation&gt;\begin{equation} \tag{Terminal F-Coalgebra} \begin{CD} {F (Fix \ F)} @&amp;lt;{fmap \ cog}&amp;lt;&amp;lt; {F A} \\ @V{In}VV @AA{coalgA}A \\ {Fix \ F} @&amp;lt;{cog}&amp;lt;&amp;lt; {A} \\ \end{CD} \end{equation}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;我们将其用Haskell表示出来：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;cata :: Functor f =&amp;gt; (f x -&amp;gt; x) -&amp;gt; (Fix f -&amp;gt; x)
-cata alg = alg . fmap (cata alg) . unIn
-
-ana :: Functor f =&amp;gt; (x -&amp;gt; f x) -&amp;gt; (x -&amp;gt; Fix f)
-ana coalg = In . fmap (ana coalg) . coalg&lt;/code&gt;&lt;h2&gt;Folding infinite list through F-algebra&lt;/h2&gt;&lt;p&gt;我们可以用F-Coalgebra来构造Infinite data structures，并使用F-algebra对其进行fold。例如我们的List：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data ListF a l = Nil | Cons a l&lt;/code&gt;&lt;p&gt;很容易将其Functor instance写出来：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;instance Functor (ListF a) where
-    fmap f Nil = Nil
-    fmap f (Cons a l) = Cons a (f l)&lt;/code&gt;&lt;p&gt;这里我们定义这样一个Coalgebra：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;coalg :: Int -&amp;gt; ListF Int Int
-coalg x = Cons x (x + 1)&lt;/code&gt;&lt;p&gt;我们通过这个Coalgebra和Anamorphism定义一个Infinite的自增List：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;list :: Fix (ListF Int)
-list = ana coalg 256&lt;/code&gt;&lt;p&gt;接着，我们定义一个可以从Infinite的List中规约出值的Algebra：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;alg :: ListF Int Int -&amp;gt; Int
-alg Nil = 0
-alg (Cons a b) = if a &amp;lt; 1024 then a + b else a&lt;/code&gt;&lt;p&gt;接着我们使用C&lt;i&gt;atamorphism和这个&lt;/i&gt;Algebra规约出我们表达式的值：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;result :: Int
-result = cata alg list&lt;/code&gt;&lt;p&gt;这里跟foldr很相似，只要我们规约Infinite的List时某次没有使用Cons里b的的值，那么规约就能终止。&lt;/p&gt;&lt;h2&gt;结束&lt;/h2&gt;&lt;p&gt;很久没写过这种类型的文章了，难免出现码字错误或者表述不清。有什么问题评论区轻喷/w\&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>不可构造的雨轩菌</author>
-<guid isPermaLink="false">2017-11-08-30833827</guid>
-<pubDate>Wed, 08 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
