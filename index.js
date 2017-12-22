@@ -15,7 +15,7 @@ const feeds = [
 		"yeka52",
 		"aloha-yaoyao",
 		"zhoudaobiji",
-		"gh_7d1aa4ada621",
+		"FannyAndLiang",
 		"iamawguo",
 	]],
 	["FP", [
