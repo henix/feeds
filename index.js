@@ -2,9 +2,10 @@ const feeds = [
 	["Finance", [
 		"chinaetfs",
 		"SmartGAA",
-		"forex-analysis",
 		"lamboCFA",
 		"GlobalMacroHedge",
+		"forex-analysis",
+		"yuefenginvest",
 		"touyanbang88",
 		"Chouma2016",
 		"sishimiao",
