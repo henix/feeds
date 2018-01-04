@@ -5,7 +5,68 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 30 Dec 2017 04:14:45 +0800</lastBuildDate>
+<lastBuildDate>Thu, 04 Jan 2018 19:46:58 +0800</lastBuildDate>
+<item>
+<title>JavaScript实现ZLOGO: 用语法树实现多层循环</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-01-03-32571516.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;JavaScript实现ZLOGO: 用语法树实现多层循环&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32571516&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;照例先上演示弱效果图. 演示地址&lt;a href=&quot;http://codeinchinese.com/%E5%9C%883/%E5%9C%883.html&quot;&gt;照旧&lt;/a&gt;:&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-86c83e8129d192b4f22b8fa8d0ad4b40_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;117&quot; data-rawheight=&quot;117&quot;&gt;&lt;p&gt;代码如下:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;开始
+  循环4次
+    循环4次
+      前进50
+      左转90度
+    到此为止
+  右转90度
+  到此为止
+结束&lt;/code&gt;&lt;p&gt;如上文&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31870155&quot;&gt;JavaScript实现ZLOGO子集: 测试用例&lt;/a&gt;末尾所言, 此文用Antlr进行代码分析生成语法树. 再通过语法树生成p5js绘制代码.&lt;/p&gt;&lt;p&gt;Antlr支持两种代码分析方法, Visitor(监听者)和Visitor(访问者). SO上的问答&lt;a href=&quot;https://stackoverflow.com/questions/20714492/antlr4-listeners-and-visitors-which-to-implement&quot;&gt;Antlr4 Listeners and Visitors - which to implement?&lt;/a&gt;大致说明了区别. 基于有限的实践, 用Visitor方法生成语法树似乎在实现上更加方便. 尤其相比&lt;a href=&quot;http://ivanyu.me/blog/2014/09/13/creating-a-simple-parser-with-antlr/&quot;&gt;Creating a simple parser with ANTLR&lt;/a&gt;一文中使用监听者+栈来构建语法树.&lt;/p&gt;&lt;p&gt;Antlr生成工具默认不生成Visitor, 添加-visitor参数后可以生成:&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;java -cp &quot;antlr-4.7-complete.jar:$CLASSPATH&quot; org.antlr.v4.Tool -Dlanguage=JavaScript -visitor 圈3.g4&lt;/code&gt;&lt;p&gt;下面是&quot;定制访问器.js&quot;中构建语法树的部分, 看起来比实现前想的简单. 默认生成的&#39;圈3Visitor&#39;中, visitXX方法实现都是&quot;this.visitChildren(ctx)&quot;, 但那样会把所有的子节点返回值放进数组, 形成(至少这里是)多余的层次:&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;定制访问器.prototype.visit程序 = function(上下文) {
+  语法树 = {子节点: this.visit(上下文.声明())};
+  return 语法树;
+};
+
+定制访问器.prototype.visit循环 = function(上下文) {
+  return {
+    类型: &#39;循环&#39;,
+    次数: parseInt(上下文.T数().getText()),
+    子节点: this.visit(上下文.声明())};
+};
+
+定制访问器.prototype.visit声明 = function(上下文) {
+  return this.visit(上下文.getChild(0));
+};
+
+定制访问器.prototype.visit转向 = function(上下文) {
+  var 方向 = 上下文.T转向().getText();
+  var 角度 = parseInt(上下文.T数().getText()) * (方向 === &quot;左&quot; ? 1 : -1);
+  return {类型: &#39;转向&#39;, 参数: 角度};
+};
+
+定制访问器.prototype.visit前进 = function(上下文) {
+  return {类型: &#39;前进&#39;, 参数: parseInt(上下文.T数().getText())};
+};&lt;/code&gt;&lt;p&gt;上面的源码生成语法树大致如下所示. 实现上还有很多需要改进的, 比如&#39;前进&#39;和&#39;转向&#39;现在是两种&#39;类型&#39;, 但应该是一种; 根节点类型不应为空; 等等:&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-64cffeb88c144dc65304f5d678d02849_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;412&quot; data-rawheight=&quot;257&quot;&gt;&lt;p&gt;下面是&quot;编译.js&quot;中基于语法树生成指令列表的方法, 之后就与之前一样根据指令列表生成p5js绘制函数(代码也不用修改).&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;function 生成指令序列(节点) {
+  var 指令序列 = [];
+  // TODO: 根节点类型不应为空
+  if (!节点.类型) {
+    var 声明节点 = 节点.子节点;
+    for (var i = 0; i &amp;lt; 声明节点.length; i++) {
+      Array.prototype.push.apply(指令序列, 生成指令序列(声明节点[i]));
+    }
+  } else if (节点.类型 == &quot;循环&quot;) {
+    var 指令序列 = [];
+    for (var i = 0; i &amp;lt; 节点.次数; i++) {
+      Array.prototype.push.apply(指令序列, 生成指令序列({子节点: 节点.子节点}));
+    }
+  } // TODO: 修改类型统一为&#39;指令&#39;
+  else if (节点.类型 == &quot;前进&quot; || 节点.类型 == &quot;转向&quot;) {
+    return [{名称: (节点.类型 == &quot;前进&quot; ? 常量_指令名_前进 : 常量_指令名_转向), 参数: 节点.参数}];
+  }
+  return 指令序列;
+}&lt;/code&gt;&lt;p&gt;修改相应测试用例, 以及清理不再使用的监听器代码后. 代码已从visitor分支(&lt;a href=&quot;https://github.com/program-in-chinese/quan3/tree/visitor&quot;&gt;program-in-chinese/quan3&lt;/a&gt;)合并到master.&lt;/p&gt;</description>
+<author>吴烜</author>
+<guid isPermaLink="false">2018-01-03-32571516</guid>
+<pubDate>Wed, 03 Jan 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>从计算复杂度往上往前（和两个没什么卵用的定理）</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-29-32476294.htm</link>
@@ -761,157 +822,6 @@ my-or-1: bad syntax in: (my-or-1)&lt;/code&gt;&lt;p&gt;发生了什么？这个�
 <author>lotuc</author>
 <guid isPermaLink="false">2017-12-01-31582483</guid>
 <pubDate>Fri, 01 Dec 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Haskell 中的“定理证明”</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-11-30-31567423.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Haskell 中的“定理证明”&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31567423&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-24cc9824870cdcc4194b2c0ec0097d23_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;题图：鲸 | 花生( •̀ ω •́ ) [pixiv] &lt;a href=&quot;https://www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=66023124&quot;&gt;https://www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=66023124&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;这篇文章讲了什么&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;i&gt;这是一篇休闲向文章&lt;/i&gt;&lt;/p&gt;&lt;p&gt;总结了 Codewars 上面的几道证明题的思想并加以延拓，希望读者能在看完这篇文章之前/之后解决练习中的题目。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下面是正文&lt;/p&gt;&lt;hr&gt;&lt;p&gt;众所周知，Haskell 并没有真正意义上的 dependent type，但通过一些技巧 （利用GADT）可以“模拟”dependent type，并可以通过其证明一些定理。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;利用 GADT 模拟 Dependent Type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先我们需要作为&lt;b&gt;值&lt;/b&gt;的类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Z
- data S n&lt;/code&gt;&lt;p&gt;注意到，这里的 &lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;n 都只是单纯的类型，你甚至不能构造出相应类型的值出来。&lt;/p&gt;&lt;p&gt;所以我们需要把它们与实际存在的值联系起来&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Nat a where
-      Zero :: Nat Z
-      Succ :: Nat a -&amp;gt; Nat (S a)&lt;/code&gt;&lt;p&gt;于是我们有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (Succ Zero) :: Nat (S Z)
-  (Succ (Succ Zero)) :: Nat (S (S Z))&lt;/code&gt;&lt;p&gt;这样我们获得了在类型层次上的自然数，并保持了它与实际的值的同构关系。&lt;/p&gt;&lt;p&gt;光有自然数是没有意义的，我们需要赋予它们运算的能力。&lt;/p&gt;&lt;p&gt;那么 &lt;code class=&quot;inline&quot;&gt;Nat n&lt;/code&gt; 与 &lt;code class=&quot;inline&quot;&gt;Nat m&lt;/code&gt; 相加的结果应该是什么呢？&lt;/p&gt;&lt;p&gt;首先它应该是一个 &lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt; ，其次它的类型应该对应于两数相加的结果。&lt;/p&gt;&lt;p&gt;借助于 GHC 的 Type Family 与 Type Operator 扩展，我们可以定义出 合理的 类型层面上的自然数的加法与乘法&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  type family (:+:) (n :: *) (m :: *) :: *
-  type instance Z   :+: m = m
-  type instance S n :+: m = S (n :+: m)
-  
-  type family (:*:) (n :: *) (m :: *) :: *
-  type instance Z   :*: m = Z
-  type instance S n :*: m = m :+: (n :*: m)&lt;/code&gt;&lt;p&gt;然后是数据层面的自然数&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  infixl 4 +
-  (+) :: Nat n -&amp;gt; Nat m -&amp;gt; Nat (n :+: m)
-  Zero + a = a
-  (Succ x) + a = Succ (x + a)
-  
-  infixl 5 *
-  (*) :: Nat n -&amp;gt; Nat m -&amp;gt; Nat (n :*: m)
-  Zero * _ = Zero
-  (Succ x) * m = m + x * m&lt;/code&gt;&lt;p&gt;有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (Succ (Succ Zero)) * (Succ (Succ Zero)) :: Nat (S (S (S (S Z))))&lt;/code&gt;&lt;p&gt;基于类型上的自然数，我们可以定义 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; (在类型中包含了长度信息的 &lt;code class=&quot;inline&quot;&gt;List&lt;/code&gt;)了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  data Vec a n where
-      VNil :: Vec a Z
-      VCons :: a -&amp;gt; Vec a n -&amp;gt; Vec a (S n)&lt;/code&gt;&lt;p&gt;长度为 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 与长度为 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 连接起来之后的长度为 &lt;code class=&quot;inline&quot;&gt;n + m&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (++) :: Vec a n -&amp;gt; Vec a m -&amp;gt; Vec a (n :+: m)
-  VNil ++ ys = ys
-  VCons x xs ++ y = VCons x (xs ++ y)&lt;/code&gt;&lt;p&gt;把长度为 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 重复 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 次之后得到的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 的长度为 &lt;code class=&quot;inline&quot;&gt;n * m&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  repeat :: Nat n -&amp;gt; Vec a m -&amp;gt; Vec a (n :*: m)
-  repeat Zero _ = VNil
-  repeat (Succ x) xs = xs ++ repeat x xs&lt;/code&gt;&lt;p&gt;有了长度信息，就有类型安全的 &lt;code class=&quot;inline&quot;&gt;head&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;tail&lt;/code&gt; 了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  headV :: Vec a (S n) -&amp;gt; a
-  headV (VCons x _) = x
-  
-  tailV :: Vec a (S n) -&amp;gt; Vec a n
-  tailV (VCons _ xs) = xs&lt;/code&gt;&lt;p&gt;因为 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 作为 GADT 的类型在这里受到了第二个类型参数为 &lt;code class=&quot;inline&quot;&gt;S n&lt;/code&gt; 的束缚，所以可以保证这里的 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 不会是 &lt;code class=&quot;inline&quot;&gt;VNil&lt;/code&gt; ，这两个函数都是 &lt;b&gt;完全&lt;/b&gt; 的。&lt;/p&gt;&lt;p&gt;借鉴之前定义类型层面上自然数的加法与乘法的思想，我们可以定义相应的减法、求最大值、最小值等。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  type family (:-:) (n :: *) (m :: *) :: *
-  type instance n :-: Z = n
-  type instance Z :-: m = Z
-  type instance S n :-: S m = n :-: m
-  
-  type family (:^:) (n :: *) (m :: *) :: *
-  type instance Z :^: n = n
-  type instance n :^: Z = n
-  type instance S n :^: S m = S (n :^: m)
-  
-  type family (:~:) (n :: *) (m :: *) :: *
-  type instance Z :~: m = Z
-  type instance n :~: Z = Z
-  type instance S n :~: S m = S (n :~: m)&lt;/code&gt;&lt;p&gt;(这里使用了 &lt;code class=&quot;inline&quot;&gt;:~:&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;:^:&lt;/code&gt; 分别代表求最大值和最小值)&lt;/p&gt;&lt;p&gt;于是有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  zip :: Vec a n -&amp;gt; Vec b m -&amp;gt; Vec (a, b) (n :~: m)
-  zip VNil _ = VNil
-  zip _ VNil = VNil
-  zip (VCons x xs) (VCons y ys) = VCons (x, y) (zip xs ys)&lt;/code&gt;&lt;h2&gt;&lt;b&gt;进行简单的定理证明&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Haskell&lt;/code&gt; 中没有 Prop ，所以我们得从头开始描述“相等”这个概念。&lt;/p&gt;&lt;p&gt;首先定义代表两个类型层面的自然数相等的类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Equal a b where
-      EqZ :: Equal Z Z
-      EqS :: Equal a b -&amp;gt; Equal (S a) (S b)&lt;/code&gt;&lt;p&gt;借助于 Type Operator 我们可以写成&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; type a === b = Equal a b&lt;/code&gt;&lt;p&gt;相等关系具有自反性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  refl :: Nat n -&amp;gt; n === n
-  refl Zero = EqZ
-  refl (Succ x) = EqS $ refl x&lt;/code&gt;&lt;p&gt;相等关系具有对称性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  symm :: a === b -&amp;gt; b === a
-  symm EqZ = EqZ
-  symm (EqS x) = EqS $ symm x&lt;/code&gt;&lt;p&gt;相等关系具有传递性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (&amp;lt;=&amp;gt;) :: a === b -&amp;gt; b === c -&amp;gt; a === c
-  EqZ &amp;lt;=&amp;gt; EqZ = EqZ
-  EqS x &amp;lt;=&amp;gt; EqS y = EqS $ x &amp;lt;=&amp;gt; y&lt;/code&gt;&lt;p&gt;因为 Type Operator 也能定义优先级，所以下面给出：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  infixl 2 ===
-  infixl 4 :+:
-  infixr 4 :-:
-  infixl 5 :*:&lt;/code&gt;&lt;p&gt; 来减少括号的个数&lt;/p&gt;&lt;h2&gt;加法结合律&lt;/h2&gt;&lt;p&gt;那么我们来试着证明一下加法的结合律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plusComb :: Nat n -&amp;gt; Nat m -&amp;gt; Nat p -&amp;gt; n :+: (m :+: p) === n :+: m :+: p&lt;/code&gt;&lt;p&gt;我们对 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 进行归纳：&lt;/p&gt;&lt;p&gt; 当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 0 的时，在加法中的 0 会直接消除，所以使用 &lt;code class=&quot;inline&quot;&gt;refl (m + p)&lt;/code&gt; 就好了；&lt;/p&gt;&lt;p&gt; 当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S n1&lt;/code&gt; 时，把等式两边的 S 用 &lt;code class=&quot;inline&quot;&gt;EqS&lt;/code&gt; 提取出来，再使用归纳假设就可以了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plusComb :: Nat n -&amp;gt; Nat m -&amp;gt; Nat p -&amp;gt; n :+: (m :+: p) === n :+: m :+: p
-  plusComb Zero p q = refl (p + q)
-  plusComb (Succ n) m p = EqS $ plusComb n m p&lt;/code&gt;&lt;h2&gt;加法交换律&lt;/h2&gt;&lt;p&gt;那么再尝试一下稍微困难一点的加法交换律吧&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plusCommutes :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: m === m :+: n&lt;/code&gt;&lt;p&gt;当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 0 的时，证明很平凡。我们需要的是这么一个类型：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  Nat n -&amp;gt; n :+: Z === n&lt;/code&gt;&lt;p&gt;只需要对 n 进行归纳就好了。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  nPlusZero :: n === n -&amp;gt; n === n :+: Z
-  nPlusZero EqZ        = EqZ
-  nPlusZero (EqS eq) = EqS $ nPlusZero eq&lt;/code&gt;&lt;p&gt;当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S m1&lt;/code&gt; 时，我们需要的东西的类型为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  (n :+: S m1) === S (m1 :+: n)&lt;/code&gt;&lt;p&gt;根据归纳法，我们可以得到&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;EqS (plusCommutes n m1) :: S (m1 :+: n) === S (n :+: m1)&lt;/code&gt;&lt;p&gt;借助于相等关系的传递性，目标变成了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; (n :+: S m1) === S (n :+: m1)&lt;/code&gt;&lt;p&gt;而这个命题的证明也只需要对 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 进行归纳&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  nPlusSm :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: S m === S (n :+: m)
-  nPlusSm Zero      m = EqS $ refl m
-  nPlusSm (Succ n) m = EqS $ nPlusSm n m&lt;/code&gt;&lt;p&gt;把这些步骤拼起来，就得到了我们最终的证明&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  plus2 :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: m === m :+: n
-  plus2 n Zero = symm $ nPlusZero $ refl n
-  plus2 n (Succ m) = nPlusSm n m &amp;lt;=&amp;gt; symm (EqS $ plus2 m n)&lt;/code&gt;&lt;h2&gt;乘法交换律&lt;/h2&gt;&lt;p&gt;看了加法我们再来看乘法&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; multCommute :: Nat n -&amp;gt; Nat m -&amp;gt; n :*: m === m :*: n&lt;/code&gt;&lt;p&gt;证明的方法和加法几乎一样，仍然从归纳法入手，对 n 进行归纳。中间需要用到一些引理，比如&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  multCommuteS :: Nat n -&amp;gt; Nat m -&amp;gt; m :*: S n === m :+: m :*: n
-  plusSwap :: Nat a -&amp;gt; Nat b -&amp;gt; Nat c -&amp;gt; a :+: (b :+: c) === b :+: (a :+: c)&lt;/code&gt;&lt;p&gt;等等，这里不再详细说明具体的推导，直接给出实现，有兴趣的同学可以试着自己写一遍&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; equalPlus :: Nat a -&amp;gt; Nat b -&amp;gt; a === b -&amp;gt; Nat c -&amp;gt; a :+: c === b :+: c
- equalPlus a b eq Zero = symm (nPlusZero a) &amp;lt;=&amp;gt; eq &amp;lt;=&amp;gt; nPlusZero b
- equalPlus a b eq (Succ c) = nPlusSm a c &amp;lt;=&amp;gt; Fuck (equalPlus a b eq c) &amp;lt;=&amp;gt; symm (nPlusSm b c)
-  
- equalPlus&#39; :: Nat a -&amp;gt; Nat b -&amp;gt; a === b -&amp;gt; Nat c -&amp;gt; c :+: a === c :+: b
- equalPlus&#39; a b eq c = plusCommutes c a &amp;lt;=&amp;gt; equalPlus a b eq c &amp;lt;=&amp;gt; plusCommutes b c
-  
- plusSwap&#39; :: Nat a -&amp;gt; Nat b -&amp;gt; Nat c -&amp;gt; a :+: b :+: c === b :+: a :+: c
- plusSwap&#39; a b = equalPlus (a + b) (b + a) (plusCommutes a b)
-  
- plusSwap :: Nat a -&amp;gt; Nat b -&amp;gt; Nat c -&amp;gt; a :+: (b :+: c) === b :+: (a :+: c)
- plusSwap a b c = plusCommute a b c &amp;lt;=&amp;gt; plusSwap&#39; a b c &amp;lt;=&amp;gt; symm (plusCommute b a c)
-  
- multCommuteS_1 :: Nat n -&amp;gt; Nat m -&amp;gt; n :+: (m :*: S n) === m :+: (n :+: (m :*: n))
- multCommuteS_1 n m = equalPlus&#39; (m * Succ n) (m + m * n) (multCommuteS n m) n &amp;lt;=&amp;gt; plusSwap n m (m * n)
-  
- multCommuteS :: Nat n -&amp;gt; Nat m -&amp;gt; m :*: S n === m :+: m :*: n
- multCommuteS _ Zero = Refl
- multCommuteS n (Succ m) = Fuck $ multCommuteS_1 n m
-  
- multCommutes :: Nat n -&amp;gt; Nat m -&amp;gt; n :*: m === m :*: n
- multCommutes Zero m = symm $ multNZero m
- multCommutes (Succ n) m = symm
-      (multCommuteS n m &amp;lt;=&amp;gt; equalPlus&#39; (m * n) (n * m) (multCommutes m n) m)&lt;/code&gt;&lt;h2&gt;&lt;b&gt;从自然数说开去&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们在上面定义的“相等”中，只对自然数进行了规定，那么我们怎么表示任何一种东西相等的概念呢？我们需要对 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 进行修改。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Equal a b where
-      Refl :: Equal a a
-      Derive :: Equal a b -&amp;gt; Equal (p a) (p b)&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 对应之前的 &lt;code class=&quot;inline&quot;&gt;EqZ&lt;/code&gt; , &lt;code class=&quot;inline&quot;&gt;Derive&lt;/code&gt; 对应 &lt;code class=&quot;inline&quot;&gt;EqS&lt;/code&gt; 。从定义上我们就能知道相等关系的自反性。&lt;/p&gt;&lt;p&gt;重新定义之后，我们就再也不需要 &lt;code class=&quot;inline&quot;&gt;refl&lt;/code&gt; 这个函数了，因为直接使用 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 就可以了。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;symm&lt;/code&gt; 的定义和原来类似，&lt;code class=&quot;inline&quot;&gt;trans&lt;/code&gt; 则需要一点小小的修改：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; (&amp;lt;=&amp;gt;) :: a === b -&amp;gt; b === c -&amp;gt; a === c
- Refl        &amp;lt;=&amp;gt; Refl        = Refl
- Derive x &amp;lt;=&amp;gt; Refl        = Derive $ x      &amp;lt;=&amp;gt; Refl
- Refl        &amp;lt;=&amp;gt; Derive y = Derive $ Refl &amp;lt;=&amp;gt; y
- Derive x &amp;lt;=&amp;gt; Derive y = Derive $ x      &amp;lt;=&amp;gt; y&lt;/code&gt;&lt;p&gt;为了证明我们定义的 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 不仅仅对自然数有用，我们引入了类型层面的 &lt;code class=&quot;inline&quot;&gt;Bool&lt;/code&gt; 来增加多样性。&lt;/p&gt;&lt;p&gt;首先是类型定义&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data T
-data F&lt;/code&gt;&lt;p&gt;然后是对应的数据类型&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Boolean :: * -&amp;gt; * where
-      Tr :: Boolean T
-      Fa :: Boolean F&lt;/code&gt;&lt;p&gt;对于每一个需要参与证明的函数，我们需要在类型上实现一遍。&lt;/p&gt;&lt;p&gt;对于 &lt;code class=&quot;inline&quot;&gt;Boolean&lt;/code&gt; 而言，先实现与或非 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; type family Inv (n :: *) :: *
- type instance Inv T = F
- type instance Inv F = T
-  
- type family (||) (n :: *) (m :: *) :: *
- type instance T || T = T
- type instance F || T = T
- type instance T || F = T
- type instance F || F = F
-  
- type family (&amp;amp;&amp;amp;) (n :: *) (m :: *) :: *
- type instance T &amp;amp;&amp;amp; T = T
- type instance T &amp;amp;&amp;amp; F = F
- type instance F &amp;amp;&amp;amp; T = F
- type instance F &amp;amp;&amp;amp; F = F&lt;/code&gt;&lt;p&gt;首先证明双重否定律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;  doubleNeg :: Boolean b -&amp;gt; Inv (Inv b) === b
-  doubleNeg Tr = Refl
-  doubleNeg Fa = Refl&lt;/code&gt;&lt;p&gt;要注意的是，这里并不能把两个分支合在一起写，因为它并不能直接把 &lt;code class=&quot;inline&quot;&gt;Inv (Inv b)&lt;/code&gt; 推导到 &lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;&lt;/p&gt;&lt;p&gt;然后是德摩根律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; demorgan :: Boolean a -&amp;gt; Boolean b -&amp;gt; Inv (a &amp;amp;&amp;amp; b) === Inv a || Inv b
- demorgan Tr Tr = Refl
- demorgan Tr Fa = Refl
- demorgan Fa Tr = Refl
- demorgan Fa Fa = Refl&lt;/code&gt;&lt;p&gt;仍然要进行详细的分类讨论，理由同上&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;同样的，我们还能利用 Type Family 描述一些性质 ，比如自然数的奇偶性&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; type family IsOdd (n :: *) :: *
- type instance IsOdd Z = F
- type instance IsOdd (S Z) = T
- type instance IsOdd (S (S n)) = IsOdd n
-  
- type family IsEven (n :: *) :: *
- type instance IsEven Z = T
- type instance IsEven (S Z) = F
- type instance IsEven (S (S n)) = IsEven n&lt;/code&gt;&lt;p&gt;试着证明一下：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus :: Nat n -&amp;gt; Nat m -&amp;gt; IsOdd (n :+: m) === IsOdd n ^ IsOdd m&lt;/code&gt;&lt;p&gt;因为 &lt;code class=&quot;inline&quot;&gt;IsEven&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;IsOdd&lt;/code&gt; 的递归定义中都有两层的预设，所以我们在用归纳法证明时也需要考虑相应的 3 种情况&lt;/p&gt;&lt;ol&gt;&lt;li&gt;当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt; 时&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus Zero m :: IsOdd m === (F ^ IsOdd m)&lt;/code&gt;&lt;p&gt;只需要实现这两个函数（它们的实现都是平凡的）&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; falseXor :: Boolean b -&amp;gt; b === F ^ b
- isodd :: Nat a -&amp;gt; Boolean (IsOdd a)&lt;/code&gt;&lt;p&gt;就有&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus Zero x = falseXor $ isodd x&lt;/code&gt;&lt;ol&gt;&lt;li&gt;当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S Z&lt;/code&gt; 时&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;对 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 进行归纳，当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;S Z&lt;/code&gt; 时，结果就是 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ，而当 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S (S m&#39;)&lt;/code&gt; 时，我们需要的类型为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus (Succ Zero) (Succ (Succ x)) :: IsOdd (S n3) === (T ^ IsOdd n3)&lt;/code&gt;&lt;p&gt;同样的，只需要把它拎出去，用归纳法再证一遍就好了&lt;/p&gt;&lt;ol&gt;&lt;li&gt;当 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;S (S n&#39;)&lt;/code&gt; 时&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;我们需要的类型为：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus (Succ (Succ x)) y :: IsOdd (n2 :+: m) === (IsOdd n2 ^ IsOdd m)&lt;/code&gt;&lt;p&gt;利用归纳假设就能直接证明了&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddPlus (Succ (Succ x)) y = oddPlus x y&lt;/code&gt;&lt;h2&gt;&lt;b&gt;还有什么？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;注意到我们的很多证明，实际上都只是在类型层面的变化。比如下面这个&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; oddEvenS :: Nat n -&amp;gt; IsOdd n === IsEven (S n)
- oddEvenS Zero = Refl
- oddEvenS (Succ Zero) = Refl
- oddEvenS (Succ (Succ x)) = oddEvenS x&lt;/code&gt;&lt;p&gt;把递归展开的话就能发现它所有情况下的 “值” 都是 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ，但我们不能直接对所有的情况赋 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; ，因为这个递归是对 &lt;code class=&quot;inline&quot;&gt;Refl&lt;/code&gt; 上的类型进行修改的过程。类型推导不会对 Type Family 中的递归定义进行展开，所以我们还是得自己动手证明一遍。&lt;/p&gt;&lt;h2&gt;“性质” 的表示方法&lt;/h2&gt;&lt;p&gt;我们使用了 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 表示两个类型相等的概念，那么同样的，我们还可以用这种方法描述其它的一元/二元/多元关系，比如我们可以换一种方式表示奇偶性：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Even :: * -&amp;gt; * where
-      ZeroEven :: Even Z
-      Add2Even :: Even n -&amp;gt; Even (S (S n))
-  
-data Odd :: * -&amp;gt; * where
-      OneOdd :: Odd (S Z)
-      Add2Odd :: Odd n -&amp;gt; Odd (S (S n))&lt;/code&gt;&lt;p&gt;或者描述两个自然数的大小关系：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Greater :: * -&amp;gt; * where
-      GreZ :: Greater (S Z) Z
-      GreS1 :: Greater x y -&amp;gt; Greater (S x) y
-      GreS2 :: Greater x y -&amp;gt; Greater (S x) (S y)&lt;/code&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Derive&lt;/code&gt; 的局限&lt;/h2&gt;&lt;p&gt;事实上，我们在 &lt;code class=&quot;inline&quot;&gt;Equal&lt;/code&gt; 中定义的 &lt;code class=&quot;inline&quot;&gt;Derive&lt;/code&gt; 并不是万能的，比如我们不能这样&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; deriveOdd :: Nat n -&amp;gt; n === m -&amp;gt; IsOdd n === IsOdd m
- deriveOdd _ eq = Derive eq -- wrong !&lt;/code&gt;&lt;p&gt;报错信息为&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;Couldn&#39;t match type ‘IsOdd n’ with ‘p0 n’
-      Expected type : IsOdd n === IsOdd m
-      Actual   type    : p0 n === p0 m&lt;/code&gt;&lt;p&gt;它只能对字面量进行推导，比如&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; deriveS :: n === m -&amp;gt; S n === S m&lt;/code&gt;&lt;h2&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;你现在应该可以解决下面几道题目&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/singletons&quot;&gt;https://www.codewars.com/kata/singletons&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/odd-plus-even-equals-odd-prove-it&quot;&gt;https://www.codewars.com/kata/odd-plus-even-equals-odd-prove-it&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/a-plus-b-equals-b-plus-a-prove-it&quot;&gt;https://www.codewars.com/kata/a-plus-b-equals-b-plus-a-prove-it&lt;/a&gt;&lt;/p&gt;&lt;p&gt;最后一道题证明的是加法交换律，除了文中给出的方法，还有一种更精妙的写法，读者可以试着找一找&lt;/p&gt;&lt;h2&gt;更多练习&lt;/h2&gt;&lt;p&gt;证明乘法交换律&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; multCommute :: Nat n -&amp;gt; Nat m -&amp;gt; Nat p -&amp;gt; n :*: m :*: p === n :*: (m :*: p)&lt;/code&gt;&lt;p&gt;以及更多你能想到的东西&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>zjuwyd</author>
-<guid isPermaLink="false">2017-11-30-31567423</guid>
-<pubDate>Thu, 30 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
