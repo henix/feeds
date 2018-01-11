@@ -49,6 +49,7 @@ const feeds = [
 	["ACG", [
 		"yumenaka",
 		"c_126395105",
+		"mowanglingyu",
 	]],
 	["Security", [
 		"chaitin-tech",
@@ -70,6 +71,7 @@ const feeds = [
 	]],
 	["算法", [
 		"algorithmicliberalartsdegree",
+		"c_124392554",
 		"c_131397850",
 	]],
 ];
