@@ -39,6 +39,7 @@ const feeds = [
 	]],
 	["心理", [
 		"knowyourself",
+		"pongba_mindhacks",
 		"PSY_Jile",
 		"bhahhltmusic",
 	]],
