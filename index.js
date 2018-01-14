@@ -18,8 +18,9 @@ const feeds = [
 		"wxieshuo",
 		"yeka52",
 		"aloha-yaoyao",
-		"zhoudaobiji",
 		"FannyAndLiang",
+		"FlyTheCode",
+		"zhoudaobiji",
 		"iamawguo",
 	]],
 	["FP", [
