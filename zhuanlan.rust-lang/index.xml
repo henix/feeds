@@ -5,7 +5,150 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 12 Sep 2017 15:31:58 +0800</lastBuildDate>
+<lastBuildDate>Mon, 15 Jan 2018 05:11:34 +0800</lastBuildDate>
+<item>
+<title>[译] Rust - None Lexical Lifetimes (NLL) 使用指南</title>
+<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-01-12-32884290.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;[译] Rust - None Lexical Lifetimes (NLL) 使用指南&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32884290&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b7bdc8a3a010ad92012199af2750cc72_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;原文地址 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//santiagopastorino.com/how-to-use-rust-non-lexical-lifetimes-on-nightly/&quot;&gt;https://santiagopastorino.com/how-to-use-rust-non-lexical-lifetimes-on-nightly/&lt;/a&gt;&lt;br&gt;原文作者: Santiago Pastorino&lt;/blockquote&gt;&lt;p&gt;Niko Matsakis, Paul Faria 和我在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//internals.rust-lang.org/t/announcing-the-impl-period-sep-18-dec-17/5676&quot;&gt;impl period&lt;/a&gt; 期间致力于开发None Lexical Lifetimes (暂译为非词法作用域生命周期，下文统称为 NLL)。 代码目前已经合并到 master 分支，你现在可以在 nightly 中体验。&lt;/p&gt;&lt;p&gt;本文将通过几个例子简单直观地展现 NLL 的使用方法。这里我不会涉及 NLL 背后的设计逻辑，如果对设计细节感兴趣，我推荐你进一步阅读 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/rust-lang/rfcs/blob/master/text/2094-nll.md&quot;&gt;RFC&lt;/a&gt;，你想知道的都在里面了。我想你还可以尝试在 pull requests 贡献代码。&lt;/p&gt;&lt;p&gt;话不多说，我们直接上代码。&lt;/p&gt;&lt;p&gt;当然在这之前，你要先确保机器上安装了最新的 nightly 版本 —— 打开命令行运行 &lt;code class=&quot;inline&quot;&gt;rustup install nightly&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;我们先看这个简单的例子，它在目前的作用域生命周期(scope based lifetimes)规则下不能编译。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#![allow(unused_variables)]
+
+fn main() {
+    let mut x = 22;
+
+    let p = &amp;amp;mut x; // mutable borrow
+
+    println!(&quot;{}&quot;, x); // later used
+}
+&lt;/code&gt;&lt;p&gt;这是因为 x 被可变借用，并且在作用域结束前再次被使用。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;error[E0502]: cannot borrow `x` as immutable because it is also borrowed as mutable
+ --&amp;gt; src/main.rs:8:20
+  |
+6 |     let p = &amp;amp;mut x; // mutable borrow
+  |                  - mutable borrow occurs here
+7 | 
+8 |     println!(&quot;{}&quot;, x); // later used
+  |                    ^ immutable borrow occurs here
+9 | }
+  | - mutable borrow ends here
+
+error: aborting due to previous error
+&lt;/code&gt;&lt;p&gt;现在我们在开头加入 &lt;code class=&quot;inline&quot;&gt;#![feature(nll)]&lt;/code&gt; 代码开启 NLL 特性。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#![feature(nll)]
+#![allow(unused_variables)]
+
+fn main() {
+    let mut x = 22;
+
+    let p = &amp;amp;mut x;
+
+    println!(&quot;{}&quot;, x);
+}
+&lt;/code&gt;&lt;p&gt;这段代码顺利编译，因为编译器知道 &lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt; 的可变借用并没有持续到作用域结尾，而是在 &lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt; 被再次使用之前就结束了，所以这里不存在冲突。&lt;/p&gt;&lt;p&gt;我们在看一个稍微复杂些的例子。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::collections::HashMap;
+
+fn get_default(map: &amp;amp;mut HashMap, key: usize) -&amp;gt; &amp;amp;mut String {
+    match map.get_mut(&amp;amp;key) {
+        Some(value) =&amp;gt; value,
+        None =&amp;gt; {
+            map.insert(key, &quot;&quot;.to_string());
+            map.get_mut(&amp;amp;key).unwrap()
+        }
+    }
+}
+
+fn main() {
+    let map = &amp;amp;mut HashMap::new();
+    map.insert(22, format!(&quot;Hello, world&quot;));
+    map.insert(44, format!(&quot;Goodbye, world&quot;));
+    assert_eq!(&amp;amp;*get_default(map, 22), &quot;Hello, world&quot;);
+    assert_eq!(&amp;amp;*get_default(map, 66), &quot;&quot;);
+}
+&lt;/code&gt;&lt;p&gt;如果我们直接编译，这段代码也会报错，因为 &lt;code class=&quot;inline&quot;&gt;get_mut&lt;/code&gt; 在 &lt;code class=&quot;inline&quot;&gt;match&lt;/code&gt; 里借用 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt; 直到作用域结尾，这段作用域也覆盖到 &lt;code class=&quot;inline&quot;&gt;None&lt;/code&gt; 分支，而我们在 &lt;code class=&quot;inline&quot;&gt;None&lt;/code&gt; 分支里尝试再次可变借用 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt;，编译器自然是十分拒绝的。&lt;/p&gt;&lt;p&gt;错误信息是这样的&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;error[E0499]: cannot borrow `*map` as mutable more than once at a time
+  --&amp;gt; src/main.rs:7:13
+   |
+4  |     match map.get_mut(&amp;amp;key) {
+   |           --- first mutable borrow occurs here
+...
+7  |             map.insert(key, &quot;&quot;.to_string());
+   |             ^^^ second mutable borrow occurs here
+...
+11 | }
+   | - first borrow ends here
+
+error[E0499]: cannot borrow `*map` as mutable more than once at a time
+  --&amp;gt; src/main.rs:8:13
+   |
+4  |     match map.get_mut(&amp;amp;key) {
+   |           --- first mutable borrow occurs here
+...
+8  |             map.get_mut(&amp;amp;key).unwrap()
+   |             ^^^ second mutable borrow occurs here
+...
+11 | }
+   | - first borrow ends here
+
+error: aborting due to 2 previous errors
+&lt;/code&gt;&lt;p&gt;不开启 NLL 的情况下，我们有一种丑陋的技巧可以让它通过编译。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn get_default(map: &amp;amp;mut HashMap, key: usize) -&amp;gt; &amp;amp;mut String {
+    match map.get_mut(&amp;amp;key) {
+        Some(value) =&amp;gt; return value,
+        None =&amp;gt; {
+        }
+    }
+    
+    map.insert(key, &quot;&quot;.to_string());
+    map.get_mut(&amp;amp;key).unwrap()
+}
+&lt;/code&gt;&lt;p&gt;这段代码虽然能编译，代价是我们必须使用这种令人难受的写法。&lt;/p&gt;&lt;p&gt;如果我们在原先的例子中加入 &lt;code class=&quot;inline&quot;&gt;#![feature(nll)]&lt;/code&gt; 开启 NLL ...&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#![feature(nll)]
+
+use std::collections::HashMap;
+
+fn get_default(map: &amp;amp;mut HashMap, key: usize) -&amp;gt; &amp;amp;mut String {
+    match map.get_mut(&amp;amp;key) {
+        Some(value) =&amp;gt; value,
+        None =&amp;gt; {
+            map.insert(key, &quot;&quot;.to_string());
+            map.get_mut(&amp;amp;key).unwrap()
+        }
+    }
+}
+
+fn main() {
+    let map = &amp;amp;mut HashMap::new();
+    map.insert(22, format!(&quot;Hello, world&quot;));
+    map.insert(44, format!(&quot;Goodbye, world&quot;));
+    assert_eq!(&amp;amp;*get_default(map, 22), &quot;Hello, world&quot;);
+    assert_eq!(&amp;amp;*get_default(map, 66), &quot;&quot;);
+}
+&lt;/code&gt;&lt;p&gt;这段代码完美通过编译，并且再也不用写那种令人智熄的代码。&lt;/p&gt;&lt;p&gt;另一个有趣的东西是用来展示借用错误的叫做 &lt;code class=&quot;inline&quot;&gt;three point error&lt;/code&gt; 的机制。目前为了开启它你需要显式地给编译器传入 &lt;code class=&quot;inline&quot;&gt;-Znll-dump-cause&lt;/code&gt; 参数。&lt;/p&gt;&lt;p&gt;先看这个在 NLL 下产生借用错误的例子。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#![feature(nll)]
+#![allow(unused_assignments)]
+
+fn main() {
+    let mut x = 22;
+
+    let p = &amp;amp;x;
+
+    x = 33;
+    
+    println!(&quot;{}&quot;, p);
+}
+&lt;/code&gt;&lt;p&gt;编译时传入 &lt;code class=&quot;inline&quot;&gt;nll-dump-cause&lt;/code&gt;，three point errors 会产生下面这样的的错误信息&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ rustc -Znll-dump-cause main.rs
+error[E0506]: cannot assign to `x` because it is borrowed
+  --&amp;gt; src/main.rs:9:5
+   |
+7  |     let p = &amp;amp;x;
+   |             -- borrow of `x` occurs here
+8  | 
+9  |     x = 33;
+   |     ^^^^^^ assignment to borrowed `x` occurs here
+10 |     
+11 |     println!(&quot;{}&quot;, p);
+   |                    - borrow later used here
+
+error: aborting due to previous error
+&lt;/code&gt;&lt;p&gt;错误信息指出了起始借用，借用赋值和使用借用的位置，这应该可以给你提供对于问题清晰的思路。&lt;/p&gt;&lt;p&gt;这个机制目前还有性能上的问题，因此我们暂时需要自己手动开启。我们打算在解决性能问题后就将它设为默认。我和 Niko 已经着手，请拭目以待 :)。&lt;/p&gt;&lt;p&gt;我和你们一样非常兴奋于 NLL 最终落地，去尝试使用 NLL 写些代码，然后反馈你遇到的 bug 吧。虽然 NLL 已知存在一些问题需要修复，但是我们知道这都会慢慢完善起来的。&lt;/p&gt;&lt;p&gt;最后，我想说些无关紧要的话，我想分享一下我在 impl period 中的参与这个项目的体验。&lt;/p&gt;&lt;p&gt;首先，我从未想过我竟然能够有机会直接与 Niko 共事，更别说这还是我的第一个 Rust 项目。&lt;/p&gt;&lt;p&gt;Niko 是个令人敬仰的专家 (professional)，更重要的是他非常友好，容易亲近。我们在 Gitter 上交谈了很久，打过 call，然后我们还一起在 Rust Belt Rust 工作过 3 天。&lt;/p&gt;&lt;p&gt;我还与其他开发者花了不少时间讨论想法，比如说 Paul, 我非常感谢他的支持。&lt;/p&gt;</description>
+<author>Andy Lok</author>
+<guid isPermaLink="false">2018-01-12-32884290</guid>
+<pubDate>Fri, 12 Jan 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>为什么我喜欢Rust</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-09-05-29079046.htm</link>
@@ -1122,36 +1265,6 @@ fn main() {
 <author>F001</author>
 <guid isPermaLink="false">2017-02-25-25429005</guid>
 <pubDate>Sat, 25 Feb 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>RFC导读：MoveCell</title>
-<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-02-19-25312066.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;RFC导读：MoveCell&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25312066&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;RFC 是Rust语言设计过程中的一项重要机制。在三年以前，Rust设计组决定，任何重要的语言特性，都必须经过详细讨论设计之后，才能允许被实现。这三年以来，许多人设计了大量的重要功能，它们都在 github 上 rust-lang/RFCs 这个项目中被完整的讨论。这也是 Rust 语言带给我们的重要财富，通过这个项目，我们才能有机会近距离一睹一门优秀的编程语言是如何被设计出来的，每一个功能背后究竟有哪些考量，有哪些取舍。特别是 core team 里的那几位大师，每个提案，每个评论，每个意见交锋，都是文采斐然字字珠玑。在这一轮又一轮的设计讨论中，有一些提案被接受了，有一些提案被放弃了。即便在那些被拒绝的提案中，我们往往也能发现其中极具亮点的思路和想法。因此，阅读RFC项目，了解每个功能的设计过程，其实比被动的接受最终的设计结果，收获更大，所学更多。相比于最终发布的设计结论，这些讨论和思辩，更有助于我们高屋建瓴地审视问题，越过现象看本质。如果总想着去读源代码，反而会陷入只见树木不见森林的遗憾。&lt;/p&gt;&lt;p&gt;因此，接下来如果我有空的话，会挑一些RFC作为话题来谈一谈。我们先从简单的开始（因为我没有太多时间写文章），本文要关注的是，&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/1651-movecell.md&quot; data-editable=&quot;true&quot; data-title=&quot;1651-MoveCell&quot;&gt;1651-MoveCell&lt;/a&gt; 这个功能。&lt;/p&gt;&lt;p&gt;这个功能比较简单，但它也经过了半年的严谨讨论，最近才被正式接受。它的意图是，把 Cell 类型能接受的参数扩展到非 Copy 类型。&lt;/p&gt;&lt;p&gt;在以前的文章中，我介绍过“内部可变性”这个概念。Cell 和 RefCell 类型，都具备内部可变性。它们可以通过共享引用 &amp;amp; 改变内部的状态。它们的最大区别是 Cell 只能用于 Copy 类型，而 RefCell 没有这个限制。因为 Cell 类型的对外 API 主要是这么几个：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt; impl&amp;lt;T&amp;gt; Cell&amp;lt;T&amp;gt; where T: Copy {
-    fn new(value: T) -&amp;gt; Cell&amp;lt;T&amp;gt;;
-    fn get(&amp;amp;self) -&amp;gt; T;
-    fn set(&amp;amp;self, value: T);
-}
-&lt;/code&gt;&lt;p&gt;要么把一个实例拷贝装进去，要么拷贝取出来。这个类型显然是安全的，而且，它比 RefCell 的使用简单得多。这个提案的意思是，保持 get 方法依然只能应用于 Copy 类型不变，增加几个其它的 API，支持非 Copy 类型。新设计为：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt; impl&amp;lt;T&amp;gt; Cell&amp;lt;T&amp;gt; where T: Copy {
-    fn get(&amp;amp;self) -&amp;gt; T;
- }
-
-​impl&amp;lt;T&amp;gt; Cell&amp;lt;T&amp;gt; {
-    fn new(value: T) -&amp;gt; Cell&amp;lt;T&amp;gt;;
-    fn set(&amp;amp;self, value: T);
-    fn replace(&amp;amp;self, val: T) -&amp;gt; T;
-    fn into_inner(self) -&amp;gt; T;
-}
-
-​impl&amp;lt;T: Default&amp;gt; Cell&amp;lt;T&amp;gt; {
-    fn take(&amp;amp;self) -&amp;gt; T;
-}
-&lt;/code&gt;&lt;p&gt;它的意思是这样的，对于非 Copy 类型，把实例从 Cell 中 get 出来是不正确的，因为这样的类型，只能 move 不能 copy，一旦发生了 move，那么 Cell 内部就存的是一个“未初始化”状态的值了，这样不安全。所以，新加的几个方法，都是为了处理这个问题而来的。replace 方法把 Cell 内部的值取出来，同时用参数传进去一个新的值替代原先的值。take 方法不携带参数，但它要求 Default 约束，它把 Cell 内部的值取出来，同时调用 default() 构造一个新的默认值，替代原来的值。&lt;/p&gt;&lt;p&gt;这样的设计，可以方便用户。因为有些时候，我们需要一个“具备内部可变性的非Copy类型”，同时这个类型很简单，用 RefCell 又显得太重量级，不好用，这种时候，换用 Cell 会更方便一点。&lt;/p&gt;&lt;p&gt;我看到这个设计之后，又去翻了一下源代码，感觉有点不对劲。在以前的 Cell 类型中，几乎所有的方法都有 Copy 约束，在做了上面这个扩展之后，以前的“Cell类型用于Copy类型”的推断不成立了。以前那些针对 PartialEq/PartialOrd 这种的实现没道理还是带 Copy 约束。于是，我兴冲冲地做了一个提交：&lt;a href=&quot;https://github.com/rust-lang/rust/pull/39715&quot;&gt;https://github.com/rust-lang/rust/pull/39715&lt;/a&gt;，将这些方法去掉 Copy 约束。结果，被一群人批评，alexcrichton 毫不犹豫地关掉了这个提交。&lt;/p&gt;&lt;p&gt;但是，我依然觉得这个类型的 API 设计有点问题，仔细观察之后，做了第二次尝试：&lt;a href=&quot;https://github.com/rust-lang/rust/pull/39716&quot;&gt;https://github.com/rust-lang/rust/pull/39716&lt;/a&gt;，为 Cell 类型添加一个 swap 方法。这个方法应该是安全的，它跟 replace take 的思路一样，都是把内部的数据取出来，然后通过参数传递一个合法的数据填充进去，它也可以不需要 Copy 约束。跟 std::mem::swap 相比，它不需要 &amp;amp;mut 型指针，因为这个类型本身是具备内部可变性的。这个方法按道理应该是有用的，而且是安全的。这一次，这个提交被通过了。&lt;/p&gt;&lt;p&gt;对于另外一批比较简单的方法，比如 as_ptr, get_mut, default 这些是否能放宽 Copy 的限制，我并不是特别确定，犹豫了一下没有做提交。结果被其它人果断抢先，RalfJung做了这个修复，并提交通过了。&lt;/p&gt;&lt;p&gt;做完这些之后，我又反过来去读了一下，这个 RFC 在合并之前的讨论。突然发现，其实像 swap 这样的方法，早就有人提出来，只是 RFC 作者忘记把它加入到最终文档中去罢了。还有像 PartialEq 之类的 trait 应该怎么处理的问题，半年前就有人提出来过。要是我在提交代码之前，多看看以前人家的讨论，就不会犯这样的错误了。在讨论中，有人提出了一个非常有用的场景。在构造某些数据结构的时候，需要一个内部可变的 Option&amp;lt;Rc&amp;lt;_&amp;gt;&amp;gt; 类型。对于这样的情况，用 Cell 比用 RefCell 简单轻量得多。aturon 和 nikomatsakis 也做了非常精彩的阐释。总而言之，从今以后，Cell 和 RefCell 之间的区别可以这么记忆：&lt;/p&gt;&lt;blockquote&gt;&lt;p&gt;如果你需要指向内部数据的引用，那么使用 RefCell，否则，使用 Cell。恰好，它们俩的名字也是刚好差一个Ref。&lt;/p&gt;&lt;/blockquote&gt;&lt;br&gt;&lt;p&gt;这个RFC只是一个非常小的并不那么重要的功能。Rust还有许多重量级的功能还在酝酿讨论之中，远没达到成熟的地步。各位对编程语言设计感兴趣的读者可以去观摩一下设计者都是怎么讨论问题的，许多疑难问题都可以在这里找到答案，还可以加入讨论提出自己的见解，影响设计走向。甚至可以自己写一个RFC提出自己的设计思路，或者动手去改编译器，用事实证明自己的设计。他们讨论的深度、广度、知识密度、友善度，不论干货水平还是表达能力，远远超过所有中文社区中能见到的内容。建议所有的有追求的Rust爱好者，多多参与这样的开源项目，贡献自己的力量。&lt;/p&gt;</description>
-<author>F001</author>
-<guid isPermaLink="false">2017-02-19-25312066</guid>
-<pubDate>Sun, 19 Feb 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
