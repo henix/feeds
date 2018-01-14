@@ -5,7 +5,130 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 06 Jan 2018 20:59:39 +0800</lastBuildDate>
+<lastBuildDate>Sun, 14 Jan 2018 22:06:51 +0800</lastBuildDate>
+<item>
+<title>如何让你的正则表达式拥有更好的性能</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-01-13-32896848.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;如何让你的正则表达式拥有更好的性能&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32896848&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-569c3849ef9adeb2f616b0da2e694c31_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;首先呢, 这里要写的不是如何编写高效的正则表达式, 而是正则表达式引擎内部使用的一些编译优化小技巧, 以及探讨这些技巧的适用范围. &lt;/p&gt;&lt;p&gt;这里关注的是通用NFA引擎, 也就是大家平时在各种语言里最常调用的正则表达式库使用的算法. 当然啦, 还有另外一种DFA引擎比如RE2, 由于DFA的限制, 这类引擎非常难甚至不可能实现大部分的拓展(如环视和向后引用).&lt;/p&gt;&lt;p&gt;文章里我将写一些通用的正则表达式引擎技术以及技巧, 在了解了引擎之后相信大家能对正则表达式由更深入的了解同时也能更好地写出更高效的正则表达式. 文章里写的大部分技术来自我的正则表达式引擎项目(各个库的做法会有差异, 不过原则是相通的, 如果对我的正则表达式引擎实现有兴趣请看文章结尾由介绍).&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;要讨论正则表达式引擎, 我们需要一个最基本引擎模型, 为了追求更好的性能, 这里使用的非递归的虚拟机模型, 执行的是由正则表达式编译成的字节码. 一个最基本的正则表达式虚拟机需要以下几种指令:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{MATCH}, \\ &amp;amp;\texttt{SPLIT}, \\ &amp;amp;\texttt{JMP}, \\ &amp;amp;\texttt{ACCEPT} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;例如对于正则表达式 &lt;equation&gt;\texttt{(a|b)*abb}&lt;/equation&gt; 将生成虚拟机指令:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 1, 6}\\ &amp;amp;\texttt{1 split 2, 4}\\ &amp;amp;\texttt{2 match a}\\ &amp;amp;\texttt{3 jmp 5}\\ &amp;amp;\texttt{4 match b}\\ &amp;amp;\texttt{5 split 1, 6}\\ &amp;amp;\texttt{6 match a}\\ &amp;amp;\texttt{7 match b}\\ &amp;amp;\texttt{8 match b}\\ &amp;amp;\texttt{9 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;虚拟机的实现代码如下:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;enum BYTE_CODE
+{
+	MATCH,
+	SPLIT,
+	JMP,
+	ACCEPT,
+};
+
+bool match_impl(std::string str, std::vector&amp;lt;ptrdiff_t&amp;gt; byte_code, 
+	size_t&amp;amp; begin, size_t&amp;amp; end)
+{
+	struct state
+	{
+		size_t IP;
+		size_t index;
+	};
+
+	std::vector&amp;lt;state&amp;gt; state_stack;
+	size_t off = 0;
+
+	while (off &amp;lt; str.length())
+	{
+		state_stack.clear();
+		state_stack.push_back({ 0, off++ });
+
+	fail_loop:;
+		while (!state_stack.empty())
+		{
+			auto&amp;amp; state = state_stack.back();
+			auto IP = state .IP;
+			auto index = state.index;
+			state_stack.pop_back();
+
+		next_loop:;
+			switch (byte_code[IP])
+			{
+			case BYTE_CODE::MATCH:
+				if (index &amp;lt; str.length() &amp;amp;&amp;amp; (str[index] == byte_code[IP + 1]))
+				{
+					index++;
+					IP += 2;
+					goto next_loop;
+				}
+				goto fail_loop;
+			case BYTE_CODE::SPLIT:
+				state_stack.push_back({ static_cast&amp;lt;size_t&amp;gt;(IP + byte_code[IP + 2]), index });
+				IP += byte_code[IP + 1];
+				goto next_loop;
+			case BYTE_CODE::JMP:
+				IP += byte_code[IP + 1];
+				goto next_loop;
+			case BYTE_CODE::ACCEPT:
+				begin=off; end=index;
+				return true;
+			default:
+				return false;
+			}
+		}
+	}
+	return false;
+}&lt;/code&gt;&lt;p&gt;这里的虚拟机结构和之前的文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24458116&quot;&gt;正则表达式与AOT编译&lt;/a&gt;里一致.&lt;/p&gt;&lt;p&gt;关于词法分析, 语法分析和指令生成等的细节这里不做更多讨论. 在有了基本的模型之后我们便可以开始讨论如何优化引擎了.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Direct threading&lt;/h2&gt;&lt;p&gt;首先是指令分派的 &lt;equation&gt;\texttt{while-switch}&lt;/equation&gt; 循环, 每执行一条指令需要执行一次 &lt;equation&gt;\texttt{switch}&lt;/equation&gt; , 可以使用GCC的拓展&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html&quot;&gt;Labels as Values&lt;/a&gt;将switch改写为Direct threading分派指令, 减小多余的跳转带来的开销:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;static const void *next_instr[] = { 
+	&amp;amp;&amp;amp;byte_code_match,
+	&amp;amp;&amp;amp;byte_code_split,
+	&amp;amp;&amp;amp;byte_code_jmp,
+	&amp;amp;&amp;amp;byte_code_accept,
+}
+
+switch (byte_code[IP])  //for initial instruction
+{
+
+case BYTE_CODE::MATCH:
+{
+byte_code_match:
+	//code...
+}
+case BYTE_CODE::SPLIT:
+{
+byte_code_split:
+	//code...
+	goto *(next_instr[byte_code[IP]]);
+}
+case BYTE_CODE::JMP:
+{
+byte_code_jmp:
+	goto *(next_instr[byte_code[byte_code[IP + 1]]]);
+}
+case BYTE_CODE::ACCEPT:
+{
+byte_code_accept:
+	//code...
+	return true;
+}
+
+}&lt;/code&gt;&lt;p&gt;更进一步, 可以使用Context Threading with Tiny inlining, 将解释器改写成半JIT形式, 不过使用这类技术需要动态生成native code, 这里不做更多讨论, 有兴趣可以阅读paper: &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://www.cs.toronto.edu/~matz/pubs/demkea_context.pdf&quot;&gt;Context Threading: A flexible and efficient dispatch technique for virtual machine interpreters [.PDF]&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Memory pool&lt;/h2&gt;&lt;p&gt;在虚拟机中我们使用了一个 &lt;equation&gt;\texttt{vector}&lt;/equation&gt; 来存储每一个状态, 但是 &lt;equation&gt;\texttt{vector}&lt;/equation&gt; 在这里的内存效率不高, 主要原因是不需要随机访问, 只需要访问最顶端的头部元素, 而 &lt;equation&gt;\texttt{vector}&lt;/equation&gt; 随着状态增长发生的内存增长分配和搬移会带来显著的花销. 这个时候改用双向链表会比较合适, 配合内存池进行状态分配以获取更好的内存效率.&lt;/p&gt;&lt;p&gt;实现的思想是保存链表头部指针&lt;/p&gt;&lt;ul&gt;&lt;li&gt;访问头部时直接返回该指针指向的节点中保存的状态&lt;/li&gt;&lt;li&gt;添加新状态时检查头部指针节点的后继节点, 若为空则从内存池分配新节点, 并将头部指针指向该节点.&lt;/li&gt;&lt;li&gt;释放状态时将头部指针移动至其指向节点的前趋节点, 而不是回收该节点的内存.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;内存池的实现策略可以是一个单链表, 每个节点内包含一大块内存, 每次申请从中取出一个地址, 用尽后分配新的节点, 在完成匹配后由内存池统一回收内存. 在内存布局上新的状态储存结构更接近块状链表.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Branch stack&lt;/h2&gt;&lt;p&gt;在正则表达式循环 &lt;equation&gt;\texttt{+, *, ?}&lt;/equation&gt; 中若是出现空匹配将会造成死循环, 避免该情况的方案是在每个状态内设置一个独立的栈(使用栈是为了应对嵌套的循环, 同时这个栈是相当有用的结构, 后续将继续沿用其以支持环视与递归匹配)记录在循环开始时的匹配位置, 在匹配结束时检查是否有变化, 如果没有变换则退出该循环避免死循环.&lt;/p&gt;&lt;p&gt;每个状态的结构如下:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;struct state
+{
+	size_t IP;
+	size_t index;
+	state_stack stack;
+};&lt;/code&gt;&lt;p&gt;并添加两个新指令 &lt;equation&gt;\texttt{push, repeat}&lt;/equation&gt; 用于循环, 此时正则表达式&lt;equation&gt;\texttt{(a|b)+}&lt;/equation&gt; 将编译成:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 push index}\\ &amp;amp;\texttt{1 split 2, 4}\\ &amp;amp;\texttt{2 match a}\\ &amp;amp;\texttt{3 jmp 5}\\ &amp;amp;\texttt{4 match b}\\ &amp;amp;\texttt{5 repeat 1}\\ &amp;amp;\texttt{6 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;新增加的指令对应的虚拟机代码如下:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;case BYTE_CODE::PUSH_INDEX:
+	state.stack.push(index);
+	goto next_loop;
+case BYTE_CODE::REPEAT:
+	if(state.stack.back() != index)
+	{
+		state_stack.push_back({ static_cast&amp;lt;size_t&amp;gt;(IP + 2]), index, state.stack });
+		IP += byte_code[IP + 1];
+		goto next_loop;
+	}
+	else	//exit loop
+	{
+		IP += 2;
+		goto next_loop;
+	}&lt;/code&gt;&lt;p&gt;这个时候内存效率问题出现了, 如果我们使用数组或 &lt;equation&gt;\texttt{vector}&lt;/equation&gt; 来实现 &lt;equation&gt;\texttt{state_stack}&lt;/equation&gt; 的话在每次执行 &lt;equation&gt;\texttt{split} &lt;/equation&gt; 时需要将整个栈复制一整遍, 这是不忍直视的效率. 这个时候我们使用惰性求值的策略:&lt;/p&gt;&lt;p&gt;将栈实现为数形结构Branch stack, 即拥有多条分支的栈结构, 将树中.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在每次复制状态时仅仅增加栈顶元素的引用计数. &lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{push}&lt;/equation&gt; 时增长节点.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{pop}&lt;/equation&gt; 时检查该节点的引用计数, 若为1则回收节点, 若大于1则减小引用计数, 增加后继节点的引用计数并且栈顶指针向后移动.&lt;/li&gt;&lt;li&gt;修改节点数据时检查引用计数, 若为1则直接在原地修改, 否则分叉该节点, 之后在分叉后的节点上修改数据.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这里的分支栈结构比较接近functional programming的immutable data structures的实现.&lt;/p&gt;&lt;p&gt;在拥有栈以后可以用于计数循环的实现, 比如 &lt;equation&gt;\texttt{(a|b){3}}&lt;/equation&gt; 可以在栈上面记录当前的循环次数.&lt;/p&gt;&lt;p&gt;注: 关于避免空循环还有另外一种做法不需要栈(在NFA生成阶段处理掉了), 如果有兴趣的小伙伴请告诉我, 我下次写写.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Loop instruction&lt;/h2&gt;&lt;p&gt;在正则表达式中会经常出现单个字符的循环, 比如 &lt;equation&gt;\texttt{\d}*&lt;/equation&gt; , 对于单个字符, 每一次循环都需要执行一次 &lt;equation&gt;\texttt{match}&lt;/equation&gt; 和一次 &lt;equation&gt;\texttt{repeat}&lt;/equation&gt; , 在匹配失败后还需要Backtracking, 将造成极大的性能损失, 这个时候可以引入一个新的指令 &lt;equation&gt;\texttt{loop}&lt;/equation&gt; 用于执行单个字符的循环. &lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{loop}&lt;/equation&gt; 的实现非常简单, 只需要在 &lt;equation&gt;\texttt{match}&lt;/equation&gt; 上套上一层 &lt;equation&gt;\texttt{while}&lt;/equation&gt; 循环即可. 虽然实现简单但是带来的提升却是巨大的.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Memorization&lt;/h2&gt;&lt;p&gt;&lt;equation&gt;\texttt{loop}&lt;/equation&gt; 指令的引入还可以非常容易地实现记忆化, 由于 &lt;equation&gt;\texttt{loop}&lt;/equation&gt; 指令是单个字符的循环, 因此在进行状态记忆化时不需要记录下每一次进行匹配的位置, 只需要记录开始循环和结束循环的位置即可. &lt;/p&gt;&lt;p&gt;记忆化在考虑了memory footprint的平衡后, 我个人的建议是仅仅对 &lt;equation&gt;\texttt{loop}&lt;/equation&gt; 指令进行单次的记忆化(其余指令的记忆化往往需要记录大量的已匹配位置信息, 重入时亦需要大量的检查, 往往得不偿失).&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{loop}&lt;/equation&gt; 指令的记忆化能有效地优化诸如 &lt;equation&gt;\texttt{a*a*a*b}&lt;/equation&gt; 这样的正则表达式. &lt;/p&gt;&lt;p&gt;另外在递归匹配中也可以使用记忆化来优化同一位置的重入.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;One character Lookahead&lt;/h2&gt;&lt;p&gt;对于循环来说, 每一次循环都需要进行一次状态的保存, 在进行了以上的内存优化后仍然是一个不可忽视的开销, 在循环中可以使用单个字符的向前看来减少这种额外的开销.&lt;/p&gt;&lt;p&gt;举例如下:&lt;/p&gt;&lt;p&gt;对于正则表达式 &lt;equation&gt;\texttt{\d*0\d*}&lt;/equation&gt;匹配中间存在一个字符0的字符串, 在匹配字符串1230321时, 第一个循环 &lt;equation&gt;\texttt{\d*}&lt;/equation&gt; 将在每一个字符串位置进行一次状态保存, 实际上只有在匹配到123这个位置的时候才需要真正的进行状态保存, 其余位置均不需要, 因为仅有123的后继字符0能匹配.&lt;/p&gt;&lt;p&gt;对于循环, 我们可以通过静态分析收集循环之后的可能匹配的字符, 并在每一次循环结束时进行一次预匹配, 若是失败则不保存该状态直接进行下一轮循环.&lt;/p&gt;&lt;p&gt;另外我们可以通过更为精细的静态分析配合 &lt;equation&gt;\texttt{loop}&lt;/equation&gt; 指令实现更高的效率, 例如匹配一个合法的Gmail邮箱的正则表达式 &lt;equation&gt;\texttt{[\w.]+@gmail.com}&lt;/equation&gt; 对于循环&lt;equation&gt;\texttt{[\w.]+}&lt;/equation&gt;我们使用 &lt;equation&gt;\texttt{loop}&lt;/equation&gt; 的同时可以发现该处的 &lt;equation&gt;\texttt{loop}&lt;/equation&gt; 其实不需要进行预查, 因为&lt;equation&gt;\texttt{[\w.]}&lt;/equation&gt;与 &lt;equation&gt;\texttt{@}&lt;/equation&gt; 并不相交, 也就是说 &lt;equation&gt;\texttt{[\w.]}&lt;/equation&gt; 匹配成功则 &lt;equation&gt;\texttt{@}&lt;/equation&gt; 匹配必然不成功, 那么只需要进行简单的 &lt;equation&gt;\texttt{while}&lt;/equation&gt; 循环即可, 直到匹配失败后退出循环进行后续状态的匹配. &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Repetition classification&lt;/h2&gt;&lt;p&gt;对于一般的循环, 我们可以按照其属性分类&lt;/p&gt;&lt;ul&gt;&lt;li&gt;计数循环与非计数循环.&lt;/li&gt;&lt;li&gt;空循环与非空循环.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;其中注意到非计数循环与非空循环并不需要在状态的栈上保留信息(非空循环不会陷入死循环), 因此也不需要在循环前执行 &lt;equation&gt;\texttt{push}&lt;/equation&gt; 指令.&lt;/p&gt;&lt;p&gt;计数循环与非计数循环可以在语法分析阶段加以区分, 而空循环与非空循环稍微复杂一点, 需要对正则表达式做静态分析, 在中间阶段生成NFA后从循环的节点开始进行深度优先搜索(DFS)若存在一条路径不匹配任何字符则该循环为空循环, 若不存在这样的路径则意味着该循环内部至少需要匹配一个字符, 即非空循环.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Loop unrolling&lt;/h2&gt;&lt;p&gt;对于循环展开相信大家都不会陌生, 对于计数循环我们可以对其做循环展开, 例如 &lt;equation&gt;\texttt{a{4}}&lt;/equation&gt; 可展开为 &lt;equation&gt;\texttt{aaaa}&lt;/equation&gt; , 展开后不需要循环指令和压栈一个计数.&lt;/p&gt;&lt;p&gt;更进一步地, 循环展开可以配合静态分析进行更多的优化.&lt;/p&gt;&lt;p&gt;其一是可以做字符合并, 为了效率我们可以引入一个新的指令 &lt;equation&gt;\texttt{match stirng}&lt;/equation&gt; , 将 &lt;equation&gt;\texttt{match}&lt;/equation&gt; 拓展为对字符串的匹配, 编译器可以对字符串的比较做更多的优化, 更加地, 例如 &lt;equation&gt;\texttt{aab{4}}&lt;/equation&gt; 可展开为 &lt;equation&gt;\texttt{aabbbb}&lt;/equation&gt; 在有字符串匹配指令下用一条指令 &lt;equation&gt;\texttt{match aabbbb}&lt;/equation&gt; 即可完成匹配.&lt;/p&gt;&lt;p&gt;其二是可以优化掉循环中的捕获组, 这里的优化同样需要进行一些静态分析, 在循环体中有引用的捕获组不可以被删除. 例如 &lt;equation&gt;\texttt{((\d)\2){3}}&lt;/equation&gt; 可展开为 &lt;equation&gt;\texttt{(\d)\2(\d)\2((\d)\2)}&lt;/equation&gt; 注意捕获组1在前两个循环中被删除掉了, 因为该捕获组会被最后一个循环体内的内容覆盖, 因此没必要保存下来.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Merge branches&lt;/h2&gt;&lt;p&gt;对于分支 &lt;equation&gt;\texttt{|}&lt;/equation&gt; 来说, 在遇到单个字符求或的情况下是可以进行合并的, 例如 &lt;equation&gt;\texttt{1|2|3|4|5|6|7|8|9|0}&lt;/equation&gt; 将可以合并成 &lt;equation&gt;\texttt{\d}&lt;/equation&gt; . &lt;/p&gt;&lt;p&gt;该优化的实现并不复杂, 只需要检查每一条分支是否为单字符即可, 若是单字符则进行合并.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Extract the common factor&lt;/h2&gt;&lt;p&gt;另外一类的关于分支的优化是提取公因式, 例如对于匹配数字0-255正则表达式&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2}}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;其中分支 &lt;equation&gt;\texttt{25[0-5]|2[0-4][0-9]}&lt;/equation&gt; 将可以进行公因式提取变成 &lt;equation&gt;\texttt{2(?:5[0-5]|[0-4][0-9])}&lt;/equation&gt; 注意提取了公因式 &lt;equation&gt;\texttt{2}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;提取公因式的优化原理是推迟分支, 减少重复匹配, 若是匹配失败能更早的Backtracking.&lt;/p&gt;&lt;p&gt;该优化的实现亦并不复杂, 只需要检查每一条分支的前缀即可, 若是相同则进行合并.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Capture group classification&lt;/h2&gt;&lt;p&gt;对于捕获组来说, 可以依据是否在分支内分成两类, 对于不在分支上的捕获组, 我们可以直接使用一个全局数组来保存其捕获结果, 因为其与路径的选取无关, 因此无需保存在状态内. 对于在分支上的捕获组则需要在状态内保存捕获数据. 其中对数组的访问的内存效率是要高于访问状态的, 因此这类优化可以提高内存效率.&lt;/p&gt;&lt;p&gt;该优化的实现并不复杂, 只需要生成NFA后检查捕获组是否在分支内即可. 另外若支持递归匹配还需要考虑该捕获组是否在某个递归模式内, 因为递归模式的分支是隐含在状态内的栈上的.&lt;/p&gt;&lt;p&gt;另外对于在递归模式内的捕获组需要做额外的分析, 例如 &lt;equation&gt;\texttt{^((.)((?1)|)\2)\$}&lt;/equation&gt; , 其中在递归中捕获组3不需要记录, 因为其在递归中没有被引用, 在递归结束后递归体内的所有捕获组将会被清空.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Capture group analysis&lt;/h2&gt;&lt;p&gt;正则表达式里的路径分析的作用类似于常量折叠, 作用与条件表达式上, 对于向后引用也有作用. 原理是检查当前路径下所有必定捕获的捕获组用以确定条件.&lt;/p&gt;&lt;p&gt;举例来说表达式 &lt;equation&gt;\texttt{\1(.)}&lt;/equation&gt; 必定失败, 因为捕获组1在向后引用时未被捕获, 对于这种情况可在路径的字节码最后添加上一个 &lt;equation&gt;\texttt{halt}&lt;/equation&gt; 指令配合下面的Halt path elimination优化使用. &lt;/p&gt;&lt;p&gt;使用全局数组保存捕获结果依赖于此优化, 否则在Backtracking后数组中会留下前一状态的捕获结果, 若正好当前状态在完成捕获前引用了该捕获将会导致意料之外的结果.&lt;/p&gt;&lt;p&gt;另外的一个例子是 &lt;equation&gt;\texttt{(.)(?(1)a|b)}&lt;/equation&gt; 将会被优化成 &lt;equation&gt;\texttt{(.)a}&lt;/equation&gt; 因为在进行条件判断时捕获组1已经完成匹配了, 因此该条件表达式恒真.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Subroutine inline&lt;/h2&gt;&lt;p&gt;在正则表达式中, 对于调用Subroutine可以使用类似于C语言中的inline优化方法把被调用的模式inline到调用处, 优点是消除了一次 &lt;equation&gt;\texttt{call}&lt;/equation&gt; 与 &lt;equation&gt;\texttt{return}&lt;/equation&gt; 同时可以结合上下文环境做例如lookahead分析, Capture group analysis等的优化, 同时也利于Memorization. &lt;/p&gt;&lt;p&gt;举例如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{(a+).(?1)}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;其中 &lt;equation&gt;\texttt{(?1)}&lt;/equation&gt; 调用了模式 &lt;equation&gt;\texttt{a+}&lt;/equation&gt; , 在inline后表达式为 &lt;equation&gt;\texttt{(a+).a+}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;inline是相当常见的优化技术了, 这里不做赘述.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Recursive unfold&lt;/h2&gt;&lt;p&gt;对递归函数就行展开类似于Subroutine inline, 将最底层的递归调用展开, 好处也是于inline类似的. 值得注意的是递归的展开条件更严格, 调用递归模式在自身内只出现一次时进行展开, 否则展开的字节码将呈指数级暴涨.&lt;/p&gt;&lt;p&gt;举例如下, 匹配闭合的大括号:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{\{((?R)|)\}}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;其中 &lt;equation&gt;\texttt{(?R)}&lt;/equation&gt; 调用了整个模式自身, 在展开一次后表达式为 &lt;equation&gt;\texttt{\{(\{(?:(?R)|)\}|)\}}&lt;/equation&gt;.&lt;/p&gt;&lt;p&gt;注意此处展开的捕获组将会被消去(由于其在递归模式中).&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Halt path elimination&lt;/h2&gt;&lt;p&gt;字节码中有一种路径是永远不会成功匹配的, 这个时候可以将其分支削去, 举例来说:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 1, 3}\\ &amp;amp;\texttt{1 halt}\\ &amp;amp;\texttt{2 match a}\\ &amp;amp;\texttt{3 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;其中 &lt;equation&gt;\texttt{halt}&lt;/equation&gt; 表示无条件匹配失败, 这时候 &lt;equation&gt;\texttt{split 1, 3}&lt;/equation&gt; 可以削去, 优化后的字节码如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 match a}\\ &amp;amp;\texttt{1 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Fold control flow&lt;/h2&gt;&lt;p&gt;这个是非常常见的指令层级的优化了, 举例来说对于表达式 &lt;equation&gt;\texttt{a|b|c}&lt;/equation&gt; , 若不进行分支合并生成的字节码如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 1, 6}\\ &amp;amp;\texttt{1 split 2, 4}\\ &amp;amp;\texttt{2 match a}\\ &amp;amp;\texttt{3 jmp 5}\\ &amp;amp;\texttt{4 match b}\\ &amp;amp;\texttt{5 jmp 7}\\ &amp;amp;\texttt{6 match c}\\ &amp;amp;\texttt{7 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;第三行的 &lt;equation&gt;\texttt{jmp 5}&lt;/equation&gt; 可以优化为 &lt;equation&gt;\texttt{jmp 7}&lt;/equation&gt; . 连续跳转可以合并为单个跳转. 同样地 &lt;equation&gt;\texttt{split}&lt;/equation&gt; 也可以做这样的优化, 例如 &lt;equation&gt;\texttt{a||c}&lt;/equation&gt; 中的&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 1, 6}\\ &amp;amp;\texttt{1 split 2, 4}\\ &amp;amp;\texttt{2 match a}\\ &amp;amp;\texttt{3 jmp 6}\\ &amp;amp;\texttt{4 jmp 6}\\ &amp;amp;\texttt{5 match c}\\ &amp;amp;\texttt{6 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;其中第二行 &lt;equation&gt;\texttt{split 2, 4}&lt;/equation&gt; 可以优化为 &lt;equation&gt;\texttt{split 2, 6}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Dead code elimination&lt;/h2&gt;&lt;p&gt;这个也是非常常见的指令层级的优化了, 继续沿用上面的例子&lt;equation&gt;\texttt{a||c}&lt;/equation&gt; , 进一步执行死代码消除后便是:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 1, 2}\\ &amp;amp;\texttt{1 match a}\\ &amp;amp;\texttt{2 accept} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个优化实现也很简单, 这里不做赘述.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;JIT/AOT&lt;/h2&gt;&lt;p&gt;请参阅: &lt;a href=&quot;https://zhuanlan.zhihu.com/p/24458116&quot;&gt;正则表达式与AOT编译&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外还有一些优化技术比如条件分支, 分支重排, 以及更细致的分支合并与跳转我还没来得及实现与试验, 等以后有机会再向大家做更多的介绍, 另外JIT/AOT还没有真正实现好.&lt;/p&gt;&lt;p&gt;这篇文章主要关注的优化技术, 具体的特性实现没怎么讲, 要是大家有兴趣我再写篇文章慢慢讲, 特别是一下丧心病狂的特性应该怎么做.&lt;/p&gt;&lt;p&gt;以上的所有优化技术均在我的千雪(ちゆき, Chiyuki)正则表达式引擎里实现了, 感兴趣的小伙伴欢迎来看看呀(源码一共有13000多行, 用C++17写哒, 如果需要测试代码或显示字节码的代码请告诉我):&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://hcc.trilines.net/regex/&quot;&gt;Chiyuki Regex&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;千雪支持的特性可以去&lt;a href=&quot;http://hcc.trilines.net/regex/syntax.html&quot;&gt;syntax reference&lt;/a&gt;里看看喔(基本上环视, 捕获/引用, 命名捕获, 条件匹配, 原子组, 递归匹配都支持), 我是将她作为通用引擎设计的, 尽可能多支持一些拓展. 其中由于引擎的设计支持一些非常丧心病狂的特性, 比如无限制的环视, 你甚至可以在环视内部使用嵌套循环与递归. 而且递归也不像PCRE那样是原子性的, 这意味着你可以跨递归层进行匹配. 由于我比较笨, 在这种尤其丧心病狂的特性下想不出什么很好的test case, 又没有别的引擎来做对照, 所以不知道对不对, 有没有bug.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;说了那么多优化, 我想小伙伴们肯定会好奇她的性能怎么样, 网页上的benchmark是很久以前的版本啦, 新的跑得更快一些. 现在的千雪大概跑得比非JIT的PCRE快一点(等我把JIT/AOT做出来再和你比JIT), 比Boost快两点, 将来还会更快哒. 当然啦这只是match的性能. 我没有针对search做特别的优化, 所以search在一些情况下被PCRE吊打了呀哈哈. 等我有空给大家补上新的测试数据(评论区里有3个简单的test cases对比).&lt;/p&gt;&lt;p&gt;她的缺点非常明显, 就是编译性能非常糟糕, 我想大家应该都能想到, 毕竟要跑那么多躺分析, 不过带来的好处也是有哒, 那就是很容易做进一步的去抽象生成native code, 也就是AOT编译啦.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得她还是蛮快的, 当然只是在我的机子上, 所以不知道是不是真的呢?&lt;/p&gt;&lt;p&gt;最后谢谢大家观看喵~&lt;/p&gt;</description>
+<author>梨梨喵</author>
+<guid isPermaLink="false">2018-01-13-32896848</guid>
+<pubDate>Sat, 13 Jan 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>一招鲜，吃遍天</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-01-06-32677377.htm</link>
@@ -737,64 +860,6 @@ my-or-1: bad syntax in: (my-or-1)&lt;/code&gt;&lt;p&gt;发生了什么？这个�
 <author>MrMathematica</author>
 <guid isPermaLink="false">2017-12-08-31817926</guid>
 <pubDate>Fri, 08 Dec 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>在Haskell中模拟dependent type</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-04-31690842.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;在Haskell中模拟dependent type&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31690842&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-49d3d08432de8f11409880942f0bf9a5_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;题图的PixivID为：&lt;i&gt;pixiv-ID:&lt;/i&gt; &lt;i&gt;&lt;a href=&quot;https://www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=61127101&quot;&gt;61127101&lt;/a&gt;，画师为&lt;/i&gt;&lt;a href=&quot;https://www.pixiv.net/member.php?id=10710834&quot;&gt;Novelance&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;本文始发于&lt;a href=&quot;https://saul-mirone.github.io/2017/12/04/dependent-type-in-haskll/&quot;&gt;我的博客&lt;/a&gt;，转载请注明作者。&lt;/p&gt;&lt;p&gt;Dependent type是一种依赖于值的类型，它增强了类型表达能力，让我们可以构造更强大的类型定义，无论用在定理证明还是用在减少程序出错的可能都是极好的。&lt;/p&gt;&lt;p&gt;本文我们讨论在Haskell中如何合理使用扩展模拟Dependent type。&lt;/p&gt;&lt;h2&gt;入门级LIST&lt;/h2&gt;&lt;p&gt;让我们先从一个简单的List开始，看看没有dependent type的时候，会发生什么。&lt;/p&gt;&lt;p&gt;先定义自然数和一个List结构：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Nat = Zero | Succ Nat
- data List a = Nil | Cons a (List a)
- -- example
- one = Succ Zero -- 1
- two = Succ $ Succ Zero -- 2
- listOne :: List Nat
- listOne = Cons Zero $ Nil -- [0]
- listOne :: List Nat
- listTwo = Cons (Succ Zero) $ Cons Zero Nil -- [1, 0]&lt;/code&gt;&lt;p&gt;此时让我们定义一个&lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt;函数，根据下标返回List中的元素：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; listIndex :: Nat -&amp;gt; List a -&amp;gt; a
- listIndex Zero (Cons x _) = x
- listIndex (Succ n) (Cons _ xs) = listIndex n xs
- -- example
- listIndex Zero listTwo =&amp;gt; Succ Zero
- listIndex one listTwo =&amp;gt; Zero&lt;/code&gt;&lt;p&gt;此时会产生一个问题：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; listIndex Zero Nil -- 编译通过
- listIndex two listOne -- 编译通过&lt;/code&gt;&lt;p&gt;可以看到，无论是去空数组中取值，还是下标超过了List的总长度这种明显是错误的代码，依然被编译了，一直到运行期才会产生异常。&lt;/p&gt;&lt;h2&gt;升级版LIST—GADT&lt;/h2&gt;&lt;p&gt;现在让我们在类型层面上解决这个问题。我们定先义一个新的List，让它有记录List长度的功能。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Vec a n = VNil a n | VCons a n&lt;/code&gt;&lt;p&gt;但是这个太弱了，几乎是换汤不换药：a和n都是可以由手动控制的，万一制造出了&lt;code class=&quot;inline&quot;&gt;VNil a (Succ Zero)&lt;/code&gt;的类型，编译器只能默默接受。仔细观察，&lt;code class=&quot;inline&quot;&gt;VNil&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;VCons&lt;/code&gt;都是函数，那么它们的类型其实可以写出：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; VNil :: Vec a Zero
- VCons :: a -&amp;gt; Vec a n -&amp;gt; Vec a (Succ n)&lt;/code&gt;&lt;p&gt;所以我们需要一个叫&lt;a href=&quot;https://en.wikibooks.org/wiki/Haskell/GADT&quot;&gt;GADT&lt;/a&gt;的扩展来添加第一层限制，它可以让我们在类型定义中约束返回的类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; {-# LANGUAGE GADTs #-}
- data Zero
- data Succ n
- data Nat = Zero | Succ Nat
- data Vec a n where
-   Nil  :: Vec a Zero
-   Cons :: a -&amp;gt; Vec a n -&amp;gt; Vec a (Succ n)
- -- example
- vecOne :: Vec Nat (Succ Zero)
- vecOne = VCons Zero VNil -- [0]
- vecTwo :: Vec Nat (Succ (Succ Zero))
- vecTwo = VCons Zero $ VCons (Succ Zero) VNil -- [1, 0]&lt;/code&gt;&lt;p&gt;这样一来，我们可以通过类型直接约束List的长度了。你也许注意到了，我们为了在类型定义中添加约束而将&lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt;类型拆分了，这样看上去很蠢，其实我们可以借助一个叫做&lt;a href=&quot;https://downloads.haskell.org/~ghc/7.8.4/docs/html/users_guide/promotion.html&quot;&gt;DataKinds&lt;/a&gt;的扩展来让编译器自动帮我们做这件事：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; {-# LANGUAGE DataKinds #-}
- data Nat = Zero | Succ Nat
- -- 可以代替
- data Zero
- data Succ n
- data Nat = Zero | Succ n&lt;/code&gt;&lt;p&gt;当然，此时编译器会提醒你在接下来的类型中使用&lt;code class=&quot;inline&quot;&gt;&#39;Zero&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&#39;Succ&lt;/code&gt;来指向那个type constructor来避免歧义：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Vec a n where
-    VNil  :: Vec a &#39;Zero
-    VCons :: a -&amp;gt; Vec a n -&amp;gt; Vec a (&#39;Succ n)&lt;/code&gt;&lt;p&gt;我们还有最后一个不顺眼的地方：那就是&lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt;构造器的第二个参数&lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt;其实应该是&lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt;类型的，不可能是其它类型，所以我们希望也给它指定好类型，这时候我们就需要&lt;a href=&quot;https://downloads.haskell.org/~ghc/7.8.1-rc1/docs/html/users_guide/kind-polymorphism.html&quot;&gt;KindSignatures&lt;/a&gt;扩展了。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data Vec :: * -&amp;gt; Nat -&amp;gt; * where
-    VNil  :: Vec a &#39;Zero
-    VCons :: a -&amp;gt; Vec a n -&amp;gt; Vec a (&#39;Succ n)&lt;/code&gt;&lt;p&gt;OK，这样就得到了我们的升级版List，它能够通过类型直观的表现出它的长度。但是它还没有解决我们上一节的问题，那就是如何用类型约束index函数的参数：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; vecIndex :: Nat -&amp;gt; Vec x b -&amp;gt; x
- vecIndex Zero (VCons x _) = x
- vecIndex (Succ n) (VCons _ xs) = vecIndex n xs&lt;/code&gt;&lt;p&gt;问题依然存在着。&lt;/p&gt;&lt;h2&gt;终极版LIST—TYPE FAMILIES&lt;/h2&gt;&lt;p&gt;现在让我们把注意力集中到&lt;code class=&quot;inline&quot;&gt;vecIndex :: Nat -&amp;gt; Vec x b -&amp;gt; x&lt;/code&gt;这里，既然我们已经用函数来表示出了类型，那么其实只要约束&lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt;小于 &lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;就好了，这时我们需要&lt;a href=&quot;https://wiki.haskell.org/GHC/Type_families&quot;&gt;TypeFamilies&lt;/a&gt;扩展来让类型可以重载，这样我们就可以为类型定义一些二元运算了（要支持运算符的话还要添加一个&lt;a href=&quot;https://downloads.haskell.org/~ghc/7.8.3/docs/html/users_guide/data-type-extensions.html&quot;&gt;TypeOperators&lt;/a&gt;扩展）：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type family (a :: Nat) :&amp;lt; (b :: Nat) where
-  m         :&amp;lt; &#39;Zero     = &#39;False
-  &#39;Zero     :&amp;lt; &#39;Succ n   = &#39;True
-  (&#39;Succ m) :&amp;lt; (&#39;Succ n) = m :&amp;lt; n&lt;/code&gt;&lt;p&gt;现在还有一个问题，&lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt;是不能够比较的，因此我们需要创造一个能够比较的版本：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; data SNat a where
-    SZero :: SNat &#39;Zero
-    SSucc :: SNat a -&amp;gt; SNat (&#39;Succ a)&lt;/code&gt;&lt;p&gt;现在我们可以重写我们的&lt;code class=&quot;inline&quot;&gt;vecIndex&lt;/code&gt;了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt; vecIndex :: ((a :&amp;lt; b) ~ &#39;True) =&amp;gt; SNat a -&amp;gt; Vec x b -&amp;gt; x
- vecIndex SZero (VCons x _) = x
- vecIndex (SSucc n) (VCons _ xs) = vecIndex n xs
- -- example
- vecIndex (SSucc SZero) vecTwo --成功
- vecIndex (SSucc $ SSucc SZero) vecTwo --报错&lt;/code&gt;&lt;p&gt;非常安全。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;现在你可以试试这道题目来自己体会一下了：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.codewars.com/kata/54750ed320c64c64e20002e2&quot;&gt;codewars-Singletons&lt;/a&gt;&lt;/p&gt;</description>
-<author>mirone</author>
-<guid isPermaLink="false">2017-12-04-31690842</guid>
-<pubDate>Mon, 04 Dec 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
