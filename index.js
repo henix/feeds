@@ -32,6 +32,9 @@ const feeds = [
 		"yangbo",
 		"rust-lang",
 	]],
+	["后端", [
+		"prattle",
+	]],
 	["政治 / 人文", [
 		"knowledgewealth",
 		"mzmojo",
