@@ -68,6 +68,9 @@ const feeds = [
 		"drops",
 		"c_123166696",
 	]],
+	["文艺", [
+		"c_40866915",
+	]],
 	["科学", [
 		"liweitan2014",
 		"zhishexueshuquan",
