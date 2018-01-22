@@ -8,6 +8,7 @@ const feeds = [
 		"ForrestM",
 		"yuefenginvest",
 		"sanleima",
+		"Lhtz-Jqxx",
 		"touyanbang88",
 		"Chouma2016",
 		"sishimiao",
@@ -56,6 +57,7 @@ const feeds = [
 	["ACG", [
 		"yumenaka",
 		"c_126395105",
+		"acgpiping",
 		"mowanglingyu",
 	]],
 	["Security", [
