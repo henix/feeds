@@ -5,7 +5,67 @@
 <link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/</link>
 <description>公众号主要介绍关于量化投资和机器学习的知识和应用。通过研报，论坛，博客，程序等途径全面的为大家带来知识食粮。版块语言分为：Python、Matlab、R，涉及领域有：量化投资、机器学习、深度学习、综合应用、干货分享等。</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 22 Jan 2018 13:47:19 +0800</lastBuildDate>
+<lastBuildDate>Tue, 23 Jan 2018 00:53:12 +0800</lastBuildDate>
+<item>
+<title>还是不靠谱！多维LSTM网络预测比特币价格【机器学习应用区块链系列二】</title>
+<link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/2018-01-22-33192877.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;还是不靠谱！多维LSTM网络预测比特币价格【机器学习应用区块链系列二】&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33192877&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-ef12834aa1b065c4cd9f9cd305044a1d_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;公众号今天为大家带来机器学习应用区块链系列的第二篇文章。 &lt;/p&gt;&lt;p&gt;&lt;b&gt;来源：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287287&amp;amp;idx=1&amp;amp;sn=a4efd248d74afa7360f2e32751066b5d&amp;amp;chksm=802e3162b759b8748907f4d889d648d89acd54837041a8f94cde00740b5a867012ae48fa1f5d#rd&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-7f8c6ac23492b4d33c149764579319ed&quot; data-image-width=&quot;475&quot; data-image-height=&quot;475&quot; data-image-size=&quot;ipico&quot;&gt;还是不靠谱！多维LSTM网络预测比特币价格【机器学习应用区块链系列二】&lt;/a&gt;&lt;p&gt;这篇文章的作者是公众号之前推过一位原作者，具体文章&lt;/p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653284793&amp;amp;idx=1&amp;amp;sn=76c954a5a8006c815565d8669411f983&amp;amp;chksm=802e2bacb759a2ba4dd2ad122fe7cd99ab85ed29900b212189ab0af36749123c9e39b422363b&amp;amp;scene=21#wechat_redirect&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-7f8c6ac23492b4d33c149764579319ed&quot; data-image-width=&quot;475&quot; data-image-height=&quot;475&quot; data-image-size=&quot;ipico&quot;&gt;【量化精品】通过LSTM神经网络进行时序预测针对股票市场（附Python源码）&lt;/a&gt;&lt;p&gt;虽然有一段时了，但是，我们觉得这篇文章的结论很有用，希望大家可以认真阅读。&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论很精彩，见文末。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;也侧面告诉我们使用一些机器学习算法做股价预测，效果并没有那么好！大家不要觉得什么高大上就一定好，有时候真实的交易其实并没有那么复杂！&lt;/p&gt;&lt;p&gt;至于怎么预测的过程大家可以下载代码自行去研究。&lt;/p&gt;&lt;p&gt;写这篇文章，主要是为了预测比特币的价格和张量，使用一个不只是看价格而且还看BTC交易量和货币（在这种情况下为美元）的多维LSTM神经网络，并创建一个多变量序列机器学习模型。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;时间数据集&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Kaggle上有一个数据集，包含了7种要素的比特币历史数据。&lt;/p&gt;&lt;p&gt;链接：&lt;b&gt;https://www.kaggle.com/mczielinski/bitcoin-historical-data&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-88501ee596eab8df850b510c9e8fa1cb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;971&quot; data-rawheight=&quot;692&quot;&gt;&lt;p&gt;具体处理的过程大家自行查看内容，只把clean_data（）函数的核心代码贴出来： &lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;num_rows = len(data)
+x_data = []
+y_data = []
+i = 0
+while((i+x_window_size+y_window_size) &amp;lt;= num_rows):
+ x_window_data = data[i:(i+x_window_size)]
+ y_window_data = data[(i+x_window_size):(i+x_window_size+y_window_size)]
+
+ #Remove any windows that contain NaN
+ if(x_window_data.isnull().values.any() or y_window_data.isnull().values.any()):
+   i += 1
+   continue
+ 
+ if(normalise):
+   abs_base, x_window_data = self.zero_base_standardise(x_window_data)
+   _, y_window_data = self.zero_base_standardise(y_window_data, abs_base=abs_base)
+
+ #Average of the desired predicter y column
+ y_average = np.average(y_window_data.values[:, y_col])
+ x_data.append(x_window_data.values)
+ y_data.append(y_average)
+ i += 1&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;预测结果&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们将尝试做两种类型的预测：&lt;/p&gt;&lt;p&gt;第一种：逐点预测，即预测t+1点，然后移动真实数据的窗口并继续预测下一个点。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;model = lstm.load_network(&#39;data/model_saved.h5&#39;)
+predictions = model.predict_generator(
+   generator_strip_xy(data_gen_test, true_values),
+   steps=steps_test
+)
+
+#Save our predictions
+with h5py.File(configs[&#39;model&#39;][&#39;filename_predictions&#39;], &#39;w&#39;) as hf:
+   dset_p = hf.create_dataset(&#39;predictions&#39;, data=predictions)
+   dset_y = hf.create_dataset(&#39;true_values&#39;, data=true_values)
+   
+plot_results(predictions[:800], true_values[:800]) &lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-16e749c9969f4a1c4847a9d2016b1490_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1177&quot; data-rawheight=&quot;762&quot;&gt;&lt;p&gt;第二种：是t+n的多步超前预测，我们在移动窗口填充真实数据窗口预置的预测，并绘制N个步骤。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;#Reload the data-generator
+data_gen_test = dl.generate_clean_data(
+   configs[&#39;data&#39;][&#39;filename_clean&#39;],
+   batch_size=800,
+   start_index=ntrain
+)
+data_x, true_values = next(data_gen_test)
+window_size = 50 #numer of steps to predict into the future
+
+#We are going to cheat a bit here and just take the next 400 steps from the testing generator and predict that data in its whole
+predictions_multiple = predict_sequences_multiple(
+   model,
+   data_x,
+   data_x[0].shape[0],
+   window_size
+)
+
+plot_results_multiple(predictions_multiple, true_values, window_size) &lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c0b7bffff414db7f177baf7ee9a34632_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1177&quot; data-rawheight=&quot;762&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论（我们认为很有用的结论）&lt;/b&gt; &lt;/p&gt;&lt;p&gt;不以人工智能的角度，而是从投资的角度来解释一些事实。&lt;/p&gt;&lt;p&gt;&lt;b&gt;预测回报是一项相当没有意义的行为&lt;/b&gt;。我的意思是说，预测回报是预测的圣杯，而一些顶级对冲基金视图通过在现实中找到新的alpha指标来做到这一点，这是一件非常困难的事情，因为复杂的外部因素会影响到价格的走动。实际上，它可以看作是试图预测随机的下一步。&lt;/p&gt;&lt;p&gt;但是，我们做的也并不是完全没有意义。有限的时间序列数据，即使有多个维度，也很难预测回报，我们可以看到，特别是从第二个图表看到，是有一个预测波动的方法。而不仅仅是波动，而且我们也可以通过扩张它来预测市场环境，使我们能够了解我们目前所在的市场环境。&lt;/p&gt;&lt;p&gt;我们可以看到，通过了解我们当前的市场环境，预测未来的市场环境是在任何时候将正确的策略分配到市场的关键。虽然这更多是传统市场的一般投资方式，但同样适用于比特币市场。 &lt;/p&gt;&lt;p&gt;所以，&lt;b&gt;预测比特币的长期价格目前相当的困难&lt;/b&gt;，没有人可以只是通过时间序列数据技术做到，因为有很多因素加入使价格发生了变动。在这样的数据集上使用LSTM神经网络的另一个问题是我们将整个时间序列数据集作为一个固定的时间序列。&lt;b&gt;也就是说，时间序列的属性在整个时间内都是不变的。然而这不可能，因为影响价格变化的因素也会随时间而变化，所以假设网络发现的属性或模式在现在仍然使用是一种不合理的做法。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当然，可以通过一些方法来克服这个非平稳性问题，&lt;b&gt;目前前沿的研究方向是利用贝叶斯方法和LSTM一起克服时间序列非平稳性的问题。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;代码链接: https://pan.baidu.com/s/1qZJaoxA &lt;/p&gt;&lt;p&gt;密码: kghx&lt;/p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287287&amp;amp;idx=1&amp;amp;sn=a4efd248d74afa7360f2e32751066b5d&amp;amp;chksm=802e3162b759b8748907f4d889d648d89acd54837041a8f94cde00740b5a867012ae48fa1f5d#rd&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-7f8c6ac23492b4d33c149764579319ed&quot; data-image-width=&quot;475&quot; data-image-height=&quot;475&quot; data-image-size=&quot;ipico&quot;&gt;还是不靠谱！多维LSTM网络预测比特币价格【机器学习应用区块链系列二】&lt;/a&gt;&lt;b&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ecd27e25f4fe3285f8f1fe63024bb19b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1096&quot; data-rawheight=&quot;372&quot;&gt;&lt;/b&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>量化投资机器学习</author>
+<guid isPermaLink="false">2018-01-22-33192877</guid>
+<pubDate>Mon, 22 Jan 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>2018年「金融平均脸」出炉，是不是要长这样才能做期货？</title>
 <link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/2018-01-21-33153911.htm</link>
@@ -1097,17 +1157,6 @@ names[:5]
 <author>量化投资机器学习</author>
 <guid isPermaLink="false">2018-01-03-32599773</guid>
 <pubDate>Wed, 03 Jan 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>【精选干货】近期有关机器学习、深度学习、数据科学方面的书籍</title>
-<link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/2017-12-24-32306105.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;【精选干货】近期有关机器学习、深度学习、数据科学方面的书籍&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32306105&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-13eb89f4001816a9c7db7df54d2976a9_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;今天小编为大家带来近期出版的一些关于机器学习、深度学习、数据科学方面的书籍。希望大家有所收获！&lt;/p&gt;&lt;p&gt;我们已经打包好了！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;可在&lt;b&gt;文末下载&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f44ffb19b933f0be15053bccb7458976_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;567&quot; data-rawheight=&quot;818&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-60bb80be9fedcfc86ef5d2f6222988cd_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;574&quot; data-rawheight=&quot;819&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a8cfd6d447875140bb821eb7230700da_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;541&quot; data-rawheight=&quot;819&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-9c7b2029ba7f485aeed8b17c0caf3bb8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;538&quot; data-rawheight=&quot;815&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-88da80e6c2a87193355f1eec6d804251_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;571&quot; data-rawheight=&quot;819&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-4dc57bbcad6130fbaac3f6ce4f4b3dd8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;538&quot; data-rawheight=&quot;817&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8fb013018328a2226fdb6aeb787e9e7e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;539&quot; data-rawheight=&quot;817&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1d4a60ae19ba7dbcf2800b758a97164d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;568&quot; data-rawheight=&quot;817&quot;&gt;&lt;p&gt;链接: https://pan.baidu.com/s/1qYPycGk &lt;/p&gt;&lt;p&gt;密码: hbjn&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;欢迎大家登陆我们的社区在线技术交流网站&lt;/p&gt;&lt;p&gt;https://bbs.mlqi.org&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;谢谢你们对公众号关注和厚爱&lt;/p&gt;</description>
-<author>量化投资机器学习</author>
-<guid isPermaLink="false">2017-12-24-32306105</guid>
-<pubDate>Sun, 24 Dec 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
