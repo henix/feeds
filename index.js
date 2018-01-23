@@ -40,6 +40,7 @@ const feeds = [
 		"knowledgewealth",
 		"mzmojo",
 		"gushibuduo",
+		"dushu_magazine",
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
