@@ -41,6 +41,7 @@ const feeds = [
 		"mzmojo",
 		"gushibuduo",
 		"dushu_magazine",
+		"hulianzatan9",
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
