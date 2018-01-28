@@ -42,6 +42,7 @@ const feeds = [
 		"gushibuduo",
 		"dushu_magazine",
 		"hulianzatan9",
+		"commando",
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
@@ -59,6 +60,7 @@ const feeds = [
 	["ACG", [
 		"yumenaka",
 		"c_126395105",
+		"heibai",
 		"acgpiping",
 		"mowanglingyu",
 	]],
