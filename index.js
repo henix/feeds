@@ -26,12 +26,13 @@ const feeds = [
 	]],
 	["FP", [
 		"yinwang",
+		"yinwang0",
 		"marisa",
 		"hllvm",
 		"zju-lambda",
-		"impress-your-cat",
 		"yangbo",
 		"rust-lang",
+		"impress-your-cat",
 	]],
 	["后端", [
 		"prattle",
