@@ -30,9 +30,9 @@ const feeds = [
 		"marisa",
 		"hllvm",
 		"zju-lambda",
+		"impress-your-cat",
 		"yangbo",
 		"rust-lang",
-		"impress-your-cat",
 	]],
 	["后端", [
 		"prattle",
