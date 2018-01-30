@@ -10,6 +10,7 @@ const feeds = [
 		"sanleima",
 		"Lhtz-Jqxx",
 		"touyanbang88",
+		"ricequant",
 		"Chouma2016",
 		"sishimiao",
 		"DimensionsCapital",
