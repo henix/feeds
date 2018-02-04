@@ -35,8 +35,12 @@ const feeds = [
 		"yangbo",
 		"rust-lang",
 	]],
-	["后端", [
-		"prattle",
+	["心理", [
+		"knowyourself",
+		"pongba_mindhacks",
+		"mindhacks",
+		"PSY_Jile",
+		"bhahhltmusic",
 	]],
 	["政治 / 人文", [
 		"knowledgewealth",
@@ -48,23 +52,19 @@ const feeds = [
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
-	["心理", [
-		"knowyourself",
-		"pongba_mindhacks",
-		"mindhacks",
-		"PSY_Jile",
-		"bhahhltmusic",
-	]],
-	["商业", [
-		"caozsay",
-		"Professor-Li",
-	]],
 	["ACG", [
 		"yumenaka",
 		"c_126395105",
 		"heibai",
 		"acgpiping",
 		"mowanglingyu",
+	]],
+	["后端", [
+		"prattle",
+	]],
+	["商业", [
+		"caozsay",
+		"Professor-Li",
 	]],
 	["Security", [
 		"chaitin-tech",
