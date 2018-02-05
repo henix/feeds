@@ -9,6 +9,7 @@ const feeds = [
 		"yuefenginvest",
 		"sanleima",
 		"Lhtz-Jqxx",
+		"quanttech",
 		"ricequant",
 		"tiangu1",
 		"touyanbang88",
