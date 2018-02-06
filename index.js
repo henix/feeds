@@ -7,6 +7,7 @@ const feeds = [
 		"ForrestM",
 		"forex-analysis",
 		"yuefenginvest",
+		"c_106548378",
 		"sanleima",
 		"Lhtz-Jqxx",
 		"quanttech",
