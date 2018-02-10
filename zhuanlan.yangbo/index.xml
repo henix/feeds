@@ -5,7 +5,22 @@
 <link>https://henix.github.io/feeds/zhuanlan.yangbo/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 30 Jan 2018 23:40:09 +0800</lastBuildDate>
+<lastBuildDate>Sat, 10 Feb 2018 18:30:49 +0800</lastBuildDate>
+<item>
+<title>有人知道Java异常声明的正确用法吗？</title>
+<link>https://henix.github.io/feeds/zhuanlan.yangbo/2018-02-09-33731510.htm</link>
+<description>&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;有人知道Java异常声明的正确用法吗？&lt;/title&gt;
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33731510&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;王垠十分喜欢Java中的异常声明功能。前段时间，他对Kotlin不支持Checked Exception表示十分失望，写了很长的文章来阐述“Checked Exception的重要性”。王垠的心情我可以理解，异常处理确实很重要，但王垠可能犯了“诉诸动机”的谬误。&lt;/p&gt;&lt;p&gt;因为实践中我没有见过任何库符合王垠理想的Checked Exception用法。&lt;/p&gt;&lt;p&gt;&lt;b&gt;破坏向后兼容性&lt;/b&gt;&lt;/p&gt;&lt;p&gt;按王垠的理论，Checked Exception可以在方法签名上标明具体错误原因，但实践中，每次在签名上增加一个新的异常，都会破坏向后兼容性。对于需要复用的框架和库来说，直接就给这个功能判了死刑。&lt;/p&gt;&lt;p&gt;王垠推荐的 FileNotFoundException 这种写法，实践中举步维艰，现在已经越来越罕见了。&lt;/p&gt;&lt;p&gt;比如说你十年前写了个 naive 的 FileOutputStream 构造函数用来打开文件，会抛 FileNotFoundException。现在你发现其实除了 FileNotFoundException 之外，你还需要处理权限不足的问题，但为了保持向后兼容性又不可能在签名中加入权限不足异常。这时 Checked Exception 就十分尴尬了。&lt;/p&gt;&lt;p&gt;这就是为什么现在 Java 7的 Files.newOutputStream 就只标记为 IOException 而不写FileNotFoundException这种具体类型。&lt;/p&gt;&lt;p&gt;类似的异常还有 SQLException 、 ServletException 等，都不写明具体原因了。很多库明明就算抛了异常，还要在异常里面包装一个errorCode，而不用继承的异常，也是这个缘故。&lt;/p&gt;&lt;p&gt;所以王垠在文章中作为反例的“最糟糕的异常处理代码”，即捕获异常的超类而不捕获具体异常，恰好是实践中所有框架，包括 Java 标准库的做法。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Checked Exception和Java标准库自相矛盾&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Checked Exception的本意是类型安全。但是，Java标准库一直以一种不类型安全的方式使用异常,比如我们知道 Java 里有一个 Callable ，长成这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public interface Callable&amp;lt;V&amp;gt; {
+  V call() throws Exception;
+}&lt;/code&gt;&lt;p&gt;你看，这个接口会抛出一切异常，正好就是王垠所说的“最糟糕的异常处理代码”。换句话说，只要你使用Java标准库，Java标准库就会强迫你写出王垠眼中“最糟糕的异常处理代码”。&lt;/p&gt;&lt;p&gt;实际上 Java 语言本身支持泛型异常，比如 Callable 完全可以设计成这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public interface Callable&amp;lt;V, E extends Exception&amp;gt; {
+  V call() throws E;
+}&lt;/code&gt;&lt;p&gt;不幸的是，看起来 Java 标准库并没有用这种更安全的设计。&lt;/p&gt;&lt;p&gt;Oracle 收购 Sun 以后，似乎 Checked Exception 越来越被标准库所摒弃。Java 7的Files API 用的还是基类IOException，Java 8的Function、BiFunction，压根就不支持 Checked Exception。如果你要用 Stream API 的话，必须手动在 UncheckedIOException 和 IOException 之间包来包去。&lt;/p&gt;&lt;p&gt;把异常不分青红皂白包装成 RuntimeException 的“设计模式”，早已是 Java 程序员大家都知道的秘密，但标准库中加入 UncheckedIOException 可能算是第一次官方承认这个秘密吧。&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在几乎所有的 Java 框架和库中，包括 Java 标准库，Checked Exception 都从未以王垠理想的方式使用过。&lt;/p&gt;</description>
+<author>杨博</author>
+<guid isPermaLink="false">2018-02-09-33731510</guid>
+<pubDate>Fri, 09 Feb 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>JVM也是玄学</title>
 <link>https://henix.github.io/feeds/zhuanlan.yangbo/2018-01-30-33445689.htm</link>
@@ -166,17 +181,6 @@ lazy val secret = project settings(publishArtifact := false) configure { secret 
 <author>杨博</author>
 <guid isPermaLink="false">2015-12-22-20436273</guid>
 <pubDate>Tue, 22 Dec 2015 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>不优雅的F#</title>
-<link>https://henix.github.io/feeds/zhuanlan.yangbo/2015-11-15-20342142.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;不优雅的F#&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20342142&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-英文的Elegance通常固定翻译为“优雅”，并不是日常汉语中的优美典雅的意思，而是指内涵丰富而组成元素简单高效。&lt;br&gt;&lt;br&gt;以游戏设计为例：&lt;br&gt;&lt;ul&gt;&lt;li&gt;围棋规则很简单但变化很丰富，所以围棋规则很优雅。（元素简单内涵丰富）&lt;br&gt;&lt;/li&gt;&lt;li&gt;三国杀每一张武将都有截然不同的特殊技能，所以规则多，例外多，然而三国杀武将强弱分明，策略并不复杂，那么三国杀的游戏规则就很不优雅。（元素复杂内涵肤浅）&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;F#是OCaml的方言。我用过OCaml，没有用过F#，但看过F#的文档。&lt;br&gt;&lt;br&gt;F#虽然也算一门现代编程语言，但语言设计远远不如Scala优雅。F#的标准库和.NET标准库互相之间格格不入，F#的基于代数数据类型（ADT）的类型系统也和.net原生的类库风格格格不入。F#生态环境和Scala相比更是弱爆了。在工程实践中，无论面向对象编程还是函数式编程，Scala都有大量的框架和第三方库，更不要说Scala标准库本身就完爆F#标准库。&lt;br&gt;&lt;br&gt;我觉得微软当年在卖碟的鲍尔默领导下，对技术的理解有点走火入魔，设计的API臃肿不堪，死守向后兼容性不放。&lt;br&gt;所以微软设计的语言也是这个尿性，压根没动脑筋思考过怎么把函数式语言融入面向对象中，只是简单兼容OCaml语法，再额外增加一堆不相干的功能。相比之下Martin Odersky做过Pizza、Generic Java，很多年前就已经试过怎么在JVM中实现函数式编程，最终完成的Scala抛弃与Java的源代码兼容性，最终平滑的把函数式编程特性和面向对象融入在一起：参见&lt;a href=&quot;http://www.infoq.com/cn/articles/Scala-Design&quot; data-editable=&quot;true&quot; data-title=&quot;Scala的设计目标——Martin Odersky访谈（二）&quot; class=&quot;&quot;&gt;Scala的设计目标——Martin Odersky访谈（二）&lt;/a&gt;。&lt;br&gt;&lt;br&gt;Scala和F#的关系类似Lua和____（此处可填Python、JavaScript、Ruby）。Lua的语言核心极为精简，然而其他动态语言能做到的功能，Lua都能做到。尽管Lua对于语言特性非常吝啬，却早在十多年前就支持了coroutine，这很具有前瞻性。&lt;br&gt;Roberto Ierusalimschy写过一篇文章论述它是如何设计Lua的：&lt;a href=&quot;https://queue.acm.org/detail.cfm?id=1983083&quot; data-editable=&quot;true&quot; data-title=&quot;Passing a Language through the Eye of a Needle&quot; class=&quot;&quot;&gt;Passing a Language through the Eye of a Needle&lt;/a&gt;&lt;br&gt;&lt;br&gt;&lt;a href=&quot;http://www.zhihu.com/people/excited-vczh&quot; data-hash=&quot;0970f947b898ecc0ec035f9126dd4e08&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@vczh&quot;&gt;@vczh&lt;/a&gt; 说：&lt;blockquote&gt;Scala比F#更烂是因为Scala比C++更复杂，永远都学不会。&lt;/blockquote&gt;&lt;p&gt;我能理解&lt;a data-hash=&quot;0970f947b898ecc0ec035f9126dd4e08&quot; href=&quot;http://www.zhihu.com/people/0970f947b898ecc0ec035f9126dd4e08&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@vczh&quot;&gt;@vczh&lt;/a&gt; 作为微软员工，无法黑微软的痛楚，但我还是觉得 &lt;a data-hash=&quot;0970f947b898ecc0ec035f9126dd4e08&quot; href=&quot;http://www.zhihu.com/people/0970f947b898ecc0ec035f9126dd4e08&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@vczh&quot;&gt;@vczh&lt;/a&gt; 对“复杂”的理解稍显浅薄。&lt;br&gt;&lt;br&gt;我们看看Scala作者Martin Odersky写的&lt;a href=&quot;http://www.ac.net.blog.163.com/blog/static/13649056201232581654403/&quot; data-editable=&quot;true&quot; data-title=&quot;简单还是复杂？&quot; class=&quot;&quot;&gt;简单还是复杂？&lt;/a&gt;&lt;br&gt;我自己从头比了比上下文无关语法的数量，Scala相当紧凑，和Haskell或OCaml相当，比Java5稍少，比C#和C++少得多。 &lt;br&gt;由于F#是OCaml的超集，F#的语法比Scala复杂。F#功能并不比Scala强但语法比Scala复杂，暗示着F#中存在冗余语法或者不一致的语法，也就是，不优雅。&lt;/p&gt;</description>
-<author>杨博</author>
-<guid isPermaLink="false">2015-11-15-20342142</guid>
-<pubDate>Sun, 15 Nov 2015 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
