@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>[HotSpot VM] 单独构建OpenJDK8u的HotSpot VM的脚本</title>
-<p><a href="https://zhuanlan.zhihu.com/p/23374517">原文</a></p>
 时不时被问到这个问题，还是一并回答了吧。<p>假定从 <a href="http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot" data-editable="true" data-title="jdk8u/jdk8u/hotspot: log" class="">http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot</a> 签出了HotSpot VM的代码。那么在Mac OS X上，想单独build出HotSpot VM而不想build整个JDK8u的话，可以用我自用的这俩bash函数：</p><code lang="text"># HotSpot development on Mac
 # Make just the HotSpot VM. Defaults to making a fastdebug variant.
 makehs() {

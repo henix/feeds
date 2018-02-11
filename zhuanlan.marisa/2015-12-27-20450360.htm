@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>这锅simula&amp;C（＆Cobol?）背了</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20450360">原文</a></p>
 <p>大部分面向对象编程语言都有个地方设计失误：smalltalk simula C++ Java C# Python PHP Ruby Objective-C全部阵亡，幸存的不多，我只找到OCaml，大家猜猜看是什么语言特性？</p><p>不，不是null，null的确设计失误了，然而只能怪到algol跟tony hoare身上．</p><p>是constructor/initalizer，某个record/class被构建后立刻执行的东西．</p><p>问题出在那？</p><p>１：语法繁琐．有n个field你就需要写n个init/assignment．</p><p>２：写漏了后果严重：record/class中会有未init的field，而这应该是什么值呢（hello null）．<br></p><p>３：语义不合理：为什么对象可以在init完成之前得到this/self，对他们进行调用函数，难不成init之前的对象是合理的对象？</p><p>4：constructor不是普通函数，consistency降低了． <br></p><p>这特性是谁写的？</p><blockquote><p>
 Often the first actions performed on a new object of a particular class follow
 the same pattern each time one is created. Typically they involve setting the

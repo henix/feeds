@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>C++ Stateful Meta Programming</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25587738">原文</a></p>
 <p>知乎上看到这条问题，<a href="https://www.zhihu.com/question/54518001" data-editable="true" data-title="C++ 的 stateful meta-programming 这么强大，为什么没见有什么库用？" class="">C++ 的 stateful meta-programming 这么强大，为什么没见有什么库用？</a><br></p><p>看了下，其实就是控制模板实例化顺序来实现状态机编程嘛</p><p>主要思想，</p><p><b>利用函数重载定义顺序来对状态机建模，</b><br></p><p><b>把状态和结果表达为类型，然后利用重载函数的参数类型和返回类型关联上</b></p><p>比如一个阶乘迭代器，需要经历如下状态，</p><img src="https://pic3.zhimg.com/v2-7b41a62766f8a2e95d9807ecf24fdeb9_r.png" data-rawwidth="795" data-rawheight="313"><p>然后利用类型推导 decltype( fact(Status&lt;N&gt;) )::res 就可以获取 状态N 对应的结果</p><p>上面经过定义的函数表示经历过的状态，比如状态1-4</p><p>未定义的函数表示未经历的状态，比如状态N，只有函数声明</p><p><b>因此状态的经历顺序，等价于，操控函数重载定义的顺序，</b></p><p><b>对此，可以用 friend injection 技巧将函数重载定义的顺序问题，转化为模板实例化顺序问题</b></p><br><code lang="text">template&lt;int N&gt; 
 struct Status { 
   friend auto fact(Status&lt;N&gt;); 

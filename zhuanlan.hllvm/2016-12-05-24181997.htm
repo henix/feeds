@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，0：基本的合一</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24181997">原文</a></p>
 简单粗暴的开始：用 JS 实现一个 ML 类的程序语言的类型推理系统。<p>在我们这里，所有的类型属于以下形式之一：</p><ol><li>一个<b>基础类型</b>（Primitive）</li><li>一个<b>自由变量</b>（Slot）</li><li>一个<b>复合类型</b>（Composite），由一个构造器（ctor）和一个参数（argument）复合得到。对于 (-&gt;)、(*) 之类的二元构造器，使用 Curryize 将他变换为嵌套的 Composite。</li></ol><p>所谓的合一，指的是：给出两个类型 A 和 B，找到一组变量替换，使得两者的自由变量经过替换之后可以得到一个相同的类型 C。考虑</p><equation>A=((\alpha\rightarrow\beta)\times[\gamma])\rightarrow[\beta]</equation>；<equation>B=((\gamma\rightarrow\delta)\times[\gamma])\rightarrow\epsilon</equation><br><p>这两个类型可以合一，对应的替换是<equation>\langle\alpha\rightarrow\alpha,\beta\rightarrow\beta,\gamma\rightarrow\alpha,\delta\rightarrow\beta,\epsilon\rightarrow[\beta]\rangle</equation>。</p><p>实现合一的算法基本思路就是维护一个 slot 的映射。对于任意的类型 a 和 b，以及「当前状态」的映射 m：</p><ol><li>如果 a 和 b 都是 slot 并且 m[a] == m[b]，那么 a b 可以合一，m 不变。</li><li>如果 a 和 b 都是 primitive 并且相同，那么 a b 可以合一，m 不变。</li><li>如果 a 是 slot，可以合一，并且需要 m[a] 设置为 b；反之亦然。</li><li>如果 a 和 b 都是 composite，检查两者的构造器和参数是否都能合一，m 会最多被设置两次。</li><li>对于其他一切情况，a 和 b 不能合一。</li></ol><p>写成代码就是如下的形式：</p><code lang="js">// A monomorphic type
 class Monomorphic {
 	constructor() {}

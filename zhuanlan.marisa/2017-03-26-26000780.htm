@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>某愉悦的scheme之旅（5）--从零开始实现模式匹配宏</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26000780">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/v2-a39aff637256b6abfff064782fd4c0de_r.jpg" alt=""></div>鉴于前面几篇文章被人吐槽太难了，所以从这一篇开始降低难度，我们从写一个模式匹配开始学习宏。<p><b>为什么需要模式匹配</b></p><p>模式匹配可以大幅度减少你的代码，将你从大量嵌套if的地狱中拯救出来。</p><p>实际体验：写一个简单的lisp解释器，不使用模式匹配。</p><p>尝试学习racket里面提供的match函数改写。</p><p>模式匹配可以轻易的解构和绑定数据，常用的模式有：</p><code lang="text">(match something-to-match
       [(list a b ...) Exp]
       [var Exp]

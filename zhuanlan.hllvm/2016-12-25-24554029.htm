@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>LLVM 2.6线性扫描寄存器分配器解析</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24554029">原文</a></p>
 <h2><b>前言</b></h2><p>之前我的另外一个回答<a href="https://www.zhihu.com/question/29355187/answer/99413526" data-editable="true" data-title="寄存器分配问题?" class="">寄存器分配问题?</a>对线性扫描寄存器分配算法做了个理论上的阐述，但是有点遗憾的是没有怎么分析实际的LSRA的实现机制。本篇文章就是为了补足这个遗憾，针对LLVM 2.6中的实现作一些分析说明。<br></p><h2><b>实现逻辑</b></h2><p>LLVM 2.6中的实现类在RegAllocLinearScan.cpp文件中，该类继承自MachineFunctionPass，看名字就知道该趟是针对MachineFunction作一个全局的优化的，这也对得起它的名字，全局的寄存器分配器。</p><p>在分配之前，为了能够产生更好的代码质量，需要一些预先分析趟（在lib/Analysis目录下），如下所示：</p><code lang="cpp">virtual void getAnalysisUsage(AnalysisUsage &amp;AU) const {
 
       AU.setPreservesCFG();

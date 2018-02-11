@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>如何编译函数闭包</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28787934">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/v2-d2fa8a85b1b086b96b786b6d71cfc1c6_r.png" alt=""></div><blockquote><b>闭包</b>（英语：Closure），又称<b>词法闭包</b>（Lexical Closure）或<b>函数闭包</b>（function closures），是引用了自由变量的函数。这个被引用的自由变量将和这个函数一同存在，即使已经离开了创造它的环境也不例外。所以，有另一种说法认为闭包是由函数和与其相关的引用环境组合而成的实体。闭包在运行时可以有多个实例，不同的引用环境和相同的函数组合可以产生不同的实例。</blockquote><p>想要实现一个同时支持词法作用域与 first-class function 的编程语言，一个重要的转换就是所谓的 lambda-lifting：把嵌套函数定义（包括匿名函数）转换为独立的全局函数定义；把自由变量的引用转换为参数传递。</p><p>P.S.</p><ul><li>代码有省略</li><li>出于简化的目的，这里只考虑了最简单的情况，并且没有做任何有效性的检查，假设了表达式中出现的变量全都是定义过的。</li><li>同样是为了简化，这里不考虑类型。涉及到类型的情况下，需要在函数定义处保存自由变量的类型信息；这样视需求可能又要在转换过程中维护一个变量环境表来查找变量的类型。这里不累述，具体可以参考后附的一个简单的 OCaml 子集实现的源码。</li></ul><h2><b>函数定义</b></h2><p>这里首先定义一个简单的语言表示</p><p><equation>\begin{align*} exp\ ::=\ &amp;Lam(id,exp)\\ &amp;App(exp,exp)\\ &amp;Let(id,exp,exp)\\ &amp;Var(id) \end{align*}</equation> </p><p>这个语言类似于 untyped lambda calculus，有 lambda、apply 语句，只是多了一个 let 语句用于绑定一个变量。一般语言中的一些表达式形式（如 binary operator）一般则可以看作是 apply 的特殊形式。</p><p>用 Rust 代码写出来大概是这样</p><code lang="rust">enum Exp {
     /// Lambda 抽象，参数名 -&gt; 函数体
     Abs(Id, Box&lt;Exp&gt;),

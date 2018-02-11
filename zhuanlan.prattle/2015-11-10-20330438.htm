@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>深入了解IAM和访问控制</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20330438">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/5c2536d217a36d6efda2f6da5941e150_r.jpg" alt=""></div><p>本文为InfoQ中文站特供稿件，首发地址为：<a href="http://www.infoq.com/cn/articles/aws-iam-dive-in%E3%80%82" data-editable="true" data-title="http://www.infoq.com/cn/articles/aws-iam-dive-in。">http://www.infoq.com/cn/articles/aws-iam-dive-in。</a></p><p>访问控制，换句话说，谁 能在 什么 情况下访问 哪些 资源或者操作，是绝大部分应用程序需要仔细斟酌的问题。作为一个志存高远的云服务提供者，AWS自然也在访问控制上下了很大的力气，一步步完善，才有了今日的 IAM：Identity and Access Management。如果你要想能够游刃有余地使用AWS的各种服务，在安全上的纰漏尽可能地少，那么，首先需要先深入了解 IAM。</p><h2>基本概念</h2><p>按照 AWS 的定义：</p><blockquote><p>IAM enables you to control who can do what in your AWS account.</p></blockquote><p>它提供了用户（users）管理，群组（groups）管理，角色（roles）管理和权限（permissions）管理等供 AWS 的客户来管理自己账号下面的资源。</p><p>首先说用户（users）。在 AWS 里，一个 IAM user 和 unix 下的一个用户几乎等价。你可以为创建任意数量的用户，为其分配登录 AWS management console 所需要的密码，以及使用 AWS CLI（或其他使用 AWS SDK 的应用）所需要的密钥。你可以赋予用户管理员的权限，使其能够任意操作 AWS 的所有服务，也可以依照 Principle of least privilege，只授权合适的权限。下面是使用 AWS CLI 创建一个用户的示例：</p><code lang="text">saws&gt; aws iam create-user --user-name tyrchen
 {
     "User": {

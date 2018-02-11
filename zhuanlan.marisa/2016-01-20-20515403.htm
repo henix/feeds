@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Quotient type in Coq</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20515403">原文</a></p>
 <p>什么是<a data-title="Quotient type" data-editable="true" href="https://en.wikipedia.org/wiki/Quotient_type">Quotient type</a>？</p><p>一个quotient type需要两个参数：一个类型(A : Type),一个类型上的等价关系(EQ : A -&gt; A -&gt; Prop)．在此之下，两个A(l r : A)，如果符合EQ (P : EQ l r)，就是等价的．</p><p>举个例子，我们可以用一对自然数加上正负标记（我们不考虑效率，先做出来再说），nat*nat*2，代表rational，但是在此之下，2/4不等于1/2．我们能不能在Coq中找出一个办法，使得两者相等？</p><p>由于rational还有n/0的破事，我们先不考虑，用一个更简单的东西：自然数mod 5得出的ring．<br></p><p>1：重定义equality完事</p><code lang="text">Definition MFE l r := l mod 5 = r mod 5.
 </code><p>不能subst，侵入式（用这个mod five ring的地方都需要重定义equality），依赖equality的函数全部失败，垃圾．</p><p>２：Canonical Form</p><code lang="text">Definition MFR := { n : nat | n &lt; 5 }.
 </code><p>看上去很完美的解决了一切问题，但是有两点：</p><ol><li> 不是所有定义都有Canonical form（比如UTLC）</li><li>就算有，这样也太浪费CPU，因为每次做任何东西都需要reduce到Canonical form <br></li></ol><p>３：我们试试看利用functional extensionality（这在Coq是可以加入的公理），只定义一套使用ModFiveRing的接口，这样只要两个MFR在行为上一致就没问题了</p><code lang="text">Inductive MFR := mkMFR : forall (eq_dec : MFR -&gt; bool) (plus : MFR -&gt; MFR), MFR.

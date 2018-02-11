@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Electron  hack —— 跨平台 XSS</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28186225">原文</a></p>
 <p>基于 Electron 的 XSS 攻击实例，远比你想象的简单。</p><h2>什么是 Electron</h2><p>也许你从未听说过跨平台 XSS，也从未听说过 Electron， 但你肯定知道 GitHub，或者使用过著名的 Atom 编辑器， 比如正在尝试翻译这篇文章的笔者，正在使用 Atom 来编写 Markdown。 Electron 优秀的跨平台特性，是本文的基础。<br><br>简单来说，Electron 是一个框架，用于方便开发者创建跨平台应用。 开发者可以通过它来使用 HTML + JavaScript 来开发桌面应用。 Electron 的用户非常广泛，因为它确实可以为不同平台提供同样的体验。</p><p>与传统观念的所谓“桌面应用”不同， Electron 应用包括两个部分（Node.js 和 Chromium）作为运行环境。 分别支持一个主进程和一个渲染进程， 其中，主进程是一个非常 Node.js 风格的进程， 而渲染进程是一个可以运行 Node.js 代码的 Chromium 内核浏览器。<br></p><p>由上文我们得知，Electron 应用是非常特殊的， 它本身是一个二进制应用，而渲染进程则是一个浏览器， 而 Electron 自身又具有很多的特性，所以，我们将从三个方面分析。</p><p>我们已知 Electron 的渲染进程是由 Chromium + Node.js 构成， 那么我们可以从分析传统 Web 应用的角度，得出这样的结论：</p><ul><li>DOM 操作非常多、非常频繁</li><li>基于 DOM 的 XSS 会变得很容易发生</li><li>可以完成基于 JavaScript 的自由重定向（重定向至不可信站点）</li></ul><p>所以，使用传统的 Web 应用分析套路来处理 Electron 是十分必要的。<br></p><h2>什么是 DOM-Based XSS</h2><p>众所周知，DOM-Based XSS 的频发主要是因为 DOM 相关处理不当。 DOM-Based XSS 是因未经转义的用户输入被直接生成为 HTML 而产生。 一般而言，随着 DOM 操作的增多，DOM-Based XSS 发生的概率也会大大提高。 下面是两段 Electron 应用存在 DOM-Based XSS 的示例代码：</p><code lang="js">// Demo 1
 fs.readFile( filename, (err,data) =&gt; {
   if(!err) element.innerHTML = data; //XSS!

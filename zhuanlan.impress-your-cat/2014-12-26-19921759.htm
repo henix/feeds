@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>也谈作用域</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19921759">原文</a></p>
 <p>姚培森最近在Continuation专栏里的发了<a class="" data-title="闭包" data-editable="true" href="http://zhuanlan.zhihu.com/forallplt/19918834">闭包</a>一文。我认为写的很烂，比“Monad不就是个自函子范畴上的幺半群”还烂。特别写一篇来喷。</p><p>假如一门语言允许你自己定义函数，那么就会出现作用域的问题。作用域的问题就是怎么找变量定义的问题。</p><p>假如不允许自定义函数，只需要一个变量名到变量值的映射就可以了。不妨把这种映射关系称为Environment。</p><code lang="text">%% 赋值前 {print: &lt;fun&gt;}
 var a = 1
 %% 赋值后 {print: &lt;fun&gt;, a: 1}

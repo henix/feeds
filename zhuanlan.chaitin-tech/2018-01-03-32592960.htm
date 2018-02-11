@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Python http.server 任意跳转漏洞浅析</title>
-<p><a href="https://zhuanlan.zhihu.com/p/32592960">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-5cc0dbfc9fb023180000c2db6facb0c7_r.jpg" alt=""></div><p><b>作者：Phith0n</b></p><p><br></p><p>Github账号被封了以后，Vulhub也无法继续更新了，余下很多时间，默默看了点代码，偶然还能遇上一两个漏洞，甚是有趣。</p><p>这个漏洞出现在python核心库http中，发送给官方团队后被告知撞洞了，<b>且官方也认为需要更多人看看怎么修复这个问题</b>，所以我们来分析一下。</p><p><br></p><h2><b>0x01  http.server库简单分析</b></h2><p>众所周知Python有一个一键启动Web服务器的方法：</p><code lang="text">python3 -m http.server</code><p>在任意目录执行如上命令，即可启动一个web文件服务器。其实这个方法就用到了http.server模块。这个模块包含几个比较重要的类：</p><ol><li>HTTPServer这个类继承于socketserver.TCPServer，说明其实HTTP服务器本质是一个TCP服务器</li><li>BaseHTTPRequestHandler，这是一个处理TCP协议内容的Handler，目的就是将从TCP流中获取的数据按照HTTP协议进行解析，并按照HTTP协议返回相应数据包。但这个类解析数据包后没有进行任何操作，不能直接使用。如果我们要写自己的Web应用，应该继承这个类，并实现其中的do_XXX等方法。</li><li>SimpleHTTPRequestHandler，这个类继承于BaseHTTPRequestHandler，从父类中拿到解析好的数据包，并将用户请求的path返回给用户，等于实现了一个静态文件服务器。</li><li>CGIHTTPRequestHandler，这个类继承于SimpleHTTPRequestHandler，在静态文件服务器的基础上，增加了执行CGI脚本的功能。</li></ol><p>简单来说就是如下：</p><code lang="text">+-----------+          +------------------------+    
 | TCPServer |          | BaseHTTPRequestHandler |
 +-----------+          +------------------------+ 

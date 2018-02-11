@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>在Haskell中模拟dependent type</title>
-<p><a href="https://zhuanlan.zhihu.com/p/31690842">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-49d3d08432de8f11409880942f0bf9a5_r.jpg" alt=""></div><p>题图的PixivID为：<i>pixiv-ID:</i> <i><a href="https://www.pixiv.net/member_illust.php?mode=medium&amp;illust_id=61127101">61127101</a>，画师为</i><a href="https://www.pixiv.net/member.php?id=10710834">Novelance</a>。</p><p>本文始发于<a href="https://saul-mirone.github.io/2017/12/04/dependent-type-in-haskll/">我的博客</a>，转载请注明作者。</p><p>Dependent type是一种依赖于值的类型，它增强了类型表达能力，让我们可以构造更强大的类型定义，无论用在定理证明还是用在减少程序出错的可能都是极好的。</p><p>本文我们讨论在Haskell中如何合理使用扩展模拟Dependent type。</p><h2>入门级LIST</h2><p>让我们先从一个简单的List开始，看看没有dependent type的时候，会发生什么。</p><p>先定义自然数和一个List结构：</p><code lang="haskell"> data Nat = Zero | Succ Nat
  data List a = Nil | Cons a (List a)
  -- example

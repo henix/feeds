@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>C++模板元编程---编译期类成员检测</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24876423">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-1042cce5bf44969a154cfd87c685e35f_r.jpg" alt=""></div>最近困扰了我几天的问题终于解决了。<p>问题是这样的</p><p>我现在定义一个模板类：<br></p><code lang="cpp">template&lt;class T&gt;
 foo{};</code><p>我现在希望模板类 foo 实现以下功能：</p><p>当 T 类型中定义了类型 type 的时候，在 foo 内定义</p><code lang="cpp">using type = typename T::type;</code><p>当 T 类型中没有定义类型 type 时，在 foo 内定义</p><code lang="cpp">using type = T;</code><p>总之，我们希望检测T中到底有没有定义类型 type, 并根据这个情况来确定把 foo 中的 type using 成 T 还是 typename::type。</p><p>对C++来说，想要完全不侵入性的在运行期检测类中是否定义了某个类型或变量几乎是不可能完成的事情。毕竟C++的类在没有编译期支持的情况下，没有足够的类的元数据，没有反射机制，更不要说成员名最后编译出来都只是地址和类型而已。但是通过借助SFINAE的机制，我们可以在编译期完成这件事。有兴趣的可以看<a href="http://en.cppreference.com/w/cpp/language/sfinae" data-editable="true" data-title="SFINAE - cppreference.com">SFINAE - cppreference.com</a>，这里先不详细展开这个机制，通过后面的实例，可以大致有个了解。</p><p>首先，创建一个模板类has_type用于检测 T 中是否含有类型 type</p><code lang="cpp">template&lt;class T, class U = void&gt;
 struct ty_has_type {

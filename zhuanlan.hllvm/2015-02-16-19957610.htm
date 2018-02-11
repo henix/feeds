@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>六离合释：健康宏展开的故事</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19957610">原文</a></p>
 今受 <a href="http://www.zhihu.com/people/a06cfb38e37dac1658e6457df4d7f032" data-hash="a06cfb38e37dac1658e6457df4d7f032" class="member_mention" data-editable="true" data-title="@RednaxelaFX" data-tip="p$b$a06cfb38e37dac1658e6457df4d7f032">@RednaxelaFX</a> 的邀请，到此地方来，本打算像写书那样，写个长的系列，唤作《六离合释》，借个 Panini 文法里的词来说语言理论，不过写书我实在是坚持不下来，所以还是东一榔头西一棒子地讲一些小的细节好了。<p>给程序语言设计宏系统实际上是挺麻烦的事。C/C++ 的宏实际上就是 token 层面的查找替换，早期的 lisp 要更好些，是在 AST 层面的查找替换，由于 lisp 的节点可以随意组合、文法统一，所以在人们眼里 lisp 宏一直是强大的象征。</p><p>但是，最好的宏系统实际上是在 Scheme 里。无论是 C/C++，还是 Common Lisp，它的宏都是使用动态作用域的，也就是说，考虑你想实现个类似 javascript 里的 “||” 算符：</p><code lang="common-lisp">(defmarco or (x y)
     (let ((t (gensym))
         `(let ((,t ,x))

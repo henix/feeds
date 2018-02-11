@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>服务端模板注入攻击</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28823933">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-3321f46859c0be9e93f9ad79f3dd1cd3_r.png" alt=""></div><h2><b>概述</b></h2><p>模板引擎可以让（网站）程序实现界面与数据分离，业务代码与逻辑代码的分离，这大大提升了开发效率，良好的设计也使得代码重用变得更加容易。与此同时，它也扩展了黑客的攻击面。除了常规的 XSS 外，注入到模板中的代码还有可能引发 RCE（远程代码执行）。通常来说，这类问题会在博客，CMS，wiki 中产生。虽然模板引擎会提供沙箱机制，攻击者依然有许多手段绕过它。在这篇文章中，我将会攻击几个模板引擎来说明该类漏洞，并展示沙箱逃逸技术。</p><h2><b>什么是服务端模板注入</b></h2><p>通过模板，Web应用可以把输入转换成特定的HTML文件或者email格式。就拿一个销售软件来说，我们假设它会发送大量的邮件给客户，并在每封邮件前SKE插入问候语，它会通过Twig（一个模板引擎）做如下处理：</p><code lang="php">$output = $twig-&gt;render( $_GET['custom_email'] , array("first_name" =&gt; $user.first_name) );</code><p>有经验的读者可能迅速发现 XSS，但是问题不止如此。这行代码其实有更深层次的隐患，假设我们发送如下请求：</p><code lang="text">custom_email={{7*7}} // GET 参数
  
 49  // $output 结果

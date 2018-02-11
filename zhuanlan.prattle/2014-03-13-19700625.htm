@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>管理者的格局要大</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19700625">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/234682f734b34be50e49954f8b797cfe_r.jpg" alt=""></div><p>昨天的文章搞了个大乌龙，很多朋友都留言说2048不是那个意思，程序君顿时泰囧，一张老脸不知道往哪儿搁。还好程序君长得黑，一天下来，囧成猪肝色的脸周围的人硬是没有发现。^_^</p><p>本来『知乎』上的文字可以编辑，将这个错误抹去，省得后来者继续鄙视程序君。不过想想算了，说出去的话如泼出去的水，藏也藏不住。这也是给自己的一个教训吧。</p><p>上周有童鞋留言说读了『unix之美』，觉得举的例子不够过瘾，有没有更给力一些的例子，当时随手写了一两个，自己不甚满意，正好今天想知道自己四周来正式发表的文字究竟有多少，于是就写了这个shell命令（以下内容请横屏看）：</p><code lang="text">$ find 2014 -name "*.md" -print0 | xargs -0 cat | wc -m
    53718
 </code><p>注1：为简便起见，我将要发表的文章后缀设为"md"，还没写完的，或还不打算发表的后缀设为"markdown"，来区别（Configuration over Convention）。</p><p>注2：wc -m 会将英文，空格和字符也统计在内，所以只是大致结果，不算完美。</p><p>这么个命令如果老要手工敲太麻烦，于是我把它整合在项目的Makefile里：</p><code lang="text">words:

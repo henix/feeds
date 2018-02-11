@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>[Python] 置换CPython 2.7.13的opcode</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25850970">原文</a></p>
 之前在一个问题下打过一下酱油，<a href="https://www.zhihu.com/question/55447106/answer/147126587" class="" data-editable="true" data-title="国内有CPython解释器定制相关的工作么？ - RednaxelaFX 的回答 - 知乎">国内有CPython解释器定制相关的工作么？ - RednaxelaFX 的回答 - 知乎</a>，里面提到一种混淆CPython解释器的方式是置换其虚拟机的opcode的值，这样经过修改的CPython把Python源码编译成含有CPython字节码的 *.pyc / *.pyo 文件，就不能直接用未经修改的CPython解释器运行，也不能直接用现成的用来反汇编或反编译CPython字节码的工具来处理。这样就略微提高了Python程序的保密性，假如说要发布一个用Python实现的程序而不想别人读到源码的话，这样就算防不住小人至少也能防住君子吧。<p>最近有人来问说他自己试着修改了CPython 2.7.13的opcode，但make的时候却出错，想问是怎么回事。这里就来演示一下最简单的opcode置换应该怎么做。</p><p>其实超级简单，只要对应修改2个文件即可。下面演示一下把 BINARY_ADD 与 BINARY_SUBTRACT 的opcode编码调换的例子：</p><p>（我这里是在CPython 2.7分支的master版代码上做的diff）</p><code lang="diff">diff --git a/Include/opcode.h b/Include/opcode.h
 index 9ed5487..8f2e9fa 100644
 --- a/Include/opcode.h

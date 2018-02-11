@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>共用的抽象模型（客户及服务器端）- （编集／反编集）过程</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25037886">原文</a></p>
 <p><b>（编集／反编集）过程</b></p><p>“编集过程” (“Marshalling”) 是指一个将高阶（对象）结构转化为某种低阶表现模式（例如 xml／json 等通讯或储存格式）的过程。也有其它比较流行叫法如“序列化” (“Serialization”/Java 或 "Pickling" / Python )</p><p>而“反编集过程” (“UnMarshalling”) 是指一个将某种低阶表现模式（例如 xml／json 等通讯或储存格式）转化为高阶（对象）结构的过程。也有其它比较流行叫法如“反序列化” (“Deserialization”/Java 或 "Unpickling" / Python )<br></p><p>（译注：原文这里是分两章写的，然而文字重复内容太多，而且两者放在一起读反而更好理解。所以斗胆了...）<br></p><p>（译注：原文开篇其实有点越说越乱的感觉，因为 Marshalling 虽然在语义上最接近序列化，但这个词在 C# 中的序列化这个含义并不强烈，比较通用在各种需要转化数据的场景，而 Java 一般在 RMI 的时候才会用这个词，而 Python 则完全避开这个词而用“腌制”。而在 Akka HTTP 则更多用在类型转换间，而且是非预设类型 T 与某些特定类型的转换。很坑...）<br></p><p>在 Akka HTTP “Marshalling“ 意味者把一个 T 类型的对象转化为低阶对象类型，如 MessageEntity 或者 HttpRequest 又或 HttpResponse。而 “Unmarshalling” 则是这个过程的逆转。</p><p><b>基础设计<br></b></p><p>由 A 类型编集成 B 类型的实例的过程一般由一个 <u>Marshaller[A, B]</u> 编集器完成。而反编集的过程则是由 <u>Unmarshaller[A, B]</u> 处理。Akka HTTP 已经预设了一系列的编集／反编集器类型别名以便开发者使用。</p><p>（译注，不熟悉 类型别名 （type alias）的读者可以参考相关的 Scala Python C++ 概念）</p><p>编集类型别名</p><code lang="scala">type ToEntityMarshaller[T] = Marshaller[T, MessageEntity]
 type ToByteStringMarshaller[T] = Marshaller[T, ByteString]
 type ToHeadersAndEntityMarshaller[T] = Marshaller[T, (immutable.Seq[HttpHeader], MessageEntity)]

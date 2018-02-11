@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>闲扯code review</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19687007">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/ae1bb564294584012fe1f9b40a86b2c3_r.jpg" alt=""></div><p>如果说git终于让工程师在合作撰写代码的过程中找回了丢失已久的乐趣，那么，code review的过程还是让人相当地抓狂。我用过的所有code review的工具，没有一款能让code review的过程轻松起来。</p><p>公司内部使用的工具自不必说，那是反人类的极致体验。</p><p>reviewboard和gerrit不那么反人类，但submit review和review的流程也不太方便，而且体验并不一致。submit review可以在命令行下方便地完成，但review需要点开邮件通知里的链接才能查看。如果你一直在代码上工作，而不查邮件，你可能会miss掉一些review。</p><p>不过，这些体验上的问题都是细枝末节。目前已有的code review工具的最大问题是：<strong>它不是写给程序员用的！</strong>慢着，这话听着好耳熟？没错，Linux Tolvalds在撰写git的时候，就说svn最大的问题是这玩意儿不是写给程序员用的。</p><p>如果要我设计一款code review工具，它的使用体验会类似这样：</p><h2><a class="" href="https://github.com/tyrchen/craftsman/blob/master/2014/week09/02-25-codereview.md#submit-code-review" data-editable="true" data-title="craftsman/2014/week09/02-25-codereview.md at master · tyrchen/craftsman · GitHub">craftsman/2014/week09/02-25-codereview.md at master · tyrchen/craftsman · GitHub</a>Submit code review</h2><code lang="text">$ git commit -a
 $ git push
 </code><p>Done! 不需要更多的流程了。</p><p>这里面隐含了如下步骤：</p><ul><li>git commit时会弹出一个form，所有项目都正确填写才能提交。</li><li>git push时会将diff push到review server上，review server会根据修改了那些文件确定出reviewers，然后从中round robin选两到三人进行review。</li></ul><p>与之最接近的体验是gerrit:</p><code lang="text">$ git commit -a

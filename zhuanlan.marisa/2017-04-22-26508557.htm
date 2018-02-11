@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>MPS教程（五）把之前的语言嵌入Java</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26508557">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-9c78e6c311d3520a35ee004fba52f155_r.png" alt=""></div>原文 <a href="http://ice1000.org/2017/04/20/ExtendBaseLanguage/" data-editable="true" data-title="突然MPS教程（五），扩展Java">突然MPS教程（五），扩展Java</a> 爱看不看<br><p>话说我一开始时就是抱着肯定没人看的心情写的这个系列， 不过写了之后居然还是有不少人向我反馈表示在看，我还是很开心的。</p><p>知乎有一哥们私聊找我，问我能不能用MPS扩展其他语言。答案当然是可以的，不过我的教程里面似乎还没有， 所以我就临时发布了这篇教程。</p><p>众所周知，在MPS中，有一个语法和Java一样的内置语言叫做BaseLanguage，一般情况下，我们编写代码， 让MPS把AST给map成BaseLanguage代码，然后编译为文本形式的Java代码。</p><h2>这次说什么</h2><p>在这篇教程中，我们将模块化我们的Generator，并使我们能在BaseLanguage当中写我们的语言的代码。</p><p>如果你做了<a href="http://ice1000.org/2017/04/12/MakeSimpleLangWithMPS/#%E8%BF%98%E8%83%BD%E8%BF%99%E4%B9%88%E7%8E%A9" data-editable="true" data-title="上一篇博客的作业">上一篇博客的作业</a> 的话，你就可以体验一把在Java里面写C#的感觉了。虽然这么有点不好（估计会引发一场巨大巨大的战争）， 但是你看懂了这篇教程并跟着来了一波之后，你就已经可以任意地扩展BaseLanguage的语法了。</p><p>我在写博客之前先验证了一下自己的想法，最终出来的代码是这样的：</p><br><code lang="java">public class Ice1000 {
   public static void main(string[] args) {
     Console.WriteLine(" ** 马赛克 ** ");

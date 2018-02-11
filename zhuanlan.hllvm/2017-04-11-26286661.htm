@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>「怎样比较两个长度未知的 Vect」——有关 Bool 和 Dec 的杂记</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26286661">原文</a></p>
 目的：写出一个这样的函数出来（语言为 Idris，下同）<code lang="text">eqHetVec : Eq a =&gt; (m : Nat ** Vect m a) -&gt; (n : Nat ** Vect n a) -&gt; Bool
 </code><p>这儿用 Dependent Pair 只是简化问题，在实际中很多情况下需要比较两个数据结构里面镶嵌着的 Vect，长度是给某个隐参数绑到数据结构里了——由于长度可能不等，默认的 (==) 自然没法用，怎么办呢？</p><p>你可能会想着用 if：</p><code lang="text">eqHetVec (m ** xsm) (n ** xsn) = if (m == n) then (xsm == xsn) else False
 </code><p>可惜如果真这么简单就能解决问题我也没必要发专栏了……</p><p>原因在于，m == n 返回的是一个普通的 Bool，并不是有关 m 和 n 相等的<b>证明</b>，而 Typechecker 在后面比较 xsm == xsn 的时候，需要的就是这个证明。于是乎我们需要把这个 if 换成某种关于命题项的形式。</p><p>首先构造一个归纳好了：</p><code lang="haskell">data Dec : Type -&gt; Type where

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>从砖块到大厦：Monadic Combinatorial Parser 简介</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25867784">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-7f683b067f8f82875a1bea01cdc0cfc8_r.png" alt=""></div><h1>Intro</h1>
 提示
 <p>本篇假设读者对基本的 Haskell 语法有所了解，主要包括：类型匹配，参数化类型，lambda 表达式，类型构造器，类型类等。不需要读者熟悉 Monad 类型。</p><p><b>何为 Combinator</b></p><p>在 Parser 构造过程中，将目标 Parser 分解为多个小的 Parser 再组合起来是一种常用的构造方式。将大的问题分解为多个小目标，再把对这些小目标构造出的各种简单 Parser 像乐高积木一样组合，便能最终得到一个复杂而精美的 Parser，这便是“分解——组合”思想的精妙之处。 </p><p>Combinators 将 Parser 的“组合”抽象成一个 Domain Specific Language (DSL) 。用统一的语言来表示这样的组合过程，并提供了一些最基本的 Parser ，这就使得构造 Parser 变成了一个非常简单而易读（ readable） 的过程。而且各种 Parser 都可复用同样的函数，也很符合代码复用的目标。</p><p><b>何为 Monadic</b></p><p>Monad是函数式编程中常用的一类抽象数据类型/代数概念，这里暂且不提其抽象性质，只谈一谈其在Parsing过程中的用途。</p><p>假设已经有了一个简单的 Parser 记为<strong>p</strong>，对于给定输入（这里类型不妨为 String ，后同），<strong>p</strong> 要么将其解析出一个类型为 a 的结果（和剩余的未解析的输入），要么给出一个错误信息。我们可以将 <strong>p</strong> 的类型其表示为以下用 Haskell 代码表示的形式。</p><code lang="haskell">data Parser a = 

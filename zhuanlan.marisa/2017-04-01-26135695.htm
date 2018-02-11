@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>愉♂悦的scheme之旅（6）-用宏构建DSL</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26135695">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-e40c805d9f958b22235f0bf03200c3af_r.png" alt=""></div><b>前言</b><p>写完这篇文章之后，我需要休息一段时间，太累了。叫上基友：<a href="http://www.zhihu.com/people/67ebe1bd8e4a63f17a42572e40afaac7" data-hash="67ebe1bd8e4a63f17a42572e40afaac7" class="member_mention" data-title="@大笨蛋千里冰封" data-editable="true" data-hovercard="p$b$67ebe1bd8e4a63f17a42572e40afaac7">@大笨蛋千里冰封</a>，<a href="http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc" data-hash="0251012c87c2d3f56ac34de7d71cdcbc" class="member_mention" data-editable="true" data-title="@雾雨魔理沙" data-hovercard="p$b$0251012c87c2d3f56ac34de7d71cdcbc">@雾雨魔理沙</a>，<a href="http://www.zhihu.com/people/388eb7e90e64f0f9895ef8b1456c8e07" data-hash="388eb7e90e64f0f9895ef8b1456c8e07" class="member_mention" data-editable="true" data-title="@Glavo" data-hovercard="p$b$388eb7e90e64f0f9895ef8b1456c8e07">@Glavo</a>。</p><p><b>尚未解决的问题</b></p><p>在上一篇文章的结尾，我们还残留了一个问题，那么究竟在什么情况下pmatch会出现不正确的结果呢？</p><code lang="text">(define-syntax ppat
   (syntax-rules (cons else const )
     [(_ fctx val (const cs) res) (if (equal? cs val)

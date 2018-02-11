@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>测试驱动文档在后端 API 开发中的实践</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28069225">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-4b11f4ee60a743d551cd637892361629_r.png" alt=""></div><p>很多人了解过 <a href="https://docs.python.org/2/library/doctest.html">Python 的 doctest</a>，是从注释中写测试，我们现在反向思维，从测试生成文档。</p><h2>现状</h2><p>在开头有必要说明一下现在后端 API 的开发模式，这样才能更好的理解遇到的问题。</p><ul><li>框架: Django</li><li>给前端提供的都是 JSON API，没有后端渲染的网页</li><li>所有的 API 都继承 APIView，但是并不是 Django REST framework（以下简称 DRF，名字太长了） 中的 APIView，这个后面会说原因</li><li>使用 DRF 中的部分 serializer 来做数据格式验证和 QuerySet 转换为 Python 字典列表等类型的工作</li></ul><p>DRF 库提供了很多我们并不会用到的功能，比如</p><ul><li>登录验证，权限管理，API 版本号管理，限流、自动翻页等等，这些我们更侧重独立和手动的处理。</li><li>Generic Views 一直是一个让我感到疑惑的东西，看似写起来简单，代码量很少，像是填充一些预定义的变量和方法，简单的增删查改会方便一点，但是在实际复杂的业务场景下，可能导致问题复杂化，并没有显式的写出操作过程更清晰。</li></ul><p>所以我们仿照 DRF 的 APIView，继承 Django 的 View,自己写了一个新的 APIView，包含了核心功能，解析 JSON，同时增加了部分常用方法，比如 validate_serializer、self.success、self.error 和 self.paginate 等等。</p><p>下面是一段伪代码</p><code lang="python">class UserProfileAPI(APIView):
     @validate_serializer(ChangeUserProfileSeralizer)
     def put(self):

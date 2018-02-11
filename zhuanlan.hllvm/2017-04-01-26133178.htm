@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>考不上三本也能给自己心爱的语言加上Coroutine（四）</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26133178">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_r.jpg" alt=""></div><blockquote><b>你现在所阅读的并不是第一篇文章，你可能想看<a href="https://zhuanlan.zhihu.com/p/25959684" class="" data-editable="true" data-title="目录和前言">目录和前言</a>。</b></blockquote>这是《三本》的Coroutine系列的最后一篇了。虽然《三本》以后还会有，但是Coroutine从此就没有了。今天要说的是，如何把yield return和await这样的东西编译成Coroutine。如果你想把这两个语法写死在语言里面的话，过程是相当粗暴的。但是我现在要说的是 <a href="https://github.com/vczh-libraries/Workflow" class="" data-editable="true" data-title="vczh-libraries/Workflow">GacUI的Workflow脚本语言</a> 是如何做的。<p>在做这种事情的时候，你先要在纸上不断地尝试各种不同的语法，最后找到一个最有感觉的定下来。这次我给脚本加上Coroutine的功能的时候，选择了这样的语法：</p><code lang="text">func GetNumbers() : int{}
 ${
 	for(i in range[0, 4])

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Lambda calculus引论(一): 规约求值</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25559133">原文</a></p>
 <h2><b>前言:</b></h2><p>函数式编程作为与编程范式之一有着相当长的历史, 它的发展伴随着计算机科学特别是计算理论与语言理论的发展. 函数式编程可以说是编程语言里一个相当重要的领域, 相关的理论成为了各类研究的基石, 这里为大家介绍函数式编程中最基础的λ-calculus与相关的理论.</p><br><p>这个"引论"不是真正准备给初学者的, 摊手. 叫引论只是因为这一系列的文章主要是基于λ-calculus讲解与其相关的最基础的理论知识. 所以不是对相关领域比较熟悉或有兴趣的小伙伴们对不起啦喵. 想要真正入门的小伙伴可以去阅读一些稍微入门点的材料, 有什么问题也欢迎随时来找我呀喵.</p><br><br><h2><b>序: λ-calculus的构成部分</b></h2><p>(下面为λ-calculus构成的简要介绍, 受限于篇幅省略了一些例子和详细说明, 需要详细介绍的小伙伴可以查阅<a href="https://en.wikipedia.org/wiki/Lambda_calculus" class="" data-editable="true" data-title="Lambda calculus(Wikipedia)">Lambda calculus(Wikipedia)</a>和书籍)</p><p><b>二元关系:</b><br></p><p>二元关系的定义为对于两个集合<equation>A</equation>和<equation>B</equation>的乘积<equation>A\times B
 </equation>的子集为A与B上的二元关系, 即:</p><equation>a\;R\;b:=\{(a,b)\in R\;|\;R\subseteq A\times B\}</equation><br><p>在二元关系上定义偏序:</p><equation>R_1\sqsubseteq R_2:=\{\forall (a,b)\in R_1\Rightarrow (a,b)\in R_2 \}</equation><p>(称<equation>R_1</equation>小于<equation>R_2</equation>)</p><p><equation>R</equation>的传递闭包, 记作<equation>R^{*}</equation>, 既满足以下的最小二元关系:</p><equation>\begin{align}
 &amp;a\;R\;b&amp;&amp;\Rightarrow\;a\;R^{*}\;b\\

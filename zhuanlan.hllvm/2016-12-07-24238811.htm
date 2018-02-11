@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，4：显式的类型限制</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24238811">原文</a></p>
 Haskell 等语言中经常会出现一些无法将表达式彻底具体化的情形，此时，可以通过 :: 算符显式地指定某个表达式的类型。这个最著名的就是 Haskell 的 read，它的类型是这样的：<equation>\mathrm{read}:\Lambda(x:*\,|\,\mathrm{Read}\ x). \mathrm{String}\rightarrow x</equation><br><p>在使用的时候就经常限制结果的类型以避免 Haskell 决议失败。</p><p>实现显式类型限制的做法非常简单，多做一次合一就可以了（多态类型需要实例化一次）；其具体化过程就是吧它的内部表达式具体化出来：</p><code lang="js">// Limitation expression
 class Limitation extends Form {
 	constructor(argument, type) {

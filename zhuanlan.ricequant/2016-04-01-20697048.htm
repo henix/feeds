@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>隐马(HMM)在股票上的简单应用 - 2</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20697048">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/ab7a20f9c23a430772e64a77114a8769_r.jpg" alt=""></div>在上一篇中我们大致介绍了隐马（HMM）是什么，这一篇我们会从在<a href="https://www.ricequant.com/?f=n" data-editable="true" data-title="Ricequant">Ricequant</a>上实现的hmm对中国A股的数据分析来做一个初步的研究，也欢迎大家来<a href="https://www.ricequant.com/community/topic/788" data-editable="true" data-title="社区">社区</a>进行深入探讨。<p>我们假设隐藏状态数量是6，即假设股市的状态<b>有6种</b>，虽然我们并不知道每种状态到底是什么，但是通过后面的图我们可以看出那种状态下市场是上涨的，哪种是震荡的，哪种是下跌的。可观测的特征状态我们选择了3个指标进行标示，进行预测的时候假设假设所有的特征向量的状态服从高斯分布，这样就可以使用 python的hmmlearn 这个包中的 GaussianHMM 进行预测了。下面我会逐步解释。<br></p><br><br><p>首先导入必要的包：</p><br>In [1]:<br><code lang="python">from hmmlearn.hmm import GaussianHMM
 import numpy as np
 from matplotlib import cm, pyplot as plt

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>共用的抽象模型（客户及服务器端）- 超时处理</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25054489">原文</a></p>
 <h2><b>Akka HTTP 的超时处理</b></h2><p>Akka HTTP 有好几个内建的超时处理机制可用于防御针对服务器端的恶意攻击或者开发中引出的错误。其中几个只是简单的配置项（可以用代码修改相关值），另外几个则是通过流式 API （在开发者代码中直接以相关模式实现）进行处理。</p><p><b><i>通用的超时处理</i></b><br></p><p><i>闲置超时</i></p><p><u>idle-timeout </u>是一个全局配置，可以设定任意一个连接的最长闲置时间。换成另一种说法，如果一个连接在开启状态下没有任何的 请求／响应 数据在超过<u> idle-timeout</u> 规定的时长内写入，这个连接就会被自动关闭。</p><p>无论是客户端，还是服务器端，相关配置对于连接的使用方式都是一样的，而且可以独立对应不同的环境通过以下的键值进行配置</p><code lang="text">akka.http.server.idle-timeout
 akka.http.client.idle-timeout
 akka.http.host-connection-pool.idle-timeout

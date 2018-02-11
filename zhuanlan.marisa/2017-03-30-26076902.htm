@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>(译) Algorithm W Step By Step</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26076902">原文</a></p>
 <p>原作者 Martin Grabmüller</p><p>未来：代码注释/其他语言转写；HM Type System 的前置知识。</p><h2>导读</h2><p>在这篇文章里，我们会用 Haskell 完整地实现用于 Hindley-Milner 多态类型推断(Hindley-Milner polymorphic type inference)的经典算法： W。</p><h2>1. 简介</h2><p>类型推断是一件很棘手的事情，也很难入门。因为大多数相关资料都是关于更加高深的话题的，例如 rank-N polymorphism，predicative/impredicative type systems，universal and existential types 等。我已经通过实际解决问题学到了一点东西，因此我决定写一篇关于类型推导的基础教程——实现一个最基础的类型推断算法，用于基本的类型检查（例如 ML 或者 Haskell）。</p><p>这里研究的类型推导算法是由 Milner 提出的 Algorithm W。[1]</p><p>有关此算法的变种、拓展或者更多信息，请参阅[2]。</p><p>本教程也受到[3]的启发。</p><h2>2. Algorithm W</h2><p>让我们从必须的 import 开始。为了表示环境（Environment，又名上下文 Context）以及替换（Substitution），我们需要 import Data.Map。类型变量的集合等将由 Data.Set 表示。</p><p>我们也需要一些 monad transformer，因此我们需要 import 关于 monad 的库。</p><p>Text.PrettyPrint 提供了一些让输出内容格式化并且缩进良好的方法，PrettyPrint 的代码在附录 A。（译注：可以直接使用Pretty Print，以专注于算法本身。）</p><code lang="haskell">import qualified Data.Map as Map
 import qualified Data.Set as Set
 

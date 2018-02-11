@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Python在unpacking上的一个小陷阱</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25436739">原文</a></p>
 在Python中，交换两个变量的值很方便：<code lang="python">a, b = b, a</code><p>同样的，对于列表也简单直接：<br></p><code lang="python">a[i], a[j] = a[j], a[i]</code><p>至此都很trivial。但是请看下面这个交换：<br></p><code lang="python">j = 0
 m = [1, 3, 5] 
 j, m[j] = m[j], 99

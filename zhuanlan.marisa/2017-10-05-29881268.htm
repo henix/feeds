@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>搭建 Emacs 的 Haskell/Idris 环境教程</title>
-<p><a href="https://zhuanlan.zhihu.com/p/29881268">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-01d44acb509148aa16658d3590521dd1_r.jpg" alt=""></div><p>原文发表在我的博客： <a href="http://ice1000.org/2017/10/03/EmacsIdrisHaskellEnv/">搭建 Emacs 的 Haskell/Idris 环境教程</a></p><p>最近看见 Haskell 群的萌新费尽心思也没成功搭建环境，而且很多都是用浏览器编程，很不清真。为了拯救苍生，顺便为考 SAT 攒人品，我决定写一篇搭建环境教程，来扩大 Emacs 势力。</p><p>由于 Idris 用户需要进行的操作基本上是 Haskell 用户的超集，因此未说明的地方就是都要进行的，针对 Idris 用户的额外步骤会说明。</p><p>编译 Idris 是一种浪漫，我的笔记本 5 分钟就编译好了，湛忠胜说编译了一下午。本文将讲述编译而不是下载二进制 Idris 的方法。</p><p>本文针对的操作系统是 Linux ，只要能用 apt 就可以了。</p><h2>本文使用的工具及版本</h2><ul><li>Emacs 25</li><li>GHC 8.2.2</li><li>Cabal 1.24</li><li>Idris 1.1.1</li></ul><h2>本文使用的镜像源</h2><ul><li><a href="https://mirrors.tuna.tsinghua.edu.cn/">清华大学 tuna 镜像源</a></li></ul><p>tuna 在本文发布的时候暂时挂掉了，因此在国庆期间搭建环境的同学们可以把下文中的 tuna 源智能替换为 ustc 源。 但是你就会遇到很多其它问题，所以我还是推荐等 tuna 活过来后用 tuna 。</p><ul><li><a href="http://mirrors.ustc.edu.cn/">ustc 源</a></li></ul><h2>apt 准备</h2><p>先加源，然后安装，下面的指令直接复制进终端执行：</p><code lang="text">$ sudo add-apt-repository ppa:hvr/ghc
 $ sudo add-apt-repository ppa:ubuntu-elisp/ppa
 $ sudo apt-get update

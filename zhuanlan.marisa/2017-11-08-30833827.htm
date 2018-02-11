@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Folding infinite list through F-algebra</title>
-<p><a href="https://zhuanlan.zhihu.com/p/30833827">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-6765c36a65c96091e2d1fb5522da91a0_r.png" alt=""></div><p>嘛，在知乎写的第一篇文章，参考了很多现有文章的格式及表达思路www。主要目的还是讨论一些F-algebra的概念和锻炼自己的表达能力。起因是最近刷到codewars上一道题：<a href="https://www.codewars.com/kata/folding-through-a-fixed-point">Folding through a fixed point</a>，其中涉及到一些以前接触过的F-algebra的概念，但题中并没有详细解释清楚F-algebra，评论区存在做完题但没明白到底发生了啥的评论。我也是在codewars上写了一个简单的解释，这里在不剧透题目的情况下搬运一些自己写的东西，并给出一个实际的例子：constructing, folding infinite list</p><p>注意：本文中存在一些伪代码，主要是类型签名用来说明类型。</p><h2>前置知识</h2><ul><li>对范畴论的一个大概的认识会有很大帮助</li><li>Haskell的基础语法及Functor typeclass的使用</li><li>对交换图表的相关知识</li></ul><h2>什么是Algebra</h2><p>简单来说，Algebra可以理解为能以某种方式组织表达式，以及能以某种方式对表达式进行规约的结构。这里我们所关心的表达式是其中的一种：recursively defined的表达式。比如，在Haskell中我们可以通过如下语法来组织一个列表：</p><code lang="haskell">data List a = Nil | Cons a (List a)</code><p>接着，我们可以通过value constructor构造我们需要的列表，通过pattern matching以我们想要的方式对列表进行规约。</p><code lang="haskell">list :: List String
 list = Cons "9" $ Cons "9" $ Cons "6" $ Cons "1" $ Nil
 

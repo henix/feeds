@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Penney&#39;s game</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19963099">原文</a></p>
 <p><a data-title="Penney's game" data-editable="true" href="https://en.wikipedia.org/wiki/Penney%27s_game">Penney's game</a> 是个很简单的问题，要写一个程序来解答，代码量也是有一点的，这非常适合用来说明为啥APL家族的代码很容易理解。</p><p>至于为啥APL很容易学，APL In Exposition里已经有很好的说明了。</p><img data-rawheight="209" data-rawwidth="681" src="https://pic1.zhimg.com/97f01baf2ec315227178af0c36b3eb7b_r.jpg"><p>当然我主要就是来反对一下 <a class="" data-title="非程序猿学习什么计算机语言比较好？C语言已经学过了，有没有什么语言打的代码比较少的？ - Belleve 的回答" data-editable="true" href="http://www.zhihu.com/question/28248249/answer/40135370">非程序猿学习什么计算机语言比较好？C语言已经学过了，有没有什么语言打的代码比较少的？ - Belleve 的回答</a></p><p>解这个问题，分析一下状态转移的情况，接着直接计算<equation>P \cdot \lim_{n \to \infty}{M^n}</equation> 就可以了</p><p>其中，P是初始概率 [1, 0, 0, ..., 0] 。M 是状态转移矩阵。把终止状态排在最后，可以观察到，终止状态对应的几个横行，左边都是零，最右边是个单位矩阵 <equation>\begin{pmatrix}
 A &amp; B \\
 O &amp; I

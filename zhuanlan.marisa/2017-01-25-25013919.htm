@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>共用的抽象模型（客户及服务器端）- URI 模型</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25013919">原文</a></p>
 <h2>URI 模型</h2><p>Akka HTTP 提供了自己一套特制（为了性能原因，以及更好的与组件内其它模型互动）的 <u>Uri</u> 类型对应 URI 定义，例如，一个 <u>HttpRequest</u> 的目标 URI 字符串会解析成该类型，并在解析过程中应用到所有字符转码和 URI 特殊语义等处理。</p><p><b>一个 URI 字符串的语法分析</b></p><p>Akka HTTP 按照 <a href="http://tools.ietf.org/html/rfc3986#section-1.1.2" data-editable="true" data-title="RFC 3986">RFC 3986</a> 标准作为 URI 字符串的语法分析规范。当开发者尝试解析一个 URI 字符串的时候，Akka HTTP 内部会建立一个 <u>URI</u> 类型的实例，以及其相关的 URI 组件部分。</p><p>例如，下面这个例子建立了以一个简单合规的 URI 实例：<br></p><code lang="scala"> URI("http://localhost")
 </code><p>以下再给出几个构造 Uri 实例的例子，其中都使用了合规的 URI 字符串，以及对比如何用构造函数 <u>Uri.from()</u> 和相关参数 <u>scheme</u>，<u>host</u>，<u>path</u>，<u>query</u> 构造一个 Uri 实例。</p><br><br><code lang="scala">Uri("ftp://ftp.is.co.za/rfc/rfc1808.txt") shouldEqual
   Uri.from(scheme = "ftp", host = "ftp.is.co.za", path = "/rfc/rfc1808.txt")

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Dafny与程序验证</title>
-<p><a href="https://zhuanlan.zhihu.com/p/30321583">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/v2-8f49af88768b20c6808b564c74a43abe_r.png" alt=""></div><p>B大以前写过一个<a href="https://zhuanlan.zhihu.com/p/25568785">怎样写出没有 bug 的程序：程序证明的简单例子</a> ，是用Idris写的，我也来写一个，不过方法不太一样。</p><p>Dafny是MSR开发的程序设计语言，它混合了OOP和FP编程范式，并且自带程序验证功能，可以通过霍尔逻辑证明程序正确性。</p><p>它的语法非常简单，看起来就像C++，Scala和Haskell的混合。</p><ul><li>变量(scala风格，只是没有val)</li></ul><code lang="scala">var x:Tree;
 var y:nat := 0;</code><ul><li>ADT(Haskell风格)</li></ul><code lang="scala">datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)
 datatype List&lt;T&gt; = Nil | Cons(head: T, tail: List&lt;T&gt;)

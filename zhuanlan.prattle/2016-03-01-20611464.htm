@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>EventEmitter 的异步处理</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20611464">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/c8861d0380bbb3a92e89315e36987fe7_r.jpg" alt=""></div><p>用过 node.js 的同学都知道，它实现了 Observer 设计模式，做了一套类似于 Python 的 event listener，叫 EventEmitter。你可以创建（或者扩展）一个 EventEmitter，在需要触发事件的时候，emit 你想要的事件，然后在其他的代码中，监听这个事件进行处理。</p><code lang="js">// framework code
 const ev = EventEmitter();
 ev.emit('event', data);

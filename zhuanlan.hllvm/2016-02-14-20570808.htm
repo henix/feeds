@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>给类型求导</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20570808">原文</a></p>
 熟识类型的用家可能都知道两个非常常见的类型构造：二元组和标签并，在代数类型（Algebraic type）中分别映射到乘法和加法，于是多项式<equation>1+t^2</equation>可以用来表示<equation>\mathrm{Either}\;()\;(t,t)</equation>这样的构造。继续扩展下去，比如把递归类型引入的话，就得到了许多递归类型的有理式表示，比如列表，它可以表示成<equation>L(a)=\frac{1}{1-a}</equation>，因为它是方程<equation>L(a)=1+aL(a)</equation>的解 [注 1]，而这个方程是列表的递归类型表示（在 Isorecursive 语义下，它表示<equation>L(a)</equation>和<equation>1+aL(a)</equation>之间存在一一映射，在实现时则用「指针」表示这种映射）。<p>上面的列表若是实现出来的话，是用链表实现的，对于双向遍历的话性能很差，于是我们发明一个 Zipper 类型，它同时存储一个焦点项目和它的左右两侧：</p><code lang="haskell">data Zipper a = Z [a] a [a]
 </code><p>向左右两侧遍历的操作就可以写成</p><code lang="haskell">left  (Z (l:ls) c rs) = Z ls l (c:rs)
 right (Z ls c (r:rs)) = Z (c:ls) r rs

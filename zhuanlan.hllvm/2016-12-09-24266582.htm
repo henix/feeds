@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，6：顶和底</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24266582">原文</a></p>
 Top type 和 Bottom type 是两个 FP 中常见的特殊类型，Top 包含所有值，Bottom 则不包含任何值，用来表示程序不终止、异常等。在合一面前，满足规则：<ul><li>Bottom 可以合一到任何类型（但不能反过来）</li><li>任何类型都可以合一到 Top（同样，不能反过来）</li></ul><p>出于对日后实现接口动态委派的考虑，Top type 我们采用一种受限的 Existential Quantified type 形式，Bottom 仍然是很简单的 Bottom：</p><code lang="js">// Bottom type
 class Bottom extends Monomorphic {
 	constructor() {

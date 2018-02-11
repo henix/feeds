@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>从编程语言的角度看深度学习</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24941985">原文</a></p>
 <p>想必大家都听说过<a href="https://en.wikipedia.org/wiki/Artificial_neural_network" class="" data-editable="true" data-title="Artificial Neural Network">Artificial Neural Network</a>（如果没有，快去看），但是具体来说，什么是反向传播呢？反传背后的Intuition又是啥？我会试着从编程语言的角度，说明深度学习的各种东西，并且指出从编程语言看待深度学习的潜在好处。同时，我也会介绍一下我从这角度写的深度学习框架<a href="https://github.com/ThoughtWorksInc/DeepDarkFantasy/" class="" data-editable="true" data-title="ThoughtWorksInc/DeepDarkFantasy">DeepDarkFantasy</a>，以展示编程语言里面的各种东西可以如何应用上神经网络框架。<br></p><p><b>什么是神经网络？ </b></p><p>一言蔽之，一个神经网络就是一个带有一定未知参数的程序！这些未知参数，是一个神经网络的权重。正向传播，就是运行这个程序的过程。深度学习，就是寻找这些参数。</p><p>比如说，假设我们有如下的神经网络（并假设用的激活函数为Relu（为了方便描述，这是个很小的网络））：</p><br><p>输入0 -----输出0</p><p>输入1 -------/\</p><p>这个神经网络，如果转为scala代码，就是</p><code lang="scala">def nn(in0 : Double)(in1 : Double)(w0 : Double)(w1 : Double) = max(in0 * w0 + in1 * w1, 0)
 </code><p><b>如何训练神经网络？ </b></p><p>怎么找出最优的未知参数呢？</p><p>首先，什么叫‘最优’的参数呢？我们可以引入一个函数：指标。指标接受权重，用这些权重运行神经网络，最后得出一个分数。最优的未知参数最小化/最大化这个指标。这个指标叫做Loss Function。</p><code lang="scala">type Weight = Double
 //假设只有一个Weight，为Double

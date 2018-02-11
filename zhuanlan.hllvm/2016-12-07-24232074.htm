@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，3：前置声明</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24232074">原文</a></p>
 即使在 ML、Haskell 之类的函数式语言中可以通过推理分析函数的类型，为每个函数写前置声明仍然是十分推荐的做法。因此在这里我们来实现下前置声明。<p>前置声明本身是个非常简单的节点，它关联一个名字以及一个类型；再推理时，会再当前环境（作用域）中增加一条变量定义，然后返回 unit 类型：</p><code lang="js">// Forward declaration
 class ForwardDeclaration {
 	constructor(name, type) {

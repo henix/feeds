@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>[Parsing] 2. Naive Evaluation</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20033711">原文</a></p>
 <p>Datalog相比Prolog，少了复合类型，但是要求结果是和求值顺序无关。这点就比Prolog好多了，Prolog完全没有逻辑可言，而Datalog至少是和一阶逻辑类似的。</p><p>我们用 {var, 'X'} 的形式来表示Datalog中的变量。那么，类型定义可以写成</p><code lang="text">-type datalog_term() :: atom() | {'var', atom()}.
 -type datalog_goal() :: {atom(), [datalog_term()]}.
 -type datalog_clause() :: {datalog_goal(), [datalog_goal()]}.</code><p> 一个简单的例子</p><code lang="text">%% start(a).

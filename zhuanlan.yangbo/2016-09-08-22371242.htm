@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>用sbt-best-practice为Scala库设置Travis CI上的持续集成和持续交付</title>
-<p><a href="https://zhuanlan.zhihu.com/p/22371242">原文</a></p>
 <p>Github上有很多 Scala 开源库。它们都有自动测试的功能。</p><p><br></p><p>比如 README 页面上有个小图标（build passing）表示当前版本是否通过了测试。</p><img src="https://pic4.zhimg.com/8e8fa025d59af31425ede63348dd370a_r.png" data-rawwidth="2276" data-rawheight="918"><p><br></p><p><br></p><p>再如，每当有人提交 Pull Request 的时候，也会有个小勾勾报告这次修改能不能通过测试。</p><img src="https://pic3.zhimg.com/916699913e7dbf3895d424feb3695d19_r.png" data-rawwidth="2352" data-rawheight="1404"><p><br></p><p><br></p><p>还有，这些库还会发布到 Maven 中心仓库，我如果要在自己的项目使用它们的话，只要在自己的 sbt 配置中添加依赖就可以自动下载了。</p><p>这些自动测试和发布功能属于持续集成和持续交付，可以用 <a href="https://link.zhihu.com/?target=https%3A//travis-ci.org/">Travis CI</a> 和 <a href="https://link.zhihu.com/?target=https%3A//github.com/ThoughtWorksInc/sbt-best-practice">sbt-best-practice</a> 实现。</p><p>Travis CI 是个持续集成服务。一旦你的 Github 仓库启用了 Travis CI ，每当有人在仓库推送代码或者提交 Pull Request 时，就会触发 Travis CI 执行一段脚本。</p><p>对于 Scala 项目来说，一般用 <a href="https://link.zhihu.com/?target=http%3A//www.scala-sbt.org/">sbt</a> 管理构建过程，所以我们会希望 Travis CI 被触发以后，执行测试和发布的 sbt 任务。这样就可以完成题主要求的所有功能了。</p><p>第一步：启用 Travis CI</p><p>Travis CI 的构建过程配置在 .travis.yml 文件中。Scala 库的 .travis.yml 应该写成这样：</p><p><br></p><code lang="yaml"># 告诉 Travis CI 应该用已经安装了 Scala 的系统镜像来执行本文件中配置的脚本
 language: scala
 

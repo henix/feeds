@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Haskell中的范畴之函子和自然变换</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25565309">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-924d4313803502a678947a3a87a51d29_r.jpg" alt=""></div><p>在上一篇<a href="https://zhuanlan.zhihu.com/p/25407184" data-editable="true" data-title="Haskell中的范畴 - 知乎专栏" class="">Haskell中的范畴 - 知乎专栏</a>文章中，介绍了范畴的一些基本概念。在这一篇中，我们将从单个范畴中走出来，建立范畴之间的态射，进而得到范畴的范畴。另外，由范畴之间的态射，得到函子，由函子之间的态射，得到自然变换，从而得到了函子范畴。这样我们就一步步的得到了更多的范畴，有了更多好用的性质和代数结构，在函数式编程中有了更多的用处。</p><p>下面，我们先从函子开始吧。</p><ul><li><b>函子</b><br></li></ul><br><p>若我们将范畴看成是一个更高层的范畴的对象，则两个范畴之间的态射就是函子。函子<equation>F: \mathcal{C} \to \mathcal{D}</equation>将范畴<equation>\mathcal{C}</equation>中的对象a变换为范畴<equation>\mathcal{D}</equation>中的对象F a，将范畴<equation>\mathcal{C}</equation>中的态射f变换为范畴<equation>\mathcal{D}</equation>中的态射F f，并保持了范畴的结构不变，即这两个范畴都必须满足范畴需要的定律。所以函子<equation>F: \mathcal{C} \to \mathcal{D}</equation>必须满足如下的定律：</p><equation>F\ id_\mathcal{C} &amp;=&amp; id_\mathcal{D} \\
 F\ (f\ \cdot_\mathcal{C}\ g) &amp;=&amp; F\ f\ \cdot_\mathcal{D}\ F\ g</equation><br>在Haskell中，函子<equation>F</equation>用类型类Functor 以如下方式来约束。<br><code lang="haskell">class Functor f where
   fmap :: (a -&gt; b) -&gt; f a -&gt; f b

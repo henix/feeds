@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Lambda calculus引论(六): 正规化与类型重建</title>
-<p><a href="https://zhuanlan.zhihu.com/p/27399507">原文</a></p>
 <p>在上一节里介绍了简单带类型的λ-calculus的定义和基本性质, 这一节将介绍引入类型对λ-calculus系统的影响, 最重要的即是类型保证了系统的强正规性(strong normalization), 另外还将介绍类型检查与类型重建的方法(这一部分也是函数式编程应用里比较多关注的内容).</p><br><br><h2><b>弱正规化定理(Weak normalization theorem)</b></h2><b>定义:</b> 类型<equation>\tau</equation>的度(degree)记作<equation>\partial(\tau)</equation>, 定义如下:<br><br><equation>\begin{align}
 &amp;\partial(\tau)=1\quad(\tau\ is\ a\ type\ variables)\\
 &amp;\partial(\tau\to\sigma)=\max\{\partial(\tau),\partial(\sigma)\}+1\\

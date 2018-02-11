@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>愉悦的scheme之旅（3）-scheme卫生宏系统的实现</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25806246">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-bed1931a379c190a19c4c1d0131c8735_r.jpg" alt=""></div><h2><b>前言</b></h2><p>这是本系列的第三篇文章，由于本人水平有限，可能有不对的地方，欢迎各位指出。</p><p>同时本篇文章参考了kent的一篇论文 <a href="http://www.cs.indiana.edu/~dyb/pubs/LaSC-5-4-pp295-326.pdf" data-editable="true" data-title="indiana.edu 的页面" class="">http://www.cs.indiana.edu/~dyb/pubs/LaSC-5-4-pp295-326.pdf</a></p><h2><b>卫生宏有什么好处/坏处</b></h2><p>不卫生的宏的名字有时会产生冲突和意向不到的错误，使用gensym并不能解决非卫生宏的所有问题。</p><p>但是有些时候（更少的时候），我们也需要非卫生的宏，scheme的宏系统将卫生宏和非卫生宏完美结合在一起了。</p><h2><b>基本原理</b></h2><p>引用原文：</p><blockquote><p>In the lambda calculus, alpha conversion is used to circumvent hygiene problems</p><p>caused by program transformations. Since the actual name of a bound variable</p><p>is immaterial, a binding expression can be converted into an equivalent</p><p>expression in which different names are used for the bound variables. Our</p><p>algorithm uses alpha conversion to preserve hygiene during macro expansion.</p></blockquote><p>alpha conversion是实现卫生宏的基本原理，举个例子</p><p>or 宏</p><code lang="scheme">(define-syntax or
   (syntax-rules ()
     [(_ a b)

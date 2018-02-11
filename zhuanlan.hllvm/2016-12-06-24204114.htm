@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，1a：分离定义和抽象</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24204114">原文</a></p>
 你们应该也看得出来，<a href="https://zhuanlan.zhihu.com/p/24195357?refer=hllvm" data-editable="true" data-title="前一节">前一节</a>中那个 FDef 节点做了太多的事情，在这一节中会拆成四个更简单的节点：<ul><li>Abstraction，表示一个 Lambda 抽象。</li><li>Definition，表示一个名称定义。它的类型允许多态，也允许递归。</li><li>Assign，表示一个名称绑定。它的类型是单态的。</li><li>AssignRec，和 Assign 相似的单态绑定，但是允许递归，用于 let rec 的实现。</li></ul><p>拆分后的代码如下：</p><code lang="js">// A lambda abstraction \parameter.body
 class Abstraction extends Form {
 	constructor(parameter, body) {

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Pyjion的代码质量一例 [20160221]</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20591139">原文</a></p>
 <p><a href="http://zhuanlan.zhihu.com/hllvm/20581695" data-title="上一篇文章" class="" data-editable="true">上一篇文章</a>简单介绍了一下<a href="https://github.com/Microsoft/Pyjion" data-editable="true" data-title="Pyjion项目">Pyjion项目</a>的目标与概况。相信很多同学都很好奇，目前的Pyjion到底效果如何对不对？</p><p>那我们就从一个再简单不过的例子来一探究竟。非常感谢<a href="https://www.zhihu.com/people/f12d62dfdf1236e961460798455b1718" data-hash="f12d62dfdf1236e961460798455b1718" class="member_mention" data-editable="true" data-title="@Thomson" data-tip="p$b$f12d62dfdf1236e961460798455b1718">@Thomson</a>大大帮忙做实验，下面的实验结果都是拜托他帮忙获得的。</p><p>考虑下面的Python代码：</p><code lang="python">def foo(a, b):
   return a + b
 </code><p>它由CPython编译得到的字节码如下：</p><code lang="text">0 LOAD_FAST                0 (a)

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Erlang入门教程 - 5. 列表</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28155655">原文</a></p>
 <p>鉴于已经有tuple将元素分组，现在也需要一个工具表示一列元素。Erlang中列表由方括号“[” “]”表示。比如要表示世界各城市的温度可以：</p><code lang="erlang">[{moscow, {c, -10}}, {cape_town, {f, 70}}, {stockholm, {c, -4}},
  {paris, {f, 28}}, {london, {f, 36}}]</code><p>注意如果列表太长一行没法写完，没关系，Erlang允许我们在合理的地方换行。</p><p>在列表中获取一部分可以使用“|”，下面例子是最好的解释：</p><code lang="erlang">17&gt; [First |TheRest] = [1,2,3,4,5].
 [1,2,3,4,5]

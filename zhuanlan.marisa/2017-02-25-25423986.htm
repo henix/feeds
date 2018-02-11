@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>实现一个无代码侵入的Java APM [I]</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25423986">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-1b8eee51c3b5eb4429e6159ce86ec503_r.jpg" alt=""></div><p><b>0. 前言</b></p>Java开发者应该都知道在Java中有许多实现代理模式的方式, 其中最强大的莫过于Java Instrument API, 它允许在JVM启动的时候或者运行中挂载agent用于字节码增强和调试.相关文档可以自行在Oracle官网上查看.<p>代码在 <a href="https://github.com/ArcherFeel/AWACS" data-editable="true" data-title="ArcherFeel/AWACS: A non-intrusive APM for Java" class="">ArcherFeel/AWACS: A non-intrusive APM for Java</a></p><p><b>1. 挂载一个Hello World Agent(3个文件)</b></p><p>这里用老的premain方法, 只能JVM启动时挂载. </p><code lang="text">package u.lol.awacs;
 
 import java.lang.instrument.Instrumentation;

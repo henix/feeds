@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Clang Parser漫步（三）——declarator的解析</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26341238">原文</a></p>
 <p>非常抱歉！！最近忙着写毕业论文，最近几天完成了初稿，今天抽个空把这个部分接着写。</p>上文<a href="https://zhuanlan.zhihu.com/p/23368100" data-editable="true" data-title="Clang Parser漫步--declaration-specifiers（二） - 知乎专栏">Clang Parser漫步--declaration-specifiers（二） - 知乎专栏</a>说道，我们在解析了decl-spec之后，按照C99语法标准，接着需要解析的是declarator部分。下面C99该部分的EBNF形式的描述。<code lang="bash">在如下EBNF文法中，小写字母表示编译原理书中的非终结符，大写字母表示终结符。
 var-declaration::
   decl-specs declarator initialzier-expr

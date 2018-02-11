@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>使用RNN预测股票价格系列（二）</title>
-<p><a href="https://zhuanlan.zhihu.com/p/31769828">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-bb7a85ce5804997c1e85d36f5d15ffad_r.jpg" alt=""></div><p>编译：https://lilianweng.github.io/lil-log/2017/07/22/predict-stock-prices-using-RNN-part-2.html</p><p><b><a href="https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;mid=2653286558&amp;idx=1&amp;sn=25441578341bde783cf8190e877c55f1&amp;chksm=802e328bb759bb9d28e420d783a61944adc1369c6371962d5ba55d7de13df1272ef7232313ec&amp;scene=21#wechat_redirect">系列</a>一</b>（可点击查看）</p><p>在<b><a href="https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;mid=2653286558&amp;idx=1&amp;sn=25441578341bde783cf8190e877c55f1&amp;chksm=802e328bb759bb9d28e420d783a61944adc1369c6371962d5ba55d7de13df1272ef7232313ec&amp;scene=21#wechat_redirect">系列</a>一</b>的教程中，我们想继续有关股票价格预测的主题，并赋予在系列1中建立的具有对多个股票做出响应能力的RNN。 为了区分不同价格序列之间相关的模式，我们使用股票信号嵌入向量作为输入的一部分。</p><p><b>数据集</b></p><p>数据提取代码可以写成如下形式：</p><code lang="python">import urllib2
 from datetime import datetime
 BASE_URL = "https://www.google.com/finance/historical?"

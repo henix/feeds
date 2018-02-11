@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>EDSL相关杂记（2）</title>
-<p><a href="https://zhuanlan.zhihu.com/p/22835338">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-5b1142db26a1c4609983de8563b899e4_r.png" alt=""></div>本期专栏讲述Expression Problem的解决方法之一：Data types à la carte。它实现可组合数据类型的原理是将数据类型中“递归”的语义抽离，将其变为函子，利用函子的可组合性实现数据类型的可组合性。<h2>类型层面的不动点组合子</h2><p>首先，我们讨论怎样改造一种最简单的EDSL AST：单类型（每种eval操作总是返回同一类型），且不涉及多种数据类型的互递归。以浮点数算术表达式为例：</p><code lang="haskell">data Op = Add | Minus | Mult | Div
 data Expr = Lit Double | App Op Expr Expr</code><p>可以认为声明ADT即对已有类型进行运算，生成新类型。我们需要处理的情况有：</p><ul><li>积类型（Product Type）：新类型的值同时包含一系列子类型的值</li><li>和类型（Sum Type）：新类型的值包含一系列子类型其中一种的值</li><li>递归类型（Recursive Type）：新类型的值可能包含自身类型的值</li></ul><p>非递归的情况下，实现二元或多元的积/和类型轻而易举，比如可以用Tuple代表积类型，用Either代表二元和类型。怎样实现递归类型？我们先从type-level转移到term-level，思考类似的问题：lambda calculus不允许为term命名，无法进行自调用，如何实现递归函数？答案是使用不动点组合子。</p><code lang="haskell">fac :: Int -&gt; Int
 fac 0 = 1

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Erlang并发进阶</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28859183">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-f41939c06818a01f3e00990b6cd5e2d9_r.jpg" alt=""></div><p><b>Getting Started with Erlang User’s Guide Version 9.0</b></p><p><br></p><h2><b>写在前面的话</b></h2><ul><li>本文来源于官方教程 <a href="http://link.zhihu.com/?target=http%3A//erlang.org/doc/getting_started/conc_prog.html">Erlang -- Concurrent Programming</a>。虽然没有逻辑上的关系，但建议在掌握了<a href="https://zhuanlan.zhihu.com/p/28154714">Erlang入门系列教程</a>的一些前置知识后继续阅读。</li><li><a href="https://w">之前我是逐小结翻译然后发布，写到后面感觉并发这篇文章连贯性较强，分开不便于阅读，所以现在把它合并为一篇文章，刚好赶在开学前完成，也算对自己一个交待。希望能读得开心，如有错误恳请指正。</a></li></ul><p><br></p><h2>1. 进程</h2><p>使用Erlang而不是其他函数式编程语言的主要原因之一就是Erlang的并发处理能力和分布式编程。并发意味着程序可以在同一时刻执行多个线程。举个例子，操作系统允许你在同一时刻运行文字处理程序，电子表格程序，邮件客户端，和打印任务。系统中的每个处理器（CPU）有可能只处理一个线程，但是它以一定频率交换这些线程，给我们造成一种多个程序是在同一时刻执行的假象。在一个Erlang程序中很容易创建<b>并行执行（parallel execution）</b>的线程，并且运行这些这些线程互相通信。Erlang中，每个执行线程称之为<b>进程（process）</b>。</p><p>（旁白：术语“进程（process）”通常用于各个执行线程不共享数据，术语‘’线程（thread）”用于当它们以某种方式共享数据。Erlang执行线程不共享数据，这就是为什么它们叫做进程的原因）</p><p>Erlang内置函数<b>spawn</b>用于创建一个新进程：<b>spawn(Module, Exported_Function, List of Arguments)。</b>考虑下面的模块</p><code lang="erlang">-module(tut14).
 
 -export([start/0, say_something/2]).

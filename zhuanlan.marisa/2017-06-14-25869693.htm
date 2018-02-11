@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Lambda calculus引论(五): 简单类型</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25869693">原文</a></p>
 <p>在之前的章节中介绍的λ-calculus是无类型的, 即若把一个λ-term理解为映射, 则该映射的定义域(Domain)与值域(range)为全集(universe). 在很多时候域将会揭示很多有意义的信息, 为λ-calculus明确指定定义域与值域(类型)是很有意义的, 类型可以理解为对域进行符号化并提供了一系列的操作工具. 这节开始介绍λ-calculus与类型系统.</p><br><p>本节将介绍简单带类型的λ-calculus, 即Simply typed lambda calculus(STLC).</p><br><br><h2><b>Simply typed λ-calculus à la Curry</b></h2><p>下面给出了Curry风格简单带类型的λ-calculus的定义, 其为在无类型的λ-calculus的表达式尾部添加入了类型项.<br></p><p><b>类型标识符(</b><b>type variables):</b></p><br><equation>U=\{\tau _0,\tau_1,\cdots\}</equation><p><equation>U</equation>为可数标识符集合, <equation>\tau _0,\tau_1,\cdots</equation>为类型标识符.</p><p><b>类型(types):</b></p><equation>\begin{align}
 &amp;\Pi_1:=U\\
 &amp;\Pi_{n}:=U\;|\;(\Pi_{n-1}\to\Pi_{n-1})\\

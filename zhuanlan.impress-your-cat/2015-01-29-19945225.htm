@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>CERL++</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19945225">原文</a></p>
 <p><a data-title="如何看待许式伟谈Go Erlang并发编程差异？ - 余锋的回答" data-editable="true" class="" href="http://www.zhihu.com/question/27465406/answer/36806416">如何看待许式伟谈Go Erlang并发编程差异？ - 余锋的回答</a>中提出CERL没有源代码没法比较。没有，自己写一个就是了嘛。不就是setjmp/longjmp么，有啥难的。早就想写一个了，今天终于想起来了。写了个64位的，且最小的栈可以只占4K内存。要知道，<a class="" data-title="［ECUG专题回顾］《再谈CERL：详论Go与Erlang的并发编程模型差异》" data-editable="true" href="http://blog.qiniu.com/?p=1059">［ECUG专题回顾］《再谈CERL：详论Go与Erlang的并发编程模型差异》</a> ，这里提到了ESP/EBP，说明CERL是32位的，这样其实是有问题的。32位的程序进程的地址空间只有4G，而一个coroutine的栈要占用4K，那么就算全是coroutine的栈，也只能有1M的coroutine，完全不够用啊啊，看样子还做不到栈最少只占4K内存。所以，这可比CERL强多了。那就叫CERL++好了。</p><code lang="c">#include &lt;stdlib.h&gt;
 #include &lt;setjmp.h&gt;
 #include &lt;sys/mman.h&gt;

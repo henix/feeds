@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>将作用域写入类型 (Encoding scope in type)</title>
-<p><a href="https://zhuanlan.zhihu.com/p/22598462">原文</a></p>
 <p>本文的主要受 <a href="https://zhuanlan.zhihu.com/p/22231273?refer=marisa" data-editable="true" data-title="魔理沙的一篇文章">魔理沙的一篇文章</a> 启发，精简了内容（去掉了与作用域无关的强类型之类的东西），增加了一些解释。</p><p>（翻译：本文是 Compiling Combinators Clarified）</p><p>（本文 Literate Haskell 源代码在 <a href="https://github.com/dramforever/writings/blob/master/ski-scope-untyped.lhs" data-editable="true" data-title="writings/ski-scope-untyped.lhs at master · dramforever/writings · GitHub" class="">https://github.com/dramforever/writings/blob/master/ski-scope-untyped.lhs</a>）</p><p>（我对知乎编辑器支持粘贴 HTML 表示非常高兴）</p><p> 我们需要一些 GHC 扩展</p><code lang="haskell">{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleInstances #-}

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，7：嵌套的量化，以及为什么专栏不够用了</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24301304">原文</a></p>
 我改用 Docco 生成了一个版本放在这了：<a href="https://be5invis.github.io/your-type/hrt.html" data-editable="true" data-title="`hrt.js`, A Rank-N Type Inferencer">`hrt.js`, A Rank-N Type Inferencer</a>。其实现基于 Simon Peyton Jones 等的论文 <em>Practical type inference for arbitrary-rank types</em>：通过拆分「类型推理」为两个步骤——infer 和 check，实现了「用户提供函数签名的情况下支持<equation>\forall</equation>的任意嵌套」。<p>至于为什么不在专栏写……看下 HRT 决议出的结果有多么复杂吧：<img src="https://pic1.zhimg.com/v2-e0f4f586cedf7f38ea218f3dba35cf85_r.png" data-rawwidth="1584" data-rawheight="1260"></p><p>这张图是以下程序的类型推理结果：</p><code lang="js">["letrec",
 	["even?", ["lambda", ["x", "int"],
 		["if", ["zero?", "x"],

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Packrat Parsing 回溯式线性时间语法分析</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25260077">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-5fea2cb7398d4b9e146437641557a6eb_r.png" alt=""></div><p>如果对编译原理稍微有了解, 相信你一定知道有很多不同的语法分析算法, 如LL家族和LR家族. 最简单的语法分析算法是递归下降分析(recursive descent parsing), 可以看作是从文法直接构建对应的递归函数进行语法分析. </p><p>递归下降语法分析主要可以分成两类, 预测分析(Predictive parsers)和回溯分析(Backtracking parsers), 预测分析通过向前看符号(looking ahead)来确定语法分支, 广泛使用的LL(1)算法(就是向前看一个符号啦)相信大家一定不陌生. 回溯分析通过对每一个语法分支进行分析, 失败后回溯使用下一个分支.</p><p>从分析能力上看, 回溯分析有着比预测分析更强大的能力, 因为预测分析只能使用当前语法状态和有限个数的向前看符号来进行分支决策, 而回溯分析不进行分支决策而是直接遍历所有分支直到完成语法分析. 但是预测分析有着更好的性能, 能保证在线性时间内完成分析, 而回溯分析很有可能会导致指数级分析时间增长.</p><p>本文将介绍一种回溯分析的实现技巧: Packrat Parsing, 一种简单优雅的实现, 使用记忆化使得回溯分析拥有线性时间复杂度.</p><p><br></p><p><br></p><p>首先, 如下面的加法和乘法表达式文法:</p><p><equation>\begin{align} Additive&amp;\;:=\;Multitive\;'+'\;Additive\;|\;Multitive\\ Multitive&amp;\;:=\;Primary\;'*'\;Multitive\;|\;Primary\\ Primary&amp;\;:=\;'('\;Additive\;')'\;|\;Number\\ Number&amp;\;:=\;'0'\;|\;\cdots\;|\;'9'\\ \end{align}</equation></p><p>我们可以直接写出对应的回溯分析代码(JavaScript):</p><p>接受一个字符串参数, 返回一个对象包含语义值value(表达式计算对应的数值)和剩余需要继续分析的字符串str.</p><code lang="js">//Additive := Multitive '+' Additive | Multitive 
 function ExprAdditive(str){
 	try{

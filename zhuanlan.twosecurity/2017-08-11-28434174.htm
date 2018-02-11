@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>ReactJS 中的代码注入</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28434174">原文</a></p>
 <h2>ReactJS 概述</h2><p>ReactJS是一款用于构建用户界面的JavaScript库。它能预加载Web前端，给用户带来更舒适的体验。React已经实现了绝大部分的客户端逻辑（比如说React能自动编码字符串），因此开发者大抵不用担心XSS攻击。</p><p>因此，只要合理使用React，你的应用就不会有太大的安全隐患。然而这些防御措施还是会因为坏的编程习惯而失效，比方说：</p><ul><li>使用客户端提供的对象来创建React组件</li><li>通过用户提供的href或者其它可注入的属性来渲染链接</li><li>在React中使用dangerouslySetInnerHTML</li><li>把用户提供的数据传给eval()</li></ul><p>就像墨非定律说的那样，这些隐患随时都会产生漏洞。让我慢慢道来。</p><h2>Components, Props和Elements</h2><p>Component(组件)是ReactJS最基本的对象。它们就像JavaScript的函数一样，接受任意输入(就是后文的props)并返回一个React Element(元素)。一个基本的component如下：</p><code lang="js">class Welcome extends React.Component {
   render() {
     return &lt;h1&gt;Hello, {this.props.name}&lt;/h1&gt;;

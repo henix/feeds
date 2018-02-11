@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>GraphQL，你准备好了么？</title>
-<p><a href="https://zhuanlan.zhihu.com/p/23647589">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/v2-4eb988688d8cebcd8230ff7eaa657ba5_r.jpg" alt=""></div><p>一个多月前，facebook 将其开源了一年多的 GraphQL 标记为 production ready ( <a href="http://graphql.org/blog/production-ready/">http://graphql.org/blog/production-ready/</a> )，几乎同一时间，github 开放了其 GraphQL API 的 early access ( <a href="https://developer.github.com/early-access/graphql/" data-editable="true" data-title="GitHub GraphQL API">GitHub GraphQL API</a> )。两颗重磅炸弹先后落地，是否意味着已有五年多历史，和 facebook 的 news feed 几乎同时诞生的 GraphQL 将在接下来的日子里大放异彩，逐渐取代 REST API 的地位？</p><h2>REST API</h2><p>我们先通过一个简单的例子来说明 REST 和 GraphQL 的异同。假设 TubiTV 有一个 API，要获取系统中的某个用户，就 REST API 而言，其接口大概会是这样：</p><br><code lang="text">GET /v1/users/1</code><p>然后其返回结果是：</p><br><code lang="text">{
   "first": "Tyr",
   "last": "Chen",

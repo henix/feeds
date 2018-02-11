@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>关于100个人随机给钱的模拟实验</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28052348">原文</a></p>
 <p>　最近在知乎上看到一个很有趣的问题：房间里有100个人，每人都有100元钱，他们在玩一个游戏。每轮游戏中，每个人都要拿出一元钱随机给另一个人，最后这100个人的财富分布是怎样的？</p><p>  有篇文章叫做《该如何面对这个残酷的世界》有说道，最后会变成所谓幂律分布。</p><p><a href="http://business.sohu.com/20170721/n503246753.shtml">该如何面对这个残酷的世界？-搜狐财经</a></p><p><br></p><img src="https://pic4.zhimg.com/v2-2f49fb7c875b46a2e02b0cee564d2c5e_r.png" data-rawwidth="662" data-rawheight="375"><p><br></p><p>我用R写了一个小程序模拟了一下：</p><code lang="text">n &lt;- 100
 n.sim &lt;- 17000
 set.seed(100)

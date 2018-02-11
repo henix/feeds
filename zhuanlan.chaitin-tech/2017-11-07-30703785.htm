@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Unity游戏菜鸡玩家的制胜之路</title>
-<p><a href="https://zhuanlan.zhihu.com/p/30703785">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-6de83ed6f668f836c15e2e6f1b2dbf37_r.jpg" alt=""></div><p><b>作者：赵奇</b></p><blockquote>笔者一直自认玩过不少游戏，无奈水平太菜，日常送人头。痛定思痛，决定冲(xie)冠(xiu)一(gai)怒(qi)，经过几次失败的尝试之后，终于搞定了几款时下热门的Unity游戏。出于各种原因，本文以一款不具名的国外游戏作为实例，分享笔者研究过程中的一些心得，与各位分享。</blockquote><p><br></p><h2><b>0X00 打包党的鶸改法</b></h2><p><br></p><p>首先采用最简单的打包党策略，演示一下如何快速修改一款单机游戏的金币/宝石等资源。这部分快速带过，主要负责熟悉 Unity 游戏结构，时至今日已经不算一种技术了。</p><p><br></p><p>首先将游戏安装 APK 解包，这里使用 apktool 或者直接看作 zip 解包是没有区别的，因为游戏严重依赖框架，Java 层和 Manifest 等文件价值不大。作为 Unity 游戏的一个特征点，可以很明显的发现这样一个文件夹。</p><img src="https://pic3.zhimg.com/v2-f9320e6f5de0d528d1a8bd36a5bc0e05_r.jpg" data-caption="" data-rawwidth="607" data-rawheight="377"><p>Assembly-CSharp.dll 等几个文件是 Unity 游戏最鲜明的特点。通过 file 或者 binwalk 查看可以发现它们是 C# 字节码格式（ IL ），这种格式如果不进行加密，可以轻松的还原 C#指令。</p><p><br></p><p>接下来在手机中安装一次游戏，看一下大致的游戏逻辑，确定需要修改什么。</p><p><br></p><img src="https://pic1.zhimg.com/v2-9dd04206c80d68d8d1f883a87870941e_r.jpg" data-caption="" data-rawwidth="1440" data-rawheight="999"><p><br></p><p>看起来右上角的宝石不错。。。</p><p><br></p><p>一般来说在游戏里边宝石都是稀缺资源，这里以其作为目标。为了快速定位，尝试使用 diamond ，gem 等字符串在 cs源码中进行全局搜索，很快就能定位到关键位置。</p><p><br></p><code lang="text">private void SetupFirebaseDefault()
 	{
 		this.Defaults.Add("EnergyStart", 20);

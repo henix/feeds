@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>【精心解读】用pandas处理大数据——节省90%内存消耗的小贴士</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28531346">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-277d38cefb9c636ac157a8ddd44af3d5_r.jpg" alt=""></div><p>编译：西西、wally21st</p><blockquote><i>未经允许，不得转载</i></blockquote><p><b>原文链接：<a href="https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;mid=2653286198&amp;idx=1&amp;sn=f8f0ea4845586b1f9b645995aa07d8a0&amp;chksm=802e2d23b759a435aa1fc3a4ce26c69a7a4ce0a769c8d9f873c913066ff8a877109d5f2a9d15#rd">用pandas处理大数据——节省90%内存消耗的小贴士</a></b></p><p><br></p><p>一般来说，用pandas处理小于100兆的数据，性能不是问题。当用pandas来处理100兆至几个G的数据时，将会比较耗时，同时会导致程序因内存不足而运行失败。</p><p><br></p><p>当然，像Spark这类的工具能够胜任处理100G至几个T的大数据集，但要想充分发挥这些工具的优势，通常需要比较贵的硬件设备。而且，这些工具不像pandas那样具有丰富的进行高质量数据清洗、探索和分析的特性。对于中等规模的数据，我们的愿望是尽量让pandas继续发挥其优势，而不是换用其他工具。</p><p><br></p><p>本文我们讨论pandas的内存使用，展示怎样简单地为数据列选择合适的数据类型，就能够减少dataframe近90%的内存占用。</p><p><br></p><h2><b>处理棒球比赛记录数据</b></h2><p>我们将处理130年的棒球甲级联赛的数据，数据源于<a href="http://www.retrosheet.org/gamelogs/index.html">Retrosheet</a></p><p>原始数据放在127个csv文件中，我们已经用<u><a href="https://csvkit.readthedocs.io/en/1.0.2/">csvkit</a></u>将其合并，并添加了表头。如果你想下载我们版本的数据用来运行本文的程序，我们提供了<u><a href="https://data.world/dataquest/mlb-game-logs">下载地址</a></u>。</p><p>我们从导入数据，并输出前5行开始：</p><code lang="python">import pandas as pd
 
 gl = pd.read_csv('game_logs.csv')

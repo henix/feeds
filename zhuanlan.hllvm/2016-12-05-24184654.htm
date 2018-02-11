@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>在JavaScript里把Number转成32位符号整数</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24184654">原文</a></p>
 JavaScript里面用原生类型Number来表示数字类型而不像其它语言一样有原生的整数类型。但是有些操作对整数和Number（double）的操作结果是有区别的，比如除法（/）。整数除法的结果也是整数，如果按浮点做除法则需要对结果向下取整。要完成这个操作可以调用比较直观的<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor">Math.floor</a>，另外一个办法就是下面这样：<code lang="js">var intDivResult = 3 / 2 | 0;</code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators" data-editable="true" data-title="MDN">MDN</a>上说明胃位操作运算符的操作数都是32位的有符号整数，所以如果是Number则会在做相应位运算前转换到32位有符号整数。<blockquote>The operands of all bitwise operators are converted to signed 32-bit integers in two's complement format. <br></blockquote><p>下面是ChakraCore里面怎么完成这个操作的，首先是生成的字节码如下。字节码采用了3地址表达式，其中R跟一个数字都是代表字节码寄存器（bytecode register），里面存了各种tagged value，比如Number，指针等。除法的结果放到<b>R5</b>寄存器，<b>R4</b>是常量0，或运算的结果更然放到了<b>R5</b>。</p><code lang="text">  Line   1: var intDivResult = 3 / 2 | 0;
   Col    1: ^
     0009   ProfiledDiv_A        R5  R2  R3  &lt;0&gt;

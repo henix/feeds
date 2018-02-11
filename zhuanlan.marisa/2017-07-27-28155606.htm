@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Erlang入门教程 - 4.Tuples</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28155606">原文</a></p>
 <p>现在tut2的代码是很糟糕的编程风格，考虑：</p><code lang="erlang">tut2:convert(3, inch).</code><p>3是英寸吗？还是将要被转换为英寸的厘米？Erlang有一个方法可以将东西分组使之更容易理解。它们就是用花括号“{”和“}”围起来的<b>tuple</b>。</p><p>所以<b>{inch,3}</b>意思是3英寸，<b>{centimeter,5}</b>意思是5厘米。现在让我们重新写一个英寸厘米互转的程序。 <br>在tut3.erl中输入下面的代码：</p><code lang="erlang">-module(tut3).
 -export([convert_length/1]).
 

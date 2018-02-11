@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>【拥抱开放】米筐智投云来啦</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24543640">原文</a></p>
 <p>作为量化投资工具的探索者和先行者，米筐科技一直走在开放的前沿，大约5个月前，我们开源了量化回测引擎RQalpha：<a href="https://github.com/ricequant/rqalpha" data-editable="true" data-title="ricequant/rqalpha">ricequant/rqalpha</a>   很快就成为了国内最受欢迎的开源股票量化回测引擎。</p><br><p>米筐科技一直在探索将最前沿的金融科技与普惠金融服务相结合，米筐线上平台为大家提供了一整套包括数据分析，回测编写，实时模拟交易在内的量化云端工具。今天，我们很高兴的告诉大家，米筐智投云测试版来啦！通过米筐智投云API，您将可以十分钟打造自己的智能投顾系统。</p><br><p>首先，您需要熟悉如何使用米筐量化平台，完成一个策略的编写和一次分钟回测，这里有一个简单的教程，希望能够帮助到您：</p><p><a href="https://www.ricequant.com/community/topic/2095" data-editable="true" data-title="十分钟学会写量化策略">十分钟学会写量化策略</a></p><p>完成一次分钟回测以后，在“我的策略”页面，您可以新建模拟交易，并且拿到模拟交易的对应ID。</p><br><img src="https://pic2.zhimg.com/v2-fc343b5b47024a856941e101335c0039_r.png" data-rawwidth="678" data-rawheight="265"><br><p>目前，我们提供了三个REST API帮助您在本地搭建智能投顾系统：</p><h2>登录：</h2><code lang="text">POST url：https://rqopen.ricequant.com/login</code><br><p>请求示例：</p><code lang="text">post("https://rqopen.ricequant.com/login", {"username": username, "password": password})
 </code><p>返回示例：</p><code lang="text">{'code': 200,
  'resp': {'msg': 'Congratulations, login successful! Happy Coding and '

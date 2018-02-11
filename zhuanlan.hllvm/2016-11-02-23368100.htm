@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Clang Parser漫步——declaration-specifiers（二）</title>
-<p><a href="https://zhuanlan.zhihu.com/p/23368100">原文</a></p>
 既上文<a href="https://zhuanlan.zhihu.com/p/23344499" data-editable="true" data-title="Clang Parser漫步——external-declaration（一） - XlousZeng的文章 - 知乎专栏" class="">Clang Parser漫步——external-declaration（一） - XlousZeng的文章 - 知乎专栏</a>说到解析external-declaration之后，本文将会解释Clang是如何解析declaration-specifiers的。<p>首先，这里先给出C99中declaration-specifiers的EBNF语法：</p><code lang="bash">declaration-specifiers:: [C99 6.7]
     storage-class-specifier declaration-specifiers[opt]
     type-specifier declaration-specifiers[opt]

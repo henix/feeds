@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>All you want to know about Nicolas, but might have been afraid to ask</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19957946">原文</a></p>
 <h2>为什么叫尼古拉斯？</h2><p>因为布尔巴基这个名字被占了，看<a class="" data-title="AsteroidMeta: Projects" data-editable="true" href="http://wiki.planetmath.org/cgi-bin/wiki.pl/Projects">AsteroidMeta: Projects</a>这里就知道了</p><h2>为什么要重新造轮子？<br></h2><p>Metamath风格的Proof Checker太少了，而不是太多了。同时，这主要是为了《21天学通Erlang》第二章作准备。</p><h2>为什么不照着流行的Coq来？</h2><p>Coq可是从Proof Checking, Type Theory 一直到Proof Assistant全都一个程序搞定的。这么复杂，真的适合在零基础程序语言入门儿童读物一开始就讲么？</p><h2>尼古拉斯和Metamath有何不同？</h2><p>主要是换了个语法，另外把证明的过程从用一个简单的栈改成DAG，于是就更显啰嗦了。</p><h2>要怎么样才能看懂尼古拉斯的代码？<br></h2><p>可以先看 Metamath book <a class="" href="http://us.metamath.org/downloads/metamath.pdf">http://us.metamath.org/downloads/metamath.pdf</a><br></p><p>根据Curry-Howard Correspondence，可以先从Erlang代码开始</p><code lang="text">ax1() -&gt; {['苏格拉底', '是', '人']}.
 ax2([X, '是', '人']) -&gt; {[X, '会', '死']}.
 

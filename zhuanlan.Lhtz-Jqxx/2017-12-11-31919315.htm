@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>高效灵活的概率建模方法基于Python</title>
-<p><a href="https://zhuanlan.zhihu.com/p/31919315">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-6c5e5f1d8b4c6c5c9af27794ce4cc63b_r.jpg" alt=""></div><p><b>前言</b></p><p>在今天给大家介绍一个研究工具：<b>pomegranate。</b>它比其他软件包更加灵活，更快，直观易用，并且可以在多线程中并行完成。</p><img src="https://pic2.zhimg.com/v2-cd3bd018f8f458216df7e20f8954154b_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="80"><img src="https://pic2.zhimg.com/v2-9c5ebf96cf78836ea5d6cc1d6fe79f01_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="350"><p><b>The API</b></p><p><b>主要模型介绍</b></p><ul><li>一般混合模型</li><li>隐马尔可夫模型</li><li>贝叶斯网络</li><li>贝叶斯分类器</li></ul><p><b>所有模型使用做多的方法</b></p><code lang="python">model.log_probability(X) / model.probability(X) 
 model.sample() 
 model.fit(X, weights, inertia) 

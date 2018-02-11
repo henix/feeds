@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>你的类型，2：具体化与名称修饰</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24211491">原文</a></p>
 <p>在程序语言中，参数多态（也叫：泛型函数）的实现有两种方式：第一种是把多态时候需要的类型作为额外的「参数」运行时传入，这种是 GHC 的做法；另一种就是我们这里所说的，具体化具体化（Materialize）以及名称修饰（Name mangling）：对于某个多态函数的每一个不同版本都生成一个新的函数，然后调用的时候选择对应的版本。生成某个函数具体版本的过程就是具体化，而这个具体版本的名字，则是原来函数名字经过修饰得到。在我们的代码中，名字的「装饰」使用这个改函数所需要的目标类型的字符串表示。</p><code lang="js">class Monomorphic {
 	getMangler() {} // Get a name for mangler
 }

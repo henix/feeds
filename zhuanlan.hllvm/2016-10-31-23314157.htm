@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>观察ChakraCore JIT生成的native code</title>
-<p><a href="https://zhuanlan.zhihu.com/p/23314157">原文</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/20792855" data-editable="true" data-title="前面">前面</a>介绍了ChakraCore的各个dump开关，可以用来查看编译的中间阶段的结果。这里介绍一下一个简单的JavaScript函数被编译成的native code像什么样子。</p><p>为了查看JIT code，一个办法是使用之前介绍的 -dump 开关查看encode阶段的结果（-dump:encoder）。另外ChakraCore支持一个选项是 -DebugBreak:FunctionNumber。FunctionNumber可以通过查看其它dump获得，比如 -dump:irbuilder，在JavaScript源文件没改变的话，即使是多次运行同一个函数的FunctionNumber也是不变的。-DebugBreak会导致encode阶段在函数入口插入一条断点指令（默默给encoder点个赞），比如x86和x64下的“int 3”，这样运行到该方法就会自然中断到调试器。</p><p>代查看的JavaScript源代码如下，要看的是其中 <b>access()</b> 的JIT code。 </p><code lang="js">// ch.exe -mic:1 -off:simplejit -DebugBreak:3
 function Point(x, y) {
     this.x = x;

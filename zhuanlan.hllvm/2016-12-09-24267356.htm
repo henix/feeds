@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>【译】介绍 .NET Standard</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24267356">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-c2e0bbbee384daa9e360c2d960999b68_r.png" alt=""></div><p>原文：<a href="https://blogs.msdn.microsoft.com/dotnet/2016/09/26/introducing-net-standard/" data-editable="true" data-title="Introducing .NET Standard" class="">Introducing .NET Standard</a><br>作者：<a class="" href="https://social.msdn.microsoft.com/profile/Immo+Landwerth+%5BMSFT%5D" data-editable="true" data-title="Immo Landwerth">Immo Landwerth</a><br>若有任何对翻译的建议，烦请指正<br></p><p>有任何问题？请查阅 <a href="https://github.com/dotnet/standard/blob/master/docs/faq.md" data-editable="true" data-title=".NET Standard FAQ" class="">.NET Standard FAQ</a>。<br></p><p>在我上一篇博文中，我曾提到我们想要<a href="https://blogs.msdn.microsoft.com/dotnet/2016/05/27/making-it-easier-to-port-to-net-core/" data-editable="true" data-title="使迁移到 .NET Core 更容易" class="">使迁移到 .NET Core 更容易</a>。在这篇博文中，我将专注于我们是怎样使用 .NET Standard 以实现这个计划的。我们将会涉及到诸如哪些API将被包含，跨平台兼容性是怎样工作的，以及这一切对于 .NET Core 意味着什么等内容。</p><p>如果你对细节感兴趣，那么这篇文章很适合你。但如果你没空或对细节不感兴趣，别担心：你可以只看“长话短说”这一节。</p><h2>给赶时间的人：长话短说</h2><p>.NET Standard 通过引入在桌面应用，移动应用和游戏以及云服务等不同环境中 .NET 开发者所期待和喜爱的
 API 以解决跨平台的代码共享问题：</p><ul><li>.NET Standard 是一组所有
      .NET 平台都应实现的 API。这将统一 .NET

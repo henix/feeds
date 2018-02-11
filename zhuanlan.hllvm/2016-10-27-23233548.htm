@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>[C++] GCC对C++虚函数调用的一个优化</title>
-<p><a href="https://zhuanlan.zhihu.com/p/23233548">原文</a></p>
 这个专栏平时Java / JVM的内容偏多，今天混入一些新血液吧。来聊点C++的话题。<p>不过说起来还是跟JVM相关的内容。在JVM实现中，要达到高性能的一个重要方面就是要对虚方法调用做优化，要尽其所能将虚方法调用点去虚化（devirtualize），以便支持后续的优化。这是因为Java里非private的成员方法默认就是virtual的，大家愿意也好不愿意也好也很容易会写一大堆虚方法，再加上良好的面向对象风格的代码提倡要尽量写职责单一的小方法，一大堆小的虚方法如果不能好好优化，那性能是上不去的。</p><p>而在C++里，虚函数的开销则没Java那么引人关注，毕竟成员函数默认不是virtual的，而且还有<a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern" data-editable="true" data-title="CRTP">CRTP</a>之类的奇技淫巧来向别的方向取舍开销。但始终，对虚函数有优化需求这点跟Java还是很相似的。</p><p>很多同学都会在学习了一些C++的基础知识之后就偏执地认为C++的虚函数分派总是通过对vtable（虚函数表）的间接调用来做的，并且虚函数调用无法被内联。事实上编译器优化发展了那么多年，这种事情又怎会没有进一步的优化呢。</p><p>今天要说的就是相对新一些的GCC（<a href="https://gcc.gnu.org/gcc-4.9/changes.html" data-editable="true" data-title="GCC 4.9">GCC 4.9</a>或更高）里的一种优化，由-fdevirtualize-speculatively参数控制的“speculative devirtualization”，或者用JVM里更常用的叫法是“guarded devirtualization”。这个优化是Jan Hubicka大大在2013年添加到GCC中的：<a href="https://gcc.gnu.org/ml/gcc-patches/2013-08/msg00551.html" data-editable="true" data-title="Speculative call support in the callgraph">Speculative call support in the callgraph</a>。正好这几天在调试我们的JVM的一个core dump，留意到我们的JVM的C++代码里有虚函数调用点被GCC应用上了这个优化，就顺手来写写。</p><p>让我们先来看个例子：</p><code lang="cpp">class Base {
   int value_;
 public:

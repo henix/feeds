@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>ChakraCore的dump开关</title>
-<p><a href="https://zhuanlan.zhihu.com/p/20792855">原文</a></p>
 <a href="https://github.com/Microsoft/ChakraCore" data-editable="true" data-title="ChakraCore">ChakraCore</a>开源也有一阵了，作为最后开源的一个主流JS引擎，在GitHub上已经有了5000+的star，说明有很多人关注。对于想要研究ChakraCore的童鞋，如果直接从代码入手，不太容易下手和实验。对此，ChakraCore已经自带了不少dump开关来输出整个编译过程的中间结果，可以据此一窥整个编译的过程。这里就介绍下ChakraCore里面的常用dump开关。<p>ChakraCore编译出来是chakracore.dll，如果不想自己写一个host，可以用ChakraCore自带的host CH.exe. CH.exe使用的是JSRT接口来访问ChakraCore的编译功能。比如用ChakraCore运行下面的JS文件。</p><code lang="js">function foo(a, b) {
     return a + b
 }

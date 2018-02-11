@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Invokedynamic 和 MethodHandle的缘由</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26389041">原文</a></p>
 <p><b>原则：</b>尽量不涉及任何底层的技术细节；尽量作为一个科普的博文.</p><p>因为个人比较懒，这篇入门文章一直拖拖拉拉了两个多月。同时个人笔杆子不大行和能力有限，所以中间有表述错误的地方，欢迎帮忙指正。<br></p><h2>什么是Java和JVM? </h2><p> Java,　和Ruby, c+＋一样，是一门语言; JVM是一个虚拟机，可以用来跑bytecode的机器.</p><p>JVM有一个规范，包含了一些基本功能，类似解析器，垃圾回收，JIT编译等等。原则上，任何人都可以实现自己的JVM,只要遵守这个规范就可以了。目前常见的JVM比如hotspot, J9。。。<br></p><h2>什么是invokedynamic和MethodHandle. </h2><p> invokedynamic是JVM的一条方法调用指令，类似于invokevirtual, invokeinterface.　</p><p>MethodHandle<a href="https://docs.oracle.com/javase/7/docs/api/java/lang/invoke/MethodHandle.html" data-title="来自Oracle java7的定义" class="" data-editable="true">来自Oracle java7的定义</a>：</p><blockquote><p>"A method handle is a typed, directly executable reference to an underlying method,
  constructor, field, or similar low-level operation, with optional
  transformations of arguments or return values.

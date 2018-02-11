@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>（如何（用Python）写一个（Lisp）解释器（上））</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28989326">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-b613df87f6ac9ef472a73332a2b20f5b_r.png" alt=""></div><p>&gt; 译自<a href="http://norvig.com/lispy.html">Peter Norvig的博客</a>，有少量魔改</p><p>这篇文章有两个目的：</p><ol><li>通用地介绍如何实现计算机语言的解释器。</li><li>介绍如何利用Python实现Lisp方言Scheme的一个子集。</li></ol><h2><b>Scheme程序的语法和语义</b></h2><p>一门语言的语法（syntax）指的是字母排列成正确表达式或声明的顺序；语义（semantics）则是这些表达式或声明的意义。例如在数学和许多编程语言之中，一加二的语法是“1 + 2”， 语义则是将加法运算符应用于数字1和2之上，得到结果3。我们将计算表达式的值称之为求值（evaluating）；“1 + 2”求值得到结果3，我们将之记为“1 + 2” =&gt; 3。</p><p>Scheme的语法与你熟悉的大部分语言不同。例如：</p><code lang="java">// Java
 if (x.val() &gt; 0) { 
   fn(A[i] + 1, 

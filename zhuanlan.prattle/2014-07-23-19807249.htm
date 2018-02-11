@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>c语言中的封装 - 答读者问</title>
-<p><a href="https://zhuanlan.zhihu.com/p/19807249">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/b7b72c52ddc87eb5c40911dafe36cdb0_r.jpg" alt=""></div><p>本文所述技巧仅仅对C语言用户有效，其它语言用户可不必阅读。</p><p>写C代码的时候，最头疼的事情是哪些信息要暴露给外界，哪些隐藏在模块自身。如果不能处理好封装，那么久而久之，代码就自然演进成互相缠绕的意大利面条。</p><p>比如说在一个ring buffer的基础上实现一个queue，我们可以提供 queue.h 暴露该模块的api，queue.c 进行具体实现，最基本的想法必然是：</p><code lang="c">queue.h
 
 typedef struct {

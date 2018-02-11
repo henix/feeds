@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Google CTF - Joe</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28688437">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-3b2674ba10ae77cb9921101902faf2ca_r.jpg" alt=""></div><p>在 Joe 这道题中，我们会访问一个类似聊天室的页面，并通过文字和 AI Joe 对话。</p><p>Joe 有如下功能：</p><ul><li>打印自己的名字</li><li>设置新的名字</li><li>和你进行对话</li><li>向管理员汇报 bug</li></ul><img src="https://pic4.zhimg.com/v2-43a2643a0882553c72ee71bbcfb4e776_r.png" data-rawwidth="1920" data-rawheight="1332"><p><br></p><p>题目让我们偷管理员的 cookie。这样看来，汇报 bug 的功能就是用来给我们和管理员交互的。</p><p>乍一看，没发现什么漏洞。这里的消息是被当做 text 元素发送的，我一开始觉得此处不会引起 XSS。</p><code lang="js">var row = document.createElement('p');
 row.className = peer;
 row.textContent = message;

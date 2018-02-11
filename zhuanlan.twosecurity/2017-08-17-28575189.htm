@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Node.js postgres 从 SQL注入到代码执行</title>
-<p><a href="https://zhuanlan.zhihu.com/p/28575189">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/v2-b5c16e0c8529037a92ec761cf3791f40_r.jpg" alt=""></div><p>node-postgres 是 Node 版的 PostgreSQL 接口的实现。</p><img src="https://pic1.zhimg.com/v2-c723150d4b35ba6db79ecf578d6e3475_r.jpg" data-rawwidth="403" data-rawheight="450"><p>几天前，Sehrope Sarkuni 在这个 lib 的 SQL 解析部分发现了远程代码注入。漏洞的起因是解析器将用户提供的表名封装为函数。当表名为合法 JavaScript 代码时，我们就可触发该漏洞。</p><h2><b>漏洞分析</b></h2><p>成功连接数据库后，客户端会触发 readyForQuery</p><code lang="js">con.once('readyForQuery', function () {
     self._connecting = false
     self._connected = true
