@@ -17,6 +17,9 @@ cat <<EOF
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
 <script src="https://cdn.rawgit.com/jed/domo/13c45aba/lib/domo.js"></script>
 <script src="index.js"></script>
+EOF
+cat ga.seg.htm
+cat <<EOF
 </body>
 </html>
 EOF
