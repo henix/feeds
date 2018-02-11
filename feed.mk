@@ -7,7 +7,7 @@ HTMLS := $(patsubst %.htm,%.html,$(HTMS))
 all: index.html index.xml $(HTMLS)
 
 index.toc: $(TOCS)
-	cat $^ | sort -t $$'\t' -k 1,2 > $@
+	cat $^ | sort -t '	' -k 1,2 > $@
 
 index.html: ../genindex.rb index.meta index.toc
 	$^ > $@
