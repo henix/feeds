@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Lens: 从入门到再次入门</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/31328798">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-28c51979d43ba132a98057d07b183025_r.png" alt=""></div><h2>类型补全计画</h2><p>从上一篇我们可以看出，Lens 就是整合在一起的 <code class="inline">Getter</code>和 <code class="inline">Setter</code>，借助<code class="inline">set</code><i>, </i><code class="inline">over</code><i>, </i><code class="inline">view</code>这三个函数，我们可以分别使用 Lens 的<code class="inline">Getter</code>和<code class="inline">Setter</code>。但是我们目前的 Lens 类型定义并不是完整的，因此我们首先对 Lens 的类型进行补全。</p><code lang="haskell">type Lens s a = Functor f =&gt; (a -&gt; f a) -&gt; (s -&gt; f s)</code><p>首先让我们看这样一个例子： </p><code lang="haskell">set _1 ((1,2),3) 3
 set _1 ((1,2),3) True</code><p>在我们目前的类型定义上面的代码第一行可以正常工作，而第二行则不可以。但是第二行确实是合乎逻辑的，我们的确有时候需要讲一个原本是数字的地方设置为布尔值或是其他的什么东西。</p><p>让我们将原先的 Lens 类型定义进行简单的改变，这样就可以在通过 Lens 对数据操作时改变数据的类型。</p><code lang="haskell">type Lens s t a b = Functor f =&gt; (a -&gt; f b) -&gt; (s -&gt; f t)</code><p>我们可以可以直观地解读这个新的类型定义的含义，对<code class="inline">s</code>类型的量的一个<code class="inline">a</code>类型的域进行某种操作，之后该域变为<code class="inline">b</code>，相应的<code class="inline">s</code>变为<code class="inline">t</code>。当然这里的<code class="inline">s</code>与<code class="inline">t</code>的关系并不是随意的，而是依赖于<code class="inline">a</code>和<code class="inline">b</code>的关系。</p><p>现在我们之前使用的 Lens 类型将定义如下：</p><code lang="haskell">type Lens' s a = Lens s s a a
 -- Or
@@ -100,3 +108,12 @@ has l = getAny . getConst . l (const $ Const (Any True))
 
 has (_all (==0)) [3, 2, 1, 0]
 --&gt; True</code><p>我们发现，由于 Traversal 具有良好的抽象能力，我们仅仅选用不同的 Monoid 就实现了多种多用的效果，这无疑是非常令人振奋的。</p><p><br></p><p>-- 2017/11/25日更新</p><p>出现了各种错误（捂脸），谢谢 <a class="member_mention" href="http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc" data-hash="0251012c87c2d3f56ac34de7d71cdcbc" data-hovercard="p$b$0251012c87c2d3f56ac34de7d71cdcbc">@脚本少女魔理沙</a> 指正╮(╯▽╰)╭</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Lens：从入门到入门</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/30544410">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-aaf2eb05bd1a9cdd7418bb083208767d_r.jpg" alt=""></div><h2>概览</h2><p>Haskell 语言中操作一个复杂的数据结构往往会成为一个问题。</p><p>例如我们用 Haskell 做一个RPG游戏，有下面的定义：</p><code lang="haskell">data Hero = Hero {
   heroLevel :: Int, weapon :: Weapon
 }
@@ -69,3 +77,12 @@ viewV vlens b = vlens id b</code><p>我们发现<code class="inline">view</code>
 instance Functor (Const a) where
   fmap f c = c</code><p>Const Functor 的<code class="inline">fmap</code>并不改变值，实际上，其中根本没有值。一个 Const Functor 在创建之后，经历过多次<code class="inline">fmap</code>可能其类型发生变化，但getConst所取出的内容永远不会变化。</p><p>考虑下面的<code class="inline">view</code>定义，最内层的值被应用到<code class="inline">Const</code>构建函数上。之后经历过若干次<code class="inline">fmap</code>，最后<code class="inline">getConst</code>取得的仍是原来的值，于是便实现了<code class="inline">view</code>的行为。</p><code lang="haskell">view :: Lens b a -&gt; b -&gt; a
 view lens b = getConst $ lens Const b</code><p>到这里为止，我们便实现了文章开头所演示的 Lens 的功能。</p><p>附上在Zju Lambda报告的Slides：<a href="https://github.com/zju-lambda/slides/blob/master/The%20Overview%20of%20Lens.pdf">The Overview of Lens</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Finger Tree 的简单介绍和实现</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/30589105">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-e0f19ec073781989a02c6f364831f0c8_r.jpg" alt=""></div><h2><b>这篇文章讲了什么</b></h2><p>我将会在这篇文章中提到一点 Finger Tree 的设计思想、Finger Tree 的实现细节、 Finger Tree 的应用等内容。</p><h2><b>我需要看这篇文章吗</b></h2><p>你需要对数据结构有着简单的了解，并且对 Finger Tree 有一定兴趣但没有深入了解。</p><p>你可能需要学会基础的 Haskell 语法</p><h2><b>为什么是 Finger Tree</b></h2><p>它提供了高效的各种序列操作：</p><p><br></p><img src="https://pic1.zhimg.com/v2-ac2cb9cc296d8cfa67580d33d49af82d_r.jpg" data-caption="" data-rawwidth="1125" data-rawheight="519"><p><br></p><p>它在很多方面几乎达到了理论上的极限，这也是我们为什么在很多地方要使用 Finger Tree 来作为储存序列的东西。</p><h2>Finger Tree 是什么</h2><p>我们首先从简单的二叉树开始谈起</p><p>我们在 Haskell 中如何表示一颗二叉树？</p><p>这很简单，像这样就可以了</p><code lang="haskell">data Tree a 
       = Nil
       | Tree (Tree a) a (Tree a)</code><p>当然我们也可以这样写（我们把它叫做 leafy 的二叉树）</p><code lang="haskell"> data Tree a
@@ -217,3 +225,12 @@
       = Empty
       | Single a
       | Deep {-# UNPACK #-} !Int !(Digit a) (FingerTree (Node a)) !(Digit a)</code><p>在这里不做讨论(不懂)。</p><h2>你看完了这篇文章</h2><h2><b>你学到了什么</b></h2><p>可能学到了一点 Haskell 实现数据结构的姿势</p><h2><b>你觉得这篇文章可能有很多问题</b></h2><p>欢迎指正</p><h2>参考文献 &amp; 推荐阅读</h2><p><a href="https://en.wikipedia.org/wiki/Finger_tree">Finger Tree 的维基百科</a> </p><p><a href="http://hackage.haskell.org/package/fingertree-0.1.2.1/docs/src/Data-FingerTree.html">Finger Tree 的 hackage 源码</a></p><p><a href="http://www.staff.city.ac.uk/~ross/papers/FingerTree.pdf">Finger Tree 的论文</a>  （强烈推荐）</p><p><a href="http://xueshu.baidu.com/s?wd=paperuri%3A%28bf79af0c1ab7a3574e965f8457c1e424%29&amp;filter=sc_long_sign&amp;tn=SE_xueshusource_2kduw22v&amp;sc_vurl=http%3A%2F%2Fciteseerx.ist.psu.edu%2Fviewdoc%2Fdownload%3Fdoi%3D10.1.1.51.4571%26rep%3Drep1%26type%3Dpdf&amp;ie=utf-8&amp;sc_us=6093570767507930986">Finger Tree 的部分复杂度证明</a></p><p><a href="http://www.staff.city.ac.uk/~ross/papers/FingerTree.html">Paper 的网站</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

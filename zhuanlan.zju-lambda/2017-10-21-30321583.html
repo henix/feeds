@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dafny与程序验证</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/30321583">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/v2-8f49af88768b20c6808b564c74a43abe_r.png" alt=""></div><p>B大以前写过一个<a href="https://zhuanlan.zhihu.com/p/25568785">怎样写出没有 bug 的程序：程序证明的简单例子</a> ，是用Idris写的，我也来写一个，不过方法不太一样。</p><p>Dafny是MSR开发的程序设计语言，它混合了OOP和FP编程范式，并且自带程序验证功能，可以通过霍尔逻辑证明程序正确性。</p><p>它的语法非常简单，看起来就像C++，Scala和Haskell的混合。</p><ul><li>变量(scala风格，只是没有val)</li></ul><code lang="scala">var x:Tree;
 var y:nat := 0;</code><ul><li>ADT(Haskell风格)</li></ul><code lang="scala">datatype Tree = Empty | Node(left:Tree,value:real,right:Tree)
 datatype List&lt;T&gt; = Nil | Cons(head: T, tail: List&lt;T&gt;)
@@ -84,3 +92,12 @@ protected function method insert_into_right(t:Tree,x:real):Tree
             }
         }
 }</code><p>编译的时候，编译器会帮你验证你写的那些requires,ensures,assert是否满足，如果不满足，它会告诉你哪些命题无法证明。经过验证之后，你可以选择将Dafny代码编译为C#或编译成dll被其他.Net程序调用。</p><p>以上只是一个简单介绍，具体代码在<a href="https://github.com/NiceKingWei/algorithm/blob/master/dafny/bst.dfy">bst.dfy</a></p><p>我的slides <a href="https://github.com/zju-lambda/slides/blob/master/Verification%20in%20Dafny.pdf">Verification in Dafny</a></p><p>关于Dafny的更多精彩内容， 可以关注Dafny的项目主页，里面有一些学习资源 <a href="https://www.microsoft.com/en-us/research/project/dafny-a-language-and-program-verifier-for-functional-correctness/?from=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fprojects%2Fdafny%2Freference.aspx">MSR:Dafny</a></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
