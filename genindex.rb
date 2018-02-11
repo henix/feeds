@@ -2,6 +2,8 @@
 require 'cgi'
 require 'uri'
 
+require_relative 'ga'
+
 sitetitle, sitelink, description = IO.readlines("index.meta")[0].strip.split("\t")
 toc = IO.readlines("index.toc").map { |line|
 	date, id, title, author = line.strip.split("\t")
@@ -36,6 +38,7 @@ buf = %{<!DOCTYPE html>
 		filename = t[:date] + "-" + t[:id] + ".html"
 	%{<li>#{e(t[:date])} <a href="#{e(l(filename))}">#{e(t[:title])}</a> by #{e(t[:author])}</li>
 } }.join() + %{</ul>
+#{GA}
 </body>
 </html>
 }

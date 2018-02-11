@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require 'cgi'
 
+require_relative 'ga'
+
 _, _, title, _, link = IO.readlines(ARGV[1])[0].strip.split("\t")
 content = IO.read(ARGV[0])
 
@@ -17,13 +19,7 @@ buf = %{<!DOCTYPE html>
 <body>
 <p><a href="#{e(link)}">原文</a></p>
 #{content}
-<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
-<script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){ dataLayer.push(arguments); }
-gtag('js', new Date());
-gtag('config', 'UA-7909075-5');
-</script>
+#{GA}
 </body>
 </html>
 }
