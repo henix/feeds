@@ -33,7 +33,7 @@ buf = %{<!DOCTYPE html>
 <ul>
 } +
 	toc.reverse.map { |t|
-		filename = t[:date] + "-" + t[:id] + ".htm"
+		filename = t[:date] + "-" + t[:id] + ".html"
 	%{<li>#{e(t[:date])} <a href="#{e(l(filename))}">#{e(t[:title])}</a> by #{e(t[:author])}</li>
 } }.join() + %{</ul>
 </body>

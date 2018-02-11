@@ -1,14 +1,22 @@
 HTMS := $(wildcard *.htm)
+TOCS := $(patsubst %.htm,%.toc,$(HTMS))
+HTMLS := $(patsubst %.htm,%.html,$(HTMS))
 
 .PHONY: all clean
 
-all: index.html index.xml
+all: index.html index.xml $(HTMLS)
 
-index.html: index.meta index.toc
-	../genindex.rb > $@
+index.toc: $(TOCS)
+	cat $^ | sort -t $$'\t' -k 1,2 > $@
 
-index.xml: index.meta index.toc $(HTMS)
+index.html: ../genindex.rb index.meta index.toc
+	$^ > $@
+
+index.xml: ../genrss.rb index.meta index.toc $(HTMS)
 	../genrss.rb "https://henix.github.io/feeds/$$(pwd | tr '/' '\n' | tail -n1)" > $@
 
+%.html: ../page.rb %.htm %.toc
+	$^ > $@
+
 clean:
-	rm -f index.html index.xml
+	rm -f index.html index.xml index.toc $(HTMLS)

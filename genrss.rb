@@ -5,12 +5,13 @@ require 'uri'
 
 sitetitle, sitelink, description = IO.readlines("index.meta")[0].strip.split("\t")
 toc = IO.readlines("index.toc").map { |line|
-	date, id, title, author = line.strip.split("\t")
+	date, id, title, author, link = line.strip.split("\t")
 	{
 		:date => date,
 		:id => id,
 		:title => title,
 		:author => author,
+		:link => link,
 	}
 }
 
@@ -36,10 +37,12 @@ buf = %{<?xml version="1.0" encoding="utf-8"?>
 	toc.reverse.take(10).map { |t|
 		guid = t[:date] + "-" + t[:id]
 		filename = guid + ".htm"
+		orightml = %{<p><a href="#{e(t[:link])}">原文</a></p>
+}
 		%{<item>
 <title>#{e(t[:title])}</title>
 <link>#{e(sitelink + l(filename))}</link>
-<description>#{e(IO.read(filename))}</description>
+<description>#{e(orightml + IO.read(filename))}</description>
 <author>#{e(t[:author])}</author>
 <guid isPermaLink="false">#{e(guid)}</guid>
 <pubDate>#{e(Time.parse(t[:date]).rfc822)}</pubDate>
