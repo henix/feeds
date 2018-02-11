@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>泛型特化 Specialization</title>
-<p><a href="https://zhuanlan.zhihu.com/p/22989017">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-a7847a96f2e1d7a9cc8f73d5b94763f9_r.jpg" alt=""></div><p>Rust语言支持泛型特化，但还处于开发过程中，目前只能在最新的 nightly 版本中试用它的基本功能。</p><h2>简介</h2><p>Rust不支持函数/结构体的特化。它支持的是针对 impl 块的特化。我们可以为一组类型，impl 一个 trait，同时为其中的一部分更特殊的类型，impl 同一个 trait。</p><p>直接拿示例说话：</p><code lang="text">#![feature(specialization)]
 
 use std::fmt::Display;

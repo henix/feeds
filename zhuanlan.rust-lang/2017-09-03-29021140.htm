@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>高阶类型 Higher Kinded Type</title>
-<p><a href="https://zhuanlan.zhihu.com/p/29021140">原文</a></p>
 <p>最近，又有一份重量级的RFC（<a href="https://github.com/rust-lang/rfcs/pull/1598">https://github.com/rust-lang/rfcs/pull/1598</a>）被接受。它有多个名字，既可以叫 Generic associated type，也可以叫 associated type constructor，还可以叫 higher kinded type。这就是传说中的“高阶类型”。这个功能一直是学院派开发者一直期望的功能，是类型系统重要的一块拼图。</p><p>笔者在这方面经验很少，本文只能做一个简单介绍，当作是写给自己的学习总结。欢迎各位老司机做深入探讨。写完这篇文章，感觉对这个问题的理解更清晰了一些。</p><h2><b>什么是高阶</b></h2><p>我们知道，在强类型编程语言中，每一个表达式都有类型。有些类型，在这门语言中是内置的、基本的，我们把它们叫做“基础”类型。比如Rust里面的 i32 bool char 等等。还有一些类型，是通过其它类型一起组合出来的，比如函数，</p><code lang="rust">fn double(arg: i32) -&gt; i32 {
     arg * 2
 }</code><p>这个函数类型指的是，接受一个 i32 类型参数，生成一个 i32 类型返回值。它们的类型都是可以列出来的：</p><code lang="text">expression    |   type

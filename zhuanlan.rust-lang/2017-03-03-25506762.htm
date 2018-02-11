@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Rust 错误处理</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25506762">原文</a></p>
 <p><b>注: 文章最后添加了问号语法糖的更新说明</b></p><p>----- 正文 -----<br></p><p>人孰无过，过而能改，善莫大焉。程序运行过程中总是会出现各种各样的问题，导致程序出现异常或错误，这些异常和错误本身不是 bug，但是如果不处理好的话就会成为 bug。不同编程语言提供了不同的机制来处理错误和异常，一般分为两大类：把错误当作值来处理；抛出异常。</p><p>Rust 提供以下基础设施做错误处理：</p><ul><li>Option, Result</li><li>unwrap, expect</li><li>combinators</li><li>try! macro</li><li>Error trait</li><li>From trait</li><li>Carrier trait</li></ul><p>Rust 并没有提供基于 exception 的错误处理机制，虽然 panic! 宏在让进程挂掉时也抛出堆栈，同时也可以用 std::panic::catch_unwind 捕捉 panic，但是<b>极其</b>不推荐用来处理常规错误。</p><p>catch_unwind 一般是用来在多线程程序里面在将挂掉的线程 catch 住，防止一个线程挂掉导致整个进程崩掉，或者是通过外部函数接口(FFI)与 C 交互时将堆栈信息兜住防止 C 程序看到堆栈不知道如何处理，直接把堆栈信息丢给 C 程序的话属于 C 里的未定义行为(Undefined Behavior)。</p><p>另外 catch_unwind 并不保证能 catch 所有 panic，而只对通过 unwind 实现的 panic 有用。因为 unwind 需要额外记录堆栈信息，对程序性能和二进制程序大小有影响，所以在一些嵌入式平台上面的 panic 并没有通过 unwind 实现，而是直接 abort 的，所以 catch_unwind 并不保证能捕捉到所有panic。</p><code lang="text">use std::panic;
 fn main() {
     let result = panic::catch_unwind(|| {

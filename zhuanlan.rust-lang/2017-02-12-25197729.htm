@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>答读者问：函数重载</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25197729">原文</a></p>
 <p>有读者问问题：Rust有没有函数重载？<br>回答：没有。</p><p>本文结束。</p><p>－－－－－－－－－－－－－－－－－</p><p>开个玩笑。好，下面我们详细说一下重载(overloading)这个话题。</p><p>根据<a href="http://Function%20overloading">维基百科的定义</a>，重载指的是：</p><blockquote><p>function overloading or method overloading is the ability to create multiple methods of the same name with different implementations. </p></blockquote><p>C 语言是没有函数重载功能的，C++ 是有这个功能的。</p><p>在 C++ 中，一个非常常见的场景是，构造函数重载。比如说：</p><code lang="text">std::vector&lt;int&gt; first;                                // empty vector of ints
 std::vector&lt;int&gt; second (4,100);                       // four ints with value 100
 std::vector&lt;int&gt; third (second.begin(),second.end());  // iterating through second

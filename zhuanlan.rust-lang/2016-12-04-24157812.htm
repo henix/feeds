@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>状态共享</title>
-<p><a href="https://zhuanlan.zhihu.com/p/24157812">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/v2-12fb609844ead713ffa67984147a4d9f_r.png" alt=""></div><p>在上篇文章中，我们已经看到，Rust可以阻止在多线程之间不安全的共享状态。本文我们来讲解一下，如何在Rust中安全地实现多线程访问共享变量。</p><h2>Arc</h2><p>Arc是Rc的线程安全版本。它的全称是 atomic reference counter。它跟 Rc 最大的区别在于，引用计数用的是原子整数类型。使用方法示例如下：</p><code lang="text">use std::sync::Arc;
 use std::thread;
 

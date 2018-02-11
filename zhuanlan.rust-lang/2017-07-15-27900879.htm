@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>协程 Coroutine</title>
-<p><a href="https://zhuanlan.zhihu.com/p/27900879">原文</a></p>
 <p>最近，Rust语言有一个大进展，即将实现在 nightly 版本中加入了实验性质的协程支持。RFC 参见 https://github.com/rust-lang/rfcs/blob/master/text/2033-experimental-coroutines.md ，与此相关的最重要的 PR 在此 https://github.com/rust-lang/rust/pull/43076 。这个功能一向能吸引大量的关注，相关讨论极其热烈，它受欢迎的程度可见一斑。</p><p>协程这个概念在许多编程语言中都已经有了大量实践，Rust在这方面也做过好几次尝试。早在 1.0 之前，就有一个 Green Thread 的实现，但是因为各种原因，在正式稳定版发布之前，还是删除掉了。最近新设计的版本与 Green Thread 不一样，它是一种 stackless coroutine 的实现，对 runtime 的要求更小，更适合Rust的定位。</p><p>为了讲清楚协程 Coroutine，就需要先讲 Generator，而讲 Generator 之前，我们先讲迭代器 Iterator。</p><h2><b>Iterator</b></h2><p>在 Rust 中，迭代器指的是，实现了 std::iter::Iterator trait 的类型：</p><code lang="rust">pub trait Iterator {
 
    type Item;

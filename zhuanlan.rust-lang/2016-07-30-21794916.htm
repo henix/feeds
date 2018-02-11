@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>奇异的类型</title>
-<p><a href="https://zhuanlan.zhihu.com/p/21794916">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/85161123fc55070827d061837eb6c8e4_r.png" alt=""></div><p>最近 Rust team 终于同意将 ! 升级为一个真正的类型。详情参见：<a href="https://github.com/rust-lang/rfcs/pull/1216">https://github.com/rust-lang/rfcs/pull/1216</a>。借此机会，我们再来聊聊Rust的类型系统。</p><h2>发散类型</h2><p>在 Rust Book 文档中(<a href="https://doc.rust-lang.org/book/functions.html">https://doc.rust-lang.org/book/functions.html</a>)，对发散函数(Diverging functions)有一个简单的介绍。比如说，一个函数，它根本就不能正常返回，它可以这么写：</p><code lang="text">fn diverges() -&gt; ! {
     panic!("This function never returns!");
 }

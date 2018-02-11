@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>泄漏</title>
-<p><a href="https://zhuanlan.zhihu.com/p/22294916">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/07f797ecc50d73c2dd80ad2303b76d73_r.jpg" alt=""></div><h2>内存泄漏</h2><p>熟悉C++的朋友应该知道，在C++中，如果引用计数智能指针出现了循环引用，就会导致内存泄漏。而Rust中也一样存在引用计数智能指针Rc，那么Rust中是否可能制造出内存泄漏呢？</p><p>下面我们来通过一步步的尝试，看看如何才能构造一个内存泄漏的例子。</p><p>首先，我们设计一个Node类型，它里面包含一个指针，可以指向其它的Node实例：</p><code lang="text">struct Node {
     next : Box&lt;Node&gt;
 }

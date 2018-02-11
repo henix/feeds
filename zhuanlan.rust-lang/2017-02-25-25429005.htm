@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Non Lexical Lifetime</title>
-<p><a href="https://zhuanlan.zhihu.com/p/25429005">原文</a></p>
 <p>Non Lexical Lifetime 是 Rust team 很久很久以前就想做的一个功能，但是因为各种原因，一直拖了好几年。最近，随着 Nicholas Matsakis 的一篇博客，这个问题再度纳入我们的视野中。实现方案已经基本成熟，这个功能可能很快就要跟大家见面了。本文主要是把 Nicholas 关于 Non Lexical Lifetime 的几篇博客做一个梳理，方便大家了解这个功能的来龙去脉。</p><p>Lifetime 生命周期，是 Rust 语言的一个重要概念。编译器通过对变量和指针的生命周期分析，来保证内存安全性。事实已经证明，这套设计是有用的，它能够保证，通过了生命周期检查的代码，都是内存安全的代码。但是，在实际使用过程中，大家还是会觉得这个检查规则有点过于严格，以致于某些实质上是安全的代码，也被阻止了。这说明，Rust目前的生命周期检查规则，可能过于保守了，在某些场景下，限制了程序员的发挥。我们来看看 Nicholas 博客中的几个示例。</p><code lang="rust">use std::ascii::AsciiExt;
 
 fn foo() -&gt; Vec&lt;char&gt; {

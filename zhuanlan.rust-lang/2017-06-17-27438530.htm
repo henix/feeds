@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Rust真难啊</title>
-<p><a href="https://zhuanlan.zhihu.com/p/27438530">原文</a></p>
 <p>最近Rust社区又发现了一个隐藏得很深的违反了“内存安全”的bug。Bug描述见此处：<a href="https://github.com/rust-lang/rust/issues/41622" data-editable="true" data-title="MutexGuard&lt;Cell&lt;i32&gt;&gt; must not be Sync · Issue #41622 · rust-lang/rust">MutexGuard&lt;Cell&lt;i32&gt;&gt; must not be Sync · Issue #41622 · rust-lang/rust</a>。</p><p>这个问题是这样的，观察这样的一段程序：</p><code lang="text">use std::sync::Mutex;
 use std::cell::Cell;
 

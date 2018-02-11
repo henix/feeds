@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>所有权</title>
-<p><a href="https://zhuanlan.zhihu.com/p/21671588">原文</a></p>
 <div class="title-image"><img src="https://pic4.zhimg.com/1679078e382b25c85a887d4ae4d8b723_r.jpg" alt=""></div><p>本文讲解Rust的所有权(Ownership)概念。所有权，是Rust实现内存安全的重要概念。</p><h2>什么是所有权</h2><p>拿C语言的代码来打个比方，我们可能会在堆上创建一个对象，然后使用一个指针来管理这个对象：</p><code lang="text">Foo *p = make_object("args");
 </code><p>接下来，我们可能需要使用这个对象：</p><code lang="text">use_object(p);
 </code><p>然而，这段代码之后，谁能猜得到，指针p指向的对象究竟发生了什么？它还存在吗，是否已经被释放？是否有另外一个指针现在也同时指向这个对象？我们还能继续释放这个对象吗？实际上除了去了解use_object的内部实现之外，我们没办法回答。</p><p>C++对此进行了一个改进，通过使用“智能指针”来描述“所有权”概念，一定程度上减少了内存使用bug，实现了“半自动化”的内存管理。而Rust在此基础上更进一步，将所有权的理念直接融入到了语言之中。</p><h2>默认的move语义</h2><p>在Rust中，一般情况下，每一个“变量绑定”都对它绑定的那块内存拥有所有权。当这个拥有所有权的变量绑定，生命周期结束的时候，会执行自动释放资源的操作。比如说，对于动态数组：</p><code lang="text">fn func1() {

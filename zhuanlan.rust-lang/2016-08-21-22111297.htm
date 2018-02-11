@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>内部可变性</title>
-<p><a href="https://zhuanlan.zhihu.com/p/22111297">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/429da3df68296bd29551e63a51123658_r.jpg" alt=""></div><h2>Cell 类型</h2><p>聪明的读者朋友们，大家应该还记得我们前面的“悬空指针”的例子。我们在C++中使用一个指针指向了动态数组内部，然后再改变动态数组使其触发重新内存分配逻辑，来说明“mutation+alias”分析的必要性。然而，假如我们把动态数组类型换成简单类型呢，假设现在有一个指针指向了一个i32类型的整数，我们同时修改这个整数类型，然后打印这个指针所指向的内存空间的值：</p><code lang="text">fn main() {
   let mut data = 100_i32;
   let p : &amp;i32 = &amp;data;

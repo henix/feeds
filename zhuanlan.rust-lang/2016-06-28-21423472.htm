@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>基本数据类型</title>
-<p><a href="https://zhuanlan.zhihu.com/p/21423472">原文</a></p>
 <div class="title-image"><img src="https://pic3.zhimg.com/2d3a49c8aed879ac11aac9a2bb718896_r.png" alt=""></div><h1>基本数据类型</h1><h2>变量声明</h2><p>Rust的变量必须先声明后使用。对于局部变量，声明语法为:</p><code lang="text">let variable : i32 = 100;
 </code><p>与传统的C/C++语言相比，Rust的变量声明语法不同。这样设计主要有这样几个方面的考虑：</p><br><p>1. 语法分析更容易</p><p>从语法分析的角度来说，Rust的变量声明语法比C/C++语言的简单，局部变量声明一定是以关键字 let开头，类型一定是跟在:的后面。</p><p>在C++里面，这样一个简单的结构 A B(C);，在语法分析的时候都会有多种可能性：</p><p>1) A 和 C 是类型，B 是函数声明；2) A 是类型，C 是变量，B 是变量初始化； 3) A 是变量，这是一个错误的语法。<br><br>当类型变得更复杂的时候，Rust的优势体现得更明显，比如大家分析一下这样的以下ff变量是什么类型</p><code lang="text">int (*ff( int ))( int, int );</code><p>    如果我们用Rust来写，则清晰得多：</p><code lang="text">  let ff : fn(isize,isize) -&gt; fn(isize);
 </code><p>    更不用说C++经常碰到的语法歧义问题，比如：</p><code lang="text">  a&lt;b&gt; c;

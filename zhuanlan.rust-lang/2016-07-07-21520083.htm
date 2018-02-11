@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>麻烦的浮点数</title>
-<p><a href="https://zhuanlan.zhihu.com/p/21520083">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/20329e13804886b10e9a3a6e01c5240d_r.png" alt=""></div><p>与整数类型相比，Rust的浮点数类型相对而言复杂得多。浮点数的麻烦之处在于，它不仅可以表达正常的数值，还可以表达不正常的数值。</p><p>在标准库中，有一个 std::num::FpCategory 枚举，表示了浮点数可能的状态：</p><code lang="text">enum FpCategory {
     Nan,
     Infinite,

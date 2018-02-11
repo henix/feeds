@@ -5,13 +5,11 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 15 Jan 2018 05:11:34 +0800</lastBuildDate>
+<lastBuildDate>Sun, 11 Feb 2018 18:29:00 +0800</lastBuildDate>
 <item>
 <title>[译] Rust - None Lexical Lifetimes (NLL) 使用指南</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-01-12-32884290.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;[译] Rust - None Lexical Lifetimes (NLL) 使用指南&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32884290&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32884290&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b7bdc8a3a010ad92012199af2750cc72_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;原文地址 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//santiagopastorino.com/how-to-use-rust-non-lexical-lifetimes-on-nightly/&quot;&gt;https://santiagopastorino.com/how-to-use-rust-non-lexical-lifetimes-on-nightly/&lt;/a&gt;&lt;br&gt;原文作者: Santiago Pastorino&lt;/blockquote&gt;&lt;p&gt;Niko Matsakis, Paul Faria 和我在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//internals.rust-lang.org/t/announcing-the-impl-period-sep-18-dec-17/5676&quot;&gt;impl period&lt;/a&gt; 期间致力于开发None Lexical Lifetimes (暂译为非词法作用域生命周期，下文统称为 NLL)。 代码目前已经合并到 master 分支，你现在可以在 nightly 中体验。&lt;/p&gt;&lt;p&gt;本文将通过几个例子简单直观地展现 NLL 的使用方法。这里我不会涉及 NLL 背后的设计逻辑，如果对设计细节感兴趣，我推荐你进一步阅读 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/rust-lang/rfcs/blob/master/text/2094-nll.md&quot;&gt;RFC&lt;/a&gt;，你想知道的都在里面了。我想你还可以尝试在 pull requests 贡献代码。&lt;/p&gt;&lt;p&gt;话不多说，我们直接上代码。&lt;/p&gt;&lt;p&gt;当然在这之前，你要先确保机器上安装了最新的 nightly 版本 —— 打开命令行运行 &lt;code class=&quot;inline&quot;&gt;rustup install nightly&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;我们先看这个简单的例子，它在目前的作用域生命周期(scope based lifetimes)规则下不能编译。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#![allow(unused_variables)]
 
 fn main() {
@@ -152,9 +150,7 @@ error: aborting due to previous error
 <item>
 <title>为什么我喜欢Rust</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-09-05-29079046.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;为什么我喜欢Rust&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29079046&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29079046&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;今天写了一个回答：&lt;a href=&quot;https://www.zhihu.com/question/64563945/answer/225704730&quot;&gt;F001：为什么要使用TypeScript？有哪些情景请简单介绍一下，或者来个例子?&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得这个回答也可以用来解释，为什么我喜欢Rust编程语言。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我感觉现在很多程序员并没有彻底接受这样的一个思想：产品设计既需要考虑如何方便好用，也需要考虑如何防止误用。大部分人过于强调方便好用的这一面，而忽略了防止误用的令一面。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不论是设计一个函数、类、框架、还是语言，都不仅要想到用户正常使用的时候是怎样的，还要想到哪些使用方式是有问题的，应该如何设计避免这些可能的误用。哪怕是枪械，也还要加个保险栓呢。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个思想，在绝大部分从业人员的大脑中都是薄弱的，哪怕是C/C++的标准库，都存在很多让人极易用错很难用对的设计，在很多编码规范中都要禁止使用这些功能，更不用说平均水平更低的普通开发者，能写出什么稀奇古怪的代码都不奇怪。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;作为一名源代码静态检查工具的开发者(Coverity)，我见过太多太多奇葩的C/C++用例，但是很遗憾的是编译器并没有阻止它们。Coverity的误报率和漏报率在行业内都算顶尖的，但是对某些问题，我们也无法保证百分百能检查出来。在C/C++里面，有些类别的错误，是没办法被“完整无遗漏”地检查出来的，这是C/C++的本质复杂性决定的，这个任务就是 mission impossible，我们能做的是尽最大可能覆盖尽可能多的用例。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust能够“保证”内存安全、保证线程安全，这是一个非常重要的能力，这不是因为Rust的静态检查用了什么特别的算法技术，而是因为他们作弊了，直接简化了被研究对象。从静态检查器的实现的角度来说，Rust比Coverity简单得多，但效果要更好。C/C++里面很多需要费了老劲检查的问题，在Rust中根本不存在。不存在的问题，当然不需要寻找解决方案。当然，这就是Rust设计组牛逼的地方。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>F001</author>
 <guid isPermaLink="false">2017-09-05-29079046</guid>
@@ -163,9 +159,7 @@ error: aborting due to previous error
 <item>
 <title>高阶类型 Higher Kinded Type</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-09-03-29021140.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;高阶类型 Higher Kinded Type&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29021140&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29021140&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;最近，又有一份重量级的RFC（&lt;a href=&quot;https://github.com/rust-lang/rfcs/pull/1598&quot;&gt;https://github.com/rust-lang/rfcs/pull/1598&lt;/a&gt;）被接受。它有多个名字，既可以叫 Generic associated type，也可以叫 associated type constructor，还可以叫 higher kinded type。这就是传说中的“高阶类型”。这个功能一直是学院派开发者一直期望的功能，是类型系统重要的一块拼图。&lt;/p&gt;&lt;p&gt;笔者在这方面经验很少，本文只能做一个简单介绍，当作是写给自己的学习总结。欢迎各位老司机做深入探讨。写完这篇文章，感觉对这个问题的理解更清晰了一些。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;什么是高阶&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们知道，在强类型编程语言中，每一个表达式都有类型。有些类型，在这门语言中是内置的、基本的，我们把它们叫做“基础”类型。比如Rust里面的 i32 bool char 等等。还有一些类型，是通过其它类型一起组合出来的，比如函数，&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn double(arg: i32) -&amp;gt; i32 {
     arg * 2
 }&lt;/code&gt;&lt;p&gt;这个函数类型指的是，接受一个 i32 类型参数，生成一个 i32 类型返回值。它们的类型都是可以列出来的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;expression    |   type
@@ -329,9 +323,7 @@ impl CollectionFamily for ListFamily {
 <item>
 <title>协程 Coroutine</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-07-15-27900879.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;协程 Coroutine&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27900879&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27900879&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;最近，Rust语言有一个大进展，即将实现在 nightly 版本中加入了实验性质的协程支持。RFC 参见 https://github.com/rust-lang/rfcs/blob/master/text/2033-experimental-coroutines.md ，与此相关的最重要的 PR 在此 https://github.com/rust-lang/rust/pull/43076 。这个功能一向能吸引大量的关注，相关讨论极其热烈，它受欢迎的程度可见一斑。&lt;/p&gt;&lt;p&gt;协程这个概念在许多编程语言中都已经有了大量实践，Rust在这方面也做过好几次尝试。早在 1.0 之前，就有一个 Green Thread 的实现，但是因为各种原因，在正式稳定版发布之前，还是删除掉了。最近新设计的版本与 Green Thread 不一样，它是一种 stackless coroutine 的实现，对 runtime 的要求更小，更适合Rust的定位。&lt;/p&gt;&lt;p&gt;为了讲清楚协程 Coroutine，就需要先讲 Generator，而讲 Generator 之前，我们先讲迭代器 Iterator。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Iterator&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在 Rust 中，迭代器指的是，实现了 std::iter::Iterator trait 的类型：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;pub trait Iterator {
 
    type Item;
@@ -507,9 +499,7 @@ fn print_lines() -&amp;gt; io::Result&amp;lt;()&amp;gt; {
 <item>
 <title>Rust真难啊</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-06-17-27438530.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Rust真难啊&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27438530&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27438530&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;最近Rust社区又发现了一个隐藏得很深的违反了“内存安全”的bug。Bug描述见此处：&lt;a href=&quot;https://github.com/rust-lang/rust/issues/41622&quot; data-editable=&quot;true&quot; data-title=&quot;MutexGuard&amp;lt;Cell&amp;lt;i32&amp;gt;&amp;gt; must not be Sync · Issue #41622 · rust-lang/rust&quot;&gt;MutexGuard&amp;lt;Cell&amp;lt;i32&amp;gt;&amp;gt; must not be Sync · Issue #41622 · rust-lang/rust&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;这个问题是这样的，观察这样的一段程序：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::sync::Mutex;
 use std::cell::Cell;
 
@@ -605,9 +595,7 @@ unsafe impl&amp;lt;T: ?Sized + Send&amp;gt; Sync for Mutex&amp;lt;T&amp;gt; { }
 <item>
 <title>Rust 妙用：（一）增补标准库和统一错误</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-05-26-27102546.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Rust 妙用：（一）增补标准库和统一错误&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27102546&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27102546&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;h2&gt;&lt;b&gt;Meta&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;  本系列文是 wayslog 我本人的一些关于 Rust 的总结，发上来将这些作为骗赞的资本。想起来就更新，想不起来也不要催更，log 很懒的。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Trait and Generic&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;  初次接触 Rust 的同学可能对其 trait 的概念表示不能理解，其实这个概念在其他 fp 语言里早已被应用的很广泛了，Rust 作为一门 System Programming Language 引入这个概念，自然是想要让它自己的 type system 拥有更好的表达能力。trait 被国内的翻译者翻译成了 特征、特性， 但是我觉得都不能表达其原有意思，干脆在这这里保留原名字。它规定了一个类型能做的一系列 `动作`，可以看做约束，也可以认为是另一种形式上的 `标记`。具体怎么使用呢，我们可以来看一下下面。&lt;/p&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;增补标准库&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;  Rust 提供了一个功能不算多的标准库（就这还天天被吐槽标准库太大了），于是很自然的，我们需要的某些功能在标准库里就可能找不到了。但是，有的时候我们又希望对标准库做一些增补。比如，我想对所有所有实现了 `std::io::Read` 的类型增补一个 `read_u8` 功能，想要从一个 `Read` 里直接读出一个 `u8` 类型（对应 C++ 里面的 char, Go 里面的 byte 类型)。&lt;br&gt;&lt;br&gt;  对于其他 OOP 语言，比如 Java 这种，显式继承 interface 的语言，除非我们能拿到 JVM 的源码，修改，并自己编译一版标准库，不然是不行的。但在 Rust 里，我们可以这么做，先上代码：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::io::{Read, Error, ErrorKind, Result};
 
 trait ReadExt: Read {
@@ -753,9 +741,7 @@ fn main() {
 <item>
 <title>Rust 开发环境指北</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-05-17-26944087.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Rust 开发环境指北&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26944087&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26944087&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;有兴趣入门 Rust 的同学现在不少，一直想写这样一篇文章，但不是我拖延而时机未到，现在今年是社区着力改善工具链和第三方库的年份，相关的成绩挺显著。虽然搭建环境的时候可能会碰到问题，但大致要做的事情已经明了了。&lt;/p&gt;&lt;p&gt;（因为很少在 Windows 上开发，本文暂时不会涉及 Windows。但基本流程是差不多的。）&lt;/p&gt;&lt;h2&gt;安装&lt;/h2&gt;&lt;p&gt;如果仅仅是想尝鲜体验一下 Rust，可以选择用喜爱的软件包管理器安装 rust 或者 rustc，然后选择一个靠谱的编辑器尝试就行了。（更轻度的话可以在线体验： &lt;a href=&quot;https://play.rust-lang.org/&quot; data-editable=&quot;true&quot; data-title=&quot;Rust Playground&quot;&gt;Rust Playground&lt;/a&gt;）&lt;/p&gt;&lt;p&gt;如果尝鲜之后，想系统地学习 Rust，并使用方便的开发工具和各式第三方库，需要用官方推荐的方式来安装，在&lt;a href=&quot;https://www.rust-lang.org/zh-CN/index.html&quot; data-editable=&quot;true&quot; data-title=&quot;网站&quot;&gt;网站&lt;/a&gt;有相关内容，为了避免没注意到这里也贴一下：&lt;/p&gt;&lt;blockquote&gt;&lt;h3&gt;使用 rustup 管理工具链&lt;/h3&gt;&lt;p&gt;Rust 由 &lt;a href=&quot;https://github.com/rust-lang-nursery/rustup.rs&quot; data-editable=&quot;true&quot; data-title=&quot;rustup&quot;&gt;rustup&lt;/a&gt; 工具来安装和管理。 Rust 有一个 6 周的 &lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/0507-release-channels.md&quot; data-editable=&quot;true&quot; data-title=&quot;快速发布过程 &quot;&gt;快速发布过程 &lt;/a&gt;并且支持 &lt;a href=&quot;https://forge.rust-lang.org/platform-support.html&quot; data-editable=&quot;true&quot; data-title=&quot;大量的平台 &quot;&gt;大量的平台 &lt;/a&gt;，所以任何时候都有很多 Rust 构建可用。 rustup 在 Rust 支持的每一个平台上以一致的方式管理这些构建， 并可以从 beta 和 nightly 发布渠道安装 Rust，且支持额外的交叉编译目标平台。&lt;/p&gt;&lt;p&gt;更多信息请查看 &lt;a href=&quot;https://github.com/rust-lang-nursery/rustup.rs/blob/master/README.md&quot; data-editable=&quot;true&quot; data-title=&quot;rustup documentation&quot;&gt;rustup documentation&lt;/a&gt;。&lt;/p&gt;&lt;br&gt;&lt;h3&gt;配置 PATH 环境变量&lt;/h3&gt;&lt;p&gt;在 Rust 开发环境中，所有工具都安装到 ~/.cargo/bin 目录， 并且您能够在这里找到 Rust 工具链，包括 rustc、cargo 及 rustup。&lt;/p&gt;&lt;p&gt;因此，Rust 开发者们通常会将此目录放入 &lt;a href=&quot;https://en.wikipedia.org/wiki/PATH_(variable)&quot; data-editable=&quot;true&quot; data-title=&quot;PATH 环境变量&quot; class=&quot;&quot;&gt;PATH 环境变量&lt;/a&gt;。在安装时，rustup 会尝试配置 PATH， 但是因为不同平台、命令行之间的差异，以及 rustup 的 bug，对于 PATH 的修改将会在重启终端、用户登出之后生效，或者有可能完全不会生效。&lt;/p&gt;&lt;p&gt;当安装完成之后，如果在控制台运行 rustc --version 失败，这是最可能的原因。&lt;/p&gt;&lt;/blockquote&gt;&lt;p&gt;注：配置环境变量的简便方法是将这一行加入你的 .bashrc / .zshrc / .profile etc：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;source $HOME/.cargo/env&lt;/code&gt;&lt;h2&gt;rustup&lt;/h2&gt;&lt;p&gt;Rust 编译器分为三个频道：修复了大多数 bug，但也不能用实验功能的 stable；等待观察成为 stable 的 beta；以及有着最多 bug 和 feature 的 nightly。&lt;/p&gt;&lt;p&gt;Rust 玩家需要在三个版本之间切换是十分痛苦的事情，有人做了切换工具 multirust，之后被官方招安，改名为 &lt;a href=&quot;https://github.com/rust-lang-nursery/rustup.rs&quot; data-editable=&quot;true&quot; data-title=&quot;rustup并成为默认的安装途径&quot;&gt;rustup并成为默认的安装途径&lt;/a&gt;。如果需要帮助可以参考&lt;a href=&quot;https://github.com/rustcc/RustPrimer/blob/master/install/rustup.md&quot; data-editable=&quot;true&quot; data-title=&quot;这篇文章&quot; class=&quot;&quot;&gt;这篇文章&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;安装完成后视情况请定期运行 rustup update。不使用 nightly 的话一般不到两个月更新一次。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;源&lt;/h2&gt;&lt;p&gt;这是一片神奇的土地，很多时候全球都能下载下来的在这片土地上就下载不下来。&lt;/p&gt;&lt;p&gt;感谢&lt;a href=&quot;https://lug.ustc.edu.cn/wiki/mirrors/help/rust-static&quot; data-editable=&quot;true&quot; data-title=&quot;中科大镜像有 Rust 源&quot; class=&quot;&quot;&gt;中科大镜像有 Rust 源&lt;/a&gt; 这个源帮助下载 Rust 编译器等静态文件。&lt;/p&gt;&lt;p&gt;Crates.io 是 Rust 包的网站，类似于 NPM，you know，这是&lt;a href=&quot;https://lug.ustc.edu.cn/wiki/mirrors/help/rust-crates?s%5B%5D=rust&quot; data-editable=&quot;true&quot; data-title=&quot;另一个镜像&quot;&gt;另一个镜像&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以前有报告称，因为代码补全插件的 bug，使用这个镜像会导致代码补全不可用，如果出现这种情况请切换回原本的源并且大喊：&lt;strong&gt;fuck GFW&lt;/strong&gt;。然后用文本编辑器打开 ~/.cargo/config&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[http]
 proxy = &quot;[socks5://]server:&amp;lt;port&amp;gt;&quot;&lt;/code&gt;&lt;p&gt;refer &lt;a href=&quot;https://github.com/rust-lang/cargo/issues/636&quot; data-editable=&quot;true&quot; data-title=&quot;1&quot;&gt;1&lt;/a&gt; &lt;a href=&quot;https://github.com/rust-lang/cargo/issues/3596&quot; data-editable=&quot;true&quot; data-title=&quot;2&quot;&gt;2&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;RLS&lt;/h2&gt;&lt;p&gt;如果不使用 Visual Studio Code 本节可以跳过。&lt;/p&gt;&lt;p&gt;RLS 是 &lt;i&gt;Rust Language Server &lt;/i&gt;的简写，微软提出&lt;i&gt;编程语言服务器&lt;/i&gt;的概念，将 IDE 的一些编程语言相关的部分由单独的服务器来实现，比如说代码补全、跳转定义、查看文档等等。这样只用给不同编辑器或者 IDE 实现客户端接口就好了。&lt;/p&gt;&lt;p&gt;Rust 就是这个概念最积极的先行者，RLS 是官方的，可预见的未来也是编辑器最主要的帮手。不过现在只有微软自家的 Visual Studio Code 支持，并且需要在系统中安装 nightly 版本的 Rust（不必启用），不想用现在可以不用。&lt;/p&gt;&lt;p&gt;RLS 的安装请查阅&lt;a href=&quot;https://github.com/rust-lang-nursery/rls#setup&quot; data-editable=&quot;true&quot; data-title=&quot;项目README&quot; class=&quot;&quot;&gt;项目README&lt;/a&gt;，也是 rustup 轻松完成。但因为目前部分功能还依赖 &lt;i&gt;racer&lt;/i&gt; 来实现，需要配置 racer 的环境变量（不必安装），所以请参阅下文关于 RUST_SRC_PATH 环境变量的部分。&lt;/p&gt;&lt;h2&gt;Racer 代码补全&lt;/h2&gt;&lt;p&gt;如果使用 Intellij Rust 本节可以跳过。&lt;/p&gt;&lt;br&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/phildawes/racer&quot; data-title=&quot;Racer 代码补全&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;Racer&lt;/a&gt; 是 Rust 代码补全库，被很多编辑器所需要（除了 Interllij Rust），安装：&lt;/p&gt;&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;cargo install racer
 &lt;/code&gt;&lt;p&gt;代码补全需要源代码。以前需要下载源代码，手动放到某处并且定期更新，现在有了 rustup 很方便：&lt;/p&gt;&lt;br&gt;&lt;code lang=&quot;text&quot;&gt;rustup component add rust-src
@@ -784,9 +770,7 @@ proxy = &quot;[socks5://]server:&amp;lt;port&amp;gt;&quot;&lt;/code&gt;&lt;p&gt;
 <item>
 <title>RFC导读：impl trait</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-04-22-26516100.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;RFC导读：impl trait&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26516100&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26516100&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;今天跟大家分享一下最近讨论比较热门的一个 rfc：impl trait。这个话题涉及两个RFC，一个是去年就已经通过了的&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/1522-conservative-impl-trait.md&quot; data-editable=&quot;true&quot; data-title=&quot;Conservative Impl Trait&quot; class=&quot;&quot;&gt;Conservative Impl Trait&lt;/a&gt;，第二个是最近 aturon 提的最新的 &lt;a href=&quot;https://github.com/rust-lang/rfcs/pull/1951&quot; data-editable=&quot;true&quot; data-title=&quot;Expand and stablize impl Trait&quot;&gt;Expand and stablize impl Trait&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;首先介绍一下，这是个什么功能。我们注意到，在写泛型函数的时候，参数传递方式可以有两种选择，静态分派或者动态分派：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn consume_iter_static&amp;lt;I: Iterator&amp;lt;Item=u8&amp;gt;&amp;gt;(iter: I)
 
 fn consume_iter_dynamic(iter: Box&amp;lt;Iterator&amp;lt;Item=u8&amp;gt;&amp;gt;)
@@ -877,9 +861,7 @@ fn give_iter() -&amp;gt; Box&amp;lt;Iterator&amp;gt;
 <item>
 <title>Rust 错误处理</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-03-03-25506762.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Rust 错误处理&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25506762&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25506762&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;注: 文章最后添加了问号语法糖的更新说明&lt;/b&gt;&lt;/p&gt;&lt;p&gt;----- 正文 -----&lt;br&gt;&lt;/p&gt;&lt;p&gt;人孰无过，过而能改，善莫大焉。程序运行过程中总是会出现各种各样的问题，导致程序出现异常或错误，这些异常和错误本身不是 bug，但是如果不处理好的话就会成为 bug。不同编程语言提供了不同的机制来处理错误和异常，一般分为两大类：把错误当作值来处理；抛出异常。&lt;/p&gt;&lt;p&gt;Rust 提供以下基础设施做错误处理：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Option, Result&lt;/li&gt;&lt;li&gt;unwrap, expect&lt;/li&gt;&lt;li&gt;combinators&lt;/li&gt;&lt;li&gt;try! macro&lt;/li&gt;&lt;li&gt;Error trait&lt;/li&gt;&lt;li&gt;From trait&lt;/li&gt;&lt;li&gt;Carrier trait&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Rust 并没有提供基于 exception 的错误处理机制，虽然 panic! 宏在让进程挂掉时也抛出堆栈，同时也可以用 std::panic::catch_unwind 捕捉 panic，但是&lt;b&gt;极其&lt;/b&gt;不推荐用来处理常规错误。&lt;/p&gt;&lt;p&gt;catch_unwind 一般是用来在多线程程序里面在将挂掉的线程 catch 住，防止一个线程挂掉导致整个进程崩掉，或者是通过外部函数接口(FFI)与 C 交互时将堆栈信息兜住防止 C 程序看到堆栈不知道如何处理，直接把堆栈信息丢给 C 程序的话属于 C 里的未定义行为(Undefined Behavior)。&lt;/p&gt;&lt;p&gt;另外 catch_unwind 并不保证能 catch 所有 panic，而只对通过 unwind 实现的 panic 有用。因为 unwind 需要额外记录堆栈信息，对程序性能和二进制程序大小有影响，所以在一些嵌入式平台上面的 panic 并没有通过 unwind 实现，而是直接 abort 的，所以 catch_unwind 并不保证能捕捉到所有panic。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::panic;
 fn main() {
     let result = panic::catch_unwind(|| {
@@ -1137,9 +1119,7 @@ where T: Carrier&amp;lt;Success=Self::Success, Error=Self::Error&amp;gt;
 <item>
 <title>Non Lexical Lifetime</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-02-25-25429005.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Non Lexical Lifetime&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25429005&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25429005&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Non Lexical Lifetime 是 Rust team 很久很久以前就想做的一个功能，但是因为各种原因，一直拖了好几年。最近，随着 Nicholas Matsakis 的一篇博客，这个问题再度纳入我们的视野中。实现方案已经基本成熟，这个功能可能很快就要跟大家见面了。本文主要是把 Nicholas 关于 Non Lexical Lifetime 的几篇博客做一个梳理，方便大家了解这个功能的来龙去脉。&lt;/p&gt;&lt;p&gt;Lifetime 生命周期，是 Rust 语言的一个重要概念。编译器通过对变量和指针的生命周期分析，来保证内存安全性。事实已经证明，这套设计是有用的，它能够保证，通过了生命周期检查的代码，都是内存安全的代码。但是，在实际使用过程中，大家还是会觉得这个检查规则有点过于严格，以致于某些实质上是安全的代码，也被阻止了。这说明，Rust目前的生命周期检查规则，可能过于保守了，在某些场景下，限制了程序员的发挥。我们来看看 Nicholas 博客中的几个示例。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::ascii::AsciiExt;
 
 fn foo() -&amp;gt; Vec&amp;lt;char&amp;gt; {

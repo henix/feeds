@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>RFC导读：impl trait</title>
-<p><a href="https://zhuanlan.zhihu.com/p/26516100">原文</a></p>
 <p>今天跟大家分享一下最近讨论比较热门的一个 rfc：impl trait。这个话题涉及两个RFC，一个是去年就已经通过了的<a href="https://github.com/rust-lang/rfcs/blob/master/text/1522-conservative-impl-trait.md" data-editable="true" data-title="Conservative Impl Trait" class="">Conservative Impl Trait</a>，第二个是最近 aturon 提的最新的 <a href="https://github.com/rust-lang/rfcs/pull/1951" data-editable="true" data-title="Expand and stablize impl Trait">Expand and stablize impl Trait</a>。</p><p>首先介绍一下，这是个什么功能。我们注意到，在写泛型函数的时候，参数传递方式可以有两种选择，静态分派或者动态分派：</p><code lang="rust">fn consume_iter_static&lt;I: Iterator&lt;Item=u8&gt;&gt;(iter: I)
 
 fn consume_iter_dynamic(iter: Box&lt;Iterator&lt;Item=u8&gt;&gt;)

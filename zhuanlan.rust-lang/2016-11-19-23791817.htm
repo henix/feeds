@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>trait object</title>
-<p><a href="https://zhuanlan.zhihu.com/p/23791817">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/v2-4a669b7bd58c630b158232563731ab5c_r.jpg" alt=""></div><h2>动态分派 VS 静态分派</h2><p>Rust可以同时支持“静态分派(static dispatch)”和“动态分派(dynamic dispatch)”。</p><p>所谓“静态分派”指的是具体调用哪个函数，在编译阶段就确定下来了。Rust中的“静态分派”靠泛型来完成。对于不同的泛型类型参数，编译器会生成不同版本的函数，在编译阶段就确定好了应该调用哪个函数。所谓“动态分派”指的是具体调用哪个函数，在执行阶段才能确定。Rust中的“动态分派”靠 Trait Object 来完成。Trait Object 本质上是指针，它可以指向不同的类型，指向的具体类型不同，调用的方法也就不同。</p><p>我们用一个示例来说明。假设我们有一个 trait Bird，另外有两个类型，都实现了这个 trait：</p><code lang="text">trait Bird {
   fn fly(&amp;self);
 }

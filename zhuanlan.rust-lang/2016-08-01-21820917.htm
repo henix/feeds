@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>类型的大小</title>
-<p><a href="https://zhuanlan.zhihu.com/p/21820917">原文</a></p>
 <div class="title-image"><img src="https://pic1.zhimg.com/fdcbe39c9f451a98bd58708714aa0804_r.jpg" alt=""></div><p>类型的大小在 Rust 中很重要，Sized trait 是 std::marker 模块中的四大特殊 trait 之一。本文主要介绍 DST 和 ZST。</p><h2>DST</h2><p>DST 是 Dynamic Sized Type 的缩写，意思是动态大小类型，表示在编译阶段无法确定大小的类型。在讲这种类型之前，我们先从数组开始谈起。</p><p>数组是一个容器，它在一块连续内存空间中，存储了一系列的同样类型的数据。数组中的元素的占用空间大小必须是编译期确定的，数组本身所容纳的元素个数也必须是编译期确定的。如果需要使用变长的容器，可以使用标准库中的Vec / LinkedList等，原始数组类型是不支持动态改变大小的。数组类型的表示方式为[T; n]，T代表元素类型，n代表元素个数。中间用分号隔开。在Rust中，对于两个数组类型，只有元素类型和元素个数都完全相同，这两个数组才是同类型的。示例如下：</p><code lang="text">fn modify_array(mut arr: [i32; 5]) {
     arr[0] = 100;
     println!("modified array {:?}", arr);

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>Rust 妙用：（一）增补标准库和统一错误</title>
-<p><a href="https://zhuanlan.zhihu.com/p/27102546">原文</a></p>
 <h2><b>Meta</b></h2><p><br>  本系列文是 wayslog 我本人的一些关于 Rust 的总结，发上来将这些作为骗赞的资本。想起来就更新，想不起来也不要催更，log 很懒的。<br></p><h2><b>Trait and Generic</b></h2><p><br>  初次接触 Rust 的同学可能对其 trait 的概念表示不能理解，其实这个概念在其他 fp 语言里早已被应用的很广泛了，Rust 作为一门 System Programming Language 引入这个概念，自然是想要让它自己的 type system 拥有更好的表达能力。trait 被国内的翻译者翻译成了 特征、特性， 但是我觉得都不能表达其原有意思，干脆在这这里保留原名字。它规定了一个类型能做的一系列 `动作`，可以看做约束，也可以认为是另一种形式上的 `标记`。具体怎么使用呢，我们可以来看一下下面。</p><br><h2><b>增补标准库</b></h2><p><br>  Rust 提供了一个功能不算多的标准库（就这还天天被吐槽标准库太大了），于是很自然的，我们需要的某些功能在标准库里就可能找不到了。但是，有的时候我们又希望对标准库做一些增补。比如，我想对所有所有实现了 `std::io::Read` 的类型增补一个 `read_u8` 功能，想要从一个 `Read` 里直接读出一个 `u8` 类型（对应 C++ 里面的 char, Go 里面的 byte 类型)。<br><br>  对于其他 OOP 语言，比如 Java 这种，显式继承 interface 的语言，除非我们能拿到 JVM 的源码，修改，并自己编译一版标准库，不然是不行的。但在 Rust 里，我们可以这么做，先上代码：<br></p><code lang="rust">use std::io::{Read, Error, ErrorKind, Result};
 
 trait ReadExt: Read {

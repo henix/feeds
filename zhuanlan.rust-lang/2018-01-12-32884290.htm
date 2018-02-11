@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<title>[译] Rust - None Lexical Lifetimes (NLL) 使用指南</title>
-<p><a href="https://zhuanlan.zhihu.com/p/32884290">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-b7bdc8a3a010ad92012199af2750cc72_r.jpg" alt=""></div><blockquote>原文地址 <a href="https://link.zhihu.com/?target=https%3A//santiagopastorino.com/how-to-use-rust-non-lexical-lifetimes-on-nightly/">https://santiagopastorino.com/how-to-use-rust-non-lexical-lifetimes-on-nightly/</a><br>原文作者: Santiago Pastorino</blockquote><p>Niko Matsakis, Paul Faria 和我在 <a href="https://link.zhihu.com/?target=https%3A//internals.rust-lang.org/t/announcing-the-impl-period-sep-18-dec-17/5676">impl period</a> 期间致力于开发None Lexical Lifetimes (暂译为非词法作用域生命周期，下文统称为 NLL)。 代码目前已经合并到 master 分支，你现在可以在 nightly 中体验。</p><p>本文将通过几个例子简单直观地展现 NLL 的使用方法。这里我不会涉及 NLL 背后的设计逻辑，如果对设计细节感兴趣，我推荐你进一步阅读 <a href="https://link.zhihu.com/?target=https%3A//github.com/rust-lang/rfcs/blob/master/text/2094-nll.md">RFC</a>，你想知道的都在里面了。我想你还可以尝试在 pull requests 贡献代码。</p><p>话不多说，我们直接上代码。</p><p>当然在这之前，你要先确保机器上安装了最新的 nightly 版本 —— 打开命令行运行 <code class="inline">rustup install nightly</code>。</p><p>我们先看这个简单的例子，它在目前的作用域生命周期(scope based lifetimes)规则下不能编译。</p><code lang="text">#![allow(unused_variables)]
 
 fn main() {
