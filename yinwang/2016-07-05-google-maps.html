@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Google Maps的设计问题</title>
+</head>
+<body>
+<p><a href="http://www.yinwang.org/blog-cn/2016/07/05/google-maps">原文</a></p>
+<div style="margin: 2% 5% 2% 5%">
+            <table>
+                <tr>
+                    <td width="60%">
+                        <div style="margin-bottom: 5px">
+                            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1331524016319584" data-ad-slot="6657867155"></ins>
+                            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                        </div>
+
+                        <div style="padding: 2% 8% 5% 8%; border: 1px solid LightGrey;">
+                            <h2>Google Maps的设计问题</h2>
+                            <p>我开车的时候喜欢用 Google Maps 导航。虽然我对 Google 这公司挺有意见，然而 Google Maps 确实是好东西。比较过其他几个导航软件（Waze，Scout Maps）之后，我发现 Google Maps 在大部分时候还是表现最好的一个。</p>
+
+<p>然而这并不等于它的设计是没有问题的。Google Maps 时不时的会改变设计，有些地方改进了，另外一些地方却可能被改得还不如以前。我已经不止一次的向 Google Maps team 提出反馈意见。</p>
+
+<p>现在我就把最近烦扰我的一个问题讲一下。我已经通过 app 给 Google Maps team 发送了 feedback，但我希望这种设计问题引起足够的重视，所以也在这里说一下。</p>
+
+<p>这个最近发现的问题是，Google Maps 显示的公路号码字体太小。它把州际公路（interstate）之类的公路号码，显示成路牌上的样式。比如下面的这个 Interstate 880，被显示成带有弧形花边，红蓝底色的路牌样式。</p>
+
+<p><img src="http://upload-images.jianshu.io/upload_images/68562-d0dfc31379ac5331.PNG?imageMogr2/auto-orient/strip%7CimageView2/2/w/300" alt=""></p>
+
+<p>这看似美观，平时在手机上看貌似没什么问题，然而在开车的时候你就会发现，里面的号码很难看清楚。其原因是：</p>
+
+<ol>
+  <li>
+    <p>把带有这个花边的路牌嵌入到导航提示里面之后，由于整个路牌的高度和旁边字体的高度一样，公路号码“880”的字体，比旁边的字小了很多（请比较“880”和“North”的大小）。</p>
+  </li>
+  <li>
+    <p>在开车的时候，手机架在机座上，离眼睛有一定距离，而且由于车速很快，你只有不超过一秒钟的安全时间可以去瞄手机。所以我经常发现瞄一眼是根本没法看清楚这个花边里面的号码（880）的，你得盯着手机看好一会儿。有时候我把头凑近手机，都很不容易看清楚。这对于开车的人是一个不小的干扰，可能会引起交通事故。</p>
+  </li>
+  <li>
+    <p>湾区的很多高速公路号码只差一个数字，比如 280，380，680，880…… 这么小的字体，很容易看不清楚这号码到底是哪一个！</p>
+  </li>
+</ol>
+
+<p>实际上你观察一下真正的路牌，就会发现公路号码的字体，跟旁边文字的比例，并不是像 Google Maps 上那个样子。请观察下图中的路牌，号码“280”和“101”的字体，和旁边的文字“SOUTH”，“TO”，“NORTH”，“San Francisco”其实是一样大，甚至更大一些。加上 INTERSTATE 的盾形花边，这个标志的尺寸比旁边的文字要大很多。</p>
+
+<p><img src="http://upload-images.jianshu.io/upload_images/68562-43f9258afbc7373a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/600" alt=""></p>
+
+<p>所以 Google Maps 一片好心，想把公路号码做得很“形象”和“直观”，做得像路牌的样子，结果比例不对，帮了倒忙。对此我提出的建议是：</p>
+
+<p>方式1：不要把公路号码显示为路牌的样式，直接使用像“I-440”这样的文本来显示路名。很少有人会在乎公路号码的样式是否美观，他们只在意是否能清楚地看到号码，所以这可能是最好的选择。很多其他导航软件和专用 GPS 设备（比如 Waze，Garmin）都是直接采用文本显示公路号码。</p>
+
+<p>方式2：保留路牌样式，但是需要把路牌的尺寸增加到真正的路牌字体比例，也就是说让路牌里的号码跟旁边的字体大小一样。这个方式放到 Google Maps 的导航提示里面，恐怕会让导航提示的宽度变大，占用更多屏幕空间，所以虽然也许可行，但可能不如第一种方式。</p>
+
+<h3 id="其它一些问题">其它一些问题</h3>
+
+<p>当然，字体大小并不是我发现的 Google Maps 唯一的问题。它还有其他一些小问题，有一些我已经向 Google Maps 的 team 提供了反馈，已经修复，还有一些仍然存在。现在我把这些小问题指出来，其中一些相当的讨厌：</p>
+
+<ul>
+  <li>
+    <p>[已修复] Google Maps 曾经在一段时间采用这样一种设计：当它通过对交通信息进行分析，得知有另一条时间更短的路线，它会弹出一个窗口，询问用户是否要选择这条更快的路（Yes/No?）。这个窗口有十几秒的延时，到时间之后如果你没有按屏幕，窗口会自动消失，并且自动选择新的路线。</p>
+
+    <p>缺省选择新的路线，是一个很不合理的设计。在开车的时候，你必须集中注意力在路上，几乎没有时间去相应弹出的窗口。而且这个窗口字体和按钮都很小，开车人可能根本没时间去读里面的内容，即使读了也不容易按中正确的按钮。到时间没有动作，导航系统自动切换到新的路线，而不是保留用户最初的选择。未经允许改变用户的路线选择，可以说是一个反人类的设计。</p>
+
+    <p>我及时向 Google Maps 团队提供了强烈的反馈，这个问题已经改变。现在缺省的选择是保留原来的路线。</p>
+  </li>
+  <li>
+    <p>[还存在] Google Maps 有时候会忽然重新计算并且改变原来的路线。改变的原因也许是因为开车人没有按原路线走，然而这有可能不是开车人的意愿。举一个例子，从南湾地区去三藩市方向，有两条高速公路可以走：280 和 101。白天我一般会选择 280，因为 280 车不多，而且风景优美一些。我会在 Google Maps 界面选择 280 的路线。</p>
+
+    <p>然而当我开出停车场，在第一个路口由于 GPS 的方向还未适应过来，我有可能转错方向。这个时候 Google Maps 会根据我的方向重新计算路线，这时候它很有可能自动把整个路线换成走 101，而不再是 280。由于最初的方向错误而换掉整体要走的高速公路，是非常不合理的。你以为它会按你原来的选择走 280，结果最后发现它把你带到了 101 的入口……</p>
+  </li>
+</ul>
+
+                        </div>
+                    </td>
+
+                    <td width="16%" valign="top">
+                        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1331524016319584" data-ad-slot="2703393155" data-ad-format="auto"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </td>
+                </tr>
+            </table>
+        </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

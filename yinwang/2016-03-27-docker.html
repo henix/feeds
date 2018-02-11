@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Go语言，Docker和Kubernetes</title>
+</head>
+<body>
+<p><a href="http://www.yinwang.org/blog-cn/2016/03/27/docker">原文</a></p>
+<div style="margin: 2% 5% 2% 5%">
+            <table>
+                <tr>
+                    <td width="60%">
+                        <div style="margin-bottom: 5px">
+                            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1331524016319584" data-ad-slot="6657867155"></ins>
+                            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                        </div>
+
+                        <div style="padding: 2% 8% 5% 8%; border: 1px solid LightGrey;">
+                            <h2>Go语言，Docker和Kubernetes</h2>
+                            <p>当我嘲笑Go语言的时候，有些人跟我说，你说Go语言是垃圾，可是你看像Docker和Kubernetes之类的云计算项目，为什么是Go语言写的呢？</p>
+
+<p>其实答案很简单：这些东西并不是非得用Go语言写才可以，用其他语言实现它们其实并没有什么问题，只不过它们碰巧是用Go语言写的而已。Docker和Kubernetes之类的项目，其实只依赖于操作系统的构架细节，对语言没有特别的要求，而且也没什么性能需求，所以它们其实可以用任何语言（包括Shell，Perl，Python，Ruby，C，Java……）来实现。只因为有人跟风，用Go语言写了这些东西，并不能说明Go语言是好东西。在当今混乱的IT业界，随便你做个东西都会有人拿来用，更不要说是挂着Go-ogle的羊头的语(go)言(rou) ;)</p>
+
+<p>如果你不相信我，可以看看这个叫“<a href="https://github.com/p8952/bocker/blob/master/bocker">Bocker</a>”的项目，它只用了100行shell script，就实现了Docker最重要的功能。 说白了，Docker的原理就是建立一些目录，把系统文件和相关库代码拷贝进去，然后<a href="https://en.wikipedia.org/wiki/Chroot">chroot</a>，这样你的代码在里面运行的时候，就以为自己独占一个Linux系统。Shell语言之恶劣，我已经有<a href="http://www.yinwang.org/blog-cn/2013/03/29/scripting-language">专文</a>介绍，所以就不多说了。本来可以用shell脚本实现的项目，现在有人用Go来做，能说明Go是一个好的语言吗？</p>
+
+<p>另外也许很多人不知道的是，Docker和Kubernetes，虽然很火，但其实并不是什么了不起的技术。Docker并不能解决Unix的根本问题。Unix从来就不是一个具有良好模块化设计的系统。各种稀奇古怪的配置文件，设计缺乏条理和章法。各种模块之间，版本逻辑依赖关系错综复杂，纠缠不清。所以不管你事后怎么补救，其实都难以变成结构清晰的设计。很多项目做成了container之后，它们之间用REST和HTTP进行通信，其实让系统模块之间的通信变得更加困难和复杂。</p>
+
+<p>使用了Docker之后，你也许会发现，Unix的狂热分子们其实重新折腾出了Windows一开头就有的应用程序构架，然而这些应用程序之间的通信方式，却远远没有达到<a href="https://en.wikipedia.org/wiki/Component_Object_Model">COM</a>和<a href="https://en.wikipedia.org/wiki/.NET_Framework">.NET</a>的成熟程度。</p>
+
+                        </div>
+                    </td>
+
+                    <td width="16%" valign="top">
+                        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1331524016319584" data-ad-slot="2703393155" data-ad-format="auto"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </td>
+                </tr>
+            </table>
+        </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>智能家居</title>
+</head>
+<body>
+<p><a href="http://www.yinwang.org/blog-cn/2017/10/28/smart-home">原文</a></p>
+<div style="margin: 2% 5% 2% 5%">
+            <table>
+                <tr>
+                    <td width="60%">
+                        <div style="margin-bottom: 5px">
+                            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1331524016319584" data-ad-slot="6657867155"></ins>
+                            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                        </div>
+
+                        <div style="padding: 2% 8% 5% 8%; border: 1px solid LightGrey;">
+                            <h2>智能家居</h2>
+                            <p>（本文仍然处于施工中。为了节省你的时间，请等这个横幅消失后再阅读。每一篇博文都需要付出许多的时间和精力，它包含了很多宝贵的经验和思考。这篇博文的完成时间预计是11月30日。如果你想加快这篇博文的完工，可以考虑到这里进行<a href="http://www.yinwang.org/blog-cn/2016/04/13/pay-blog">付费</a>。留言请说明“买咖啡加速『智能家居』的完成” :-）</p>
+
+<p>物联网（Internet of Things, IoT）和智能家居（Smart Home），是最近比较热的一个领域。很多厂商推出了自己的智能家居产品，比如 SmartThings，米家，Philips Hue，LIFX 灯泡，Nest，Amazon Echo……</p>
+
+<p>很多人听说“智能”一词，就开始幻想这些设备能像仆人一样地为自己服务，带来方便，简化生活。我说一句话，家务就完成了，多好啊！直到你买了这些所谓“智能设备”来试，才发现它们离真正可用的阶段，其实还很远。</p>
+
+<h3 id="智能家居的实质是可编程家居">智能家居的实质是“可编程家居”</h3>
+
+<p>我从来没有被“智能”这个词打动过，然而我却喜欢买这些产品来玩。它们吸引我的原因，不在于所谓“智能”，而在于它们有潜力实现家居的“自动化”（automation）。“自动化”对于我来说，其实就是“可编程”。这些产品中的自动控制，实际上就是在为家里的设备进行编程。</p>
+
+<p>有些人可能觉得“编程”把问题复杂化了，家居里面哪来的什么编程啊？从几个备选方案里面选一个不就行了？他们没有明白，很多看起来很简单的工作，其实都是编程。编程可以复杂，也可以简单到让你觉得它根本不是编程。</p>
+
+<p>一个很简单的例子，当我睡觉的时候，倒下去却发现客厅和厨房的灯还开着。我懒得爬起来去一个个地关掉，所以我希望床头有这么一个按钮，一按它就关掉家里所有的灯。这样一个按钮，就是可以用编程来实现的：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">AllOffButton</span><span class="o">()</span>
+<span class="o">{</span>
+  <span class="k">for</span> <span class="o">(</span><span class="n">lt</span> <span class="o">:</span> <span class="n">lights</span><span class="o">)</span>
+  <span class="o">{</span>
+    <span class="n">lt</span><span class="o">.</span><span class="na">TurnOff</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>当我晚上回家的时候，我不希望还得去找到灯开关，一个一个的点亮。我希望有那么一种“自动化”：天黑了 + 发现我到家 =&gt; 打开某些灯来欢迎我。这个稍微复杂一点的自动化，也是一个程序。</p>
+
+<p>编程其实无所不在，但却容易被人忽视。世界上有许多的系统到后来复杂不堪，都是因为它们的设计者最开头的时候忽视了“用户可编程”这个概念。最开头他们提供给用户一些命令行选项。到后来选项太多，他们开始让用户写配置文件。到后来，配置文件里面出现了多种情况，需要分支…… 再后来，配置文件的“格式”实质上变成了一种程序语言，一种非常糟糕的程序语言！</p>
+
+<h3 id="关一盏灯从来没有如此麻烦">关一盏灯从来没有如此麻烦</h3>
+
+<p>我很喜欢可变色，可远程控制的彩色灯泡。我是一个有生活情趣的人，在不同的情况下，我希望有不同的环境光。比如看电视的时候，我不希望很亮，也不希望全黑，我希望灯的颜色和亮度，正好搭配看电视的环境。休闲的时候，我不希望灯的颜色很白，它们应该是暖色调。起夜的时候，我不希望还得去找灯开关，不希望灯太亮……</p>
+
+<p>反正，灯是可以玩出很多花样的。我不需要“智能”，但我喜欢“自动化”和“可配置”。于是我就经常在家里干这样的事情：</p>
+
+<p><img src="http://www.yinwang.org/images/light-colors.jpg" width="300"></p>
+
+<h3 id="语音控制的根本性问题">语音控制的根本性问题</h3>
+
+<h3 id="ifttt">IFTTT</h3>
+
+<p>（未完待续……）</p>
+
+                        </div>
+                    </td>
+
+                    <td width="16%" valign="top">
+                        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1331524016319584" data-ad-slot="2703393155" data-ad-format="auto"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </td>
+                </tr>
+            </table>
+        </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
