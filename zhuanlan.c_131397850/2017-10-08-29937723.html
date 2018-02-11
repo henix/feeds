@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>[数据结构]走近Zkw线段树（二）</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/29937723">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-70459432b4826a042976328e8c1a2699_r.png" alt=""></div><h2>0x00 Preface</h2><p>上次发的一篇<a href="https://zhuanlan.zhihu.com/p/29876526">[数据结构]走近Zkw线段树（一）</a>收到了这么多评论，在这里感谢大家指出我的问题，也谢谢点赞的各位的支持Orz。</p><p>话说我与AP Language &amp; Composition的作业战♂斗二日，终于将其干♂翻......（然后我的Language从A+变成了A......TAT）不过成绩是改不了了，那就继续写文章咯OvO。</p><p>上次提到了Zkw线段树建树、单点修改、区间查询的操作。但是单单这些操作还无法体现出Zkw线段树的优势。那么今天咱们喽一眼区间更新是如何进行的。</p><p>本文将分为两个部分：</p><p>1. 区间更新+区间和查询</p><p>2. 区间更新+区间最值查询</p><hr><h2>0x01 区间更新+区间和查询</h2><p>传统线段树区间更新采用的Lazy思想：不需要更新的我就不更新，只更新有用的结点。因此在结点结构中出现了<i>Lazy</i>这么一项。这个值表示该结点表示的区间当需要更新时，每个单点需要增加多少。也就是说，当应用这个更新时，当前结点的sum值应更新为： <equation>(R-L+1)\times Lazy</equation> 。大家对这个Taoluology非常熟悉....</p><p>在Zkw线段树区间更新中，同样为了<b>避免冗余更新操作</b>，我们也使用Lazy思想。为了帮助大家理解文章一些关键词的含义，这里先把符号约定放出来：</p><blockquote>sum(x): 下标为x的结点(以下简称<i>x结点</i>)所表示区间的和<br>lson(x): x结点的左儿子，即x*2(或x&lt;&lt;1)<br>rson(x): x结点的右儿子，即x*2+1(或x&lt;&lt;1|1)<br>L(x): x结点所表示区间的左端点<br>R(x): x结点所表示区间的右端点<br>tag(x): x结点的lazy标记<br>Maintain(x): 更新x结点的区间和，从左右儿子收集信息</blockquote><p>那么下传一个<i>Lazy</i>标记的方法就很明显了:</p><code lang="cpp">inline void pushDown(int x) {
     if(tag(x) &amp;&amp; x &lt; M) { // 如果没有更新信息或在结点已经在叶子位置就不更新
         tag(lson(x)) += tag(x);tag(rson(x)) += tag(x); // 下传标记
@@ -120,3 +128,12 @@
     }
     return ans;
 }</code><hr><h2>0x03 Epilogue</h2><p>通过整理这篇文章的内容，我也再次学习了一遍Zkw线段树的区间操作。希望本篇文章能够对您对Zkw线段树的区间操作的理解提供一定支持。如果有我理解不对的地方，请dalao们指出我的错误Orz。另外国庆结束啦...开学啦....大家可以在评论区提问但是窝可能无法及时回复QwQ请谅解Orz。</p><p>本月末我要去泰国考ACT...所以可能文章更新会慢很多TuT。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

@@ -5,13 +5,11 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/</link>
 <description>记录编程的日常 &amp; 学习的过程 &amp; 奇技淫巧</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 21 Jan 2018 18:54:31 +0800</lastBuildDate>
+<lastBuildDate>Sun, 11 Feb 2018 17:51:23 +0800</lastBuildDate>
 <item>
 <title>从-INF开始学习Standard ML</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/2018-01-16-33006676.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;从-INF开始学习Standard ML&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33006676&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33006676&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7f26c15eb79536017a5de02cc8c7e1d6_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;Prologue&lt;/h2&gt;&lt;p&gt;时隔几个月终于又有时间抽出时间写一写文章了...申请季打得我措手不及，但是还好，今天早上收到了Computer Science, College of Science@Purdue University的Offer，所以喘口气歇一歇，写写文章好了...&lt;/p&gt;&lt;p&gt;这个系列的文章我打算将关注点放在一个函数式编程的语言——Standard ML——上。&lt;/p&gt;&lt;p&gt;最近闲来无事在某MOOC上学习程序设计语言这个课程，感觉这个ML还是蛮有意思的...如某MOOC的Professor所讲，希望dalao们看这系列文章时`get rid of other languages you&#39;ve learned`，将其作为一个全新的语言看待。&lt;/p&gt;&lt;p&gt;本篇文章将关注：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Data Binding&lt;/li&gt;&lt;li&gt;Shadowing&lt;/li&gt;&lt;li&gt;Functions&lt;/li&gt;&lt;li&gt;Expressions&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Data Binding&lt;/h2&gt;&lt;p&gt;这里所说的Data Binding其实就是变量赋值(绑定)。SML的数据绑定语法为：&lt;/p&gt;&lt;code lang=&quot;sml&quot;&gt;val x = &amp;lt;value&amp;gt; : &amp;lt;type&amp;gt;&lt;/code&gt;&lt;p&gt;其中若不加&amp;lt;value&amp;gt; : &amp;lt;type&amp;gt;，ML会进行类型推断。&lt;/p&gt;&lt;p&gt;那么数据绑定的过程中，实际上发生了什么？SML将变量信息存储在两个&lt;b&gt;环境&lt;/b&gt;(Environment)中：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;静态环境(Static Environment): 存储数据与字面量的类型绑定的信息&lt;/li&gt;&lt;li&gt;动态环境(Dynamic Environment): 存储数据与字面量绑定的信息&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;E.g:&lt;/p&gt;&lt;code lang=&quot;sml&quot;&gt;val x = &quot;6662333&quot; : string&lt;/code&gt;&lt;p&gt;这时，在静态环境中： &lt;equation&gt;x \to string&lt;/equation&gt; ；在动态环境中： &lt;equation&gt;x \to &quot;6662333&quot;&lt;/equation&gt; 。That&#39;s it, very simple。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Shadowing&lt;/h2&gt;&lt;p&gt;在数据绑定之后是不能进行修改的。如果在SML中尝试使用&lt;i&gt;&amp;lt;identifier&amp;gt; = &amp;lt;value&amp;gt;&lt;/i&gt;，你会发现REPL会返回一个异常或者 &lt;equation&gt;bool&lt;/equation&gt; 类型的值。因为SML的&lt;i&gt;equality assertion&lt;/i&gt;就是&lt;i&gt;=&lt;/i&gt;符号...所以，修改数据事实上是&lt;b&gt;覆盖&lt;/b&gt;原有数据，也就是本段标题的&lt;i&gt;Shadowing&lt;/i&gt;。具体操作十分Simple:&lt;/p&gt;&lt;code lang=&quot;sml&quot;&gt;(* Static Env: x -&amp;gt; int *)
 (* Dynamic Env: x -&amp;gt; 6662333 *)
 val x = 6662333;
@@ -30,9 +28,7 @@ val x = &quot;6662333&quot;;&lt;/code&gt;&lt;p&gt;因此这里变量的自增也
 <item>
 <title>[数据结构]走近Zkw线段树（二）</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/2017-10-08-29937723.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;[数据结构]走近Zkw线段树（二）&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29937723&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29937723&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-70459432b4826a042976328e8c1a2699_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;0x00 Preface&lt;/h2&gt;&lt;p&gt;上次发的一篇&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29876526&quot;&gt;[数据结构]走近Zkw线段树（一）&lt;/a&gt;收到了这么多评论，在这里感谢大家指出我的问题，也谢谢点赞的各位的支持Orz。&lt;/p&gt;&lt;p&gt;话说我与AP Language &amp;amp; Composition的作业战♂斗二日，终于将其干♂翻......（然后我的Language从A+变成了A......TAT）不过成绩是改不了了，那就继续写文章咯OvO。&lt;/p&gt;&lt;p&gt;上次提到了Zkw线段树建树、单点修改、区间查询的操作。但是单单这些操作还无法体现出Zkw线段树的优势。那么今天咱们喽一眼区间更新是如何进行的。&lt;/p&gt;&lt;p&gt;本文将分为两个部分：&lt;/p&gt;&lt;p&gt;1. 区间更新+区间和查询&lt;/p&gt;&lt;p&gt;2. 区间更新+区间最值查询&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x01 区间更新+区间和查询&lt;/h2&gt;&lt;p&gt;传统线段树区间更新采用的Lazy思想：不需要更新的我就不更新，只更新有用的结点。因此在结点结构中出现了&lt;i&gt;Lazy&lt;/i&gt;这么一项。这个值表示该结点表示的区间当需要更新时，每个单点需要增加多少。也就是说，当应用这个更新时，当前结点的sum值应更新为： &lt;equation&gt;(R-L+1)\times Lazy&lt;/equation&gt; 。大家对这个Taoluology非常熟悉....&lt;/p&gt;&lt;p&gt;在Zkw线段树区间更新中，同样为了&lt;b&gt;避免冗余更新操作&lt;/b&gt;，我们也使用Lazy思想。为了帮助大家理解文章一些关键词的含义，这里先把符号约定放出来：&lt;/p&gt;&lt;blockquote&gt;sum(x): 下标为x的结点(以下简称&lt;i&gt;x结点&lt;/i&gt;)所表示区间的和&lt;br&gt;lson(x): x结点的左儿子，即x*2(或x&amp;lt;&amp;lt;1)&lt;br&gt;rson(x): x结点的右儿子，即x*2+1(或x&amp;lt;&amp;lt;1|1)&lt;br&gt;L(x): x结点所表示区间的左端点&lt;br&gt;R(x): x结点所表示区间的右端点&lt;br&gt;tag(x): x结点的lazy标记&lt;br&gt;Maintain(x): 更新x结点的区间和，从左右儿子收集信息&lt;/blockquote&gt;&lt;p&gt;那么下传一个&lt;i&gt;Lazy&lt;/i&gt;标记的方法就很明显了:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;inline void pushDown(int x) {
     if(tag(x) &amp;amp;&amp;amp; x &amp;lt; M) { // 如果没有更新信息或在结点已经在叶子位置就不更新
         tag(lson(x)) += tag(x);tag(rson(x)) += tag(x); // 下传标记
@@ -162,9 +158,7 @@ val x = &quot;6662333&quot;;&lt;/code&gt;&lt;p&gt;因此这里变量的自增也
 <item>
 <title>[数据结构]走近Zkw线段树（一）</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/2017-10-04-29876526.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;[数据结构]走近Zkw线段树（一）&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29876526&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29876526&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6793d7b83b53f8f123f08911ee7c539d_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;0x00 Preface&lt;/h2&gt;&lt;p&gt;说到线段树大家都不陌生，一个用于维护区间信息的 &lt;equation&gt;nlogn&lt;/equation&gt; 数据结构。Zkw线段树是一个改良版的线段树。其功能与传统线段树相同，也是用于维护区间信息。但是Zkw线段树有很多优点：1. 代码简短；2. 纯天然非递归；3. 常数小（尤其在差分区间更新时），因此受到很多竞赛党的喜爱。由于涉及内容较多，Zkw线段树将(预计)分两篇文章介绍。本篇文章主要focus on zkw线段树的原理 / 基础功能。&lt;/p&gt;&lt;p&gt;P.S. 如果您想学线段树可又无法完全理解那么这篇文章十分适合您学习一个更加简单的线段树实现&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x01 Basis&lt;/h2&gt;&lt;p&gt;为了辅助大家理解Zkw线段树，我们先看一下传统线段树是如何存储信息 / 建树的：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4d8b0527c0f679eacc50cdac53492c83_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;371&quot; data-rawheight=&quot;251&quot;&gt;&lt;p&gt;不难看出，第 &lt;equation&gt;i&lt;/equation&gt; 个结点存储的信息是第 &lt;equation&gt;\lfloor \frac{i}{2} \rfloor&lt;/equation&gt; 个结点的前半段或后半段，并且叶子结点都是单点数据。传统建树的方法：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;从根(当前)结点开始递归&lt;/li&gt;&lt;li&gt;如果 &lt;equation&gt;l \ne r&lt;/equation&gt; 那么存下当前端点信息，然后分别递归进入左子树和右子树；否则存下当前端点信息并输入当前结点信息，退出当前递归。&lt;/li&gt;&lt;li&gt;维护当前结点 &lt;equation&gt;i&lt;/equation&gt; 的信息（即从左儿子和右儿子收集信息，如果是求和就把两个结点值相加赋给父结点）&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Talk is not that helpful ... 这里是普通线段树的建树代码:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;inline void Maintain(int rt) {
     // 这里以区间和为例
     tree[rt].sum = tree[rt&amp;lt;&amp;lt;1].sum + tree[rt&amp;lt;&amp;lt;1|1].sum;
@@ -212,9 +206,7 @@ inline void Build() {
 <item>
 <title>用Python编写JSON解析器的概述</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/2017-10-01-29815903.htm</link>
-<description>&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;用Python编写JSON解析器的概述&lt;/title&gt;
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29815903&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29815903&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7bee5fa626a3d128d685173ea22ca043_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;0x00 序言&lt;/h2&gt;&lt;p&gt;蒟蒻作者对Parser，Tokenizer这些东西并不很了解，或者说了解程度仅足以支撑我写一个JSON的解析器.....还望各路大佬多多指点，批评。另外这是我第一次在zhihu上写文章...并不太会用这个编辑器（感觉不太好用...?）所以排版有可能略难堪请各位多多包容（笑&lt;/p&gt;&lt;p&gt;虽然Python已经有自带的json模块，但手动实现一个还是能在一定程度上提升对JsonParser的了解....吧。&lt;/p&gt;&lt;p&gt;本文是对整个Parser编写JSON解析器的简要概述。&lt;/p&gt;&lt;p&gt;项目地址：&lt;a href=&quot;https://github.com/AD1024/JsonParser&quot;&gt;JsonParser&lt;/a&gt;&lt;/p&gt;&lt;p&gt;由于该项目用于练手+休闲，所以代码并不赏心悦目。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x01 解析器架构&lt;/h2&gt;&lt;p&gt;效仿大佬们的方法，我们先看一下这个解析器是怎样工作的：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5a690265e1b155442c70f53ba78f9f66_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;803&quot; data-rawheight=&quot;59&quot;&gt;&lt;p&gt;如图，首先我们要有原始数据。JSON的原始数据就是一个字符串；然后将字符串传到Reader中，Reader的功能有：1. 返回当前游标位置的字符;2. 向后移动游标;3. 向前移动游标。这样做是为了能够逐个字符读入原始数据并且通过上下文判断关键词作用。Tokenizer是将关键字身份和关键字所对应值存入到一个对象中提供给Parser进行进一步解析。Parser可以通过Tokenizer提供的Tokens判断语法正确性同时根据tokens的含义将数据存入Python的数据对象中。说起来比较简单，写起来难度不大但有一些复杂。这里直接用Python实现一波了...&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x02 定义JSONArray和JSONObject&lt;/h2&gt;&lt;p&gt;这应该是写这个Parser最容易的一步了。JSONArray是个list，JSONObject是个dict。&lt;/p&gt;&lt;p&gt;对于JSONArray, 我们需要以下这些功能：&lt;/p&gt;&lt;p&gt;1. append()&lt;/p&gt;&lt;p&gt;2. size()&lt;/p&gt;&lt;p&gt;3. __getitem__() #重载list的函数&lt;/p&gt;&lt;p&gt;4. __str__() # 格式化输出&lt;/p&gt;&lt;p&gt;对于JSONObject:&lt;/p&gt;&lt;p&gt;1. __getitem__(key)&lt;/p&gt;&lt;p&gt;2. __setitem__(key, value)&lt;/p&gt;&lt;p&gt;3. __str__() # 格式化输出&lt;/p&gt;&lt;p&gt;由于比较Simple，这里就不粘贴实现了。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x03 Reader&lt;/h2&gt;&lt;p&gt;Reader用于接收一个字符串然后使用一个cursor逐个字符进行读取。通过nextPos()获取当前位置字符并将游标向后移动一位：&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;class Reader(object) :
     def __init__(self, data) :
         self.data = data

@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>[数据结构]走近Zkw线段树（一）</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/29876526">原文</a></p>
 <div class="title-image"><img src="https://pic2.zhimg.com/v2-6793d7b83b53f8f123f08911ee7c539d_r.png" alt=""></div><h2>0x00 Preface</h2><p>说到线段树大家都不陌生，一个用于维护区间信息的 <equation>nlogn</equation> 数据结构。Zkw线段树是一个改良版的线段树。其功能与传统线段树相同，也是用于维护区间信息。但是Zkw线段树有很多优点：1. 代码简短；2. 纯天然非递归；3. 常数小（尤其在差分区间更新时），因此受到很多竞赛党的喜爱。由于涉及内容较多，Zkw线段树将(预计)分两篇文章介绍。本篇文章主要focus on zkw线段树的原理 / 基础功能。</p><p>P.S. 如果您想学线段树可又无法完全理解那么这篇文章十分适合您学习一个更加简单的线段树实现</p><hr><h2>0x01 Basis</h2><p>为了辅助大家理解Zkw线段树，我们先看一下传统线段树是如何存储信息 / 建树的：</p><img src="https://pic3.zhimg.com/v2-4d8b0527c0f679eacc50cdac53492c83_r.jpg" data-caption="" data-rawwidth="371" data-rawheight="251"><p>不难看出，第 <equation>i</equation> 个结点存储的信息是第 <equation>\lfloor \frac{i}{2} \rfloor</equation> 个结点的前半段或后半段，并且叶子结点都是单点数据。传统建树的方法：</p><ol><li>从根(当前)结点开始递归</li><li>如果 <equation>l \ne r</equation> 那么存下当前端点信息，然后分别递归进入左子树和右子树；否则存下当前端点信息并输入当前结点信息，退出当前递归。</li><li>维护当前结点 <equation>i</equation> 的信息（即从左儿子和右儿子收集信息，如果是求和就把两个结点值相加赋给父结点）</li></ol><p>Talk is not that helpful ... 这里是普通线段树的建树代码:</p><code lang="cpp">inline void Maintain(int rt) {
     // 这里以区间和为例
     tree[rt].sum = tree[rt&lt;&lt;1].sum + tree[rt&lt;&lt;1|1].sum;
@@ -38,3 +46,12 @@ inline void Build() {
     }
     return ans;
 }</code><p>Very Very森破，容易理解对不对？QwQ。人类的智慧！！Zkw大神的智慧！！Orz</p><p>这样我们就能在非常短的篇幅内写出一个优秀的线段树啦~Zkw线段树（一）至此结束啦。</p><hr><h2>0x04 后记</h2><p>由于AP作业有点多，第二部分可能过一段时间才能更新...希望这篇文章能够帮助您further理解线段树的工作方法以及Zkw线段树的工作原理。另外，Fedora的中文输入法并不非常好使，如果粗线措自请告素沃亚~(这条除外2333)</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
