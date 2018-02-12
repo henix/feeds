@@ -10,7 +10,7 @@ index.toc: $(TOCS)
 	cat $^ | sort -t '	' -k 1,2 > $@
 
 index.html: ../genindex.rb index.meta index.toc
-	$^ > $@
+	../updated.sh $@ $^
 
 index.xml: ../genrss.rb index.meta index.toc $(HTMS)
 	../genrss.rb "https://henix.github.io/feeds/$$(pwd | tr '/' '\n' | tail -n1)" > $@
