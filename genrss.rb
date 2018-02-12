@@ -36,7 +36,7 @@ buf = %{<?xml version="1.0" encoding="utf-8"?>
 } +
 	toc.reverse.take(10).map { |t|
 		guid = t[:date] + "-" + t[:id]
-		filename = guid + ".htm"
+		filename = guid + ".html"
 		orightml = %{<p><a href="#{e(t[:link])}">原文</a></p>
 }
 		%{<item>
