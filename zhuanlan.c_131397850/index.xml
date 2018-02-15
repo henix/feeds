@@ -5,7 +5,489 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/</link>
 <description>记录编程的日常 &amp; 学习的过程 &amp; 奇技淫巧</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 12 Feb 2018 16:27:41 +0800</lastBuildDate>
+<lastBuildDate>Thu, 15 Feb 2018 21:11:08 +0800</lastBuildDate>
+<item>
+<title>[数据结构]表达式树——手动eval()</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_131397850/2018-02-15-33820915.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33820915&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c262cb2ce960d3c6da35e9e10246f174_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;0x00 Prologue&lt;/h2&gt;&lt;p&gt;过春节啦！祝大家新年快乐哇~有一段时间没有写文章了，前几天正好把寒假的作业写了一些，今天更一篇依旧是介绍树形数据结构的文章吧....这次看一个没有Zkw线段树那么复杂的数据结构——表达式树(Expression Tree)。&lt;/p&gt;&lt;p&gt;本篇文章将对：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;表达式树的工作原理&lt;/li&gt;&lt;li&gt;表达式树建立步骤&lt;/li&gt;&lt;li&gt;表达式树求值&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;进行介绍。文章代码使用JavaScript(最近某个项目需要学习，正好用一用:P)，但是这个语言吧语法还是非常简单易懂的...并且我会在需要解释的地方打上注释:D。&lt;/p&gt;&lt;p&gt;另外，文章会涉及一点非常简单的词法分析器的介绍。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x01 表达式树能干啥？长啥样？&lt;/h2&gt;&lt;p&gt;Q: 给定一个合法的表达式字符串&quot;(1+2)*(5-3)&quot;，计算表达式的值。&lt;/p&gt;&lt;p&gt;&amp;lt;del&amp;gt;A: eval()！！(拉出去打死&amp;lt;/del&amp;gt;&lt;/p&gt;&lt;p&gt;如果使用一些没有&lt;code class=&quot;inline&quot;&gt;eval()&lt;/code&gt;的语言怎么搞？用表达式树！&lt;/p&gt;&lt;p&gt;&amp;lt;del&amp;gt;建一下，玩一年，只要998，年底清仓大甩卖，表达式树带回家&amp;lt;/del&amp;gt;&lt;/p&gt;&lt;p&gt;表达式树就是将一个表达式解析成一棵满二叉树(如果所有合法操作符都是进行二元计算)，且所有非叶结点都是符号结点(&lt;code class=&quot;inline&quot;&gt;+-*/&lt;/code&gt;)，叶子结点都是数字结点。对于&lt;code class=&quot;inline&quot;&gt;(1+2)*(5-3)&lt;/code&gt;我们就可以构造出一棵这样的表达式树：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9f80d55052339346ce3c79e63b8bad1b_r.jpg&quot; data-caption=&quot;(1+2)*(5-3)的表达式树&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1298&quot;&gt;&lt;p&gt;可以看出来，对表达式树进行后序遍历的结果就是原表达式的逆波兰式(后缀表达式)。对表达式树进行前序遍历进行计算的结果就是我们表达式计算的结果。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x02 从字符串建立表达式树&lt;/h2&gt;&lt;p&gt;&lt;b&gt;0. 规定表达式组成成分&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这里为了简化理解，就不介绍产生式了...这一部分就是规定什么能出现在将被evaluate的字符串中，定义符号集以及对应的Token。这里我们的计算器支持基础四则运算，取模以及位运算(&lt;code class=&quot;inline&quot;&gt;and&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;or&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;xor&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;shl&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;shr&lt;/code&gt;)，这些符号的token我们定义为&lt;code class=&quot;inline&quot;&gt;OPERATOR&lt;/code&gt;；除了符号还有参与运算的数字， 我们将数字分为两种：&lt;code class=&quot;inline&quot;&gt;INTEGER&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;DOUBLE&lt;/code&gt;。那么我们就可以定义一个这样的类：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;const TokenType = {
+    OPERATOR: &#39;OPERATOR&#39;, 
+    INT: &#39;INTEGER&#39;, 
+    DOUBLE: &#39;DECIMAL&#39;,
+}
+// 这里是可以作为关键字开头的符号表
+// 这样做为了方便之后判断Token...如果有更好的实现方法
+// 求大佬们赐教
+const operator_list = {
+    &#39;+&#39;: 0, &#39;-&#39;: 0, &#39;*&#39;: 0, &#39;/&#39;: 0, &#39;%&#39;: 0,
+    &#39;&amp;amp;&#39;: 0, &#39;|&#39;: 0, &#39;^&#39;: 0, &#39;**&#39;: 0, &#39;&amp;lt;&#39;: 0, &#39;&amp;gt;&#39;: 0, &#39;~&#39;: 0, &#39;(&#39;: 0, &#39;)&#39;: 0
+}
+
+class Token{
+    constructor(value, tag){
+        this.value = value; // 对应值
+        this.tag = tag; // Token类型(TokenType)
+    }
+}&lt;/code&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;词法分析&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;为了方便建树时识别每个符号的含义，我们首先对表达式字符串进行词法分析。这个过程会将字符串中的元素拆分成一个一个的Token。例如&lt;code class=&quot;inline&quot;&gt;+&lt;/code&gt;是一个运算符，我们可以定义为&lt;code class=&quot;inline&quot;&gt;OPERATOR&lt;/code&gt;。我们将编写一个简单的词法分析器(Lexer)对表达式字符串进行词法分析。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0011a8725b3099a41b1f855f6d6b6b4d_r.jpg&quot; data-caption=&quot;Lexer的作用&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1684&quot;&gt;&lt;p&gt;(上图是对表达式&lt;code class=&quot;inline&quot;&gt;(1+2)*3.5&lt;/code&gt;进行词法分析后的结果。 )&lt;/p&gt;&lt;p&gt;实现一个Lexer并不难，我们只需要将字符串从左向右扫一遍，将不同类别的词素分离开即可。例如：当前位置的符号是&lt;code class=&quot;inline&quot;&gt;&amp;gt;&lt;/code&gt;，那么我们可以猜测这有可能是&lt;code class=&quot;inline&quot;&gt;shr&lt;/code&gt;符号；这时向后看一位，如果是&lt;code class=&quot;inline&quot;&gt;&amp;gt;&lt;/code&gt;那么就可以确定这是要&lt;code class=&quot;inline&quot;&gt;shr&lt;/code&gt;了 。&lt;/p&gt;&lt;p&gt;为了方便我们实现这个Lexer，首先我们写一个&lt;code class=&quot;inline&quot;&gt;Reader&lt;/code&gt;类，用于逐位读取一个可以用下标操作符的对象（用于读取输入的表达式和之后的Token列表）：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;class Reader{ // Reader 职阶
+    constructor(input_data){
+        this.seq = input_data;
+        this.cursor = 0;
+        this.urng = input_data.length;
+    }
+    next() {
+        return this.seq[this.cursor++]; // 返回当前位置的字符并将游标向后移动1
+    }
+    cursor_data() {
+        return this.seq[this.cursor] // 返回当前游标所指的数据
+    }
+    has_next() {
+        return this.cursor &amp;lt; this.urng; // 调用next()是否还有数据
+    }
+    peek() {
+        return this.seq[this.cursor + 1]; // 向后看一位
+    }
+}&lt;/code&gt;&lt;p&gt;写好&lt;code class=&quot;inline&quot;&gt;Reader&lt;/code&gt;类之后，我们再实现Lexer：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;var reader;
+
+class Lexer{ // Lexer 职阶
+    constructor(input_expreesion){
+        reader = new Reader(input_expreesion);
+    }
+    parse(){
+        var token_list = []; // 保存解析出的Token，Token列表
+        let last_token = () =&amp;gt; {return token_list[token_list.length - 1]}; // 返回上一个解析的Token
+        let is_digit = (x) =&amp;gt; {return x &amp;gt;= &#39;0&#39; &amp;amp;&amp;amp; x &amp;lt;= &#39;9&#39;};
+        let is_escape = (x) =&amp;gt; {return x === &#39; &#39; || x === &#39;\n&#39; || x === &#39;\t&#39;};
+        function readNum() {
+            var ans = {
+                v: &#39;&#39;, t: TokenType.INT
+            };
+            // 读取剩余的数字或小数点
+            while(reader.has_next() &amp;amp;&amp;amp; (is_digit(reader.cursor_data()) || reader.cursor_data() === &#39;.&#39; || is_escape(reader.cursor_data()))){
+                if(is_escape(reader.cursor_data())) continue;
+                ans.v += reader.next();
+            }
+            if (reader.has_next() &amp;amp;&amp;amp; reader.cursor_data() === &#39;e&#39; &amp;amp;&amp;amp; (reader.peek() === &#39;-&#39; || reader.peek() === &#39;+&#39;)){
+                ans.v += reader.next() + reader.next();
+                while(reader.has_next() &amp;amp;&amp;amp; is_digit(reader.cursor_data())){
+                    ans.v += reader.next();
+                }
+            } // 科学计数
+            if(ans.v.search(&#39;.&#39;) !== -1 || ans.v.search(&#39;e-&#39;) !== -1){
+                ans.t = TokenType.DOUBLE;
+            }
+            return ans;
+        }
+        while (reader.has_next()){
+            var cur = reader.next();
+            if(is_escape(cur)) continue;
+            if(is_digit(cur)) {
+                var ret = readNum();
+                token_list.push(new Token(cur + ret.v, ret.t));
+            }else if(cur in operator_list){
+                var prev = last_token();
+                if(typeof prev !== &#39;undefined&#39;) prev = prev.tag;
+                if(cur === &#39;-&#39;){ // 分两种情况，1. 负数 2. 减法
+                    if (typeof prev !== &#39;undefined&#39; &amp;amp;&amp;amp; (prev === TokenType.INT || prev === TokenType.DOUBLE)){
+                        token_list.push(new Token(cur, TokenType.OPERATOR)); // 作为运算符处理
+                    }else{
+                        var ret = readNum();
+                        cur += ret.v;
+                        token_list.push(new Token(cur, ret.t));
+                    }
+                }else if(cur === &#39;~&#39;){
+                    var ret = readNum();
+                    token_list.push(new Token(cur + ret.v, TokenType.INT));
+                }else if((cur === &#39;*&#39; || cur === &#39;&amp;lt;&#39; || cur === &#39;&amp;gt;&#39;) &amp;amp;&amp;amp; reader.has_next() &amp;amp;&amp;amp; reader.cursor_data() === cur){
+                    cur += reader.next() // 当前位置和上一个位置是同一个Operator，两个组合成指定Operator(** &amp;lt;&amp;lt; &amp;gt;&amp;gt;)
+                    token_list.push(new Token(cur, TokenType.OPERATOR));
+                }else{
+                    token_list.push(new Token(cur, TokenType.OPERATOR));
+                }
+            }else{
+                throw &quot;Error character @ &quot; + (reader.cursor - 1) + &quot; &quot; + cur;
+            }
+        }
+        return token_list;
+    }
+}&lt;/code&gt;&lt;p&gt;至此，一个简单的Lexer就编写完毕了。可以通过&lt;code class=&quot;inline&quot;&gt;console.log(new Lexer(&quot;(1+2)*3&quot;))&lt;/code&gt;看看解析是否正确。&lt;/p&gt;&lt;p&gt;e.g: &lt;code class=&quot;inline&quot;&gt;(1.25+3e-2+1e+3)*5&lt;/code&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b704ff1ea791913ebe35d4073bdd8bef_r.jpg&quot; data-caption=&quot;Tokenize: (1.25+3e-2+1e+3)*5&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;962&quot;&gt;&lt;hr&gt;&lt;h2&gt;0x03 通过Token列表建立表达式树 &amp;amp; 求值&lt;/h2&gt;&lt;p&gt;这时我们的&lt;code class=&quot;inline&quot;&gt;Reader&lt;/code&gt;又派上用场了&amp;lt;del&amp;gt;(上吧！Reader，ATK +450↑)&amp;lt;/del&amp;gt;。我们建立表达式树的时候也需要从左向右扫一遍我们的Token们。我们需要两个栈(Stack)存储两类数据：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Number Stack    (数字栈)&lt;/li&gt;&lt;li&gt;Operator Stack   (符号栈)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;事实上，这里的数字栈并不只存数字，而是存&lt;b&gt;可被求值的结点&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;为了方便之后的求值，我们定义两种表达式树节点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;常数结点&lt;/li&gt;&lt;li&gt;操作符结点&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;其中常数结点存储一个单独的值&lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt;和一个求值方法&lt;code class=&quot;inline&quot;&gt;eval()&lt;/code&gt;（直接返回&lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt;）；操作符结点分为&lt;code class=&quot;inline&quot;&gt;op&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;fi&lt;/code&gt;，和&lt;code class=&quot;inline&quot;&gt;se&lt;/code&gt;，分别是操作符，左表达式，右表达式。注意左右表达式既可以是操作符结点也可以是常数结点。操作符结点也有一个求值方法&lt;code class=&quot;inline&quot;&gt;eval()&lt;/code&gt;，判断&lt;code class=&quot;inline&quot;&gt;op&lt;/code&gt;并返回相应值：&lt;/p&gt;&lt;p&gt;&lt;b&gt;常数结点：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;class ConstNode{
+    constructor(v){
+        this.value = v;
+    }
+    eval(){
+        return this.value;
+    }
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;操作符结点：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;class OperatorNode{
+    constructor(op, fi, se){
+        this.op = op;
+        this.fi = fi;
+        this.se = se;
+    }
+    eval(){
+        switch(this.op){
+            case &#39;+&#39;:
+                return this.fi.eval() + this.se.eval();
+            case &#39;-&#39;:
+                return this.fi.eval() - this.se.eval();
+            case &#39;*&#39;:
+                return this.fi.eval() * this.se.eval();
+            case &#39;/&#39;:
+                return this.fi.eval() / this.se.eval();
+            case &#39;%&#39;:
+                return this.fi.eval() % this.se.eval();
+            case &#39;**&#39;:
+                return this.fi.eval() ** this.se.eval();
+            case &#39;&amp;lt;&amp;lt;&#39;:
+                return this.fi.eval() &amp;lt;&amp;lt; this.se.eval();
+            case &#39;&amp;gt;&amp;gt;&#39;:
+                return this.fi.eval() &amp;gt;&amp;gt; this.se.eval();
+            case &#39;&amp;amp;&#39;:
+                return this.fi.eval() &amp;amp; this.se.eval();
+            case &#39;|&#39;:
+                return this.fi.eval() | this.se.eval();
+            case &#39;^&#39;:
+                return this.fi.eval() ^ this.se.eval();
+            default:
+                break;
+        }
+    }
+}&lt;/code&gt;&lt;p&gt;(Tips: 这里使两种结点求值方法名相同就是为了方便整棵树的求值)&lt;/p&gt;&lt;p&gt;我们定义一个&lt;code class=&quot;inline&quot;&gt;addNode()&lt;/code&gt;函数，这个函数会从数字栈中取出栈顶的两个元素，然后再从符号栈中取出栈顶符号，最后将刚刚取出的符号和两个表达式元素放入一个符号结点，加入到数字栈当中作为一个新的“数字”(可被求值对象)。&lt;/p&gt;&lt;p&gt;当从左向右扫描的时候如果遇到的Token是INTEGER或者DOUBLE，我们就直接将其处理一下（&lt;code class=&quot;inline&quot;&gt;parseInt()&lt;/code&gt;或&lt;code class=&quot;inline&quot;&gt;parseFloat()&lt;/code&gt;）放入数字栈中；如果遇到的是OPERATOR，我们按照运算优先级进行操作。这里不需要明确写出运算优先级，我们只需要一直执行&lt;code class=&quot;inline&quot;&gt;addNode()&lt;/code&gt;直到遇到了比当前运算符优先级低的符号为止(比如遇到了&lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;/&lt;/code&gt;，那么我们就一直执行&lt;code class=&quot;inline&quot;&gt;addNode()&lt;/code&gt;直到遇到&lt;code class=&quot;inline&quot;&gt;+, -, &amp;amp;, |, ^&lt;/code&gt;)，最后再把当前运算符放入符号栈。&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;class ExpressionTreeConstructor{
+    constructor(tokenList){
+        reader = new Reader(tokenList);
+        this.operator = []; // 符号栈
+        this.num = []; // 数字栈
+    }
+    addNode(){
+        var se = this.num.pop(); // LIFO, 第二个在前面
+        var fi = new ConstNode(0);
+        if(this.num.length !== 0){
+            fi = this.num.pop();
+        }
+        var op = this.operator.pop(); // 取出栈顶符号
+        this.num.push(new OperatorNode(op, fi, se)); // 将三个元素打包成符号结点放入数字栈中
+    }
+    get opTop(){
+        return this.operator[this.operator.length - 1]
+    }
+    build_tree(){
+        while(reader.has_next()){
+            var cur = reader.next();
+            console.log(this.num, cur.value);
+            switch (cur.tag) {
+                case TokenType.INT:
+                    if (cur.value.startsWith(&#39;~&#39;)) {
+                        this.num.push(new ConstNode(~parseInt(cur.value.slice(1))));
+                    } else {
+                        this.num.push(new ConstNode(parseInt(cur.value)));
+                    }
+                    break;
+                case TokenType.DOUBLE:
+                    if (cur.value.startsWith(&#39;~&#39;)) { // 这个应该没啥意义...
+                        this.num.push(new ConstNode(~parseFloat(cur.value.slice(1))));
+                    } else {
+                        this.num.push(new ConstNode(parseFloat(cur.value)));
+                    }
+                    break;
+                case TokenType.OPERATOR:
+                    switch(cur.value){
+                        case &#39;(&#39;:
+                            this.operator.push(&#39;(&#39;); // 这个符号优先级最低，直接加入符号栈
+                            break;
+                        case &#39;)&#39;:
+                            while(this.operator.length &amp;amp;&amp;amp; this.opTop !== &#39;(&#39;){ // 将括号之间的全都处理一遍
+                                this.addNode();
+                            }
+                            this.operator.pop(); // 弹掉栈顶的&#39;(&#39;
+                            break;
+                        case &#39;%&#39;:
+                        case &#39;**&#39;:
+                            while (this.operator.length &amp;amp;&amp;amp; this.opTop === cur.value) {
+                                // 取模与exponential比其他运算符优先级高，所以遇到这两个符号时只能处理剩余的取模和exp
+                                this.addNode(); 
+                            }
+                            this.operator.push(cur.value); // 将当前符号加入符号栈
+                            break;
+                        case &#39;*&#39;:
+                        case &#39;/&#39;:
+                            while (this.operator.length &amp;amp;&amp;amp; (this.opTop === &#39;*&#39; || this.opTop === &#39;/&#39;)) {
+                                this.addNode(); // 乘除
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        case &#39;+&#39;:
+                        case &#39;-&#39;:
+                            while (this.operator.length &amp;amp;&amp;amp; this.opTop !== &#39;(&#39; &amp;amp;&amp;amp; this.opTop !== &#39;|&#39; &amp;amp;&amp;amp; this.opTop !== &#39;&amp;amp;&#39; &amp;amp;&amp;amp; this.opTop !== &#39;^&#39;) {
+                                // 处理到这些符号就停止，位运算符号优先级低，不能同时加入树中
+                                this.addNode();
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        case &#39;|&#39;:
+                        case &#39;&amp;amp;&#39;:
+                        case &#39;^&#39;:
+                        case &#39;&amp;lt;&amp;lt;&#39;:
+                        case &#39;&amp;gt;&amp;gt;&#39;:
+                            while(this.operator.length &amp;amp;&amp;amp; this.opTop !== &#39;(&#39;){
+                                this.addNode();
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        default:
+                            throw &quot;Error Operator &quot; + cur.value;
+                    }
+                default:
+                    break;
+            }
+        }
+        while(this.operator.length){
+            this.addNode(); // 用剩余的结点把数字栈里解析好的结点组合起来
+        }
+        return this.num[0]; // 最后返回根结点
+    }
+}&lt;/code&gt;&lt;p&gt;我们可以来看一下&lt;code class=&quot;inline&quot;&gt;(1.25+3e-2+1e+3)*5&lt;/code&gt;的建树结果：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a24d1e29f0965ac98ff8d8470a565387_r.jpg&quot; data-caption=&quot;对(1.25+3e-2+1e+3)*5建立表达式树&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1542&quot;&gt;&lt;p&gt;求值就非常简单了，我们已经定义了&lt;code class=&quot;inline&quot;&gt;eval()&lt;/code&gt;函数，只需要再调用一下就行。&lt;/p&gt;&lt;p&gt;至此我们的表达式树从简单的词法分析到建立就全部完成了。完整代码如下：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;const TokenType = {
+    OPERATOR: &#39;OPERATOR&#39;, 
+    INT: &#39;INTEGER&#39;, 
+    DOUBLE: &#39;DECIMAL&#39;,
+}
+
+const operator_list = {
+    &#39;+&#39;: 0, &#39;-&#39;: 0, &#39;*&#39;: 0, &#39;/&#39;: 0, &#39;%&#39;: 0,
+    &#39;&amp;amp;&#39;: 0, &#39;|&#39;: 0, &#39;^&#39;: 0, &#39;**&#39;: 0, &#39;&amp;lt;&#39;: 0, &#39;&amp;gt;&#39;: 0, &#39;~&#39;: 0, &#39;(&#39;: 0, &#39;)&#39;: 0
+}
+
+class Token{
+    constructor(value, tag){
+        this.value = value;
+        this.tag = tag;
+    }
+}
+
+class Reader{
+    constructor(input_data){
+        this.seq = input_data;
+        this.cursor = 0;
+        this.urng = input_data.length;
+    }
+    next() {
+        return this.seq[this.cursor++];
+    }
+    cursor_data() {
+        return this.seq[this.cursor]
+    }
+    has_next() {
+        return this.cursor &amp;lt; this.urng;
+    }
+    peek() {
+        return this.seq[this.cursor + 1];
+    }
+}
+
+var reader;
+
+class Lexer{
+    constructor(input_expreesion){
+        reader = new Reader(input_expreesion);
+    }
+    parse(){
+        var token_list = [];
+        let last_token = () =&amp;gt; {return token_list[token_list.length - 1]};
+        let is_digit = (x) =&amp;gt; {return x &amp;gt;= &#39;0&#39; &amp;amp;&amp;amp; x &amp;lt;= &#39;9&#39;};
+        let is_escape = (x) =&amp;gt; {return x === &#39; &#39; || x === &#39;\n&#39; || x === &#39;\t&#39;};
+        function readNum() {
+            var ans = {
+                v: &#39;&#39;, t: TokenType.INT
+            };
+            while(reader.has_next() &amp;amp;&amp;amp; (is_digit(reader.cursor_data()) || reader.cursor_data() === &#39;.&#39; || is_escape(reader.cursor_data()))){
+                if(is_escape(reader.cursor_data())) continue;
+                ans.v += reader.next();
+            }
+            if (reader.has_next() &amp;amp;&amp;amp; reader.cursor_data() === &#39;e&#39; &amp;amp;&amp;amp; (reader.peek() === &#39;-&#39; || reader.peek() === &#39;+&#39;)){
+                ans.v += reader.next() + reader.next();
+                while(reader.has_next() &amp;amp;&amp;amp; is_digit(reader.cursor_data())){
+                    ans.v += reader.next();
+                }
+            }
+            if(ans.v.search(&#39;.&#39;) !== -1 || ans.v.search(&#39;e-&#39;) !== -1){
+                ans.t = TokenType.DOUBLE;
+            }
+            return ans;
+        }
+        while (reader.has_next()){
+            var cur = reader.next();
+            if(is_escape(cur)) continue;
+            if(is_digit(cur)) {
+                var ret = readNum();
+                token_list.push(new Token(cur + ret.v, ret.t));
+            }else if(cur in operator_list){
+                var prev = last_token();
+                if(typeof prev !== &#39;undefined&#39;) prev = prev.tag;
+                if(cur === &#39;-&#39;){
+                    if (typeof prev !== &#39;undefined&#39; &amp;amp;&amp;amp; (prev === TokenType.INT || prev === TokenType.DOUBLE)){
+                        token_list.push(new Token(cur, TokenType.OPERATOR));
+                    }else{
+                        var ret = readNum();
+                        cur += ret.v;
+                        token_list.push(new Token(cur, ret.t));
+                    }
+                }else if(cur === &#39;~&#39;){
+                    var ret = readNum();
+                    token_list.push(new Token(cur + ret.v, TokenType.INT));
+                }else if((cur === &#39;*&#39; || cur === &#39;&amp;lt;&#39; || cur === &#39;&amp;gt;&#39;) &amp;amp;&amp;amp; reader.has_next() &amp;amp;&amp;amp; reader.cursor_data() === cur){
+                    cur += reader.next()
+                    token_list.push(new Token(cur, TokenType.OPERATOR));
+                }else{
+                    token_list.push(new Token(cur, TokenType.OPERATOR));
+                }
+            }else{
+                throw &quot;Error character @ &quot; + (reader.cursor - 1) + &quot; &quot; + cur;
+            }
+        }
+        return token_list;
+    }
+}
+
+class OperatorNode{
+    constructor(op, fi, se){
+        this.op = op;
+        this.fi = fi;
+        this.se = se;
+    }
+    eval(){
+        switch(this.op){
+            case &#39;+&#39;:
+                return this.fi.eval() + this.se.eval();
+            case &#39;-&#39;:
+                return this.fi.eval() - this.se.eval();
+            case &#39;*&#39;:
+                return this.fi.eval() * this.se.eval();
+            case &#39;/&#39;:
+                return this.fi.eval() / this.se.eval();
+            case &#39;%&#39;:
+                return this.fi.eval() % this.se.eval();
+            case &#39;**&#39;:
+                return this.fi.eval() ** this.se.eval();
+            case &#39;&amp;lt;&amp;lt;&#39;:
+                return this.fi.eval() &amp;lt;&amp;lt; this.se.eval();
+            case &#39;&amp;gt;&amp;gt;&#39;:
+                return this.fi.eval() &amp;gt;&amp;gt; this.se.eval();
+            case &#39;&amp;amp;&#39;:
+                return this.fi.eval() &amp;amp; this.se.eval();
+            case &#39;|&#39;:
+                return this.fi.eval() | this.se.eval();
+            case &#39;^&#39;:
+                return this.fi.eval() ^ this.se.eval();
+            default:
+                break;
+        }
+    }
+}
+
+class ConstNode{
+    constructor(v){
+        this.value = v;
+    }
+    eval(){
+        return this.value;
+    }
+}
+
+class ExpressionTreeConstructor{
+    constructor(tokenList){
+        reader = new Reader(tokenList);
+        this.operator = [];
+        this.num = [];
+    }
+    addNode(){
+        var se = this.num.pop();
+        var fi = new ConstNode(0);
+        if(this.num.length !== 0){
+            fi = this.num.pop();
+        }
+        var op = this.operator.pop();
+        this.num.push(new OperatorNode(op, fi, se));
+    }
+    get opTop(){
+        return this.operator[this.operator.length - 1]
+    }
+    build_tree(){
+        while(reader.has_next()){
+            var cur = reader.next();
+            switch (cur.tag) {
+                case TokenType.INT:
+                    if (cur.value.startsWith(&#39;~&#39;)) {
+                        this.num.push(new ConstNode(~parseInt(cur.value.slice(1))));
+                    } else {
+                        this.num.push(new ConstNode(parseInt(cur.value)));
+                    }
+                    break;
+                case TokenType.DOUBLE:
+                    if (cur.value.startsWith(&#39;~&#39;)) {
+                        this.num.push(new ConstNode(~parseFloat(cur.value.slice(1))));
+                    } else {
+                        this.num.push(new ConstNode(parseFloat(cur.value)));
+                    }
+                    break;
+                case TokenType.OPERATOR:
+                    switch(cur.value){
+                        case &#39;(&#39;:
+                            this.operator.push(&#39;(&#39;);
+                            break;
+                        case &#39;)&#39;:
+                            while(this.operator.length &amp;amp;&amp;amp; this.opTop !== &#39;(&#39;){
+                                this.addNode();
+                            }
+                            this.operator.pop();
+                            break;
+                        case &#39;%&#39;:
+                        case &#39;**&#39;:
+                            while (this.operator.length &amp;amp;&amp;amp; this.opTop === cur.value) {
+                                this.addNode();
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        case &#39;*&#39;:
+                        case &#39;/&#39;:
+                            while (this.operator.length &amp;amp;&amp;amp; (this.opTop === &#39;*&#39; || this.opTop === &#39;/&#39;)) {
+                                this.addNode();
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        case &#39;+&#39;:
+                        case &#39;-&#39;:
+                            while (this.operator.length &amp;amp;&amp;amp; this.opTop !== &#39;(&#39; &amp;amp;&amp;amp; this.opTop !== &#39;|&#39; &amp;amp;&amp;amp; this.opTop !== &#39;&amp;amp;&#39; &amp;amp;&amp;amp; this.opTop !== &#39;^&#39;) {
+                                this.addNode();
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        case &#39;|&#39;:
+                        case &#39;&amp;amp;&#39;:
+                        case &#39;^&#39;:
+                        case &#39;&amp;lt;&amp;lt;&#39;:
+                        case &#39;&amp;gt;&amp;gt;&#39;:
+                            while(this.operator.length &amp;amp;&amp;amp; this.opTop !== &#39;(&#39;){
+                                this.addNode();
+                            }
+                            this.operator.push(cur.value);
+                            break;
+                        default:
+                            throw &quot;Error Operator &quot; + cur.value;
+                    }
+                default:
+                    break;
+            }
+        }
+        while(this.operator.length){
+            this.addNode();
+        }
+        return this.num[0];
+    }
+}
+var tokens = new Lexer(&#39;(1.25+3e-2+1e+3)*5&#39;).parse();
+console.log(tokens);
+console.log(new ExpressionTreeConstructor(tokens).build_tree().eval())&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;0x04 Epilogue&lt;/h2&gt;&lt;p&gt;表达式树是一个不太被常用，但是实现起来并不困难的树形结构 ... 做一个计算器可以用到它。比如前段时间打发时间写的用于长度单位换算的小REPL: &lt;/p&gt;&lt;a href=&quot;https://github.com/AD1024/UnitEquation&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-5d810f6b1c189ae9b4e59a233f69cc4d&quot; data-image-width=&quot;400&quot; data-image-height=&quot;400&quot; data-image-size=&quot;ipico&quot;&gt;AD1024/UnitEquation&lt;/a&gt;&lt;p&gt;当然，如果你想做一个编程语言...emmmm 有点困难，因为AST比这个要复杂很多，而且计算表达式比较simple，不需要复杂的parser，但是编程语言嘛...parser复杂很多。这里有个计算器的小REPL(应该还有bug)，就是尝试不使用parser搞一个简单的编程语言：&lt;/p&gt;&lt;a href=&quot;https://github.com/AD1024/Calculator&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-5d810f6b1c189ae9b4e59a233f69cc4d&quot; data-image-width=&quot;400&quot; data-image-height=&quot;400&quot; data-image-size=&quot;ipico&quot;&gt;AD1024/Calculator&lt;/a&gt;&lt;p&gt;最后祝大家新年快乐，狗年大吉，万事如意~&lt;/p&gt;</description>
+<author>Mike He</author>
+<guid isPermaLink="false">2018-02-15-33820915</guid>
+<pubDate>Thu, 15 Feb 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>从-INF开始学习Standard ML</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/2018-01-16-33006676.html</link>
