@@ -5,7 +5,161 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 12 Feb 2018 16:33:46 +0800</lastBuildDate>
+<lastBuildDate>Thu, 15 Feb 2018 15:06:03 +0800</lastBuildDate>
+<item>
+<title>delimited continuations完全攻略</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-02-15-33399006.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33399006&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-eb471c83c20ac7b33a45d0f2bf17a90c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;宣传一下我的群：Expert Scheme：523791077&lt;/p&gt;&lt;p&gt;&lt;b&gt;Part I ： shift and reset&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;警告：在racket中使用shift/reset，请加上这句：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(require racket/control)&lt;/code&gt;&lt;p&gt;&lt;b&gt;A. shift和reset的基本规则&lt;/b&gt;&lt;/p&gt;&lt;p&gt;要了解shift和reset如何使用，就必须先了解shift和reset的求值规则：&lt;/p&gt;&lt;p&gt;当reset的内部是简单表达式的时候，整个表达式直接返回其值。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ 1 2)) =&amp;gt; 3&lt;/code&gt;&lt;p&gt;当reset的内部的shift被求值时，需要注意，返回shift的body。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ 1 (shift k 2)))  =&amp;gt; 2&lt;/code&gt;&lt;p&gt;把reset想象成一个整块，shift就是在其中打洞。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(+ 1 hole)&lt;/code&gt;&lt;p&gt;你现在需要一个值把洞填上去，我们可以写一个函数：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (hole) (+ 1 hole))&lt;/code&gt;&lt;p&gt;而shift的第一个标识符k所绑定的值就是这个函数(一般称为continuation，用字母k表示，或者用ctx表示）。&lt;/p&gt;&lt;p&gt;这个表达式：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ (shift k (k (k 1))) 1))&lt;/code&gt;&lt;p&gt;我们的k函数应当是（注意，这个例子中的hole与上一个例子的hole位置是不同的）&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (hole) (+ hole 1))&lt;/code&gt;&lt;p&gt;整个表达式应当返回shift的body部分，即：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(k (k 1))&lt;/code&gt;&lt;p&gt;而我们已经知道k的值了，直接带入表达式计算得出3。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;B. 与Arclisp中方括号的关系&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;Since functions of one argument are so often used in Lisp programs,&lt;br&gt;Arc has a special notation for them.  [... _ ...]  is an abbreviation&lt;br&gt;for (fn (_) (... _ ...)).  So our first map example could have been&lt;br&gt;written&lt;br&gt;&lt;br&gt;arc&amp;gt; (map [+ _ 10] &#39;(1 2 3))&lt;br&gt;(11 12 13)&lt;/blockquote&gt;&lt;p&gt;Arclisp允许你在表达式中开洞，这样表达式就成了一个函数。&lt;/p&gt;&lt;p&gt;而reset/shift中也允许你这么做。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (shift k k))  = 
+(lambda (x) x) = 
+[ _ ] (in Arclisp)&lt;/code&gt;&lt;p&gt;第二个例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ 1 (* 2 (shift k k))))  =
+(lambda (x) (+ 1 (* 2 x)))  =
+[+ 1 (* 2 _)] (in Arclisp)&lt;/code&gt;&lt;p&gt;我们发现Arclisp中的_与(shift k k)某种意义上有很大的相似性。&lt;/p&gt;&lt;p&gt;下面是一个更酷的例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ (shift k1 k1) (shift k2 k2)))&lt;/code&gt;&lt;p&gt;为了区分前后两个k，我将它们分别标记为k1和k2。&lt;/p&gt;&lt;p&gt;很明显k1是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x1)
+  (+ x1 (shift k2 k2)))&lt;/code&gt;&lt;p&gt;我们的reset表达式返回了k1。&lt;/p&gt;&lt;p&gt;尝试向k1这个函数中喂一个值2：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(+ 2 (shift k2 k2))&lt;/code&gt;&lt;p&gt;现在你应该感到犯难了，还有一个shift表达式，但是外层已经没有reset了。&lt;/p&gt;&lt;p&gt;于是shift并不知道把k2返回到哪里，也不知道&lt;b&gt;打洞的范围是多大&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;k2是:&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x) x)&lt;/code&gt;&lt;p&gt;还是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x) (+ 2 x))&lt;/code&gt;&lt;p&gt;幸运的是，shift和reset已经帮我们考虑到这个难题了，会帮我们自动地在k1体内加一个reset。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;k1 = (lambda (x1) (reset (+ x1 (shift k2 k2))))&lt;/code&gt;&lt;p&gt;很明显，我们可以直接写出k2 （别弄丢了reset）：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x2) (reset (+ x1 x2)))&lt;/code&gt;&lt;p&gt;综合起来结果就是&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x1)
+  (lambda (x2)
+    (+ x1 x2)))&lt;/code&gt;&lt;p&gt;因为当reset体内没有shift时，直接返回其值，所以我们可以将两个reset消去。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;请验证 (shift k (k &lt;i&gt;val&lt;/i&gt;))和&lt;i&gt;val&lt;/i&gt;在reset体内是等价的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;C. 重新认识shift/reset&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们从shift里面获得一个k，上一节讨论过这个k应当是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x) (reset expr ...))&lt;/code&gt;&lt;p&gt;考虑下面的表达式：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (shift k (shift k 1)))&lt;/code&gt;&lt;p&gt;结果是1，按照我们原来的规则进行求值：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;=&amp;gt; (shift k 1)&lt;/code&gt;&lt;p&gt;遇到了同样的难题！外层没有reset，肯定是自动帮我们加的:&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;=&amp;gt; (reset (shift k 1))&lt;/code&gt;&lt;p&gt;所以，是时候拓展我们的求值规则了。&lt;/p&gt;&lt;p&gt;(reset val) =&amp;gt; val&lt;br&gt;(reset E[(shift k expr)]) =&amp;gt; (&lt;b&gt;reset&lt;/b&gt; ((lambda (k) expr) (lambda (v) (&lt;b&gt;reset&lt;/b&gt; E[v]))))&lt;br&gt; ; where E has no reset&lt;/p&gt;&lt;p&gt;我将其中需要添加reset的部分用粗体标出。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;D. 与不确定性计算，list monad的关系&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这是一个计算a+b是否等于c的程序，如果等于c，那么输出整个式子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(let ([a 1])
+  (let ([b 1])
+    (let ([c 2])
+      (when (= (+ a b) c) (printf &quot;~a+~a=~a\n&quot; a b c)))))&lt;/code&gt;&lt;p&gt;可以把他们写成reset/shift的形式：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (let ([a (shift k (k 1))])
+         (let ([b (shift k (k 1))])
+           (let ([c (shift k (k 2))])
+             (when (= (+ a b) c) (printf &quot;~a+~a=~a\n&quot; a b c))))))&lt;/code&gt;&lt;p&gt;两种写法是等价的，现在我们的a，b，c可能是多个不确定的值，也就是要进行多次计算。&lt;/p&gt;&lt;p&gt;我们可以把k想象成填一个值，进行一次计算，于是我们将函数k进行细胞分裂，多次计算。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (let ([a (shift k (k 1) (k 2) (k 3))])
+         (let ([b (shift k (k 1) (k 2) (k 3))])
+           (let ([c (shift k (k 1)(k 2)(k 3))])
+             (when (= (+ a b) c) (printf &quot;~a+~a=~a\n&quot; a b c))))))&lt;/code&gt;&lt;p&gt;返回结果：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;1+1=2
+1+2=3
+2+1=3&lt;/code&gt;&lt;p&gt;如果你觉得这个例子难以理解，那么下面的呢（输出 123）：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (let ([a (shift k (k 1) (k 2) (k 3))])
+         (print a)))&lt;/code&gt;&lt;p&gt;list monad或是list comprehension是一种很好用的计算列表的方法，但是racket中没有do notation，必须用宏来替代。（实际上racket提供了for comprehension作为替代方案，我们这里为了演示reset和shift的作用不考虑。）&lt;/p&gt;&lt;p&gt;但是，我们也可以用reset和shift来直接实现：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define return list)
+(define (in-list lst)
+  (shift k
+         (apply append
+                (map k lst))))
+
+(reset (let ([a (in-list &#39;(1 2 3))]
+             [b (in-list &#39;(1 2 3))])
+         (return (list a b))))&lt;/code&gt;&lt;p&gt;返回结果：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;&#39;((1 1) (1 2) (1 3) (2 1) (2 2) (2 3) (3 1) (3 2) (3 3))&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;E. 与状态，state monad的关系&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在一些语言中不支持赋值语句，无法保存状态，可以用state monad来模拟，同样地，state monad也可以用reset和shift模拟。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (get)
+  (shift k (lambda (s) ((k s) s))))
+(define (put s)
+  (shift k (lambda (-s)
+             ((k (void)) s))))
+(define ((return x) s) x)&lt;/code&gt;&lt;p&gt;下面展现了一个很有意思的例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (tick)
+  (let ([a (get)])
+    (put (+ a 1))))
+((reset (tick)
+       (tick)
+       (tick)
+       (return (get))) 0)&lt;/code&gt;&lt;p&gt;试试看用shift和reset是否能实现其他monad。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;F. 与stream，generator的关系&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当我们需要表示无穷时，我们通常借助于stream与generator，而shift/reset与这二者间有着微妙的关系。&lt;/p&gt;&lt;p&gt;我们需要使用define-syntax-rule，不了解的请看：&lt;a href=&quot;http://docs.racket-lang.org/reference/stx-patterns.html?q=define-syntax-rule#%28form._%28%28lib._racket%2Fprivate%2Fmisc..rkt%29._define-syntax-rule%29%29&quot;&gt;12.1 Pattern-Based Syntax Matching&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;看下面的例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define s (reset (shift k (stream-cons 1 (k (void))))
+                 (shift k (stream-cons 2 (k (void))))
+                 (shift k (stream-cons 3 (k (void))))
+                 (shift k &#39;())))&lt;/code&gt;&lt;p&gt;这个例子生成了一个内容为1 2 3的stream，而内部的语法却接近generator！&lt;/p&gt;&lt;p&gt;我们可以写宏来让你看的更加清楚：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define-syntax-rule (stream/generate expr ...)
+  (reset expr ...))
+(define-syntax-rule (stream/yield expr ...)
+  (shift k (stream-cons (begin expr ...) (k (void)))))
+
+(define s (stream/generate
+           (stream/yield 1)
+           (stream/yield 2)
+           (stream/yield 3)))
+
+(define (integer-sequences x)
+  (stream/generate (stream/yield x)
+                   (integer-sequences (+ x 1))))&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;用shift和reset实现generator的任务更为艰巨，我们曾经在&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25749077&quot;&gt;愉悦的scheme之旅（2）--用callcc合成控制流&lt;/a&gt;介绍过用call/cc实现的generator，但是因为有了shift和reset一切都变简单了。&lt;/p&gt;&lt;p&gt;我们需要使用syntax-parameter，不了解的请看&lt;a href=&quot;http://docs.racket-lang.org/reference/stxparam.html?q=syntax-parameter&quot;&gt;12.5 Syntax Parameters&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;完整程序如下：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;#lang racket
+(require racket/control racket/stxparam)
+(define-syntax-parameter yield 
+  (syntax-rules ()
+    [(_ expr ...)
+     (raise-syntax-error &#39;generator-err
+                         &quot;You must use yield in the body of generator&quot;)]))
+
+(define-syntax-rule (generate expr ...)
+  (letrec ([state (lambda ()
+                 (syntax-parameterize
+                     ([yield (syntax-rules ()
+                               [(_ expr2 (... ...)) (shift k
+                                                           (set! state
+                                                                 (lambda () (k (void))))
+                                                           (values expr2 (... ...)))])])
+                   (reset (begin expr ... (void)))))])
+    (lambda ()
+      (state)
+      )))
+(define g (generate (yield 1)
+                    (yield 6)
+                    (yield 7)
+                    (yield 10)))&lt;/code&gt;&lt;p&gt;宏会干扰我们的思考，我们看看展开后是什么样子吧。&lt;/p&gt;&lt;p&gt;racket的macro stepper是宏调试的利器，通过它，我们可以直接看到展开的结果：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(syntax-parameterize
+  ((yield
+    (syntax-rules ()
+      ((_ expr2 ...)
+       (shift k (set! state (lambda () (k (void)))) (values expr2 ...))))))
+  (reset (begin (yield 1) (yield 6) (yield 7) (yield 10) (void))))&lt;/code&gt;&lt;p&gt;这并不是最终的结果，因为syntax-parameterize没有展开,由于一些限制，我们手动展开一下：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (begin (shift k (set! state (lambda () (k (void)))) (values 1))
+                (shift k (set! state (lambda () (k (void)))) (values 6))
+                (shift k (set! state (lambda () (k (void)))) (values 7))
+                (shift k (set! state (lambda () (k (void)))) (values 10))
+                (void)))&lt;/code&gt;&lt;p&gt;现在应该看的很清楚了，第一次调用时返回1，state则变成了：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda () (reset (begin (void)
+                         (shift k (set! state (lambda () (k (void)))) (values 6))
+                         (shift k (set! state (lambda () (k (void)))) (values 7))
+                         (shift k (set! state (lambda () (k (void)))) (values 10))
+                         (void))))&lt;/code&gt;&lt;p&gt;剩下的应该不难了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;G.  算法&lt;/b&gt;&lt;/p&gt;&lt;p&gt;考虑函数genlist：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(genlist &#39;(1 2)) =&amp;gt; &#39;((1) (1 2))
+(genlist &#39;(1 2 3 4)) =&amp;gt; &#39;((1) (1 2) (1 2 3) (1 2 3 4))&lt;/code&gt;&lt;p&gt;有人会这么做：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (genlist lst)
+  (define (genlist lst last)
+    (if (null? lst) &#39;()
+        (let ([x (append last (list (car lst)))])
+          (cons x (genlist (cdr lst) x)))))
+  (genlist lst &#39;()))&lt;/code&gt;&lt;p&gt;可惜效率并不高，因为多次向队尾插入数据。&lt;/p&gt;&lt;p&gt;借助CPS，我们可以这么写（其实也可看成difference list）：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (genlist lst)
+  (define (genlist lst ctx)
+    (if (null? lst)
+        (list (ctx &#39;()))
+        (cons (ctx (list (car lst)))
+              (genlist (cdr lst)
+                       (lambda (x) (ctx (cons (car lst) x)))))))
+  (if (null? lst)
+      &#39;()
+      (genlist lst (lambda (x) x))))&lt;/code&gt;&lt;p&gt;考虑lst=&#39;(1 2 3 4)的情况，ctx分别是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;ctx1 = [list* _]
+ctx2 = [list* 1 _]
+ctx3 = [list* 1 2 _]
+ctx4 = [list* 1 2 3 _]&lt;/code&gt;&lt;p&gt;我们可以用shift和reset重写：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (genlist lst)
+  (define (genlist lst)
+    (if (null? lst)
+        (shift k &#39;())
+        (shift k
+               (cons (k (list (car lst)))
+                     (reset (k (cons (car lst)
+                                     (genlist (cdr lst)))))))))
+  (reset (genlist lst)))&lt;/code&gt;&lt;p&gt;可以自己尝试推倒一下。&lt;/p&gt;&lt;p&gt;shift和reset还能做其他一些算法例如cps变换，anf变换，closure conversion等，这里不再详细介绍。&lt;/p&gt;&lt;p&gt;新手的课后作业：&lt;/p&gt;&lt;p&gt;尝试用shift和reset实现cps变换和anf变换。&lt;/p&gt;&lt;p&gt;老手的课后作业(难度非常大，做好心理准备）：&lt;/p&gt;&lt;p&gt;阅读&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://www.schemeworkshop.org/2016/scheme16-paper6.pdf&quot;&gt;Deriving Pure, Naturally-Recursive Operations for Processing Tail-Aligned Lists&lt;/a&gt;(SCHEME AND FUNCTIONAL PROGRAMMING WORKSHOP 2016)&lt;/p&gt;&lt;p&gt;并尝试用shift和reset改写其中的算法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Part II : shift0 and reset0&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;A. 求值规则&lt;/b&gt;&lt;/p&gt;&lt;p&gt;直接给出shift0和reset0的求值规则：&lt;/p&gt;&lt;p&gt;(reset0 &lt;i&gt;val&lt;/i&gt;) &lt;a href=&quot;file:///C:/Program%20Files/Racket/doc/reference/if.html?q=shift#%28form._%28%28lib._racket%2Fprivate%2Fletstx-scheme..rkt%29._~3d~3e%29%29&quot;&gt;=&amp;gt;&lt;/a&gt; &lt;i&gt;val&lt;/i&gt;&lt;/p&gt;&lt;p&gt;(reset0 &lt;i&gt;E&lt;/i&gt;[(shift0 &lt;i&gt;k&lt;/i&gt; &lt;i&gt;expr&lt;/i&gt;)]) &lt;a href=&quot;file:///C:/Program%20Files/Racket/doc/reference/if.html?q=shift#%28form._%28%28lib._racket%2Fprivate%2Fletstx-scheme..rkt%29._~3d~3e%29%29&quot;&gt;=&amp;gt;&lt;/a&gt; ((lambda (&lt;i&gt;k&lt;/i&gt;) &lt;i&gt;expr&lt;/i&gt;) (lambda (&lt;i&gt;v&lt;/i&gt;) (&lt;b&gt;reset0&lt;/b&gt; &lt;i&gt;E&lt;/i&gt;[&lt;i&gt;v&lt;/i&gt;])))&lt;/p&gt;&lt;p&gt;仔细比较与shift和reset的不同，你会发现是不是少了一个reset0，也就是说&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset0 (shift0 k expr)) =&amp;gt; expr&lt;/code&gt;&lt;p&gt;而不是&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (shift k expr)) =&amp;gt; (reset expr)&lt;/code&gt;&lt;p&gt;那么思考下面这段程序，k1和k2分别是什么？&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset0 (+ 1
+           (reset0 (+ 2 (shift0 k1 (shift0 k2 3))))))&lt;/code&gt;&lt;p&gt;k1是显而易见的：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x1)
+  (reset0 (+ 2 x1)))&lt;/code&gt;&lt;p&gt;根据我们刚才讨论的内容继续求值：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;=&amp;gt; (reset0 (+ 1 (shift0 k2 1)))&lt;/code&gt;&lt;p&gt;然后就能得到k2了&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x2) (reset0 (+ 1 x2)))&lt;/code&gt;&lt;p&gt;这里，我们最先得到的k1，是内层的continuation，而k2，是外层的continuation。&lt;/p&gt;&lt;p&gt;我们可以将他们组合一下，得到整个continuation：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset0 (+ 1 (reset0
+              (+ 2 (shift0 k1
+                           (shift0 k2 (k2 (k1 3))))))))&lt;/code&gt;&lt;p&gt;这与 (+ 1 (+ 2 3))是等价的。&lt;/p&gt;&lt;p&gt;我们捕获的continuation具有了层次这一概念，接下来我们该利用这一特点搞事了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;B. 括号解析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;下面思考这个问题，给与一个含有左括号的标记&#39;left 和右括号标记的&#39;right的列表，将其转换成有层次的列表。&lt;/p&gt;&lt;p&gt;(parse-parens &#39;(a b left c right)) =&amp;gt; &#39;(a b (c))&lt;/p&gt;&lt;p&gt;(parse-parens &#39;(a left b left c right right d)) =&amp;gt; &#39;(a (b (c)) d)&lt;/p&gt;&lt;p&gt;现在我们考虑解析&#39;(a b left c right)，以continuation的思维来看的话：&lt;/p&gt;&lt;p&gt;符号a ，ctx = (lambda (x) x)&lt;/p&gt;&lt;p&gt;符号b，ctx = (lambda (x) (cons a x))&lt;/p&gt;&lt;p&gt;符号left，ctx = (lambda (x) (list* a b x))&lt;/p&gt;&lt;p&gt;到这里我们就觉得有些困难了，因为left c right是一个整体，我们必须要解析到right才能知道这个整体的内容是&#39;(c)。&lt;/p&gt;&lt;p&gt;我们可以考虑使用双层的continuation：&lt;/p&gt;&lt;p&gt;符号a，ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) x)&lt;/p&gt;&lt;p&gt;符号b，ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) (cons a x))&lt;/p&gt;&lt;p&gt;符号left,ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) (list* a b x))&lt;/p&gt;&lt;p&gt;符号c ,  ctx-inner = (lambda (x) (cons c x)) ctx-outer = (lambda (x) (list* a b x))&lt;/p&gt;&lt;p&gt;符号right , 清空ctx-inner， 结果送入ctx-outer&lt;/p&gt;&lt;p&gt;ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) (list* a b c x))&lt;/p&gt;&lt;p&gt;解析完毕，清空ctx-outer。&lt;/p&gt;&lt;p&gt;解析时ctx-inner负责处理内部，ctx-outer负责解析外部。&lt;/p&gt;&lt;p&gt;当我们的括号的层次不止两层时，我们的ctx也不止两个，无穷无尽的ctx组成了一个ctx栈。&lt;/p&gt;&lt;p&gt;现在，考虑如何用shift0和reset0实现：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (parse-parens lst)
+  (define (parse-parens lst)
+    (if (null? lst) &#39;()
+        (match (car lst)
+          [&#39;left (reset0 (parse-parens (cdr lst)))]
+          [&#39;right (shift0 k1 (shift0 k2 (reset0 (k2 (cons (k1 &#39;()) (parse-parens (cdr lst)))))))]
+          [_ (shift0 k (reset0 (k (cons (car lst) (parse-parens (cdr lst))))))])))
+  (reset0 (parse-parens lst)))&lt;/code&gt;&lt;p&gt;每次遇到left时，我们开辟一个新的reset0层，每次遇到right时，我们将该层次闭合。&lt;/p&gt;&lt;p&gt;这是利用同样办法写出来的表达式解析器：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (parse-exp lst)
+  (define (parse-exp lst)
+    (if (null? lst) (error &quot;No exp&quot;)
+        (match lst
+          [(list (? number? x)) x]
+          [(list (? number? x) (and (or &#39;+ &#39;-) op) rst ...) (shift0 k1
+                                                                    (shift0 k2 (shift0 k3
+                                                                                       (reset0 
+                                                                                        (list op  (k3 (k2 (k1 x))) (reset0
+                                                                                                                    (reset0
+                                                                                                                     (parse-exp rst))))))))]
+          [(list (? number? x) (and (or &#39;* &#39;/) op) rst ...) (shift0
+                                                             k1 (shift0 k2
+                                                                        (reset0  (list op (k1 (k2 x)) (reset0
+                                                                                                       (parse-exp rst))))))]
+          [(list (? number? x) (and &#39;^ op) rst ...) (shift0
+                                                     k (reset0
+                                                        (list op (k x) (parse-exp rst))))]
+          )))
+  (reset0 (reset0 (reset0 (parse-exp lst)))))&lt;/code&gt;&lt;p&gt;比如1+2*3^6-7*8的层次是：&lt;/p&gt;&lt;p&gt;1 + [ 2 * (3^6) ] - [ 7*8 ]&lt;/p&gt;&lt;p&gt;这就是为什么有三个优先级就需要三个reset0的缘故。&lt;/p&gt;&lt;p&gt;课后作业：&lt;/p&gt;&lt;p&gt;1.可以用shift0和reset0实现shift和reset吗，试试看。&lt;/p&gt;&lt;p&gt;2.这个表达式解析器存在一个缺陷，所有操作符都会视为左结合的，然而：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(parse-exp &#39;(1 ^ 2 ^ 3))  =&amp;gt; &#39;(^ (^ 1 2) 3)&lt;/code&gt;&lt;p&gt;指数运算应当是右结合的，请尝修复这个bug。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>御坂黒子</author>
+<guid isPermaLink="false">2018-02-15-33399006</guid>
+<pubDate>Thu, 15 Feb 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>【OI】【奇技淫巧】bitset在OI中的应用</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-01-29-33406432.html</link>
@@ -362,388 +516,6 @@ _1.00017e_13 3.5314e_12 0.25 0.5 0.25
 &lt;p&gt;最近读了一篇paper，Duplication and Partial Evaluation，讲的是一门很。。奇怪的语言，&lt;/p&gt;&lt;p&gt;这门语言，可以大致想象是有无数个interpreter，一个stack着一个，interpret下一个，在最下，则是被解释的用户输入的代码。&lt;/p&gt;&lt;p&gt;你可以更改各种built in function，或者打印出来。比如说，你可以更改第1层（第0层为用户代码，第n+1层解释第n层代码）的apply，输入值print一次，输出值print一次，这样就实现了简陋debugger了。又或者对第二层解释器这样做，运行代码的时候就知道内部执行了啥&lt;/p&gt;&lt;p&gt;实现方法自然不能靠构造无限个interpreter，所以要先上laziness，按需增加，然后任何时刻，都有一个被解释的解释器去解释当下代码，然后有个被编译的解释器解释前一个解释器，这样就只有两轮。但是，这样，如果你更改n+2的代码，不会由n+1暴露到n层（换句话说n层看不出有啥区别），因为n层的时候，n+1层是被预编译的解释器执行，只有在n+1层看的到。这样，就顶多是两个编译器的开销。&lt;/p&gt;&lt;p&gt;‘顶多’，双重编译很疼，于是用了下Partial Evaluation，手动优化成一个编译器。&lt;/p&gt;&lt;p&gt;什么鬼啊这是。&lt;/p&gt;&lt;p&gt;可以在&lt;a href=&quot;http://io.livecode.ch/learn/readevalprintlove/black&quot;&gt;The reflective language Black&lt;/a&gt;试试看。&lt;/p&gt;</description>
 <author>脚本少女魔理沙</author>
 <guid isPermaLink="false">2017-12-15-32045442</guid>
-<pubDate>Fri, 15 Dec 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Programming Languages: Application and Interpretation【译14】</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2017-12-15-32037390.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32037390&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b71b632ed7974538bb2e812bcd20914e_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;审校： &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/9bebf466fc2535bec442451dca7cd13a&quot; data-hash=&quot;9bebf466fc2535bec442451dca7cd13a&quot; data-hovercard=&quot;p$b$9bebf466fc2535bec442451dca7cd13a&quot;&gt;@lotuc&lt;/a&gt; &lt;/p&gt;&lt;p&gt;原文：&lt;a href=&quot;http://cs.brown.edu/courses/cs173/2012/book/index.html&quot;&gt;PLAI 第二版&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GitHub：&lt;a href=&quot;https://github.com/lotuc/PLAI-cn&quot;&gt;PLAI-cn&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GitBook：&lt;a href=&quot;https://lotuc.gitbooks.io/plai-cn/content/&quot;&gt;PLAI-cn&lt;/a&gt;&lt;/p&gt;&lt;p&gt;翻译声明见 Github 仓库&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;14 控制指令&lt;/h2&gt;&lt;p&gt;术语&lt;b&gt;控制&lt;/b&gt;指的是编程语言中任何使得计算过程前进的指令，因为它“控制”了计算机的程序计数器（program counter）。从这个意义上说，即使是简单的算术表达式也应该被认为是一种“控制”，而像顺序执行、函数调用和返回这样的操作，就更应该是了。不过，实践中我们通常用这个名词指代那些导致控制&lt;b&gt;非局部&lt;/b&gt;转移的——尤其是除了函数、过程以及将要学到的异常（exception）之外的——指令。本章我们将学习这类指令。&lt;/p&gt;&lt;p&gt;在研究这些控制指令时，需要指出的是，即使没有它们，我们的语言也是图灵完备的，也就是说我们并没有获得额外的“能力”。因此，控制指令所做的是，改变、改善我们的表达方式，从而增强程序的结构。所以，专注于程序的结构有益于本章的学习。&lt;/p&gt;&lt;h2&gt;14.1 Web上的控制&lt;/h2&gt;&lt;p&gt;让我们从研究Web程序的结构开始。考虑下面的程序：【注释】&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(display
-  (+ (read-number &quot;First number&quot;)
-     (read-number &quot;Second number&quot;)))&lt;/code&gt;&lt;blockquote&gt;今后，我们将把它称为“加法服务”。当然，你应该将它理解为更为复杂应用的一个简化版。例如，应用可能提示输入的是旅程的起点和目的地，加法对应的实际服务可能是根据输入的起点终点计算航线或者机票的价格。在两个（输入）步骤之间甚至可能也有计算：例如，在输入第一个城市后，航空公司可能会提示我们可供选择的目的地。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;为了测试这些想法，下面是read-number的实现：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (read-number [prompt : string]) : number
-  (begin
-    (display prompt)
-    (let ([v (read)])
-      (if (s-exp-number? v)
-          (s-exp-&amp;gt;number v)
-          (read-number prompt)))))&lt;/code&gt;&lt;p&gt;在控制台或DrRacket中运行时，该程序会提示我们输入一个数字，然后输入另一个数字，最后显示它们的总和。&lt;/p&gt;&lt;p&gt;现在假设我们想在Web服务器上运行。我们立即遇到难点：服务器端Web程序的结构是这样的：它们生成一个网页，比如请求第一个数字的网页，然后&lt;b&gt;停止&lt;/b&gt;。结果，&lt;b&gt;程序的其余部分&lt;/b&gt;——在这里，提示第二个数字，然后求和，然后打印结果——丢失了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;为什么Web服务器的行为如此奇怪？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;这种行为至少有两个原因：一个也许是历史的，另一个是技术的。历史原因是Web服务器最初设计为供应&lt;b&gt;页面&lt;/b&gt;，即静态内容。任何程序的运行都必须将其输出生成为文件，服务器将该文件提供给客户端。很自然的，开发人员想到为什么同样的程序在web上就不能按需运行。于是，后来Web上出现了&lt;b&gt;动态&lt;/b&gt;内容。构成Web应用的最小增量单元不再是页面，而是一个个执行结束后生成页面各个部分所需内容的程序。&lt;/p&gt;&lt;p&gt;更重要的原因——也是导致目前状况的原因——是技术性的。想象一下，我们的加法服务器已经生成了第一个提示。回想一下，有相当多的计算要进行：第二个提示，求和和显示结果。这些计算必须暂停，等待用户的输入。如果有成千上万的用户，那么必须暂停成千上万的计算，这会产生巨大的性能问题。此外，假设用户实际上没有完成计算——类似于在网上书店或航空公司网站上搜索，而不完成购买。服务器如何知道何时终止计算，甚至是否终止计算？而在终止之前，与该计算相关的资源仍被占用。&lt;/p&gt;&lt;p&gt;因此，Web协议从其概念上就被设计为&lt;b&gt;无状态的&lt;/b&gt;（stateless）：它不将与中间计算相关的状态存储在服务器上。这使得Web程序员被迫在其他地方维护所有必要的状态，每个请求都需要携带能够完全恢复计算所需的状态。在实践中，Web并不都是完全无状态的，但是它们在很大程度上倾向这个方向，因此研究这类程序的结构是非常有教益的。&lt;/p&gt;&lt;p&gt;接下来考虑一下客户端的Web程序：那些在浏览器中运行的程序，通常用JavaScript编写，或被编译成JavaScript。假设某个计算需要与服务器进行通信。（JavaScript提供的）指令为XMLHttpRequest。用户创建这个指令的实例，然后调用其&lt;code class=&quot;inline&quot;&gt;send&lt;/code&gt;方法向服务器发送消息。然而，与服务器通信并不是即时的（并且根据网络的状态，实际上可能永远不会完成）。这导致发送进程被挂起。&lt;/p&gt;&lt;p&gt;JavaScript的设计者决定让该语言是&lt;b&gt;单线程&lt;/b&gt;的，即，任意时间只能有一个线程在执行。【注释】这避免了赋值与线程结合而产生的各种风险。因此，JavaScript进程会被锁定以等待响应，这期间不可能做任何其他事情：例如，页面上的其他处理程序不再响应。&lt;/p&gt;&lt;blockquote&gt;因为这会导致结构性问题，现在有各种提议，实际上是要为JavaScript添加“安全的”线程。本章所描述的想法可以被看作是另一种方案，提供类似的结构优势。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;为了避免这个问题，XMLHttpRequest的设计要求开发者提供一个函数来响应请求（请求到达时将调用该程序）。该回调函数在系统中注册。需要传递请求结果给该回调函数让其完成&lt;b&gt;后续处理过程&lt;/b&gt;。因此，并非处于性能方面的考虑，而是为了避免同步、非原子性和死锁问题，客户端Web也发展出相同的程序模式。让我们更好地理解这种模式。&lt;/p&gt;&lt;h2&gt;14.1.1 将程序分解成现在和以后&lt;/h2&gt;&lt;p&gt;我们来考虑如何让上述程序在无状态的环境下——比如在Web服务器上——工作。首先我们需要确定&lt;b&gt;第一个&lt;/b&gt;交互，是提示输入第一个数字，因为Racket从左到右计算参数。将程序分成两部分是有益的：第一个交互产生啥（现在就可以运行），以及之后需要发生什么（必须以某种方式“记住”）。前者很容易：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(read-number &quot;First number&quot;)&lt;/code&gt;&lt;p&gt;我们已经用文字解释过剩下的东西了，但是现在是时候把它写成程序了。似乎应该类似于【注释】&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(display
-  (+ &amp;lt;第一个交互的返回值&amp;gt;
-     (read-number &quot;Second number&quot;)))&lt;/code&gt;&lt;blockquote&gt;我们现在故意忽略read-number部分，但会回过来讨论它。现在，我们假设它是内置的。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;但是，Web服务器不能执行这个东西，因为它显然不是&lt;b&gt;程序&lt;/b&gt;。我们需要一种方式将其写成程序。&lt;/p&gt;&lt;p&gt;观察一下这个计算的特点：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;它是合法的程序。&lt;/li&gt;&lt;li&gt;它需要保持暂停状态，直到请求进入。&lt;/li&gt;&lt;li&gt;它需要某种方式——例如参数——来引用前一个交互的值。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;综合这些特点，显然我们应该将其表示为函数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(lambda (v1)
-  (display
-    (+ v1
-       (read-number &quot;Second number&quot;))))&lt;/code&gt;&lt;h2&gt;14.1.2 部分的解决方案&lt;/h2&gt;&lt;p&gt;在Web上，还有个额外的问题：每个带有输入元素的Web页面都需要引用存储在Web上的程序，该程序将从表单接收数据并对其进行处理。这个程序是在表单的action字段中指明的。因此，设想服务器生成一个新的标签，将前述函数存储在与该标签相关联的表格中，并且在action字段中引用该表格。如果客户端最终提交了表单，这个时候，服务器提取出关联的函数，向其提供表单的值，从而恢复执行。&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;上述方案是无状态的吗？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;假设我们在自定义的Web服务器上维护这么一个表格。在这个服务器上，可能会有一个特殊版本的read-number，称之为call-read-number/suspend，记录程序的其余部分：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(read-number/suspend &quot;First number&quot;
-                     (lambda (v1)
-                       (display
-                        (+ v1
-                           (read-number &quot;Second number&quot;)))))&lt;/code&gt;&lt;p&gt;为了测试，我们来实现这个子程序。首先，我们需要标签的表示法；用数字就好：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-type-alias label number)&lt;/code&gt;&lt;p&gt;假设&lt;code class=&quot;inline&quot;&gt;new-label&lt;/code&gt;在每次调用时都会生成新标签。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;定义&lt;code class=&quot;inline&quot;&gt;new-label&lt;/code&gt;。需要的话参考&lt;code class=&quot;inline&quot;&gt;new-loc&lt;/code&gt;以获得灵感。&lt;/blockquote&gt;&lt;p&gt;需要一个表，来存储代表程序其余部分的子程序。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define table (make-hash empty))&lt;/code&gt;&lt;p&gt;存储这些子程序：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (read-number/suspend [prompt : string] rest)
-  (let ([g (new-label)])
-    (begin
-      (hash-set! table g rest)
-      (display prompt)
-      (display &quot; To enter it, use the action field label &quot;)
-      (display g))))&lt;/code&gt;&lt;p&gt;现在运行上面的read-number/suspend调用，系统会打印&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;First number To enter it, use the action field label 1&lt;/code&gt;&lt;p&gt;这就相当于，在Web页面中打印提示，并在action字段中放入“标签1”。因为我们在模拟网页，需要有个东西来表示浏览器的提交过程。这里需要标签（来自action字段）和表单中输入的值。给定了这两个值，这个子程序需要从表中提取出相关子程序，并将其应用于表单值。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (resume [g : label] [n : number])
-  ((some-v (hash-ref table g)) n))&lt;/code&gt;&lt;p&gt;有了这些，我们现在可以模拟输入3并点击“提交”按钮的行为，运行：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 1 3)&lt;/code&gt;&lt;p&gt;其中1是标签，3是用户输入。不幸的是，这么做只会产生另一个提示，因为我们还没有完成程序的转换。要去除read-number，我们需要转换整个程序：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(read-number/suspend &quot;First number&quot;
-                     (lambda (v1)
-                       (read-number/suspend &quot;Second number&quot;
-                                            (lambda (v2)
-                                              (display
-                                               (+ v1 v2))))))&lt;/code&gt;&lt;p&gt;为了安全起见，我们还可以在read-number/suspend结束的地方添加报错，从而确保计算在每次输出之后终止（以确保“挂起”的最极端形式）。&lt;/p&gt;&lt;p&gt;执行这个程序时，必须两次使用resume：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;First number To enter it, use the action field label 1
-halting: Program shut down
-&amp;gt; (resume 1 3)
-Second number To enter it, use the action field label 2
-halting: Program shut down
-&amp;gt; (resume 2 10)
-13&lt;/code&gt;&lt;p&gt;其中两次用户输入分别是3和10，总和给出是13，而&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;halting&lt;/code&gt;&lt;p&gt;信息是我们添加的报错命令生成的。&lt;/p&gt;&lt;p&gt;我们故意略去了程序中某些有趣部分的类型。来看看这些类型应该是什么。read-number/suspend的第二个参数是读入数字并返回最终结果的子程序：&lt;code class=&quot;inline&quot;&gt;(number -&amp;gt; &#39;a)&lt;/code&gt;。同样，resume的返回类型也是&lt;code class=&quot;inline&quot;&gt;&#39;a&lt;/code&gt;。这些&lt;code class=&quot;inline&quot;&gt;&#39;a&lt;/code&gt;如何相互沟通？是通过将标签映射到&lt;code class=&quot;inline&quot;&gt;(number -&amp;gt; ’a)&lt;/code&gt;的表完成的。也就是说，计算过程中的每一步都产生相同类型的结果。&lt;code class=&quot;inline&quot;&gt;read-number/suspend&lt;/code&gt;写入表中，&lt;code class=&quot;inline&quot;&gt;resume&lt;/code&gt;从表中读取。&lt;/p&gt;&lt;h2&gt;14.1.3 实现无状态&lt;/h2&gt;&lt;p&gt;实际上我们并没有实现无状态，因为服务器上有一大张表，而我们缺乏明确手段去除此表。如果可以完全避免服务器上的状态就好了。这意味着我们必须将相关的状态移交给客户端。&lt;/p&gt;&lt;p&gt;服务器实际上以两种方式持有了状态。其一，可以存放任意多个——而不是常数个（比如线性相关于程序本身的大小）——条目的哈希表，。其二，我们在表中存放的是实实在在的闭包，而闭包中可以保有任意数量的状态。我们很快就会更清楚地看到这一点。&lt;/p&gt;&lt;p&gt;先从消除闭包开始着手。我们可以把所有的函数参数改成实名的全局函数（这迫使我们只会拥有有限个闭包，因为程序的长度不可能是无限的）：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(read-number/stateless &quot;First number&quot; prog1)
- 
-(define (prog1 v1)
-  (read-number/stateless &quot;Second number&quot; prog2))
- 
-(define (prog2 v2)
-  (display (+ v1 v2)))&lt;/code&gt;&lt;p&gt;注意到每块代码都只引用下一块代码的名称，而没有引入真正的闭包。参数的值来自于表单。唯一的问题是：prog2中的v1是未绑定的标识符！&lt;/p&gt;&lt;p&gt;解决这个问题的方法是，不要在每一步之后创建闭包，而是将v1发送到客户端并存储在那里。存储在哪里呢？浏览器为此提供了两种机制：&lt;b&gt;Cookie&lt;/b&gt;和&lt;b&gt;隐藏字段&lt;/b&gt;。我们用哪一个？&lt;/p&gt;&lt;h2&gt;14.1.4 与状态互动&lt;/h2&gt;&lt;p&gt;Cookie和隐藏字段之间的本质区别是，&lt;b&gt;所有页面共享相同的cookie，但每个页面都包含自己的隐藏字段&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;先来考虑与现有程序的一串交互，（在两个地方都）使用read-number/suspend。就像这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;First number To enter it, use the action field label 1
-&amp;gt; (resume 1 3)
-Second number To enter it, use the action field label 2
-&amp;gt; (resume 2 10)
-13&lt;/code&gt;&lt;p&gt;因此，恢复标签2似乎表示将3加到给定的参数（即，表单字段值）。保险起见，&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 2 15)
-18&lt;/code&gt;&lt;p&gt;一切正常。现在假设我们再次使用标签1：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 1 5)
-Second number To enter it, use the action field label 3&lt;/code&gt;&lt;p&gt;注意，需要使用标签3，而不是标签1来恢复这个新的程序执行。的确，&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 3 10)
-15&lt;/code&gt;&lt;p&gt;但是我们应该问，如果重用标签2会发生什么？&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;试试&lt;code class=&quot;inline&quot;&gt;(resume 2 10)&lt;/code&gt;。&lt;/blockquote&gt;&lt;p&gt;这就是恢复之前的计算。因此，我们期望它产生和之前一样的结果：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 2 10)
-13&lt;/code&gt;&lt;p&gt;现在来创建一个有状态的实现。通过共享一个可变状态但是拥有自己环境的闭包可以模拟这种行为。所以我们可以这样做，使用现有的read-number/suspend，但是不依赖lambda的闭包行为，即不使用任何自由变量。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define cookie &#39;-100)
- 
-(read-number/suspend &quot;First number&quot;
-                     (lambda (v1)
-                       (begin
-                         (set! cookie v1)
-                         (read-number/suspend &quot;Second number&quot;
-                                            (lambda (v2)
-                                              (display
-                                               (+ cookie v2)))))))&lt;/code&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;对于之前的交互序列，现在的&lt;b&gt;期望&lt;/b&gt;值是啥？&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;计算过程是什么样的？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;起初，似乎没啥不同：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;First number To enter it, use the action field label 1
-&amp;gt; (resume 1 3)
-Second number To enter it, use the action field label 2
-&amp;gt; (resume 2 10)
-13&lt;/code&gt;&lt;p&gt;当再次使用最初的计算时，我们确实得到新的恢复标签：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 1 5)
-Second number To enter it, use the action field label 3&lt;/code&gt;&lt;p&gt;使用新标签时，计算结果如我们所期望的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 3 10)
-15&lt;/code&gt;&lt;p&gt;关键的一步来了：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (resume 2 10)
-15&lt;/code&gt;&lt;p&gt;标签2的两次恢复产生了不同的答案，这一点不足为奇，因为它们依赖于可变状态。问题是，当我们将相同的行为转换到Web时会发生什么。&lt;/p&gt;&lt;p&gt;想象一下，访问某旅馆预订网站，寻找某个城市的旅馆。返回的网页中，你看到一个旅馆的列表和标签1。你在新（浏览器）标签或窗口中浏览其中的一个旅馆；这个页面中生成了那个旅馆的信息，还有标签2用作预订旅馆。然而，你返回旅馆列表，并在新的标签或窗口中查看了另一家旅馆。这产生了第二家旅馆的信息，还有标签3用作该旅馆的预订。然而，你决定选择第一家旅馆，返回第一家旅馆的页面，然后选择预订按钮，也就是提交了标签2。你想要预订的是哪家旅馆？尽管你预期订的是&lt;b&gt;第一家&lt;/b&gt;，大多数旅游网站上，你要么预订了&lt;b&gt;第二家&lt;/b&gt;旅馆——即最后查看的，而不是预订按钮所在的网页上的那家——要么被报告错误。这是因为在Web站点普遍使用了cookie，这是大多数Web API所鼓励的做法。&lt;/p&gt;&lt;h2&gt;14.2 Continuation传递模式&lt;/h2&gt;&lt;p&gt;之前所说的函数是有名称的。虽然用Web描述问题，但是我们用的是更古老的概念：这类函数被称为&lt;b&gt;continuation&lt;/b&gt;（延续），而这种风格的程序被称为&lt;b&gt;continuation-passing style&lt;/b&gt;（Continuation传递模式，简称CPS）。【注释】这值得研究一下，因为它是学习其他各种非平凡控制指令——如生成器——的基础。&lt;/p&gt;&lt;blockquote&gt;我们会自由地将CPS当作名词和动词使用：一种特定的代码模式，将代码转化为此种模式。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;此前，我们将程序转化为，没有Web输入操作嵌套在另一个中。动机很简单：当程序终止时，所有嵌套的计算都会丢失。对于XMLHttpRequest来说，类似的论据（在程序本地意义上）成立：所有依赖于Web服务器响应结果的计算，都需要驻留在对服务器请求相关联的回调中。&lt;/p&gt;&lt;p&gt;事实上，我们并不需要转化&lt;b&gt;每一个&lt;/b&gt;表达式。只需要处理涉及实际Web交互的表达式。比如说，如果要进行的计算不是加法，而是比它复杂得多的数学表达式，这个数学表达式我们是不需要转换的（不涉及Web交互）。不过，如果这里有个函数调用，那么我们必须绝对确定这个函数、它调用的函数、这些函数调用的函数（整个调用链）中不存在任何的Web调用，才可以不对它进行转换。否则，保险起见，我们必须转化所有的这些函数。总之，我们必须转化每个我们无法确定不执行任何Web交互的表达方式。&lt;/p&gt;&lt;p&gt;因此，这里转化的核心就是把每个单参数函数&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;转换成具有额外参数的函数。这个额外的参数就是continuation，代表了其余的计算。Continuation本身也是单参数的函数。这个参数的输入是&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;&lt;b&gt;本来的&lt;/b&gt;返回值，后续计算本来需要使用这个返回值继续。转换后&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;将不再&lt;b&gt;返回&lt;/b&gt;值，而是将原来的返回值&lt;b&gt;传递给&lt;/b&gt;它的continuation。&lt;/p&gt;&lt;p&gt;CPS是种通用的转化，可以作用在任何程序上。因为它是一种程序转换，所以我们可以把它看作是特殊的去语法糖：特别之处是，它不是把程序从大语言转化到小语言（类似于宏），或者从一种语言转化到另一种语言（就像编译器那样），而是在&lt;b&gt;同一种&lt;/b&gt;语言中的程序转换：从完整语言转化到受限制的形式，遵从这里讨论的模式。因此，我们可以使用完整语言的求值器对CPS程序求值。&lt;/p&gt;&lt;h2&gt;14.2.1 用去语法糖实现&lt;/h2&gt;&lt;p&gt;我们已经对去语法糖有了很好的支持，所以我们来它来定义CPS转换。具体来说，我们将实现CPS宏。为了更加干净地将源语言与目标语言分开，我们所使用的大部分语言结构都会用略有不同的名称：单变量的rec和with而不是let和letrec；lam而不是lambda；cnd而不是if；seq取代begin；set取代set!。这会是足够丰富的语言，可以编写一些有趣的程序！&lt;/p&gt;&lt;blockquote&gt;后文中宏的子句按照我认为从容易到困难的顺序排列。但是，宏定义的代码必须避免模式的重复，因此遵循不同的顺序。&lt;br&gt;&lt;/blockquote&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro&amp;gt; ::=  ;CPS宏
-
-    (define-syntax (cps e)
-      (syntax-case e (with rec lam cnd seq set quote display read-number)
-        &amp;lt;cps-macro-with-case&amp;gt;
-        &amp;lt;cps-macro-rec-case&amp;gt;
-        &amp;lt;cps-macro-lam-case&amp;gt;
-        &amp;lt;cps-macro-cnd-case&amp;gt;
-        &amp;lt;cps-macro-display-case&amp;gt;
-        &amp;lt;cps-macro-read-number-case&amp;gt;
-        &amp;lt;cps-macro-seq-case&amp;gt;
-        &amp;lt;cps-macro-set-case&amp;gt;
-        &amp;lt;cps-macro-quote-case&amp;gt;
-        &amp;lt;cps-macro-app-1-case&amp;gt;
-        &amp;lt;cps-macro-app-2-case&amp;gt;
-        &amp;lt;cps-macro-atomic-case&amp;gt;))&lt;/code&gt;&lt;p&gt;我们的CPS表示法会将&lt;b&gt;每个&lt;/b&gt;表达式转变成单参数的函数，参数就是continuation。转换后的表达式最终要么提供值调用continuation，要么将continuation传递给其他表达式，归纳地说，其他表达式也遵从这个不变量关系，因此最终continuation会被提供某个值。所以说，所有的CPS输出看起来都类似于&lt;code class=&quot;inline&quot;&gt;(lambda (k) ...)&lt;/code&gt;（我们将依赖卫生来保证所有引入的k不会相互冲突）。&lt;/p&gt;&lt;p&gt;首先，我们来处理简单的情况，原子值。尽管概念上来说它是最简单的，但是我们将其放在最后一项，因为放在前面的话它会遮盖掉其他匹配。（理想情况下，我们应该将其放在第一个位置，然后提供一个能精确定义我们原子值的匹配表达式，这里放宽要求是因为我们对其他情况更为关心。）原子值的情况中，我们已经有一个值，将其传递给continutaion即可：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-atomic-case&amp;gt; ::=  ;原子
-
-    [(_ atomic)
-     #&#39;(lambda (k)
-         (k atomic))]&lt;/code&gt;&lt;p&gt;被引用的常量也一样处理：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-quote-case&amp;gt; ::=
-
-    [(_ &#39;e)
-     #&#39;(lambda (k) (k &#39;e))]&lt;/code&gt;&lt;p&gt;我们还知道，with和rec可以当作宏来处理：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-with-case&amp;gt; ::=
-
-    [(_ (with (v e) b))
-     #&#39;(cps ((lam (v) b) e))]
-
-&amp;lt;cps-macro-rec-case&amp;gt; ::=
-
-    [(_ (rec (v f) b))
-     #&#39;(cps (with (v (lam (arg) (error &#39;dummy &quot;nothing&quot;)))
-                  (seq
-                   (set v f)
-                   b)))]&lt;/code&gt;&lt;p&gt;赋值也是容易的：先求出新的值，然后再执行实际的更新操作：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-set-case&amp;gt; ::=
-
-    [(_ (set v e))
-     #&#39;(lambda (k)
-         ((cps e) (lambda (ev)
-                    (k (set! v ev)))))]&lt;/code&gt;&lt;p&gt;序列指令也是直白的：依次执行每个操作。请注意我们保持了序列的语义：不仅遵守了操作的顺序，第一个子项（e1）的值在第二个（e2）的计算中不会被用到，所以该值所绑定到的标识符的名称也就无关紧要。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-seq-case&amp;gt; ::=
-
-    [(_ (seq e1 e2))
-     #&#39;(lambda (k)
-         ((cps e1) (lambda (_)
-                     ((cps e2) k))))]&lt;/code&gt;&lt;p&gt;处理条件指令时，需要创建新的continuation，用来记住我们在等待条件表达式的求值结果。不过，一旦获得了其值，根据其值的不同我们可以选择进入已有的continuation分支。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-cnd-case&amp;gt; ::=
-
-    [(_ (cnd tst thn els))
-     #&#39;(lambda (k)
-         ((cps tst) (lambda (tstv)
-                      (if tstv
-                          ((cps thn) k)
-                          ((cps els) k)))))]&lt;/code&gt;&lt;p&gt;处理函数调用时，有两种情况需要考虑。我们必须要处理语言中创建的函数，也就是单参数函数。然而，为了编写示例程序，能够使用诸如+和*之类的指令很有用。因此，&lt;b&gt;为了简单起见&lt;/b&gt;，我们将&lt;b&gt;假定&lt;/b&gt;单参数函数是用户编写的，因此需要CPS转换，而双参数函数是不会执行任何Web或其他控制操作的指令，因此可以直接调用； 我们&lt;b&gt;还&lt;/b&gt;假定原生指令可以直接写出（即，函数位置不是复杂表达式，本身不会执行Web交互）。&lt;/p&gt;&lt;p&gt;对于函数调用，我们必须先对函数和参数表达式求值，一旦获取了这些就可以实际进行函数的调用。因此我们很容易将函数调用的转换写成这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-app-1-case-take-1&amp;gt; ::=
-
-    [(_ (f a))
-     #&#39;(lambda (k)
-         ((cps f) (lambda (fv)
-                    ((cps a) (lambda (av)
-                               (k (fv av)))))))]&lt;/code&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;你看出为什么这是错的吗？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;问题在于，虽然函数现在是值了，也就是闭包，其函数体可以很复杂：比如说，对函数体求值可以导致进一步的Web交互，此时函数体的其余部分，包括待处理的&lt;code class=&quot;inline&quot;&gt;(k ...)&lt;/code&gt;（即程序的其余部分）将全部丢失。为了避免这种情况，我们必须把k提供给函数的值，让归纳不变量保证k最终会被调用于fv作用于av的得到的值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-app-1-case&amp;gt; ::=
-
-    [(_ (f a))
-     #&#39;(lambda (k)
-         ((cps f) (lambda (fv)
-                    ((cps a) (lambda (av)
-                               (fv av k))))))]&lt;/code&gt;&lt;p&gt;处理内置双目操作的特殊情况比较容易：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-app-2-case&amp;gt; ::=
-
-    [(_ (f a b))
-     #&#39;(lambda (k)
-         ((cps a) (lambda (av)
-                    ((cps b) (lambda (bv)
-                               (k (f av bv)))))))]&lt;/code&gt;&lt;p&gt;用户定义的函数不能使用这个模式，因为我们假设这里f的调用总是会返回，而不进行任何不寻常的控制转移。&lt;/p&gt;&lt;p&gt;函数本身就是一种值，该值本身应该被返回给挂起的计算（一个continuation）。然而，前面函数调用的情况表明，函数转化后需要传入额外的参数——调用点的continuation。这就留下一个问题：该向函数体提供哪个continuation？&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-lam-case-take-1&amp;gt; ::=
-
-    [(_ (lam (a) b))
-     (identifier? #&#39;a)
-     #&#39;(lambda (k)
-         (k (lambda (a dyn-k)
-              ((cps b) ...))))]&lt;/code&gt;&lt;p&gt;也就是说，在这里的...位置上，我们该填入k还是dyn-k？&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;该填入哪个continuation呢？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;前者是&lt;b&gt;闭包创建位置&lt;/b&gt;的continuation。后者是&lt;b&gt;闭包调用位置&lt;/b&gt;的continuation。换一种说法，前者是“静态的”，后者是“动态的”。这里，我们需要使用动态的continuation，否则会发生非常奇怪的事情：程序会返回到创建闭包的地方，而不是它被使用的地方！这会导致非常奇怪的程序行为，所以我们避免这么做。请注意，这里我们有意识地选择动态的continuation，就如同在处理作用域时，我们选择了静态的环境。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-lam-case&amp;gt; ::=
-
-    [(_ (lam (a) b))
-     (identifier? #&#39;a)
-     #&#39;(lambda (k)
-         (k (lambda (a dyn-k)
-              ((cps b) dyn-k))))]&lt;/code&gt;&lt;p&gt;最后，为了建模Web编程的目的，我们需要添加输入和输出指令。输出遵循前述函数调用的模式：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-display-case&amp;gt; ::=
-
-    [(_ (display output))
-     #&#39;(lambda (k)
-         ((cps output) (lambda (ov)
-                         (k (display ov)))))]&lt;/code&gt;&lt;p&gt;对于输入，使用现有的read-number/suspend就可以了，不过这里由我们来&lt;b&gt;生成&lt;/b&gt;其使用，而不是让程序员来创建：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-read-number-case&amp;gt; ::=
-
-    [(_ (read-number prompt))
-     #&#39;(lambda (k)
-         ((cps prompt) (lambda (pv)
-                         (read-number/suspend pv k))))]&lt;/code&gt;&lt;p&gt;请注意，绑定为k的continuation就是在Web交互处我们需要存储的continuation。&lt;/p&gt;&lt;p&gt;测试CPS转换后的代码有些小麻烦，因为所有CPS项都需要读入continuation。最初的continuation可以是（a）读入值并返回它，或者（b）读入值并打印它，或者（c）读入值，打印它并准备好进行下一个计算（DrRacket的交互窗口就是这么做的）。这三者其实都只是恒等函数的变体。所以，我们定义以下函数辅助测试：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (run c) (c identity))&lt;/code&gt;&lt;p&gt;例如，&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (run (cps 3))                           3)
-(test (run (cps ((lam ()    5)       )))      5)
-(test (run (cps ((lam (x)   (* x x)) 5)))     25)
-(test (run (cps (+ 5 ((lam (x) (* x x)) 5)))) 30)&lt;/code&gt;&lt;p&gt;也可以测试之前的Web程序：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(run (cps (display (+ (read-number &quot;First&quot;)
-                      (read-number &quot;Second&quot;)))))&lt;/code&gt;&lt;p&gt;为了避免你迷失在众多代码之中，我强调一下这里的重点：&lt;b&gt;我们恢复了代码的结构&lt;/b&gt;。换种说法，即借由恰当的嵌套表达式以及帮助将其翻译以使其可以和底层API协作的代码的编译器（本例中即CPS转换程序），我们得以使用**直述的风格（direct style）**编写程序。这正是优秀的编程语言所应做的！&lt;/p&gt;&lt;h2&gt;14.2.2 例子的转化&lt;/h2&gt;&lt;p&gt;让我们来看看上面的例子是怎么转换的。你可以手工操作，也可以采取简单的办法，用DrRacket的Macro Stepper（宏步进器）完成。【注释】放入run函数传入的恒等函数，我们得到：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(lambda (k)
-  ((lambda (k)
-     ((lambda (k)
-        ((lambda (k)
-           (k &quot;First&quot;)) (lambda (pv)
-                          (read-number/suspend pv k))))
-      (lambda (lv)
-        ((lambda (k)
-           ((lambda (k)
-              (k &quot;Second&quot;)) (lambda (pv)
-                              (read-number/suspend pv k))))
-         (lambda (rv)
-           (k (+ lv rv)))))))
-   (lambda (ov)
-     (k (display ov)))))&lt;/code&gt;&lt;blockquote&gt;这里，为了获取的Macro Stepper的全部功能，请使用&lt;code class=&quot;inline&quot;&gt;#lang racket&lt;/code&gt;语言。&lt;/blockquote&gt;&lt;p&gt;什么！这和我们手写的版本完全不同！&lt;/p&gt;&lt;p&gt;实际上，这个程序中充满了所谓的&lt;b&gt;管理性&lt;/b&gt;lambda（administrative lambda），由我们所用的CPS算法引入。【注释】请不用担心！如果我们逐一调用这些lambda，完成替代，那么——&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;完成此步。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;——这个程序会简化为&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(read-number/suspend &quot;First&quot;
-                     (lambda (lv)
-                       (read-number/suspend &quot;Second&quot;
-                                            (lambda (rv)
-                                              (identity
-                                               (display (+ lv rv)))))))&lt;/code&gt;&lt;p&gt;这正是我们想要的。&lt;/p&gt;&lt;blockquote&gt;设计更好的CPS算法，消除不必要的管理性lambda，是个研究前沿问题。&lt;br&gt;&lt;/blockquote&gt;&lt;h2&gt;14.2.3 在核心中实现&lt;/h2&gt;&lt;p&gt;在研究了通过去语法糖实现CPS之后，我们应该问问，是否可将其以放在核心中。&lt;/p&gt;&lt;p&gt;回想一下，我们说过CPS适用于任何程序。有一个我们特别感兴趣的程序：解释器。显然，我们可以将CPS转换应用于其上，从而获得事实上的continuation。&lt;/p&gt;&lt;p&gt;首先，这里使用函数来表示闭包较为方便（译注，12.1节）。我们让解释器读入多读入一个参数，该参数读入值（需要传给continuation的那些值）并最终返回它们：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-interp&amp;gt; ::=  ;cps解释器
-
-    (define (interp/k [expr : ExprC] [env : Env] [k : (Value -&amp;gt; Value)]) : Value
-      &amp;lt;cps-interp-body&amp;gt;)  ;cps解释器主体&lt;/code&gt;&lt;p&gt;对于简单的情况，我们不直接返回值，而是将其传递给continuation参数即可：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-interp-body&amp;gt; ::=
-
-    (type-case ExprC expr
-      [numC (n) (k (numV n))]
-      [idC (n) (k (lookup n env))]
-      &amp;lt;cps-interp-plusC-case&amp;gt;
-      &amp;lt;cps-interp-appC-case&amp;gt;
-      &amp;lt;cps-interp-lamC-case&amp;gt;)&lt;/code&gt;&lt;p&gt;（请注意，multC的处理完全类似于plusC。）&lt;/p&gt;&lt;p&gt;还是从简单的情况开始，plusC。第一步我们解释左子表达式。该计算的continuation进行右子表达式的解释。这个计算的continuation对结果求和。求和的结果怎么处理？在interp中，它被返回，返回到那个调用解释plusC的计算。请记住，现在我们不再返回值；反之，我们将其传给continuation：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-interp-plusC-case&amp;gt; ::=
-
-    [plusC (l r) (interp/k l env
-                           (lambda (lv)
-                             (interp/k r env
-                                       (lambda (rv)
-                                         (k (num+ lv rv))))))]&lt;/code&gt;&lt;p&gt;&lt;b&gt;习题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;实现multC。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;还剩下两种相互关联的情况，它们相对更难些。&lt;/p&gt;&lt;p&gt;对于函数调用，还是需要解释两个子表达式，然后将结果的闭包应用于参数。不过，我们已经说好了，每个调用都需要带上continuation参数。因此，必须更新一下值的定义：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-type Value
-  [numV (n : number)]
-  [closV (f : (Value (Value -&amp;gt; Value) -&amp;gt; Value))])&lt;/code&gt;&lt;p&gt;接下来必须决定传给它啥continuation。对于函数调用，就是传入解释器的continuation：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-interp-appC-case&amp;gt; ::=
-
-    [appC (f a) (interp/k f env
-                          (lambda (fv)
-                            (interp/k a env
-                                      (lambda (av)
-                                        ((closV-f fv) av k)))))]&lt;/code&gt;&lt;p&gt;最后处理lamC的情况。和以前一样，我们必须使用lambda创建closV。不过，这个函数需要两个参数：实际的参数和调用的continuation。关键的问题是，后者该是什么？&lt;/p&gt;&lt;p&gt;有两个选择。k表示&lt;b&gt;静态的&lt;/b&gt;continuation：在闭包&lt;b&gt;创建&lt;/b&gt;位置的那个continuation。不过，我们想要的是在闭包&lt;b&gt;调用&lt;/b&gt;之处的continuation，也就是&lt;b&gt;动态的&lt;/b&gt;continuation。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-interp-lamC-case&amp;gt; ::=
-
-    [lamC (a b) (k (closV (lambda (arg-val dyn-k)
-                            (interp/k b
-                                      (extend-env (bind a arg-val)
-                                                  env)
-                                      dyn-k))))]&lt;/code&gt;&lt;p&gt;要测试这个修改后的解释器，我们需要用某个初始continuation调用interp/k。这个子程序表示的是无需任何其他计算。自然的选择是恒等函数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (interp [expr : ExprC]) : Value
-  (interp/k expr mt-env
-            (lambda (ans)
-              ans)))&lt;/code&gt;&lt;p&gt;为了强调这只是interp/k的顶层接口，interp放弃了环境参数，自动传递空环境给interp/k。如果需要特别确定没有意外地递归使用这个函数，我们可以在其最后插入一个对error的调用，以防止它返回，或者其返回值被使用。&lt;/p&gt;&lt;h2&gt;14.3 生成器&lt;/h2&gt;&lt;p&gt;现在许多编程语言都拥有&lt;b&gt;生成器&lt;/b&gt;（generator）这一概念。生成器类似于函数，可以被调用。区别在于，常规函数总是从头开始执行，生成器从最后一次停止的地方&lt;b&gt;恢复&lt;/b&gt;。当然，这意味着生成器需要“在完成之前退出”的概念。这就是所谓的&lt;b&gt;yield&lt;/b&gt;（让位），即把控制权归还给调用者。&lt;/p&gt;&lt;h2&gt;14.3.1 各种设计&lt;/h2&gt;&lt;p&gt;生成器有许多不同的变体。可以想见，不同之处在于如何进入和退出生成器：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在某些语言中，生成器是一种对象，需要和其他对象一样实例化，恢复其执行是通过调用方法（例如Python中的next）。在其他语言中，生成器则类似于函数，而且重入是通过像函数一样调用。【注释】&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在某些语言中，让位操作——例如Python的yield——只能在生成器的语法主体中使用。在其他语言中，例如Racket，yield是在生成器主体中被绑定的、可调用的值，正由于它是值，它可以被抽象的传递、存储于数据结构中，等等。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;在有些语言中，除了普通的函数，其他值也可以用做调用，所有这些值被统称为&lt;b&gt;可调用值&lt;/b&gt;（applicable）。&lt;/blockquote&gt;&lt;p&gt;Python的设计代表了一种极端，生成器是&lt;b&gt;任何包含关键字yield的函数&lt;/b&gt;。此外，Python的yield不能作为参数传递给另一个函数，由该函数代理来执行让位。&lt;/p&gt;&lt;p&gt;还有个关于命名的小问题。在许多支持生成器的语言中，让位指令就是&lt;b&gt;字面上&lt;/b&gt;的yield：要么是关键字（如Python），要么是绑定为可调用值的标识符（如在Racket中）。还有种可能，生成器的用户必须在生成器表达式中指明让位指令的名字。【注释】也就是说，生成器是这样的&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(generator (yield) (from)
-           (rec (f (lam (n)
-                     (seq
-                       (yield n)
-                       (f (+ n 1)))))
-             (f from)))&lt;/code&gt;&lt;p&gt;但是等价的写法&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(generator (y) (from)
-           (rec (f (lam (n)
-                     (seq
-                       (y n)
-                       (f (+ n 1)))))
-             (f from)))&lt;/code&gt;&lt;p&gt;如果这个让位指令实际上是值，那么用户也可以这样抽象地使用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(generator (y) (from)
-           (rec (f (lam (n)
-                     (seq
-                       ((yield-helper y) n)
-                       (f (+ n 1)))))
-             (f from)))&lt;/code&gt;&lt;p&gt;其中yield-helper会去调用让位指令。&lt;/p&gt;&lt;p&gt;实际上还有两个设计上的决定：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;yield是声明还是表达式？在许多语言中，它是表达式，这意味着它有值：在恢复生成器时提供的值。这使得生成器更加灵活，因为生成器的使用者可以使用参数来改变生成器的行为，而不是&lt;b&gt;被迫&lt;/b&gt;使用状态来传达所需的改变。&lt;/li&gt;&lt;li&gt;生成器执行结束时会发生什么？在很多语言中，生成器会产生异常来表示完成。&lt;/li&gt;&lt;/ol&gt;&lt;blockquote&gt;奇怪的是，Python在对象中期望用户来确定self或this的名称，但是它没有为yield提供相同的灵活性，因为这是唯一确定哪些函数是生成器的方式！&lt;br&gt;&lt;/blockquote&gt;&lt;h2&gt;14.3.2 实现生成器&lt;/h2&gt;&lt;p&gt;要实现生成器，有效的方式是使用我们的CPS宏语言。先来确定这个设计决定的意义。我们用调用来表示生成器：即，要获得来自生成器的下一个值，是通过将其应用于任何必要的参数来完成的。类似的，让位指令也是可调用的值，并且还是表达式。虽然我们已经研究过宏如何自动捕获名称（译注：13.5节），但是简单起见我们还是明确给出让位指令的名称好了。最后，当生成器执行完成时，我们会报错。&lt;/p&gt;&lt;p&gt;生成器如何工作？ 要yield，生成器必须&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;记住它现在执行到哪里，&lt;/li&gt;&lt;li&gt;知道应该返回到调用者的哪里。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;而当生成器被调用时，它应该&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;记住它的调用者执行到哪里，&lt;/li&gt;&lt;li&gt;知道它应该返回到其主体内的哪里。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;请注意调用与让位之间的对偶。&lt;/p&gt;&lt;p&gt;你可能猜到了，这些“哪里”就是continuation。&lt;/p&gt;&lt;p&gt;我们来逐步实现生成器，这相当于添加一条cps宏的规则。先写下模式的头部：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-generator-case&amp;gt; ::=  ;CPS宏，生成器子句
-
-    [(_ (generator (yield) (v) b))
-     (and (identifier? #&#39;v) (identifier? #&#39;yield))
-     &amp;lt;generator-body&amp;gt;]  ;生成器主体&lt;/code&gt;&lt;p&gt;主体第一部分很简单：CPS中的所有代码都需要先读入continuation，而且由于生成器是值，所以这个值要被传给continuation：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;generator-body&amp;gt; ::=  ;生成器主体
-
-    #&#39;(lambda (k)
-        (k &amp;lt;generator-value&amp;gt;))  ;生成器的值&lt;/code&gt;&lt;p&gt;下一步要处理生成器的核心了。&lt;/p&gt;&lt;p&gt;回忆一下，生成器是可调用的值。这就是说，它可以被放在函数调用的位置，因此它必须具有与函数相同的“接口”：函数有两个参数，第一个是值，第二个是调用位置的continuation。这个子程序应该做什么？我们刚刚描述过这个。首先，生成器必须记住它的调用者正在执行的地方，这正是调用位置的continuation；“记住”这里最简单的意思是“必须保存在状态中”。然后，生成器应该返回到它之前所在的地方，即它&lt;b&gt;自己&lt;/b&gt;的continuation，这个显然必须被保存过。因此，这里可调用值的核心是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;generator-core&amp;gt; ::=  ;生成器的核心
-
-    (lambda (v dyn-k)
-      (begin
-        (set! where-to-go dyn-k)
-        (resumer v)))&lt;/code&gt;&lt;p&gt;这里，where-to-go记录了调用者的continuation，让位时恢复；resumer是生成器的本地continuation。让我们考虑一下它们的初始值是什么：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;where-to-go没有初始值（因为生成器尚未被调用），所以如果它被调用，需要抛出错误。幸运的是，这个错误永远不会发生，因为第一次进入生成器时会对where-to-go赋值，所以这个错误只是防范实现中出现bug。&lt;/li&gt;&lt;li&gt;最初，生成器的其余部分是整个生成器，所以resumer应该被绑定到b（的CPS）。它的continuation是什么？是整个生成器的continuation，即当生成器结束时该做啥。我们已经讨论过，这里也应该给出错误（区别是，在这种情况下错误确实会发生，如果生成器被要求产生比它配备的更多的值）。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;还需要绑定yield。正如我们已经指出的，它对称于生成器的恢复：将本地continuation保存在resumer中，然后通过调用where-to-go返回。&lt;/p&gt;&lt;p&gt;把这些片段放到一起，我们得到：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;generator-value&amp;gt; ::=  ;生成器的值
-
-    (let ([where-to-go (lambda (v) (error &#39;where-to-go &quot;nothing&quot;))])
-      (letrec([resumer (lambda (v)
-                         ((cps b) (lambda (k)
-                                    (error &#39;generator &quot;fell through&quot;))))]
-              [yield (lambda (v gen-k)
-                       (begin
-                         (set! resumer gen-k)
-                         (where-to-go v)))])
-        &amp;lt;generator-core&amp;gt;))&lt;/code&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;为什么这里使用let和letrec，而不只用let？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;请注意这些代码片段之间的依赖关系。where-to-go不依赖于resumer或yield。yield显然依赖于where-to-go和resumer。但是，为什么resumer和yield相互引用呢？&lt;/p&gt;&lt;p&gt;&lt;b&gt;思考题&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;试试不这么做。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;你可能会遗漏的巧妙依赖是，resumer中包含b，生成器的主体，它可能包含对yield的引用。因此，它需要包含退位指令的绑定。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;生成器与协程（coroutine）和线程（thread）有什么不同？使用类似的策略来实现协程和线程。&lt;br&gt;&lt;/blockquote&gt;&lt;h2&gt;14.4 Continuation和堆栈&lt;/h2&gt;&lt;p&gt;虽然看上去不明显，但是CPS转换实际上对程序执行的&lt;b&gt;栈&lt;/b&gt;（译注，调用栈）本质提供了深入的了解。首先要理解的是，continuation实际上就是&lt;b&gt;栈本身&lt;/b&gt;。这可能看起来很奇怪，因为堆栈是底层的机器实现，而continuation看似复杂。那么栈到底是什么呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;栈是还有待完成的计算的记录。continuation也是。&lt;/li&gt;&lt;li&gt;栈传统上被认为是&lt;b&gt;栈帧&lt;/b&gt;（stack &lt;br&gt;frame）的列表。也就是说，每个帧都引用该帧完成后剩余的帧。类似地，每个continuation都是个小程序，其中引用——因此包含——自己的continuation。如果为程序指令选择不同的表示形式，将其与闭包的数据结构表示相结合，我们将得到一种与计算机堆栈基本相同的continuation表示法。&lt;/li&gt;&lt;li&gt;每个栈帧中还存储了函数的参数。continuation的子程序表示法隐式地管理了此项信息，明确地由数据结构（绑定）表示。&lt;/li&gt;&lt;li&gt;栈帧中还有“局部变量”的空间。continuation原则上也是如此，尽管我们使用宏实现本地绑定，因此相当于将一切都还原成函数参数。然而从概念上讲，其中一些是“真实的”函数参数，而另一些是通过宏变成函数参数的局部绑定。&lt;/li&gt;&lt;li&gt;栈引用了堆，但没有内含堆。因此，堆中的变化在不同的栈帧都是可见的。同样地，闭包中引用了贮存，但不内含贮存，所以对贮存的修改在不同闭包中都是可见的。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;因此，传统上，栈负责维护词法范围，而我们使用（静态范围的语言中的）闭包自动获得此功能。&lt;/p&gt;&lt;p&gt;现在我们可以研究各种子项的转换，从而解到堆栈的映射。例如，考虑函数应用的转换：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[(_ (f a))
- #&#39;(lambda (k)
-     ((cps f) (lambda (fv)
-                ((cps a) (lambda (av)
-                           (fv av k))))))]&lt;/code&gt;&lt;p&gt;该怎么“读”呢？这样：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;我们用k表示函数调用之前的栈。&lt;/li&gt;&lt;li&gt;在对函数位置（&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;）求值时，创建新的栈帧（&lt;code class=&quot;inline&quot;&gt;(lambda (fv) ...)&lt;/code&gt;）。该帧包含一个自由标识符：&lt;code class=&quot;inline&quot;&gt;k&lt;/code&gt;。因此，它的闭包需要记录环境中的这个元素，即栈的其余部分。&lt;/li&gt;&lt;li&gt;栈帧的代码部分表示一旦我们获得了函数的值，剩下的工作：计算参数，执行调用，将结果返回给等待调用结果的栈：k。&lt;/li&gt;&lt;li&gt;对f的求值完成后，对a求值，这也需要创建栈帧：&lt;code class=&quot;inline&quot;&gt;(lambda (av) ...)&lt;/code&gt;。该帧有&lt;b&gt;两个&lt;/b&gt;自由标识符：k和fv。这说明：&lt;br&gt; &lt;/li&gt;&lt;ul&gt;&lt;li&gt;我们不再需要对函数位置求值的栈帧了，但是&lt;/li&gt;&lt;li&gt;我们需要用&lt;b&gt;临时变量&lt;/b&gt;记录函数位置求值的结果，它最好是函数值。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;这第二个帧的代码部分代表也是剩下要做的事情：对参数调用函数，在等待调用结果的栈中进行。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;条件指令也是同样的推理：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[(_ (cnd tst thn els))
- #&#39;(lambda (k)
-     ((cps tst) (lambda (tstv)
-                  (if tstv
-                      ((cps thn) k)
-                      ((cps els) k)))))]&lt;/code&gt;&lt;p&gt;它说的是，要对条件表达式求值，我们先要创建新的栈帧。该帧中包含等待整个条件表达式值的栈。该帧根据条件表达式的值来决定，调用其子表达式之一。在判断了条件的值之后，为了求它的值而创建的帧就不再需要了，因此求值可以在k中继续。&lt;/p&gt;&lt;p&gt;从这个角度出发，我们可以更好的解释生成器的操作。每个生成器都有自己的私有栈，当执行超越其栈底时，我们的实现会报错。被调用时，生成器将表示“剩余程序”的栈的引用存储在where-to-go中，然后恢复自己的栈。在让位时，系统交换堆栈的引用。协程，线程和生成器在概念上都是相似的：它们都是创建“许多小堆栈”的机制，而不仅仅只是单个的全局堆栈。&lt;/p&gt;&lt;h2&gt;14.5 尾调用&lt;/h2&gt;&lt;p&gt;观察上面的栈模式，为当前栈添加帧，执行一些计算，最终总是返回到当前栈。特别要注意的是，在函数调用中，我们需要栈的空间来对函数求值，然后是对参数求值，但是一旦所有这些求值完成，我们就使用函数调用开始之前的栈来恢复计算。换一种说法，&lt;b&gt;函数调用本身不需要消耗栈空间&lt;/b&gt;：我们只需要空间来计算参数。&lt;/p&gt;&lt;p&gt;但是，并非所有的语言都遵守或尊重这一属性。在这样做的语言中，程序员可以使用&lt;b&gt;递归&lt;/b&gt;来获得&lt;b&gt;迭代行为&lt;/b&gt;：即，一系列函数调用不会比没有函数调用的情况下消耗更多空间。这消除了创建特殊循环结构的需要；实际上，循环可以简单地表示为语法糖。&lt;/p&gt;&lt;p&gt;当然，这个属性不适用于一般情况。如果调用f来计算调用g所需的参数，那么对f的调用相对于围绕g的上下文仍然会占用空间。因此，我们需要说明表达式之间的关系：一个表达式的处于另一表达式的&lt;b&gt;尾位置&lt;/b&gt;，如果对它的求值不需要另一表达式（求值）之外的额外空间。在我们的CPS宏中，所有使用k作为其continuation的表达式——例如，在所有子表达式求值完成之后的函数调用，或者条件表达式的then和else分支——都在其外层表达式的尾位置（也许递归地还在其外层的尾位置）。反之，所有必须创建新栈帧的表达式都不在尾位置。&lt;/p&gt;&lt;p&gt;有些语言对&lt;b&gt;尾递归&lt;/b&gt;——某个函数在其函数体的尾位置调用自己——有特殊的支持。这显然是有用的，因为它使得递归得以有效地实现循环。然而，它破坏了不能被挤入单个递归函数的“循环”。例如，当实现状态机时，最方便的方法是用一组函数，每个函数代表一个状态，然后通过（尾）调用表示状态转换。把它们变成单一的递归函数会非常繁琐（并且失去了意义）。但是，如果一种语言能够识别尾调用，它就可以（和函数内调用自己一样）优化这些跨函数的调用。&lt;/p&gt;&lt;p&gt;Racket的实现保证尾调用不会分配额外的栈空间。有人把这称为“尾调用的优化”，但这个术语是误导性的：优化是可选性的，而某种语言是否承诺正确实现尾调用是种&lt;b&gt;语义&lt;/b&gt;特性。程序员需要了解语言的行为方式，因为这会影响他们的编程方式。&lt;/p&gt;&lt;p&gt;由于这个特性，观察CPS转换之后的程序的有趣之处：其中所有的函数调用本身都是尾调用的！从本章开头的read-number/suspend例子开始，你就可以看到这点：所有待处理的计算都被放入了continuation参数。假设程序可能在任何调用中终止，等同于根本不使用任何栈空间（因为栈将会被清除）。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;程序如何在没有栈的情况下运行？&lt;br&gt;&lt;/blockquote&gt;&lt;h2&gt;14.6 语言特性中支持continuation&lt;/h2&gt;&lt;p&gt;了解connection和栈之间的这种关联之后，现在可以回过头讨论函数的处理：我们忽略了在&lt;b&gt;创建&lt;/b&gt;闭包时的continuation，而只使用了在闭包调用时的continuation。当然，这对应于普通的函数行为。但现在我们可以问，如果我们用创建时的connection呢？这等同于，在“程序”创建时保存对栈的（副本）的引用，然后在调用函数时忽略动态的求值，返回到函数创建点。&lt;/p&gt;&lt;p&gt;实际上，我想说的是，让lambda保持不变，而给我们的语言提供新的、对于与这种行为的指令：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;cps-macro-let/cc-case&amp;gt; ::=  ;cps宏
-
-    [(_ (let/cc kont b))
-     (identifier? #&#39;kont)
-     #&#39;(lambda (k)
-         (let ([kont (lambda (v dyn-k)
-                       (k v))])
-           ((cps b) k)))]&lt;/code&gt;&lt;p&gt;这说的是，两种情况下，控制都将返回到直接包含let/cc的表达式：要么通过正常返回（因为主体b的continuation是k），要么通过更有意思的方式，调用continuation，这会丢弃动态的continuation&lt;br&gt; dyn/k，简单地忽略它直接返回到k。&lt;/p&gt;&lt;p&gt;最简单的测试是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (run (cps (let/cc esc 3)))
-      3)&lt;/code&gt;&lt;p&gt;这证实了，如果我们从不使用continuation，那么对主体的求值就好像let/cc根本不存在一样（因为&lt;code class=&quot;inline&quot;&gt;((cps b) k)&lt;/code&gt;）。如果我们使用它，传给continuation的值返回到创建点：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (run (cps (let/cc esc (esc 3))))
-      3)&lt;/code&gt;&lt;p&gt;当然，这个例子揭露的还不够，不过考虑这个：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (run (cps (+ 1 (let/cc esc (esc 3)))))
-      4)&lt;/code&gt;&lt;p&gt;这证实了加法会实际执行。那么动态的continuation呢？&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (run (cps (let/cc esc (+ 2 (esc 3)))))
-      3)&lt;/code&gt;&lt;p&gt;这表明加2不会发生，即动态continuation确实被忽略了。为了确保创建位置的continuation被保留，请观察：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (run (cps (+ 1 (let/cc esc (+ 2 (esc 3))))))
-      4)&lt;/code&gt;&lt;p&gt;从这些例子中，你可能已经注意到熟悉的模式：esc在这里的表现类似于异常。也就是说，如果你不抛出异常（在这里，调用continuation）它就好像不在那里，但是如果你抛出异常，所有未完成的中间计算都将被忽略，计算返回到异常创建点。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;使用let/cc和宏实现异常的抛出和捕获机制。&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;然而，这些例子只用到了最浅层的（let/cc的）能力，因为这里调用点处的continuation总是创建点处的continuation的扩展：即后者在栈中比前者更早。然而，没有任何东西要求k和dyn-k之间存在相关。它们实际上可以是&lt;b&gt;无&lt;/b&gt;关的，这意味着它们可以是两个独立的栈，所以我们可以用它轻松地实现栈切换功能。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;为了真正与lambda类似，我们应该引入如下展开的构造，称其为cont-lambda好了：&lt;br&gt;[(_ (cont-lambda (a) b))&lt;br&gt; (identifier? #&#39;a)&lt;br&gt; #&#39;(lambda (k)&lt;br&gt;     (k (lambda (a dyn-k)&lt;br&gt;          ((cps b) k))))]&lt;/blockquote&gt;&lt;code lang=&quot;text&quot;&gt;为什么我们没有这么做呢？从两方面考虑，静态类型的角度，还有，我们如何使用这个构造来构建上述类似于异常的行为。&lt;/code&gt;&lt;h2&gt;14.6.1 用语言表达&lt;/h2&gt;&lt;p&gt;用我们的小玩具语言编写程序很快会变得令人沮丧。幸运的是，Racket已经提供了叫做call/cc的构造，用来操作continuation。call/cc是单参数的函数，其参数本身又是单参数的函数，Racket会将当前continuation传给它进行调用，而当前continuation也是单参数的子程序。能理解吗？&lt;/p&gt;&lt;p&gt;幸运的是，我们可以用call/cc轻松地将let/cc实现为宏，然后用它来编写程序。这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-syntax let/cc
-  (syntax-rules ()
-    [(let/cc k b)
-     (call/cc (lambda (k) b))]))&lt;/code&gt;&lt;p&gt;之前的所有测试仍然通过：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(test (let/cc esc 3) 3)
-(test (let/cc esc (esc 3)) 3)
-(test (+ 1 (let/cc esc (esc 3))) 4)
-(test (let/cc esc (+ 2 (esc 3))) 3)
-(test (+ 1 (let/cc esc (+ 2 (esc 3)))) 4)&lt;/code&gt;&lt;h2&gt;14.6.2 定义生成器&lt;/h2&gt;&lt;p&gt;现在我们可以创建有趣的抽象了。比如，让我们来编写生成器。之前我们需要将表达式CPS转化，并传递continuation，现在都可以通过call/cc自动完成。因此，当需要目前的continuation时，我们都可以简单地召唤它而无需改变程序。所以，额外的&lt;code class=&quot;inline&quot;&gt;...-k&lt;/code&gt;参数都会消失，在同一个地方可以用let/cc捕获相同的continuation：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-syntax (generator e)
-  (syntax-case e ()
-    [(generator (yield) (v) b)
-     #&#39;(let ([where-to-go (lambda (v) (error &#39;where-to-go &quot;nothing&quot;))])
-         (letrec ([resumer (lambda (v)
-                             (begin b
-                                    (error &#39;generator &quot;fell through&quot;)))]
-                  [yield (lambda (v)
-                           (let/cc gen-k
-                             (begin
-                               (set! resumer gen-k)
-                               (where-to-go v))))])
-           (lambda (v)
-             (let/cc dyn-k
-               (begin
-                 (set! where-to-go dyn-k)
-                 (resumer v))))))]))&lt;/code&gt;&lt;p&gt;请观察这段代码和去语法糖到CPS代码实现的生成器之间的密切相似性。具体而言，我们去掉了额外的continuation参数，用let/cc调用替换它们，这些调用能捕获完全相同的continuation。其余的代码基本不变。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;如果我们将（两处）let/cc和赋值移到begin内的第一个语句，会发生什么呢？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;例如，我们可以编写从初始值向上迭代的生成器：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define g1 (generator (yield) (v)
-                      (letrec ([loop (lambda (n)
-                                       (begin
-                                         (yield n)
-                                         (loop (+ n 1))))])
-                        (loop v))))&lt;/code&gt;&lt;p&gt;其行为是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (g1 10)
-10
-&amp;gt; (g1 10)
-11
-&amp;gt; (g1 0)
-12
-&amp;gt;&lt;/code&gt;&lt;p&gt;因为（生成器）主体只引用了初始值，调用yield所返回的值被忽略，所以在后续调用传入的值不起作用。相反，考虑这个生成器：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define g2 (generator (yield) (v)
-                      (letrec ([loop (lambda (n)
-                                       (loop (+ (yield n) n)))])
-                        (loop v))))&lt;/code&gt;&lt;p&gt;在第一次调用时，它返回输入的值。在此后的调用中，该值被加到后续调用生成器所提供的值上。换一种说法，该发生器累加它的所有输入值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;gt; (g2 10)
-10
-&amp;gt; (g2 15)
-25
-&amp;gt; (g2 5)
-30&lt;/code&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;现在我们已经使用call/cc和let/cc实现了生成器，请用它们实现协程和线程。&lt;br&gt;&lt;/blockquote&gt;&lt;h2&gt;14.6.3 定义线程&lt;/h2&gt;&lt;p&gt;完成生成器之后，我们再做个类似的功能：线程。具体来说，我们希望能够编写如下的程序：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define d display) ;;有用的简写
- 
-(scheduler-loop-0
- (list
-  (thread-0 (y) (d &quot;t1-1  &quot;) (y) (d &quot;t1-2  &quot;) (y) (d &quot;t1-3 &quot;))
-  (thread-0 (y) (d &quot;t2-1  &quot;) (y) (d &quot;t2-2  &quot;) (y) (d &quot;t2-3 &quot;))
-  (thread-0 (y) (d &quot;t3-1  &quot;) (y) (d &quot;t3-2  &quot;) (y) (d &quot;t3-3 &quot;))))&lt;/code&gt;&lt;p&gt;输出应该是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;t1-1  t2-1  t3-1  t1-2  t2-2  t3-2  t1-3 t2-3 t3-3&lt;/code&gt;&lt;p&gt;我们来创建必要的组件实现此功能。&lt;/p&gt;&lt;p&gt;我们先来定义线程调度器。它读入“线程”的列表，我们假设线程的接口读入continuation，并最终将控制返回给此continuation。每当调度器重新激活某个线程时，都会向其提供continuation。调度器可以用简单的循环（round-robin）方式选择线程，也可以使用更复杂的算法；这里我们不关心如何选择的细节。&lt;/p&gt;&lt;p&gt;类似于生成器，我们假定让位由调用用户命名的子程序完成，例如这里的y。我们也可以使用名称捕获（译注，13.5节）自动绑定其名称，比如yield。&lt;/p&gt;&lt;p&gt;这里的要点的是，请注意让位由线程系统的用户手动控制。这就是所谓的&lt;b&gt;协作式多任务处理&lt;/b&gt;（cooperative multitasking）。相反，我们可以选择通过生成定时器或其他内在机制自动触发让位，而无需用户许可。这被称为&lt;b&gt;抢占式多任务处理&lt;/b&gt;（preemptive multitasking）（因为系统从线程中“抢占”——也就是夺取了——控制权）。虽然这种区别对于构建系统来说是非常重要的，但从设置continuation的角度来看，这并不重要。&lt;/p&gt;&lt;p&gt;&lt;b&gt;练习&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;在完成协作式多任务之后，实现抢占式多任务。哪里需要修改？&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;陈述了这些限制，我们可以着手编写调度器了。它读入线程的列表，只要还有剩下的线程就继续执行。每次，它将线程应用于continuation，这个continuation表示返回到调度器并继续下一个线程：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (scheduler-loop-0 threads)
-  (cond
-    [(empty? threads) &#39;done]
-    [(cons? threads)
-     (begin
-       (let/cc after-thread ((first threads) after-thread))
-       (scheduler-loop-0 (append (rest threads)
-                                 (list (first threads)))))]))&lt;/code&gt;&lt;p&gt;当接收线程调用绑定到after-thread的continuation时，控制返回到begin序列中第一个语句的结尾。因此，提供给continuation的值会被忽略（所以可以用任何值；我们选择用&lt;code class=&quot;inline&quot;&gt;&#39;dummy&lt;/code&gt;，以便其莫名出现时方便地发现问题）。将最近调用的线程附加到线程列表的末尾（即，将该列表视为循环队列）之后，控制将继续调度器循环的其余部分。&lt;/p&gt;&lt;p&gt;接下来我们定义线程。我们说过，它是单参数的函数，参数就是调度器的continuation。由于线程需要能&lt;b&gt;恢复&lt;/b&gt;，也就是从停止的地方继续，所以它必须存储上次执行到的位置：我们将其称为thread-resumer。起初thread-resumer是整个线程体，但在后续的实例中，它将是continuation：调用yield的continuation。于是，我们得到如下的框架：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-syntax thread-0
-  (syntax-rules ()
-    [(thread (yielder) b ...)
-     (letrec ([thread-resumer (lambda (_)
-                                (begin b ...))])
-       (lambda (sched-k)
-         (thread-resumer &#39;dummy)))]))&lt;/code&gt;&lt;p&gt;还剩下yielder没实现。它是无参数的函数，将线程的continuation存入thread-resumer，然后用&lt;code class=&quot;inline&quot;&gt;&#39;dummy&lt;/code&gt;调用调度器的continuation。不过，调用&lt;b&gt;哪个&lt;/b&gt;调度器的continuation呢？不是线程初始化时传入的那个，而是最新的那个。因此，我们必须以某种方式将sched-k中的值“thread”（译注，传递）给yielder。有很多种方式可以实现，但最简单的，也许是最暴力的方式是，简单地为每个线程恢复重建yielder，总是包含sched-k的最新值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-syntax thread-0
-  (syntax-rules ()
-    [(thread (yielder) b ...)
-     (letrec ([thread-resumer (lambda (_)
-                                (begin b ...))]
-              [yielder (lambda () (error &#39;yielder &quot;nothing here&quot;))])
-       (lambda (sched-k)
-         (begin
-           (set! yielder
-                 (lambda ()
-                   (let/cc thread-k
-                     (begin
-                       (set! thread-resumer thread-k)
-                       (sched-k &#39;dummy)))))
-           (thread-resumer &#39;tres))))]))&lt;/code&gt;&lt;p&gt;将这些放到一起运行，我们得到：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;t1-1  t2-1  t3-1  t1-2  t2-2  t3-2  t1-3 t2-3 t3-3&lt;/code&gt;&lt;p&gt;嘿，这就是我们想要的！但是运行继续：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;t1-3 t2-3 t3-3 t1-3 t2-3 t3-3 t1-3 t2-3 t3-3&lt;/code&gt;&lt;p&gt;嗯。&lt;/p&gt;&lt;p&gt;怎么回事？恩，我们并没有说明当线程运行结束时需要怎么处理。实际上，控制只是返回到线程调度器，调度器将线程追加到队列的末尾，然后，当线程再次到达队列的头部时，控制从之前存储的那个continuation中恢复：对应于打印第三个值。打印，控制返回，线程被追加到队尾……无限循环。&lt;/p&gt;&lt;p&gt;显然，在线程终止时，我们需要通知线程调度器，这样调度器可以将其从线程队列中移除。我们创建简单的数据类型来表示该信号：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-type ThreadStatus
-  [Tsuspended]
-  [Tdone])&lt;/code&gt;&lt;p&gt;（当然，在真实的系统中，这些状态消息也可以带上和计算相关的值。）那么我们必须修改调度器，实际检查和使用这些值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (scheduler-loop-1 threads)
-  (cond
-    [(empty? threads) &#39;done]
-    [(cons? threads)
-     (type-case ThreadStatus (let/cc after-thread ((first threads) after-thread))
-       [Tsuspended () (scheduler-loop-1 (append (rest threads)
-                                                (list (first threads))))]
-       [Tdone () (scheduler-loop-1 (rest threads))])]))&lt;/code&gt;&lt;p&gt;线程的表示中有两个地方需要修改：中间返回的时候它必须传Tsuspended给调度器的continuation，终止时传Tdone。哪里是终止呢？在执行完线程体代码&lt;code class=&quot;inline&quot;&gt;b ...&lt;/code&gt;之后。最后，请注意和退位一样，终止程序必须也使用最新的调度器continuation。因而：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define-syntax thread-1
-  (syntax-rules ()
-    [(thread (yielder) b ...)
-     (letrec ([thread-resumer (lambda (_)
-                                (begin b ...
-                                       (finisher)))]
-              [finisher (lambda () (error &#39;finisher &quot;nothing here&quot;))]
-              [yielder (lambda () (error &#39;yielder &quot;nothing here&quot;))])
-       (lambda (sched-k)
-         (begin
-           (set! finisher
-                 (lambda ()
-                   (let/cc thread-k
-                     (sched-k (Tdone)))))
-           (set! yielder
-                 (lambda ()
-                         (let/cc thread-k
-                           (begin
-                             (set! thread-resumer thread-k)
-                             (sched-k (Tsuspended))))))
-           (thread-resumer &#39;tres))))]))&lt;/code&gt;&lt;p&gt;用scheduler-loop-1和thread-1替换scheduler-loop-0和thread-0，重新运行前面的示例程序，我们就得到了想要的输出。&lt;/p&gt;&lt;h2&gt;14.6.4 更好的Web编程指令&lt;/h2&gt;&lt;p&gt;最后，我们回过头看看read-number：请注意，如果运行服务器程序的语言有call/cc，我们就不必CPS整个程序，而是可以简单地捕获当前continuation，将其保存在哈希表中，从而使程序结构保持不变。&lt;/p&gt;</description>
-<author>MrMathematica</author>
-<guid isPermaLink="false">2017-12-15-32037390</guid>
 <pubDate>Fri, 15 Dec 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
