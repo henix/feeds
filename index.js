@@ -72,6 +72,7 @@ const feeds = [
 	]],
 	["Security", [
 		"chaitin-tech",
+		"HuorongLab",
 		"datasec",
 		"fhe-blockchain",
 		"dong-tian-yang",
