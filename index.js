@@ -52,6 +52,7 @@ const feeds = [
 		"dushu_magazine",
 		"hulianzatan9",
 		"commando",
+		"bigeguide",
 		"zhidaoxue",
 		"zhidaoshe",
 	]],
