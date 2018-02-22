@@ -5,7 +5,66 @@
 <link>https://henix.github.io/feeds/yinwang/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 21 Feb 2018 22:59:51 +0800</lastBuildDate>
+<lastBuildDate>Thu, 22 Feb 2018 14:04:22 +0800</lastBuildDate>
+<item>
+<title>自动编程和自动形式验证</title>
+<link>https://henix.github.io/feeds/yinwang/2019-02-22-automatic-programming.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;http://www.yinwang.org/blog-cn/2019/02/22/automatic-programming&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;script&gt;
+            if (/mobile/i.test(navigator.userAgent) || /android/i.test(navigator.userAgent))
+            {
+               document.body.classList.add(&#39;mobile&#39;);
+            }
+        &lt;/script&gt;&lt;div class=&quot;inner&quot;&gt;
+            &lt;h2&gt;自动编程和自动形式验证&lt;/h2&gt;
+            &lt;p&gt;（这是之前关于人工智能的文章里面的一节。由于它关系到我最近发现的一些现象，所以把它提取出来，扩展之后单独成文。）&lt;/p&gt;
+
+&lt;p&gt;有人听说我想创业，给我提出了一些“忽悠”的办法。他们说，既然你是程序语言专家，而现在人工智能（AI）又非常热，那你其实可以搞一个“自动编程系统”，号称可以自动生成程序，取代程序员的工作，节省许许多多的人力支出，这样就可以趁着“AI 热”拉到投资。&lt;/p&gt;
+
+&lt;p&gt;有人甚至把名字都给我想好了，叫“深度程序员”（DeepCoder = Deep Learning + Coder）。口号是：“有了 DeepCoder，不用 Top Coder！” 还有人给我指出了这方向最新的，吹得神乎其神的研究，比如微软的 &lt;a href=&quot;http://www.jiqizhixin.com/article/2691&quot;&gt;Robust Fill&lt;/a&gt;……&lt;/p&gt;
+
+&lt;h3 id=&quot;自动编程是不可能的&quot;&gt;自动编程是不可能的&lt;/h3&gt;
+
+&lt;p&gt;我现在可以很简单的告诉你，自动编程是不可能实现的。微软的 &lt;a href=&quot;http://www.jiqizhixin.com/article/2691&quot;&gt;Robust Fill&lt;/a&gt; 之类，全都是在扯淡。我对微软最近乘着 AI 热，各种煽风点火的做法，表示少许鄙视。不过微软的研究员也许知道这些东西的局限，只是国内小编在夸大它的功效吧。&lt;/p&gt;
+
+&lt;p&gt;你仔细看看他们举出的例子，就知道那是一个玩具问题。人给出少量例子，想要电脑完全正确的猜出他想做什么，那显然是不可能的。很简单的原因，例子不可能包含足够的信息，精确地表达人想要什么。最最简单的变换也许可以，然而只要多出那么一点点例外情况，你就完全没法猜出来他想干什么。就连人看到这些例子，都不知道另一个人想干什么，机器又如何知道？这根本就是想实现“读心术”。甚至人自己都可以是糊涂的，他根本不知道自己想干什么，机器又怎么猜得出来？所以这比读心术还要难！&lt;/p&gt;
+
+&lt;p&gt;对于如此弱智的问题，都不能 100% 正确的解决，遇到稍微有点逻辑的事情，就更没有希望了。论文最后还“高瞻远瞩”一下，提到要把这作法扩展到有“控制流”的情况，完全就是瞎扯。所以 RobustFill 所能做的，也就是让这种极其弱智的玩具问题，达到“接近 92% 的准确率”而已了。另外，这个 92% 是用什么标准算出来的，也很值得怀疑。&lt;/p&gt;
+
+&lt;p&gt;任何一个负责的程序语言专家都会告诉你，自动生成程序是根本不可能的事情。因为“读心术”是不可能实现的，所以要机器做事，人必须至少告诉机器自己“想要什么”，然而表达这个“想要什么”的难度，其实跟编程几乎是一样的。实际上程序员工作的本质，不就是在告诉电脑自己想要它干什么吗？最困难的工作（数据结构，算法，数据库系统）已经被固化到了库代码里面，然而表达“想要干什么”这个任务，是永远无法自动完成的，因为只有程序员自己才知道他想要什么，甚至他自己都要想很久，才知道自己想要什么……&lt;/p&gt;
+
+&lt;p&gt;有句话说得好：编程不过是一门失传的艺术的别名，这门艺术的名字叫做“思考”。没有任何机器可以代替人的思考，所以程序员是一种不可被机器取代的工作。虽然好的编程工具可以让程序员工作更加舒心和高效，任何试图取代程序员工作，节省编程劳力开销，克扣程序员待遇，试图把他们变成“可替换原件”的做法（比如 Agile，TDD），最终都会倒戈，使得雇主收到适得其反的后果。同样的原理也适用于其它的创造性工作：厨师，发型师，画家，……&lt;/p&gt;
+
+&lt;p&gt;所以别妄想自动编程了。节省程序员开销唯一的办法，是邀请优秀的程序员，尊重他们，给他们好的待遇，让他们开心安逸的生活和工作。同时，开掉那些满口“Agile”，“Scrum”，“TDD”，“&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/06/07/software-engineering&quot;&gt;软件工程&lt;/a&gt;”，光说不做的扯淡管理者，他们才是真正浪费公司资源，降低开发效率和软件质量的祸根。&lt;/p&gt;
+
+&lt;h3 id=&quot;自动形式验证是不可能的&quot;&gt;自动形式验证是不可能的&lt;/h3&gt;
+
+&lt;p&gt;最近由于比特币和以太坊很热门，很多人开始在以太坊的“智能合约语言”上做文章。其中一部分是搞 PL 的人，他们试图对 Solidity 之类语言写的智能合约进行形式验证（formal verification），号称要用数学的方法，自动的验证程序的正确性。&lt;/p&gt;
+
+&lt;p&gt;其中一种办法，是给代码的函数加上“前条件”和“后条件”（pre-condition 和 post-condition），这样就可以使用 &lt;a href=&quot;https://en.wikipedia.org/wiki/Hoare_logic&quot;&gt;Hoare Logic&lt;/a&gt; 的办法来证明一些代码的基本属性，比如转账之后余额是正确的。&lt;/p&gt;
+
+&lt;p&gt;虽然 Hoare Logic 并不能完全的保证程序的正确，它确实可以起到一定的效果。然而要使用 Hoare Logic，必须人工写上很多 pre-condtion 和 post-condition。这些条件要如何写，必须要很深入的理解程序语言和形式验证。这个工作必须有经过多年严格训练的专家来完成。&lt;/p&gt;
+
+&lt;p&gt;世界上可以完成这种工作的专家，是非常少的，他们要求的报酬，也会非常高。所以呢，这些提出这种验证想法的 PL 人，就提出一个想法，他们要用“深度学习”的方法，通过对手写的前后条件进行机器学习，自动的生成这些前后条件。他们把这种“自动加条件”的特性，作为自己相对于其他手动验证方法的优点。&lt;/p&gt;
+
+&lt;p&gt;很可惜的是，“自动加条件”这种做法，其实跟“自动编程”是一样的，它完全的符合我在上一节指出的特征。自动编程的难点在于机器没法知道你想要什么，而自动加条件的难度在于，机器没法知道程序应该满足什么样的“特性”（property）。除非你告诉它，机器永远没有办法知道一个进入函数的时候，参数必须满足什么样的条件。同理它也不可能知道你想要在函数的出口满足什么条件。&lt;/p&gt;
+
+&lt;p&gt;试图用深度学习加上前后条件，这是同样的试图实现“读心术”的做法。这是根本不可能的，而且作为资深的 PL 和形式验证专家，这些人应该知道这是不可能的！他们提出这样的想法，并且把它作为相对于其他智能合约项目的优势，显而易见只是为了发币圈钱 ;)&lt;/p&gt;
+
+&lt;p&gt;如果真能用深度学习生成前后条件，自动的验证程序的正确性，那么这种办法应该早就在形式验证领域出现了。每一个形式验证专家都希望能够自动的证明程序的正确性，然而他们早就知道那是不可能的。&lt;/p&gt;
+
+&lt;p&gt;我为这些学者感到悲哀。很早的时候我就有这种感觉，总是有些 PL 人看到什么方向有钱就往什么方向钻，管它语言有多垃圾呢，我们帮它做验证工具，我们为它写编译器，写虚拟机！完全没有作为一个专家的尊严。现在这种风气愈演愈烈，随着比特币和以太坊的热门，他们开始在 Solidity 之类的语言和智能合约上做文章。&lt;/p&gt;
+
+&lt;p&gt;很显然，我也可以轻而易举做出对智能合约进行某种“验证”或者“静态分析”的工具，然而我深刻的知道，数理逻辑对于程序正确性的局限。很多程序是没法证明为正确，但它们确实是正确的。做这样的工作也许能圈到钱，然而却是非常枯燥而没有成就感的。为此，我拒绝了好几个区块链圈子里的合作，因为他们想利用我这方面的才能。我对智能合约的正确性验证不感兴趣，虽然我对区块链的其它一些部分是感兴趣的 ;)&lt;/p&gt;
+
+&lt;p&gt;如何保证智能合约的正确呢？你只有懂得如何写出正确的代码，非常小心。另外，静态分析和测试也可以有一些帮助，但要记住它们其实没法证明程序的正确。对于这个问题，你可以参考我的&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/07/02/program-correctness&quot;&gt;这篇文章&lt;/a&gt;。&lt;/p&gt;
+
+
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2019-02-22-automatic-programming</guid>
+<pubDate>Fri, 22 Feb 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>体验中国社会</title>
 <link>https://henix.github.io/feeds/yinwang/2018-02-20-experience-china.html</link>
@@ -693,54 +752,6 @@
 <author>yinwang0</author>
 <guid isPermaLink="false">2017-11-04-alphago-zero</guid>
 <pubDate>Sat, 04 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>理性的力量</title>
-<link>https://henix.github.io/feeds/yinwang/2017-11-01-power-of-reasoning.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;http://www.yinwang.org/blog-cn/2017/11/01/power-of-reasoning&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div style=&quot;margin: 2% 5% 2% 5%&quot;&gt;
-            &lt;table&gt;
-                &lt;tr&gt;
-                    &lt;td width=&quot;60%&quot;&gt;
-                        &lt;div style=&quot;margin-bottom: 5px&quot;&gt;
-                            &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                            &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:inline-block;width:728px;height:90px&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;6657867155&quot;&gt;&lt;/ins&gt;
-                            &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                        &lt;/div&gt;
-
-                        &lt;div style=&quot;padding: 2% 8% 5% 8%; border: 1px solid LightGrey;&quot;&gt;
-                            &lt;h2&gt;理性的力量&lt;/h2&gt;
-                            &lt;p&gt;曾经有一个显得自己地位挺高的人给我来信，谈论我的博客和一些他的看法。这两天想起过去的一些经历，所以想把这段故事讲一下。当然我不会暴露这个人是谁，他只是提起了这个有趣的话题。&lt;/p&gt;
-
-&lt;p&gt;这个人说，你应该等自己有了一定的地位再说那些话，那时候听你说话的人会多一些。我当时给了他一个礼貌而中肯的回复。我告诉他：“我不需要到达所谓的‘地位’才说话。我说的话，价值就在这些话自己身上，它们不需要依附于任何人的地位或者名气来起作用。实际上，许多人都在听我说的话，因为他们理解了其中的内容。”&lt;/p&gt;
-
-&lt;p&gt;这段回复，其实道穿了我所看到的一些社会现象和误区。现在很多人判断一个说法对不对，是寄希望于说话人的“地位”。比如，他们会提起某某富豪，或者某大公司总裁说：“人工智能将会颠覆所有人的工作。” 但是证据呢？没有任何证据来支持这种说法。光是有“地位”和“财富”在那里撑腰。&lt;/p&gt;
-
-&lt;p&gt;我的话有什么不同呢？因为我不但告诉你“是什么”，而且我告诉你“为什么”。所以一个人要相信我说的话，不需要知道我是谁，我也不需要什么地位。这句话有它自己的力量，这就是理性的力量。就像一个数学定理和它的证明，我不需要告诉你这个定理是什么大数学家或者天才提出来的。我只需要告诉你这定理说了什么，然后按部就班地把它证明出来。&lt;/p&gt;
-
-&lt;p&gt;这就是为什么那位来信的人，远远没能理解我为什么要写博客，为什么可以告诉人们一些事情，为什么许许多多的人在看这些博文，甚至付钱购买它们。我完全可以用一个化名来干这些事，效果是一样的。为了说这些话，我不需要达到任何其它的目标和地位，不需要有什么惊天动地的成就。&lt;/p&gt;
-
-&lt;p&gt;这些话有它们自己的地位，它们不属于我，不依赖于我，它们本身就是一种成就。如果有人想用我的话去说服另一个人，他不需要告诉他：“王垠说……” 他只需要告诉他是什么，为什么，就像转述一个定理一样。这就是为什么王垠打倒了很多人心中的权威，而他自己并没有成为新的权威。他说了如此多有重大价值的内容，却经常被一些刚学会 Python 的初学者鄙视。这就是所谓“上善若水” :p&lt;/p&gt;
-
-&lt;p&gt;如果按照那个人的说法，等到我有了“地位”再来说话，恐怕到了那个时候，我就不再能说出这些有价值的话来了。要想混到大公司的高层，在那尔虞我诈，勾心斗角之后还保留一颗能够说出这些话的心，我觉得是几乎不可能的。所以“等到有了地位再来说话”，这种说法的目的，其实是想封我的嘴，让这些有价值的信息被埋没，让这些事实无人知晓。&lt;/p&gt;
-
-&lt;p&gt;我很明白这些想法的价值，所以我不会听信任何人的此类言论，而停止我的表达。理性的力量会发扬光大。&lt;/p&gt;
-
-
-                        &lt;/div&gt;
-                    &lt;/td&gt;
-
-                    &lt;td width=&quot;16%&quot; valign=&quot;top&quot;&gt;
-                        &lt;script async src=&quot;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&quot;&gt;&lt;/script&gt;
-                        &lt;ins class=&quot;adsbygoogle&quot; style=&quot;display:block&quot; data-ad-client=&quot;ca-pub-1331524016319584&quot; data-ad-slot=&quot;2703393155&quot; data-ad-format=&quot;auto&quot;&gt;&lt;/ins&gt;
-                        &lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2017-11-01-power-of-reasoning</guid>
-<pubDate>Wed, 01 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
