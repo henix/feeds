@@ -62,7 +62,9 @@ const feeds = [
 		"heibai",
 		"acgpiping",
 		"c_150242766",
+		"chenshuidongman",
 		"mowanglingyu",
+		"ACGerTalk",
 	]],
 	["后端", [
 		"prattle",
@@ -85,8 +87,7 @@ const feeds = [
 		"c_40866915",
 	]],
 	["科学", [
-		"liweitan2014",
-		"zhishexueshuquan",
+		"zerojz",
 	]],
 	["法律", [
 		"mclawman",
