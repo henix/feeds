@@ -69,6 +69,9 @@ const feeds = [
 	["后端", [
 		"prattle",
 	]],
+	["机器学习", [
+		"almosthuman2014",
+	]],
 	["商业", [
 		"caozsay",
 		"Professor-Li",
