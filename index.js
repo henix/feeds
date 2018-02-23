@@ -80,7 +80,6 @@ const feeds = [
 		"twosecurity",
 		"freebuf",
 		"drops",
-		"c_123166696",
 	]],
 	["文艺", [
 		"c_40866915",
