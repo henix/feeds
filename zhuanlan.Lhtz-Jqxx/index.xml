@@ -5,7 +5,378 @@
 <link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/</link>
 <description>公众号主要介绍关于量化投资和机器学习的知识和应用。通过研报，论坛，博客，程序等途径全面的为大家带来知识食粮。版块语言分为：Python、Matlab、R，涉及领域有：量化投资、机器学习、深度学习、综合应用、干货分享等。</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 23 Feb 2018 09:08:33 +0800</lastBuildDate>
+<lastBuildDate>Sun, 25 Feb 2018 03:16:38 +0800</lastBuildDate>
+<item>
+<title>基于XGBoost的量化金融实战【系列53】</title>
+<link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/2018-02-24-33948430.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33948430&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-72db6022f891e159901bddd2f66a3ad7_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;前两期传送门：&lt;/p&gt;&lt;p&gt;【系列52】&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287306&amp;amp;idx=1&amp;amp;sn=9f374874636e7d6d52a9b3d92d6aa81b&amp;amp;chksm=802e319fb759b8896acf2ed9529da88a8fda0d76d6a3b816854e9ad5eeecfd6f4af75dd65804&amp;amp;scene=21#wechat_redirect&quot;&gt;基于Python预测股价的那些人那些坑&lt;/a&gt;&lt;/p&gt;&lt;p&gt;【系列51】&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287197&amp;amp;idx=1&amp;amp;sn=9630389a52c7d0be4c1feaf3a534c2ce&amp;amp;chksm=802e3108b759b81ed11174f71b23fb73abe5c4ebad0f9d480b6efbd8f7e644de6b2232dc63fa&amp;amp;scene=21#wechat_redirect&quot;&gt;通过ML、Time Series模型学习股价行为&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天，我们介绍一篇&lt;b&gt;王老板&lt;/b&gt;写的文章，关于极度梯度提升(XGBoost)应用量化金融方向的，而且知道几乎每个参加 Kaggle 比赛的人都会用它。用今天我们来预测借贷俱乐部 (Lending Club) 的贷款的良恶性。&lt;/p&gt;&lt;p&gt;获取数据集，请在文末获取。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;XGBoost 基础版&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;python&quot;&gt;import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+from xgboost import XGBClassifier&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先调用本章需要通用的包，在之后每小节中额外需要的包会特别指出来。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;numpy: 提供数组结构和辅助函数&lt;/li&gt;&lt;li&gt;pandas: 提供数据表结构来处理数据&lt;/li&gt;&lt;li&gt;matplotlib: 用来画图 &lt;/li&gt;&lt;li&gt;sklearn: 用来机器学习&lt;/li&gt;&lt;li&gt;xgboost: 极度梯度提升&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;此外&lt;/p&gt;&lt;ul&gt;&lt;li&gt;train_test_split 划分训练和测试集&lt;/li&gt;&lt;li&gt;accuracy_score 计算精度和得分&lt;/li&gt;&lt;li&gt;XGBclassifier 是 XGBoost 的分类器&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;整篇代码都用以下设置&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;seed = 7
+test_size = 0.33&lt;/code&gt;&lt;p&gt;用一个固定的 seed 为了重现结果，训练集和测试集的样例个数比例为 2 比 1。 &lt;/p&gt;&lt;h2&gt;&lt;b&gt;1.1 模型初探&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;学陌生东西上手最快的方式就是用例子。先不管 XGBclassifier 每个参数是什么，先用它的默认值跑跑看看结果如何。&lt;/p&gt;&lt;p&gt;本小节使用的数据是&lt;/p&gt;&lt;p&gt;&lt;b&gt;比马印第安人糖尿病 (Pima Indians Diabetes)&lt;/b&gt; &lt;/p&gt;&lt;p&gt;该数据根据医疗记录预测比马印第安人 5 年内糖尿病的发病情况。它是一个二元分类问题，一共有 768 个样例。该数据集包含了 8 个特征和 1 个类变量：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;怀孕次数&lt;/li&gt;&lt;li&gt;2 小时的血浆葡萄糖浓度。&lt;/li&gt;&lt;li&gt;舒张压&lt;/li&gt;&lt;li&gt;三头肌皮肤褶层厚度&lt;/li&gt;&lt;li&gt;2 小时血清胰岛素含量&lt;/li&gt;&lt;li&gt;体重指数&lt;/li&gt;&lt;li&gt;糖尿病家族史&lt;/li&gt;&lt;li&gt;年龄&lt;/li&gt;&lt;li&gt;类变量 (0 或 1）&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;具体信息见参考文献 [1]&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.1.1. 准备数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;读取 csv 文件，并打印出头尾 3 行。&lt;b&gt;点击下图&lt;/b&gt;发现该数据都是数值型，因此不用做任何转换。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# load data
+data = pd.read_csv(&#39;pima-indians-diabetes.csv&#39;)
+data.head(3).append(data.tail(3))&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e9532cb117669c05356f1a0be8af9754_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;210&quot;&gt;&lt;p&gt;&lt;b&gt;点击下图&lt;/b&gt;查看每列特征的统计值，比如个数和均值，没有发现什么异常。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;data.describe()&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3606a337b7ab9c86e5cfa0b714b6d380_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;269&quot;&gt;&lt;p&gt;定义函数 splitXy，划分 data 中的特征 X 和标记 y。通常&lt;/p&gt;&lt;ul&gt;&lt;li&gt;最后一列是 y，用 dataset[:, -1]&lt;/li&gt;&lt;li&gt;前面所有列是 X, 用 dataset[:, 0:-1]&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;python&quot;&gt;def splitXy( data ):
+   dataset = data.values
+   X = dataset[:,0:-1]
+   y = dataset[:,-1]
+   return X, y&lt;/code&gt;&lt;p&gt;划分出训练集 (X_train, y_train) 和测试集 (X_test, y_test)&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# split data into X and y
+X, y = splitXy(data)
+# split data into train and test sets
+X_train, X_test, y_train, y_test =
+train_test_split(X, y, test_size=test_size,
+random_state=seed)&lt;/code&gt;&lt;p&gt;打印每个变量大小，确保集合划分正确。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;print( &#39;The size of X is&#39;, X.shape )
+print( &#39;The size of y is&#39;, y.shape )
+print( &#39;The size of X_train is&#39;, X_train.shape )
+print( &#39;The size of y_train is&#39;, y_train.shape )
+print( &#39;The size of X_test is&#39;, X_test.shape )
+print( &#39;The size of y_test is&#39;, y_test.shape )
+The size of X is (768, 8)
+The size of y is (768,)
+The size of X_train is (514, 8)
+The size of y_train is (514,)
+The size of X_test is (254, 8)
+The size of y_test is (254,)&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.1.2. 训练模型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;定义函数 fit 训练 XGBClassifier(&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def fit( X, y ):
+   model = XGBClassifier()
+   model.fit(X, y)
+   return model&lt;/code&gt;&lt;p&gt;在训练集上调用函数 fit 并打印模型，注意模型用 binary:logistic 作为目标，因为该问题是二元分类问题。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;model = fit(X_train, y_train)
+print(model)
+XGBClassifier(base_score=0.5, colsample_bylevel=1, colsample_bytree=1,
+     gamma=0, learning_rate=0.1, max_delta_step=0, max_depth=3,
+     min_child_weight=1, missing=None, n_estimators=100, nthread=-1,
+     objective=&#39;binary:logistic&#39;, reg_alpha=0, reg_lambda=1,
+     scale_pos_weight=1, seed=0, silent=True, subsample=1)&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.1.3. 预测结果&lt;/b&gt;&lt;/p&gt;&lt;p&gt;定义函数 predict 预测新示例并计算精度。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def predict( model, X, y ):
+   # make predictions for X
+   y_pred = model.predict(X)
+   predictions = [round(value) for value in y_pred]
+   # evaluate predictions
+   accuracy = accuracy_score(y, predictions)
+   return predictions, accuracy&lt;/code&gt;&lt;p&gt;在测试集上调用函数 predict 并打印精度。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;_, accuracy = predict(model, X_test, y_test)
+print(&quot;Accuracy: %.2f%%&quot; % (accuracy * 100.0))
+Accuracy: 77.95%&lt;/code&gt;&lt;p&gt;&lt;b&gt;对于一个简单的没有经过调参的模型，在测试集上的 77.95% 精度还算不错。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.1.4 保存和加载模型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;有时候训练一次模型会花很长时间，保存训练好的模型以便下次直接用可以节省很多时间和资源。首先引进 pickle 包。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;import pickle&lt;/code&gt;&lt;p&gt;用 dump 函数来保存模型，将 model 命名成 pima.dat。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# save model to file
+pickle.dump(model, open(&quot;pima.dat&quot;, &quot;wb&quot;))&lt;/code&gt;&lt;p&gt;用 load 函数来加载数据 pima.dat 命名为模型 pima_model。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# load model from file
+pima_model = pickle.load(open(&quot;pima.dat&quot;, &quot;rb&quot;))&lt;/code&gt;&lt;p&gt;最后检查模型，发现 pima_model 在测试集的精度为 77.95%，和上节的结果一样。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;_, accuracy = predict(pima_model, X_test, y_test)
+print(&quot;Accuracy: %.2f%%&quot; % (accuracy * 100.0))
+Accuracy: 77.95%&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.1.5 可视化树&lt;/b&gt;&lt;/p&gt;&lt;p&gt;安装并引入 graphviz 包里面的 Digraph 和 xgboost 包里面的 plot_tree 用于画出模型中的某一棵树。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;from graphviz import Digraph
+from xgboost import plot_tree&lt;/code&gt;&lt;p&gt;比如你想看第 5 棵树是如何分裂的，设 num_trees = 4，注意 python 第一个对应的是 index 0。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;plot_tree(model, num_trees = 4)
+plt.show()
+plt.savefig(&#39;Tree from Top to Bottom.png&#39;)&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-cdebdeb6f8711e858687c4760c9ea29f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;525&quot;&gt;&lt;p&gt;对上图的一些解释：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;f0, f1, ... f7 代表 pima 数据里的 8 个特征简写，其中 f1 对应着 “2 小时的血浆葡萄糖浓度”，树的根部一开始由这个特征在 127.5 的特征值上分裂。&lt;/li&gt;&lt;li&gt;XGBoost 可以自动处理缺失值，从上图可看出 missing 和 yes 归成一起&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;此外你想看第 1 棵树是如何分裂的，并且喜欢树从左往右分裂，而不是从上往下 (默认方式) 分裂，只需设置 rankdir = &#39;LR&#39;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;plot_tree(model, num_trees=0, rankdir=&#39;LR&#39;)
+plt.show()
+plt.savefig(&#39;Tree from Left to Right.png&#39;)&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-ff41d578069fa5b9b6526077ba460313_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;694&quot;&gt;&lt;h2&gt;&lt;b&gt;1.2 数据预处理&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;先载入 LabelEncoder 和 OneHotEncoder&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder&lt;/code&gt;&lt;p&gt;LabelEncoder (LE) 将字符转换成整数&lt;/p&gt;&lt;p&gt; LE(猫, 狗, 鸡) = (0, 1, 2)&lt;/p&gt;&lt;p&gt;OneHotEncoder (OHE) 将字符转换成向量&lt;/p&gt;&lt;p&gt; OHE(猫, 狗, 鸡) = [1,0,0; 0 1 0; 0 0 1]&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.2.1. 解码字符型输出&lt;/b&gt;&lt;/p&gt;&lt;p&gt;本小节使用的数据是&lt;/p&gt;&lt;p&gt;&lt;b&gt;鸢尾花数据集 (Iris Flower)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Iris 以鸢尾花的特征作为数据来源，它是一个多元分类问题，一共有 150 个样例。该数据集包含了 4 个特征和 1 个类变量：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;花萼长度&lt;/li&gt;&lt;li&gt;花萼宽度&lt;/li&gt;&lt;li&gt;花瓣长度&lt;/li&gt;&lt;li&gt;花瓣宽度&lt;/li&gt;&lt;li&gt;类变量：Iris Setosa (山鸢尾, Iris Versicolour (杂色鸢尾), Iris Virginica (维吉尼亚鸢尾)&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;具体信息见参考文献 [2]&lt;/b&gt;&lt;/p&gt;&lt;p&gt;该数据的类别是字符型变量，用 LabelEncoder。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;data = pd.read_csv(&#39;iris.csv&#39;)
+data.head(3).append(data.tail(3))&lt;/code&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-022a372a2d303a22a2c8efae846669a5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;449&quot; data-rawheight=&quot;185&quot;&gt;&lt;p&gt;用 fit_transform 函数将 (Iris-setosa, Iris-versicolor, Iris-virginica) 转换成 (0, 1, 2)。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# split data into X and y
+X, y = splitXy(data)
+# encode string class values as integers
+label_encoded_y = LabelEncoder().fit_transform(y)
+# split data into train and test sets
+X_train, X_test, y_train, y_test 
+= train_test_split(X, label_encoded_y, test_size=test_size,
+random_state=seed)&lt;/code&gt;&lt;p&gt;定义函数 fit_predict 整合 fit 和 predict 函数，并当 verbose 设置为 True 时打印模型和精度。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def fit_predict(X_train, y_train, X_test, y_test, verbose=True):
+   model = fit(X_train, y_train)
+   _, accuracy = predict(model, X_test, y_test)
+   if verbose == True:
+       print(model)
+       print(&quot;Accuracy: %.2f%%&quot; % (accuracy * 100.0))&lt;/code&gt;&lt;p&gt;调用 fit_predict 函数得到 92% 的精度，而且注意该模型用 multi:softprob 作为目标，因为该问题是个多元分类问题，而且 XGBoost 内部自动将“类变量”作独热编码，要不然目标应该是 multi:softmax。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;fit_predict(X_train, y_train, X_test, y_test)
+XGBClassifier(base_score=0.5, colsample_bylevel=1, colsample_bytree=1,
+      gamma=0, learning_rate=0.1, max_delta_step=0, max_depth=3,
+      min_child_weight=1, missing=None, n_estimators=100, nthread=-1,
+      objective=&#39;multi:softprob&#39;, reg_alpha=0, reg_lambda=1,
+      scale_pos_weight=1, seed=0, silent=True, subsample=1)
+Accuracy: 92.00%&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.2.2 独热编码分类型特征&lt;/b&gt;&lt;/p&gt;&lt;p&gt;本小节使用的数据是&lt;/p&gt;&lt;p&gt;&lt;b&gt;肯特岗乳癌 (Breast + Cancer)&lt;/b&gt; &lt;/p&gt;&lt;p&gt;该数据集可用于进行患者乳腺癌治疗结果预测。它是一个二元分类问题，一共有 286 个样例。该数据集包含了 9 个特征和 1 个类变量：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;age&lt;/li&gt;&lt;li&gt;menopause&lt;/li&gt;&lt;li&gt;tumor-size&lt;/li&gt;&lt;li&gt;inv-nodes&lt;/li&gt;&lt;li&gt;node-caps&lt;/li&gt;&lt;li&gt;deg-malig&lt;/li&gt;&lt;li&gt;breast&lt;/li&gt;&lt;li&gt;breast-quad&lt;/li&gt;&lt;li&gt;irradiat&lt;/li&gt;&lt;li&gt;类变量：复发，未复发&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;具体信息见参考文献 [3]&lt;/b&gt;&lt;/p&gt;&lt;p&gt;该数据的 9 个特征都是字符型变量，这里用 OneHotEncoder。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;data = pd.read_csv(&#39;datasets-uci-breast-cancer.csv&#39;)
+data.head(3).append(data.tail(3))&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9b0f77dc4bc4cd726d20afce671edacf_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;792&quot; data-rawheight=&quot;186&quot;&gt;&lt;p&gt;从下表 unique 那行可看出每个特征的类数，比如 age 有 6 类，breast 有 2 类等&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;data.describe()&lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8a48cc8cc6d07983e7d1d69d5734836e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;896&quot; data-rawheight=&quot;160&quot;&gt;&lt;p&gt;对每个特征 X 做独热编码，对类 y 做普通编码。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# split data into X and y
+X, y = splitXy(data)
+X = X.astype(str)
+# encode string input values as integers
+columns = []
+for i in range(0, X.shape[1]):
+   feature = LabelEncoder().fit_transform(X[:,i]).reshape(X.shape[0], 1)
+   onehot_encoder = OneHotEncoder(sparse=False)
+   feature = onehot_encoder.fit_transform(feature)
+   print(&quot;X[&quot;,i, &quot;] shape ::&quot;, feature.shape)
+   columns.append(feature)
+# collapse columns into array
+encoded_x = np.column_stack(columns)
+print(&quot;X shape ::&quot;, encoded_x.shape)
+# encode string class values as integers
+label_encoded_y = LabelEncoder().fit_transform(y)
+# split data into train and test sets
+X_train, X_test, y_train, y_test = 
+train_test_split(encoded_x, label_encoded_y,
+test_size=test_size, random_state=seed)
+X[0] shape :: (286, 6)
+X[1] shape :: (286, 3)
+X[2] shape :: (286, 11)
+X[3] shape :: (286, 7)
+X[4] shape :: (286, 3)
+X[5] shape :: (286, 3)
+X[6] shape :: (286, 2)
+X[7] shape :: (286, 6)
+X[8] shape :: (286, 2)
+X shape :: (286, 43)&lt;/code&gt;&lt;p&gt;上面的结果有些奇怪，比如 X[4] 的大小是 (286, 3), 286 代表数据个数，3 代表类别个数，但是从前一张图得知这个特征是 node-caps，对应的 unique 数为 2。看了 csv 文件才知道，这一特征栏下面有缺失值，读进 pandas 的数据表中赋值为 NaN, 也当成了一类&lt;/p&gt;&lt;p&gt;最后调用 fit_predict 函数得到 71.58% 的精度，结果不算太好，那是因为该数据中有不少缺失值，下节就来说明如何处理它们，即便 XGBoost 模型也可以自行处理。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;fit_predict(X_train, y_train, X_test, y_test)
+XGBClassifier(base_score=0.5, colsample_bylevel=1, colsample_bytree=1,
+      gamma=0, learning_rate=0.1, max_delta_step=0, max_depth=3,
+      min_child_weight=1, missing=None, n_estimators=100, nthread=-1,
+      objective=&#39;binary:logistic&#39;, reg_alpha=0, reg_lambda=1,
+      scale_pos_weight=1, seed=0, silent=True, subsample=1)
+Accuracy: 71.58%&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.2.3 缺失值处理&lt;/b&gt;&lt;/p&gt;&lt;p&gt;本小节使用的数据是&lt;/p&gt;&lt;p&gt;&lt;b&gt;病马疝气症 (Horse Colic)&lt;/b&gt; &lt;/p&gt;&lt;p&gt;该数据集可用于进行患者乳腺癌治疗结果预测。它是一个二元分类问题，一共有 368 个样例。该数据集包含了 27 个特征 (其中有 30% 的缺失值) 和 1 个类变量。由于数据太多就一一列出，用这个数据集是为了测试 XGBoost 处理缺失值的能力。&lt;/p&gt;&lt;p&gt;&lt;b&gt;具体信息见参考文献 [4]&lt;/b&gt;&lt;/p&gt;&lt;p&gt;该数据的类型都是数值型，其中符号 ? 代表缺失值。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;data = pd.read_csv(&quot;horse-colic.csv&quot;)
+data.head(3).append(data.tail(3))&lt;/code&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-20738cac42da42901d3e36cde4e97444_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;711&quot; data-rawheight=&quot;226&quot;&gt;&lt;p&gt;首先将缺失值用 0 来填充，填充完记得将 X 转化成 float 格式。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# split data into X and y
+X, y = splitXy(data)
+# set missing values to 0
+X[X == &#39;?&#39;] = 0
+# convert to numeric
+X = X.astype(&#39;float32&#39;)
+# encode Y class values as integers
+label_encoded_y = LabelEncoder().fit_transform(y)&lt;/code&gt;&lt;p&gt;该模型达到了 83.84% 的精度。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;fit_predict(X_train, y_train, X_test, y_test)
+XGBClassifier(base_score=0.5, colsample_bylevel=1, colsample_bytree=1,
+      gamma=0, learning_rate=0.1, max_delta_step=0, max_depth=3,
+      min_child_weight=1, missing=None, n_estimators=100, nthread=-1,
+      objective=&#39;binary:logistic&#39;, reg_alpha=0, reg_lambda=1,
+      scale_pos_weight=1, seed=0, silent=True, subsample=1)
+Accuracy: 83.84%&lt;/code&gt;&lt;p&gt;接着我们做一下实验，将缺失值分别 1 和 NaN 来填充，得到的精度分别为 79.80% 和 85.86%。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;X[X == &#39;?&#39;] = 1
+X[X == &#39;?&#39;] = np.nan&lt;/code&gt;&lt;p&gt;&lt;b&gt;发现将缺失值设为独一的 NaN 最好，得到的精度最高，因为其独一性 XGBoost 把缺失值也当成“一类”。设为 0 或 1 都不太好，因为数据本身可能也含有一些 0 或 1。&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1.3 交叉验证&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;本节用 Pima 的数据。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;交叉验证在选取超参数时非常重要，首先载入 KFold, StratifiedKFold 和 cross_val_score。其中&lt;/p&gt;&lt;ul&gt;&lt;li&gt;KFold 适用于二分类且类别平衡&lt;/li&gt;&lt;li&gt;StratifiedKFold 适用于多分类或类别不平衡&lt;/li&gt;&lt;li&gt;cross_val_score 计算一些指标&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;python&quot;&gt;from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_score&lt;/code&gt;&lt;p&gt;这里用 5 折交叉验证，分别用 KFold 和 StratifiedKFold 来跑。 &lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# CV model for binary class or balanced class
+kfold = KFold(n_splits=5, random_state=7)
+results = cross_val_score(model, X, y, cv=kfold)
+print(&quot;Accuracy: %.2f%% (%.2f%%)&quot; % (results.mean()*100, results.std()*100))
+Accuracy: 76.44% (5.09%)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# CV model for multi-class or inbalanced class
+kfold = StratifiedKFold(n_splits=5, random_state=7)
+results = cross_val_score(model, X, y, cv=kfold)
+print(&quot;Accuracy: %.2f%% (%.2f%%)&quot; % (results.mean()*100, results.std()*100))
+Accuracy: 76.57% (3.74%)&lt;/code&gt;&lt;p&gt;该数据有 768 个，其中 268 正类 500 反类，属于不平衡的二分类问题，从上面结果来看，的确&lt;/p&gt;&lt;ul&gt;&lt;li&gt;StratifiedKFold 的精度 76.57% 比 KFold 的精度 76.44% 要高&lt;/li&gt;&lt;li&gt;StratifiedKFold 的标准差 3.74% 比 KFold 的标准差 5.09% 要低&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;1.4 特征选择&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;本节用 Pima 的数据。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;特征选择是一个重要课题，由于 XGBoost 包含随机森林的性质，因此也可以用来排序特征重要性并选择特征。&lt;/p&gt;&lt;p&gt;首先载入 plot_importance 和 SelectFromModel&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;from xgboost import plot_importance
+from sklearn.feature_selection import SelectFromModel&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.4.1 特征重要性&lt;/b&gt;&lt;/p&gt;&lt;p&gt;训练好的模型会给特征打分，用 feature_importances_ 属性查看其分数。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# feature importance
+print(pima_model.feature_importances_)
+# feature
+feature = data.columns.tolist()[0:-1]
+print(feature)
+[ 0.07094595  0.1858108   0.08952703  0.08445946  0.07263514  0.16047297
+ 0.12837838  0.20777027]
+[&#39;Number of times pregnant &#39;, &#39;Plasma glucose concentration&#39;, &#39;Diastolic blood pressure&#39;, &#39;Triceps skin fold thickness&#39;, &#39;Serum insulin&#39;, &#39;BMI&#39;, &#39;Diabetes pedigree function&#39;, &#39;Age &lt;/code&gt;&lt;p&gt;一图胜万字，手动画图可看出年龄 (灰色柱体) 特征最重要，怀孕次数 (蓝色柱体) 特征最不重要。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# mannually plot
+df = pd.DataFrame(data=model.feature_importances_, index=feature).T
+df.plot.bar(figsize=(12,6));&lt;/code&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-cbe992e9bb20248beac84a4aafac7fa2_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;723&quot; data-rawheight=&quot;357&quot;&gt;&lt;p&gt;别傻了，这年头谁还手动画图，直接用 XGBoost 自带函数 plot_importance 就可以了。(虽然方便，但是丑，有没有颜色区分，而且特征都用没有实际意义的 f0, ..., f8 代表)&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;# Using the XGBoost built-in function to plot
+plot_importance(pima_model)
+plt.show()&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2b888755e373ec27b8db9be01985eae1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;744&quot; data-rawheight=&quot;402&quot;&gt;&lt;p&gt;查查 Pima 数据的特征名字，发现 f7 对应着是年龄，f0 对应着是怀孕次数。&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.4.2 特征选择&lt;/b&gt;&lt;/p&gt;&lt;p&gt;计算出特征重要性后就可以选择特征了。用 SelectFromModel 将特征重要性作为阈值 (threshold)，得到一个 X_train 和 X_test 在特征维度上的子集，然后重新训练并打印出精度。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;thresholds = np.sort(pima_model.feature_importances_)
+for c in thresholds:
+   selection = SelectFromModel(pima_model, threshold=c, prefit=True)
+   select_X_train = selection.transform(X_train)
+   select_X_test = selection.transform(X_test)
+   # train model
+   selection_model = fit(select_X_train, y_train)
+   # eval model
+   _, accuracy = predict(selection_model, select_X_test, y_test)
+   print(&quot;Threshold = %.3f, n = %d, Accuracy: %.2f%%&quot; % (c, select_X_train.shape[1], accuracy*100.0))
+Threshold = 0.071, n = 8, Accuracy: 77.95%
+Threshold = 0.073, n = 7, Accuracy: 76.38%
+Threshold = 0.084, n = 6, Accuracy: 77.56%
+Threshold = 0.090, n = 5, Accuracy: 76.38%
+Threshold = 0.128, n = 4, Accuracy: 76.38%
+Threshold = 0.160, n = 3, Accuracy: 74.80%
+Threshold = 0.186, n = 2, Accuracy: 71.65%
+Threshold = 0.208, n = 1, Accuracy: 63.78%&lt;/code&gt;&lt;p&gt;从上面结果可知，一般特征个数越多，精度越高，但是 n = 4 对应着 76.38% 的精度不比 n = 8 对应着 77.95% 的精度低很多。权衡精度和模型复杂度，我们会选择 n = 4。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1.5 提前终止&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;本节用 Pima 的数据。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;提前终止 (early stopping) 可以防止过拟合 (overfitting)。具体做法可分三步：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;选评估指标 - error 或 logloss 或都选&lt;/li&gt;&lt;li&gt;选评估集 - 训练集或测试集或都选&lt;/li&gt;&lt;li&gt;调用 fit 函数，设置 verbose = True (&lt;b&gt;重要&lt;/b&gt;) 并监控&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;下例选了测试集和 error 来评估，打印出 error 值。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;eval_set = [(X_test, y_test)]
+model.fit(X_train, y_train, eval_metric=&quot;error&quot;, eval_set=eval_set, verbose=True)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;[0]  validation_0-error:0.259843
+[1]  validation_0-error:0.26378
+[2]  validation_0-error:0.26378
+...
+[17]  validation_0-error:0.228346
+[18]  validation_0-error:0.224409
+[19]  validation_0-error:0.232283
+[20]  validation_0-error:0.232283
+[21]  validation_0-error:0.23622
+[22]  validation_0-error:0.23622&lt;/code&gt;&lt;p&gt;发现 error 一开始在减低，但从 [19] 回合开始就升高了，这说明模型有可能过拟合了。&lt;/p&gt;&lt;p&gt;下例选了 [训练集, 测试集] 和 [error, logloss] 来评估，并画图。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;eval_set = [(X_train, y_train), (X_test, y_test)]
+model.fit(X_train, y_train, eval_metric=[&quot;error&quot;, &quot;logloss&quot;], eval_set=eval_set,
+verbose=False)&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5ec0025a201c8c23a10c748c7b93016f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;762&quot; data-rawheight=&quot;391&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-386c1cd97545e521ad96e4a79f98fd3d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;773&quot; data-rawheight=&quot;383&quot;&gt;&lt;p&gt;从上两图看出，训练集 (蓝线) 上的 logloss 和 error 一直稳定下降，但是测试集 (黄线) 上的 logloss 和 error 在 20-40 之间开始上升，我们需要在 20 和 40 之间某个点提前终止训练。&lt;/p&gt;&lt;p&gt;XGBoost 中设置 early_stopping_rounds 可以提前终止，当该值设为 10，意思是说如果 logloss &lt;b&gt;在某一回合连续 10 个回合上升，那么在这个回合停止&lt;/b&gt;。 &lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;eval_set = [(X_test, y_test)]
+model.fit(X_train, y_train, early_stopping_rounds=10, eval_metric=&quot;logloss&quot;,
+eval_set=eval_set, verbose=True)
+[0]  validation_0-logloss:0.660186
+Will train until validation_0-logloss hasn&#39;t improved in 10 rounds.
+[1]  validation_0-logloss:0.634854
+[2]  validation_0-logloss:0.612239
+[3]  validation_0-logloss:0.593118
+...
+[29]  validation_0-logloss:0.491407
+[30]  validation_0-logloss:0.488828
+[31]  validation_0-logloss:0.487867
+[32]  validation_0-logloss:0.487297
+[33]  validation_0-logloss:0.487562
+[34]  validation_0-logloss:0.487788
+[35]  validation_0-logloss:0.487962
+[36]  validation_0-logloss:0.488218
+[37]  validation_0-logloss:0.489582
+[38]  validation_0-logloss:0.489334
+[39]  validation_0-logloss:0.490969
+[40]  validation_0-logloss:0.48978
+[41]  validation_0-logloss:0.490704
+[42]  validation_0-logloss:0.492369
+Stopping. Best iteration:
+[32]  validation_0-logloss:0.487297
+
+Accuracy: 78.35%&lt;/code&gt;&lt;p&gt;上图的信息非常明确，logloss 从 [32] 回合一直上升到 [42] 回合，因此在此停止。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1.6 多线程运行&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;python&quot;&gt;from time import time&lt;/code&gt;&lt;p&gt;本小节使用的数据是&lt;/p&gt;&lt;p&gt;&lt;b&gt;Otto Group Product&lt;/b&gt; &lt;/p&gt;&lt;p&gt;训练集里包含了 6 万多个样本，每个样本有一个 id，93 个特征值 feat_1 ~ feat_93,以及类别 target，一共 9 种类别：class_1 ~ class_9。测试集里有 14 万多测试样本。它是一个多元分类问题&lt;/p&gt;&lt;p&gt;&lt;b&gt;具体信息见参考文献 [5]&lt;/b&gt;&lt;/p&gt;&lt;p&gt;读取并预处理数据。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;data = pd.read_csv(&#39;Otto train.csv&#39;)
+X, y = splitXy(data)
+# encode string class values as integers
+label_encoded_y = LabelEncoder().fit_transform(y)&lt;/code&gt;&lt;p&gt;XGBoost 是用 C++ 实现的而且用 OpenMP API 做并行处理。将模型里面 nthread 设为 -1 代表使用系统里所有的线程，这也是默认设置。&lt;/p&gt;&lt;p&gt;此外将 nthread 设为 1, 2, 3, 4 看看用时比较。由下面结果可看出线程越多耗时越少，但从 3 到 4 时间减少并不是很明显。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;results = []
+num_threads = [1, 2, 3, 4]
+for n in num_threads:
+   start = time()
+   model = XGBClassifier(nthread=n)
+   model.fit(X_train, y_train)
+   elapsed = time() - start
+   print(n, elapsed)
+   results.append(elapsed)
+1 78.58481550216675
+2 50.53288269042969
+3 44.90712261199951
+4 39.1385235786438&lt;/code&gt;&lt;p&gt;除了 XGBClassifier, k-Fold 验证也可以并行化，它是通过设置 n_jobs 来实现的。接下来做三个实验：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;只并行化 k-Fold 验证 (n_jobs = -1, nthread = 1)&lt;/li&gt;&lt;li&gt;只并行化 XGBClassifier (n_jobs = 1, nthread = -1)&lt;/li&gt;&lt;li&gt;两个都并行化 (n_jobs = -1, nthread = -1)&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;python&quot;&gt;# Single Thread XGBoost, Parallel Thread CV
+model = XGBClassifier(nthread=1)
+results = cross_val_score(model, X, label_encoded_y, cv=kfold, scoring=&#39;neg_log_loss&#39;,
+n_jobs=-1)
+
+# Parallel Thread XGBoost, Single Thread CV
+model = XGBClassifier(nthread=-1)
+results = cross_val_score(model, X, label_encoded_y, cv=kfold, scoring=&#39;neg_log_loss&#39;,
+n_jobs=1)
+
+# Parallel Thread XGBoost and CV
+model = XGBClassifier(nthread=-1)
+results = cross_val_score(model, X, label_encoded_y, cv=kfold, scoring=&#39;neg_log_loss&#39;,
+n_jobs=-1)
+Single XGB Parallel CV: 187.554039
+Parallel XGB Single CV: 145.135988
+Parallel XGB and CV:    149.078977&lt;/code&gt;&lt;p&gt;结果显示只并行化 k-Fold 验证耗时最长，因为真正慢的是 XGBClassifier。此外奇怪的是两个都并行耗时并不是最短 (按道理应该是)。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1.7 调整超参数&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;本节用 Otto 的数据。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于 XGBoost 模型，很多学者和实践者通过无数尝试，给出了一些超参数的合理范围，这些建议在调参时非常有用，起码可以给个初始值尝试。关于那些参数建议来源，可参考 [6], [7], [8], [9], [10], [11], [12], [13], [14]。里面有一些学术大牛比如 Friedman 和 Hastie，有业界大牛 Owen Zhang，有 R, scikit-learn 和 XGBoost 官方参数建议。&lt;/p&gt;&lt;p&gt;接下来我们从三组最重要的超参数对来看是调参，这里需要用的到 GridSearchCV。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;from sklearn.model_selection import GridSearchCV&lt;/code&gt;&lt;p&gt;GridSearchCV 用于系统地遍历多种参数组合，通过交叉验证确定最佳效果参数。它的好处是，只需增加几行代码，就能遍历多种组合。比如模型 M 有三个参数 P1, P2, P3, 其中&lt;/p&gt;&lt;p&gt; P1 可选值 1, 2&lt;/p&gt;&lt;p&gt; P2 可选值 4, 5, 6&lt;/p&gt;&lt;p&gt; P3 可选值 1, 3, 5, 7&lt;/p&gt;&lt;p&gt;建立一个参数字典 Para = {P1: [1 2], P2: [4 5 6], P3: [1 3 5 7]}，直接调用&lt;/p&gt;&lt;p&gt; GS = GridSearchCV(M, Para)&lt;/p&gt;&lt;p&gt;遍历所有 Para 组合，跑模型 24 遍，最后输出为 GS。&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.7.1 树的个数和深度&lt;/b&gt;&lt;/p&gt;&lt;p&gt;XGBoost 整个过程就是一个按顺序加树的过程，因此树的个数和树的深度绝对算是一组重要的超参数。接下来做三组调试：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;只调树的个数&lt;/li&gt;&lt;li&gt;只调树的深度&lt;/li&gt;&lt;li&gt;同时调树的个数和深度&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;调树的个数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;树的个数从 50 到 350，以 50 为间隔，在 5 折交叉验证中要运行模型 30 次，最后最佳树的个数是 200。观察 logloss 发现其实树的个数在 100 和 350 之间差距都很小。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;n_estimators = range(50, 400, 50)
+param_grid = dict(n_estimators=n_estimators)
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=7)
+grid_search = GridSearchCV(model, param_grid, scoring=&quot;neg_log_loss&quot;, n_jobs=-1, cv=kfold)
+grid_result = grid_search.fit(X, label_encoded_y)
+Best: -0.001034 using {&#39;n_estimators&#39;: 200}
+-0.010886 (0.000810) with: {&#39;n_estimators&#39;: 50}
+-0.001098 (0.001313) with: {&#39;n_estimators&#39;: 100}
+-0.001038 (0.001348) with: {&#39;n_estimators&#39;: 150}
+-0.001034 (0.001344) with: {&#39;n_estimators&#39;: 200}
+-0.001035 (0.001346) with: {&#39;n_estimators&#39;: 250}
+-0.001036 (0.001349) with: {&#39;n_estimators&#39;: 300}
+-0.001037 (0.001351) with: {&#39;n_estimators&#39;: 350}&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d8c29bfb56a30f19bf120b71d5d69bad_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;780&quot; data-rawheight=&quot;402&quot;&gt;&lt;p&gt;&lt;b&gt;调树的深度&lt;/b&gt; &lt;/p&gt;&lt;p&gt;树的深度从 1 到 9，以 2 为间隔，在 5 折交叉验证中要运行模型 25 次，最后最佳树的深度是 5。观察 logloss 发现其实树的深度在 3 和 9 之间差距都很小。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;max_depth = range(1, 11, 2)
+param_grid = dict(max_depth=max_depth)
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=7)
+grid_search = GridSearchCV(model, param_grid, scoring=&quot;neg_log_loss&quot;, n_jobs=-1, cv=kfold,
+verbose=1)
+grid_result = grid_search.fit(X, label_encoded_y)
+Best: -0.001098 using {&#39;max_depth&#39;: 5}
+-0.026149 (0.000743) with: {&#39;max_depth&#39;: 1}
+-0.001098 (0.001313) with: {&#39;max_depth&#39;: 3}
+-0.001098 (0.001295) with: {&#39;max_depth&#39;: 5}
+-0.001100 (0.001295) with: {&#39;max_depth&#39;: 7}
+-0.001100 (0.001295) with: {&#39;max_depth&#39;: 9}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9946e313afa58382c7d1be3aa006352b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;779&quot; data-rawheight=&quot;402&quot;&gt;&lt;p&gt;&lt;b&gt;调树的个数和深度&lt;/b&gt;&lt;/p&gt;&lt;p&gt;树的个数为 [50, 100, 150, 200]，树的深度为 [2, 4, 6, 8]，在 5 折交叉验证中要运行模型 80 次，最后最佳树的个数和深度是 200 和 4，这个和单独调试的 最佳树的个数 200 和最佳树的深度 5 很接近。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;n_estimators = [50, 100, 150, 200]
+max_depth = [2, 4, 6, 8]
+param_grid = dict(max_depth=max_depth, n_estimators=n_estimators)
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=7)
+grid_search = GridSearchCV(model, param_grid, scoring=&quot;neg_log_loss&quot;, n_jobs=-1, cv=kfold,
+verbose=1)
+grid_result = grid_search.fit(X, label_encoded_y)
+Best: -0.001010 using {&#39;max_depth&#39;: 4, &#39;n_estimators&#39;: 200}&lt;/code&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-41a037a10ccd4f3f0b90adf571846f2e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;483&quot; data-rawheight=&quot;286&quot;&gt;&lt;p&gt;&lt;b&gt;1.7.2 学习率和树的个数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;一般来说，学习率越小，需要增加树的个数就越大。接下来做两组调试：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;只调学习率&lt;/li&gt;&lt;li&gt;同时调树的个数和学习率&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;调学习率&lt;/b&gt;&lt;/p&gt;&lt;p&gt;学习率为 [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]，在 5 折交叉验证中要运行模型 30 次，最后最佳学习率是 0.2。观察 logloss 发现其实学习率在 0.1 和 0.3 之间差距都很小。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;learning_rate = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+param_grid = dict(learning_rate=learning_rate)
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=7)
+grid_search = GridSearchCV(model, param_grid, scoring=&quot;neg_log_loss&quot;, n_jobs=-1, cv=kfold)
+grid_result = grid_search.fit(X, label_encoded_y)
+Best: -0.001028 using {&#39;learning_rate&#39;: 0.2}
+-2.155502 (0.000038) with: {&#39;learning_rate&#39;: 0.0001}
+-1.841039 (0.000362) with: {&#39;learning_rate&#39;: 0.001}
+-0.597303 (0.000606) with: {&#39;learning_rate&#39;: 0.01}
+-0.001098 (0.001313) with: {&#39;learning_rate&#39;: 0.1}
+-0.001028 (0.001336) with: {&#39;learning_rate&#39;: 0.2}
+-0.001029 (0.001349) with: {&#39;learning_rate&#39;: 0.3}&lt;/code&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d3ef31a3b7316af22f0b808528d8de22_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;801&quot; data-rawheight=&quot;418&quot;&gt;&lt;p&gt;&lt;b&gt;调树的个数和学习率&lt;/b&gt;&lt;/p&gt;&lt;p&gt;树的个数为 [100, 200, 300, 400, 500]，学习率为 [0.0001, 0.001, 0.01, 0.1]，在 5 折交叉验证中要运行模型 100 次，最后最佳树的个数和学习率是 200 和 0.1，这个和单独调试的 最佳树的个数 200 和最佳学习率 0.2 很接近。 &lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;n_estimators = [100, 200, 300, 400, 500]
+learning_rate = [0.0001, 0.001, 0.01, 0.1]
+param_grid = dict(learning_rate=learning_rate, n_estimators=n_estimators)
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=7)
+grid_search = GridSearchCV(model, param_grid, scoring=&quot;neg_log_loss&quot;, n_jobs=-1, cv=kfold)
+grid_result = grid_search.fit(X, label_encoded_y)
+Best: -0.001034 using {&#39;learning_rate&#39;: 0.1, &#39;n_estimators&#39;: 200}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2aa1d095364cfbd4b206ee06e1deccd1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;455&quot; data-rawheight=&quot;288&quot;&gt;&lt;p&gt;&lt;b&gt;1.7.3 采样比率&lt;/b&gt;&lt;/p&gt;&lt;p&gt;随机森林有列采样和行采样，XGBoost 也有。 接下来做两组调试：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;只调行采样比率&lt;/li&gt;&lt;li&gt;只调列采样比率&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;行采样比率和列采样比率都从 0.1 到 1，以 0.1 为间隔，那么分别在 5 折交叉验证中要运行模型 50 次，最后发现最佳行采样比率是 0.3 和最佳列采样比率是 0.7。图表展示如下：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7842e64e5ece90e899741face90d70bb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;486&quot; data-rawheight=&quot;300&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e51db7d6ce0f4beec3ee55523205ec89_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;477&quot; data-rawheight=&quot;311&quot;&gt;&lt;h2&gt;&lt;b&gt;2. XGBoost 进阶版&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本章介绍如何将 XGBoost 在 Lending Club 的预测贷款的应用。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2.1数据预处理&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;读取并概览数据。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;data = pd.read_csv(&#39;lending-club-data.csv&#39;, low_memory=False)
+data.head(3).append(data.tail(3))&lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6ec4b58bf8a5bdea10c78dff30c2beee_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;829&quot; data-rawheight=&quot;357&quot;&gt;&lt;p&gt;处理数据步骤有三步：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;平衡样本 (sample balancing)&lt;/li&gt;&lt;li&gt;特征子集 (feature subset)&lt;/li&gt;&lt;li&gt;独热编码 (one-hot encoding)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;在本帖，我们不会平衡样本，保留原来良性贷款和恶性贷款的比例。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;N1 = len(data[data[target] == 0])
+N2 = len(data[data[target] == 1])
+
+print( &quot;%% of safe loans  : %.2f%%&quot; %(N1/(N1+N2)*100.0) )
+print( &quot;%% of risky loans : %.2f%%&quot; %(N2/(N1+N2)*100.0) )
+% of safe loans  : 81.12%
+% of risky loans : 18.88%&lt;/code&gt;&lt;h2&gt;&lt;b&gt;2.2 模型比对&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先我们用相同的参数，比对决策树 (DT)、随机森林 (RF)、梯度提升树 (GBT) 和极度梯度提升 (XGB)。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;DT = DecisionTreeClassifier(max_depth=5)
+RF = RandomForestClassifier(n_estimators=10, max_depth=5)
+GBT = GradientBoostingClassifier(n_estimators=10, max_depth=5)
+XGB = XGBClassifier(n_estimators=10, max_depth=5)&lt;/code&gt;&lt;p&gt;训练这四个模型但是发现错误，原因是数据里有缺失值，XGB 可以自动处理，但是 DT, RF 和 GBT 不能。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;DT.fit( X_train, y_train )
+RF.fit( X_train, y_train )
+GBT.fit( X_train, y_train )
+XGB.fit( X_train, y_train )
+ValueError: Input contains NaN, infinity or a value too large for dtype(&#39;float32&#39;).&lt;/code&gt;&lt;p&gt;将缺失值用 NaN 来填充。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;X_train1 = np.nan_to_num(X_train)
+X_test1 = np.nan_to_num(X_test)&lt;/code&gt;&lt;p&gt;再训练模型并打印出它们的精度值。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;DT  - Accuracy (Train): 0.8199
+DT  - Accuracy (Test):  0.8172
+RF  - Accuracy (Train): 0.8127
+RF  - Accuracy (Test):  0.8128
+GBT - Accuracy (Train): 0.8197
+GBT - Accuracy (Test):  0.8173
+XGB - Accuracy (Train): 0.8217
+XGB - Accuracy (Test):  0.8179&lt;/code&gt;&lt;p&gt;从测试误差来看，确实&lt;/p&gt;&lt;p&gt;XGB &amp;gt; GBT &amp;gt; RF &amp;gt; DT &lt;/p&gt;&lt;h2&gt;&lt;b&gt;2.3参数介绍&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;XGBoost 的设置有三种参数：&lt;b&gt;一般参数&lt;/b&gt;，&lt;b&gt;提升参数&lt;/b&gt;和&lt;b&gt;学习参数&lt;/b&gt;。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;一般参数&lt;/b&gt; 取决于提升器，通常是树或线性模型&lt;/li&gt;&lt;li&gt;&lt;b&gt;提升参数&lt;/b&gt; 取决于选择的提升器的相关参数&lt;/li&gt;&lt;li&gt;&lt;b&gt;学习参数&lt;/b&gt; 取决于指定学习任务和相应的学习目标&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;一般参数 (general parameters)&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;i&gt;booster&lt;/i&gt;：选择提升器，默认是 tree&lt;/li&gt;&lt;li&gt;&lt;i&gt;silent&lt;/i&gt;：是否打印信息，默认是 0 不打印&lt;/li&gt;&lt;li&gt;&lt;i&gt;nthread&lt;/i&gt;：线程数，默认为最大可用线程数&lt;/li&gt;&lt;li&gt;&lt;i&gt;num_pbuffer&lt;/i&gt;：缓冲区大小，默认为训练实例的数量&lt;/li&gt;&lt;li&gt;&lt;i&gt;num_feature&lt;/i&gt;：特征纬度，默认为特征的最高纬&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;提升参数 (booster parameters)&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;i&gt;eta&lt;/i&gt;：学习率，范围 [0, 1]，默认为 0.3。该参数越小，计算速度越慢；该参数越大，有可能无法收敛&lt;/li&gt;&lt;li&gt;&lt;i&gt;gamma&lt;/i&gt;：控制叶子个数的参数，范围 [0, +∞)，默认为 0。该参数越大，越不容易过拟合&lt;/li&gt;&lt;li&gt;&lt;i&gt;max_depth&lt;/i&gt;：每颗树的最大深度，范围 [0, +∞)，默认为 6。该参数越大，越容易过拟合 &lt;/li&gt;&lt;li&gt;&lt;i&gt;min_child_weight&lt;/i&gt;：每个叶子里面的最小权重和，范围 [0, +∞)，默认为 1。该参数越大，越不容易过拟合&lt;/li&gt;&lt;li&gt;&lt;i&gt;subsample&lt;/i&gt;：样本采样比率，范围 (0, 1]，默认为 1。如果取 0.5 代表随机用 50% 的样本集用来训练&lt;/li&gt;&lt;li&gt;&lt;i&gt;colsample_bytree&lt;/i&gt;：列采样比率，范围 (0, 1]，默认为 1。对每棵树的生成用的特征进行列采样，类似于随机森林的列采样&lt;/li&gt;&lt;li&gt;&lt;i&gt;lambda&lt;/i&gt;：L2 正则化参数，范围 [0, +∞)，默认为 1。该参数越大，越不容易过拟合。 &lt;/li&gt;&lt;li&gt;&lt;i&gt;alpha&lt;/i&gt;：L1 正则化参数，范围 [0, +∞)，默认为 0。该参数越大，越不容易过拟合。 &lt;/li&gt;&lt;li&gt;&lt;i&gt;scale_pos_weight&lt;/i&gt;：控制正反类的平衡参数，范围 [0, +∞)，默认为 1。该参数通常设为“反类的总和/正类的总和”&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;学习参数 (learning parameters)&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;i&gt;objective&lt;/i&gt;：损失函数，默认为 linear。其他常见类型有： &lt;/li&gt;&lt;ul&gt;&lt;li&gt;reg:logistic – 二分类&lt;/li&gt;&lt;li&gt;binary:logistic  – 二分类概率&lt;/li&gt;&lt;li&gt;multi:softmax – 多分类&lt;/li&gt;&lt;li&gt;multi:softprob – 多分类概率&lt;/li&gt;&lt;li&gt;rank:pairwise – 排序&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;i&gt;base_score&lt;/i&gt;：预测分数，默认为 0.5。最初每个样例的预测分数。&lt;/li&gt;&lt;li&gt;&lt;i&gt;eval_metric&lt;/i&gt;：评估指标。该指标用在验证集上，比如回归任务默认的是 rmse；分类任务默认为 error；排序任务默认为 map。其他常见类型有：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;rmse – root mean square error &lt;/li&gt;&lt;li&gt;mae – mean absolute error &lt;/li&gt;&lt;li&gt;logloss – negative log-likelihood &lt;/li&gt;&lt;li&gt;error – binary classification error rate&lt;/li&gt;&lt;li&gt;merror – multiclass classification error rate &lt;/li&gt;&lt;li&gt;mlogloss – multiclass logloss &lt;/li&gt;&lt;li&gt;auc – area under the curve&lt;/li&gt;&lt;li&gt;map – mean average precision&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;i&gt;seed&lt;/i&gt;：随机种子，默认为 0，用于产生可复现的结果 &lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;2.4 调参步骤&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;调参像是一门艺术，需要足够的经验和前人的建议。一个不错的调参思路有如下四步：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;开始用一个业界公认的学习率 0.1，然后根据交叉验证误差来确定“最优树的个数”&lt;/li&gt;&lt;li&gt;决定好学习率和树的个数之后，调“树相关的参数”，比如 &lt;i&gt;max_depth, min_child_weight, gamma, subsample, colsample_bytree&lt;/i&gt;&lt;/li&gt;&lt;li&gt;为了进一步避免过拟合，调“正则化参数”，比如 &lt;i&gt;lambda&lt;/i&gt;, &lt;i&gt;alpha&lt;/i&gt;&lt;/li&gt;&lt;li&gt;用之前调好的参数，尝试小一点的学习率，看是否能提高模型表现&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;这里我编写了一个函数 modelfit，主要为了方便打印精度值和画图，由于程序比较长，大家可以去 notebook 上去看。&lt;/p&gt;&lt;p&gt;&lt;b&gt;步骤 1&lt;/b&gt;：固定学习率调最优树的个数&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;xgb1 = XGBClassifier( learning_rate=0.1, n_estimators=1000, max_depth=5,
+                     min_child_weight=1, gamma=0, subsample=0.8,
+                     colsample_bytree=0.8, objective=&#39;binary:logistic&#39;,
+                     nthread=4, scale_pos_weight=1, seed=seed )
+
+modelfit( xgb1, X_train, X_test, y_train, y_test )
+Best Iteration: 402
+
+Model Report
+Accuracy (Train): 0.8481
+Accuracy (Test): 0.8247
+AUC Score (Train): 0.850696
+AUC Score (Test): 0.762747&lt;/code&gt;&lt;p&gt;固定学习率 0.1，以交叉误差作为评估指标，得到 &lt;b&gt;402&lt;/b&gt; 作为最优树的个数。此外，特征重要性的图如下：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a515f41bf869c45c856cd34dbcc70476_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;798&quot; data-rawheight=&quot;291&quot;&gt;&lt;p&gt;&lt;b&gt;步骤 2&lt;/b&gt;：调“树相关参数”&lt;/p&gt;&lt;p&gt;在这一步中，树的个数用步骤 1 确定好的 &lt;b&gt;402&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;先粗调参，大概定下最优值 &lt;b&gt;5&lt;/b&gt; 和 &lt;b&gt;3&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test1 = { &#39;max_depth&#39;:range(3,10,2), &#39;min_child_weight&#39;:range(1,6,2) }
+Best: 0.764367 using {&#39;max_depth&#39;: 5, &#39;min_child_weight&#39;: 3}&lt;/code&gt;&lt;p&gt;再细调参，最终确定最优值 &lt;b&gt;5&lt;/b&gt; 和 &lt;b&gt;3&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test2 = { &#39;max_depth&#39;:[4,5,6], &#39;min_child_weight&#39;:[2,3,4] }
+Best: 0.764367 using {&#39;max_depth&#39;: 5, &#39;min_child_weight&#39;: 3}&lt;/code&gt;&lt;p&gt;再确定 gamma 最优值 &lt;b&gt;0.3&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test3 = { &#39;gamma&#39;:[i/10.0 for i in range(0,5)] }
+Best: 0.764989 using {&#39;gamma&#39;: 0.3}&lt;/code&gt;&lt;p&gt;将上面三个参数最优值 (下图红色) 带入模型重新再调树的个数。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;xgb2 = XGBClassifier( learning_rate=0.1, n_estimators=1000, max_depth=5,
+                     min_child_weight=3, gamma=0.3, subsample=0.8,
+                     colsample_bytree=0.8, objective= &#39;binary:logistic&#39;,
+                     nthread=4, scale_pos_weight=1, seed=seed )
+
+modelfit( xgb2, X_train, X_test, y_train, y_test )
+Best Iteration: 482
+
+Model Report
+Accuracy (Train): 0.8505
+Accuracy (Test): 0.8249
+AUC Score (Train): 0.856505
+AUC Score (Test): 0.763606&lt;/code&gt;&lt;p&gt;现在最优树的个数为 &lt;b&gt;482&lt;/b&gt;，而且发现 AUC 变好了，从 &lt;b&gt;0.762747&lt;/b&gt; 提升到 &lt;b&gt;0.763606&lt;/b&gt;，再接再厉继续调整其他“采样参数”。&lt;/p&gt;&lt;p&gt;先粗调参，大概定下最优值 &lt;b&gt;0.8&lt;/b&gt; 和 &lt;b&gt;0.8&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test4 = { &#39;subsample&#39;: [i/10.0 for i in range(6,10)],
+               &#39;colsample_bytree&#39;: [i/10.0 for i in range(6,10)] }
+Best: 0.764960 using {&#39;colsample_bytree&#39;: 0.8, &#39;subsample&#39;: 0.8}&lt;/code&gt;&lt;p&gt;再细调参，最终确定最优值 &lt;b&gt;0.8&lt;/b&gt; 和 &lt;b&gt;0.8&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test5 = { &#39;subsample&#39;: [i/100.0 for i in range(70,95,5)],
+               &#39;colsample_bytree&#39;: [i/100.0 for i in range(70,95,5)] }
+Best: 0.764960 using {&#39;colsample_bytree&#39;: 0.8, &#39;subsample&#39;: 0.8}&lt;/code&gt;&lt;p&gt;&lt;b&gt;步骤 3&lt;/b&gt;：调“正则化参数”&lt;/p&gt;&lt;p&gt;先粗调参，大概定下最优值 &lt;b&gt;1&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test6 = { &#39;reg_alpha&#39;:[1e-5, 1e-2, 0.1, 1, 100] }
+Best: 0.765376 using {&#39;reg_alpha&#39;: 1}&lt;/code&gt;&lt;p&gt;再细调参，最终确定最优值 &lt;b&gt;5&lt;/b&gt;。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;param_test7 = { &#39;reg_alpha&#39;:[0.1, 0.5, 1, 5, 10] }
+Best: 0.766167 using {&#39;reg_alpha&#39;: 5}&lt;/code&gt;&lt;p&gt;发现 Best Score 的确增加了。最后把所有调好参数最优值 (下图红色) 带入模型再调树的个数。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;xgb3 = XGBClassifier( learning_rate=0.1, n_estimators=1000, max_depth=5,
+                     min_child_weight=3, gamma=0.3, subsample=0.8, colsample_bytree=0.8, 
+                     reg_alpha=5, objective=&#39;binary:logistic&#39;,
+                     nthread=4, scale_pos_weight=1, seed=seed )
+
+modelfit( xgb3, X_train, X_test, y_train, y_test )
+Best Iteration: 361
+
+Model Report
+Accuracy (Train): 0.8417
+Accuracy (Test): 0.8245
+AUC Score (Train): 0.830397
+AUC Score (Test): 0.763912&lt;/code&gt;&lt;p&gt;现在最优树的个数为 &lt;b&gt;361&lt;/b&gt;，AUC 继续变好，从 &lt;b&gt;0.763606 &lt;/b&gt;提升到 &lt;b&gt;0.763912&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;步骤 4&lt;/b&gt;：尝试小一点的学习率&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;xgb4 = XGBClassifier( learning_rate=0.01, n_estimators=5000, max_depth=5,
+                     min_child_weight=3, gamma=0.3, subsample=0.8, colsample_bytree=0.8, 
+                     reg_alpha=5, objective=&#39;binary:logistic&#39;,
+                     nthread=4, scale_pos_weight=1, seed=seed )
+
+modelfit( xgb4, X_train, X_test, y_train, y_test )
+Best Iteration: 3702
+
+Model Report
+Accuracy (Train): 0.8424
+Accuracy (Test): 0.8256
+AUC Score (Train): 0.832793
+AUC Score (Test): 0.767145&lt;/code&gt;&lt;p&gt;学习率从 0.1 降低到 0.01，其他参数不变，AUC 从 &lt;b&gt;0.763912 &lt;/b&gt;提升到 &lt;b&gt;0.767145&lt;/b&gt;。再回顾一路从来 AUC 的提升历程：&lt;/p&gt;&lt;p&gt;&lt;b&gt;0.767145 &amp;gt; 0.763912 &amp;gt; 0.763606 &amp;gt; 0.762747&lt;/b&gt; &lt;/p&gt;&lt;p&gt;可不要小瞧这一点点的提升哦，在 kaggle 比赛中可会压不少人的。当然本节也只是对调参给个思路，抛砖引玉。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;4. 总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本贴总结的东西超越了 XGBoost 带来的东西，有着更广的使用范围，一些心得如下：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;学新模型最好从具体例子开始，用模型的默认值先&lt;/li&gt;&lt;li&gt;尝试不同类型的数据，用编码技巧，处理缺失值&lt;/li&gt;&lt;li&gt;用提前终止来防止过拟合&lt;/li&gt;&lt;li&gt;能画图就画图，一图胜千字&lt;/li&gt;&lt;li&gt;能并行就并行，时间就是生命&lt;/li&gt;&lt;li&gt;调参是门艺术，没有捷径只能积累，多看大师的推荐，从重要的参数开始，先粗调再细调&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;参考文献&lt;/b&gt;&lt;/p&gt;&lt;p&gt;https://archive.ics.uci.edu/ml/datasets/Pima+Indians+Diabetes&lt;/p&gt;&lt;p&gt;http://archive.ics.uci.edu/ml/datasets/Iris&lt;/p&gt;&lt;p&gt;http://archive.ics.uci.edu/ml/datasets/Breast+Cancer&lt;/p&gt;&lt;p&gt;https://archive.ics.uci.edu/ml/datasets/Horse+Colic&lt;/p&gt;&lt;p&gt;https://www.kaggle.com/c/otto-group-product-classification-challenge/data&lt;/p&gt;&lt;p&gt;Greedy Function Approximation: A Gradient Boosting Machine, Jerome Friedman&lt;/p&gt;&lt;p&gt;Stochastic Gradient Boosting, Jerome Friedman&lt;/p&gt;&lt;p&gt;Gradient Boosting Machine Learning, Trevor Hastie&lt;/p&gt;&lt;p&gt;https://cran.r-project.org/web/packages/gbm/gbm.pdf&lt;/p&gt;&lt;p&gt;http://www.saedsayad.com/docs/gbm2.pdf&lt;/p&gt;&lt;p&gt;http://scikit-learn.org/stable/modules/ensemble.html#gradient-tree-boosting&lt;/p&gt;&lt;p&gt;https://xgboost.readthedocs.io/en/latest/python/python_api.html&lt;/p&gt;&lt;p&gt;Winning Data Science Competitions, Owen Zhang&lt;/p&gt;&lt;p&gt;Open Source Tools and Data Science Competitions, Owen Zhang&lt;/p&gt;&lt;b&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4cf3f189e3fb128dc0be0314b7e07019_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;367&quot;&gt;&lt;/b&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>量化投资机器学习</author>
+<guid isPermaLink="false">2018-02-24-33948430</guid>
+<pubDate>Sat, 24 Feb 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>【顶级资源】掌握线性代数为机器学习打下坚实基础！</title>
 <link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/2018-02-22-33926699.html</link>
@@ -936,33 +1307,6 @@ print(&#39;Mean absolute error on test data: {:.6f}&#39;.format(mae)) &lt;/code&
 Mean absolute error on test data: 0.008930&lt;/code&gt;&lt;p&gt;链接: https://pan.baidu.com/s/1pMLdP1L &lt;/p&gt;&lt;p&gt;密码: x6mj&lt;/p&gt;&lt;p&gt;谢谢大家对公众号的一直以来厚爱！&lt;/p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287197&amp;amp;idx=1&amp;amp;sn=9630389a52c7d0be4c1feaf3a534c2ce&amp;amp;chksm=802e3108b759b81ed11174f71b23fb73abe5c4ebad0f9d480b6efbd8f7e644de6b2232dc63fa#rd&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-2e9f227f80bf31b439e47581a6b43f2b&quot; data-image-width=&quot;640&quot; data-image-height=&quot;640&quot; data-image-size=&quot;ipico&quot;&gt;【代码+论文】通过ML、Time Series模型学习股价行为（第九期免费赠书活动来啦！）&lt;/a&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-2593c949ae5b55159619364a33f21f8e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1096&quot; data-rawheight=&quot;372&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>量化投资机器学习</author>
 <guid isPermaLink="false">2018-01-21-33152954</guid>
-<pubDate>Sun, 21 Jan 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>机器学习应用区块链系列（一）——如何开发一套自己的智能合约系统</title>
-<link>https://henix.github.io/feeds/zhuanlan.Lhtz-Jqxx/2018-01-21-33152738.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33152738&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5627788616a10bf169cd136fc01f8e65_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;从今天开始&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;编辑部将带来机器学习应用区块链系列&lt;/b&gt;&lt;/p&gt;&lt;p&gt;由于是第一期，我们想解读一些国外已有的文献和研究。故带来了START-Summit-2017-Blockchain-Machine-Learning-Workshop的演讲稿和示例代码，希望能够给大家带来一些启迪。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;来源&lt;/b&gt;&lt;/h2&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287256&amp;amp;idx=2&amp;amp;sn=483e71c66e863aec424ff0c1936411c6&amp;amp;chksm=802e314db759b85b505f7fd1ed0cb0cacf10ed4bbbf86cc50c7bbc9d07d4ac0fed3b783b2278##&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-2e9f227f80bf31b439e47581a6b43f2b&quot; data-image-width=&quot;640&quot; data-image-height=&quot;640&quot; data-image-size=&quot;ipico&quot;&gt;机器学习应用区块链系列（一）--如何开发一套自己的智能合约系统&lt;/a&gt;&lt;h2&gt;&lt;b&gt;介绍&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;代码的目的是用一个简单的例子来演示如何把区块链技术，智能合约和机器学习结合在一起。 &lt;b&gt;（代码在文末下载）&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;代码文件&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;- runTestnet.sh: launches a local development Blockchain for easy testing
-- contract.sol: contains the smart contract code in solidity language
-- installContract.py: Python script for sending our contract to the Blockchain
-- user.py: Python script that contains the actual chat client
-- classify.py: Python script to classifiy an image file &lt;/code&gt;&lt;p&gt;&lt;b&gt;流程&lt;/b&gt;&lt;/p&gt;&lt;p&gt;推荐使用Linux系统。 安装将集中在Ubuntu Linux 16.04 LTS上，但对于其他发行版应该是类似的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;我们需要先安装Python 2.7，pip，curl和git：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;open a Linux Terminal and enter the following command:
-sudo apt-get install python2.7 python-pip curl git build-essential libssl-dev &lt;/code&gt;&lt;p&gt;&lt;b&gt;安装当前nodejs版本：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
-sudo apt-get install -y nodejs &lt;/code&gt;&lt;p&gt;&lt;b&gt;安装区块链测试环境：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;sudo npm install -g ethereumjs-testrpc solc &lt;/code&gt;&lt;p&gt;&lt;b&gt;安装其他Python包：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;sudo pip install -U pip
-sudo pip install -U numpy keras==2.0.0 tensorflow ethjsonrpc h5py Pillow scipy &lt;/code&gt;&lt;p&gt;&lt;b&gt;克隆workshop代码：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;cd
-git clone https://github.com/thoschm/START-Summit-2017-Blockchain-Machine-Learning-Workshop.git workshop_code &lt;/code&gt;&lt;p&gt;&lt;b&gt;克隆现成的深度学习模型：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;cd
-git clone https://github.com/fchollet/deep-learning-models.git
-cp deep-learning-models/resnet50.py workshop_code/code/
-cp deep-learning-models/imagenet_utils.py workshop_code/code/ &lt;/code&gt;&lt;p&gt;&lt;b&gt;简单的图像分类示例&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;cd
-cd workshop_code/code
-[get some image file in there]
-python classify.py image.jpg &lt;/code&gt;&lt;p&gt;当您第一次运行它时，它会从互联网下载预先训练的网络权重。 不需要自己训练。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;Using TensorFlow backend.
-content:
-
-Downloading data from https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json
-&amp;gt;  tree_frog  &amp;lt; &lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;PPT展示&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9553ce4cd6ddf45121cb09b8928926f0_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4a66954e4b5191556dd53003475639fa_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a18be2bc915f4cd672ff0c65cac58ff8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2cdba7dc48e60dd3cf13857f18bb1841_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-eb1e6b5979731993475b18d5e5a3722e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b44e2a489704bc45616954846f651d4c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7e2d553ec4188126abf85e28f8af58e8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-6726013442b8dff8728900b3bd993e86_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cccc6288f0f41e48bfee42d8b3e0927f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5d61ef34da06495ce41e2fed1a75cf18_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2c604e5a811289f7c164aaed1f473f2f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e91b95db74e92d8fbf366f2afd2a7d6e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d934053a159a1219e856bb9d57575b3e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7efad18817c8d68d3c55db27a8d67c5b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7bd65405ef1a92e2e312c6983eda9a39_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-aa8c91696ab177e2fbe45e5108286610_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-06299f07baedd00070b1fc451c6ed6aa_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-64c52c167ae10b21b47224532770d4d9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f3f0f280b9468853573b885ad5393a1f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b519b1f09183f20a84060828af2a59c0_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-41b2f56f78c42716f059e396d820b6d9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-22a71c4175f77f6c6669cc1ba18a45e7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bc224e010d93ff7af782e81b47e7dc9b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1577966f716f5a6c7b6a5296c404d6df_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-009e6c99b633554b6a5c26558bf69c63_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b3b657e89a99bcc9220253ddd8accb98_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3c762149ec52d81aaac91b870ad39337_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5f888cf0c5ef24df32cf399479906c8c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b7b2649e9a4f6205386910f82aebdfe1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3c65b615ad5962d99faf3beff9da5730_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b40d386932966cd50008dc3e2ed7d981_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-54e64e234265287ca24237eef498511f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-4309cff7fbd215f8c9e21cd5ad0a61d6_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-1957d87efb17e050a30e88eb69086209_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7ff555c6cf4d3db258e467b5d8baf174_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1d78dde1a6c7b2d610ab24846a4ed673_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-17195cae25e59965f4e9a7f1c7c48357_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-ee684c83aeb183a1f4e5f7ecdf13c5e7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-eb9679b1b88cb2897745bd2fb2070118_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;4000&quot; data-rawheight=&quot;2250&quot;&gt;&lt;p&gt;链接: https://pan.baidu.com/s/1o9Zteiu &lt;/p&gt;&lt;p&gt;密码: 95qd&lt;/p&gt;&lt;p&gt;谢谢大家对公众号的一直以来厚爱！&lt;/p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAxNTc0Mjg0Mg==&amp;amp;mid=2653287256&amp;amp;idx=2&amp;amp;sn=483e71c66e863aec424ff0c1936411c6&amp;amp;chksm=802e314db759b85b505f7fd1ed0cb0cacf10ed4bbbf86cc50c7bbc9d07d4ac0fed3b783b2278##&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-2e9f227f80bf31b439e47581a6b43f2b&quot; data-image-width=&quot;640&quot; data-image-height=&quot;640&quot; data-image-size=&quot;ipico&quot;&gt;机器学习应用区块链系列（一）--如何开发一套自己的智能合约系统&lt;/a&gt;&lt;b&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ecd27e25f4fe3285f8f1fe63024bb19b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1096&quot; data-rawheight=&quot;372&quot;&gt;&lt;/b&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>量化投资机器学习</author>
-<guid isPermaLink="false">2018-01-21-33152738</guid>
 <pubDate>Sun, 21 Jan 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
