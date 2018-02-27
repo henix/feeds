@@ -31,7 +31,6 @@ const feeds = [
 	]],
 	["FP", [
 		"yinwang",
-		"yinwang0",
 		"marisa",
 		"hllvm",
 		"zju-lambda",
