@@ -5,6 +5,7 @@ const feeds = [
 		"lamboCFA",
 		"GlobalMacroHedge",
 		"ForrestM",
+		"Equity-Investment",
 		"forex-analysis",
 		"yuefenginvest",
 		"trading",
