@@ -4,6 +4,8 @@ cat <<EOF
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Feeds</title>
 </head>
 <body>
 <ul>
@@ -14,8 +16,8 @@ for d in $(find . -maxdepth 1 -type d | sed -e 's|^./||' -e '/^\.\|\.git$/d' | s
 done
 cat <<EOF
 </ul>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
-<script src="https://cdn.rawgit.com/jed/domo/13c45aba/lib/domo.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ramda@0.25.0/dist/ramda.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/domo@0.5.9/lib/domo.js"></script>
 <script src="index.js"></script>
 EOF
 cat ga.seg.htm
