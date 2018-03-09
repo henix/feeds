@@ -41,6 +41,7 @@ const feeds = [
 		"rust-lang",
 	]],
 	["心理", [
+		"knowyourself2015",
 		"knowyourself",
 		"pongba_mindhacks",
 		"mindhacks",
