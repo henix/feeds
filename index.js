@@ -71,6 +71,7 @@ const feeds = [
 	]],
 	["后端", [
 		"prattle",
+		"programmer_life",
 		"milocode",
 	]],
 	["机器学习", [
