@@ -77,6 +77,7 @@ const feeds = [
 		"almosthuman2014",
 	]],
 	["商业", [
+		"xingshu100",
 		"caozsay",
 		"Professor-Li",
 	]],
