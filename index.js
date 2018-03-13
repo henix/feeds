@@ -12,6 +12,7 @@ const feeds = [
 		"trading",
 		"c_106548378",
 		"sanleima",
+		"c_156910707",
 		"Lhtz-Jqxx",
 		"quanttech",
 		"ricequant",
