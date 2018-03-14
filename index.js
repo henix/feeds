@@ -36,6 +36,7 @@ const feeds = [
 		"yinwang",
 		"marisa",
 		"hllvm",
+		"self-discipline",
 		"zju-lambda",
 		"impress-your-cat",
 		"yangbo",
