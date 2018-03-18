@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.self-discipline/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 17 Mar 2018 15:11:29 +0800</lastBuildDate>
+<lastBuildDate>Sun, 18 Mar 2018 18:18:09 +0800</lastBuildDate>
+<item>
+<title>你好，类型（一）：开篇</title>
+<link>https://henix.github.io/feeds/zhuanlan.self-discipline/2018-03-18-34669807.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34669807&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;类型（type），是编程语言中一个经常被人们提及的概念，&lt;br&gt;当我们看待一门编程语言的时候，言必谈之&lt;b&gt;类型系统&lt;/b&gt;（type system）。&lt;/p&gt;&lt;p&gt;它到底是显式类型的（explicit typing），还是隐式类型的（implicit typing），&lt;br&gt;是静态类型的（static typing），还是动态类型的（dynamic typing），&lt;br&gt;类型检查（type check）是较强的（stronger），还是较弱的（weaker）。&lt;/p&gt;&lt;p&gt;它是否支持高阶类型（high-order type），是否支持递归类型（recusive type），&lt;br&gt;是否支持子类型（subtype），是否支持多态（polymorphism）。&lt;/p&gt;&lt;p&gt;&lt;b&gt;这些都是一个有主见的技术爱好者，乐于去了解的内容。&lt;/b&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;然而，我发现理解它们并不容易，我们欠缺最基本的数理逻辑和证明论相关的知识。&lt;br&gt;类型系统，可以看做是附着在语言语法之上的一套符号证明系统。&lt;/p&gt;&lt;blockquote&gt;In programming languages, a type system is a set of rules that assigns a property called type to the various constructs of a computer program, such as variables, expressions, functions or modules.&lt;/blockquote&gt;&lt;p&gt;给表达式确定类型的过程，相当于对程序应该具备的属性做形式证明，&lt;br&gt;因此，&lt;b&gt;数理逻辑是我们的朋友&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;另一方面，从语义（semantics）角度对类型进行理解，我们会遇到更大的阻碍，&lt;br&gt;因为，这又涉及到了公理集合论和代数学相关的必备知识。&lt;/p&gt;&lt;p&gt;&lt;b&gt;不过，这些仍然是一个有主见的技术爱好者，乐于去了解的内容。&lt;/b&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;本系列文章，&lt;br&gt;我计划从无类型 &lt;equation&gt;\lambda&lt;/equation&gt; 演算开始，逐步介绍简单类型（simply typed） &lt;equation&gt;\lambda&lt;/equation&gt; 演算，&lt;br&gt;介绍递归类型和不动点（fixed point）之间关系，介绍组合子逻辑（combinatory logic）。&lt;/p&gt;&lt;p&gt;然后，回归到本原，学习命题逻辑和一阶谓词逻辑相关的内容，&lt;br&gt;建立起逻辑学与类型理论之间的桥梁。&lt;/p&gt;&lt;p&gt;时间允许的话，我们还可以探讨模型论相关的内容，在补充了代数学相关的内容之后，&lt;br&gt;我们就可以讨论CPO，Henkin模型，Kripke模型，以及笛卡儿闭范畴（CCC）了。&lt;/p&gt;&lt;p&gt;有的人说，讨论这些其实一点用都没有，&lt;br&gt;&lt;b&gt;我只想说，作为一个有主见的技术爱好者，请别忘了咱们的初心是什么。&lt;/b&gt;&lt;/p&gt;</description>
+<author>何幻</author>
+<guid isPermaLink="false">2018-03-18-34669807</guid>
+<pubDate>Sun, 18 Mar 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>递归函数（九）：最小不动点定理</title>
 <link>https://henix.github.io/feeds/zhuanlan.self-discipline/2018-03-17-34604220.html</link>
@@ -169,65 +178,6 @@ myLoop&#39; n i fn = case fn i of
 <author>何幻</author>
 <guid isPermaLink="false">2018-03-10-34287397</guid>
 <pubDate>Sat, 10 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Emacs之魂（九）：读取器宏</title>
-<link>https://henix.github.io/feeds/zhuanlan.self-discipline/2018-03-09-34106631.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34106631&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;&lt;b&gt;1. 编译器宏&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-2bb31943cb05a4b66f1109da6cfaef2f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1240&quot; data-rawheight=&quot;516&quot;&gt;&lt;p&gt;Lisp源代码文本，首先经过读取器，得到了一系列语法对象，&lt;br&gt;这些语法对象，在宏展开阶段进行变换，最终由编译器/解释器继续处理。&lt;/p&gt;&lt;p&gt;以下我们使用&lt;code class=&quot;inline&quot;&gt;defmacro&lt;/code&gt;定义了一个宏&lt;code class=&quot;inline&quot;&gt;inc&lt;/code&gt;，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(defmacro inc (var)
-    `(setq ,var (1+ ,var)))&lt;/code&gt;&lt;p&gt;它可以将&lt;code class=&quot;inline&quot;&gt;(inc x)&lt;/code&gt;展开为&lt;code class=&quot;inline&quot;&gt;(setq x (1+ x))&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;inc&lt;/code&gt;宏可以看做对编译器/解释器进行“编程”，它影响了最终被编译/解释的程序。&lt;br&gt;因此，类似&lt;code class=&quot;inline&quot;&gt;inc&lt;/code&gt;这样的宏，称为&lt;b&gt;编译器宏&lt;/b&gt;（compiler macro）。&lt;/p&gt;&lt;p&gt;此外，还有一种宏，称为&lt;b&gt;读取器宏&lt;/b&gt;（reader macro），&lt;br&gt;它在源代码的读取阶段，以自定义的方式，将文本转换为语法对象。&lt;/p&gt;&lt;p&gt;引用（quote）“&lt;code class=&quot;inline&quot;&gt;&#39;&lt;/code&gt;”，就是一个读取器宏，&lt;br&gt;它将源代码文本&lt;code class=&quot;inline&quot;&gt;&#39;(1 2)&lt;/code&gt;转换成&lt;code class=&quot;inline&quot;&gt;(quote (1 2))&lt;/code&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2. 用户定义的读取器宏&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;虽然，引用“&lt;code class=&quot;inline&quot;&gt;&#39;&lt;/code&gt;”是一个读取器宏，但它却不是由用户定义的，&lt;br&gt;支持用户自定义的读取器宏，是一个很强大的语言特性，&lt;br&gt;它可以让我们摆脱语法的束缚，创建自己的语言。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.1 Common Lisp&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-ac0034f27d908e076b8f1c5c6c59b47c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;160&quot; data-rawheight=&quot;160&quot;&gt;&lt;p&gt;（1）set-macro-character&lt;br&gt;在Common Lisp中，我们可以使用&lt;code class=&quot;inline&quot;&gt;set-macro-character&lt;/code&gt;，来模拟引用“&lt;code class=&quot;inline&quot;&gt;&#39;&lt;/code&gt;”的定义，&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;(set-macro-character #\&#39;
-    #&#39;(lambda (stream char) 
-        (list (quote quote) (read stream t nil t))))&lt;/code&gt;&lt;p&gt;当读取器遇到&lt;code class=&quot;inline&quot;&gt;&#39;a&lt;/code&gt;的时候，会返回&lt;code class=&quot;inline&quot;&gt;(quote a)&lt;/code&gt;。&lt;br&gt;其中&lt;code class=&quot;inline&quot;&gt;read&lt;/code&gt;函数可以参考：&lt;a href=&quot;http://www.lispworks.com/documentation/HyperSpec/Body/f_rd_rd.htm&quot;&gt;read&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;（2）set-dispatch-macro-character&lt;br&gt;我们还可以自定义捕获字符（dispatch macro character），&lt;br&gt;例如，我们定义&lt;code class=&quot;inline&quot;&gt;#?&lt;/code&gt;来捕获后面的文本，&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;(set-dispatch-macro-character #\# #\?
-    #&#39;(lambda (stream char1 char2)
-        (list &#39;quote
-            (let ((lst nil))
-                (dotimes (i (+ (read stream t nil t) 1))
-                    (push i lst))
-                (nreverse lst)))))&lt;/code&gt;&lt;p&gt;读取器会将&lt;code class=&quot;inline&quot;&gt;#?7&lt;/code&gt;转换成&lt;code class=&quot;inline&quot;&gt;(0 1 2 3 4 5 6 7)&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;（3）get-macro-character&lt;br&gt;我们还可以自定义分隔符，例如，以下我们定义了&lt;code class=&quot;inline&quot;&gt;#{ ... }&lt;/code&gt;分隔符，&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;(set-macro-character #\}
-    (get-macro-character #\)))
-
-(set-dispatch-macro-character #\# #\{
-    #&#39;(lambda (stream char1 char2)
-        (let ((accum nil)
-              (pair (read-delimited-list #\} stream t)))
-            (do ((i (car pair) (+ i 1)))
-                ((&amp;gt; i (cadr pair))
-                (list &#39;quote (nreverse accum)))
-              (push i accum)))))&lt;/code&gt;&lt;p&gt;读取器会将&lt;code class=&quot;inline&quot;&gt;#{2 7}&lt;/code&gt;转换成&lt;code class=&quot;inline&quot;&gt;(2 3 4 5 6 7)&lt;/code&gt;。&lt;br&gt;其中，&lt;code class=&quot;inline&quot;&gt;get-macro-character&lt;/code&gt;可以参考：&lt;a href=&quot;http://www.lispworks.com/documentation/HyperSpec/Body/f_set_ma.htm&quot;&gt;GET-MACRO-CHARACTER&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.2 Racket&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-584cf7576c72a6d7d170c52876cec178_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;160&quot; data-rawheight=&quot;159&quot;&gt;&lt;p&gt;在Racket中，我们可以通过创建自定义的读取器，得到一门新语言，&lt;br&gt;例如，下面两个文件&lt;code class=&quot;inline&quot;&gt;language.rkt&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;main.rkt&lt;/code&gt;，&lt;/p&gt;&lt;p&gt;（1）&lt;code class=&quot;inline&quot;&gt;language.rkt&lt;/code&gt;模块创建了一个读取器，&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;#lang racket
-(require syntax/strip-context)
-
-(provide (rename-out [literal-read read]
-                     [literal-read-syntax read-syntax]))
-
-(define (literal-read in)
-  (syntax-&amp;gt;datum
-   (literal-read-syntax #f in)))
-
-(define (literal-read-syntax src in)
-  (with-syntax ([str (port-&amp;gt;string in)])
-    (strip-context
-     #&#39;(module anything racket
-         (provide data)
-         (define data &#39;str)))))&lt;/code&gt;&lt;p&gt;（2）&lt;code class=&quot;inline&quot;&gt;main.rkt&lt;/code&gt;模块，就可以用新语法进行编写了，&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;#lang reader &quot;language.rkt&quot;
-Hello World!&lt;/code&gt;&lt;p&gt;然后，我们载入&lt;code class=&quot;inline&quot;&gt;main.rkt&lt;/code&gt;，查看该模块导出的&lt;code class=&quot;inline&quot;&gt;data&lt;/code&gt;变量，&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;&amp;gt; (require (file &quot;~/Test/main.rkt&quot;))
-&amp;gt; data
-&quot;\nHello World!&quot;&lt;/code&gt;&lt;p&gt;在&lt;code class=&quot;inline&quot;&gt;main.rkt&lt;/code&gt;中，&lt;br&gt;我们通过&lt;code class=&quot;inline&quot;&gt;#lang reader &quot;language.rkt&quot;&lt;/code&gt;，载入了一个自定义的读取器模块，&lt;br&gt;该模块必须导出&lt;code class=&quot;inline&quot;&gt;read&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;read-syntax&lt;/code&gt;两个函数。&lt;/p&gt;&lt;p&gt;这里，&lt;code class=&quot;inline&quot;&gt;read-syntax&lt;/code&gt;只是简单的获取源代码，导出到&lt;code class=&quot;inline&quot;&gt;data&lt;/code&gt;变量中，&lt;br&gt;最终返回了一个用于模块定义的语法对象&lt;code class=&quot;inline&quot;&gt;(module ...)&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;在本例中，它把&lt;code class=&quot;inline&quot;&gt;&quot;Hello World!&quot;&lt;/code&gt;转换成了一个模块定义表达式，&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(module anything racket
-    (provide data)
-    (define data &quot;Hello World!&quot;))&lt;/code&gt;&lt;p&gt;其中，&lt;code class=&quot;inline&quot;&gt;anything&lt;/code&gt;是模块名，&lt;code class=&quot;inline&quot;&gt;racket&lt;/code&gt;是该模块的依赖。&lt;br&gt;所以，当载入&lt;code class=&quot;inline&quot;&gt;main.rkt&lt;/code&gt;后，我们就可以获取&lt;code class=&quot;inline&quot;&gt;data&lt;/code&gt;的值了。&lt;/p&gt;&lt;p&gt;在实际应用中，我们还可以对源代码进行任意解析，创建自己的语言。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.3 Emacs Lisp&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0bb085922b8effdfa6e998c8a4306626_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;160&quot; data-rawheight=&quot;159&quot;&gt;&lt;p&gt;Emacs Lisp内置的读取器，并不支持自定义的读取器宏，&lt;br&gt;为了实现读取器宏，我们需要重写Emacs内置的&lt;code class=&quot;inline&quot;&gt;read&lt;/code&gt;函数，&lt;br&gt;例如，&lt;a href=&quot;https://github.com/mishoo/elisp-reader.el&quot;&gt;elisp-reader&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;Emacs在启动时，会自动载入&lt;code class=&quot;inline&quot;&gt;~/.emacs.d/init.el&lt;/code&gt;文件，然后执行其中的配置脚本，&lt;br&gt;因此，我们可以在&lt;code class=&quot;inline&quot;&gt;init.el&lt;/code&gt;中调用&lt;a href=&quot;https://github.com/mishoo/elisp-reader.el&quot;&gt;elisp-reader&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;（1）创建&lt;code class=&quot;inline&quot;&gt;~/.emacs.d/init.el&lt;/code&gt;文件，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(add-to-list &#39;load-path &quot;~/.emacs.d/package/elisp-reader/&quot;)
-(require &#39;elisp-reader)&lt;/code&gt;&lt;p&gt;（2）使用git克隆&lt;a href=&quot;https://github.com/mishoo/elisp-reader.el&quot;&gt;elisp-reader&lt;/a&gt;仓库到&lt;code class=&quot;inline&quot;&gt;~/.emacas.d/package&lt;/code&gt;文件夹，&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;git clone https://github.com/mishoo/elisp-reader.el.git ~/.emacs.d/package/elisp-reader&lt;/code&gt;&lt;p&gt;（3）打开Emacs，自动执行&lt;code class=&quot;inline&quot;&gt;init.el&lt;/code&gt;中的配置，&lt;/p&gt;&lt;p&gt;（4）在Emacs中定义一个读取器宏，然后求值整个Buffer，（&lt;code class=&quot;inline&quot;&gt;M-x ev-b&lt;/code&gt;）&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(require &#39;cl-macs)
-
-(def-reader-syntax ?{
-    (lambda (in ch)
-      (let ((list (er-read-list in ?} t)))
-        `(list ,@(cl-loop for (key val) on list by #&#39;cddr
-                          collect `(cons ,key ,val))))))&lt;/code&gt;&lt;p&gt;（5）测试&lt;code class=&quot;inline&quot;&gt;read&lt;/code&gt;函数的执行结果，（&lt;code class=&quot;inline&quot;&gt;C-x C-e&lt;/code&gt;）&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(read &quot;{ :foo 1 :bar \&quot;string\&quot; :baz (+ 2 3) }&quot;)
-&amp;gt; (list (cons :foo 1) (cons :bar &quot;string&quot;) (cons :baz (+ 2 3)))
-
-(car { :foo 1 :bar &quot;string&quot; :baz (+ 2 3) })
-&amp;gt; (:foo . 1)&lt;/code&gt;&lt;p&gt;源代码&lt;code class=&quot;inline&quot;&gt;{ :foo 1 :bar &quot;string&quot; :baz (+ 2 3) }&lt;/code&gt;被直接读取成了一个列表对象，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;((:foo . 1) (:bar &quot;string&quot;) (:baz (+ 2 3)))&lt;/code&gt;&lt;p&gt;对&lt;code class=&quot;inline&quot;&gt;car&lt;/code&gt;函数而言，它看到的是列表对象，并不知道具体的语法是什么。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;3. 总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本文介绍了读取器宏的概念，Lisp各方言中会对读取器宏有不同程度的支持，&lt;br&gt;我们分析了Common Lisp，Racket以及Emacs Lisp的做法。&lt;/p&gt;&lt;p&gt;读取器宏直接作用到源代码文本上，用户定义的读取器宏可以对读取器进行“编程”，&lt;br&gt;借此可以支持自由灵活的语法，它是设计和使用DSL的神兵利器。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node101.html&quot;&gt;Common Lisp the Language, 2nd Edition: 8.4 Compiler Macros&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://book.douban.com/subject/1456906/&quot;&gt;ANSI Common Lisp: 14.3 Read-Macros&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://book.douban.com/subject/3864436/&quot;&gt;Let Over Lambda: 4. Read Macros&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://docs.racket-lang.org/guide/hash-lang_reader.html?q=%23lang%20reader&quot;&gt;The Racket Reference: 17.3.2 Using #lang reader&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://github.com/mishoo/elisp-reader.el&quot;&gt;Github: elisp-reader&lt;/a&gt;&lt;/p&gt;</description>
-<author>何幻</author>
-<guid isPermaLink="false">2018-03-09-34106631</guid>
-<pubDate>Fri, 09 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
