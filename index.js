@@ -77,6 +77,7 @@ const feeds = [
 		"milocode",
 	]],
 	["机器学习", [
+		"conformalgeometry",
 		"almosthuman2014",
 	]],
 	["商业", [
