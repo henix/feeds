@@ -22,16 +22,6 @@ const feeds = [
 		"sishimiao",
 		"DimensionsCapital",
 	]],
-	["独立", [
-		"hiyeka",
-		"wxieshuo",
-		"yeka52",
-		"aloha-yaoyao",
-		"FannyAndLiang",
-		"FlyTheCode",
-		"zhoudaobiji",
-		"iamawguo",
-	]],
 	["FP", [
 		"yinwang",
 		"marisa",
@@ -71,14 +61,25 @@ const feeds = [
 		"mowanglingyu",
 		"ACGerTalk",
 	]],
+	["独立", [
+		"hiyeka",
+		"wxieshuo",
+		"yeka52",
+		"aloha-yaoyao",
+		"FannyAndLiang",
+		"FlyTheCode",
+		"zhoudaobiji",
+		"iamawguo",
+	]],
+	["科学", [
+		"conformalgeometry",
+		"principia1687",
+		"zerojz",
+	]],
 	["后端", [
 		"prattle",
 		"programmer_life",
 		"milocode",
-	]],
-	["机器学习", [
-		"conformalgeometry",
-		"almosthuman2014",
 	]],
 	["商业", [
 		"xingshu100",
@@ -95,20 +96,20 @@ const feeds = [
 		"freebuf",
 		"drops",
 	]],
-	["文艺", [
-		"c_40866915",
-	]],
-	["科学", [
-		"zerojz",
-	]],
-	["法律", [
-		"mclawman",
-		"laodongfaquanji",
-	]],
 	["算法", [
 		"algorithmicliberalartsdegree",
 		"c_124392554",
 		"c_131397850",
+	]],
+	["机器学习", [
+		"almosthuman2014",
+	]],
+	["文艺", [
+		"c_40866915",
+	]],
+	["法律", [
+		"mclawman",
+		"laodongfaquanji",
 	]],
 ];
 
