@@ -82,6 +82,7 @@ const feeds = [
 		"milocode",
 	]],
 	["商业", [
+		"jingyunxiaowu",
 		"xingshu100",
 		"caozsay",
 		"Professor-Li",
