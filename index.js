@@ -13,6 +13,7 @@ const feeds = [
 		"c_106548378",
 		"sanleima",
 		"c_156910707",
+		"xiangxt1984",
 		"Lhtz-Jqxx",
 		"quanttech",
 		"ricequant",
