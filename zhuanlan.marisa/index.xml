@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 14 Mar 2018 22:53:24 +0800</lastBuildDate>
+<lastBuildDate>Mon, 26 Mar 2018 13:11:22 +0800</lastBuildDate>
+<item>
+<title>你好，类型（九）：Let polymorphism</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-26-34915143.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34915143&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d8893deacbd14601cc4881797561323d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;800&quot; data-rawheight=&quot;500&quot;&gt;&lt;h2&gt;&lt;b&gt;类型变量&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;到目前为止，我们遇到的每一个 &lt;equation&gt;\lambda&lt;/equation&gt; 项都有唯一确定的类型，&lt;br&gt;因为，项的类型都被显式的注释在了它的后面。&lt;br&gt;例如，我们可以定义一个恒等函数 &lt;equation&gt;id=\lambda x:Nat.~x:Nat\to Nat&lt;/equation&gt; ，&lt;br&gt;则 &lt;equation&gt;id&lt;/equation&gt; 的类型就是固定的， &lt;equation&gt;Nat\to Nat&lt;/equation&gt; ，而 &lt;equation&gt;id~true&lt;/equation&gt; 就不是良类型的。&lt;/p&gt;&lt;p&gt;为每一个类型的恒等函数都定义各自的版本，是非常繁琐的，&lt;br&gt;因此，一个自然的想法是，我们能否让 &lt;equation&gt;id&lt;/equation&gt; 的类型&lt;b&gt;参数化&lt;/b&gt;，&lt;br&gt;让它在不同的上下文中，实例化为不同的具体类型。&lt;br&gt;例如， &lt;equation&gt;id=\lambda x:X.~x:X\to X&lt;/equation&gt; ，其中 &lt;equation&gt;X&lt;/equation&gt; 是&lt;b&gt;类型参量&lt;/b&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;类型代换&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;类型代换&lt;/b&gt; &lt;equation&gt;\sigma&lt;/equation&gt; ，指的是一个从类型变量到类型的有限映射。&lt;br&gt;例如， &lt;equation&gt;\sigma=[X\mapsto T,Y\mapsto U]&lt;/equation&gt; ，会将类型变量 &lt;equation&gt;X,Y&lt;/equation&gt; 分别代换为 &lt;equation&gt;T,U&lt;/equation&gt; 。&lt;br&gt;其中， &lt;equation&gt;X,Y&lt;/equation&gt; 称为代换 &lt;equation&gt;\sigma&lt;/equation&gt; 的&lt;b&gt;定义域&lt;/b&gt;，记为 &lt;equation&gt;dom(\sigma)&lt;/equation&gt; ，&lt;br&gt;而 &lt;equation&gt;T,U&lt;/equation&gt; 称为代换 &lt;equation&gt;\sigma&lt;/equation&gt; 的&lt;b&gt;值域&lt;/b&gt;，记为 &lt;equation&gt;range(\sigma)&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;值得一提的是，所有的代换都是同时进行的， &lt;equation&gt;\sigma=[X\mapsto Bool,Y\mapsto X\to X]&lt;/equation&gt; ，&lt;br&gt;是将 &lt;equation&gt;X&lt;/equation&gt; 映射成 &lt;equation&gt;Bool&lt;/equation&gt; ，将 &lt;equation&gt;Y&lt;/equation&gt; 映射成 &lt;equation&gt;X\to X&lt;/equation&gt; ，而不是 &lt;equation&gt;Bool\to Bool&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;&lt;b&gt;代换&lt;/b&gt;可以用下面的方式来定义，&lt;br&gt;（1） &lt;equation&gt;\sigma(X)=X&lt;/equation&gt; ，如果 &lt;equation&gt;X\notin dom(\sigma)&lt;/equation&gt; &lt;br&gt;（2） &lt;equation&gt;\sigma(X)=T&lt;/equation&gt; ，如果 &lt;equation&gt;(X\mapsto T)\in\sigma&lt;/equation&gt; &lt;br&gt;（3） &lt;equation&gt;\sigma(Nat)=Nat&lt;/equation&gt; ， &lt;equation&gt;\sigma(Bool)=Bool&lt;/equation&gt; &lt;br&gt;（4） &lt;equation&gt;\sigma(T_1\to T_2)=\sigma T_1\to\sigma T_2&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;对于类型上下文 &lt;equation&gt;\Gamma=\{x_1:T_1,\cdots,x_n:T_n\}&lt;/equation&gt; 来说， &lt;equation&gt;\sigma\Gamma=\{x_1:\sigma T_1,\cdots,x_n:\sigma T_n\}&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;类型代换的一个重要特性是它保留了类型声明的有效性，&lt;br&gt;如果包含类型变量的项是良类型的，那么它的所有代换实例也都是良类型的。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;类型推断&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-691c692ba80fac2d4b7d02741c0a3da2_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;753&quot; data-rawheight=&quot;496&quot;&gt;&lt;p&gt;在类型上下文 &lt;equation&gt;\Gamma&lt;/equation&gt; 中，对于包含类型变量的项 &lt;equation&gt;t&lt;/equation&gt; ，我们通常会提出两个问题，&lt;/p&gt;&lt;p&gt;（1）它的所有代换实例，是否都是良类型的？&lt;br&gt;即，是否 &lt;equation&gt;\forall\sigma\exists T,\sigma\Gamma\vdash\sigma t:T&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;（2）是否存在良类型的代换实例？&lt;br&gt;即，是否 &lt;equation&gt;\exists\sigma\exists T,\sigma\Gamma\vdash\sigma t:T&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;对于第一个问题，将引出&lt;b&gt;参数化多态&lt;/b&gt;（&lt;a href=&quot;https://en.wikipedia.org/wiki/Parametric_polymorphism&quot;&gt;parametric polymorphism&lt;/a&gt;），&lt;br&gt;例如， &lt;equation&gt;\lambda f:X\to X.\lambda a:X.f(f(a))&lt;/equation&gt; ，它的类型为 &lt;equation&gt;(X\to X)\to X\to X&lt;/equation&gt; ，&lt;br&gt;无论用什么具体类型 &lt;equation&gt;T&lt;/equation&gt; 来代换 &lt;equation&gt;X&lt;/equation&gt; ，代换实例都是良类型的。&lt;/p&gt;&lt;p&gt;对于第二个问题，原始的项可能不是良类型的，&lt;br&gt;但是可以选择合适的类型代换使之实例化为良类型的项。&lt;/p&gt;&lt;p&gt;例如， &lt;equation&gt;\lambda f:Y.\lambda a:X.f(f(a))&lt;/equation&gt; ，是不可类型化的，&lt;br&gt;但是如果用 &lt;equation&gt;Nat\to Nat&lt;/equation&gt; 代换 &lt;equation&gt;Y&lt;/equation&gt; ，用 &lt;equation&gt;Nat&lt;/equation&gt; 代换 &lt;equation&gt;X&lt;/equation&gt; ，&lt;br&gt; &lt;equation&gt;\sigma=[X\mapsto Nat,Y\mapsto Nat\to Nat]&lt;/equation&gt; ，&lt;br&gt;就可以得到， &lt;equation&gt;\lambda f:Nat\to Nat.\lambda a:Nat.f(f(a))&lt;/equation&gt; ，&lt;br&gt;可类型化为 &lt;equation&gt;(Nat\to Nat)\to Nat\to Nat&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;或者，取 &lt;equation&gt;\sigma&#39;=[Y\mapsto X\to X]&lt;/equation&gt; ，结果也能得到一个良类型的项，尽管仍包含变量。&lt;/p&gt;&lt;p&gt;在寻找类型变量有效实例的过程中，出现了&lt;b&gt;类型推断&lt;/b&gt;（&lt;a href=&quot;https://en.wikipedia.org/wiki/Type_inference&quot;&gt;type inference&lt;/a&gt;）的概念。&lt;br&gt;意味着由编译器来帮助推断 &lt;equation&gt;\lambda&lt;/equation&gt; 项的具体类型，&lt;br&gt;在&lt;a href=&quot;https://en.wikipedia.org/wiki/ML_(programming_language)&quot;&gt;ML&lt;/a&gt;语言中，程序员可以忽略所有的类型注释——隐式类型（&lt;a href=&quot;http://wiki.c2.com/?ImplicitTyping&quot;&gt;implicit typing&lt;/a&gt;）。&lt;/p&gt;&lt;p&gt;在进行推断的时候，对每一个原始的 &lt;equation&gt;\lambda&lt;/equation&gt; 抽象 &lt;equation&gt;\lambda x.t&lt;/equation&gt; ，&lt;br&gt;都用新的类型变量进行注释，写成 &lt;equation&gt;\lambda x:X.t&lt;/equation&gt; ，&lt;br&gt;然后采取特定的类型推导算法，找到使项通过类型检查的一个最一般化的解。&lt;/p&gt;&lt;p&gt;设 &lt;equation&gt;\Gamma&lt;/equation&gt; 为类型上下文， &lt;equation&gt;t&lt;/equation&gt; 为项，&lt;br&gt; &lt;equation&gt;(\Gamma,t)&lt;/equation&gt; 的&lt;b&gt;解&lt;/b&gt;，是指这样的一个序对 &lt;equation&gt;(\sigma,T)&lt;/equation&gt; ，使得 &lt;equation&gt;\sigma\Gamma\vdash\sigma t:T&lt;/equation&gt; 成立。&lt;/p&gt;&lt;p&gt;例如，设 &lt;equation&gt;\Gamma=f:X,a:Y&lt;/equation&gt; ， &lt;equation&gt;t=f~a&lt;/equation&gt; ，则&lt;br&gt; &lt;equation&gt;(\sigma=[X\mapsto Y\to Nat],Nat)&lt;/equation&gt; ， &lt;equation&gt;(\sigma=[X\mapsto Y\to Z],Z)&lt;/equation&gt; ，都是 &lt;equation&gt;(\Gamma,t)&lt;/equation&gt; 的解。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;基于约束的类型化&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-281fd8e3781690168c07b31e22bc9325_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;333&quot; data-rawheight=&quot;109&quot;&gt;&lt;p&gt;&lt;b&gt;（1）约束集&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在实际情况中， &lt;equation&gt;(\Gamma,t)&lt;/equation&gt; 的解，并不一定满足其他类型表达式的约束条件，&lt;br&gt;所以，我们寻找的是满足这些约束条件的特解。&lt;/p&gt;&lt;p&gt;所谓&lt;b&gt;约束条件&lt;/b&gt;，实际上指的是约束集 &lt;equation&gt;C&lt;/equation&gt; ，&lt;br&gt;它由一些包含类型参量的项的等式构成， &lt;equation&gt;\{S_i=T_i|i\in l..n\}&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;如果一个代换 &lt;equation&gt;\sigma&lt;/equation&gt; 的代换实例， &lt;equation&gt;\sigma S&lt;/equation&gt; 和 &lt;equation&gt;\sigma T&lt;/equation&gt; 相同，则称该代换&lt;b&gt;合一&lt;/b&gt;（unify）了等式 &lt;equation&gt;S=T&lt;/equation&gt; 。&lt;br&gt;如果 &lt;equation&gt;\sigma&lt;/equation&gt; 能合一 &lt;equation&gt;C&lt;/equation&gt; 中的所有等式，则称 &lt;equation&gt;\sigma&lt;/equation&gt; 能&lt;b&gt;合一&lt;/b&gt;（unify）或满足（satisfy） &lt;equation&gt;C&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;我们用 &lt;equation&gt;\Gamma\vdash t:T|_\chi C&lt;/equation&gt; ，来表示约束集 &lt;equation&gt;C&lt;/equation&gt; 满足时，项 &lt;equation&gt;t&lt;/equation&gt; 在 &lt;equation&gt;\Gamma&lt;/equation&gt; 下的类型为 &lt;equation&gt;T&lt;/equation&gt; ，&lt;br&gt;其中 &lt;equation&gt;\chi&lt;/equation&gt; 为约束集中，所有类型变量的集合，有时为了讨论方便可以省略它。&lt;/p&gt;&lt;p&gt;例如，对于项 &lt;equation&gt;t=\lambda x:X\to Y.x~0&lt;/equation&gt; ，&lt;br&gt;约束集可以写为 &lt;equation&gt;\{Nat\to Z=X\to Y\}&lt;/equation&gt; ，则 &lt;equation&gt;t&lt;/equation&gt; 类型为 &lt;equation&gt;(X\to Y)\to Z&lt;/equation&gt; 。（算法略）&lt;br&gt;而代换 &lt;equation&gt;\sigma=[X\mapsto Nat,Z\mapsto Bool,Y\mapsto Bool]&lt;/equation&gt; ，使得等式 &lt;equation&gt;Nat\to Z=X\to Y&lt;/equation&gt; 成立，&lt;br&gt;所以，我们推断出了 &lt;equation&gt;(Nat\to Bool)\to Bool&lt;/equation&gt; 是项 &lt;equation&gt;t&lt;/equation&gt; 的一个可能类型。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（2）约束集的解&lt;/b&gt;&lt;/p&gt;&lt;p&gt;约束集的解一般不是唯一的，所以一个关键问题是如何确定一个“最好”的解。&lt;/p&gt;&lt;p&gt;我们称代换 &lt;equation&gt;\sigma&lt;/equation&gt; 比 &lt;equation&gt;\sigma&#39;&lt;/equation&gt; &lt;b&gt;更具一般性&lt;/b&gt;（more general），如果 &lt;equation&gt;\sigma&#39;=\gamma\circ\sigma&lt;/equation&gt; ，记为 &lt;equation&gt;\sigma\sqsubseteq\sigma&#39;&lt;/equation&gt; ，&lt;br&gt;其中， &lt;equation&gt;\gamma&lt;/equation&gt; 为一个代换， &lt;equation&gt;\gamma\circ\sigma&lt;/equation&gt; 表示代换的复合， &lt;equation&gt;(\gamma\circ\sigma)S=\gamma(\sigma S)&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;约束集 &lt;equation&gt;C&lt;/equation&gt; 的&lt;b&gt;主合一子&lt;/b&gt;（principal unifier）指的是代换 &lt;equation&gt;\sigma&lt;/equation&gt; ，&lt;br&gt;它能满足 &lt;equation&gt;C&lt;/equation&gt; ，且对于所有满足 &lt;equation&gt;C&lt;/equation&gt; 的代换 &lt;equation&gt;\sigma&#39;&lt;/equation&gt; ，都有 &lt;equation&gt;\sigma\sqsubseteq\sigma&#39;&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;如果 &lt;equation&gt;(\Gamma,t,S,C)&lt;/equation&gt; 的解 &lt;equation&gt;(\sigma,T)&lt;/equation&gt; ，对于任何其他解 &lt;equation&gt;(\sigma&#39;,T&#39;)&lt;/equation&gt; ，都有 &lt;equation&gt;\sigma\sqsubseteq\sigma&#39;&lt;/equation&gt; ，&lt;br&gt;则称 &lt;equation&gt;(\sigma,T)&lt;/equation&gt; 是一个&lt;b&gt;主解&lt;/b&gt;（principal solution），称 &lt;equation&gt;T&lt;/equation&gt;  为 &lt;equation&gt;t&lt;/equation&gt; 的&lt;b&gt;主类型&lt;/b&gt;（principal type）。&lt;br&gt;可以证明，如果 &lt;equation&gt;(\Gamma,t,S,C)&lt;/equation&gt; 有解，则它必有一个主解。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;let多态&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-98db611b8facd70dd4be4eebdc7e1212_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;633&quot; data-rawheight=&quot;357&quot;&gt;&lt;p&gt;&lt;b&gt;多态&lt;/b&gt;（polymorphism）指的是单独一段程序能在不同的上下文中实例化为不同的类型。&lt;br&gt;其中let多态，是由let表达式引入的多态性。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1）单态性&lt;/b&gt;&lt;/p&gt;&lt;p&gt;假设我们定义了一个 &lt;equation&gt;double&lt;/equation&gt; 函数，它能将一个函数对参数应用两次，&lt;br&gt; &lt;equation&gt;let~double=\lambda f:Nat\to Nat.\lambda a:Nat.f(f(a))~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~double~(\lambda x:Nat.succ~x)~1&lt;/equation&gt; &lt;br&gt;此时， &lt;equation&gt;double&lt;/equation&gt; 的类型为 &lt;equation&gt;(Nat\to Nat)\to Nat\to Nat&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;如果我们想将 &lt;equation&gt;double&lt;/equation&gt; 应用于其他类型，就必须重写一个新的 &lt;equation&gt;double&#39;&lt;/equation&gt; ，&lt;br&gt; &lt;equation&gt;let~double&#39;=\lambda f:Bool\to Bool.\lambda a:Bool.f(f(a))~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~double&#39;~(\lambda x:Bool.x)~true&lt;/equation&gt; &lt;br&gt;此时 &lt;equation&gt;double&#39;&lt;/equation&gt; 的类型为 &lt;equation&gt;(Bool\to Bool)\to Bool\to Bool&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;我们不能让一个 &lt;equation&gt;double&lt;/equation&gt; 函数，既能用于 &lt;equation&gt;Nat&lt;/equation&gt; 类型，又能用于 &lt;equation&gt;Bool&lt;/equation&gt; 类型。&lt;br&gt;即使在 &lt;equation&gt;double&lt;/equation&gt; 中用类型变量也没有用，&lt;br&gt; &lt;equation&gt;let~double=\lambda f:X\to X.\lambda a:X.f(f(a))~in~\cdots&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;例如，如果写，&lt;br&gt; &lt;equation&gt;let~double=\lambda f:X\to X.\lambda a:X.f(f(a))~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~let~a=double~(\lambda x:Nat.succ~x)~1~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~~~~~let~b=double~(\lambda x:Bool.x)~true~in~\cdots&lt;/equation&gt; &lt;br&gt;则在 &lt;equation&gt;a&lt;/equation&gt; 定义中使用 &lt;equation&gt;double&lt;/equation&gt; ，会产生一个约束 &lt;equation&gt;X\to X=Nat\to Nat&lt;/equation&gt; ，&lt;br&gt;而在 &lt;equation&gt;b&lt;/equation&gt; 定义中使用 &lt;equation&gt;double&lt;/equation&gt; ，则会产生约束 &lt;equation&gt;X\to X=Bool\to Bool&lt;/equation&gt; ，&lt;br&gt;这样会使类型变量 &lt;equation&gt;X&lt;/equation&gt; 的求解发生矛盾，导致整个程序不可类型化。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（2）多态性&lt;/b&gt;&lt;/p&gt;&lt;p&gt;let多态所做的事情，就是打破这个限制，&lt;br&gt;让类型参量 &lt;equation&gt;X&lt;/equation&gt; 在上述不同的上下文中，可以分别实例化为 &lt;equation&gt;Nat&lt;/equation&gt; 和 &lt;equation&gt;Bool&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;这需要改变与let表达式相关的类型推导规则，在第七篇中，我们提到过，&lt;br&gt; &lt;equation&gt;\frac{\Gamma\vdash t_1:T_1~~~~\Gamma,x:T_1\vdash t_2:T_2}{\Gamma\vdash let~x:T_1=t_1~in~t_2:T_2}&lt;/equation&gt; &lt;br&gt;它会首先计算 &lt;equation&gt;T_1&lt;/equation&gt; 作为 &lt;equation&gt;x&lt;/equation&gt; 的类型，然后再用 &lt;equation&gt;x&lt;/equation&gt; 来确定 &lt;equation&gt;T_2&lt;/equation&gt; 的类型。&lt;br&gt;此时，let表达式 &lt;equation&gt;let~x=t_1:T_1~in~t_2&lt;/equation&gt; ，可以看做 &lt;equation&gt;(\lambda x:T_1.t_2)t_1&lt;/equation&gt; 的简写。&lt;/p&gt;&lt;p&gt;为了引入多态性，我们需要对上述类型推导规则进行修改，&lt;br&gt; &lt;equation&gt;\frac{\Gamma\vdash[x\mapsto t_1]t_2:T_2}{\Gamma\vdash let~x=t_1~in~t_2:T_2}&lt;/equation&gt; &lt;br&gt;它表示，先将 &lt;equation&gt;t_2&lt;/equation&gt; 中的 &lt;equation&gt;x&lt;/equation&gt; 用 &lt;equation&gt;t_1&lt;/equation&gt; 代换掉，然后再确定 &lt;equation&gt;t_2&lt;/equation&gt; 的类型。&lt;/p&gt;&lt;p&gt;这样的话，&lt;br&gt; &lt;equation&gt;let~double=\lambda f:X\to X.\lambda a:X.f(f(a))~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~let~a=double~(\lambda x:Nat.succ~x)~1~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~~~~~let~b=double~(\lambda x:Bool.x)~true~in~\cdots&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;就相当于，&lt;br&gt; &lt;equation&gt;let~a=\lambda f:X\to X.\lambda a:X.f(f(a))~(\lambda x:Nat.succ~x)~1~in&lt;/equation&gt; &lt;br&gt;&lt;equation&gt;~~~~let~b=\lambda f:Y\to Y.\lambda a:Y.f(f(a))~(\lambda x:Bool.x)~true~in~\cdots&lt;/equation&gt; &lt;br&gt;通过let多态，产生了 &lt;equation&gt;double&lt;/equation&gt; 的两个&lt;b&gt;副本&lt;/b&gt;，并为之分配了不同的类型参量。&lt;/p&gt;&lt;p&gt;此时，let表达式 &lt;equation&gt;let~x=t_1~in~t_2&lt;/equation&gt; ，可以看做 &lt;equation&gt;[x\mapsto t_1]t_2&lt;/equation&gt; 的简写。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#Let-polymorphism&quot;&gt;Hindley–Milner type system&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;https://book.douban.com/subject/1761910/&quot;&gt;Types and programming languages&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;https://www.haskell.org/definition/haskell2010.pdf&quot;&gt;Haskell 2010 Language Report&lt;/a&gt;&lt;/p&gt;</description>
+<author>何幻</author>
+<guid isPermaLink="false">2018-03-26-34915143</guid>
+<pubDate>Mon, 26 Mar 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>递归函数（六）：最多有多少个程序</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-14-34484014.html</link>
@@ -632,160 +641,6 @@ let rest t = match uncons t with
 <author>廿人口木</author>
 <guid isPermaLink="false">2018-02-18-33859991</guid>
 <pubDate>Sun, 18 Feb 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>delimited continuations完全攻略</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-02-15-33399006.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33399006&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-eb471c83c20ac7b33a45d0f2bf17a90c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;宣传一下我的群：Expert Scheme：523791077&lt;/p&gt;&lt;p&gt;&lt;b&gt;Part I ： shift and reset&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;警告：在racket中使用shift/reset，请加上这句：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(require racket/control)&lt;/code&gt;&lt;p&gt;&lt;b&gt;A. shift和reset的基本规则&lt;/b&gt;&lt;/p&gt;&lt;p&gt;要了解shift和reset如何使用，就必须先了解shift和reset的求值规则：&lt;/p&gt;&lt;p&gt;当reset的内部是简单表达式的时候，整个表达式直接返回其值。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ 1 2)) =&amp;gt; 3&lt;/code&gt;&lt;p&gt;当reset的内部的shift被求值时，需要注意，返回shift的body。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ 1 (shift k 2)))  =&amp;gt; 2&lt;/code&gt;&lt;p&gt;把reset想象成一个整块，shift就是在其中打洞。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(+ 1 hole)&lt;/code&gt;&lt;p&gt;你现在需要一个值把洞填上去，我们可以写一个函数：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (hole) (+ 1 hole))&lt;/code&gt;&lt;p&gt;而shift的第一个标识符k所绑定的值就是这个函数(一般称为continuation，用字母k表示，或者用ctx表示）。&lt;/p&gt;&lt;p&gt;这个表达式：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ (shift k (k (k 1))) 1))&lt;/code&gt;&lt;p&gt;我们的k函数应当是（注意，这个例子中的hole与上一个例子的hole位置是不同的）&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (hole) (+ hole 1))&lt;/code&gt;&lt;p&gt;整个表达式应当返回shift的body部分，即：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(k (k 1))&lt;/code&gt;&lt;p&gt;而我们已经知道k的值了，直接带入表达式计算得出3。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;B. 与Arclisp中方括号的关系&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;Since functions of one argument are so often used in Lisp programs,&lt;br&gt;Arc has a special notation for them.  [... _ ...]  is an abbreviation&lt;br&gt;for (fn (_) (... _ ...)).  So our first map example could have been&lt;br&gt;written&lt;br&gt;&lt;br&gt;arc&amp;gt; (map [+ _ 10] &#39;(1 2 3))&lt;br&gt;(11 12 13)&lt;/blockquote&gt;&lt;p&gt;Arclisp允许你在表达式中开洞，这样表达式就成了一个函数。&lt;/p&gt;&lt;p&gt;而reset/shift中也允许你这么做。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (shift k k))  = 
-(lambda (x) x) = 
-[ _ ] (in Arclisp)&lt;/code&gt;&lt;p&gt;第二个例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ 1 (* 2 (shift k k))))  =
-(lambda (x) (+ 1 (* 2 x)))  =
-[+ 1 (* 2 _)] (in Arclisp)&lt;/code&gt;&lt;p&gt;我们发现Arclisp中的_与(shift k k)某种意义上有很大的相似性。&lt;/p&gt;&lt;p&gt;下面是一个更酷的例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (+ (shift k1 k1) (shift k2 k2)))&lt;/code&gt;&lt;p&gt;为了区分前后两个k，我将它们分别标记为k1和k2。&lt;/p&gt;&lt;p&gt;很明显k1是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x1)
-  (+ x1 (shift k2 k2)))&lt;/code&gt;&lt;p&gt;我们的reset表达式返回了k1。&lt;/p&gt;&lt;p&gt;尝试向k1这个函数中喂一个值2：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(+ 2 (shift k2 k2))&lt;/code&gt;&lt;p&gt;现在你应该感到犯难了，还有一个shift表达式，但是外层已经没有reset了。&lt;/p&gt;&lt;p&gt;于是shift并不知道把k2返回到哪里，也不知道&lt;b&gt;打洞的范围是多大&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;k2是:&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x) x)&lt;/code&gt;&lt;p&gt;还是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x) (+ 2 x))&lt;/code&gt;&lt;p&gt;幸运的是，shift和reset已经帮我们考虑到这个难题了，会帮我们自动地在k1体内加一个reset。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;k1 = (lambda (x1) (reset (+ x1 (shift k2 k2))))&lt;/code&gt;&lt;p&gt;很明显，我们可以直接写出k2 （别弄丢了reset）：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x2) (reset (+ x1 x2)))&lt;/code&gt;&lt;p&gt;综合起来结果就是&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x1)
-  (lambda (x2)
-    (+ x1 x2)))&lt;/code&gt;&lt;p&gt;因为当reset体内没有shift时，直接返回其值，所以我们可以将两个reset消去。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;请验证 (shift k (k &lt;i&gt;val&lt;/i&gt;))和&lt;i&gt;val&lt;/i&gt;在reset体内是等价的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;C. 重新认识shift/reset&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们从shift里面获得一个k，上一节讨论过这个k应当是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x) (reset expr ...))&lt;/code&gt;&lt;p&gt;考虑下面的表达式：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (shift k (shift k 1)))&lt;/code&gt;&lt;p&gt;结果是1，按照我们原来的规则进行求值：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;=&amp;gt; (shift k 1)&lt;/code&gt;&lt;p&gt;遇到了同样的难题！外层没有reset，肯定是自动帮我们加的:&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;=&amp;gt; (reset (shift k 1))&lt;/code&gt;&lt;p&gt;所以，是时候拓展我们的求值规则了。&lt;/p&gt;&lt;p&gt;(reset val) =&amp;gt; val&lt;br&gt;(reset E[(shift k expr)]) =&amp;gt; (&lt;b&gt;reset&lt;/b&gt; ((lambda (k) expr) (lambda (v) (&lt;b&gt;reset&lt;/b&gt; E[v]))))&lt;br&gt; ; where E has no reset&lt;/p&gt;&lt;p&gt;我将其中需要添加reset的部分用粗体标出。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;D. 与不确定性计算，list monad的关系&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这是一个计算a+b是否等于c的程序，如果等于c，那么输出整个式子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(let ([a 1])
-  (let ([b 1])
-    (let ([c 2])
-      (when (= (+ a b) c) (printf &quot;~a+~a=~a\n&quot; a b c)))))&lt;/code&gt;&lt;p&gt;可以把他们写成reset/shift的形式：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (let ([a (shift k (k 1))])
-         (let ([b (shift k (k 1))])
-           (let ([c (shift k (k 2))])
-             (when (= (+ a b) c) (printf &quot;~a+~a=~a\n&quot; a b c))))))&lt;/code&gt;&lt;p&gt;两种写法是等价的，现在我们的a，b，c可能是多个不确定的值，也就是要进行多次计算。&lt;/p&gt;&lt;p&gt;我们可以把k想象成填一个值，进行一次计算，于是我们将函数k进行细胞分裂，多次计算。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (let ([a (shift k (k 1) (k 2) (k 3))])
-         (let ([b (shift k (k 1) (k 2) (k 3))])
-           (let ([c (shift k (k 1)(k 2)(k 3))])
-             (when (= (+ a b) c) (printf &quot;~a+~a=~a\n&quot; a b c))))))&lt;/code&gt;&lt;p&gt;返回结果：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;1+1=2
-1+2=3
-2+1=3&lt;/code&gt;&lt;p&gt;如果你觉得这个例子难以理解，那么下面的呢（输出 123）：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (let ([a (shift k (k 1) (k 2) (k 3))])
-         (print a)))&lt;/code&gt;&lt;p&gt;list monad或是list comprehension是一种很好用的计算列表的方法，但是racket中没有do notation，必须用宏来替代。（实际上racket提供了for comprehension作为替代方案，我们这里为了演示reset和shift的作用不考虑。）&lt;/p&gt;&lt;p&gt;但是，我们也可以用reset和shift来直接实现：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define return list)
-(define (in-list lst)
-  (shift k
-         (apply append
-                (map k lst))))
-
-(reset (let ([a (in-list &#39;(1 2 3))]
-             [b (in-list &#39;(1 2 3))])
-         (return (list a b))))&lt;/code&gt;&lt;p&gt;返回结果：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;&#39;((1 1) (1 2) (1 3) (2 1) (2 2) (2 3) (3 1) (3 2) (3 3))&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;E. 与状态，state monad的关系&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在一些语言中不支持赋值语句，无法保存状态，可以用state monad来模拟，同样地，state monad也可以用reset和shift模拟。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (get)
-  (shift k (lambda (s) ((k s) s))))
-(define (put s)
-  (shift k (lambda (-s)
-             ((k (void)) s))))
-(define ((return x) s) x)&lt;/code&gt;&lt;p&gt;下面展现了一个很有意思的例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (tick)
-  (let ([a (get)])
-    (put (+ a 1))))
-((reset (tick)
-       (tick)
-       (tick)
-       (return (get))) 0)&lt;/code&gt;&lt;p&gt;试试看用shift和reset是否能实现其他monad。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;F. 与stream，generator的关系&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当我们需要表示无穷时，我们通常借助于stream与generator，而shift/reset与这二者间有着微妙的关系。&lt;/p&gt;&lt;p&gt;我们需要使用define-syntax-rule，不了解的请看：&lt;a href=&quot;http://docs.racket-lang.org/reference/stx-patterns.html?q=define-syntax-rule#%28form._%28%28lib._racket%2Fprivate%2Fmisc..rkt%29._define-syntax-rule%29%29&quot;&gt;12.1 Pattern-Based Syntax Matching&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;看下面的例子：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define s (reset (shift k (stream-cons 1 (k (void))))
-                 (shift k (stream-cons 2 (k (void))))
-                 (shift k (stream-cons 3 (k (void))))
-                 (shift k &#39;())))&lt;/code&gt;&lt;p&gt;这个例子生成了一个内容为1 2 3的stream，而内部的语法却接近generator！&lt;/p&gt;&lt;p&gt;我们可以写宏来让你看的更加清楚：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define-syntax-rule (stream/generate expr ...)
-  (reset expr ...))
-(define-syntax-rule (stream/yield expr ...)
-  (shift k (stream-cons (begin expr ...) (k (void)))))
-
-(define s (stream/generate
-           (stream/yield 1)
-           (stream/yield 2)
-           (stream/yield 3)))
-
-(define (integer-sequences x)
-  (stream/generate (stream/yield x)
-                   (integer-sequences (+ x 1))))&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;用shift和reset实现generator的任务更为艰巨，我们曾经在&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25749077&quot;&gt;愉悦的scheme之旅（2）--用callcc合成控制流&lt;/a&gt;介绍过用call/cc实现的generator，但是因为有了shift和reset一切都变简单了。&lt;/p&gt;&lt;p&gt;我们需要使用syntax-parameter，不了解的请看&lt;a href=&quot;http://docs.racket-lang.org/reference/stxparam.html?q=syntax-parameter&quot;&gt;12.5 Syntax Parameters&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;完整程序如下：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;#lang racket
-(require racket/control racket/stxparam)
-(define-syntax-parameter yield 
-  (syntax-rules ()
-    [(_ expr ...)
-     (raise-syntax-error &#39;generator-err
-                         &quot;You must use yield in the body of generator&quot;)]))
-
-(define-syntax-rule (generate expr ...)
-  (letrec ([state (lambda ()
-                 (syntax-parameterize
-                     ([yield (syntax-rules ()
-                               [(_ expr2 (... ...)) (shift k
-                                                           (set! state
-                                                                 (lambda () (k (void))))
-                                                           (values expr2 (... ...)))])])
-                   (reset (begin expr ... (void)))))])
-    (lambda ()
-      (state)
-      )))
-(define g (generate (yield 1)
-                    (yield 6)
-                    (yield 7)
-                    (yield 10)))&lt;/code&gt;&lt;p&gt;宏会干扰我们的思考，我们看看展开后是什么样子吧。&lt;/p&gt;&lt;p&gt;racket的macro stepper是宏调试的利器，通过它，我们可以直接看到展开的结果：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(syntax-parameterize
-  ((yield
-    (syntax-rules ()
-      ((_ expr2 ...)
-       (shift k (set! state (lambda () (k (void)))) (values expr2 ...))))))
-  (reset (begin (yield 1) (yield 6) (yield 7) (yield 10) (void))))&lt;/code&gt;&lt;p&gt;这并不是最终的结果，因为syntax-parameterize没有展开,由于一些限制，我们手动展开一下：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (begin (shift k (set! state (lambda () (k (void)))) (values 1))
-                (shift k (set! state (lambda () (k (void)))) (values 6))
-                (shift k (set! state (lambda () (k (void)))) (values 7))
-                (shift k (set! state (lambda () (k (void)))) (values 10))
-                (void)))&lt;/code&gt;&lt;p&gt;现在应该看的很清楚了，第一次调用时返回1，state则变成了：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda () (reset (begin (void)
-                         (shift k (set! state (lambda () (k (void)))) (values 6))
-                         (shift k (set! state (lambda () (k (void)))) (values 7))
-                         (shift k (set! state (lambda () (k (void)))) (values 10))
-                         (void))))&lt;/code&gt;&lt;p&gt;剩下的应该不难了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;G.  算法&lt;/b&gt;&lt;/p&gt;&lt;p&gt;考虑函数genlist：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(genlist &#39;(1 2)) =&amp;gt; &#39;((1) (1 2))
-(genlist &#39;(1 2 3 4)) =&amp;gt; &#39;((1) (1 2) (1 2 3) (1 2 3 4))&lt;/code&gt;&lt;p&gt;有人会这么做：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (genlist lst)
-  (define (genlist lst last)
-    (if (null? lst) &#39;()
-        (let ([x (append last (list (car lst)))])
-          (cons x (genlist (cdr lst) x)))))
-  (genlist lst &#39;()))&lt;/code&gt;&lt;p&gt;可惜效率并不高，因为多次向队尾插入数据。&lt;/p&gt;&lt;p&gt;借助CPS，我们可以这么写（其实也可看成difference list）：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (genlist lst)
-  (define (genlist lst ctx)
-    (if (null? lst)
-        (list (ctx &#39;()))
-        (cons (ctx (list (car lst)))
-              (genlist (cdr lst)
-                       (lambda (x) (ctx (cons (car lst) x)))))))
-  (if (null? lst)
-      &#39;()
-      (genlist lst (lambda (x) x))))&lt;/code&gt;&lt;p&gt;考虑lst=&#39;(1 2 3 4)的情况，ctx分别是：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;ctx1 = [list* _]
-ctx2 = [list* 1 _]
-ctx3 = [list* 1 2 _]
-ctx4 = [list* 1 2 3 _]&lt;/code&gt;&lt;p&gt;我们可以用shift和reset重写：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(define (genlist lst)
-  (define (genlist lst)
-    (if (null? lst)
-        (shift k &#39;())
-        (shift k
-               (cons (k (list (car lst)))
-                     (reset (k (cons (car lst)
-                                     (genlist (cdr lst)))))))))
-  (reset (genlist lst)))&lt;/code&gt;&lt;p&gt;可以自己尝试推倒一下。&lt;/p&gt;&lt;p&gt;shift和reset还能做其他一些算法例如cps变换，anf变换，closure conversion等，这里不再详细介绍。&lt;/p&gt;&lt;p&gt;新手的课后作业：&lt;/p&gt;&lt;p&gt;尝试用shift和reset实现cps变换和anf变换。&lt;/p&gt;&lt;p&gt;老手的课后作业(难度非常大，做好心理准备）：&lt;/p&gt;&lt;p&gt;阅读&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://www.schemeworkshop.org/2016/scheme16-paper6.pdf&quot;&gt;Deriving Pure, Naturally-Recursive Operations for Processing Tail-Aligned Lists&lt;/a&gt;(SCHEME AND FUNCTIONAL PROGRAMMING WORKSHOP 2016)&lt;/p&gt;&lt;p&gt;并尝试用shift和reset改写其中的算法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Part II : shift0 and reset0&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;A. 求值规则&lt;/b&gt;&lt;/p&gt;&lt;p&gt;直接给出shift0和reset0的求值规则：&lt;/p&gt;&lt;p&gt;(reset0 &lt;i&gt;val&lt;/i&gt;) &lt;a href=&quot;file:///C:/Program%20Files/Racket/doc/reference/if.html?q=shift#%28form._%28%28lib._racket%2Fprivate%2Fletstx-scheme..rkt%29._~3d~3e%29%29&quot;&gt;=&amp;gt;&lt;/a&gt; &lt;i&gt;val&lt;/i&gt;&lt;/p&gt;&lt;p&gt;(reset0 &lt;i&gt;E&lt;/i&gt;[(shift0 &lt;i&gt;k&lt;/i&gt; &lt;i&gt;expr&lt;/i&gt;)]) &lt;a href=&quot;file:///C:/Program%20Files/Racket/doc/reference/if.html?q=shift#%28form._%28%28lib._racket%2Fprivate%2Fletstx-scheme..rkt%29._~3d~3e%29%29&quot;&gt;=&amp;gt;&lt;/a&gt; ((lambda (&lt;i&gt;k&lt;/i&gt;) &lt;i&gt;expr&lt;/i&gt;) (lambda (&lt;i&gt;v&lt;/i&gt;) (&lt;b&gt;reset0&lt;/b&gt; &lt;i&gt;E&lt;/i&gt;[&lt;i&gt;v&lt;/i&gt;])))&lt;/p&gt;&lt;p&gt;仔细比较与shift和reset的不同，你会发现是不是少了一个reset0，也就是说&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset0 (shift0 k expr)) =&amp;gt; expr&lt;/code&gt;&lt;p&gt;而不是&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset (shift k expr)) =&amp;gt; (reset expr)&lt;/code&gt;&lt;p&gt;那么思考下面这段程序，k1和k2分别是什么？&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset0 (+ 1
-           (reset0 (+ 2 (shift0 k1 (shift0 k2 3))))))&lt;/code&gt;&lt;p&gt;k1是显而易见的：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x1)
-  (reset0 (+ 2 x1)))&lt;/code&gt;&lt;p&gt;根据我们刚才讨论的内容继续求值：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;=&amp;gt; (reset0 (+ 1 (shift0 k2 1)))&lt;/code&gt;&lt;p&gt;然后就能得到k2了&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(lambda (x2) (reset0 (+ 1 x2)))&lt;/code&gt;&lt;p&gt;这里，我们最先得到的k1，是内层的continuation，而k2，是外层的continuation。&lt;/p&gt;&lt;p&gt;我们可以将他们组合一下，得到整个continuation：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(reset0 (+ 1 (reset0
-              (+ 2 (shift0 k1
-                           (shift0 k2 (k2 (k1 3))))))))&lt;/code&gt;&lt;p&gt;这与 (+ 1 (+ 2 3))是等价的。&lt;/p&gt;&lt;p&gt;我们捕获的continuation具有了层次这一概念，接下来我们该利用这一特点搞事了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;B. 括号解析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;下面思考这个问题，给与一个含有左括号的标记&#39;left 和右括号标记的&#39;right的列表，将其转换成有层次的列表。&lt;/p&gt;&lt;p&gt;(parse-parens &#39;(a b left c right)) =&amp;gt; &#39;(a b (c))&lt;/p&gt;&lt;p&gt;(parse-parens &#39;(a left b left c right right d)) =&amp;gt; &#39;(a (b (c)) d)&lt;/p&gt;&lt;p&gt;现在我们考虑解析&#39;(a b left c right)，以continuation的思维来看的话：&lt;/p&gt;&lt;p&gt;符号a ，ctx = (lambda (x) x)&lt;/p&gt;&lt;p&gt;符号b，ctx = (lambda (x) (cons a x))&lt;/p&gt;&lt;p&gt;符号left，ctx = (lambda (x) (list* a b x))&lt;/p&gt;&lt;p&gt;到这里我们就觉得有些困难了，因为left c right是一个整体，我们必须要解析到right才能知道这个整体的内容是&#39;(c)。&lt;/p&gt;&lt;p&gt;我们可以考虑使用双层的continuation：&lt;/p&gt;&lt;p&gt;符号a，ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) x)&lt;/p&gt;&lt;p&gt;符号b，ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) (cons a x))&lt;/p&gt;&lt;p&gt;符号left,ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) (list* a b x))&lt;/p&gt;&lt;p&gt;符号c ,  ctx-inner = (lambda (x) (cons c x)) ctx-outer = (lambda (x) (list* a b x))&lt;/p&gt;&lt;p&gt;符号right , 清空ctx-inner， 结果送入ctx-outer&lt;/p&gt;&lt;p&gt;ctx-inner = (lambda (x) x) ctx-outer = (lambda (x) (list* a b c x))&lt;/p&gt;&lt;p&gt;解析完毕，清空ctx-outer。&lt;/p&gt;&lt;p&gt;解析时ctx-inner负责处理内部，ctx-outer负责解析外部。&lt;/p&gt;&lt;p&gt;当我们的括号的层次不止两层时，我们的ctx也不止两个，无穷无尽的ctx组成了一个ctx栈。&lt;/p&gt;&lt;p&gt;现在，考虑如何用shift0和reset0实现：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (parse-parens lst)
-  (define (parse-parens lst)
-    (if (null? lst) &#39;()
-        (match (car lst)
-          [&#39;left (reset0 (parse-parens (cdr lst)))]
-          [&#39;right (shift0 k1 (shift0 k2 (reset0 (k2 (cons (k1 &#39;()) (parse-parens (cdr lst)))))))]
-          [_ (shift0 k (reset0 (k (cons (car lst) (parse-parens (cdr lst))))))])))
-  (reset0 (parse-parens lst)))&lt;/code&gt;&lt;p&gt;每次遇到left时，我们开辟一个新的reset0层，每次遇到right时，我们将该层次闭合。&lt;/p&gt;&lt;p&gt;这是利用同样办法写出来的表达式解析器：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (parse-exp lst)
-  (define (parse-exp lst)
-    (if (null? lst) (error &quot;No exp&quot;)
-        (match lst
-          [(list (? number? x)) x]
-          [(list (? number? x) (and (or &#39;+ &#39;-) op) rst ...) (shift0 k1
-                                                                    (shift0 k2 (shift0 k3
-                                                                                       (reset0 
-                                                                                        (list op  (k3 (k2 (k1 x))) (reset0
-                                                                                                                    (reset0
-                                                                                                                     (parse-exp rst))))))))]
-          [(list (? number? x) (and (or &#39;* &#39;/) op) rst ...) (shift0
-                                                             k1 (shift0 k2
-                                                                        (reset0  (list op (k1 (k2 x)) (reset0
-                                                                                                       (parse-exp rst))))))]
-          [(list (? number? x) (and &#39;^ op) rst ...) (shift0
-                                                     k (reset0
-                                                        (list op (k x) (parse-exp rst))))]
-          )))
-  (reset0 (reset0 (reset0 (parse-exp lst)))))&lt;/code&gt;&lt;p&gt;比如1+2*3^6-7*8的层次是：&lt;/p&gt;&lt;p&gt;1 + [ 2 * (3^6) ] - [ 7*8 ]&lt;/p&gt;&lt;p&gt;这就是为什么有三个优先级就需要三个reset0的缘故。&lt;/p&gt;&lt;p&gt;课后作业：&lt;/p&gt;&lt;p&gt;1.可以用shift0和reset0实现shift和reset吗，试试看。&lt;/p&gt;&lt;p&gt;2.这个表达式解析器存在一个缺陷，所有操作符都会视为左结合的，然而：&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(parse-exp &#39;(1 ^ 2 ^ 3))  =&amp;gt; &#39;(^ (^ 1 2) 3)&lt;/code&gt;&lt;p&gt;指数运算应当是右结合的，请尝修复这个bug。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>御坂黒子</author>
-<guid isPermaLink="false">2018-02-15-33399006</guid>
-<pubDate>Thu, 15 Feb 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
