@@ -15,6 +15,7 @@ const feeds = [
 		"c_156910707",
 		"worldofboss",
 		"xiangxt1984",
+		"hthgyj",
 		"Lhtz-Jqxx",
 		"quanttech",
 		"ricequant",
