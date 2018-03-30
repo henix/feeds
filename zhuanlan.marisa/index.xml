@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 30 Mar 2018 17:45:46 +0800</lastBuildDate>
+<lastBuildDate>Sat, 31 Mar 2018 01:49:20 +0800</lastBuildDate>
 <item>
 <title>C宏元编程:编译期LISP解释器（一）总体思路</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-30-35121316.html</link>
@@ -174,6 +174,72 @@ _e(I_want_recursion(x)) //=&amp;gt;do_it(x) do_it(x) I_want_recursion_R()(x)
     ((id number) 6))&lt;/code&gt;&lt;p&gt;然而，如果使用类型推断，它将不能通过类型检查！因为&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;中的类型&lt;code class=&quot;inline&quot;&gt;&#39;a&lt;/code&gt;——取决于约束处理的顺序——要么和&lt;code class=&quot;inline&quot;&gt;boolean&lt;/code&gt;合一，要么和&lt;code class=&quot;inline&quot;&gt;number&lt;/code&gt;合一。对应的，那时&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;的类型要么是&lt;code class=&quot;inline&quot;&gt;(boolean -&amp;gt; boolean)&lt;/code&gt;要么是&lt;code class=&quot;inline&quot;&gt;(number -&amp;gt; number)&lt;/code&gt;。当使用另一个类型调用&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;时，就会发生类型错误！&lt;/p&gt;&lt;p&gt;这是因为我们通过合一推断出来的类型实际并不是&lt;b&gt;多态的&lt;/b&gt;。这点很重要：将其称为类型变量不会使你获得多态!类型变量可以在下次使用时合一，彼时，最终得到的还只是单态函数。而真正的多态只有在能真正进行类型变量&lt;b&gt;实例化&lt;/b&gt;时才会获得。&lt;/p&gt;&lt;p&gt;所以在具有真正多态的语言中，约束生成和合一是不够的。相反，像ML和Haskell这种语言，甚至我们使用的静态类型语言也是，都实现了俗称&lt;b&gt;let-多态&lt;/b&gt;的东西。这种策略中，当包含类型变量的项在词法环境中被绑定时，该类型被自动提升为量化类型。每次使用时，该项被自动实例化。&lt;/p&gt;&lt;p&gt;很多实现策略可以做到这点。最简单（而不令人满意）的方式只需&lt;b&gt;复制&lt;/b&gt;绑定标识符代码的&lt;b&gt;代码&lt;/b&gt;；这样，上面每次&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;的使用都会得到自己的&lt;code class=&quot;inline&quot;&gt;(lambda (x) x)&lt;/code&gt;副本，所以每个都有它自己的类型变量。第一个的类型可能是&lt;code class=&quot;inline&quot;&gt;(&#39;a -&amp;gt; &#39;a)&lt;/code&gt;，第二个是&lt;code class=&quot;inline&quot;&gt;(&#39;b -&amp;gt; &#39;b)&lt;/code&gt;，第三个是&lt;code class=&quot;inline&quot;&gt;(&#39;c -&amp;gt; &#39;c)&lt;/code&gt;，等等。这些类型变量互不冲突，因此我们得到多态的效果。显然，这不仅增加了程序的大小，而且在存在递归的情况下也不起作用。然而，这给我们提供了通往更好解决方案的思路：不是复制代码，而是复制&lt;b&gt;类型&lt;/b&gt;。因此在每次使用时，我们创建推导出类型的重命名版本：第一次使用时，id的类型&lt;code class=&quot;inline&quot;&gt;(&#39;a -&amp;gt; &#39;a)&lt;/code&gt;变成了&lt;code class=&quot;inline&quot;&gt;(&#39;b -&amp;gt; &#39;b)&lt;/code&gt;，以此类推，这种方式实现了拷贝代码相同的效果且没有它的包袱。不过，因为这些策略实质都是效仿代码拷贝，因此它们只能在词法环境下工作。&lt;/p&gt;</description>
 <author>MrMathematica</author>
 <guid isPermaLink="false">2018-03-30-35115633</guid>
+<pubDate>Fri, 30 Mar 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Java and Scala’s Type Systems are Unsound</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-30-35055185.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35055185&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d7db8335a8c05f576678c6d1e81f5b2c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;Java and scala&#39;s type systems are unsound: the existential crisis of null pointers, OOPSLA 2016&lt;/p&gt;&lt;p&gt;作者：Nada Amin, Ross Tate&lt;/p&gt;&lt;a href=&quot;https://dl.acm.org/citation.cfm?id=2984004&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-de6f855e8c8fd69721e406b388e10b4b&quot; data-image-width=&quot;132&quot; data-image-height=&quot;171&quot; data-image-size=&quot;120x160&quot;&gt;Java and scala&#39;s type systems are unsound: the existential crisis of null pointers&lt;/a&gt;&lt;p&gt;Paper: &lt;a href=&quot;https://raw.githubusercontent.com/namin/unsound/master/doc/unsound-oopsla16.pdf&quot;&gt;https://raw.githubusercontent.com/namin/unsound/master/doc/unsound-oopsla16.pdf&lt;/a&gt;&lt;/p&gt;&lt;p&gt;摘要：&lt;/p&gt;&lt;blockquote&gt;We present short programs that demonstrate the unsoundness of Java and Scala&#39;s current type systems. In particular, these programs provide parametrically polymorphic functions that can turn any type into any type without (down)casting. Fortunately, parametric polymorphism was not integrated into the Java Virtual Machine (JVM), so these examples do not demonstrate any unsoundness of the JVM. Nonetheless, we discuss broader implications of these findings on the field of programming languages.&lt;/blockquote&gt;&lt;p&gt;本文作者展示了一些Java和Scala类型系统unsound的问题。&lt;/p&gt;&lt;p&gt;Java和Scala的类型系统使用了参数化多态（parametric polymorphism），因此允许带参数的函数根据参数来实现类型转换。作者同时指出因为JVM没有引入参数化多态，JVM不受此影响。最后，作者揭示了这样的问题在程序语言的设计上有着更大的影响。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;2004年，Java 5 引入了泛型（generics）——参数化多态；同年Scala发布，发布了path-dependent type的特性。在发布之初，二者的类型系统都是unsound的。尽管诸多PL研究者对于Java的类型系统进行研究，并将其形式化，作者还是发现了Java类型系统unsound的地方。&lt;/p&gt;&lt;p&gt;作者指出，诸多研究者在研究一门复杂的语言的时候，选择使用一些简化的模型来进行抽象，并验证这个模型的某个核心功能，却忽视了不同的特性交织在一起的时候产生的效果。本文所发现的unsound的例子则是多个特性进行叠加之后的结果。&lt;/p&gt;&lt;p&gt;先上例子：&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;class Unsound {
+  static class Constrain&amp;lt;A, B extends A&amp;gt; {}
+  static class Bind&amp;lt;A&amp;gt; {
+    &amp;lt;B extends A&amp;gt;
+    A upcast(Constrain&amp;lt;A,B&amp;gt; constrain, B b) {
+      return b;
+    }
+  }
+  static &amp;lt;T,U&amp;gt; U coerce(T t) {
+    Constrain&amp;lt;U,? super T&amp;gt; constrain = null;
+    Bind&amp;lt;U&amp;gt; bind = new Bind&amp;lt;U&amp;gt;();
+    return bind.upcast(constrain, t);
+  } 
+  public static void main(String[] args) {
+    String zero = Unsound.&amp;lt;Integer,String&amp;gt;coerce(0);
+  }
+}&lt;/code&gt;&lt;p&gt;Java 8运行结果（&lt;code class=&quot;inline&quot;&gt;ClassCastException&lt;/code&gt;）：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ javac -version
+javac 1.8.0_151
+$ javac Unsound.java
+$ java Unsound
+Exception in thread &quot;main&quot; java.lang.ClassCastException: java.lang.Integer cannot be cast to java.lang.String
+	at Unsound.main(Unsound.java:15)&lt;/code&gt;&lt;p&gt;Java 9运行结果（无法编译）：&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;$ javac -version
+javac 9.0.1
+$ javac Unsound.java
+Unsound.java:12: error: method upcast in class Bind&amp;lt;A&amp;gt; cannot be applied to given types;
+    return bind.upcast(constrain, t);
+               ^
+  required: Constrain&amp;lt;U,B&amp;gt;,B
+  found: Constrain&amp;lt;U,CAP#1&amp;gt;,T
+  reason: inference variable B has incompatible bounds
+    upper bounds: U
+    lower bounds: T
+  where U,T,B,A are type-variables:
+    U extends Object declared in method &amp;lt;T,U&amp;gt;coerce(T)
+    T extends Object declared in method &amp;lt;T,U&amp;gt;coerce(T)
+    B extends U declared in method &amp;lt;B&amp;gt;upcast(Constrain&amp;lt;A,B&amp;gt;,B)
+    A extends Object declared in class Bind
+  where CAP#1 is a fresh type-variable:
+    CAP#1 extends U super: T from capture of ? super T
+1 error&lt;/code&gt;&lt;p&gt;（传送门：&lt;a href=&quot;http://io.livecode.ch/learn/namin/unsound&quot;&gt;The Unsound Playground&lt;/a&gt;）&lt;/p&gt;&lt;p&gt;由于笔者不会写Scala（捂脸），所以就主要讨论Java部分了。等什么时候学会了Scala再来补一下Scala部分吧（flag）。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;我们跟着作者的思路来重现这个例子的构建过程。&lt;/p&gt;&lt;p&gt;首先我们需要编写一个程序实现两个类之类的任意转换。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;class A {}
+class B {}
+class Unsound {
+  &amp;lt;V, W&amp;gt; V magic(W w) {
+    // TODO
+  }
+  public static void main(String[] args) {
+    Unsound u = new Unsound();
+    A surprise = u.&amp;lt;A, B&amp;gt;magic(new B()); // 把B转换到A
+  }
+}&lt;/code&gt;&lt;p&gt;在&lt;code class=&quot;inline&quot;&gt;magic&lt;/code&gt;方法里，我们需要一个&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的实例，但我们只有一个&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;的实例，显然我们没有办法完成给定的任务。但是我们可以使用通配符给类型进行限制，然后进行安全的向上类型转换（upcast）。&lt;/p&gt;&lt;p&gt;因此，我们引入&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Bind&lt;/code&gt;两个类来帮我们完成任务。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;class Constrain&amp;lt;X, Y extends X&amp;gt; {}
+class Bind&amp;lt;Z&amp;gt; {
+  &amp;lt;U extends Z&amp;gt; Z
+  upcast(Constrain&amp;lt;Z, U&amp;gt; constrain, U u) { return u; }
+}&lt;/code&gt;&lt;p&gt;注意此处两个类通配符的限制：在&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;类中，&lt;code class=&quot;inline&quot;&gt;Y&lt;/code&gt;需要是&lt;code class=&quot;inline&quot;&gt;X&lt;/code&gt;的子类。在&lt;code class=&quot;inline&quot;&gt;Bind&lt;/code&gt;类中，我们可以通过&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;类将&lt;code class=&quot;inline&quot;&gt;U&lt;/code&gt;类的实例安全的向上转换到Z类。&lt;/p&gt;&lt;p&gt;那么，我们可以用上面的两个类来实现我们的&lt;code class=&quot;inline&quot;&gt;magic&lt;/code&gt;方法。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;V, W&amp;gt; V magic(W w) {
+  Constrain&amp;lt;???&amp;gt; constrain = ???; //TODO
+  Bind&amp;lt;V&amp;gt; bind = new Bind&amp;lt;V&amp;gt;();
+  return bind.upcast(constrain, w);
+}&lt;/code&gt;&lt;p&gt;通过找到一个合适的&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;类实例和参数，我们可以通过&lt;code class=&quot;inline&quot;&gt;Bind&lt;/code&gt;类将&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;类向上转换到&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;类，那么剩下要做的就是找出合适的参数了。&lt;/p&gt;&lt;p&gt;我们假定&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;类的参数为&lt;code class=&quot;inline&quot;&gt;&amp;lt;T1, T2&amp;gt;&lt;/code&gt;，值为&lt;code class=&quot;inline&quot;&gt;val&lt;/code&gt;。那么我们需要寻找的则是使下列条件满足的实例：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;T1, T2&amp;gt;&lt;/code&gt; 是一个合法的类型&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;bind.upcast&lt;/code&gt;可以通过类型检查&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;val&lt;/code&gt;满足&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;T1, T2&amp;gt;&lt;/code&gt;的类型限制&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;我们选择&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Constrain&amp;lt;V, ? super W&amp;gt; constrain = null;&lt;/code&gt;&lt;p&gt;来满足上述要求。&lt;/p&gt;&lt;p&gt;首先，&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;V, ? super W&amp;gt;&lt;/code&gt; 是一个合法的类型，这个类型中使用了一个带下界的通配符。通过&lt;code class=&quot;inline&quot;&gt;? super W&lt;/code&gt;，我们得知通配符类型是&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;的母类；又因为定义中要求的&lt;code class=&quot;inline&quot;&gt;Y extends X&lt;/code&gt;，所以通配符类型是&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的子类。在检查类型是否合法时，并不会检查是否有类型实例能满足给定的限制，因此使用通配符可以让我们避免给定一个满足限制的实例。&lt;/p&gt;&lt;p&gt;我们其次考虑&lt;code class=&quot;inline&quot;&gt;bind.upcast&lt;/code&gt;。我们显式地定义了&lt;code class=&quot;inline&quot;&gt;Bind&lt;/code&gt;类的类型参数为&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;，因此假设&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;的类型参数为&lt;code class=&quot;inline&quot;&gt;&amp;lt;V, Z&amp;gt;&lt;/code&gt;，其中&lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的子类，那么正如前文中所说的做法，我们就可以使用&lt;code class=&quot;inline&quot;&gt;bind.upcast&lt;/code&gt;来将&lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt;的值向上转换至&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;。但是，我们注意到此处&lt;code class=&quot;inline&quot;&gt;Constrain&lt;/code&gt;的类型中带有一个通配符，因此类型系统必须推导一个类型来实现我们定义的上述限制。&lt;/p&gt;&lt;p&gt;类型系统的推导过程由收集所有对于类型的假设和必需的要求开始，其次试图找到一个满足限制的类型。&lt;/p&gt;&lt;p&gt;我们假设需要推导的通配符类型为&lt;code class=&quot;inline&quot;&gt;X&lt;/code&gt;。从上文我们得知，&lt;code class=&quot;inline&quot;&gt;X&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;的母类，是&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的子类。&lt;/p&gt;&lt;p&gt;在定义中，&lt;code class=&quot;inline&quot;&gt;bind.upcast&lt;/code&gt;的第一个参数的类型为&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;V, U&amp;gt;&lt;/code&gt;（显式指定了&lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt;为&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;），实际类型为&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;V, X&amp;gt;&lt;/code&gt;。第二个参数的类型为&lt;code class=&quot;inline&quot;&gt;U&lt;/code&gt;，实际类型为&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;我们可以得出以下限制：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;U&lt;/code&gt; = &lt;code class=&quot;inline&quot;&gt;X&lt;/code&gt; -  通过归一&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;V, U&amp;gt;&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Constrain&amp;lt;V, X&amp;gt;&lt;/code&gt; &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;U&lt;/code&gt;的子类  -  通过第二个参数的类型，&lt;code class=&quot;inline&quot;&gt;w&lt;/code&gt;必须可以被转换到&lt;code class=&quot;inline&quot;&gt;U&lt;/code&gt;类&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;U&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的子类  -  函数定义中&lt;code class=&quot;inline&quot;&gt;U extends Z&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;Z&lt;/code&gt;被显式指定为&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt; &lt;/li&gt;&lt;/ol&gt;&lt;p&gt;因为有限制（1）的存在，我们将限制（2）（3）中的U替换成X。在类型推导中，通配符给定的限制并不是限制，而是假设。因此限制（2）（3）可以被通配符类型来满足，所以&lt;code class=&quot;inline&quot;&gt;bind.upcast&lt;/code&gt;可以通过类型检查。&lt;/p&gt;&lt;p&gt;另外需要注意的是，尽管Java的类型参数推导是不可决定的（undecidable），Java 8的编译器成功地编译了上面的代码，而Java 9却无法编译。作者提到了类型推导是不确定的（non-deterministic），并认为Java 9先考虑了限制（2）（3）。由于子类关系是传递性的，那么&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;必须是&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的子类，而这个关系是不满足的，因此发生了编译错误。作者后续给出了其他Java 9的例子，可以通过编译，但是在运行时会抛出异常。（传送门里有其他例子）&lt;/p&gt;&lt;p&gt;第三步，则是找到一个合适的值。如果说我们没有办法提供一个&lt;code class=&quot;inline&quot;&gt;constrain&lt;/code&gt;的值，那么上面的例子就没有办法实现我们需要的功能。但是我们需要注意到，假设我们需要给定这个值，我们必须要找到一个类型来满足通配符中所要求的子类关系（即通配符中的类型是&lt;code class=&quot;inline&quot;&gt;W&lt;/code&gt;的母类，是&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;的子类），可这是没有办法做到的。幸运的是/不幸的是，在Java里，&lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt; 可以做任何引用类型的值。在这一步，我们就可以跳过寻找通配符类型的过程，但仍然通过类型检查。&lt;/p&gt;&lt;p&gt;至此，我们成功的构造了在Java类型系统容许下的任意类型之间的相互转换。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;作者分三方面来阐述这个例子带来的启示：&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1）荒谬的类型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;假设我们拥有一个类型&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;是Top type的supertype，亦是Bottom type的subtype，那么我们即可通过此类型&lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt;来实现任何类型之间的转换，如：&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;String&lt;/code&gt; &amp;lt;: &lt;code class=&quot;inline&quot;&gt;Top&lt;/code&gt; &amp;lt;: &lt;code class=&quot;inline&quot;&gt;V&lt;/code&gt; &amp;lt;: &lt;code class=&quot;inline&quot;&gt;Bottom&lt;/code&gt; &amp;lt;: &lt;code class=&quot;inline&quot;&gt;Integer&lt;/code&gt;&lt;/p&gt;&lt;p&gt;然而作者指出，使用算法来鉴别荒谬的类型是非常困难的。由于subtyping需要算法来实现，而类型验证亦需要算法实现。要成功地识别出荒谬的类型，二者之间会存在一些需要解决的循环依赖，给实现增加难度。 &lt;/p&gt;&lt;p&gt;&lt;b&gt;（2）&lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt; —— the billion dollar mistake&lt;/b&gt;&lt;/p&gt;&lt;p&gt;作者指出了&lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt;在类型系统的中潜在的危害性。随着类型系统的逐步成熟，&lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt;的存在会给设计者带来更多需要考虑的地方。在本文中的例子里，我们通过&lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt;来跳过重要的推导步骤，实现任意类型之间的转换。在Java中&lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt;可以表示任何引用类型的值，在设计类型规则的时候，需要在此加以注意。 &lt;/p&gt;&lt;p&gt;&lt;b&gt;（3）没有预见的特性交互&lt;/b&gt;&lt;/p&gt;&lt;p&gt;作者指出了对于一门被众多人使用、特性丰富的语言，研究者很难做到将每个功能都正规化，然后将其验证。因此诸多研究者把Java的语言的核心部分形式化，并逐步迭代加入新的特性。但是在将Java语言取核心部分最小化成形式语言的过程中，会不会遗漏一些特性，使其与其他特性交互时，产生没有预见的效果。作者在此段从方法、验证、价值观和审阅、发表流程的角度来反思PL社群在这个方面需要额外注意的地方。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;参考资料：&lt;br&gt;&lt;a href=&quot;https://dev.to/rosstate/java-is-unsound-the-industry-perspective&quot;&gt;Java is Unsound: The Industry Perspective&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Lecture Notes of &lt;i&gt;Advanced Issues in Object-Oriented Programming&lt;/i&gt; by Sophia Drossopoulou&lt;/p&gt;&lt;hr&gt;&lt;p&gt;写在最后的话：&lt;/p&gt;&lt;p&gt;试着做一个类似于morning paper的读paper个人专栏，然而试了以后发现很艰难，花了挺长时间的。希望会是一个比较好的尝试，会有人来读我的个人专栏。欢迎评论留言讨论。不定期更新。下一篇paper暂时考虑写关于session type相关的内容。&lt;/p&gt;</description>
+<author>由里子</author>
+<guid isPermaLink="false">2018-03-30-35055185</guid>
 <pubDate>Fri, 30 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
@@ -536,130 +602,6 @@ value of last one, or nil if there are none.
 <author>何幻</author>
 <guid isPermaLink="false">2018-03-02-34064655</guid>
 <pubDate>Fri, 02 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>从字符串到能用的数据结构到底有多远？——Haskell的Parsec实战</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-02-28-34103708.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34103708&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;首先，为什么要用Parsec解析文本而不是正则表达式？在其它语言中，将内容分割成数组，用正则表达式来解析内容是普遍存在的。在Haskell中也可以沿着这一条路线走下去。但Parsec是一个更好的方式。看了Parsec之后我就用Parsec解析JSON文本（作为学习），从字符串到JSON类型没有想像中的那么远，以后再也不用害怕字符串了。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Parsec简介&lt;/h2&gt;&lt;p&gt;依赖包： - parsec&lt;/p&gt;&lt;p&gt;必要的引入： import qualified Text.Parsec as P&lt;/p&gt;&lt;p&gt;定义：type P.Parsec s u = P.ParsecT s u Identity :: * -&amp;gt; *&lt;/p&gt;&lt;p&gt;Parsec是ParsecT的一个简写,ParsecT主要是以下类型类的实例&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;instance [safe] A.Alternative (P.ParsecT s u m)
-  -- Defined in ‘Text.Parsec.Prim’
-instance [safe] Applicative (P.ParsecT s u m)
-  -- Defined in ‘Text.Parsec.Prim’
-instance [safe] Functor (P.ParsecT s u m)
-  -- Defined in ‘Text.Parsec.Prim’
-instance [safe] Monad (P.ParsecT s u m)
-  -- Defined in ‘Text.Parsec.Prim’
-instance [safe] (Monoid a,
-                 Data.Semigroup.Semigroup (P.ParsecT s u m a)) =&amp;gt;
-                Monoid (P.ParsecT s u m a)
-&lt;/code&gt;&lt;p&gt;以下只列出关键点&lt;br&gt;Alternative : 可以使用&amp;lt;|&amp;gt;来表达『逻辑或』的关系。&lt;br&gt;Applicative: 可以使用pure，&amp;lt;*&amp;gt; ，&amp;lt;*，&lt;b&gt;*&lt;/b&gt;&amp;gt; 函数，可以更改容器内的值。&lt;/p&gt;&lt;p&gt;Functor: 一般我用&amp;lt;$&amp;gt;替代fmap函数，另外还有一个有用的函数&amp;lt;$ 用于更改容器内的值&lt;br&gt;Monad: do 语句块&lt;br&gt;当然上面列的不全，ParsecT也是一个MonadTrans ，可以嵌入Monad(如最常用的IO)用lift升格。&lt;br&gt;&lt;/p&gt;&lt;p&gt;Parsec  s u a : s是源（也就是要解析的文本）类型，u是用户状态类型，a是结果&lt;/p&gt;&lt;p&gt;&lt;b&gt;Parsec一些关键的函数（常用的函数）&lt;br&gt;&lt;/b&gt;&lt;br&gt;P.parse 解析入口函数&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;P.parse                                                                      
-  :: P.Stream s Identity t =&amp;gt;                                                 
-     P.Parsec s () a -&amp;gt; P.SourceName -&amp;gt; s -&amp;gt; Either P.ParseError a 
-&lt;/code&gt;&lt;p&gt;parse Parsec 源文件名字（解析失败时用来定位文件）  待解析文本  -&amp;gt; Either &lt;br&gt;&lt;br&gt;P.char、P.oneOf、P.digit、P.string、P.noneOf 、P.anyChar等都会返回Parsec用来解析 一个字符、多个字符之一、数字、字符串、非多个字符之一、任意字符等。&lt;/p&gt;&lt;p&gt;P.many  Parsec 解析零个或多个Parsec直到解析失败&lt;br&gt;P.many1  Parsec 至少解析一个或者多个&lt;br&gt;P.skipMany、P.skipMany1 与上面many、many1一样只不过忽略返回结果&lt;br&gt;P.sepBy  a b 用parsec b来分割parsec a（如解析1,12,34,4以固定字符隔开的token）&lt;br&gt;P.lookAhead Parsec 主要作用是不产生消耗还会给你结果&lt;br&gt;P.try 由于 a&amp;lt;|&amp;gt;b只对第一个字符做判断如果第一个字符成功了就返回a而不管整体失败与否,try是为了整体失败走b&lt;/p&gt;&lt;p&gt;P.eof 表示文件结尾的Parsec&lt;/p&gt;&lt;p&gt;了解了上面这些函数，类型类就可以完成解析JSON字符串的任务了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;JSON解析&lt;/h2&gt;&lt;p&gt;解析之前，一般我会先定义适用于JSON的模型&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Number&#39; = Int Int | Float Float deriving Show
-data JSON = Null
-  | Number Number&#39;
-  | String String
-  | Bool Bool
-  | Undefined
-  | Object [(String ,JSON)]
-  | List [JSON]
-  deriving (Show)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;写好『骨架』&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;parse :: String -&amp;gt; Either P.ParseError JSON
-parse text = P.parse jsonParsec &quot;JSON:&quot; text
-
-jsonParsec :: P.Parsec String () JSON
-jsonParsec = P.spaces *&amp;gt; myParsec &amp;lt;* P.spaces &amp;lt;* P.eof &lt;/code&gt;&lt;p&gt;parse使用jsonParsec解析text, P.spaces表示空白字符，前后可有任意空白字符最终返回myParsec（*&lt;b&gt;&amp;gt;、&amp;lt;&lt;/b&gt;* 函数来自于Applicative）&lt;br&gt;&lt;/p&gt;&lt;h2&gt;解析Null,和undefined&lt;/h2&gt;&lt;code lang=&quot;haskell&quot;&gt;myParsec = nullParsec
-  &amp;lt;|&amp;gt; undefinedParsec
-
-undefinedParsec = Undefined &amp;lt;$ P.string &quot;undefined&quot;
-nullParsec = P.string &quot;null&quot; &amp;gt;&amp;gt; return Null&lt;/code&gt;&lt;p&gt;myParsec:  &amp;lt;|&amp;gt;函数来自Alternative，如果NullParsec解析失败就用undefinedParsec解析&lt;br&gt;undefinedParsec : &amp;lt;$来自Functor ，如果解析成功容器内部的值改为Undefined&lt;/p&gt;&lt;p&gt;nullParsec : &amp;gt;&amp;gt; 来自Monad , 如果解析成功内部值改为Null。和undefinedParsec的功能相同。&lt;/p&gt;&lt;p&gt;现在可以运行parse函数，输入null,undefined得的结果和预期一致。&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;*Main Lib A&amp;gt; parse &quot;null&quot;
-Right Null
-*Main Lib A&amp;gt; parse &quot;undefined&quot;
-Right Undefined
-*Main Lib A&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;解析String和Bool&lt;/b&gt;&lt;/p&gt;&lt;p&gt;js的字符串分为两种写法（es6以下），单引号，双引号，需要写两个Parsec。&lt;/p&gt;&lt;p&gt;写完Parsec之后在myParsec中加入进来&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;myParsec = nullParsec
-  &amp;lt;|&amp;gt; stringParsec
-  &amp;lt;|&amp;gt; stringParsec1
-  &amp;lt;|&amp;gt; boolParsec
-  &amp;lt;|&amp;gt; undefinedParsec
-
-boolParsec = (Bool True &amp;lt;$ P.string &quot;true&quot;) &amp;lt;|&amp;gt; (Bool False &amp;lt;$ P.string &quot;false&quot;)
-stringParsec = do
-  P.oneOf &quot;\&quot;&quot;
-  x &amp;lt;- P.many $ P.noneOf &quot;\&quot;&quot;
-  P.oneOf &quot;\&quot;&quot;
-  return $ String x
-
-stringParsec1 = do
-  P.oneOf &quot;\&#39;&quot;
-  x &amp;lt;- P.many $ P.noneOf &quot;\&#39;&quot;
-  P.oneOf &quot;\&#39;&quot;
-  return $ String x
-&lt;/code&gt;&lt;p&gt;boolParsec中所涵盖的内容前面已介绍过了，这里不在介绍&lt;br&gt;stringParsec解析双引号的字符串整体流程是：消费双引号-&amp;gt;消费非双引号并把结果给x-&amp;gt;消费双引号-&amp;gt;返回。里面的P.oneOf  &quot;\&quot;&quot; 也可以换为 P.char &#39;&quot;&#39;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;运行parse函数&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;*Main Lib A&amp;gt; parse &quot;&#39;hello&#39;&quot;
-Right (String &quot;hello&quot;)
-*Main Lib A&amp;gt; parse &quot;\&quot;diqye\&quot;&quot;
-Right (String &quot;diqye&quot;)
-*Main Lib A&amp;gt; parse &quot;abc&quot;
-Left &quot;JSON:&quot; (line 1, column 1):
-unexpected &quot;a&quot;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;解析Array和Object&lt;/b&gt;&lt;/p&gt;&lt;p&gt;原本以为这块会很困难，没想到很自然而然的写出来了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;listParsec = do
-  P.char &#39;[&#39;
-  P.spaces
-  a &amp;lt;- P.sepBy myParsec (P.try symbol1)
-  P.spaces
-  P.char &#39;]&#39;
-  return $ List a
-
-symbol1 = do
-  P.spaces
-  P.char &#39;,&#39;
-  P.spaces
-
-keyParsec :: P.Parsec String () String
-keyParsec = do
-  c &amp;lt;- P.lookAhead P.anyChar
-  let val | C.isDigit c = fail &quot;非法的key&quot;
-          | otherwise = P.many1 $ P.noneOf &quot;: &quot;
-
-objectInnerParsec = do
-  (String key) &amp;lt;- stringParsec &amp;lt;|&amp;gt; stringParsec1 &amp;lt;|&amp;gt; (pure String &amp;lt;*&amp;gt; keyParsec) P.&amp;lt;?&amp;gt; &quot;符合规定的key&quot; 
-  P.spaces
-  P.char &#39;:&#39;
-  P.spaces
-  val &amp;lt;- myParsec
-  return (key,val)
-
-objectParsec = do
-  P.char &#39;{&#39;
-  P.spaces
-  a &amp;lt;- P.sepBy objectInnerParsec (P.try symbol1)
-  P.spaces
-  P.char &#39;}&#39;
-  return $ Object a
-&lt;/code&gt;&lt;p&gt;symbol1 只解析了一个逗号，只不过前后都忽略了空白字符， try symbol1是为了整体失败之后不在做消耗（主要是空白字符），参见简介处的介绍。&lt;br&gt;&lt;br&gt;listParsec： 消费以『[』开头『]』结尾的字符，通过sepBy以逗号隔开，每一项使用myParsec来解析（递归解析）。 &lt;br&gt;&lt;br&gt;objectParsec:  以『{』开头『}』结尾，中间部分通过objectInnerParsec解析key和val，key可以是一个字符串也可以是普通的key。这里的keyParsec只是简单的解析为不能以数字开头。lookAhead不消费字符，这里使用它的主要目的是使报错的行号、列号更加精确。&lt;br&gt;&lt;b&gt;解析数字&lt;/b&gt;&lt;/p&gt;&lt;p&gt;数字比较麻烦，分为整数，浮点数，负整数，负浮点数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;negdigit = pure (:)  &amp;lt;*&amp;gt; p.char &#39;-&#39; &amp;lt;*&amp;gt; posdigit
-posdigit = p.many1 p.digit
-
-negfloat = pure (:)  &amp;lt;*&amp;gt; p.char &#39;-&#39; &amp;lt;*&amp;gt; posfloat
-posfloat = do
-  digits &amp;lt;- p.many1 p.digit
-  dot &amp;lt;- p.char &#39;.&#39;
-  rdigits &amp;lt;- p.many1 p.digit
-  return $ digits ++ (dot:rdigits)
-
-digitparsec = number . int . (read :: string -&amp;gt; int) &amp;lt;$&amp;gt; (posdigit &amp;lt;|&amp;gt; negdigit)
-floatparsec = number . float . (read :: string -&amp;gt; float) &amp;lt;$&amp;gt; (posfloat &amp;lt;|&amp;gt; negfloat)&lt;/code&gt;&lt;p&gt;有了Parsec这些也不再困难咯。&lt;/p&gt;&lt;p&gt;&lt;b&gt;完整的myParsec&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;myParsec = nullParsec
-  &amp;lt;|&amp;gt; stringParsec
-  &amp;lt;|&amp;gt; stringParsec1
-  &amp;lt;|&amp;gt; listParsec
-  &amp;lt;|&amp;gt; objectParsec 
-  &amp;lt;|&amp;gt; boolParsec
-  &amp;lt;|&amp;gt; undefinedParsec
-  &amp;lt;|&amp;gt; floatParsec &amp;lt;|&amp;gt; digitParsec &lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;repl中的测验&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;*Main Lib A&amp;gt; parse &quot;[&#39;abc&#39;,{name:&#39;diqye&#39;,age:10},-10,1.01]&quot;
-Right (List [String &quot;abc&quot;,Object [(&quot;name&quot;,String &quot;diqye&quot;),(&quot;age&quot;,Number (Int 10))],Number (Int (-10)),Number (Float 1.01)])
-*Main Lib A&amp;gt; parse &quot;[&#39;abc&#39;,{name:&#39;diqye&#39;,age:10},-10,1.01] i&quot;
-Left &quot;JSON:&quot; (line 1, column 40):
-unexpected &#39;i&#39;
-expecting space or end of input&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以上代码以上传至  &lt;a href=&quot;https://github.com/ppzzppz/json-demo&quot;&gt;ppzzppz/json-demo&lt;/a&gt; &lt;/p&gt;&lt;p&gt;这个JSON作为学习来说没毛病，作为使用来说，还有很多不足，一些特殊情况没有做处理。代码上可能有一些更好改进，欢迎指正和建议。&lt;/p&gt;</description>
-<author>第七页</author>
-<guid isPermaLink="false">2018-02-28-34103708</guid>
-<pubDate>Wed, 28 Feb 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
