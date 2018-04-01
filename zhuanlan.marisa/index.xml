@@ -5,7 +5,106 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 31 Mar 2018 01:49:20 +0800</lastBuildDate>
+<lastBuildDate>Sun, 01 Apr 2018 23:05:37 +0800</lastBuildDate>
+<item>
+<title>The C Programming Language：入门</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-01-35179359.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35179359&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+序&lt;br&gt;&lt;br&gt;在本书的开篇，我们首先概要地介绍 C 语言，主要是通过实际的程序引入 C 语言的基本元素，至于其中的具体细节、规则以及一些例外情况，在此暂时不多做讨论。因此，本章不准备完整、详细地讨论 C 语言中的一些技术（当然，这里所举的所有例子都是正确的）。我们是希望读者能尽快地编写出有用的程序，为此，本章将重点介绍一些基本概念，比如变量与 常量、算术运算、控制流、函数、基本输入／输出等。而对于编写较大型程序所涉及到的一 些重要特性，比如指针、结构、C 语言中十分丰富的运算符集合、部分控制流语句以及标准库 等，本章将暂不做讨论。 &lt;br&gt;&lt;br&gt;这种讲解方式也有缺点。应当提请注意的是，在本章的内容中无法找到任何特定语言特
+性的完整说明，并且，由于比较简略，可能会使读者产生一些误解；再者，由于所举的例子 并没有用到 C 语言的所有强大功能，因此，这些例子也许并不简洁、精炼。虽然我们已经尽力将这些问题的影响降到最低，但问题肯定还是存在。另一个不足之处在于，本章所讲的某些内容在后续相关章节还必须再次讲述。我们希望这种重复给读者带来的帮助效果远远超过它的负面影响。 &lt;br&gt;&lt;br&gt;无论是利还是弊，一个经验丰富的程序员应该可以从本章介绍的内容中推知他们自己进
+行程序设计所需要的一些基本元素。初学者应编写一些类似的小程序作为本章内容的补充练习。无论是经验丰富的程序员还是初学者，都可以把本章作为后续各章详细讲解的内容的框架。 &lt;br&gt;&lt;br&gt;1.1. 入门
+&lt;br&gt;&lt;br&gt;学习一门新程序设计语言的惟一途径就是使用它编写程序。对于所有语言的初学者来说，编写的第一个程序几乎都是相同的，即：&lt;br&gt;请打印出下列内容 &lt;br&gt;&lt;br&gt;hello, world &lt;br&gt;&lt;br&gt;尽管这个练习很简单，但对于初学语言的人来说，它仍然可能成为一大障碍，因为要实
+现这个目的，我们首先必须编写程序文本，然后成功地运行编译，并加载、运行，最后输出到某个地方。掌握了这些操作细节以后，其它事情就比较容易了。 &lt;br&gt;&lt;br&gt;在 C 语言中，我们可以用下列程序打印出&lt;br&gt;&lt;br&gt;“hello, world”：
+&lt;br&gt;#include &amp;lt;stdio.h&amp;gt; 
+&lt;br&gt;main() 
+&lt;br&gt;{ 
+&lt;br&gt; printf(&quot;hello, world\n&quot;); 
+&lt;br&gt;} &lt;br&gt;&lt;br&gt;如何运行这个程序取决于所使用的系统。这里举一个特殊的例子。在 UNIX 操作系统中，首先必须在某个文件中建立这个源程序，并且以“.c”作为文件的扩展名，例如 hello.c，然后再通过下列命令进行编译： &lt;br&gt;&lt;br&gt;gcc hello.c &lt;br&gt;&lt;br&gt;如果源程序没有什么错误（例如漏掉字符或拼错字符），编译过程将顺利进行，并生成一个可
+执行文件 a.out。然后，我们输入： &lt;br&gt;a.out 
+&lt;br&gt;即可运行 a.out，打印出下列信息：
+&lt;br&gt;hello, world 
+&lt;br&gt;在其它操作系统中，编译、加载、运行等规则会有所不同。
+&lt;br&gt;————————————————————————&lt;br&gt;#include &amp;lt;stdio.h&amp;gt; 
+   &lt;br&gt; 包含标准库的信息&lt;br&gt;main() 
+   &lt;br&gt;   定义名为 main 的函数，它不接受参数值&lt;br&gt;{ 
+    &lt;br&gt;   main 函数的语句都被括在花括号中&lt;br&gt; printf(&quot;hello, world\n&quot;); 
+&lt;br&gt;   main 函数调用库函数 printf 以显示字符序列&lt;br&gt;}       &lt;br&gt;   \n 代表换行符&lt;br&gt;                           第一个C语言程序&lt;br&gt;————————————————————————&lt;br&gt;&lt;br&gt;下面对程序本身做些说明。一个 C 语言程序，无论其大小如何，都是由函数和变量组成的。函数中包含一些语句，以指定所要执行的计算操作；变量则用于存储计算过程中使用的值。C 语言中的函数类似于 Fortran 语言中的子程序和函数，与 Pascal 语言中的过程和函数也很类似。在本例中，函数的名字为main。通常情况下，函数的命名没有限制，但 main 是一个特殊的函数名——每个程序都从 main 函数的起点开始执行，这意味着每个程序都必须在某个位置包含一个 main 函数。 &lt;br&gt;main 函数通常会调用其它函数来帮助完成某些工作，被调用的函数可以是程序设计人员
+&lt;br&gt;自己编写的，也可以来自于函数库。上述程序段中的第一行语句
+&lt;br&gt;&lt;br&gt;#include &amp;lt;stdio.h&amp;gt; 
+&lt;br&gt;&lt;br&gt;用于告诉编译器在本程序中包含标准输入／输出库的信息。许多 C 语言源程序的开始处都包
+含这一行语句。我们将在第 7 章和附录 B 中对标准库进行详细介绍。 &lt;br&gt;&lt;br&gt;函数之间进行数据交换的一种方法是调用函数向被调用函数提供一个值（称为参数）列
+&lt;br&gt;表。函数名后面的一对圆括号将参数列表括起来。在本例中，main 函数不需要任何参数，因
+此用空参数表()表示。 &lt;br&gt;&lt;br&gt;函数中的语句用一对花括号{}括起来。本例中的 main 函数仅包含下面一条语句：
+&lt;br&gt;printf(&quot;hello, world\n&quot;); 
+&lt;br&gt;调用函数时，只需要使用函数名加上用圆括号括起来的参数表即可。上面这条语句将&quot;hello, 
+&lt;br&gt;world\n&quot;。作为参数调用 printf 函数。printf 是一个用于打印输出的库函数，在此处，它打印双引号中间的字符串。用双引号括起来的字符序列称为字符串或字符串常量，如&quot;hello,world\n&quot;就是一个字符串。目前我们仅使用字符串作为 printf 及其它函数的参数。&lt;br&gt;&lt;br&gt;在 C 语言中，字符序列\n 表示换行符，在打印中遇到它时，输出打印将换行，从下一行
+&lt;br&gt;的左端行首开始。如果去掉字符串中的\n（这是个值得一做的练习），即使输出打印完成后也
+不会换行。在 printf 函数的参数中，只能用\n 表示换行符。如果用程序的换行代替\n，例如：
+&lt;br&gt;&lt;br&gt;printf(&quot;hello, world 
+&lt;br&gt;&quot;); 
+&lt;br&gt;&lt;br&gt;C 编译器将会产生一条错误信息。
+&lt;br&gt;&lt;br&gt;printf 函数永远不会自动换行，这样我们可以多次调用该函数以分阶段得到一个长的输
+&lt;br&gt;出行。上面给出的第一个程序也可以改写成下列形式：
+&lt;br&gt;&lt;br&gt;#include &amp;lt;stdio.h&amp;gt; 
+&lt;br&gt;main() 
+&lt;br&gt;{ 
+&lt;br&gt; printf(&quot;hello, &quot;); 
+&lt;br&gt; printf(&quot;world&quot;); 
+&lt;br&gt; printf(&quot;\n&quot;); 
+&lt;br&gt;} 
+&lt;br&gt;&lt;br&gt;这段程序与前面的程序的输出相同。
+&lt;br&gt;请注意，\n 只代表一个字符。类似于\n 的转义字符序列为表示无法输入的字符或不可见
+&lt;br&gt;字符提供了一种通用的可扩充的机制。除此之外，C 语言提供的转义字符序列还包括：\t 表
+&lt;br&gt;示制表符；\b 表示回退符；\&quot;表示双引号；\\表示反斜杠符本身。2.3 节将给出转义字符序
+列的完整列表。&lt;br&gt;&lt;br&gt;练习 1-1&lt;br&gt;在你自己的系统中运行“hello, world”程序。再有意去掉程序中的部分内容，看看会得到什么出错信息。 &lt;br&gt;练习 1-2 &lt;br&gt;做个实验，当 printf 函数的参数字符串中包含\c（其中 c 是上面的转义
+字符序列中未曾列出的某一个字符）时，观察一下会出现什么情况。 &lt;br&gt;————————————————————————&lt;br&gt;&lt;br&gt;原作者：&lt;br&gt;Brian W. Kernighan 
+&lt;br&gt;Dennis M. Ritchie&lt;br&gt;ヾ(@゜∇゜@)ノ祝米娜桑愚人节快乐~有什么不好的尽管在评论区提出哦~</description>
+<author>A.Scarlet</author>
+<guid isPermaLink="false">2018-04-01-35179359</guid>
+<pubDate>Sun, 01 Apr 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>C宏元编程:编译期LISP解释器（二）列表操作</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-01-35172411.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35172411&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;目录⇣&lt;br&gt;    &lt;a href=&quot;https://zhuanlan.zhihu.com/p/35121316&quot;&gt;（一）总体思路&lt;/a&gt;&lt;br&gt;⇢&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35172411&quot;&gt;（二）列表操作&lt;/a&gt;&lt;br&gt;外部链接⇣&lt;br&gt;这是一个超级神奇的项目&lt;a href=&quot;https://github.com/BlueFlo0d/CSP&quot;&gt;CSP Git Repo&lt;/a&gt; &lt;/blockquote&gt;&lt;blockquote&gt;纯粹用C宏写的LISP解释器！&lt;br&gt;（目前还没有完成，最重要的lambda已经实现了，cond暂时还有问题嵌套会出错x）&lt;br&gt;（想拉一些小伙伴一起玩一起烧脑呀！可惜似乎人类玩家直接看源码大概率大脑爆栈，于是尝试写了一些文章之类。。原始wiki可以戳这里&lt;br&gt;&lt;a href=&quot;https://github.com/BlueFlo0d/CSP/wiki/Implementation-details&quot;&gt;CSP Wiki&lt;/a&gt; &lt;/blockquote&gt;&lt;p&gt;这次要开始分析真正的Interpreter A原语啦！坐稳啦！&lt;/p&gt;&lt;h2&gt;列表结构&lt;/h2&gt;&lt;p&gt;开始分析LISP操作前我们先来看看CSP中列表的表示：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(a) //我是原子
+( (a) (b) (c) (d) ) //我是列表&lt;/code&gt;&lt;p&gt;为什么要这样呢，用下面这种方式不会更自然吗：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;a //我才是原子
+(a,b,c,d) //我才是列表&lt;/code&gt;&lt;p&gt;首先第一种方式括号更多，更符合LISP书写传统（划掉&lt;/p&gt;&lt;p&gt;最重要的是第一种方式在迭代列表和安全操作上有很多优点，例如迭代列表我们可以这样实现：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define sth(x) dosth(x) sth_y
+#define sth_y(x) dosth(x) sth
+sth(a)(b)(c)(d) // =&amp;gt; dosth(a) sth_y(b)(c)(d) ... 
+// =&amp;gt; dosth(a) dosth(b) ... sth 或 sth_y （最后剩下一个没展开完的）&lt;/code&gt;&lt;p&gt;最后剩下的那个“尾巴”可以用零点构造或者以下方式“吃掉”：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define _sth(list) CAT(sth list,_end)
+#define sth_end
+#define sth_y_end
+_sth((a)(b)(c)(d)) // =&amp;gt; CAT( dosth(a) ... sth,_end) =&amp;gt; dosth(a) ... sth_end =&amp;gt; dosth(a)&lt;/code&gt;&lt;p&gt;不过零点构造技术在柯里化的多元迭代函数上有更多优点，所以CSP中两者皆有采用。&lt;/p&gt;&lt;p&gt;至于安全性，接下来会提到。&lt;/p&gt;&lt;h2&gt;基本操作：CAR&lt;/h2&gt;&lt;p&gt;CAR：取一个列表第一个元素的操作，LISP基本原语之一&lt;/p&gt;&lt;p&gt;以下是朴素的CAR实现：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define CAR(x) (_CAR x ))
+#define _CAR(x) x _n(
+CAR ( (a) (b) (c) ) //=&amp;gt;(_CAR (a) (b) (c) )) 
+//=&amp;gt; (a _n( (b) (c) )) =&amp;gt; (a)&lt;/code&gt;&lt;p&gt;这里让CAR定义式中的_CAR展开出一个_n(（未匹配左括号），和后面CAR中的未匹配右括号配对，构成一个零宏，从而将第一个元素后的内容都吃掉。&lt;/p&gt;&lt;p&gt;看起来很好是吗？不过实际上完全不能用。因为在CPP中，由于似乎无法实现短路的逻辑判断，条件分支中所有的clause都会先求值再遴选，这样这些clause大部分都会接受非法输入。&lt;/p&gt;&lt;p&gt;那么看看上面的CAR接受非法输入会发生什么：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;CAR(a) //=&amp;gt;(_CAR a)) 破坏括号平衡！
+CAR() //=&amp;gt;(_CAR )) 破坏括号平衡！&lt;/code&gt;&lt;p&gt;会将整个展开过程破坏掉！所以我们需要在非法输入下安全的CAR宏。&lt;/p&gt;&lt;p&gt;实现如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define COND_EAT(x) COND_EATY
+#define COND_EATY(x) COND_EAT
+#define COND_EAT_FIRST(x) COND_EATY
+#define SAFE_CAR_N(x) (())_n
+#define SAFE_CAR_EAT_CAR )SAFE_CAR_N((
+#define COND_EATY_SCEND (a)
+#define COND_EAT_SCEND (a)
+#define SAFE_CAR(a) _E(_e _SAFE_CAR(a))
+#define _SAFE_CAR(a)  _e(_n _n()(CAT(SAFE_CAR_EAT,_E(_e CAR(CAT(COND_EAT_FIRST a,_SCEND)))))(CAR(a)))
+//                                                        ^ 对于非法输入展开失败，输出 (_CAR ... ))
+//                                                 ^ _E(_e ...) （两个单位宏名，一对括号）会吞掉参数的一对括号. =&amp;gt; _CAR )
+//                                 ^ 连接成 SAFE_CAR_EAT_CAR =========\
+//                                v 非法输入导致最后那个CAR同样展开失败.   |
+// =&amp;gt; _e(_n _n() () SAFE_CAR_N(() (_CAR ... )) )                      &amp;lt;==/
+// =&amp;gt; _e( (()) )
+// =&amp;gt; (()) 
+//代入 SAFE_CAR 中=&amp;gt; _E(_e (()) )=&amp;gt;()输出一个合法的空列表！&lt;/code&gt;&lt;p&gt;解释一下。_SAFE_CAR 宏大体分为前面的判断体_n _n()(CAT(SAFE_CAR_EAT,_E(_e CAR(CAT(COND_EAT_FIRST a,_SCEND))))) 和后面的主体(CAR(a))，以及最外面增加一次扫描次数的单位宏。判断体应当在输入非法时吃掉主体，而合法时自身输出空。&lt;/p&gt;&lt;p&gt;首先看到 CAT(COND_EAT_FIRST a,_SCEND)，这个目的是把所有形如(b)((c)(d))...之类的合法a值约化为(a)以方便判断体逻辑（否则可能会有很多嵌套列表，难以操作），而将不合法输入约化为一个不含括号的字符串。&lt;/p&gt;&lt;p&gt;此后交由CAR，对于不合法输入会输出形如(_CAR ...))，吞掉一对括号后与SAFE_CAR_EAT连成SAFE_CAR_EAT_CAR，再展开成熟悉的)SAFE_CAR_N((这种未匹配括号形式影响展开过程（多出一个左括号是为了和后面CAR展开失败输出的多余右括号匹配）。而对于合法输入，则直接被_n _n() (...) 吞掉。&lt;/p&gt;&lt;p&gt;SAFE_CDR采用类似思路实现。&lt;/p&gt;&lt;p&gt;好累啊就主要部分先写这么多吧，接下来稍微扯一下CSP解释器A中怎么处理多元函数的&lt;/p&gt;&lt;h2&gt;CSP解释器A中的柯里化&lt;/h2&gt;&lt;p&gt;之前提过的两个宏交替展开非常好，但似乎无法处理需要两个参数的do_sth。&lt;/p&gt;&lt;p&gt;其实可以通过柯里化解决，不过这样展开次数始终会缺一次所以还是得外置一组单位宏来延迟展开。&lt;/p&gt;&lt;p&gt;柯里化技巧的核心：ZIP宏&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define _be(y) y)
+#define ZIP(x)   _n() (x,_be //This _n() delays the expansion of do_sth macro, after _be is expanded. otherwise it will an unmatched bracket error. 
+do_sth ZIP(a)(b) =&amp;gt;do_sth _n()(a,_be(b)&lt;/code&gt;&lt;p&gt;如果外面再加一个单位宏强制增加一次扫描，就会变成：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;do_sth (a,b)&lt;/code&gt;&lt;p&gt;这样，一个签名为do_sth(a,b)的二元宏，就可以通过ZIP封装为do_sth ZIP，一个接受一元输入，输出一个一元宏的宏，从而能够处理一个CSP列表的前两项。&lt;/p&gt;&lt;p&gt;在CSP实现中，通常将参数放在待迭代列表前：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;(arg)(a)(b)(c)....&lt;/code&gt;&lt;p&gt;do_sth实现为处理(arg,a)，并将arg放在处理结果之后，然后进行递归：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;do_sth (arg)
+=&amp;gt; real_do_sth(arg,a) do_sth_y (arg) 
+do_sth (arg)(a)(b)(c)
+=&amp;gt; real_do_sth(arg,a) do_sth_y (arg) (b)(c)&lt;/code&gt;&lt;p&gt;这样就实现了带参数的迭代列表操作。&lt;/p&gt;</description>
+<author>K.Scarlet</author>
+<guid isPermaLink="false">2018-04-01-35172411</guid>
+<pubDate>Sun, 01 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>C宏元编程:编译期LISP解释器（一）总体思路</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-30-35121316.html</link>
@@ -345,263 +444,6 @@ value of last one, or nil if there are none.
 <author>何幻</author>
 <guid isPermaLink="false">2018-03-07-34106490</guid>
 <pubDate>Wed, 07 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>区块链与函数式编程</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-06-34287276.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34287276&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;区块链是对软件正确性要求极高的领域。过去软件bug和安全漏洞带来的损失，一般就是停机维护，被拖个库就已经是很重大的影响了。而区块链软件的漏洞被利用，那将是灾难性的，因为上面跑的都是真金白银。随着区块链技术对传统经济领域渗透的加深，这种风险将会大大提升。&lt;/p&gt;&lt;p&gt;传统软件工程只重视产品的快速上线快速迭代，从来没有把软件的正确性摆在一个优先级很高的位置，究其根本还是传统领域软件出bug带来的成本不高。&lt;/p&gt;&lt;p&gt;行业里其实已经有一些关键领域是对软件的正确性要求极高的，比如航天系统，金融领域一些核心系统等。1962年软件bug造成火箭偏航，损失1850万美元；1978年CAD软件bug造成体育竞技场倒塌，损失上亿美元；1985年放射机软件bug导致病人受到大量辐射，1987年金融交易软件bug导致美国股灾，等等。&lt;/p&gt;&lt;p&gt;这些问题促使人们去思考如何保证软件正确性，而这些年来业界针对这种对软件正确性要求高的领域，也确实发展了一套技术手段来支持，形式验证、类型系统、纯函数式编程等。这些方法对程序员要求更高，开发时间也更长，所以在大部分编程领域，这种方法显得不是那么经济，换句话说大部分程序员其实并不了解这个领域的技术。而现在传统程序员开始进入区块链软件的开发，如果不能在思维、流程、工具各方面作出相应调整的话，是很危险的事情。&lt;/p&gt;&lt;p&gt;但是真正的形式验证成本巨大，只好用来解决一些最核心的问题。而另一种同时兼顾实用性的方案是函数式编程（函数式编程这个词语这些年有些定义模糊，这里特指静态类型纯函数式语言，基本上就是ML一族的语言），而Haskell是其中的佼佼者，也是Cardano项目使用的开发语言。&lt;/p&gt;&lt;p&gt;Haskell是一门 &lt;i&gt;纯函数式&lt;/i&gt; &lt;i&gt;静态类型&lt;/i&gt; 惰性求值的语言，这里关键字有几个：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;纯函数式是说，函数除了将输入转换为输出以外，不能有其他副作用（比如执行IO操作、修改全局变量、或者发射个导弹啥的），并且对于相同的输入永远返回相同的输出。这意味着不存在变量的概念，数据结构也都是immutable的。显然这样的函数会有很多良好的性质：好测试, 线程安全, 代码可重用, 可读性强等等。另外这样的代码还有一个性质是可证明，因为你可以机械地把函数的调用替代成函数的实现，而不改变其语意，所以你可以形式地证明比如说两个函数等价。还有一些其他的好处，比如一些代码重构工具能够自动调整代码，编译器也可以更激进地对代码进行优化，因为他们能够确保对程序的语意没有影响。&lt;br&gt;如果在*纯*的基础上，再加上total的约束，那就更好了，total是说函数对参数的所有取值都有定义，相对应的partial的函数可能对某些输入没有定义。 不过有点遗憾的是，函数是否total无法静态地检测出来，因为从程序语意的角度，未定义和死循环是一样的，所以检测total性和停机问题是一样的。 （但是如果我们愿意牺牲图灵完备性的话，是可以支持total检查的，这样的语言里可以没有死循环和partial函数， 智能合约语言就非常需要这样的设计，而智能合约语言 &lt;a href=&quot;https://blockstream.com/2017/10/30/simplicity.html&quot;&gt;Simplicity&lt;/a&gt; 正是这么设计的）&lt;/li&gt;&lt;li&gt;静态类型系统，按照“柯里-霍华德同构”定理，类型对应于命题，而程序对应于证明。当我们把问题的模型编码成类型后，编译器通过类型检查可以保证程序的正确性。在实践中，类型是可以逐步细化的，越细化，能够通过编译的实现就越少，甚至可能细化到只剩下一个有意义的实现，这种情况下甚至可以通过工具实现自动生成实现代码。类型系统还带来其他一些便利的工具，比如hoogle，可以根据类型签名搜索现有库提供的函数实现。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;关于Haskell语言其实可以说的还有很多，未来会继续写一些具体的编程模式，尤其是与区块链相关的，以及它在Cardano项目中的具体实践，敬请期待。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;更正：Plutus还是图灵完备的语言，已经改成Simplicity。&lt;/p&gt;</description>
-<author>黄毅</author>
-<guid isPermaLink="false">2018-03-06-34287276</guid>
-<pubDate>Tue, 06 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>柯里化的前生今世（八）：尾调用与CPS</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-02-34064655.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34064655&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;&lt;b&gt;关于&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本文是系列文章中的第八篇，发布在&lt;a href=&quot;https://zhuanlan.zhihu.com/c_166576777&quot;&gt;业余程序员的个人修养&lt;/a&gt;这个专栏中：&lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34060802&quot;&gt;柯里化的前生今世（一）：函数面面观&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34063576&quot;&gt;柯里化的前生今世（二）：括号神教&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34063805&quot;&gt;柯里化的前生今世（三）：语言和同像性&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34064164&quot;&gt;柯里化的前生今世（四）：编译器与解释器&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34064286&quot;&gt;柯里化的前生今世（五）：动态作用域&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34064446&quot;&gt;柯里化的前生今世（六）：词法作用域和闭包&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34064549&quot;&gt;柯里化的前生今世（七）：first-class continuation&lt;/a&gt;&lt;/p&gt;&lt;p&gt;在上一篇中，我们介绍了continuation的概念，还介绍了Lisp中威力强大的&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;，它提供了first-class continuation，最后我们用&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;实现了python中的generator和yield。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;赋予了我们很强的表达能力，Lisp中的异常处理机制也很人性化。&lt;br&gt;例如，&lt;a href=&quot;https://en.wikipedia.org/wiki/Common_Lisp#Condition_system&quot;&gt;Common Lisp: Condition_system&lt;/a&gt;，&lt;br&gt;由于&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;可以捕捉到异常处的continuation，&lt;br&gt;我们就可以手动调用这个continuation，&lt;br&gt;让程序从错误的位置以给定状态重新开始执行，&lt;br&gt;甚至结合&lt;a href=&quot;https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop&quot;&gt;REPL&lt;/a&gt;还可以询问用户，让用户输入这个状态。&lt;/p&gt;&lt;p&gt;其他语言的&lt;code class=&quot;inline&quot;&gt;try/catch&lt;/code&gt;是无法做到这一点的，&lt;br&gt;我们拿到错误时，出现错误的那个环境已经被丢弃了，无法恢复，&lt;br&gt;那么除了提示用户程序崩溃了就没有别的办法了。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;这么强大，更坚定了我们实现它的想法，&lt;br&gt;本文就从实现的角度来看&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;尾调用&lt;/b&gt;&lt;/h2&gt;&lt;blockquote&gt;In computer science, a tail call is a subroutine call performed as the final action of a procedure. &lt;/blockquote&gt;&lt;p&gt;如果在某个函数的末尾调用了另一个函数，这个调用就称为尾调用。&lt;br&gt;我们举个例子吧，&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (f a)
-  (display a)
-  (g 2))
-
-(define (g b)
-  (display b))
-
-(f 1)&lt;/code&gt;&lt;p&gt;我们看到，函数&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;的末尾调用了函数&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;(g 2)&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;尾调用有什么好处呢？&lt;br&gt;一个基本的事实是，如果&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;的尾调用，&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;就可以不返回到&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;中，&lt;br&gt;而直接返回到&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;该返回的地方。&lt;/p&gt;&lt;p&gt;因为&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;的尾调用，&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;后面没有其他调用了，&lt;br&gt;&lt;code class=&quot;inline&quot;&gt;(g 2)&lt;/code&gt;调用结束后就可以不必返回到&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;的函数体中了，而是直接返回到&lt;code class=&quot;inline&quot;&gt;(f 1)&lt;/code&gt;处。&lt;br&gt;因此，调用&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;的时候，调用栈可以不增加，而是直接废弃&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;的调用环境即可。&lt;/p&gt;&lt;p&gt;注意，我们上面提到的是『不必返回到&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;的函数体中』，&lt;br&gt;因为不是每个语言都可以做到这一点，&lt;br&gt;这个语言特性，称为尾调用优化（tail call optimization）。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;调用栈和调用图&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;调用栈对我们来说是一个耳熟能详的名词，&lt;br&gt;可是我们有没有考虑过，为什么调用构成了一个『栈』呢？&lt;br&gt;有这么多的数据结构，为什么不是一个队列，不是一个树，不是一个图呢？&lt;/p&gt;&lt;p&gt;是因为函数的调用和返回机制，恰好可以用帧（frame）的压栈和弹栈来描述。&lt;br&gt;可是，尾调用优化，开始动摇了这一点，&lt;br&gt;为了能返回到调用者该返回的地方，调用栈有的时候可能会弹出两次，或者弹出更多次。&lt;/p&gt;&lt;p&gt;进一步，我们再来看call/cc的场景，它使得程序可以直接跳转到之前的某个状态，&lt;br&gt;根本上改变了压栈弹栈的规则，跳过去以后，以全新的状态重新开始执行。&lt;br&gt;然而，发生跳转时的状态还不能丢弃，因为有可能再跳回来。&lt;br&gt;因此，call/cc让调用不再构成一个栈，而是构成了一个调用图。&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-fe4f369ec3c287b75e28c710accccc64_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;466&quot; data-rawheight=&quot;336&quot;&gt;&lt;h2&gt;&lt;b&gt;CPS&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在这些复杂场景中，为了能显式的表示执行过程，&lt;br&gt;将程序转化为CPS（continuation passing style）是一种常用的办法，&lt;br&gt;CPS是一种程序的书写风格，经常作为编译器的一种中间表示。（&lt;a href=&quot;https://en.wikipedia.org/wiki/Intermediate_representation&quot;&gt;IR&lt;/a&gt;&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;; 调用风格
-(define (f x)
-  (+ (g x) 1))
-
-(define (g x)
-  (* x 2))
-
-(f 1)
-
-; CPS
-(define (f x cont)
-  (g x (lambda (v)
-         (cont (+ v 1)))))
-
-(define (g x cont)
-  (cont (* x 2)))
-
-(f 1 display)&lt;/code&gt;&lt;p&gt;我们发现写成CPS之后，每个函数多了一个&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;参数，&lt;br&gt;用来表示该函数调用表达式的continuation，&lt;br&gt;我们调用一个函数，就应该把它相应的continuation显式的传给它。&lt;br&gt;例如，我们在&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;中调用了&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;，那么我们就将&lt;code class=&quot;inline&quot;&gt;(g x)&lt;/code&gt;的continuation传给了&lt;code class=&quot;inline&quot;&gt;g&lt;/code&gt;，即&lt;code class=&quot;inline&quot;&gt;(lambda (v) (cont (+ v 1)))&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;除此之外，我们还发现，CPS是一个尾调用形式，&lt;br&gt;因此程序的执行就变成了continuation的不断变换生长。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;开始动手术&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;为了实现call/cc，首先我们要把解释器改造成CPS形式，&lt;br&gt;然后再将continuation拿出来包装一下，提供给用户使用。&lt;/p&gt;&lt;p&gt;我们先进行第一步改造，CPS，&lt;br&gt;回忆一下，为了实现词法作用域，我们给解释器中每个函数末尾加上了参数&lt;code class=&quot;inline&quot;&gt;env&lt;/code&gt;，用于表示被求值表达式的环境。这次也相似，我们给每个函数加上了新的参数&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;，用于表示被求值表达式的continuation，这样我们就可以将解释器改造成CPS形式了。&lt;/p&gt;&lt;p&gt;下一步改造我们要实现call/cc了，它直接使用了这些包含&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;参数的函数，限于篇幅，CPS形式的解释器我们就略过了，这里我们只是先看一下&lt;code class=&quot;inline&quot;&gt;handle-decision-tree&lt;/code&gt;的样子吧，&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (handle-decision-tree tree exp env cont)
-  (if (null? tree)
-      (error &#39;handle-decision-tree &quot;failed to make decision&quot;)
-      (let* ((head (car tree))
-             (predicator (car head))
-             (decision (cadr head)))
-
-        (predicator exp env 
-                    (lambda (predicate-result)
-                      (if predicate-result
-                          (if (not (list? decision))
-                              (decision exp env cont)
-                              (handle-decision-tree decision exp env cont))
-                          (handle-decision-tree (cdr tree) exp env cont)))))))&lt;/code&gt;&lt;h2&gt;&lt;b&gt;实现call/cc&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;将解释器转换成CPS之后，我们就可以将&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;进行包装了，&lt;br&gt;下面的实现中，我们将&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;包装成了一个内部的数据结构&lt;code class=&quot;inline&quot;&gt;continuation&lt;/code&gt;。&lt;br&gt;（和闭包一样，continuation从实现的角度来看也是一个数据结构&lt;/p&gt;&lt;p&gt;然后，把这个数据结构提供给用户，就可以让用户代码实现自定义跳转了。&lt;br&gt;为了实现这一点，我们在解释器中判断是否调用了continuation，来做相应的处理。&lt;br&gt;&lt;code class=&quot;inline&quot;&gt;handle-decision-tree&lt;/code&gt;增加了两个分支，&lt;code class=&quot;inline&quot;&gt;is-continuation?&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;is-continuation-call?&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;#lang racket
-
-; tool
-
-(struct closure 
-  (param body env))
-
-(struct continuation 
-  (cont))
-
-(define (create-frame)
-  (make-hash))
-
-(define (extend-frame frame key value)
-  (hash-set! frame key value))
-
-(define (extend-env env frame)
-  (cons frame env))
-
-(define (get-symbol-value env key)
-  (let lookup-env
-    ((env env))
-    (if (null? env)
-        (error &#39;get-symbol-value &quot;failed to find symbol&quot;)
-        (let ((head-frame (car env)))
-          (if (hash-has-key? head-frame key)
-              (hash-ref head-frame key &#39;())
-              (lookup-env (cdr env)))))))
-
-(define (handle-decision-tree tree exp env cont)
-  (if (null? tree)
-      (error &#39;handle-decision-tree &quot;failed to make decision&quot;)
-      (let* ((head (car tree))
-             (predicator (car head))
-             (decision (cadr head)))
-
-        (predicator exp env 
-                    (lambda (predicate-result)
-                      (if predicate-result
-                          (if (not (list? decision))
-                              (decision exp env cont)
-                              (handle-decision-tree decision exp env cont))
-                          (handle-decision-tree (cdr tree) exp env cont)))))))
-
-; env &amp;amp; cont
-
-(define *env* `(,(create-frame)))
-
-(define *cont* (lambda (v)
-                 (display v)))
-
-; main
-
-(define (eval-exp exp env cont)
-  (handle-decision-tree 
-   `((,is-symbol? ,eval-symbol)
-     (,is-self-eval-exp? ,eval-self-eval-exp)
-     (,is-continuation? ,eval-continuation)
-     (,is-list?
-      ((,is-lambda? ,eval-lambda)
-       (,is-call/cc? ,eval-call/cc)
-       (,is-continuation-call? ,eval-continuation-call)
-       (,is-function-call-list? ,eval-function-call-list))))
-   exp env cont))
-
-(define (is-symbol? exp env cont)
-  (display &quot;is-symbol?\n&quot;)
-  (cont (symbol? exp)))
-
-(define (eval-symbol exp env cont)
-  (display &quot;eval-symbol\n&quot;)
-  (cont (get-symbol-value env exp)))
-
-(define (is-self-eval-exp? exp env cont)
-  (display &quot;is-self-eval-exp?\n&quot;)
-  (cont (number? exp)))
-
-(define (eval-self-eval-exp exp env cont)
-  (display &quot;eval-self-eval-exp\n&quot;)
-  (cont exp))
-
-(define (is-continuation? exp env cont)
-  (display &quot;is-continuation?\n&quot;)
-  (cont (continuation? exp)))
-
-(define (eval-continuation exp env cont)
-  (display &quot;eval-continuation\n&quot;)
-  (cont exp))
-
-(define (is-list? exp env cont)
-  (display &quot;is-list?\n&quot;)
-  (cont (list? exp)))
-
-(define (is-lambda? exp env cont)
-  (display &quot;is-lambda?\n&quot;)
-  (cont (eq? (car exp) &#39;lambda)))
-
-(define (eval-lambda exp env cont)
-  (display &quot;eval-lambda\n&quot;)
-  (let ((param (caadr exp))
-        (body (caddr exp)))
-    (cont (closure param body env))))
-
-(define (is-call/cc? exp env cont)
-  (display &quot;is-call/cc?\n&quot;)
-  (cont (eq? (car exp) &#39;call/cc)))
-
-(define (eval-call/cc exp env cont)
-  (display &quot;eval-call/cc\n&quot;)
-  (let ((fn (cadr exp))
-        (data-cont (continuation cont)))
-    (eval-function-call-list `(,fn ,data-cont) env cont)))
-
-(define (is-continuation-call? exp env cont)
-  (display &quot;is-continuation-call?\n&quot;)
-  (eval-exp (car exp) env
-            (lambda (value)
-              (cont (continuation? value)))))
-
-(define (eval-continuation-call exp env cont)
-  (display &quot;eval-continuation-call\n&quot;)
-  (eval-exp (car exp) env
-            (lambda (data-cont)
-              (let ((wrapped-cont (continuation-cont data-cont)))
-                (eval-exp (cadr exp) env
-                          (lambda (arg)
-                            (wrapped-cont arg)))))))
-
-(define (is-function-call-list? exp env cont)
-  (display &quot;is-function-call-list?\n&quot;)
-  (cont #t))
-
-(define (eval-function-call-list exp env cont)
-  (display &quot;eval-function-call-list\n&quot;)
-  (eval-exp (car exp) env
-            (lambda (clos)
-              (eval-exp (cadr exp) env
-                        (lambda (arg)
-                          (let ((body (closure-body clos))
-                                (lexical-env (closure-env clos))
-                                (param (closure-param clos))
-
-                                (frame (create-frame)))
-
-                            (extend-frame frame param arg)
-
-                            (let ((executing-env (extend-env lexical-env frame)))
-                              (eval-exp body executing-env cont))))))))&lt;/code&gt;&lt;p&gt;&lt;b&gt;注：&lt;/b&gt;其中&lt;code class=&quot;inline&quot;&gt;eval-call/cc&lt;/code&gt;，调用了&lt;code class=&quot;inline&quot;&gt;eval-function-call-list&lt;/code&gt; ，&lt;br&gt;这将导致这个表达式&lt;code class=&quot;inline&quot;&gt;(call/cc (lambda (k) (call/cc k)))&lt;/code&gt; 无法解释执行。&lt;br&gt;（感谢 &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/6c0662069049e4fb6960a77beebf4a9b&quot; data-hash=&quot;6c0662069049e4fb6960a77beebf4a9b&quot; data-hovercard=&quot;p$b$6c0662069049e4fb6960a77beebf4a9b&quot;&gt;@御坂黒子&lt;/a&gt; 指出错误。。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (eval-call/cc exp env cont)
-  (display &quot;eval-call/cc\n&quot;)
-  (let ((fn (cadr exp))
-        (data-cont (continuation cont)))
-    (eval-function-call-list `(,fn ,data-cont) env cont)))&lt;/code&gt;&lt;h2&gt;&lt;b&gt;测试&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;racket&quot;&gt;(eval-exp &#39;1 *env* *cont*)
-
-(display &quot;\n\n&quot;)
-(eval-exp &#39;(lambda (x) x) 
-          *env* *cont*)
-
-(display &quot;\n\n&quot;)
-(eval-exp &#39;((lambda (x) x) 
-            1) 
-          *env* *cont*)
-
-(display &quot;\n\n&quot;)
-(eval-exp &#39;((lambda (x)
-              ((lambda (y) x)
-               2))
-            1) 
-          *env* *cont*)
-
-(display &quot;\n\n&quot;)
-(eval-exp &#39;((lambda (x)
-              ((lambda (f)
-                 ((lambda (x)
-                    (f 3))
-                  2))
-               (lambda (z) x)))
-            1)
-          *env* *cont*)
-
-(display &quot;\n\n&quot;)
-(eval-exp &#39;(call/cc (lambda (k)
-                      1))
-          *env* *cont*)
-
-(display &quot;\n\n&quot;)
-(eval-exp &#39;(call/cc (lambda (k)
-                      (k 2)))
-          *env* *cont*)&lt;/code&gt;&lt;h2&gt;&lt;b&gt;要点分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;（1）&lt;code class=&quot;inline&quot;&gt;eval-call/cc&lt;/code&gt;时会创建一个&lt;code class=&quot;inline&quot;&gt;continuation&lt;/code&gt;，&lt;br&gt;然后用这个&lt;code class=&quot;inline&quot;&gt;continuation&lt;/code&gt;作为参数调用&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;的参数。&lt;br&gt;（&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;的参数，就是后面的&lt;code class=&quot;inline&quot;&gt;(lambda (k) 1)&lt;/code&gt;，因此&lt;code class=&quot;inline&quot;&gt;k&lt;/code&gt;就是这个&lt;code class=&quot;inline&quot;&gt;continuation&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;; (call/cc (lambda (k) 1))
-
-(define (eval-call/cc exp env cont)
-  (display &quot;eval-call/cc\n&quot;)
-  (let ((fn (cadr exp))
-        (data-cont (continuation cont)))
-    (eval-function-call-list `(,fn ,data-cont) env cont)))&lt;/code&gt;&lt;p&gt;（2）&lt;code class=&quot;inline&quot;&gt;eval-continuation-call&lt;/code&gt;会解开&lt;code class=&quot;inline&quot;&gt;continuation&lt;/code&gt;的包装，得到内部包含的&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;，&lt;br&gt;然后用这个&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;作为参数求值表达式，&lt;br&gt;这样就实现了，表达式求值完以后跳转到产生&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;位置的效果。&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (eval-continuation-call exp env cont)
-  (display &quot;eval-continuation-call\n&quot;)
-  (eval-exp (car exp) env
-            (lambda (data-cont)
-              (let ((wrapped-cont (continuation-cont data-cont)))
-                (eval-exp (cadr exp) env
-                          (lambda (arg)
-                            (wrapped-cont arg)))))))&lt;/code&gt;&lt;p&gt;（3）&lt;code class=&quot;inline&quot;&gt;(call/cc ...)&lt;/code&gt;表达式中，如果&lt;code class=&quot;inline&quot;&gt;k&lt;/code&gt;没有被调用，那么&lt;code class=&quot;inline&quot;&gt;(call/cc ...)&lt;/code&gt;的值，就是&lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt;参数函数的返回值，即&lt;code class=&quot;inline&quot;&gt;(call/cc (lambda (k) 1)) = 1&lt;/code&gt;。&lt;br&gt;这一点看起来很难实现，实则不然。&lt;/p&gt;&lt;p&gt;我们只需要巧妙的指定&lt;code class=&quot;inline&quot;&gt;(lambda (k) 1)&lt;/code&gt;的continuation，&lt;br&gt;让它就是&lt;code class=&quot;inline&quot;&gt;(call/cc (lambda (k) 1))&lt;/code&gt;的continuation即可。&lt;br&gt;这一点体现在&lt;code class=&quot;inline&quot;&gt;eval-call/cc&lt;/code&gt;中，我们直接将&lt;code class=&quot;inline&quot;&gt;cont&lt;/code&gt;原封不动的传给了&lt;code class=&quot;inline&quot;&gt;eval-function-call-list&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;racket&quot;&gt;(define (eval-call/cc exp env cont)
-   ...
-    (eval-function-call-list `(,fn ,data-cont) env cont)))&lt;/code&gt;&lt;h2&gt;&lt;b&gt;下文&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Lisp语言真是博大精深，写到这里我们甚至还没有提及它最重要的语言特性——宏，&lt;br&gt;Lisp宏提供了一种元编程的手段，&lt;a href=&quot;http://www.jianshu.com/p/1031cd06b172&quot;&gt;同像性&lt;/a&gt;让Lisp元编程异常强大，&lt;br&gt;然而，把宏说清楚也颇费笔墨，因此，我打算在适当的时候单独讨论它。&lt;/p&gt;&lt;p&gt;本系列标题为『柯里化的前生今世』，意在通过柯里化引入种种有趣的概念，&lt;br&gt;目前为止，我们讨论了高阶函数，闭包，continuation，这些可以看做『柯里化的前生』，&lt;br&gt;我们不但理解了这些概念，还实现了它们，算是小有收获吧。&lt;/p&gt;&lt;p&gt;使用Racket也有一段日子了，对它也逐渐从陌生到熟悉，&lt;br&gt;可是偏执却容易让人误入歧途，错过其他风景，&lt;br&gt;下文我们将开启新的旅程了，Let&#39;s go !&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://www.scheme.com/tspl4/further.html#./further:h4&quot;&gt;continuation passing style&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://book.douban.com/subject/1762126/&quot;&gt;Compiling with Continuations&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;ftp://ftp.cs.utexas.edu/pub/garbage/cs345/schintro-v14/schintro_toc.html&quot;&gt;An Introduction to Scheme and its Implementation&lt;/a&gt;&lt;/p&gt;</description>
-<author>何幻</author>
-<guid isPermaLink="false">2018-03-02-34064655</guid>
-<pubDate>Fri, 02 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
