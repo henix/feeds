@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 01 Apr 2018 23:05:37 +0800</lastBuildDate>
+<lastBuildDate>Mon, 02 Apr 2018 08:09:01 +0800</lastBuildDate>
+<item>
+<title>发布Compute.scala，多维数组上的科学计算库</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-01-35183750.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35183750&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;同学们，愚人节快乐，&lt;/p&gt;&lt;p&gt;今天我很荣幸向大家介绍&lt;b&gt;Compute.scala&lt;/b&gt;。Compute.scala是个科学计算库，可以利用GPU、CPU和其他设备并行计算多维数组。它是下一版本DeepLearning.scala v3.0的新后端，用来解决我们在DeepLearning.scala v2.0的ND4J后端中遇到的各种性能问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Compute.scala可以把多个操作动态合并成一个核函数。执行复杂计算公式时能比以前大大加速。&lt;/li&gt;&lt;li&gt;Compute.scala可以把内存、显存和其他原生资源管理起来，消耗的资源要比ND4J依赖垃圾收集的做法少得多。&lt;/li&gt;&lt;li&gt;Compute的维度转换操作（比如&lt;code class=&quot;inline&quot;&gt;permute&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;broadcast&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;reshape&lt;/code&gt;）都是视图，不额外占用显存或内存。&lt;/li&gt;&lt;li&gt;Compute的多维数组可以和JVM的集合互相转换，从而可以支持Scala原生的&lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;reduce&lt;/code&gt;等集合操作，而且依然可以运行在GPU上。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;性能评测&lt;/h2&gt;&lt;p&gt;我们最近做了一些性能评测，对比Compute.scala和ND4J的性能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://jmh.morethan.io/?source=https://raw.githubusercontent.com/ThoughtWorksInc/Compute.scala/f4fcd1cd54b9deea8b8234114b2bcdcf8c739038/benchmarks/nvidia-gpu.json&quot;&gt;Compute.scala vs ND4J on a NVIDIA Titan X GPU&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://jmh.morethan.io/?source=https://thoughtworksinc.github.io/Compute.scala/benchmarks/amd-gpu.json&quot;&gt;Compute.scala on a AMD RX480 GPU&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;从性能评测结果看：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Compute.scala支持各个厂商的GPU，ND4J只支持NVIDIA GPU。&lt;/li&gt;&lt;li&gt;在大数组上，Compute.scala比ND4J快。比如把65536×32的矩阵和32×32的矩阵相乘，那么Compute.scala要比ND4J快12倍多。&lt;/li&gt;&lt;li&gt;运行包含多个原子操作的复杂公式，Compute.scala比ND4J快。比如当对32×32×32的数组调用一个&lt;code class=&quot;inline&quot;&gt;tanh&lt;/code&gt;时，Compute.scala只比ND4J快五倍多，但是如果执行的表达式包含了100个&lt;code class=&quot;inline&quot;&gt;tanh&lt;/code&gt;，Compute.scala就比ND4J快三十倍多。&lt;/li&gt;&lt;li&gt;在很小的数组上执行单个简单操作时，ND4J比Compute.scala快。&lt;/li&gt;&lt;li&gt;ND4J的&lt;code class=&quot;inline&quot;&gt;permute&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;broadcast&lt;/code&gt;极慢，大概比Compute.scala慢上百倍，导致我们的卷积评测根本跑不出能看的结果（注：和ND4J同一家作者的Deeplearning4J用了文档上没记载的内部特殊方式使用&lt;code class=&quot;inline&quot;&gt;permute&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;broadcast&lt;/code&gt;，并不像上述评测里这么慢）。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;注：这个评测结果并不是愚人节笑话。&lt;/p&gt;&lt;h2&gt;后续工作&lt;/h2&gt;&lt;p&gt;我们刚刚完成Compute.scala的最小可用原型，版本号v0.3.1。Compute.scala的功能仍然有待继续完善，我们将在正式版本发布以前完成以下功能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;支持单精度浮点数以外的数据类型(&lt;a href=&quot;https://github.com/ThoughtWorksInc/Compute.scala/issues/104&quot;&gt;#104&lt;/a&gt;)&lt;/li&gt;&lt;li&gt;增加更多的OpenCL数学函数(&lt;a href=&quot;https://github.com/ThoughtWorksInc/Compute.scala/issues/101&quot;&gt;#101&lt;/a&gt;)&lt;/li&gt;&lt;li&gt;进一步性能调优(&lt;a href=&quot;https://github.com/ThoughtWorksInc/Compute.scala/labels/performance&quot;&gt;#62, #103&lt;/a&gt;)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;欢迎大家来贡献代码和文档。新贡献者可以从&lt;a href=&quot;https://github.com/ThoughtWorksInc/Compute.scala/labels/good%20first%20issue&quot;&gt;good first issues&lt;/a&gt;开搞。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;相关链接&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/ThoughtWorksInc/Compute.scala&quot;&gt;Compute.scala on Github&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://javadoc.io/page/com.thoughtworks.compute/tensors_2.12/latest/com/thoughtworks/compute/index.html&quot;&gt;Compute API Documentation&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</description>
+<author>杨博</author>
+<guid isPermaLink="false">2018-04-01-35183750</guid>
+<pubDate>Sun, 01 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>The C Programming Language：入门</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-01-35179359.html</link>
@@ -103,6 +112,42 @@ do_sth (arg)(a)(b)(c)
 =&amp;gt; real_do_sth(arg,a) do_sth_y (arg) (b)(c)&lt;/code&gt;&lt;p&gt;这样就实现了带参数的迭代列表操作。&lt;/p&gt;</description>
 <author>K.Scarlet</author>
 <guid isPermaLink="false">2018-04-01-35172411</guid>
+<pubDate>Sun, 01 Apr 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>C++函数式实现BST、线段树(单点修改)（1）</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-01-35114696.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35114696&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1942006d5b24fedc190cafc1338070f4_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;偶然看到Common Lisp(&lt;b&gt;CL&lt;/b&gt;)中BST的写法，又联想到了自己写过的单点修改的主席树，觉得这两者几乎差不多，因此拿来分享一下，也顺便应该能解决一下为什么主席树又有一个“函数式版本的线段树”名称&lt;/p&gt;&lt;p&gt;本来打算直接用CL写的......但是想到可能很多人并不熟悉CL，于是就用C++代替了。&lt;/p&gt;&lt;p&gt;目前只打算写单点更新的线段树，而至于区间更新的需要打lazy tag，我需要去学习一下区间更新的主席树再来更新......&lt;/p&gt;&lt;p&gt;本来想完整的写完，但是想到一次性写完可能显得会太长而导致太长不看的可能，所以还是留线段树到下一次吧。&lt;/p&gt;&lt;p&gt;本篇前置知识：BST(Binary Search Tree，二叉搜索树)，C++基本语法&lt;/p&gt;&lt;hr&gt;&lt;p&gt;Part I： 函数式风格几个important properties(此段引用自Land Of Lisp, Ch14, &quot;What is Functional Programming?&quot;)&lt;/p&gt;&lt;ul&gt;&lt;li&gt;只要传入的参数相同，函数总是返回同样的结果。The function always returns the same result, as long as the same arguments are passed into it. &lt;/li&gt;&lt;li&gt;函数不会引用定义在函数外部的变量，除非那个变量是常量。The function never references variables that are defined outside the function, unless we are certain that these variables will remain constant.&lt;/li&gt;&lt;li&gt;函数不会修改变量的值。No variables are modified by the function.&lt;/li&gt;&lt;li&gt;函数除了返回(动词)值以外什么也不干。(原谅本人直译......)The purpose of the function is to do nothing other than to return a result.&lt;/li&gt;&lt;li&gt;函数不会对外界造成任何改变。The function doesn’t do anything that is visible to the outside world, such as pop up a dialog box on the screen or make your computer go &quot;Bing!&quot;&lt;/li&gt;&lt;li&gt;The function doesn&#39;t take information from an outside source, such as&lt;br&gt;the keyboard or the hard drive.&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr&gt;&lt;p&gt;Part II：函数式的BST实现 &lt;/p&gt;&lt;p&gt;(new完没有delete)&lt;/p&gt;&lt;p&gt;用到的语法知识有：C++ explicit，nullptr，初始化列表，全局变量默认值&lt;/p&gt;&lt;p&gt;BST中节点的定义(注意声明了一个类型为Node*的全局变量root)&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;struct Node{
+    int v;
+    Node* le,*ri;
+    explicit Node(int value=0,Node* lef=nullptr,Node* righ=nullptr)
+            :v(value),le(lef),ri(righ){};
+}*root;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;BST的插入：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Node* bst_insert(int value,Node* bst){
+    if(bst==nullptr)
+        return new Node(value);
+    if(value==bst-&amp;gt;v)
+        return bst;
+    else if(value&amp;lt;bst-&amp;gt;v)
+        return new Node(bst-&amp;gt;v,bst_insert(value,bst-&amp;gt;le),bst-&amp;gt;ri);
+    else
+        return new Node(bst-&amp;gt;v,bst-&amp;gt;le,bst_insert(value,bst-&amp;gt;ri));
+}&lt;/code&gt;&lt;p&gt;接下来讲解bst_insert：&lt;/p&gt;&lt;p&gt;（1）此方法接受一个value，即待插入的值，以及一个Node*，代表&lt;b&gt;当前&lt;/b&gt;的bst的root，因此一开始使用时传入root&lt;/p&gt;&lt;p&gt;（2）此方法前两种情况为简单情况，一个是&lt;b&gt;当前&lt;/b&gt;bst为空时，则返回一个新的、值为value的、左右子都为nullptr的节点。另一个是发现待插入的值和当前节点相等时，为避免重复直接返回自己。(其实这一步可以不要，不过，anyway，这反正不是重点......)&lt;/p&gt;&lt;p&gt;（3）第三种情况和第四种情况是对称的，看到第三种情况，是当前插入的值小于&lt;b&gt;当前&lt;/b&gt;bst的root，那么就返回一个新节点，这个新节点的值是&lt;b&gt;当前&lt;/b&gt;bst的root值，左子是在&lt;b&gt;当前&lt;/b&gt;root的左子上调用bst_insert的返回值，右子是&lt;b&gt;当前&lt;/b&gt;root的右子。&lt;/p&gt;&lt;p&gt;（4）第四种情况把上面的“小于”换成大于，“左”换成“右”，“右”换成“左”&lt;/p&gt;&lt;p&gt;画个图理解一下(纯手绘...请将就着看吧)&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-40276c163ce177a0876ca5d82e20c3c1_r.jpg&quot; data-caption=&quot;考虑在该树上插入新元素 9.5&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;651&quot; data-watermark-src=&quot;v2-3d90af0c145d21db9f50fdc41db4e48b&quot;&gt;&lt;p&gt;第一次调用bst_insert为bst_insert(9.5,root)&lt;/p&gt;&lt;p&gt;返回值是new Node(10,bst_insert(9.5,root-&amp;gt;le),root-&amp;gt;ri)&lt;/p&gt;&lt;p&gt;在途中需要求出bst_insert(9.5,root-&amp;gt;le)的值来完成构造函数，因此&lt;/p&gt;&lt;p&gt;第二次调用bst_insert为bst_insert(9.5,root-&amp;gt;le)&lt;/p&gt;&lt;p&gt;返回值是new Node(8,root-&amp;gt;le-&amp;gt;le,bst_insert(9.5,root-&amp;gt;le-&amp;gt;ri))&lt;/p&gt;&lt;p&gt;在途中需要求出bst_insert(9.5,root-&amp;gt;le-&amp;gt;ri)来完成构造函数，因此&lt;/p&gt;&lt;p&gt;第三次调用bst_insert为bst_insert(9.5,root-&amp;gt;le-&amp;gt;ri)&lt;/p&gt;&lt;p&gt;返回值是new Node(9,root-&amp;gt;le-&amp;gt;ri-&amp;gt;le,bst_inseret(9.5,root-&amp;gt;le-&amp;gt;ri-&amp;gt;ri))&lt;/p&gt;&lt;p&gt;在途中需要求出bst_inseret(9.5,root-&amp;gt;le-&amp;gt;ri-&amp;gt;ri)来完成构造函数，因此&lt;/p&gt;&lt;p&gt;第四次调用bst_insert为bst_inseret(9.5,root-&amp;gt;le-&amp;gt;ri-&amp;gt;ri)&lt;/p&gt;&lt;p&gt;但是root-&amp;gt;le-&amp;gt;ri-&amp;gt;ri为nullptr，因此会直接返回Node(9.5)，因此返回过程如下&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-03814a87e336d4e4212d6d4a06ab87f2_r.jpg&quot; data-caption=&quot;途中的次序表示第几次的返回值，黑线表示连接到了原来的节点&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1633&quot; data-watermark-src=&quot;v2-1f9d2e3dc03b5a53f6dc7c2312660ef3&quot;&gt;&lt;p&gt;我们可以发现，插入的返回值就是一条链，代表的是从真正的root节点一直到被插入的地方的链，其余的节点都是连接到的原来的节点上。因此我们只要令root等于第一次调用bst_insert的返回值就OK了。&lt;/p&gt;&lt;p&gt;可以发现，这其中我们并没有对原来bst上进行修改，而是创建了一条新链，而让这条链和之前的bst共用某些节点。(单点更新的主席树！)&lt;/p&gt;&lt;p&gt;这个联系留到下一次再发。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;BST插入的使用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;int main(){
+    srand(time(0));
+    for(int i=0;i&amp;lt;10;++i)
+        root=bst_insert(rand()%100,root);
+    dfs(root);//随便遍历一下，表明it works pretty well. 2333333333
+    return 0;
+}
+
+void dfs(Node* bst){
+    if(bst!=nullptr){
+        cout&amp;lt;&amp;lt;bst-&amp;gt;v&amp;lt;&amp;lt;&#39; &#39;;
+        dfs(bst-&amp;gt;le);dfs(bst-&amp;gt;ri);
+    }
+}&lt;/code&gt;&lt;hr&gt;&lt;p&gt;Part III：其他&lt;/p&gt;&lt;p&gt;我觉得我应该把函数式删除拿出来写一个番外篇...这毕竟和写作本文的主旨没有关联。&lt;/p&gt;&lt;p&gt;本篇中的BST完整代码:&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/Hatsunespica/CL/blob/master/Melange/f_bst.cpp&quot;&gt;https://github.com/Hatsunespica/CL/blob/master/Melange/f_bst.cpp&lt;/a&gt;&lt;/p&gt;&lt;p&gt;假如觉得有什么地方写的错误或不好or可以改进的地方，请尽管提出来。&lt;/p&gt;</description>
+<author>Spica</author>
+<guid isPermaLink="false">2018-04-01-35114696</guid>
 <pubDate>Sun, 01 Apr 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
@@ -367,83 +412,6 @@ class Bind&amp;lt;Z&amp;gt; {
 <author>何幻</author>
 <guid isPermaLink="false">2018-03-14-34484014</guid>
 <pubDate>Wed, 14 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>[公告] Idris-zh 中文翻译项目启动</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-07-34328106.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34328106&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-581b50e22da06e58321ea076d8ee5e8e_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;Idris 是个通用的依赖类型纯函数式编程语言，比起 Coq 来说更注重现实世界的编程。说起来咱对这货感兴趣还是受了某莎某 be5 和某智猫的影响= =||&lt;/p&gt;&lt;p&gt;其实 Idris 中文文档翻译的坑很早就挖下了，可惜咱能力有限现在才正式启动。目前只翻译了官方教程的第一章，大家可以在 &lt;a href=&quot;http://idris-zh.readthedocs.io/&quot;&gt;Idris-zh 文档主页&lt;/a&gt; 查看。对应的 &lt;a href=&quot;https://github.com/Idris-zh/Idris-dev/tree/master/docs&quot;&gt;Idris-zh 项目地址&lt;/a&gt; 中可以找到源码。&lt;/p&gt;&lt;p&gt;官方文档的量并不算太多，本打算翻译完官方教程再说，不过咱最近忙于考试，加上人多力量大，思来想去还是在魔法店发个公告比较好。有兴趣的译者可以戳咱加入项目组一起翻译。&lt;/p&gt;&lt;p&gt;以上。&lt;/p&gt;</description>
-<author>Oling Cat</author>
-<guid isPermaLink="false">2018-03-07-34328106</guid>
-<pubDate>Wed, 07 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Emacs之魂（七）：变量捕获与卫生宏</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-07-34106490.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34106490&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-be0646e5c6a0b48056bfdf78f3442375_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;843&quot; data-rawheight=&quot;370&quot;&gt;&lt;h2&gt;&lt;b&gt;回顾&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;上文我们介绍了宏，它与函数是不同的，函数调用发生在程序执行期间，函数在调用之前，会先对它所有的实参进行求值，然后将形参绑定到这些实参的求值结果上，函数的返回值会作为函数调用表达式的值，Lisp求值器不断的求值表达式，从而程序得以运行。&lt;/p&gt;&lt;p&gt;宏调用（macro call）发生在程序的编译期，或者说，宏调用发生在表达式的求值之前，在执行宏调用的过程中，宏形参直接绑定为实参所代表的语法对象（syntax object）上，宏调用的返回值，会进行表达式替换，将宏调用表达式替换为它的返回值，这个过程称为宏展开（macro expansion），之后在运行时，求值器就不会遇到宏了，所进行求值的只有被展开之后的表达式。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;1. 交互函数&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在介绍常用的宏之前，我们先介绍Emacs中交互函数（interactive function）的概念。&lt;br&gt;交互函数可以使用&lt;code class=&quot;inline&quot;&gt;M-x&lt;/code&gt;在echo area中通过输入函数名进行调用（交互式调用），所以交互函数也称为命令（command）。&lt;br&gt;交互函数也可以被Lisp程序中的其他函数直接调用，这种调用方式称为非交互式调用。&lt;/p&gt;&lt;p&gt;Emacs中函数定义&lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Functions.html#Defining-Functions&quot;&gt;defun&lt;/a&gt;&lt;/code&gt;包含以下几个部分，&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;defun name args [doc] [declare] [interactive] body ...&lt;/code&gt;&lt;p&gt;其中，&lt;code class=&quot;inline&quot;&gt;doc&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;declare&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;interactive&lt;/code&gt;都是可选的。&lt;/p&gt;&lt;p&gt;交互函数的定义中，具有&lt;code class=&quot;inline&quot;&gt;interactive&lt;/code&gt;部分，&lt;br&gt;它是一个形如&lt;code class=&quot;inline&quot;&gt;(interactive arg-descriptor)&lt;/code&gt;的表达式，用来指定该函数被交互调用时的行为，&lt;br&gt;对于非交互式调用，&lt;code class=&quot;inline&quot;&gt;interactive&lt;/code&gt;部分将失去作用。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;arg-descriptor&lt;/code&gt;有三种可能的写法：省略，一个字符串，或者一个Lisp表达式。&lt;br&gt;具体情况可能会比较复杂，可以参考&lt;a href=&quot;https://www.gnu.org/software/emacs/manual/html_node/elisp/Using-Interactive.html#Using-Interactive&quot;&gt;Using-Interactive&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.1 describe-key&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;describe-key&lt;/code&gt;是一个交互函数，用来展示某个快键键相关的文档信息，&lt;br&gt;我们可以使用&lt;code class=&quot;inline&quot;&gt;M-x describe-key&lt;/code&gt;来调用它，echo area中会显示如下内容，等待我们键入一个快捷键，&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e9c4d71238a11558bae673bd850860ce_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;678&quot; data-rawheight=&quot;121&quot;&gt;&lt;p&gt;如果我们键入一个快捷键，例如&lt;code class=&quot;inline&quot;&gt;C-a&lt;/code&gt;，Emacs就会展示出与&lt;code class=&quot;inline&quot;&gt;C-a&lt;/code&gt;相关的文档信息了。我们还可以使用快捷键&lt;code class=&quot;inline&quot;&gt;C-h k&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;C-h k&lt;/code&gt;相当于&lt;code class=&quot;inline&quot;&gt;M-x describe-key&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;C-a runs the command move-beginning-of-line (found in global-map),
-which is an interactive compiled Lisp function in ‘simple.el’.
-
-It is bound to C-a.
-
-(move-beginning-of-line ARG)
-
-Move point to beginning of current line as displayed.
-(If there’s an image in the line, this disregards newlines
-which are part of the text that the image rests on.)
-
-With argument ARG not nil or 1, move forward ARG - 1 lines first.
-If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind ‘inhibit-point-motion-hooks’ to t.&lt;/code&gt;&lt;p&gt;&lt;b&gt;1.2 describe-function&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;describe-function&lt;/code&gt;也是一个交互函数，用来展示某个函数（或者宏）相关的文档信息，它绑定到了快捷键&lt;code class=&quot;inline&quot;&gt;C-h f&lt;/code&gt;上，&lt;br&gt;调用后，echo area中会显示如下内容，等待我们输入函数（或者宏）的名字，&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d8c0390d2d4077bcdac4cdd5b810cf44_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;674&quot; data-rawheight=&quot;117&quot;&gt;&lt;p&gt;例如，&lt;code class=&quot;inline&quot;&gt;when&lt;/code&gt;相关的文档信息如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;when is a Lisp macro in ‘subr.el’.
-
-(when COND BODY...)
-
-If COND yields non-nil, do BODY, else return nil.
-When COND yields non-nil, eval BODY forms sequentially and return
-value of last one, or nil if there are none.&lt;/code&gt;&lt;p&gt;它指出，&lt;code class=&quot;inline&quot;&gt;when&lt;/code&gt;是一个宏，并且定义在&lt;code class=&quot;inline&quot;&gt;subr.el&lt;/code&gt;文件中。&lt;/p&gt;&lt;p&gt;鼠标左键点击&lt;code class=&quot;inline&quot;&gt;subr.el&lt;/code&gt;，会打开本地&lt;code class=&quot;inline&quot;&gt;subr.el.gz&lt;/code&gt;文件中&lt;code class=&quot;inline&quot;&gt;when&lt;/code&gt;的定义，如下，&lt;br&gt;（文件路径为：&lt;code class=&quot;inline&quot;&gt;/Applications/Emacs.app/Contents/Resources/lisp/subr.el.gz&lt;/code&gt;&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(defmacro when (cond &amp;amp;rest body)
-  &quot;If COND yields non-nil, do BODY, else return nil.
-When COND yields non-nil, eval BODY forms sequentially and return
-value of last one, or nil if there are none.
-\(fn COND BODY...)&quot;
-  (declare (indent 1) (debug t))
-  (list &#39;if cond (cons &#39;progn body)))&lt;/code&gt;&lt;p&gt;可见，&lt;code class=&quot;inline&quot;&gt;when&lt;/code&gt;只是一个语法糖，最终会展开成&lt;code class=&quot;inline&quot;&gt;if&lt;/code&gt;表达式。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;subr.el.gz&lt;/code&gt;文件中包含了很多常用的宏，&lt;br&gt;我们可以访问线上地址&lt;a href=&quot;https://github.com/emacs-mirror/emacs/blob/master/lisp/subr.el&quot;&gt;Github: emacs-mirror/emacs subr.el&lt;/a&gt;进行查阅。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2. 变量捕获&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;2.1 插入一个绑定&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-52535d0d127c59e76c691246b377b071_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;421&quot; data-rawheight=&quot;334&quot;&gt;&lt;code lang=&quot;emacs&quot;&gt;; -*- lexical-binding: t -*-
-
-(defmacro insert-binding (x)
-    `(let ((a 1))
-        (+ ,x a)))&lt;/code&gt;&lt;p&gt;以上代码定义了一个宏&lt;code class=&quot;inline&quot;&gt;insert-binding&lt;/code&gt;，它将展开成一个&lt;code class=&quot;inline&quot;&gt;let&lt;/code&gt;表达式，&lt;br&gt;将&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;插入到一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;值为&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;的词法环境中。&lt;/p&gt;&lt;p&gt;其中，`&lt;code class=&quot;inline&quot;&gt;(let ((a 1)) (+ ,x a)))&lt;/code&gt;是反引用表达式，&lt;br&gt;下一篇文章中我们再详细讨论。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(insert-binding 3)&lt;/code&gt;将展开成，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 1))
-    (+ 3 a))    ; 4&lt;/code&gt;&lt;p&gt;然而，如果&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;中包含&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，就会引发歧义，例如，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (insert-binding (+ a 3)))&lt;/code&gt;&lt;p&gt;上式会展开为，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (let ((a 1))
-        (+ (+ a 3) a)))    ; 5&lt;/code&gt;&lt;p&gt;我们看表达式&lt;code class=&quot;inline&quot;&gt;(+ (+ a 3) a))&lt;/code&gt;，&lt;br&gt;其中，左边第一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏展开之前的词法绑定，即，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (insert-binding (+ a 3)))&lt;/code&gt;&lt;p&gt;而第二个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏展开式中的词法绑定，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;`(let ((a 1))
-        (+ ,x a))&lt;/code&gt;&lt;p&gt;在进行宏定义时，我们并不知道&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;中有没有&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，&lt;br&gt;结果导致了，宏展开式中的词法绑定意外捕获了&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;中的&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;在本例中，&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;就是&lt;code class=&quot;inline&quot;&gt;(+ a 3)&lt;/code&gt;，其中&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值本来应该是&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;，&lt;br&gt;结果展开后，被宏展开式所捕获，值变成了&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;，&lt;br&gt;我们通过插入一个词法绑定，完成了本例。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.2 插入一个自由变量&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a5d6fa2b397681d42d4ca20162e8ff13_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;403&quot; data-rawheight=&quot;328&quot;&gt;&lt;code lang=&quot;emacs&quot;&gt;; -*- lexical-binding: t -*-
-
-(let ((a 1))
-    (defmacro insert-free (x)
-        `(+ ,x a)))&lt;/code&gt;&lt;p&gt;以上代码定义了一个宏&lt;code class=&quot;inline&quot;&gt;insert-free&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(insert-free 3)&lt;/code&gt;将展开为&lt;code class=&quot;inline&quot;&gt;(+ 3 a)&lt;/code&gt;，其中&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;是自由变量，&lt;br&gt;&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值取决于&lt;code class=&quot;inline&quot;&gt;(insert-free 3)&lt;/code&gt;在何处被展开。&lt;/p&gt;&lt;p&gt;例如，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (insert-free (+ a 3)))&lt;/code&gt;&lt;p&gt;将展开为，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (+ (+ a 3) a))    ; 7&lt;/code&gt;&lt;p&gt;我们再来看表达式&lt;code class=&quot;inline&quot;&gt;(+ (+ a 3) a))&lt;/code&gt;，&lt;br&gt;其中，左边第一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏展开之前的词法绑定，即，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (insert-free (+ a 3)))&lt;/code&gt;&lt;p&gt;而第二个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏展开式中的词法绑定，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 1))
-    (defmacro insert-free (x)
-        `(+ ,x a)))&lt;/code&gt;&lt;p&gt;在进行宏定义时，虽然我们显式的将&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;绑定为&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;，&lt;br&gt;但是&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;中包含的绑定，意外影响到了它，使得&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值变成了&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;。&lt;br&gt;我们通过插入一个含自由变量的表达式，让它受展开式所处的位置影响。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.3 hygienic macro&lt;/b&gt;&lt;/p&gt;&lt;p&gt;以上两个例子中，插入一个绑定会污染宏展开后的环境，而插入一个自由变量会被宏展开后环境所影响，&lt;br&gt;它们都有变量捕获问题，都不是卫生的（hygienic）。&lt;/p&gt;&lt;p&gt;hygienic macro通常翻译成“卫生宏”，是一种避免变量捕获的技术，&lt;br&gt;如果所使用的宏是卫生的，那么以上两个例子中，最后的求值结果应该都是&lt;code class=&quot;inline&quot;&gt;6&lt;/code&gt;，而不是&lt;code class=&quot;inline&quot;&gt;5&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;7&lt;/code&gt;。&lt;br&gt;卫生宏是一种语言特性，&lt;a href=&quot;http://community.schemewiki.org/?RnRS&quot;&gt;Scheme&lt;/a&gt;中的宏是卫生的，而Emacs Lisp不是。&lt;/p&gt;&lt;p&gt;&lt;b&gt;如果一个宏是卫生的，&lt;/b&gt; &lt;b&gt;那么宏展开式中的所有标识符，仍处于其来源处的词法作用域中。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;（1）例如，根据&lt;code class=&quot;inline&quot;&gt;insert-binding&lt;/code&gt;的定义，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;; -*- lexical-binding: t -*-
-
-(let ((a 1))
-    (defmacro insert-free (x)
-        `(+ ,x a)))
-(let ((a 2))
-    (insert-binding (+ a 3)))&lt;/code&gt;&lt;p&gt;将展开为，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (let ((a 1))
-        (+ (+ a 3) a)))&lt;/code&gt;&lt;p&gt;其中，&lt;code class=&quot;inline&quot;&gt;(+ (+ a 3) a)&lt;/code&gt;中，&lt;br&gt;第一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏展开之前的词法环境，这个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值为&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;，&lt;br&gt;第二个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏定义式，这个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值为&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;，&lt;br&gt;因此，&lt;code class=&quot;inline&quot;&gt;(+ (+ a 3) a)&lt;/code&gt;求值为&lt;code class=&quot;inline&quot;&gt;6&lt;/code&gt;。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0f0d0d03df4a9d2654648399f00f87d1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;415&quot; data-rawheight=&quot;358&quot;&gt;&lt;p&gt;（2）又例，根据&lt;code class=&quot;inline&quot;&gt;insert-free&lt;/code&gt;的定义，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;; -*- lexical-binding: t -*-
-
-(let ((a 1))
-    (defmacro insert-free (x)
-        `(+ ,x a)))
-(let ((a 2))
-    (insert-free (+ a 3)))&lt;/code&gt;&lt;p&gt;将展开为，&lt;/p&gt;&lt;code lang=&quot;emacs&quot;&gt;(let ((a 2))
-    (+ (+ a 3) a))&lt;/code&gt;&lt;p&gt;同理，&lt;code class=&quot;inline&quot;&gt;(+ (+ a 3) a)&lt;/code&gt;中，&lt;br&gt;第一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏展开之前的词法环境，这个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值为&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;，&lt;br&gt;第二个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，来源于宏定义式，这个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的值为&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;，&lt;br&gt;因此，&lt;code class=&quot;inline&quot;&gt;(+ (+ a 3) a)&lt;/code&gt;的值也为&lt;code class=&quot;inline&quot;&gt;6&lt;/code&gt;。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d506193ef43253a3bd3b2ed80fc56297_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;410&quot; data-rawheight=&quot;352&quot;&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本文介绍了交互函数，介绍了如何查看一个函数或者宏的文档和定义，&lt;br&gt;一些常用的宏，都可以通过查看&lt;code class=&quot;inline&quot;&gt;subr.el&lt;/code&gt;来找到它们。&lt;br&gt;然后，我们介绍了两种与宏相关的变量捕获问题，引出了卫生宏的概念。&lt;/p&gt;&lt;p&gt;下文，我们继续讨论宏，来看一看展开为宏定义的宏之强大威力。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://www.gnu.org/software/emacs/manual/elisp.html&quot;&gt;GNU Emacs Lisp Reference Manual&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://book.douban.com/subject/1432683/&quot;&gt;On Lisp&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://book.douban.com/subject/3864436/&quot;&gt;Let Over Lambda&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;http://www.scheme.com/tspl4/&quot;&gt;The Scheme Programming Language&lt;/a&gt;&lt;/p&gt;</description>
-<author>何幻</author>
-<guid isPermaLink="false">2018-03-07-34106490</guid>
-<pubDate>Wed, 07 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
