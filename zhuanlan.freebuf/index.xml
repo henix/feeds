@@ -5,7 +5,148 @@
 <link>https://henix.github.io/feeds/zhuanlan.freebuf/</link>
 <description>新鲜的安全资讯库，官网www.freebuf.com</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 15 Mar 2018 17:59:44 +0800</lastBuildDate>
+<lastBuildDate>Wed, 04 Apr 2018 19:29:42 +0800</lastBuildDate>
+<item>
+<title>一种绕过限制下载论文的思路</title>
+<link>https://henix.github.io/feeds/zhuanlan.freebuf/2018-04-03-35262142.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35262142&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-0198c5c5ea70bb9c9460ec3194ef84ee_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;注：本文下面的内容仅讨论绕过思路，作为技术交流之用。大家下载论文还是应该通过正规渠道，付费下载，尊重各位站长的劳动成果。敏感图片和代码中涉及站点的内容均已打码。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;有时候要研究技术，我们也需要下载一些论文来看看的。一些论文站点，虽然提供预览功能，但是下载却是收费的。&lt;/p&gt;&lt;p&gt;举个例子，如下站点：&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9a403375452202a7f8d448cbddf53cff_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;396&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;当我们点击“同意并开始全文预览”按钮时，是有一个弹出窗口来预览论文的。&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5cd06d194c7281d057d8223ddcd2c2aa_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;332&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;但是当我们点击“下载”按钮时，却提示需要收费。&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e26e62d598789df694b052e521e01999_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;636&quot; data-rawheight=&quot;429&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;一方面它单篇论文的收费实在是挺贵的；另外一方面，我们可能更倾向于把论文批量下载到本地，等到有时间时慢慢读完。这该怎么办呢？&lt;/p&gt;&lt;p&gt;我们F12看看预览页面的内容：&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-caa962f52747c22d141f265be6ce131a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;103&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;可以清晰的看到，id=”pdf”的div下的每个子节点div对应着论文的每一页，而每一个子div中包含的img标签对应的图片则是每一页的内容。我们将img标签的src中的链接复制出来，粘贴在浏览器的新页签中，其实是可以看到本页论文内容，而右键“保存图片”是可以将此页论文保存到本地的。&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a06f6ee57d1ddc1193fe2767c54ce009_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;287&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;以上就是手动绕过限制下载论文的思路。但是有的论文页数实在太多，手动逐个复制链接下载实在有些效率低下，所以我们可以写个脚本来提升效率。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#coding:utf-8
+import traceback
+import urllib2
+import urllib
+import sys
+import Queue
+import os
+import time
+from bs4 import BeautifulSoup
+from selenium import webdriver
+driver = webdriver.Firefox()
+driver.implicitly_wait(30) 
+host = &quot;此处打码&quot;
+searchurl = &quot;https://&quot; + host + &quot;/index.php?m=Search&amp;amp;a=index&quot;
+dstpath = &quot;h:/downloadpdf&quot;
+download_queue = Queue.Queue()
+reload(sys)
+sys.setdefaultencoding(&quot;utf-8&quot;)
+class UnicodeStreamFilter:  
+  def __init__(self, target):  
+      self.target = target  
+      self.encoding = &#39;utf-8&#39;  
+      self.errors = &#39;replace&#39;  
+      self.encode_to = self.target.encoding  
+  def write(self, s):  
+      if type(s) == str:  
+          s = s.decode(&quot;utf-8&quot;)  
+      s = s.encode(self.encode_to, self.errors).decode(self.encode_to)  
+      self.target.write(s)  
+        
+if sys.stdout.encoding == &#39;cp936&#39;:  
+  sys.stdout = UnicodeStreamFilter(sys.stdout) 
+def get_search_result(keywords):
+  data = {&quot;q&quot;:keywords}
+  headers = {&quot;cookie&quot;:&quot;访问论文站点时f12看到的cookie填入此处，此处打码&quot;}
+  req = urllib2.Request(url=searchurl,data=urllib.urlencode(data),headers=headers)
+  res = urllib2.urlopen(req)
+  content = res.read()
+  soup = BeautifulSoup(content, features=&quot;lxml&quot;)
+  divlist = soup.find_all(class_=&quot;item-title&quot;)
+  if divlist is not None and len(divlist) &amp;gt; 0:
+      for divitem in divlist:
+          alist = divitem.find_all(&quot;a&quot;)
+          if alist is not None and len(alist) &amp;gt; 0:
+              ahref = alist[0].attrs[&quot;href&quot;]
+              title = alist[0].attrs[&quot;title&quot;]
+              download_queue.put([
+                  &quot;http://%s%s&quot;%(host,ahref,), 
+                  title
+              ])
+def save_pdf(title, imgls, chost):
+  headers = {
+      &quot;Accept&quot;: &quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8&quot;,
+      &quot;Accept-Encoding&quot;: &quot;gzip, deflate&quot;,
+      &quot;Accept-Language&quot;: &quot;zh-CN,zh;q=0.9&quot;,
+      &quot;Cache-Control&quot;: &quot;max-age=0&quot;,
+      &quot;Connection&quot;: &quot;keep-alive&quot;,
+      &quot;Cookie&quot;: &quot;__cfduid=dd7361d04f439dbfd27d12f286b72afdb1520244765; Hm_lvt_5d91dc9c92e499ab00ba867fc2294136=1520385180&quot;,
+      &quot;Upgrade-Insecure-Requests&quot;: 1,
+ 
+     &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 6.1; WOW64) 
+AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.146 
+Safari/537.36&quot;
+  }
+  if not os.path.exists(dstpath):
+      os.mkdir(dstpath)
+  curdst = dstpath + os.sep + str(title).replace(&quot;.pdf&quot;,&quot;&quot;).decode()
+  if not os.path.exists(curdst):
+      os.mkdir(curdst)
+      pageindex = -1
+      for imgitem in imgls:
+          if imgitem.attrs[&quot;src&quot;].find(&quot;loading&quot;) != -1:
+              continue
+          src = imgitem.attrs[&quot;src&quot;]
+          src = &quot;http://%s/%s&quot;%(chost,src[3:],)
+          pageindex = pageindex + 1
+          realpath = curdst + os.sep + str(pageindex) + &quot;.png&quot;
+          with open(realpath, &quot;wb&quot;) as f:
+              req = urllib2.Request(url=src,headers=headers)
+              f.write(urllib2.urlopen(req).read())
+              f.flush()
+      print &quot;下载&quot;,title,&quot;完成&quot;
+  else:
+      print curdst,&quot;已存在&quot;
+def download_pages():
+  while not download_queue.empty():
+      url,title = download_queue.get()
+      html = urllib.urlopen(url).read()
+      signal = &quot;javascript:viewLogin.viewDl(&#39;&quot;
+      if html.find(signal) != -1:
+          cid = html[html.find(signal) + len(signal):]
+          cid = cid[:cid.find(&quot;&#39;&quot;)]
+          pagerequest_url = &quot;http://%s/index.php?g=Home&amp;amp;m=View&amp;amp;a=viewUrl&amp;amp;cid=%s&amp;amp;flag=1&quot;%(host,cid,)
+          pagereal_url = urllib.urlopen(pagerequest_url).read()
+          chost = pagereal_url[2:].split(&quot;/&quot;)[0]
+          pagereal_url = &quot;http:%s&quot;%(pagereal_url,)
+          driver.get(pagereal_url)
+          try:
+              time.sleep(3)
+              #每次移动滚动条的距离
+              distance = 300
+              #统计img标签的个数，下拉时会新增img标签
+              pimgnum = 0
+              #img标签个数不再发生变化的次数
+              samecount = 0
+              while True:
+                  driver.execute_script(&#39;$(&quot;#pdf&quot;).scrollTop(%s);&#39;%distance)
+                  time.sleep(2)
+                  distance = distance + 300
+                  cimgnum = len(driver.find_elements_by_tag_name(&quot;img&quot;))
+                  if cimgnum != pimgnum:
+                      pimgnum = cimgnum
+                      samecount = 0
+                      continue
+                  else:
+                      samecount = samecount + 1
+                  #当img标签不再发生变化的次数达到20次时，则表明全部加载完毕
+                  if samecount &amp;gt;= 20:
+                      break
+              
+              pagecontent = driver.page_source
+              soup = BeautifulSoup(pagecontent, features=&quot;lxml&quot;)
+              imgls = soup.find_all(&quot;img&quot;)
+              if imgls is not None and len(imgls) &amp;gt; 0:
+                  save_pdf(title, imgls, chost)
+              
+          except Exception,e:
+              traceback.print_exc()
+if __name__ == &#39;__main__&#39;:
+  keywords = &quot;攻击树&quot;
+  get_search_result(keywords)
+  download_pages()
+  driver.quit()&lt;/code&gt;&lt;p&gt;脚本主要步骤如下：&lt;/p&gt;&lt;p&gt;1.根据传入的关键字(keyword字段），模拟搜索请求；得到与该关键字相关的论文的标题以及url&lt;/p&gt;&lt;p&gt;2.打开论文对应的url，此时的页面还不是真实的论文全文页面；定位到预览关键字段cid（在javascript:viewLogin.viewDl(）方法中），发送请求，得到论文真实全文页面的对应的url&lt;/p&gt;&lt;p&gt;3.由于论文预览采用了逐步加载的模式，即最初显示3页，然后随着滚动条的拖动再逐渐加载后续内容；所以使用selelium模拟滚动页面内容，判断是否有新页面被加载出来，直至页面内容不再发生变化为止&lt;/p&gt;&lt;p&gt;4.此时基于第三部加载出的全部页面内容，提取img字段，逐个保存到本地；即对应着论文的每一页&lt;/p&gt;&lt;p&gt;脚本运行效果如下：&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7bf5df3048a9602023d9d097b49f8917_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;410&quot; data-rawheight=&quot;122&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;得到的论文：&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e8a9e484d7728d643c2d1c01bde621a5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;581&quot; data-rawheight=&quot;247&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;u&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4ad65e4a83e41dd799353ef2dae5f948_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;407&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;如果网络效果不是很好，可以适当将sleep时间延长。跑个脚本吃个饭回来，论文都下好了，还是很爽的。&lt;/p&gt;&lt;p&gt;原文链接：&lt;a href=&quot;http://www.freebuf.com/articles/web/164516.html&quot;&gt;一种绕过限制下载论文的思路 - FreeBuf互联网安全新媒体平台 | 关注黑客与极客&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;* 本文作者：tammypi，本文属FreeBuf原创奖励计划，未经许可禁止转载&lt;/b&gt;&lt;/p&gt;</description>
+<author>鲍弘捷</author>
+<guid isPermaLink="false">2018-04-03-35262142</guid>
+<pubDate>Tue, 03 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>315黑名单之夜，信息安全谁能逃过此劫？</title>
 <link>https://henix.github.io/feeds/zhuanlan.freebuf/2018-03-15-34587092.html</link>
@@ -141,148 +282,6 @@ stdout.open(&#39;r&#39;);
 <author>鲍弘捷</author>
 <guid isPermaLink="false">2017-06-08-27307254</guid>
 <pubDate>Thu, 08 Jun 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Nebula漏洞利用包CVE-2016-0189漏洞利用分析</title>
-<link>https://henix.github.io/feeds/zhuanlan.freebuf/2017-04-18-26427502.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26427502&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;*原创作者：兰云科技银河实验室，本文属FreeBuf原创奖励计划，未经许可禁止转载&lt;/b&gt;&lt;/p&gt;
-&lt;h2&gt;1.	引言&lt;br&gt;&lt;/h2&gt;
-&lt;p&gt;&lt;b&gt;在最近的一年里， 漏洞利用工具包(EK/Exploit Kit)市场风云变幻。2016年六月初，曾经极为猖獗的Angler EK 销声匿迹，Neutrino EK 迅速填补了空白。随后短短不到3个月时间，Neutrino EK 又转为地下，RIG EK继而成为最流行的漏洞利用工具包。今年3月初，RIG又淡出视线，而迎来了新的Nebula EK。&lt;/b&gt;&lt;/p&gt;
-&lt;p&gt;Nebula EK包中对CVE-2016-0189的漏洞利用，比其它漏洞利用包的漏洞利用方有了一定改进，这里进行一下深入分析。&lt;/p&gt;
-&lt;p&gt;所用工具:&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;•	IE11(调试Javascript)&lt;/p&gt;
-&lt;p&gt;•	windbg&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;Nebula EK 的首页，如下图所示。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-50652028e33465ead584c1dab6bc953f_r.png&quot; data-rawwidth=&quot;597&quot; data-rawheight=&quot;352&quot;&gt;&lt;p&gt;不难看出，页面里包含了混淆过的Javascript代码。进一步分析，这些代码是否有种似曾相识的感觉?对了，代码的混淆方法跟落日漏洞利用工具包(Sundown EK)极为相似。&lt;/p&gt;
-&lt;p&gt;页面中共有2段Javascript代码， 混淆方法相同。第一段Javascript代码，去掉混淆后，代码如下, 不难看出，这段代码就是CVE-2016-0189的漏洞利用。&lt;/p&gt;
-
-
-&lt;p&gt;关于CVE-2016-0189，网上已有一些分析报告，比如Theori的分析[1]。 然而这些分析报告，并未提供在内存层面的技术细节，使得读者总有种知其然，不知其所以然的感觉。本文试图利用windbg来分析漏洞利用时的内存布局，使得读者对该漏洞利用有更深刻的理解。&lt;/p&gt;
-&lt;h2&gt;2.	CVE-2016-0189的关键知识点&lt;/h2&gt;
-&lt;p&gt;CVE-2016-0189是个关于VBScript的漏洞。VBScript 脚本引擎代码在vbscript.dll 中。&lt;/p&gt;
-&lt;h3&gt;2.1.	VBScript的变量&lt;/h3&gt;
-&lt;p&gt;VBScript 的内存变量占用0×10个字节， 前两个字节定了变量类型VARTYPE。常见类型定义如下表所示[2]。&lt;/p&gt;
-
-
-&lt;p&gt;我们可以在VBScript代码中插入IsEmpty()函数，然后在windbg的vbscript!IsEmpty() 函数上设置断点来观察内存[3]。&lt;/p&gt;
-
-
-&lt;p&gt;图1  调试用VBScript代码&lt;/p&gt;
-
-
-&lt;p&gt;这里，0a560198就是str对象，这里 0008两个字节表示的是VARTYPE，根据表可知，值恰好为vbString(VT_BSTR = 8) 而偏移0×8处存放的就是字符串地址，&lt;/p&gt;
-
-
-&lt;p&gt;这里还可以看出，字符串是Unicode存放的。&lt;/p&gt;
-&lt;h3&gt;2.2.	VBScript的数组&lt;/h3&gt;
-&lt;p&gt;VBScript 的数组的定义如下&lt;/p&gt;
-
-
-&lt;p&gt;当访问数组元素时，VBScript引擎会调用 AccessArray 函数来计算元素的存放地址。&lt;/p&gt;
-&lt;p&gt;试着用windbg 调试如下代码, 在vbscript!AccessArray处下断点:&lt;/p&gt;
-
-
-
-
-&lt;p&gt;堆栈中0ab04380即为数组A地址&lt;/p&gt;
-
-
-&lt;p&gt;数组元素存放在 pvData (0x7dfd130) 起始的地方&lt;/p&gt;
-&lt;p&gt;在 vbscript!AccessArray+0x9d: 指令处停下   (不同版本这个偏移值可能会有出入)&lt;/p&gt;
-
-
-&lt;p&gt;这条指令非常关键，它计算元素A(1,2) 的地址。 这里esi 就是SAFEARRAY的地址，而esi+0c是pvData的地址。eax值就是元素相对于pvData的偏移。查看eax值&lt;/p&gt;
-
-
-&lt;p&gt;为什么A(1,2)的偏移会是0×50呢。 VBScript的数组内存布局和C语言有些不太一样。A数组的内存布局为 A(0,0) A(1,0) A(0, 1), A(1,1), A(0, 2), A(1,2),  而每个元素大小为0×10字节(cbElements)。因此 A(1,2) 的偏移为0×50。&lt;/p&gt;
-&lt;h3&gt;2.3.	CVE-2016-0189 漏洞原理初探&lt;/h3&gt;
-&lt;p&gt;CVE-2016-0189 的漏洞在AccessArray 函数代码中。我们看一下这个函数的逻辑：&lt;/p&gt;
-
-
-&lt;p&gt;这个函数在根据索引计算偏移时，如果索引是VT_I2 或者VT_I4时，直接使用它的值。而如果是其它类型时候，将会调用rtVariantChangeTypeEx 函数来计算索引值。如果索引是JavaScript对象的话，将会调用索引对象的valueOf函数来获取索引的值。&lt;/p&gt;
-&lt;p&gt;这似乎并没有太大问题，然而我们看一下漏洞利用脚本的valueOf函数&lt;/p&gt;
-
-
-&lt;p&gt;除了返回值”1”因为， 它调用了SumggleFag函数&lt;/p&gt;
-&lt;p&gt;查看该函数的代码可以发现：它调用了ZeroineL函数，而该函数将数组重新定义成了Cod(1,1)  （k1=1）&lt;/p&gt;
-
-
-
-&lt;p&gt;到这里,我们明白了该漏洞的原理了，在AccessArray中计算索引值的时候，索引如果是个JavaScript对象，可以通过函数valueof来重新修改该数组的大小!  当数组的大小变小时，将会导致访问越界。&lt;/p&gt;
-&lt;h2&gt;3.	CVE-2016-0189 漏洞利用深入分析&lt;/h2&gt;
-&lt;p&gt;Nebula EK的漏洞利用在越界访问的基础上实现了：&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;1.	泄漏VBScript对象的地址&lt;/p&gt;
-&lt;p&gt;2.	读取任意地址&lt;/p&gt;
-&lt;p&gt;3.	写入任意地址（受限）&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;这3种手段在实现原理上都是类似的。通过将数组定义 Cod从(1,2000), 缩小到(1,1)，从而在AccessArray 函数中实现了越界访问。同时，立即使用大量y(i)  对释放掉的内存重新进行占位。由于y(i)是可控的，如果越界访问到y(i)的内存区，即可控制对内存的访问。&lt;/p&gt;
-&lt;p&gt;下面我们利用windbg对内存进行观察，分析1.泄露VBScript对象地址的情形。&lt;/p&gt;
-&lt;p&gt;需要注意的是，由于脚本中有大量数组操作，如果我们在AccessArray函数上下断点，可能会断下很多次。这里介绍一个小技巧:先将断点用bd命令禁掉，在想断下的VBScript 脚本前加入MsgBox函数，当MsgBox弹出后，我们再把断点用be命令恢复。这样就可以确保断在我们想断的地方。&lt;/p&gt;
-&lt;p&gt;为清晰起见，我们将在脚本中将aw.Cod(0,0)设成0×11223344。&lt;/p&gt;
-&lt;p&gt;利用该技巧，我们在vbscript!AccessArray+0x9d断在&lt;/p&gt;
-&lt;p&gt; aw.Cod(arg1, 2) = s	// arg1.valueOf() == 1 , s 是我们试图泄露的对象地址&lt;/p&gt;
-&lt;p&gt;这行越界访问（写入）处。&lt;/p&gt;
-&lt;p&gt;断下时，&lt;/p&gt;
-
-
-&lt;p&gt;0x2a659d0 就是 aw.Cod数组的pvData 地址，03 00 两个字节是vbLong (VT_I4), 而 44 33 22 11恰好为我们赋的值。 &lt;/p&gt;
-&lt;p&gt;前面已经分析过aw.Cod(arg1,2), 即 aw.Cod(1,2), 该元素相对pvData的偏移就是0×50, 由于aw.Cod现在被重新设定为(1,1)，所以 大小为2*2*0×10=0×40, 也就是说 awCod(arg1,2) 越界了0×10个字节。&lt;/p&gt;
-&lt;p&gt;aw.Cod(1,2) 的地址为 2a659d0 + 0×50 = 0x2a65a20。而从地址0x2a65a1c起（标为绿色的部分）是某个成功占位y(i) 的值。内存布局如下图所示:&lt;/p&gt;
-
-
-&lt;p&gt;由上图可知，Aw.cod(1,2) 正好与y(i)的第四个字节开始的部分重叠。&lt;/p&gt;
-
-
-&lt;p&gt;了解了这点。上面这段代码就不难理解了–遍历 y的所有元素，找到与Aw.cod(1,2) 重叠的那个y(i).  由于s 被写入了Aw.cod(1,2)， 即 yi(i) 的第四个字节开始的部分。那么Mid(y(i), 3, 1)&lt;/p&gt;
-&lt;p&gt;正好是第四个字节开始的2个字节(注意Mid函数下表是从 1 开始的)，它存放的是对象的类型的值。 4个字节之后，则是对象的地址。这样，只须读取y(i)的内容，就可以获取对象的地址了。&lt;/p&gt;
-&lt;p&gt;概括起来，Aw.cod 和 某个y(i)  重叠，我们可以通过Aw.cod的越界操作来将数据写入可控的y(i)里。&lt;/p&gt;
-&lt;p&gt;下面讨论情形2 读取任意地址&lt;/p&gt;
-
-
-&lt;p&gt;这次我们在占位的内存中，成功构造如下数据：&lt;/p&gt;
-
-
-&lt;p&gt;Aw.cod(1,2) 将越界访问到 我们构造的占位内存 地址0x2f72878。&lt;/p&gt;
-&lt;p&gt;08 00 为vbString类型VT_BSTR， 而48 c2 1b 01   四个字节则为试图读取的地址。&lt;/p&gt;
-&lt;p&gt;当执行 o = aw.Cod(arg1,2)时， VBScript引擎将会把地址0x2f72878作为一个vbString对象来处理。而48 c2 1b 01   四个字节则作为字符串内容的地址来处理。&lt;/p&gt;
-&lt;p&gt;读取该字符串的内容则获取了 48 c2 1b 01    地址里存放的内容。&lt;/p&gt;
-&lt;p&gt;最后我们看一下写入任意地址（受限）的情形。&lt;/p&gt;
-
-
-&lt;p&gt;写入与读取原理大致一样。这里只是将CSng(0) 赋值给了 aw.Cod(1,2)，从而导致 CSng 的类型值 4(VT_R4) 被写入了指定地址。这里脚本并未实现任意值的写入，然而并不影响漏洞的利用。&lt;/p&gt;
-&lt;p&gt;最后我们看一下，整个漏洞利用是如何工作的:&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;1）	首先，创建一个 对象，通过上述的方法(1) 泄露该对象的地址;&lt;/p&gt;
-&lt;p&gt;2）	 在该对象偏移为8的地方，利用方法(2)读取内存获取CSession对象指针;&lt;/p&gt;
-&lt;p&gt;3）	然后在CSession对象偏移为4的地方，获取COleScript 对象;&lt;/p&gt;
-&lt;p&gt;4）	而COleScript 对象0×174的地方则存放了SafetyOption，也就是所谓的上帝模式(GodMode)标记。利用上述方法(3)将其值修改为4，从而成功开启上帝模式。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;h2&gt;4.	一个有趣的DLL劫持技巧&lt;/h2&gt;
-&lt;p&gt;分析本来到这里可以结束了，然而我们在Nebula的漏洞利用包里发现了一个有趣的DLL劫持技巧。尽管在前面，上帝模式已经成功开启了，当IE的保护模式开启时（默认是开启的），Vista以后的版本在执行Shell.Applicaion对象的ShellExecute 函数时， 会弹出一个如下的对话框(除非被加载的程序在ElevationPolicy中定义了静默加载，比如notepad.exe)，向用户询问是否允许。正是由于这个原因，一些漏洞利用包选择了仅在XP系统上对CVE-2016-0189 进行利用。&lt;/p&gt;
-
-
-&lt;p&gt;Nebula EK采用了一个BlackHat 2014[2]上 公布的技巧来规避这个问题。IE浏览器在创建Shell.Application 对象时，会加载%systemroot%\system32\shell32.dll。通常情况下%systemroot%为c:\windows目录。然而，攻击者可以通过如下方式进行DLL劫持攻击。&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;1）	在%temp%\ 目录下创建system32目录&lt;/p&gt;
-&lt;p&gt;2）	在上面创建的目录下生成一个假的shell32.dll文件，用来加载需要加载的程序。Nebula EK 在VBScript脚本中会生成一个3K左右的文件。&lt;/p&gt;
-&lt;p&gt;3）	在脚本创建Shell.Application对象之前，利用WScript.Shell 来 修改 %system32%环境变量，指向1)创建的目录&lt;/p&gt;
-&lt;p&gt;4）	创建Shell.Application 对象，从而自动加载 假的shell32.dll文件，达到执行文件的目的。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt; 相应的代码片段如下。&lt;/p&gt;
-
-
-&lt;p&gt;需要指出的是,通过这种方式加载的进程是低完整性(Low Integrity)的。通常被加载的程序还需要通过本地漏洞来进一步提权。&lt;/p&gt;
-&lt;h2&gt;5.	总结&lt;/h2&gt;
-&lt;p&gt;Nebula EK 通过CVE-2016-0189的一个漏洞，实现了对任意内存的读写，从而开启了上帝模式。并且配合一个DLL劫持技巧，达到了绕过IE保护模式，静默执行任何文件的目的。&lt;/p&gt;
-&lt;h2&gt;6.	参考文献&lt;/h2&gt;
-&lt;p&gt;[1]	PATCH ANALYSIS OF CVE-2016-0189. &lt;a href=&quot;http://theori.io/research/cve-2016-0189&quot; data-editable=&quot;true&quot; data-title=&quot;Patch Analysis of CVE-2016-0189&quot;&gt;Patch Analysis of CVE-2016-0189&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;[2]	&lt;a href=&quot;https://msdn.microsoft.com/en-us/library/aa263402&quot; data-editable=&quot;true&quot; data-title=&quot;VarType Function&quot;&gt;VarType Function&lt;/a&gt;(v=vs.60).aspx&lt;/p&gt;
-&lt;p&gt;[3]	 启明星辰CVE-2014-6332分析报告。&lt;a href=&quot;http://www.venustech.com.cn/UserFiles/20141210_%E6%97%A0%E9%9C%80%E6%8B%85%E5%BF%83%E6%BD%9C%E8%97%8F%E4%BA%8618%E5%B9%B4%E7%9A%84%E5%BE%AE%E8%BD%AF%E6%B5%8F%E8%A7%88%E5%99%A8%E8%BF%9C%E7%A8%8B%E4%BB%A3%20%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E.pdf&quot; data-editable=&quot;true&quot; data-title=&quot;venustech.com.cn 的页面&quot;&gt;&lt;u&gt;http://www.venustech.com.cn/UserFiles/20141210_%E6%97%A0%E9%9C%80%E6%8B%85%E5%BF%83%E6%BD%9C%E8%97%8F%E4%BA%8618%E5%B9%B4%E7%9A%84%E5%BE%AE%E8%BD%AF%E6%B5%8F%E8%A7%88%E5%99%A8%E8%BF%9C%E7%A8%8B%E4%BB%A3%20%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E.pdf&lt;/u&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;[4]	Write Once, Pwn Anywhere.&lt;/p&gt;
-&lt;p&gt;&lt;a href=&quot;https://www.blackhat.com/docs/us-14/materials/us-14-Yu-Write-Once-Pwn-Anywhere.pdf&quot; data-editable=&quot;true&quot; data-title=&quot;blackhat.com 的页面&quot;&gt;&lt;u&gt;https://www.blackhat.com/docs/us-14/materials/us-14-Yu-Write-Once-Pwn-Anywhere.pdf&lt;/u&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;*原创作者：兰云科技银河实验室，本文属FreeBuf原创奖励计划，未经许可禁止转载&lt;/b&gt;&lt;/p&gt;</description>
-<author>蘑菇</author>
-<guid isPermaLink="false">2017-04-18-26427502</guid>
-<pubDate>Tue, 18 Apr 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
