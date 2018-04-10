@@ -2,6 +2,7 @@ const feeds = [
 	["Finance", [
 		"chinaetfs",
 		"SmartGAA",
+		"shenyantao-60",
 		"DreamyTalks",
 		"lamboCFA",
 		"GlobalMacroHedge",
