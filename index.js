@@ -10,6 +10,7 @@ const feeds = [
 		"ForrestM",
 		"yan-guan-lin-20",
 		"hthgyj",
+		"FICCGeek",
 		"Equity-Investment",
 		"forex-analysis",
 		"yuefenginvest",
