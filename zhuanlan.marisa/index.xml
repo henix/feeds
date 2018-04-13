@@ -5,7 +5,38 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 08 Apr 2018 05:58:42 +0800</lastBuildDate>
+<lastBuildDate>Fri, 13 Apr 2018 09:40:15 +0800</lastBuildDate>
+<item>
+<title>数组小技巧 区间操作</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-12-35568092.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35568092&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bbeaba667e1b3162c62356eca878b7a9_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;猛然发现自己的个人主页被访问了1,000次以上了！&lt;/p&gt;&lt;p&gt;嘛嘛，那么讲一些自己的关于数组的心得体会吧。正好也是整理一下。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;声明：&lt;/p&gt;&lt;p&gt;查询单个元素：给定一个下标，获取数组上对应下标上元素的值&lt;/p&gt;&lt;p&gt;修改单个元素：给定一个下标，让对应下标上的元素加上一个给定的值&lt;/p&gt;&lt;p&gt;查询区间和：对于一个给定的合法区间[i,j]来说，查询数组在[i,j]上的所有元素之和&lt;/p&gt;&lt;p&gt;修改区间和：对于一个给定的合法区间[i,j]来说，让[i,j]里的每一个元素都加上某一个给定的值&lt;/p&gt;&lt;p&gt;单个元素虽然可以看成对于某个区间[i,i]上的操作，但是我还是要特意拿出来。&lt;/p&gt;&lt;p&gt;数组下标从1开始&lt;/p&gt;&lt;hr&gt;&lt;p&gt;普通数组： &lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;const int maxm=100;
+int arr[maxm];&lt;/code&gt;&lt;p&gt;查询单个元素时间复杂度: O(1)&lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(1)&lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;评价：被广泛使用的结构......&lt;/p&gt;&lt;hr&gt;&lt;p&gt;前缀和：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int sum[maxm];
+for(int i=1;i&amp;lt;maxm;++i)sum[i]=sum[i-1]+arr[i];&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;即对于前缀和数组sum来说&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;sum[i]=arr[1]+arr[2]+......+arr[i]&lt;/code&gt; &lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(1) -&amp;gt; sum[i]-sum[i-1]&lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(n) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(1) -&amp;gt; sum[j]-sum[i-1]&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;评价：在数组不会发生变化，且需要频繁查询区间和的时候的很好的选择。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;差分：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int diff[maxm]
+diff[1]=arr[1];
+for(int i=2;i&amp;lt;maxm;++i)diff[i]=arr[i]-arr[i-1];&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;即对于差分数组diff来说：&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;diff[1]=arr[1], diff[i]=arr[i]-arr[i-1];&lt;/code&gt; &lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(n) -&amp;gt; diff[i]+diff[i-1]+.... + diff[1]&lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(1) -&amp;gt; 只考虑涉及到arr[i]的元素即可&lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(1) -&amp;gt; 考虑[i,j]区间+1，则diff[i]+=1,diff[j+1]-=1即可&lt;/p&gt;&lt;p&gt;评价：好像用得不是很多...用在需要对区间进行更新而且中间还不能查询的时候。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;三者关系：&lt;/p&gt;&lt;p&gt;普通数组求前缀和变为前缀和数组&lt;/p&gt;&lt;p&gt;差分数组求前缀和变为普通数组&lt;/p&gt;&lt;p&gt;前缀和数组差分变为普通数组&lt;/p&gt;&lt;p&gt;普通数组差分变为差分数组&lt;/p&gt;&lt;hr&gt;&lt;p&gt;引入数据结构：树状数组，此处不对树状数组原理做任何解释&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;//定义操作lowerbit
+//bit-&amp;gt;binary index tree
+inline int lowerbit(int x){return x&amp;amp;-x;}
+//定义插入操作
+int _ins(int i,int x){while(i&amp;lt;maxm)bit[i]+=x,i+=lowerbit(i);}
+//定义查询操作
+int query(int i){
+    int ans=0;
+    while(i)ans+=bit[i],i-=lowerbit(i);
+    return ans;
+}
+for(int i=1;i&amp;lt;maxm;++i)
+_ins(i,arr[i]);&lt;/code&gt;&lt;p&gt;以上是最基本的树状数组代码，即对原arr数组建立一个树状数组&lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(lgn) -&amp;gt; query(j)-query(i-1)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(nlgn) &lt;/p&gt;&lt;hr&gt;&lt;p&gt;让我们考虑对差分数组diff建立树状数组：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;for(int i=1;i&amp;lt;maxm;++i)
+_ins(i,diff[i]);&lt;/code&gt;&lt;p&gt;这样做完之后我们就能得到：&lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(nlgn)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(lgn)  -&amp;gt; 考虑区间[i,j]+1，_ins(i,1), _ins(j+1,-1)&lt;/p&gt;&lt;hr&gt;&lt;p&gt;问题来了，树状数组和对diff建立的树状数组都不能很好的进行区间修改和查询......那么我们有没有什么办法呢&lt;/p&gt;&lt;p&gt;考虑 &lt;code class=&quot;inline&quot;&gt;arr[1]+arr[2]+....+arr[n]&lt;/code&gt; &lt;/p&gt;&lt;p&gt;用diff改写一下成为&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(diff[1]) + (diff[1] + diff[2]) + .....  + (diff[1] + diff[2] + ..... + diff[n])&lt;/code&gt; &lt;/p&gt;&lt;p&gt;合并一下同类项&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;n*diff[1] + (n-1)*diff[2] + ...... + 1*diff[n]&lt;/code&gt;  ---- &lt;b&gt;(1)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;改写一下式子&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;n*(diff[1] + diff[2] + ...... + diff[n])  - ( 0*diff[1] + 1*diff[2] + ...... + (n-1)*diff[n]) &lt;/code&gt; ---- &lt;b&gt;(2)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;至此，我们便得到了可以进行区间修改的差分树状数组了。&lt;/p&gt;&lt;p&gt;我们我们不仅对差分数组diff建立一个树状数组快速求diff上的区间和，同时对 (i-1)*diff[i] 也建立一个树状数组快速求该数组的区间和，再相减即可。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;//(i-1)*diff[i]数组的ins和query
+//[i,j]+val时
+_ins(i,(i-1)*val);
+_ins(j+1,-(n-j-1)*val);
+//查询[i,j]时
+query(j)-query(i-1);&lt;/code&gt;&lt;p&gt;至此，我们通过建立两个树状数组即可得到区间修改和区间查询的良好数据结构了。&lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(lgn)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;评价：常数也线段树要小，支持区间修改的结构。可是我没怎么用过，一般都是写打lazy tag的线段树了。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;思考题：&lt;/p&gt;&lt;p&gt;在上一段中，我们是对(2)式建立了两个树状数组来完成区间操作，那么，我们能不能仅仅对(1)式建立一个树状数组来完成区间操作，而且还要少一倍的空间呢？&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Spica</author>
+<guid isPermaLink="false">2018-04-12-35568092</guid>
+<pubDate>Thu, 12 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>C宏元编程:编译期LISP解释器（三）A级原语</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-07-35382626.html</link>
@@ -485,68 +516,6 @@ void dfs(Node* bst){
 <author>Spica</author>
 <guid isPermaLink="false">2018-04-01-35114696</guid>
 <pubDate>Sun, 01 Apr 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>C宏元编程:编译期LISP解释器（一）总体思路</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-03-30-35121316.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35121316&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;这是一个超级神奇的项目 &lt;a href=&quot;https://github.com/BlueFlo0d/CSP&quot;&gt;CSP GIt Repo&lt;/a&gt;&lt;/p&gt;&lt;p&gt;对！纯粹用C宏-那个只支持字符串替换和粘贴的东西-写的LISP解释器！&lt;/p&gt;&lt;p&gt;（目前还没有完成，最重要的lambda已经实现了，cond暂时还有问题嵌套会出错x）&lt;/p&gt;&lt;p&gt;（想拉一些小伙伴一起玩一起烧脑呀！可惜似乎人类玩家直接看源码大概率大脑爆栈，于是尝试写了一些文章之类。。原始wiki可以戳这里 &lt;a href=&quot;https://github.com/BlueFlo0d/CSP/wiki/Implementation-details&quot;&gt;CSP Wiki&lt;/a&gt;&lt;/p&gt;&lt;p&gt;那么现在就开始玩转（abuse）C宏定义的神奇（ドM）之旅吧！&lt;/p&gt;&lt;h2&gt;总体思路&lt;/h2&gt;&lt;p&gt;C宏定义想必大家都熟悉，姑且展开最天马行空的想象，进行LISP的列表操作（CAR CDR CONS之类）应该是可行的，First-class function某种程度上似乎也可行（传递宏名），比如这个例子：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define E(...) __VA_ARGS__ //单位宏
-#define N(...) //零宏
-#define __test(something,k,...) k(do something)
-#define _test(something,...) __test(something,E)
-_test(testit) // =&amp;gt; __test(testit,E) =&amp;gt; E(do testit) =&amp;gt; do testit
-_test(E(N,N)) // =&amp;gt; __test(N,N,E) =&amp;gt; N(do N) =&amp;gt;
-//_test(E(N,N))的输出消失了！&lt;/code&gt;&lt;p&gt;这个例子中我们看到我们将零宏和单位宏作为参数传入，并使得_test（封装 __test）具有一个零点 E(N,N)。这个技巧（私货！）在CSP的实现中经常用到！记笔记！&lt;/p&gt;&lt;p&gt;但是要实现lambda。。似乎纯粹的C宏很难做到（比如要把参数代入匿名函数体。。咋整啊）。。&lt;/p&gt;&lt;p&gt;不过别忘了神奇的LISP是可以实现自解释的！也就是可以用没有lambda语义的LISP解释器来实现完整的LISP解释器。&lt;/p&gt;&lt;p&gt;CSP的实现就按照了这个思路，首先实现解释器A（其实就是加载了一组实现LISP原语宏的C预处理器），然后再在解释器A上实现完整的LISP自解释器B。以下是自解释器的源码（不是最新的x 最新的在纠结那个有问题的cond）&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;//Line 176, csp.h
-#define $zipped_eval(e,a) COND(\
-        (ATOM e (EVAL_e $zipped_assoc(e,a)))    \
-        (ATOM SAFE_CAR e \
-         COND(($eq(SAFE_CAR e (quote))EVAL_e(SAFE_CAR SAFE_CDR e))  \
-              ($eq(SAFE_CAR e (atom)) (EVAL_e ATOM\
-              DELAY_INT_23($zipped_eval_R)() (SAFE_CAR SAFE_CDR e,a))) \
-              ($eq(SAFE_CAR e (eq)) (EVAL_e $eq( DELAY_INT_25($zipped_eval_R)()\
-              (SAFE_CAR SAFE_CDR e,a) DELAY_INT_25($zipped_eval_R)() \
-              (SAFE_CAR SAFE_CDR SAFE_CDR e,a)))) \
-              ($eq(SAFE_CAR e (car)) (EVAL_e SAFE_CAR DELAY_INT_23($zipped_eval_R)()\
-              (SAFE_CAR SAFE_CDR e,a))) \
-              ($eq(SAFE_CAR e (cdr)) (EVAL_e SAFE_CDR DELAY_INT_23($zipped_eval_R)()\
-              (SAFE_CAR SAFE_CDR e,a))) \
-              ($eq(SAFE_CAR e (cons)) (EVAL_e CONS DELAY_INT_23($zipped_eval_R)()\
-              (SAFE_CAR SAFE_CDR e,a) DELAY_INT_23($zipped_eval_R)()\
-              (SAFE_CAR SAFE_CDR SAFE_CDR e,a))) \
-              ((T)(EVAL_e DELAY_INT_23($zipped_eval_R)()\
-               (($zipped_assoc(SAFE_CAR e,a) EVAL_e SAFE_CDR e),a))) \
-                 )                                                      \
-                )                                                       \
-        ($eq(SAFE_CAR SAFE_CAR e (lambda))\
-        (DELAY_INT_26(EVAL_e_R)() DELAY_INT_23($zipped_eval_R)()(\
-        EVAL_e(EVAL_e(EVAL_e(EVAL_e(SAFE_CAR SAFE_CDR SAFE_CDR SAFE_CAR e)))),\
-        EVAL_e(APPEND DELAY_INT_13($pair_R)()(EVAL_e(EVAL_e(EVAL_e(SAFE_CAR SAFE_CDR SAFE_CAR e)))\
-        (DELAY_INT_19($zipped_evlis_R)()(EVAL_e(_e EVAL_e(SAFE_CDR e)), a)))a)))\
-        )                                                               \
-)&lt;/code&gt;&lt;p&gt;是不是似曾相识啊23333&lt;/p&gt;&lt;p&gt;典型的自解释器实现。大家注意到这里：&lt;/p&gt;&lt;p&gt;1）有很多SAFE_XXX之类的东西，将来会解释。（C宏处理似乎难以实现短路condition，导致经常会对非法表达式进行求值，这种情况下使用naive的原语宏是会出事的-原地报错／破坏括号平衡-所以必须要很麻烦地一个一个实现为对于非法输入仍能给出合法结果的宏）&lt;/p&gt;&lt;p&gt;2）很多EVAL_e。这是一个单位宏，单位宏和零宏在C宏展开中作用非常大，因为可以用它们微调宏的展开顺序：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define _CAT(x,y) x##y
-#define CAT(x,y) _CAT(x,y) //典型的连接
-//_e是一个单位宏，_n是一个零宏
-#define b() )x(
-_n(b()) //先展开_n再展开b，什么都没有了x
-_e(_n _n()(b())) // =&amp;gt;_n()x() =&amp;gt; x()
-//先展开b再展开_n&lt;/code&gt;&lt;p&gt;因为CPP展开_&lt;i&gt;e&lt;/i&gt;时对其括号内字符串调用展开过程（所以单位宏可以用来增加一次展开扫描过程），这个时候b会被展开，但第一个_n后面没有左括号不会展开，所以会先展开中间的_n()，下一次扫描时才第一个_n和左括号连起来被展开。&lt;/p&gt;&lt;p&gt;（是不是有些tricky？这是Lv0啦～等不及的可以自己看一下csp.h 2333如果能全部看懂帮我写文章吧qwq）&lt;/p&gt;&lt;p&gt;3) DELAY_INT_xxx(xxx_R)()(...) 这个是著名的延迟展开技巧，DELAY_INT_xxx定义如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define DELAY_REF(x) x _n()
-#define DELAY_REF_2(x) x _n()
-#define DELAY_INT_2(x) DELAY_REF(DELAY_REF_2)(x)
-#define DELAY_INT_3(x) DELAY_REF(DELAY_INT_2)(x)
-#define DELAY_INT_4(x) DELAY_REF(DELAY_INT_3)(x)
-#define DELAY_INT_5(x) DELAY_REF(DELAY_INT_4)(x)
-...&lt;/code&gt;&lt;p&gt;结合2）容易理解这样 DELAY_INT_n(xxx_R)() 每次扫描n会减一，直到“露出” xxx_R与后面的()结合，习惯上定义：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define xxx_R() xxx&lt;/code&gt;&lt;p&gt;这样xxx就被展开出来与参数列表结合，起到任意调节宏展开顺序的作用。&lt;/p&gt;&lt;p&gt;此外这个还被用于宏的递归。由于蓝色集合的限制，像这样的宏是不能实现递归的：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define I_want_recursion(x) do_it(x) I_want_recursion(x)
-I_want_recursion(x) //=&amp;gt;do_it(x) I_want_recursion(x)
-//CPP认为它属于已经处理过的字符串于是就不会再展开了^
-_e(I_want_recursion(x))//=&amp;gt;do_it(x) I_want_recursion(x)
-//扫描多少遍都没有用！&lt;/code&gt;&lt;p&gt;但是可以这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#define I_want_recursion_R() I_want_recursion
-#define I_want_recursion(x) do_it(x) DELAY_REF(I_want_recursion_R)()(x)
-I_want_recursion(x) //=&amp;gt;do_it(x) I_want_recursion_R()(x)
-_e(I_want_recursion(x)) //=&amp;gt;do_it(x) do_it(x) I_want_recursion_R()(x)
-//因为这次I_want_recursion是由I_want_recursion_R()新造出来的token所以可以继续展开下去&lt;/code&gt;&lt;p&gt;不过这样需要在外面套足够多的单位宏来进行足够次数的扫描。。。CSP中有一部分使用零点构造技术更优雅地实现了递归，将来会写的x&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这次就先写这些吧，下次写解释器A的列表操作实现和Currying？&lt;/p&gt;</description>
-<author>K.Scarlet</author>
-<guid isPermaLink="false">2018-03-30-35121316</guid>
-<pubDate>Fri, 30 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
