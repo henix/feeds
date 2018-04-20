@@ -13,7 +13,6 @@ const feeds = [
 		"ricequant",
 		"FICCGeek",
 		"Trading_CNY",
-		"Equity-Investment",
 		"forex-analysis",
 		"yuefenginvest",
 		"trading",
