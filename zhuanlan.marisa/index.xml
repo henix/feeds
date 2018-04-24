@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 22 Apr 2018 12:11:45 +0800</lastBuildDate>
+<lastBuildDate>Tue, 24 Apr 2018 11:59:18 +0800</lastBuildDate>
+<item>
+<title>一款能设置你的DrRacket背景的IDE插件</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-23-36027427.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36027427&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e7f5beb3b56104a4ee29bcd37d7e8c1c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;安装方式（两种）：&lt;/p&gt;&lt;p&gt;1.进入终端，输入下面的命令：&lt;/p&gt;&lt;p&gt;raco pkg install DrRacketTheme&lt;/p&gt;&lt;p&gt;在不同操作系统上可能有所不同，如果没有成功，请尝试先进入racket安装目录下然后在运行这条命令。&lt;/p&gt;&lt;p&gt;2.打开DrRacket，打开File菜单下的Package Manager，切换到Available from Catalog选项卡，点击Update Package List按钮，稍等片刻，然后在Filter文本框中输入DrRacketTheme，点击Install按钮。&lt;/p&gt;&lt;p&gt;设置的时候请点击View菜单下的Set Background，选择需要作为背景的图片。&lt;/p&gt;&lt;p&gt;Set Background Alignment能够设置图片的对齐方式。&lt;/p&gt;&lt;p&gt;希望这款插件能够帮助到正在学习racket或是scheme的人。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>御坂黒子</author>
+<guid isPermaLink="false">2018-04-23-36027427</guid>
+<pubDate>Mon, 23 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>如何玩弄Typed Racket</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-21-35962271.html</link>
@@ -513,78 +522,6 @@ m        &amp;gt;&amp;gt;= (\x -&amp;gt; k x &amp;gt;&amp;gt;= h)  =  (m &amp;gt
 <author>何幻</author>
 <guid isPermaLink="false">2018-04-04-35237925</guid>
 <pubDate>Wed, 04 Apr 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>C++函数式实现BST、线段树(单点修改)（2）</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-02-35201534.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35201534&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-39ccb0ee296de0b726bb2f2c939ca101_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35114696&quot;&gt;C++函数式实现BST、线段树(单点修改)（1）&lt;/a&gt;&lt;/p&gt;&lt;p&gt;上一次是之前写的BST，那么我们今天就来聊一聊线段树~单点修改的。&lt;/p&gt;&lt;p&gt;本篇前置知识：线段树(普通递归的写法，非zwk)&lt;/p&gt;&lt;p&gt;最好掌握但是不掌握也没什么很大关系只是后面有一段论述可能会看不懂而已的知识：主席树&lt;/p&gt;&lt;hr&gt;&lt;p&gt;Part I：线段树复习&lt;/p&gt;&lt;p&gt;我觉得每个人的对于线段树的写法可能不一样，比如这样一个例题：&lt;a href=&quot;http://acm.hdu.edu.cn/showproblem.php?pid=1754&quot;&gt;Problem - 1754&lt;/a&gt;&lt;/p&gt;&lt;p&gt;单点更新：给出两个数x y，代表把x位置的数更新为y (y&amp;gt;=0)&lt;/p&gt;&lt;p&gt;查询区间max值：给出两个数x y，求区间[x,y]上的最大值&lt;/p&gt;&lt;p&gt;一开始长度为n的数组会指定初始值。&lt;/p&gt;&lt;p&gt;那么关键就是三个函数：(node代表当前节点编号，le和ri代表当前node代表的区间，st就是线段树数组)&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;void init(int node,int le,int ri){
-    if(le==ri)
-        st[node]=GIVEN_VALUE //GIVEN_VALUE只表示这里的给定的初始值，并不是预定义的常量
-    else{
-        int m=(le+ri)&amp;gt;&amp;gt;1;
-        init(node&amp;lt;&amp;lt;1,le,m);
-        init(node&amp;lt;&amp;lt;1|1,m+1,ri);
-        st[node]=max(st[node&amp;lt;&amp;lt;1],st[node&amp;lt;&amp;lt;1|1]);
-    }
-}
-
-void update(int node,int le,int ri){
-    if(le==ri)
-        st[node]=y;
-    else{
-        int m=(le+ri)&amp;gt;&amp;gt;1;
-        if(x&amp;lt;=m)
-            update(node&amp;lt;&amp;lt;1,le,m);
-        else
-            update(node&amp;lt;&amp;lt;1|1,m+1,ri);
-        st[node]=max(st[node&amp;lt;&amp;lt;1],st[node&amp;lt;&amp;lt;1|1]);
-    }
-}
-
-int query(int node,int le,int ri){
-    int m=(le+ri)&amp;gt;&amp;gt;1;
-    if(x&amp;lt;=le&amp;amp;&amp;amp;ri&amp;lt;=y)
-        return st[node];
-    if(y&amp;lt;=m)
-        return query(node&amp;lt;&amp;lt;1,le,m);
-    if(x&amp;gt;m)
-        return query(node&amp;lt;&amp;lt;1|1,m+1,ri);
-    if(le&amp;lt;x||ri&amp;gt;y)
-        return max(query(node&amp;lt;&amp;lt;1,le,m),query(node&amp;lt;&amp;lt;1|1,m+1,ri));
-}&lt;/code&gt;&lt;p&gt;（好早之前写的代码了...但是逻辑应该还是很清楚的，注意update是单点更新）&lt;/p&gt;&lt;hr&gt;&lt;p&gt;Part II: 函数式写法&lt;/p&gt;&lt;p&gt;(没有提交，只测了样例，应该是正确的，提交肯定过不了..)&lt;/p&gt;&lt;p&gt;(new完没有delete)&lt;/p&gt;&lt;p&gt;让我们首先定义Node结构体，同之前的BST是类似的，注意声明了一个全局的root变量&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;struct Node{
-    int v;
-    Node* le,*ri;
-    explicit Node(int value=0,Node* lef=nullptr,Node* righ=nullptr):
-        v(value),le(lef),ri(righ){}
-}*root;&lt;/code&gt;&lt;p&gt;然后就是init函数&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Node* init(int le,int ri){
-    if(le==ri)
-        return new Node(GIVEN_VALUE);
-    else{
-        int m=(le+ri)&amp;gt;&amp;gt;1;
-        Node* lef=init(le,m),*rig = init(m+1,ri);
-        return new Node(max(lef-&amp;gt;v,rig-&amp;gt;v),lef,rig);
-    }
-}&lt;/code&gt;&lt;p&gt;这里的le和ri代表当前节点代表的区间，因此一开始的调用是init(1,n)。假设le==ri，代表当前已经走到叶子节点了，则直接返回，否则分别init完左右子之后再返回自身节点。&lt;/p&gt;&lt;p&gt;然后就是update函数：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Node* update(Node* st,int le,int ri){
-    if(le==ri)
-        return new Node(y);
-    else{
-        int m=(le+ri)&amp;gt;&amp;gt;1;
-        Node* tmp;
-        if(x&amp;lt;=m){
-            tmp=update(st-&amp;gt;le,le,m);
-            return new Node(max(tmp-&amp;gt;v,st-&amp;gt;ri-&amp;gt;v),tmp,st-&amp;gt;ri);
-        }else{
-            tmp=update(st-&amp;gt;ri,m+1,ri);
-            return new Node(max(tmp-&amp;gt;v,st-&amp;gt;le-&amp;gt;v),st-&amp;gt;le,tmp);
-        }
-    }
-}&lt;/code&gt;&lt;p&gt;注意这里是单点更新..即更新的区间是[x,x]，因此只要考虑x&amp;lt;=m和x&amp;gt;m的情况即可。同BST类似，这一下又会开创出一条新链出来，即从root节点到最终的叶子节点是一条新链，然后这条链有链向原来的节点。这个过程基本和之前BST是一样的，就不画图了，而且鼠绘完全二叉树好难......，相比BST只是多了一个更新自身的值的操作而已。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;Part III：主席树&lt;/p&gt;&lt;p&gt;在BST中，我们最外层调用bst_insert是这样调用的&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;root=bst_insert(rand()%100,root);&lt;/code&gt;&lt;p&gt;同理，我们这里最外层调用update&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;root=update(root,1,n);&lt;/code&gt;&lt;p&gt;但是，假如我们这里不把root的值覆盖掉，而是把root声明为一个数组，比如说这样&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int size=0;
-root[size++]=init(1,n);&lt;/code&gt;&lt;p&gt;我们每一次都这样更新&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;root[size+1]=update(root[size],1,n);
-++size;&lt;/code&gt;&lt;p&gt;这里的意思就是，我们把单点更新之后的线段树，即仅仅有着一条新链，但是其余节点仍然指向上一棵线段树的节点的线段树的根节点保存起来。这也就意味着，我们做了m次操作之后，root里面会有m+1棵线段树(初始有1棵)。对于相邻两棵线段树来说，后面一棵仅仅和之前的一棵有一条链是不一样的而已，后面一棵其余的节点是仍然指向前面那一棵的，换而言之，后面一棵的非新链上的节点是和前面一棵公用的。&lt;/p&gt;&lt;p&gt;这样做有什么好处？&lt;/p&gt;&lt;p&gt;一个显而易见的好处就是我们现在能够查询历史版本了，比如说，询问在第k次修改之后的区间[x,y]上的最大值，因为对于每一次修改之后的线段树的root节点我们都保存在了数组里面，因此便直接调用&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;query(root[k],1,n)&lt;/code&gt;&lt;p&gt;即可。注意此处适用于单点修改，区间修改需要打lazy tag，我还需要仔细想一想。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么最后再来一个例题讲解 &lt;a href=&quot;http://poj.org/problem?id=2104&quot;&gt;2104 -- K-th Number&lt;/a&gt;&lt;/p&gt;&lt;p&gt;题意是给出 n和m，n是数组长度，m是操作次数，n为100,000，m为5000&lt;/p&gt;&lt;p&gt;每一次操作给出三个数x y k询问区间[x,y]上第k小的数&lt;/p&gt;&lt;p&gt;首先考虑简单情况，如何用线段树解决询问区间[1,n]上的第k小的数。&lt;/p&gt;&lt;p&gt;假设数组元素的数据范围是[1,100]，那么我们开一个至少有100个叶子节点的线段树，线段树的节点维护当前区间数字出现次数之和，每来一个数v，就对区间[v,v]进行+1操作。查询时先看左子树的次数之和left_sum是否超过k，若超过，进入左子树查询，否则进入右子树查询第k-left_sum小的数。&lt;/p&gt;&lt;p&gt;但是现在元素的数据范围是1e9太大了，因为n最多只有100,000，离散化即可。&lt;/p&gt;&lt;p&gt;我们解决了对于整个数组查询第k小的问题，接下来解决区间查询&lt;/p&gt;&lt;p&gt;注意到区间数字出现次数之和可以用前缀和来维护，即对于任意一个区间[x,y]&lt;/p&gt;&lt;p&gt;[x,y]中的数字出现次数之和等于 [1,y]中数字出现次数之和 - [1,x-1]中数字出现次数之和&lt;/p&gt;&lt;p&gt;这也就意味着我们只需要n棵线段树就能求出任意一个区间的数字出现次数之和，这n棵线段树对应着区间[1,1]、[1,2]、[1,3]、......、[1,n]。&lt;/p&gt;&lt;p&gt;对于查询任意一个区间[x,y]，我们只要拿对应[1,y]线段树上节点的值减掉[1,x-1]线段树上对应节点的值即可。&lt;/p&gt;&lt;p&gt;最后看这n个线段树有什么性质&lt;/p&gt;&lt;p&gt;对于相邻两个线段树，即[1,i]和[1,i+1]，相当于把源数组的第i+1个元素，无妨说是a，在[1,i]线段树上对区间[a,a]进行了+1操作，即，满足我们上面所说的，相邻两棵线段树只有一条链是不一样的。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;Part IV：&lt;/p&gt;&lt;p&gt;函数式实现线段树代码：&lt;a href=&quot;https://github.com/Hatsunespica/CL/blob/master/Melange/segmentTree.cpp&quot;&gt;https://github.com/Hatsunespica/CL/blob/master/Melange/segmentTree.cpp&lt;/a&gt;&lt;/p&gt;&lt;p&gt;有关于例题的k-number的AC代码可以参看我的回答，我的回答只有两个...&lt;/p&gt;&lt;p&gt;写了很多，若有错误，还请指正。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Spica</author>
-<guid isPermaLink="false">2018-04-02-35201534</guid>
-<pubDate>Mon, 02 Apr 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
