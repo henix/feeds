@@ -20,7 +20,6 @@ const feeds = [
 		"c_156910707",
 		"Chouma2016",
 		"touyanbang88",
-		"lengjing_qqfinance",
 		"sanleima",
 		"xiangxt1984",
 		"Lhtz-Jqxx",
