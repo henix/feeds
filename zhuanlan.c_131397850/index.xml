@@ -5,7 +5,66 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/</link>
 <description>记录编程的日常 &amp; 学习的过程 &amp; 奇技淫巧</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 21 Feb 2018 12:55:54 +0800</lastBuildDate>
+<lastBuildDate>Fri, 04 May 2018 03:23:31 +0800</lastBuildDate>
+<item>
+<title>[珂学の暴力]ODT / Chtholly Tree</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_131397850/2018-04-29-36258811.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36258811&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-488b148addb4c012ebc3855217f99463_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;0x00 Prologue&lt;/h2&gt;&lt;p&gt;最近闲下来了...刷CF的时候奇奇怪怪地刷到了珂朵莉round(&lt;a href=&quot;http://codeforces.com/contest/896&quot;&gt;Codeforces Round #449 (Div. 1)&lt;/a&gt;)。里面的题可以说是非(shí)常(fēn)奈(dú)斯(liú)了。其中有一道题很有趣——&lt;a href=&quot;https://www.luogu.org/problemnew/show/CF896C&quot;&gt;CF896C&lt;/a&gt;(洛谷)。写一个数据结构，支持以下4个操作&lt;/p&gt;&lt;ul&gt;&lt;li&gt;将区间 &lt;equation&gt;[L,R]&lt;/equation&gt; 中的所有数加上 &lt;equation&gt;v&lt;/equation&gt; &lt;/li&gt;&lt;li&gt;将区间 &lt;equation&gt;[L,R]&lt;/equation&gt; 中的所有数改成 &lt;equation&gt;v&lt;/equation&gt; （这个是ODT优势体现的操作）&lt;/li&gt;&lt;li&gt;输出区间 &lt;equation&gt;[L,R]&lt;/equation&gt; 中第 &lt;equation&gt;k&lt;/equation&gt; 大的数&lt;/li&gt;&lt;li&gt;输出 &lt;equation&gt;\sum_{i=L}^{R}a_i^k&lt;/equation&gt; ，即 &lt;equation&gt;[L,R]&lt;/equation&gt; 区间内元素的 &lt;equation&gt;k&lt;/equation&gt; 次幂和&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;数据随机！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于这类有&lt;b&gt;区间推平&lt;/b&gt;操作数据又随机的题，ODT就十分适用了&lt;/p&gt;&lt;p&gt;UPD @ 04 / 29 / 18 04:33 p.m.&lt;/p&gt;&lt;p&gt;（julao &lt;a href=&quot;https://www.zhihu.com/people/37eef0f3735cc109b9164465cc7b5422&quot; data-hash=&quot;37eef0f3735cc109b9164465cc7b5422&quot; class=&quot;member_mention&quot; data-hovercard=&quot;p$b$37eef0f3735cc109b9164465cc7b5422&quot;&gt;@Guanghao Ye&lt;/a&gt;来批判了：老司机树原版是lxl搞的！老司机树原版是lxl搞的！老司机树原版是lxl搞的！）。&lt;/p&gt;&lt;p&gt;~~老司机擅长推车，珂朵莉擅长推平区间！~~&lt;/p&gt;&lt;p&gt;本文将以这道题作为例子讲解Old Driver Tree / 珂朵莉树的智慧 / 暴力美学。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-341a3f688cc7576707c68ca258d56566_r.jpg&quot; data-size=&quot;normal&quot; data-watermark=&quot;watermark&quot; data-rawwidth=&quot;486&quot; data-watermark-src=&quot;v2-51c54d40eb87200d7e46ed5e2f9757f1&quot;&gt;&lt;hr&gt;&lt;h2&gt;0x01 如何维护？&lt;/h2&gt;&lt;p&gt;珂朵莉树将区间信息以三元组的形式存储，即用 &lt;equation&gt;(L,R,v)&lt;/equation&gt; 表示 &lt;equation&gt;[L,R]&lt;/equation&gt; 中的元素为 &lt;equation&gt;v&lt;/equation&gt; 。从这里就能看出为什么珂朵莉树对于区间推平较为高效了。我们用&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;存储这些三元组，内部维护这些区间，以左端点 &lt;equation&gt;L&lt;/equation&gt; 作为关键字进行升序排列，这样方便我们进行一些操作的时候方便查找到我们想要修改的区间。区间节点结构如下：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;struct Node {
+    int l, r;
+    mutable ll v; // 在用迭代器访问时能够修改值
+    Node(){}
+    Node(int L, int R=-1, LL V=0l): l(L), r(R), v(V){}
+    bool operator &amp;lt; (const Node&amp;amp; b) const {
+        return l &amp;lt; b.l;
+    }
+};
+&lt;/code&gt;&lt;p&gt;&lt;b&gt;一些操作？不不不，其实核心操作只有一个：&lt;/b&gt;&lt;code class=&quot;inline&quot;&gt;split(p)&lt;/code&gt;——将 &lt;equation&gt;p&lt;/equation&gt; 所在区间拆分为 &lt;equation&gt;[L,p-1]&lt;/equation&gt; 和 &lt;equation&gt;[p, R]&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;由于在&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;中的所有节点是有序的，我们可以用&lt;code class=&quot;inline&quot;&gt;lower_bound(x)&lt;/code&gt;定位我们要操作的区间。（注: &lt;code class=&quot;inline&quot;&gt;lower_bound(x)&lt;/code&gt;可以在$logn$时间内在一个有序序列中找到最小的 &lt;equation&gt;y&lt;/equation&gt; 使得 &lt;equation&gt;y\geq x&lt;/equation&gt; 并返回 &lt;equation&gt;y&lt;/equation&gt; 的位置 / 迭代器，一个二分查找的过程）&lt;/p&gt;&lt;p&gt;这时我们要分以下两种情况处理通过 &lt;equation&gt;p&lt;/equation&gt; 找到的区间：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;如果 &lt;equation&gt;p&lt;/equation&gt; 已经是某个区间的左端点，那么我们直接返回查找到的迭代器;&lt;/li&gt;&lt;li&gt;如果 &lt;equation&gt;p&lt;/equation&gt; 不是某个区间的左端点，那么当前返回的迭代器所指向的区间是 &lt;equation&gt;p&lt;/equation&gt; 所在区间右边第一个区间。这时将迭代器后移一位。如果在后移之后， &lt;equation&gt;p&lt;/equation&gt; 比当前区间的右端点还大，那么直接返回尾迭代器(因为不需要进行操作)；否则 &lt;equation&gt;p\in [L&#39;,R&#39;]&lt;/equation&gt; ，那么记录一下当前区间的信息，然后直接删除当前区间再插入拆分好的区间 &lt;equation&gt;[L,p-1]&lt;/equation&gt; 和 &lt;equation&gt;[p,R]&lt;/equation&gt; ，最后返回 &lt;equation&gt;p&lt;/equation&gt; 所在区间的迭代器(操作只会影响包含 &lt;equation&gt;p&lt;/equation&gt; 的区间)。&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;cpp&quot;&gt;inline set&amp;lt;Node&amp;gt;::iterator split(int p) {
+    auto it = s.lower_bound(Node(p));
+    if(it != s.end() &amp;amp;&amp;amp; it-&amp;gt;l == p) return it; // 情况一
+    --it;                                      // 找到p所在区间
+    if(it-&amp;gt;r &amp;lt; p) return s.end();              // 不需要拆分
+    int L = it-&amp;gt;l, R=it-&amp;gt;r;                    // 记录信息
+    LL v = it-&amp;gt;v;
+    s.erase(it);
+    s.insert(Node(L, p - 1, v));               // 插入新区间
+    return s.insert(Node(p, R, v)).first;
+}
+&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;0x02 实现操作&lt;/h2&gt;&lt;p&gt;&lt;b&gt;1. 区间赋值&lt;/b&gt;&lt;/p&gt;&lt;p&gt;有了split之后，我们就能利用split做各种神(bao)奇(li)的操作了。先来看一个区间赋值的操作。&lt;/p&gt;&lt;p&gt;现在给定了我们 &lt;equation&gt;L&lt;/equation&gt; , &lt;equation&gt;r&lt;/equation&gt; 和 &lt;equation&gt;v&lt;/equation&gt; 。首先为了能够暴力，我们先把 &lt;equation&gt;r+1&lt;/equation&gt; 和 &lt;equation&gt;L&lt;/equation&gt; 所在区间各自拆分出来。既然我们是区间赋值(推平)，我们可以直接将 &lt;equation&gt;[L,R)&lt;/equation&gt; 从&lt;code class=&quot;inline&quot;&gt;set&lt;/code&gt;中移除再添加一个新的 &lt;equation&gt;[L&#39;,R&#39;]&lt;/equation&gt; 区间，其中的值为 &lt;equation&gt;v&lt;/equation&gt; :&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;inline void modify(int l,int r,int v) {
+    auto R=split(r+1), L = split(l);
+    s.erase(L, R);
+    s.insert(Node(l, r, v));
+    return;
+}
+&lt;/code&gt;&lt;p&gt;在这个操作的过程中会有许多小区间被合并到 &lt;equation&gt;[L,R]&lt;/equation&gt; ，因此空间复杂度会大大减小。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2. 区间加&lt;/b&gt;&lt;/p&gt;&lt;p&gt;第一步与区间赋值一样，首先拆分 &lt;equation&gt;L&lt;/equation&gt; 和 &lt;equation&gt;r+1&lt;/equation&gt; 。之后，我们直接暴力修改 &lt;equation&gt;[L&#39;,R&#39;)&lt;/equation&gt; 中的值，由于数据随机，所以复杂度并不会爆时间。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;inline void add(int l, int r, int v) {
+    auto R = split(r+1), L=split(l);
+    while(L != R) {
+       L-&amp;gt;v += v;
+       ++L;
+    }
+    return;
+}
+&lt;/code&gt;&lt;p&gt;区间$k$次幂和与区间加操作十分类似，大家可以尝试写一个。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3. 区间第&lt;/b&gt; &lt;equation&gt;k&lt;/equation&gt; &lt;b&gt;大&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这才是真正的暴力。第一步依旧是拆分 &lt;equation&gt;r+1&lt;/equation&gt; 与 &lt;equation&gt;L&lt;/equation&gt; 。然后我们将 &lt;equation&gt;[L&#39;, R&#39;)&lt;/equation&gt; 中所有区间拿出来，将区间长度和区间值存到pair，放到vector里，然后对其中所有区间按照 &lt;equation&gt;v&lt;/equation&gt; 升序排列。然后遍历vector，每次将 &lt;equation&gt;k&lt;/equation&gt; 减去当前区间长度，直到 &lt;equation&gt;k\leq 0&lt;/equation&gt; 。十分的暴力，但是由于数据随机和区间合并时导致区间数量减少，我们依旧能过题。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;inline ll kth(int l, int r,int k) {
+    auto R = split(r+1), L = split(l);
+    vector&amp;lt;pii&amp;gt; vec;
+    while(L != R) {
+        vec.push_back(make_pair(L-&amp;gt;v, L-&amp;gt;r - L-&amp;gt;l + 1));
+        ++L;
+    }
+    sort(vec.begin(), vec.end(), [=](pii a, pii b) -&amp;gt; bool {
+        return a.first &amp;lt; b.first;
+    });
+    for(auto i: vec) {
+        k -= i.second;
+        if(k &amp;lt;= 0) return i.first;
+    }
+    return -1;
+}
+&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;0x03 注意事项&lt;/h2&gt;&lt;p&gt;虽然ODT / 珂朵莉树写起来十分容易，并且十分暴力，但是这个数据结构有一些使用上的限制：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;适用于有区间推平 / 覆盖操作的&lt;/li&gt;&lt;li&gt;&lt;b&gt;数据是随机的&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;数据随机很重要，因为如果推平区间操作很少 / 很多单点，珂朵莉会被卡掉呀QwQ&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0x04 Epilogue&lt;/h2&gt;&lt;p&gt;在知乎写了一半不知道为什么草稿没有保存，打开之后是空的…是空的！！！心态崩了呀，于是我重新写了大半篇TuT。继续刷CF准备10月校赛….&lt;/p&gt;</description>
+<author>Mike He</author>
+<guid isPermaLink="false">2018-04-29-36258811</guid>
+<pubDate>Sun, 29 Apr 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>写程序得女友——日本OJ Paiza Online Hackathon小游戏&quot;恋爱SLG&quot;题解</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_131397850/2018-02-20-33889772.html</link>
