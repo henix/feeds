@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 02 May 2018 04:15:04 +0800</lastBuildDate>
+<lastBuildDate>Sat, 05 May 2018 08:39:35 +0800</lastBuildDate>
+<item>
+<title>活化石</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-05-04-36427205.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36427205&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;最近计算机架构课组织了一次去&lt;a href=&quot;https://livingcomputers.org/&quot;&gt;Living Computers - Home&lt;/a&gt;的春游（误？），可惜迷路了，导致来晚，只看到一小半。&lt;/p&gt;&lt;p&gt;很好的一点是里面的计算机都是可远观而亦可亵玩 - 事实上我们的作业就是随便找台计算机在上面编程。&lt;/p&gt;&lt;p&gt;对于喜欢计算机历史的人来说很爽啊 - 从书上看着各种电脑各种OS是一码事，真正的看到，然后摸，还能用，感觉完全不一样。&lt;/p&gt;&lt;p&gt;尤其是还有Xerox Alto。还有个巨大的装着Smalltalk的盘盘。把老娘的爪爪放在圆圆的Smalltalk上然后插进Xerox Alto真是满足死我了。可惜不知道为啥Smalltalk跑不起来 - 放太久了？&lt;/p&gt;&lt;p&gt;信仰++++。&lt;/p&gt;&lt;p&gt;然后Digi-Comp（见&lt;a href=&quot;https://www.youtube.com/watch?v=_tZdE-3nR3w&quot;&gt;https://www.youtube.com/watch?v=_tZdE-3nR3w&lt;/a&gt;）也很好玩。&lt;/p&gt;&lt;p&gt;另：某Lisp厨失望了 - 没有Lisp Machine。&lt;/p&gt;&lt;p&gt;另另：有辛去的话，推荐下Pecos Pit Bar-B-Que，好好吃，实习以后大半年都没吃到这么辣的东西辣，sad&lt;/p&gt;</description>
+<author>圆角骑士魔理沙</author>
+<guid isPermaLink="false">2018-05-04-36427205</guid>
+<pubDate>Fri, 04 May 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>第四届函数式编程分享会</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-05-01-36308855.html</link>
@@ -420,37 +429,6 @@ activate :: Reactive w =&amp;gt; Event w (Bool -&amp;gt; IO ())&lt;/code&gt;&lt;
 <author>lotuc</author>
 <guid isPermaLink="false">2018-04-13-35656658</guid>
 <pubDate>Fri, 13 Apr 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>数组小技巧 区间操作</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-12-35568092.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/35568092&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bbeaba667e1b3162c62356eca878b7a9_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;猛然发现自己的个人主页被访问了1,000次以上了！&lt;/p&gt;&lt;p&gt;嘛嘛，那么讲一些自己的关于数组的心得体会吧。正好也是整理一下。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;声明：&lt;/p&gt;&lt;p&gt;查询单个元素：给定一个下标，获取数组上对应下标上元素的值&lt;/p&gt;&lt;p&gt;修改单个元素：给定一个下标，让对应下标上的元素加上一个给定的值&lt;/p&gt;&lt;p&gt;查询区间和：对于一个给定的合法区间[i,j]来说，查询数组在[i,j]上的所有元素之和&lt;/p&gt;&lt;p&gt;修改区间和：对于一个给定的合法区间[i,j]来说，让[i,j]里的每一个元素都加上某一个给定的值&lt;/p&gt;&lt;p&gt;单个元素虽然可以看成对于某个区间[i,i]上的操作，但是我还是要特意拿出来。&lt;/p&gt;&lt;p&gt;数组下标从1开始&lt;/p&gt;&lt;hr&gt;&lt;p&gt;普通数组： &lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;const int maxm=100;
-int arr[maxm];&lt;/code&gt;&lt;p&gt;查询单个元素时间复杂度: O(1)&lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(1)&lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;评价：被广泛使用的结构......&lt;/p&gt;&lt;hr&gt;&lt;p&gt;前缀和：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int sum[maxm];
-for(int i=1;i&amp;lt;maxm;++i)sum[i]=sum[i-1]+arr[i];&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;即对于前缀和数组sum来说&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;sum[i]=arr[1]+arr[2]+......+arr[i]&lt;/code&gt; &lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(1) -&amp;gt; sum[i]-sum[i-1]&lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(n) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(1) -&amp;gt; sum[j]-sum[i-1]&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;评价：在数组不会发生变化，且需要频繁查询区间和的时候的很好的选择。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;差分：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int diff[maxm]
-diff[1]=arr[1];
-for(int i=2;i&amp;lt;maxm;++i)diff[i]=arr[i]-arr[i-1];&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;即对于差分数组diff来说：&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;diff[1]=arr[1], diff[i]=arr[i]-arr[i-1];&lt;/code&gt; &lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(n) -&amp;gt; diff[i]+diff[i-1]+.... + diff[1]&lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(1) -&amp;gt; 只考虑涉及到arr[i]的元素即可&lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(n)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(1) -&amp;gt; 考虑[i,j]区间+1，则diff[i]+=1,diff[j+1]-=1即可&lt;/p&gt;&lt;p&gt;评价：好像用得不是很多...用在需要对区间进行更新而且中间还不能查询的时候。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;三者关系：&lt;/p&gt;&lt;p&gt;普通数组求前缀和变为前缀和数组&lt;/p&gt;&lt;p&gt;差分数组求前缀和变为普通数组&lt;/p&gt;&lt;p&gt;前缀和数组差分变为普通数组&lt;/p&gt;&lt;p&gt;普通数组差分变为差分数组&lt;/p&gt;&lt;hr&gt;&lt;p&gt;引入数据结构：树状数组，此处不对树状数组原理做任何解释&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;//定义操作lowerbit
-//bit-&amp;gt;binary index tree
-inline int lowerbit(int x){return x&amp;amp;-x;}
-//定义插入操作
-int _ins(int i,int x){while(i&amp;lt;maxm)bit[i]+=x,i+=lowerbit(i);}
-//定义查询操作
-int query(int i){
-    int ans=0;
-    while(i)ans+=bit[i],i-=lowerbit(i);
-    return ans;
-}
-for(int i=1;i&amp;lt;maxm;++i)
-_ins(i,arr[i]);&lt;/code&gt;&lt;p&gt;以上是最基本的树状数组代码，即对原arr数组建立一个树状数组&lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(lgn) -&amp;gt; query(j)-query(i-1)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(nlgn) &lt;/p&gt;&lt;hr&gt;&lt;p&gt;让我们考虑对差分数组diff建立树状数组：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;for(int i=1;i&amp;lt;maxm;++i)
-_ins(i,diff[i]);&lt;/code&gt;&lt;p&gt;这样做完之后我们就能得到：&lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(nlgn)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(lgn)  -&amp;gt; 考虑区间[i,j]+1，_ins(i,1), _ins(j+1,-1)&lt;/p&gt;&lt;hr&gt;&lt;p&gt;问题来了，树状数组和对diff建立的树状数组都不能很好的进行区间修改和查询......那么我们有没有什么办法呢&lt;/p&gt;&lt;p&gt;考虑 &lt;code class=&quot;inline&quot;&gt;arr[1]+arr[2]+....+arr[n]&lt;/code&gt; &lt;/p&gt;&lt;p&gt;用diff改写一下成为&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(diff[1]) + (diff[1] + diff[2]) + .....  + (diff[1] + diff[2] + ..... + diff[n])&lt;/code&gt; &lt;/p&gt;&lt;p&gt;合并一下同类项&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;n*diff[1] + (n-1)*diff[2] + ...... + 1*diff[n]&lt;/code&gt;  ---- &lt;b&gt;(1)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;改写一下式子&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;n*(diff[1] + diff[2] + ...... + diff[n])  - ( 0*diff[1] + 1*diff[2] + ...... + (n-1)*diff[n]) &lt;/code&gt; ---- &lt;b&gt;(2)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;至此，我们便得到了可以进行区间修改的差分树状数组了。&lt;/p&gt;&lt;p&gt;我们我们不仅对差分数组diff建立一个树状数组快速求diff上的区间和，同时对 (i-1)*diff[i] 也建立一个树状数组快速求该数组的区间和，再相减即可。&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;//(i-1)*diff[i]数组的ins和query
-//[i,j]+val时
-_ins(i,(i-1)*val);
-_ins(j+1,-(n-j-1)*val);
-//查询[i,j]时
-query(j)-query(i-1);&lt;/code&gt;&lt;p&gt;至此，我们通过建立两个树状数组即可得到区间修改和区间查询的良好数据结构了。&lt;/p&gt;&lt;p&gt;查询单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;修改单个元素时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;查询区间和时间复杂度: O(lgn)&lt;/p&gt;&lt;p&gt;修改区间和时间复杂度: O(lgn) &lt;/p&gt;&lt;p&gt;评价：常数也线段树要小，支持区间修改的结构。可是我没怎么用过，一般都是写打lazy tag的线段树了。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;思考题：&lt;/p&gt;&lt;p&gt;在上一段中，我们是对(2)式建立了两个树状数组来完成区间操作，那么，我们能不能仅仅对(1)式建立一个树状数组来完成区间操作，而且还要少一倍的空间呢？&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Spica</author>
-<guid isPermaLink="false">2018-04-12-35568092</guid>
-<pubDate>Thu, 12 Apr 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
