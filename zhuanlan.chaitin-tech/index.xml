@@ -5,7 +5,43 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 17 Apr 2018 03:13:03 +0800</lastBuildDate>
+<lastBuildDate>Sat, 12 May 2018 09:41:30 +0800</lastBuildDate>
+<item>
+<title>谈escapeshellarg绕过与参数注入漏洞</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-05-08-36591451.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36591451&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b381f753958bcf64068ff996bf76ca7b_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;参数注入漏洞是指，在执行命令的时候，用户控制了命令中的某个参数，并通过一些危险的参数功能，达成攻击的目的。&lt;/p&gt;&lt;h2&gt;0x01 从gitlist 0.6.0远程命令执行漏洞说起&lt;/h2&gt;&lt;p&gt;我们从gitlist说起，gitlist是一款使用PHP开发的图形化git仓库查看工具。在其0.6.0版本中，存在一处命令参数注入问题，可以导致远程命令执行漏洞。&lt;/p&gt;&lt;p&gt;在用户对仓库中代码进行搜索的时候，gitlist将调用&lt;code class=&quot;inline&quot;&gt;git grep&lt;/code&gt;命令：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;&amp;lt;?php
+public function searchTree($query, $branch)
+{
+    if (empty($query)) {
+        return null;
+    }
+    $query = escapeshellarg($query);
+    try {
+        $results = $this-&amp;gt;getClient()-&amp;gt;run($this, &quot;grep -i --line-number {$query} $branch&quot;);
+    } catch (\RuntimeException $e) {
+        return false;
+    }
+&lt;/code&gt;&lt;p&gt;其中，&lt;code class=&quot;inline&quot;&gt;$query&lt;/code&gt;是搜索的关键字，&lt;code class=&quot;inline&quot;&gt;$branch&lt;/code&gt;是搜索的分支。&lt;/p&gt;&lt;p&gt;如果用户输入的&lt;code class=&quot;inline&quot;&gt;$query&lt;/code&gt;的值是&lt;code class=&quot;inline&quot;&gt;--open-files-in-pager=id;&lt;/code&gt;，将可以执行&lt;code class=&quot;inline&quot;&gt;id&lt;/code&gt;命令：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-025b25bf8f104854898807714b9dac55_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;665&quot; data-rawheight=&quot;74&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;0x02 escapeshellarg为什么没有奏效？&lt;/h2&gt;&lt;p&gt;导致这个漏洞的原因，有几点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;开发者对于&lt;code class=&quot;inline&quot;&gt;escapeshellarg&lt;/code&gt;函数的误解，造成参数注入&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;git grep&lt;/code&gt;的参数&lt;code class=&quot;inline&quot;&gt;--open-files-in-pager&lt;/code&gt;的值，将被直接执行&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;理论上，在经过&lt;code class=&quot;inline&quot;&gt;$query = escapeshellarg($query);&lt;/code&gt;处理后，&lt;code class=&quot;inline&quot;&gt;$query&lt;/code&gt;将变成一个由单引号包裹的字符串。但不出漏洞的前提是，这个字符串应该出现在“参数值”的位置，而不是出现在参数选项（option）中。&lt;/p&gt;&lt;p&gt;我们可以试一下如下命令：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;git grep -i --line-number -e &#39;--open-files-in-pager=id;&#39; master&lt;/code&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9e039e85772fc4b3f1b3116e17c215c5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;700&quot; data-rawheight=&quot;168&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9e039e85772fc4b3f1b3116e17c215c5&quot; data-watermark-src=&quot;v2-c6f61d88a48b22311344485e716be6ab&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;如上图，我将&lt;code class=&quot;inline&quot;&gt;$query&lt;/code&gt;放在了&lt;code class=&quot;inline&quot;&gt;-e&lt;/code&gt;参数的值的位置，此时它就仅仅是一个字符串而已，并不会被当成参数&lt;code class=&quot;inline&quot;&gt;--open-files-in-pager&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;这应该作为本漏洞的最佳修复方法，也是git官方对pattern可能是用户输入的情况的一种解决方案（以下说明来自man-page）：&lt;/p&gt;&lt;blockquote&gt;-e &lt;br&gt;The next parameter is the pattern. This option has to be used for patterns starting with - and should be used in scripts passing user input to grep. Multiple patterns are combined by&lt;br&gt;or.&lt;/blockquote&gt;&lt;p&gt;当然，gitlist的开发者用了另一种修复方案：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;&amp;lt;?php
+public function searchTree($query, $branch)
+{
+    if (empty($query)) {
+        return null;
+    }
+    $query = preg_replace(&#39;/(--?[A-Za-z0-9\-]+)/&#39;, &#39;&#39;, $query);
+    $query = escapeshellarg($query);
+    try {
+        $results = $this-&amp;gt;getClient()-&amp;gt;run($this, &quot;grep -i --line-number -- {$query} $branch&quot;);
+    } catch (\RuntimeException $e) {
+        return false;
+    }&lt;/code&gt;&lt;p&gt;首先用&lt;code class=&quot;inline&quot;&gt;preg_replace&lt;/code&gt;将&lt;code class=&quot;inline&quot;&gt;-&lt;/code&gt;开头的非法字符移除，然后将&lt;code class=&quot;inline&quot;&gt;$query&lt;/code&gt;拼接在&lt;code class=&quot;inline&quot;&gt;--&lt;/code&gt;的后面。&lt;/p&gt;&lt;p&gt;在命令行解析器中，&lt;code class=&quot;inline&quot;&gt;--&lt;/code&gt;的意思是，此后的部分不会再包含参数选项（option）：&lt;/p&gt;&lt;blockquote&gt;A -- signals the end of options and disables further option processing. Any arguments after the -- are treated as filenames and arguments. An argument of - is equivalent to --.&lt;br&gt;If arguments remain after option processing, and neither the -c nor the -s option has been supplied, the first argument is assumed to be the name of a file containing shell commands. If bash is invoked in this fashion, $0 is set to the name of the file, and the positional parameters are set to the remaining arguments. Bash reads and executes commands from this file, then exits. Bash&#39;s exit status is the exit status of the last command executed in the script. If no commands are executed, the exit status is 0. An attempt is first made to open the file in the current directory, and, if no file is found, then the shell searches the directories in PATH for the script.&lt;/blockquote&gt;&lt;p&gt;举个简单的例子，如果我们需要查看一个文件名是&lt;code class=&quot;inline&quot;&gt;--name&lt;/code&gt;的文件，我们就不能用&lt;code class=&quot;inline&quot;&gt;cat --name&lt;/code&gt;来读取，也不能用&lt;code class=&quot;inline&quot;&gt;cat &#39;--name&#39;&lt;/code&gt;，而必须要用&lt;code class=&quot;inline&quot;&gt;cat -- --name&lt;/code&gt;。从这个例子也能看出，单引号并不是区分一个字符串是“参数值”或“选项”的标准。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-294baf61c56ec7cfecbf9d00ddfb1ecc_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;471&quot; data-rawheight=&quot;215&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-294baf61c56ec7cfecbf9d00ddfb1ecc&quot; data-watermark-src=&quot;v2-288a066ec9e202cacdac47f1babf7524&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;所以官方这个修复方案也是可以接受的，只不过第一步的&lt;code class=&quot;inline&quot;&gt;preg_replace&lt;/code&gt;有点影响正常搜索功能。&lt;/p&gt;&lt;h2&gt;0x03 这不是PHP的专利&lt;/h2&gt;&lt;p&gt;熟悉PHP语言的同学一定对PHP执行命令的方法感受深刻，PHP内置的命令执行函数（如&lt;code class=&quot;inline&quot;&gt;shell_exec&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;system&lt;/code&gt;），都只接受一个“字符串”作为参数。而在内核中，这个字符串将被直接作为一条shell命令来调用，这种情况下就极为容易出现命令注入漏洞。&lt;/p&gt;&lt;p&gt;由于这个特点，PHP特别准备了两个过滤函数：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;escapeshellcmd&lt;/li&gt;&lt;li&gt;escapeshellarg&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;二者分工不同，前者为了防止用户利用shell的一些技巧（如分号、反引号等），执行其他命令；后者是为了防止用户的输入逃逸出“参数值”的位置，变成一个“参数选项”。&lt;/p&gt;&lt;p&gt;但我在0x02中也已经说清楚了，如果开发者在拼接命令的时候，将&lt;code class=&quot;inline&quot;&gt;$query&lt;/code&gt;直接给拼接在“参数选项”的位置上，那用escapeshellarg也就没任何效果了。&lt;/p&gt;&lt;p&gt;Java、Python等语言，执行命令的方法相对来说更加优雅：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;import subprocess
+
+query = &#39;id&#39;
+r = subprocess.run([&#39;git&#39;, &#39;grep&#39;, &#39;-i&#39;, &#39;--line-number&#39;, query, &#39;master&#39;], cwd=&#39;/tmp/vulhub&#39;)&lt;/code&gt;&lt;p&gt;默认情况下，python的subprocess接受的是一个列表。我们可以将用户输入的query放在列表的一项，这样也就避免了开发者手工转义query的工作，也能从根本上防御命令注入漏洞。但可惜的是，python帮开发者做的操作，也仅仅相当于是PHP中的escapeshellarg。我们可以试试令query等于&lt;code class=&quot;inline&quot;&gt;--open-files-in-pager=id;&lt;/code&gt;：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-60e865d895273fd01be970c244f0dcca_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;794&quot; data-rawheight=&quot;176&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-60e865d895273fd01be970c244f0dcca&quot; data-watermark-src=&quot;v2-57cc73211fb0b0cb22c5fef181756722&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;可见，仍然是存在参数注入漏洞的。原因还是0x02中说的原因，你把query放在了“参数选项”的位置上，无论怎么过滤，或者换成其他语言，都不可能解决问题。&lt;/p&gt;&lt;h2&gt;0x04 举一反三&lt;/h2&gt;&lt;p&gt;参数注入的例子还比较多，因为大部分的开发者都能理解命令注入的原理，但处理了命令注入后，往往都会忽略参数注入的问题。&lt;/p&gt;&lt;p&gt;最典型是案例是&lt;a href=&quot;https://github.com/vulhub/vulhub/blob/master/wordpress/pwnscriptum/README.md&quot;&gt;Wordpress PwnScriptum漏洞&lt;/a&gt;，PHP mail函数的第五个参数，允许直接注入参数，用户通过注入&lt;code class=&quot;inline&quot;&gt;-X&lt;/code&gt;参数，导致写入任意文件，最终getshell。&lt;/p&gt;&lt;p&gt;另一个典型的例子是&lt;a href=&quot;https://github.com/vulhub/vulhub/tree/master/php/CVE-2012-1823&quot;&gt;php-cgi CVE-2012-1823&lt;/a&gt; ，在cgi模式中，用户传入的querystring将作为cgi的参数传给php-cgi命令。而php-cgi命令可以用-d参数指定配置项，我们通过指定&lt;code class=&quot;inline&quot;&gt;auto_prepend_file=php://input&lt;/code&gt;，最终导致任意代码执行。&lt;/p&gt;&lt;p&gt;客户端上也出现过类似的漏洞，比如&lt;a href=&quot;https://github.com/vulhub/vulhub/tree/master/electron/CVE-2018-1000006&quot;&gt;Electron CVE-2018-1000006&lt;/a&gt;，我们通过注入参数&lt;code class=&quot;inline&quot;&gt;--gpu-launcher=cmd.exe /c start calc&lt;/code&gt;，来让electron内置的chromium执行任意命令。electron的最早给出的缓解措施也是在拼接点前面加上“--”。&lt;/p&gt;</description>
+<author>周佩雨</author>
+<guid isPermaLink="false">2018-05-08-36591451</guid>
+<pubDate>Tue, 08 May 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>浅谈分布式渗透测试框架的落地实践</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-04-16-35751510.html</link>
@@ -801,40 +837,6 @@ if __name__ == &quot;__main__&quot;:
 <author>perhaps</author>
 <guid isPermaLink="false">2018-01-03-32592960</guid>
 <pubDate>Wed, 03 Jan 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>WebLogic WLS-WebServices组件反序列化漏洞分析</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2017-12-22-32267755.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32267755&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9c0a15dc5b98d566b7debef255ec28cc_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;       最近由于数字货币的疯涨，大量机器被入侵后用来挖矿，其中存在不少部署了Weblogic服务的机器，因为Weblogic最近所爆出安全漏洞的exploit在地下广泛流传。回到这个漏洞本身，其原因在于WLS-WebServices这个组件中，因为它使用了XMLDecoder来解析XML数据。有安全研究人员在去年八月份就向官方报告了此漏洞，Oracle官方在今年四月份提供了补丁程序。但是，四月份提供的补丁感觉是在敷衍了事，因此很快就被绕过了。为此官方又只能新发补丁，不过十月份所提供的补丁，检查还是比较严格。下面具体来看看此次反序列漏洞&lt;/p&gt;&lt;h2&gt;0x01漏洞复现&lt;/h2&gt;&lt;p&gt;测试环境 Weblogic 10.3.6.0/jdk1.6.0_45/Linux&lt;/p&gt;&lt;p&gt;漏洞POC&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;POST /wls-wsat/CoordinatorPortType11 HTTP/1.1
-Host: 127.0.0.1:7001
-Cache-Control: max-age=0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36
-Upgrade-Insecure-Requests: 1
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
-Accept-Encoding: gzip, deflate
-Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7
-Connection: close
-Content-Type: text/xml
-Content-Length: 777
-
-&amp;lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&amp;gt;   
-  &amp;lt;soapenv:Header&amp;gt; 
-    &amp;lt;work:WorkContext xmlns:work=&quot;http://bea.com/2004/06/soap/workarea/&quot;&amp;gt;  
-      &amp;lt;java&amp;gt; 
-        ·······
-      &amp;lt;/java&amp;gt; 
-    &amp;lt;/work:WorkContext&amp;gt; 
-  &amp;lt;/soapenv:Header&amp;gt;  
-  &amp;lt;soapenv:Body/&amp;gt; 
-&amp;lt;/soapenv:Envelope&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-650fc1f00e4884b247bf8d0fb49c8586_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2862&quot; data-rawheight=&quot;1348&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-87d35ddbf6cf711302c0a2e704a90d4b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;691&quot; data-rawheight=&quot;237&quot;&gt;&lt;p&gt;在漏洞复现过程中，只需将恶意的XML数据包发送到wls-wsat此路径下的任意一个URL即可，因为后端处理流程都是一样的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;0x02漏洞分析&lt;/h2&gt;&lt;p&gt;此次漏洞出现在wls-wsat.war中，此组件使用了weblogic自带的webservices处理程序来处理SOAP请求。首先在weblogic.wsee.jaxws.workcontext.WorkContextServerTube类中获取XML数据最终传递给XMLDecoder来解析，其解析XML的调用链为&lt;/p&gt;&lt;code lang=&quot;java&quot;&gt;weblogic.wsee.jaxws.workcontext.WorkContextServerTube.processRequest
-weblogic.wsee.jaxws.workcontext.WorkContextTube.readHeaderOld
-weblogic.wsee.workarea.WorkContextXmlInputAdapter&lt;/code&gt;&lt;p&gt;首先看到weblogic.wsee.jaxws.workcontext.WorkContextServerTube.processRequest方法&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-09f77b0b1d6b41dfc5d18911bcd6745e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1724&quot; data-rawheight=&quot;608&quot;&gt;&lt;p&gt;获取到localHeader1后传递给readHeaderOld方法，其内容为&amp;lt;work:WorkContext&amp;gt;所包裹的数据，然后继续跟进weblogic.wsee.jaxws.workcontext.WorkContextTube.readHeaderOld方法&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a3cd3e829509f3fea078551540ffdfbe_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2162&quot; data-rawheight=&quot;654&quot;&gt;&lt;p&gt;在此方法中实例化了WorkContextXmlInputAdapter类，并且将获取到的XML格式的序列化数据传递到此类的构造方法中，最后通过XMLDecoder来进行反序列化操作。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-72625de63712c5f2b3fc372250969470_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1164&quot; data-rawheight=&quot;190&quot;&gt;&lt;p&gt;关于XMLDecoder的反序化问题13年就已经被人发现，近期再次被利用到Weblogic中由此可见JAVA生态圈中的安全问题是多么糟糕。值得一提的是此次漏洞出现了两处CVE编号，因为在Oracle官方在修复CVE-2017-3506所提供的patch只是简单的检查了XML中是否包含了&amp;lt;object&amp;gt;节点，然后将&amp;lt;object&amp;gt;换为&amp;lt;void&amp;gt;即可绕过此补丁。因此在修复过程中用户一定要使用Oracle官方十月份所提供的patch。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;0x03漏洞修复&lt;/h2&gt;&lt;p&gt;1. 临时解决方案&lt;/p&gt;&lt;p&gt;根据业务所有需求，考虑是否删除WLS-WebServices组件。包含此组件路径为：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Middleware/user_projects/domains/base_domain/servers/AdminServer/tmp/_WL_internal/wls-wsat
-Middleware/user_projects/domains/base_domain/servers/AdminServer/tmp/.internal/wls-wsat.war
-Middleware/wlserver_10.3/server/lib/wls-wsat.war&lt;/code&gt;&lt;p&gt;以上路径都在WebLogic安装处。删除以上文件之后，需重启WebLogic。确认http://weblogic_ip/wls-wsat/ 是否为404页面。&lt;/p&gt;&lt;p&gt;2. 官方补丁修复&lt;/p&gt;&lt;p&gt;前往Oracle官网下载10月份所提供的安全补丁。如需帮助请咨询info@chaitin.com。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;0x04 参考资料&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://blog.diniscruz.com/2013/08/using-xmldecoder-to-execute-server-side.html&quot;&gt;http://blog.diniscruz.com/2013/08/using-xmldecoder-to-execute-server-side.html&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/pwntester/XMLDecoder&quot;&gt;pwntester/XMLDecoder&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://www.oracle.com/technetwork/security-advisory/cpuoct2017-3236626.html&quot;&gt;http://www.oracle.com/technetwork/security-advisory/cpuoct2017-3236626.html&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://open.work.weixin.qq.com/wwopen/mpnews?mixuin=3_HVCQAABwBuIkeyAAAUAA&amp;amp;mfid=WW0322-Jy56dgAABwC3hf2NINzB1w1SNvc1c&amp;amp;idx=0&amp;amp;sn=55e0f6343b34c62e1980af706e491188&quot;&gt;安全服务号&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Tomato会打字</author>
-<guid isPermaLink="false">2017-12-22-32267755</guid>
-<pubDate>Fri, 22 Dec 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
