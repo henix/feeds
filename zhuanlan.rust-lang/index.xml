@@ -5,7 +5,92 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 30 Mar 2018 14:44:35 +0800</lastBuildDate>
+<lastBuildDate>Fri, 25 May 2018 13:11:10 +0800</lastBuildDate>
+<item>
+<title>Rust - RFC 导读: async/await 特性（二）</title>
+<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-05-25-37269342.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37269342&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b357cf4b2202c2f3e9edb6c3b6204680_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;由于本篇文章代码较多，如果知乎的排版伤害了你的眼睛，可以暂时移步到 &lt;a href=&quot;https://github.com/andylokandy/article/blob/master/Rust%20-%20RFC%20%E5%AF%BC%E8%AF%BB%20async%20%E7%89%B9%E6%80%A7%EF%BC%88%E4%BA%8C%EF%BC%89.md&quot;&gt;这里&lt;/a&gt;。&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上一篇我们讲到了编译器对 &lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt; 的特性支持，相应的，我们要让编译器知道 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 是什么，编译器才能生成匿名的 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 类型。为此，我们就有了第二份 RFC —— 将 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 加入标准库（准确来说是 &lt;code class=&quot;inline&quot;&gt;libcore&lt;/code&gt;）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/aturon/rfcs/blob/async-trait/text/0000-async.md&quot;&gt;RFC 2418 companion libs&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;注意这篇 RFC 还在讨论阶段并未被 merge，因此最终方案可能会改变，目前已经可以看见讨论区提出了相较于 &lt;code class=&quot;inline&quot;&gt;arbitrary self type&lt;/code&gt;（&lt;code class=&quot;inline&quot;&gt;Pin&amp;lt;self&amp;gt;&lt;/code&gt;） 更好的解决方案，这部分是最有可能发生变化的。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Summary&lt;/h2&gt;&lt;p&gt;这篇文章将会深入 &lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt; 的实现原理，如果读者只是希望使用现成的库和 &lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt; 语法，仅看上一篇文章就已经足够了。而如果你希望开发使用异步实现的库，或者天生有着强烈的好奇心，那么这篇文章就是专门为你定做的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这篇 RFC 并不打算将整个 &lt;code class=&quot;inline&quot;&gt;futures-rs&lt;/code&gt; 移入标准库，相反极力精简，仅仅加入必要的最基础的构件，把剩余的功能留给社区的库来实现。就算如此，我们也将迎来帮数量众多的新朋友: &lt;code class=&quot;inline&quot;&gt;core::task::{Context, Poll, Wake, Waker, UnsafeWake, Executor, TaskObj, SpawnErrorKind, SpawnObjError}&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;core::ops::Async&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果加上另一篇 &lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/2349-pin.md&quot;&gt;RFC: 2349-pin&lt;/a&gt;，那就还有 &lt;code class=&quot;inline&quot;&gt;core::marker::Unpin&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;core::mem::Pin&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们可以看到，新加入的东西真心不少，但是别担心，它们的存在都是必要而且符合直觉的，接下来我会逐个解释这些东西到底用来干什么的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外，读者可能注意到，这篇 RFC 中并没有出现 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt;，这是因为这篇 RFC 写在上一篇 RFC 之后，在这期间社区讨论决定了并不引入 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 全部的功能(比如 &lt;code class=&quot;inline&quot;&gt;map()&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;and_then()&lt;/code&gt;)，而是只定义其中关键一部分 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt;，剩余的功能依旧留给 &lt;code class=&quot;inline&quot;&gt;futures-rs&lt;/code&gt; 库来提供，所以这个被精简的 &lt;code class=&quot;inline&quot;&gt;trait&lt;/code&gt; 不能叫做 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt;，那就改名叫作了 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt;。也就是说，async 函数的返回值应该是 &lt;code class=&quot;inline&quot;&gt;impl Async&amp;lt;Output = T&amp;gt;&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; &lt;/h2&gt;&lt;p&gt;让我们先从关键的 &lt;code class=&quot;inline&quot;&gt;Async trait&lt;/code&gt; 入手，下面是它的定义： &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub trait Async {
+    type Output;
+    /// Attempt to resolve the computation to a final value, registering
+    /// the current task for wakeup if the value is not yet available.
+    fn poll(self: Pin&amp;lt;Self&amp;gt;, cx: &amp;amp;mut task::Context) -&amp;gt; Poll&amp;lt;Self::Output&amp;gt;;
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 只定义了一个函数 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt;，作用是尝试获取异步操作的结果， 熟悉使用 &lt;code class=&quot;inline&quot;&gt;futures-rs&lt;/code&gt; 的读者想必已经对它十分了解了。如果不是也没关系，我会从头解释一遍。我们先忽略传入参数，只看返回值，它返回的是 &lt;code class=&quot;inline&quot;&gt;Poll&lt;/code&gt; 类型：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub enum Poll&amp;lt;T&amp;gt; {
+    Ready(T),
+    Pending,
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Poll&lt;/code&gt; 有两个 variance: &lt;code class=&quot;inline&quot;&gt;Ready(T)&lt;/code&gt; 表示异步操作已经完成并获得返回值, &lt;code class=&quot;inline&quot;&gt;Pendding&lt;/code&gt; 表示异步操作还在进行中，你过会儿再过来看看。&lt;code class=&quot;inline&quot;&gt;Poll&lt;/code&gt; 的概念很简单，就不多说了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这就带来了一个问题，我们该什么时候调用 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 呢？它仅仅在完成之后才能给出有用的结果，万一如果返回的是 &lt;code class=&quot;inline&quot;&gt;Pending&lt;/code&gt;, 我们怎么知道什么时候需要再次 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 呢？又由谁来负责 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;答案是我们需要一个 &lt;code class=&quot;inline&quot;&gt;event loop&lt;/code&gt;（比如线程池）来帮助我们完成这个调度(scheduling)工作。标准库并不会提供一个现成的 &lt;code class=&quot;inline&quot;&gt;event loop&lt;/code&gt;，但标准库提供了定义它们的 &lt;code class=&quot;inline&quot;&gt;trait&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; &lt;/h2&gt;&lt;p&gt;我们来看一个具体的例子，比如说我们正在打算从 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 接收数据，我们得到了一个 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt;，这时候 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 可能还没准备好，所以第一次 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 返回了 &lt;code class=&quot;inline&quot;&gt;Poll::Pending&lt;/code&gt;，这时我们必须把这个 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 交给一个 &lt;code class=&quot;inline&quot;&gt;event loop&lt;/code&gt; 保管（就比如说一个由 &lt;code class=&quot;inline&quot;&gt;futures-rs&lt;/code&gt; 库提供的线程池 &lt;code class=&quot;inline&quot;&gt;ThreadPool&lt;/code&gt;），以备过会 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 准备好了再回来 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这个例子里 &lt;code class=&quot;inline&quot;&gt;ThreadPool&lt;/code&gt; 实现了 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt;。我们来看看这个东西的定义：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub trait Executor {
+    fn spawn_obj(&amp;amp;mut self, task: TaskObj) -&amp;gt; Result&amp;lt;(), SpawnObjError&amp;gt;;
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里的 &lt;code class=&quot;inline&quot;&gt;TaskObj&lt;/code&gt; 实际上是一个 &lt;code class=&quot;inline&quot;&gt;Box&amp;lt;Async&amp;lt;Output = ())&amp;gt;&amp;gt;&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;spawn_obj()&lt;/code&gt; 用于给 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 安排工作，让 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 负责稍后的 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 工作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里说个题外话，因为 &lt;code class=&quot;inline&quot;&gt;TaskObj&lt;/code&gt; 使用了动态派发 （&lt;code class=&quot;inline&quot;&gt;trait object&lt;/code&gt;），所以目前这里的堆分配是必须的。然而我们还有另一套用于 &lt;code class=&quot;inline&quot;&gt;no_std&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;unsafe&lt;/code&gt; 的解决方案可以避免堆分配，有兴趣的读者可以在原文拉到最后了解一下。在不久的将来，在 Rust 支持在栈上存储 &lt;code class=&quot;inline&quot;&gt;dynamic size type(DST)&lt;/code&gt; 的时候 &lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/1909-unsized-rvalues.md&quot;&gt;[Merged] RFC 1909:unsized-rvalues&lt;/a&gt;，这里的 &lt;code class=&quot;inline&quot;&gt;TaskObj&lt;/code&gt; 也会取消，取而代之的是栈上的 &lt;code class=&quot;inline&quot;&gt;Task&lt;/code&gt;，这也是现在取个这么难听名字的原因。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt; &lt;/h2&gt;&lt;p&gt;解决了 who 的问题，那还有 when 问题。我们让 ThreadPool 来负责重新 poll() ，那到底什么时候 poll() 呢？只有 socket 知道自己什么时候准备好，所以 socket 需要在准备好的时候 “通知” ThreadPool 重新 poll()。这个操作叫做 wake （唤醒），这意味着，我们要给 socket 提供通知 ThreadPool 的方法 —— 让 socket 拿着 Arc&amp;lt;ThreadPool&amp;gt;。完美。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;为了让 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 能够唤醒 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt;，标准库提供了 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt;。&lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 只需握着 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt;，就能在准备好的时候调用 &lt;code class=&quot;inline&quot;&gt;wake()&lt;/code&gt;，通知 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 该 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt;了。 下面是 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt; 的定义：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub trait Wake: Send + Sync {
+    fn wake(&amp;amp;self);
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但是实现 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt; 的可以是 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 自己吗？不可以。因为一个 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 上可能托管着成百上千的 &lt;code class=&quot;inline&quot;&gt;TaskObj&lt;/code&gt;，直接 &lt;code class=&quot;inline&quot;&gt;wake()&lt;/code&gt; 并不能告诉 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 究竟是哪个 &lt;code class=&quot;inline&quot;&gt;TaskObj&lt;/code&gt; 需要 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt;。因此 &lt;code class=&quot;inline&quot;&gt;Executor&lt;/code&gt; 会给每个 &lt;code class=&quot;inline&quot;&gt;TaskObj&lt;/code&gt; 提供一个唯一标识，然后把这个标识和自己的引用计数指针打包装在一起，弄一个类似 &lt;code class=&quot;inline&quot;&gt;WakeHandler&lt;/code&gt; 的玩意。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;struct WakeHandler {
+    exec: Arc&amp;lt;ThreadPool&amp;gt;,
+    id: u64,
+}
+
+impl Wake for WakeHandler { .. }&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以这里 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 在被第一次 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 的时候 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 就会记下这个 &lt;code class=&quot;inline&quot;&gt;WakeHandler&lt;/code&gt;（因为这里 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 的实际类型是 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 提供的），准备好后  &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt;  调用 &lt;code class=&quot;inline&quot;&gt;wake()&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;Excutor&lt;/code&gt; 根据唯一标识找到对应的 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 然后 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 就会从 &lt;code class=&quot;inline&quot;&gt;socket&lt;/code&gt; 拿回完成的 &lt;code class=&quot;inline&quot;&gt;Poll::Ready(T)&lt;/code&gt;。完美。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Context&lt;/code&gt; &lt;/h2&gt;&lt;p&gt;明白了 &lt;code class=&quot;inline&quot;&gt;Excutor&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt; 之后，让我们回过头看看 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 的函数签名：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn poll(self: Pin&amp;lt;Self&amp;gt;, cx: &amp;amp;mut task::Context) -&amp;gt; Poll&amp;lt;Self::Output&amp;gt;;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们看 &lt;code class=&quot;inline&quot;&gt;poll()&lt;/code&gt; 的第二个参数: &lt;code class=&quot;inline&quot;&gt;task::Context&lt;/code&gt;:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub struct Context&amp;lt;&#39;a&amp;gt; { .. }
+
+impl&amp;lt;&#39;a&amp;gt; Context&amp;lt;&#39;a&amp;gt; {
+    pub fn new(waker: &amp;amp;&#39;a Waker, executor: &amp;amp;&#39;a mut Executor) -&amp;gt; Context&amp;lt;&#39;a&amp;gt;;
+    /// Get the `Waker` associated with the current task.
+    pub fn waker(&amp;amp;self) -&amp;gt; &amp;amp;Waker;
+    /// Run an asynchronous computation to completion on the default executor.
+    pub fn spawn(&amp;amp;mut self, f: impl Async&amp;lt;Output = ()&amp;gt; + &#39;static + Send);
+    /// Get the default executor associated with this task.
+    pub fn executor(&amp;amp;mut self) -&amp;gt; &amp;amp;mut BoxExecutor;
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Context&lt;/code&gt; 的主要工作十分明了：&lt;/p&gt;&lt;p&gt;&lt;br&gt;-   提供 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt; &lt;br&gt;-   提供默认 &lt;code class=&quot;inline&quot;&gt;Excutor&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;spawn()&lt;/code&gt; 是 &lt;code class=&quot;inline&quot;&gt;executor().spawn()&lt;/code&gt; 的捷径（顺带一些错误处理）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这里出现了 &lt;code class=&quot;inline&quot;&gt;Waker&lt;/code&gt; 不是 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;Waker&lt;/code&gt; 又是一个这次标准库新加入的类型，里面装着 &lt;code class=&quot;inline&quot;&gt;Wake&lt;/code&gt; trait object:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub struct Waker {
+    wake: &amp;amp;Wake
+}
+
+impl Waker {
+    pub fn wake(&amp;amp;self) {
+        self.wake.wake();
+    }
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;Pin&lt;/code&gt; &lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Pin&lt;/code&gt; 类型不在本篇 RFC 范围之内，而且展开了说篇幅会非常的长，有兴趣的话可以前去 RFC 阅读，或者看看 &lt;code class=&quot;inline&quot;&gt;@withoutboat&lt;/code&gt; 关于 &lt;code class=&quot;inline&quot;&gt;&lt;i&gt;borrow across yield point&lt;/i&gt;&lt;/code&gt; 的长篇系列，那里详细地解释了设计上遇到了什么难点，以及为什么一定要引入 &lt;code class=&quot;inline&quot;&gt;Pin&lt;/code&gt; 概念。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/2349-pin.md&quot;&gt;RFC: 2349-pin&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://boats.gitlab.io/blog/post/2018-01-25-async-i-self-referential-structs/&quot;&gt;Async/Await I: Self-Referential Structs&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;目前在这篇 RFC 中，我们只需要知道 Pin 是什么就足够了。简单来说，一般的类型自动实现 &lt;code class=&quot;inline&quot;&gt;Unpin&lt;/code&gt;，而有些特殊的的类型会反向实现 &lt;code class=&quot;inline&quot;&gt;!Unpin&lt;/code&gt;，这样特殊的类型在被装进 &lt;code class=&quot;inline&quot;&gt;Pin&amp;lt;T&amp;gt;&lt;/code&gt; 之后就不能再移动了(immovable type)。异步函数返回类型也正是这种特殊类型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Pin&amp;lt;T&amp;gt;&lt;/code&gt; 是指针类型，提供比 &lt;code class=&quot;inline&quot;&gt;&amp;amp;mut T&lt;/code&gt; 更严格的规则：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Pin&amp;lt;T: Unpin&amp;gt;&lt;/code&gt; 和普通 &lt;code class=&quot;inline&quot;&gt;&amp;amp;mut T&lt;/code&gt; 完全一样。&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Pin&amp;lt;T: !Unpin&amp;gt;&lt;/code&gt; 只提供 &lt;code class=&quot;inline&quot;&gt;Deref&amp;lt;&amp;amp;T&amp;gt;&lt;/code&gt;，以防止 T 被移动 (mem::replace())。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们来明确一下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt;: &lt;code class=&quot;inline&quot;&gt;Unpin&lt;/code&gt; &lt;/li&gt;&lt;li&gt;async fn 返回的 &lt;code class=&quot;inline&quot;&gt;impl Async&lt;/code&gt;: &lt;code class=&quot;inline&quot;&gt;!Unpin&lt;/code&gt; &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Box&amp;lt;Async&amp;gt;&lt;/code&gt;: &lt;code class=&quot;inline&quot;&gt;Unpin&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Conclusion&lt;/h2&gt;&lt;p&gt;这篇文章介绍了标准库中加入的 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt; 和任务类型，通过这些类型的加入，我们可以方便地定义自己的事件循环或者使用现成的库来驱动异步任务。文章并没有涵盖用于 &lt;code class=&quot;inline&quot;&gt;no_std&lt;/code&gt; 环境的类型和解决方案，有兴趣的读者需要自己去阅读一下 RFC。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下一篇文章可能会讲 &lt;code class=&quot;inline&quot;&gt;Pin&lt;/code&gt; 类型和关于 Rust &lt;code class=&quot;inline&quot;&gt;immovable type&lt;/code&gt; 的故事，但是这玩意讲起来比裹脚布还长，到时懒起来分分钟就跳票了。&lt;/p&gt;</description>
+<author>Andy Lok</author>
+<guid isPermaLink="false">2018-05-25-37269342</guid>
+<pubDate>Fri, 25 May 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Rust - RFC 导读:  async/await 特性（一）</title>
+<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-05-23-37209852.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37209852&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-26d18184098ed7b0ce2cfba667b957d9_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;在 2018 年五月份 Rust 迎来了 1.26 版本，一并带来不少让人眼前一亮的特性，比如 &lt;code class=&quot;inline&quot;&gt;impl trait&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;match&lt;/code&gt; 自动绑定等等，这是 Rust Core team 和社区在有条不紊地履行着 Roadmap 2018 里的承诺，给 2018 epoch 打下基础。&lt;/p&gt;&lt;p&gt;根据 Roadmap，今年9月份前我们将迎来一个更重磅的特性，&lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt;。Core team 如期给出了两份 RFC，给 &lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt; 特性画下个大饼。这篇文章旨在提供对这两份 RFC 的导读，让读者掌握 &lt;code class=&quot;inline&quot;&gt;async&lt;/code&gt; 特性的基本概念。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/2394-async_await.md&quot;&gt;RFC 2394-async_await&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/aturon/rfcs/blob/async-trait/text/0000-async.md&quot;&gt;RFC 2418 companion libs&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Summary&lt;/h2&gt;&lt;p&gt;在高性能网络服务领域，人们常用异步 IO 而不是阻塞 IO，这是因为异步 IO 更容易扩展从而获得巨大的并发能力，而 Rust 正在逐步涉足网络服务领域，因此能够提供简洁而强大的异步开发能力格外重要。&lt;/p&gt;&lt;p&gt;为此，Rust 社区已经进行了长时间的实验和反馈，尝试了众多的技术方法，社区最终采用了 &lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt; ，因为它能够提供强大的抽象能力，而且简洁，容易学习，是目前的最优方案。&lt;/p&gt;&lt;p&gt;由于这次特性更新影响重大，涉及方面较广，文章将随 RFC 分为两部分，分别为语言特性和标准库两方面。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;语言特性&lt;/h2&gt;&lt;p&gt;本篇 RFC 的重点是为编译器增加四种新的类型：&lt;code class=&quot;inline&quot;&gt;async function&lt;/code&gt;（异步函数），&lt;code class=&quot;inline&quot;&gt;async closure&lt;/code&gt;（异步闭包）， &lt;code class=&quot;inline&quot;&gt;async block&lt;/code&gt;（异步代码块）和一个内建 macro &lt;code class=&quot;inline&quot;&gt;await!&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;异步函数&lt;/h2&gt;&lt;p&gt;函数开头加上 &lt;code class=&quot;inline&quot;&gt;async&lt;/code&gt; 关键词就成为了异步函数。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;async fn function(argument: &amp;amp;str) -&amp;gt; usize {
+     // ...
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;异步函数的行为和普通函数不同，当异步函数被调用时，内部的代码逻辑不会立即执行，相反，异步函数会返回一个匿名的 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 类型，之后当我们 &lt;code class=&quot;inline&quot;&gt;poll&lt;/code&gt; 这个 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 的时候，函数内部的代码才会被执行并且执行到 &lt;code class=&quot;inline&quot;&gt;await&lt;/code&gt; 处停止（如果异步函数内部有的话），直到异步函数结尾。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;异步函数其实是某种 delayed computation （延迟运算）—— 在手动 &lt;code class=&quot;inline&quot;&gt;poll&lt;/code&gt; future 之前，异步函数内部一行代码也不会执行。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看下面这个例子&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;async fn print_async() {
+     println!(&quot;Hello from print_async&quot;)
+}
+
+fn main() {
+     let future = print_async();
+     println!(&quot;Hello from main&quot;);
+     futures::block_on(future);
+}&lt;/code&gt;&lt;p&gt;Print:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Hello from main
+Hello from print_async&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;&quot;Hello from main&quot;&lt;/code&gt; 会在 &lt;code class=&quot;inline&quot;&gt;&quot;Hello from print_async&quot;&lt;/code&gt; 之前 print 出来。&lt;/p&gt;&lt;p&gt;异步函数的类型签名也与普通函数不同&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;async fn foo(args..) -&amp;gt; T&lt;/code&gt; 的实际类型签名是 &lt;code class=&quot;inline&quot;&gt;fn(args..) -&amp;gt; impl Future&amp;lt;Output = T&amp;gt;&lt;/code&gt;，其中的返回的类型是由编译器生成的匿名类型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;异步闭包&lt;/h2&gt;&lt;p&gt;与函数类似，闭包也可以声明为异步闭包，只需在闭包前加上 &lt;code class=&quot;inline&quot;&gt;async&lt;/code&gt; 关键字。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;异步闭包的返回类型是 &lt;code class=&quot;inline&quot;&gt;impl Future&amp;lt;Output = T&amp;gt;&lt;/code&gt;，调用异步闭包时，内部代码也不会被执行而是返回一个 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt;，这与异步函数一模一样。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn main() {
+    let closure = async || {
+         println(&quot;Hello from async closure.&quot;);
+    };
+    println!(&quot;Hello from main&quot;);
+    let future = closure();
+    println!(&quot;Hello from main again&quot;);
+    futures::block_on(future);
+}&lt;/code&gt;&lt;p&gt;Print:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Hello from main
+Hello from main again
+Hello from async closure&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;异步块&lt;/h2&gt;&lt;p&gt;通过异步块可以便捷地创建一个 &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt;:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let my_future = async {
+    println!(&quot;Hello from an async block&quot;);
+};&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;code class=&quot;inline&quot;&gt;await!&lt;/code&gt; &lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;await!&lt;/code&gt; 是一个编译器内建的 macro ，用来暂停（pause） &lt;code class=&quot;inline&quot;&gt;Future&lt;/code&gt; 的执行流程，并且把执行流程交回给调用方 (&lt;code class=&quot;inline&quot;&gt;yield&lt;/code&gt;)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// future: impl Future&amp;lt;Output = usize&amp;gt;
+let n = await!(future);&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;await!&lt;/code&gt; 展开的逻辑是这样的：&lt;br&gt;1. &lt;code class=&quot;inline&quot;&gt;poll&lt;/code&gt; 传入的 &lt;code class=&quot;inline&quot;&gt;future&lt;/code&gt;。&lt;br&gt;2. 如果 &lt;code class=&quot;inline&quot;&gt;poll&lt;/code&gt; 得到 &lt;code class=&quot;inline&quot;&gt;Poll::Pending&lt;/code&gt; 就将执行权交回给调用方。&lt;br&gt;3. 如果 &lt;code class=&quot;inline&quot;&gt;poll&lt;/code&gt; 得到 &lt;code class=&quot;inline&quot;&gt;Poll::Ready(T)&lt;/code&gt;，得到的值会被作为 &lt;code class=&quot;inline&quot;&gt;await!&lt;/code&gt; 表达式的值，从而继续执行 &lt;code class=&quot;inline&quot;&gt;future&lt;/code&gt; 剩下的逻辑代码。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;await!&lt;/code&gt; 只能用于异步函数，异步闭包或者异步块内部，否则将导致编译错误。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;大饼&lt;/h2&gt;&lt;p&gt;在引入了这些编译器特性之后，我们来看看异步代码可以长成什么样子。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;async fn fetch_rust_lang(client: hyper::Client) -&amp;gt; io::Result&amp;lt;String&amp;gt; {
+    let response = await!(client.get(&quot;https://www.rust-lang.org&quot;))?;
+    if !response.status().is_success() {
+        return Err(io::Error::new(io::ErrorKind::Other, &quot;request failed&quot;))
+    }
+    let body = await!(response.body().concat())?;
+    let string = String::from_utf8(body)?;
+    Ok(string)
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Conclusion&lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt; 为 Rust 提供了强大的异步抽象，它不止可以助力网络并发，它在文件IO，多线程运算方面也可以大有作为。另外，&lt;code class=&quot;inline&quot;&gt;async&lt;/code&gt; 所涉及的 &lt;code class=&quot;inline&quot;&gt;Generator&lt;/code&gt; 还可用于简化 &lt;code class=&quot;inline&quot;&gt;Iterator&lt;/code&gt; 代码，让迭代器写法更加接近于 Python 等脚本语言，同时保持 Rust 引以为豪的 Zero-Cost-Abstration。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下一篇将着力介绍为了迎接 &lt;code class=&quot;inline&quot;&gt;async/await&lt;/code&gt;，标准库要加入的新朋友 &lt;code class=&quot;inline&quot;&gt;Excutor&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;Pin&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Async&lt;/code&gt;。&lt;/p&gt;</description>
+<author>Andy Lok</author>
+<guid isPermaLink="false">2018-05-23-37209852</guid>
+<pubDate>Wed, 23 May 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust&#39;s 2018  roadmap</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-03-21-34724526.html</link>
@@ -775,355 +860,6 @@ proxy = &quot;[socks5://]server:&amp;lt;port&amp;gt;&quot;&lt;/code&gt;&lt;p&gt;
 <author>酿泉</author>
 <guid isPermaLink="false">2017-05-17-26944087</guid>
 <pubDate>Wed, 17 May 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>RFC导读：impl trait</title>
-<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-04-22-26516100.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/26516100&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;今天跟大家分享一下最近讨论比较热门的一个 rfc：impl trait。这个话题涉及两个RFC，一个是去年就已经通过了的&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/1522-conservative-impl-trait.md&quot; data-editable=&quot;true&quot; data-title=&quot;Conservative Impl Trait&quot; class=&quot;&quot;&gt;Conservative Impl Trait&lt;/a&gt;，第二个是最近 aturon 提的最新的 &lt;a href=&quot;https://github.com/rust-lang/rfcs/pull/1951&quot; data-editable=&quot;true&quot; data-title=&quot;Expand and stablize impl Trait&quot;&gt;Expand and stablize impl Trait&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;首先介绍一下，这是个什么功能。我们注意到，在写泛型函数的时候，参数传递方式可以有两种选择，静态分派或者动态分派：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn consume_iter_static&amp;lt;I: Iterator&amp;lt;Item=u8&amp;gt;&amp;gt;(iter: I)
-
-fn consume_iter_dynamic(iter: Box&amp;lt;Iterator&amp;lt;Item=u8&amp;gt;&amp;gt;)
-&lt;/code&gt;&lt;p&gt;不论选哪种方式，都可以写出针对一组类型的抽象代码，而不是针对某一个具体类型。在 _static 版本中，每次调用的时候，编译器都会为不同的实参类型，实例化不同版本的函数。在 _dynamic 版本中，每次调用的时候，实参的具体类型隐藏在了 trait object 的后面，通过虚函数表，在执行阶段选择调用正确的函数版本。&lt;/p&gt;&lt;p&gt;这两种方式都可以在函数参数中正常使用。但是，如果我们考虑函数的返回值，目前只有这样一种方式是合法的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn produce_iter_dynamic() -&amp;gt; Box&amp;lt;Iterator&amp;lt;Item=u8&amp;gt;&amp;gt;
-&lt;/code&gt;&lt;p&gt;以下这种方式是不合法的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn produce_iter_static() -&amp;gt; Iterator&amp;lt;Item=u8&amp;gt;
-&lt;/code&gt;&lt;p&gt;目前版本中，Rust只支持返回“具体类型”，而不能返回一个 trait。由于缺少了“不装箱的抽象返回类型”这样一种机制，导致了以下这些问题：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;我们返回一个复杂的迭代器的时候，会让返回类型过于复杂，而且泄漏了具体实现。比如，如果我们需要返回一个栈上的迭代器，可能需要为函数写这么复杂的返回类型：&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;rust&quot;&gt;Chain&amp;lt;Map&amp;lt;&#39;a, (int, u8), u16, Enumerate&amp;lt;Filter&amp;lt;&#39;a, u8, vec::MoveItems&amp;lt;u8&amp;gt;&amp;gt;&amp;gt;&amp;gt;, SkipWhile&amp;lt;&#39;a, u16, Map&amp;lt;&#39;a, &amp;amp;u16, u16, slice::Items&amp;lt;u16&amp;gt;&amp;gt;&amp;gt;&amp;gt;
-&lt;/code&gt;&lt;p&gt;函数内部的逻辑稍微有点变化，这个返回类型就要跟着改变，远不如泛型函数参数 T: Iterator 的抽象程度好。&lt;/p&gt;&lt;br&gt;&lt;ul&gt;&lt;li&gt;函数无法直接返回一个闭包。因为闭包的类型是编译器自动生成的一个匿名类型，我们没办法在函数的返回类型中手工指定，所以返回一个闭包一定要“装箱”到堆内存中，然后把胖指针返回回去，这样是有性能开销的。fn multiply(m: i32) -&amp;gt; Box&amp;lt;Fn(i32)-&amp;gt;i32&amp;gt; {&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;    Box::new(move |x|x*m)
-}
-
-fn main() {
-    let f = multiply(5);
-    println!(&quot;{}&quot;, f(2));
-}
-&lt;p&gt;请注意，这种时候，引入一个泛型参数代表这个闭包是行不通的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn multiply&amp;lt;T&amp;gt;(m: i32) -&amp;gt; T where T:Fn(i32)-&amp;gt;i32 {
-    move |x|x*m
-}
-
-fn main() {
-    let f = multiply(5);
-    println!(&quot;{}&quot;, f(2));
-}
-&lt;/code&gt;&lt;p&gt;编译，可见编译错误为：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;note: expected type `T`    found type `[closure@test.rs:3:5: 3:16 m:_]`
-&lt;/code&gt;&lt;p&gt;因为这种语法，实际的意思是，泛型参数 T 由“调用者”决定的意思。比如 std::iter::Iterator::collect 这个函数就非常适合这么实现。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let a = [1, 2, 3];
-let doubled = a.iter()
-        .map(|&amp;amp;x| x * 2)
-        .collect::&amp;lt;???&amp;gt;::();
-&lt;/code&gt;&lt;p&gt;使用者可以在 ??? 这个地方填充不同的类型 Vec&amp;lt;i32&amp;gt; VecDeque&amp;lt;i32&amp;gt; LinkedList&amp;lt;i32&amp;gt; 等，这个 collect 方法的返回类型是一个抽象的类型集合，调用者可以随意选择这个集合中的任意一个具体类型。&lt;/p&gt;&lt;p&gt;这跟我们上面想返回一个内部的闭包情况不同，上面的的程序想表达的是，返回一个“具体类型”，这个类型是由被调用的函数自行决定的，只是调用者不知道它的名字而已。&lt;/p&gt;&lt;p&gt;为了解决上面这个问题，aturon 提出了 impl Trait 这个方案。这就是前面提到的第一个RFC的内容。它引入了一个新的语法，可以让函数返回一个不用装箱的匿名类型，以及它所满足的基本的接口。&lt;/p&gt;&lt;p&gt;示例如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#![feature(conservative_impl_trait)]
-
-fn multiply(m: i32) -&amp;gt; impl Fn(i32)-&amp;gt;i32 {
-    move |x|x*m
-}
-
-fn main() {
-    let f = multiply(5);
-    println!(&quot;{}&quot;, f(2));
-}
-&lt;/code&gt;&lt;p&gt;这里的 -&amp;gt; impl Fn(i32)-&amp;gt;i32 表示，这个返回类型，满足 Fn(size)-&amp;gt;isize 这个 trait 的约束。因此，它解决了“返回不装箱的抽象类型”这个问题。&lt;/p&gt;&lt;p&gt;它跟泛型函数的主要区别是：泛型函数的类型参数，是函数的调用者指定的；impl Trait 的具体类型，是函数的实现体指定的。&lt;/p&gt;&lt;p&gt;这里 fn func() -&amp;gt; impl Trait，之所以要用一个额外的 impl 关键字的语法，有几个原因：1) 在目前版本中 fn func() -&amp;gt; Trait 其实是一个合理的语法。目前编译不通过，是由于 DST 类型还没有搞完而已。假如将来 DST 类型做完，可能会允许 fn func() -&amp;gt; [i32] 这样的写法，调用方通过 let array = box func(); 这样的方式使用。为了避免和将来的DST冲突，使用一个新的语法更合理。2) 如果将来希望用 fn func() -&amp;gt; Trait 这种语法来表示 impl Trait 这个功能，最好还需要对 trait object 的语法做相应的改动，以便对这两种情况明显区分，而此事是重大的 breaking change，目前是不考虑的。&lt;/p&gt;&lt;p&gt;为什么这个功能名叫 conservative 呢？因为目前为止，它的使用场景非常保守，只允许这个语法用于普通函数的返回类型，不能用于参数类型等其它地方。查看历史，我们可以看到 conservative impl trait 这个RFC是2016年7月通过的。但是到目前为止，它依然没有达到稳定。它的主要争议就在于，大家都希望这个功能能扩展到更多的场景，但是如何扩展这件事情，一直有争议。因此，为了尽快让这个功能稳定，需要讨论一下，是否需要对这个功能做进一步扩展，如果扩展的话需要如何设计。这就是前面说的第二个RFC的内容。比如说，随便想一想，可能的扩展场景可以有以下这些：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;让 impl Trait 可以用在函数参数中：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test(f: impl Fn(i32)-&amp;gt;i32){}
-&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;让 impl Trait 可以用在类型别名中：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;type MyIter = impl Iterator&amp;lt;Item=i32&amp;gt;;
-&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;让 impl Trait 可以用在 trait 中的方法参数／返回值中：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Test {
-     fn test() -&amp;gt; impl MyTrait; 
-}
-&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;让 impl Trait 可以用在 trait 中的关联类型中：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt; trait Test {
-     type AT = impl MyTrait; 
-}
-&lt;/code&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;各位是不是觉得这样设计是非常符合直觉的？让同样语法规则在各种地方使用，可以降低学习成本，提高易用性。然而，事情并不像刚开始预计的那么简单。在这场RFC的讨论中，话题迅速扩展，范围越来越广，深度越来越深，难度越来越大，最终只有很少一部分问题上设计者们取得了共识。还有很多问题，都还没得到最终结论。虽说这个RFC最终缩水了很多，但是设计者们在这场讨论中对各种场景的思考，非常值得剖析。作为旁观者，我们很难在这种讨论中做出很大贡献，但我希望尽我所能给大家总结和介绍一下，设计者们都讨论了些什么东西，对自己也是一个锻炼。&lt;/p&gt;&lt;h2&gt;场景一 函数参数&lt;/h2&gt;&lt;p&gt;函数参数是最直观的一种扩展场景。这也是最近这个 RFC 主推的一种扩展。这意味着我们可以写这样的代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test(arg: impl MyTrait) {}
-&lt;/code&gt;&lt;p&gt;它的含义与以下代码相同：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test&amp;lt;T: MyTrait&amp;gt;(arg: T) {}
-&lt;/code&gt;&lt;p&gt;这种写法的最大的争议在于，有很大一部分讨论者，希望使用两个关键字 some/any 来替换当前的 impl 关键字。使用两个关键字的理由是，这个功能在函数参数和返回值的场景，有明确的不同的两种语义：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;在返回值中，这个叫做 existential type，impl Trait表示“存在某一个类型T满足 T:Trait”&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;在函数参数中，这个叫做 universal type，impl Trait表示“任意一个T满足 T:Trait”&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;比如说，fn Foo() -&amp;gt; impl Debug 代表的是函数 Foo 返回了一个类型，这个类型满足 Debug 约束。而 fn Foo(arg: impl Debug) 代表的是，函数 Foo 接受任意一种参数类型，只要它满足 Debug 约束即可。对于更复杂的情况，fn func(arg: impl From&amp;lt;impl ToString&amp;gt;)，一句话中的两个 impl 有两种含义，如果不做区分的话，怕是会影响表达能力。&lt;/p&gt;&lt;p&gt;设计组的几位核心成员对此建议的观点是：在函数参数和返回值中，它们表达的含义确实是有所区别，然而这个区别并不需要在语法层面做区分。使用两个关键字会对Rust的易用性有害。主要理由如下：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;p&gt;对于新手来说，根本意识不到这里有 existential/universal 的区别，新手想的就是，我希望这个类型满足某个 trait 即可，直接使用这个语法即可，不会出错。统一的 impl Trait 语法可以对应于一个非常直观的思维模型。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;对于有经验的开发者来说，可能意识到了这个区别，会更近一步的思考，这里究竟是想表达什么具体含义。处于这个阶段的开发者，最支持 some/any 两个关键字分开的写法。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;对于完全掌握了这个功能的老手而言，心里很清楚使用 impl Trait 的每个场景分别是什么含义，然而并不重要，还是会倾向于统一的语法，我们可以将这个语法视为一种语法糖，知道它在不同场景代表不同含义就足够了。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;这就是对这个功能理解的三重境界：看山就是山，看水就是水；看山不是山，看水不是水；看山还是山，看水还是水。从 impl Trait → explicit some／any → impl Trait 的思路历程，非常像使用生命周期标记时候经历过的 lifetime elision → explicit lifetimes → lifetime elision。&lt;/p&gt;&lt;p&gt;经过此番论述之后，基本大家都同意了，在各种不同场景，使用 impl Trait 作为统一语法，不必在每个场景设计单独的语法。&lt;/p&gt;&lt;p&gt;另外，nrc以及一部分设计者，提出另外一个反对理由：我们没有必要将 impl Trait 扩展到函数参数，因为目前的泛型语法已经完全足够表达，再增加一种方式写同样的代码没有必要。&lt;/p&gt;&lt;p&gt;对于这个论点，支持者的意见是，这个设计非常有助于一致性，比如：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn take_iter(t: impl Iterator)
-
-fn give_iter() -&amp;gt; impl Iterator
-&lt;/code&gt;&lt;p&gt;这种写法和目前的 trait object 完全一致，用户可以很容易学习和掌握：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn take_iter(t: Box&amp;lt;Iterator&amp;gt;)
-
-fn give_iter() -&amp;gt; Box&amp;lt;Iterator&amp;gt;
-&lt;/code&gt;&lt;p&gt;函数签名可以变得更直观流畅，用户可以很容易写这样的代码，非常像 Java/C#：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;impl&amp;lt;T&amp;gt; Option&amp;lt;T&amp;gt; {
-    fn map&amp;lt;U&amp;gt;(self, f: impl FnOnce(T) -&amp;gt; U) -&amp;gt; Option&amp;lt;U&amp;gt;    { ... }
-}
-&lt;/code&gt;&lt;p&gt;它并没有本质上增加Rust的复杂度，它不过就是一个语法糖，可以让我们在某些情况下更流畅地写代码。Rust里面已经有了很多语法糖，语法糖也并不是坏事。&lt;/p&gt;&lt;h2&gt;场景二 高阶约束(higher ranked bound)&lt;/h2&gt;&lt;p&gt;如果我们允许 impl Trait 同时出现在函数参数和返回值的位置，那么就有人可能会在泛型闭包约束的参数和返回值都使用这种语法：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn foo(f: impl Fn(impl SomeTrait) -&amp;gt; impl OtherTrait){}
-&lt;/code&gt;&lt;p&gt;这个场景很复杂，函数 foo 接受一个参数，它是一个闭包满足 Fn 约束，而这个闭包的参数是一个 SomeTrait 类型，返回值是一个 OtherTrait 类型。这种情况，甚至用我们前面提到的 any/some 都已经无法将它的含义完整表达出来，实质上，它想表达的含义是这样的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn foo(f: for&amp;lt;T1:SomeTrait, T2:OtherTrait&amp;gt; Fn(T1) -&amp;gt; T2)
-&lt;/code&gt;&lt;p&gt;即类似我们曾经见过的“高阶生命周期”，f的类型，需要的是一种“高阶泛型约束”。而这是 Rust 中暂时还没有的功能。因此，这种场景下的 impl Trait 是不能被支持的。&lt;/p&gt;&lt;h2&gt;场景三 在trait内部使用&lt;/h2&gt;&lt;p&gt;刚开始，aturon以为 trait 内部使用的 impl trait 无非就是一个 associated type 的语法糖。比如这段代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Foo {
-   fn baz(&amp;amp;self) -&amp;gt; impl Iterator;
-}
-&lt;/code&gt;&lt;p&gt;可以当成这样处理：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Foo {
-   type __baz: Iterator;
-   fn baz(&amp;amp;self) -&amp;gt; __baz;
-}
-&lt;/code&gt;&lt;p&gt;然而，马上有人指出来了，对于下面的这些情况，目前 Rust 无法处理，比如：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Foo {
-    fn f1&amp;lt;&#39;a&amp;gt;(&amp;amp;&#39;a self) -&amp;gt; impl Trait;
-    fn f2&amp;lt;T&amp;gt;(arg: T) -&amp;gt; impl Trait;
-}
-&lt;/code&gt;&lt;p&gt;因为这个 impl Trait 要捕获对应函数的泛型参数，去掉这个 impl Trait 语法糖之后，它看起来是这样：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Foo {
-    type __Anonymous1&amp;lt;&#39;a&amp;gt;;
-    type __Anonymous2&amp;lt;T&amp;gt;;
-
-    fn f1&amp;lt;&#39;a&amp;gt;(&amp;amp;&#39;a self) -&amp;gt; type __Anonymous1&amp;lt;&#39;a&amp;gt;;
-    fn f2&amp;lt;T&amp;gt;(arg: T) -&amp;gt; type __Anonymous2&amp;lt;T&amp;gt;;
-}
-&lt;/code&gt;&lt;p&gt;这实际上是正在规划中还没实现的 ATC (associated type constructor)。对于 ATC 不了解的朋友可以去读一下 niko 的几篇博客。简而言之，这个功能实质上是高阶类型 HKT (high kinded type) 的等价物。在 ATC 没有准备好的情况下，impl Trait 是没办法用在 trait 里面的。另外，按照 eddyb 的剖析，在 trait 中使用 impl Trait 功能，还需要另外一个功能的支持：从 impl 块里面的函数签名推导 trait 中的关联类型。&lt;/p&gt;&lt;p&gt;因此，在目前的情况下，impl Trait 功能是无法在 trait 里面使用的。&lt;/p&gt;&lt;h2&gt;总结&lt;/h2&gt;&lt;p&gt;impl Trait 这个语法，在某些场景下，具有明显优势，可以提高语言的表达能力。但是，要把它推广到各个场景下使用，还需要大量的设计和实现工作。目前的这个RFC将目标缩小为了：先推进这个语法在函数参数和返回值场景下使用，其它的情况，后面再考虑。&lt;/p&gt;&lt;p&gt;最后需要跟各位读者提醒一点的是，不要过于激进地使用这个功能，在每个可以使用 impl Trait 的地方都用它替换原先的具体类型。它更多的倾向于简洁性，而牺牲了一部分表达能力。比如说，拿前面的那个复杂的迭代器类型来说，&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test() -&amp;gt; Chain&amp;lt;Map&amp;lt;...&amp;gt;&amp;gt;
-&lt;/code&gt;&lt;p&gt;我们可能希望将函数返回类型写成这样&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test() -&amp;gt; impl Iterator&amp;lt;Item=u16&amp;gt;
-&lt;/code&gt;&lt;p&gt;但是，这么写，实际上是降低了表达能力。因为，前一种写法，用户可以拿到这个迭代器之后再调用 clone() 方法，而后一种写法，就不可以。如果希望支持 clone，那么需要这么写&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test() -&amp;gt; impl Iterator&amp;lt;Item=u16&amp;gt; + Clone
-&lt;/code&gt;&lt;p&gt;而这两个 trait 依然不是原先那个具体类型的所有对外接口，真实情况可能需要类似这样才能完整替代原先的那种写法：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn test() -&amp;gt; impl Iterator&amp;lt;Item=u16&amp;gt; +
-        Clone +
-        ExactSizeIterator+
-        TrustedLen
-&lt;/code&gt;&lt;p&gt;先不论这种写法是否可行，单说这个复杂度，就已经完全失去了这个 impl Trait 功能的意义了。所以，什么时候该用这个功能，什么时候不该用，应该仔细衡量一下。&lt;/p&gt;</description>
-<author>F001</author>
-<guid isPermaLink="false">2017-04-22-26516100</guid>
-<pubDate>Sat, 22 Apr 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust 错误处理</title>
-<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-03-03-25506762.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25506762&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;注: 文章最后添加了问号语法糖的更新说明&lt;/b&gt;&lt;/p&gt;&lt;p&gt;----- 正文 -----&lt;br&gt;&lt;/p&gt;&lt;p&gt;人孰无过，过而能改，善莫大焉。程序运行过程中总是会出现各种各样的问题，导致程序出现异常或错误，这些异常和错误本身不是 bug，但是如果不处理好的话就会成为 bug。不同编程语言提供了不同的机制来处理错误和异常，一般分为两大类：把错误当作值来处理；抛出异常。&lt;/p&gt;&lt;p&gt;Rust 提供以下基础设施做错误处理：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Option, Result&lt;/li&gt;&lt;li&gt;unwrap, expect&lt;/li&gt;&lt;li&gt;combinators&lt;/li&gt;&lt;li&gt;try! macro&lt;/li&gt;&lt;li&gt;Error trait&lt;/li&gt;&lt;li&gt;From trait&lt;/li&gt;&lt;li&gt;Carrier trait&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Rust 并没有提供基于 exception 的错误处理机制，虽然 panic! 宏在让进程挂掉时也抛出堆栈，同时也可以用 std::panic::catch_unwind 捕捉 panic，但是&lt;b&gt;极其&lt;/b&gt;不推荐用来处理常规错误。&lt;/p&gt;&lt;p&gt;catch_unwind 一般是用来在多线程程序里面在将挂掉的线程 catch 住，防止一个线程挂掉导致整个进程崩掉，或者是通过外部函数接口(FFI)与 C 交互时将堆栈信息兜住防止 C 程序看到堆栈不知道如何处理，直接把堆栈信息丢给 C 程序的话属于 C 里的未定义行为(Undefined Behavior)。&lt;/p&gt;&lt;p&gt;另外 catch_unwind 并不保证能 catch 所有 panic，而只对通过 unwind 实现的 panic 有用。因为 unwind 需要额外记录堆栈信息，对程序性能和二进制程序大小有影响，所以在一些嵌入式平台上面的 panic 并没有通过 unwind 实现，而是直接 abort 的，所以 catch_unwind 并不保证能捕捉到所有panic。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::panic;
-fn main() {
-    let result = panic::catch_unwind(|| {
-        println!(&quot;hello!&quot;);
-    });
-    assert!(result.is_ok());
-
-    let result = panic::catch_unwind(|| {
-        panic!(&quot;oh no!&quot;);
-    });
-    assert!(result.is_err());
-}
-&lt;/code&gt;&lt;p&gt;Rust 错误处理本质上还是基于返回值的，很多基于返回值做错误处理的语言是将错误直接硬编码到正确值上，或者返回两个值，前者例如 C 在很多时候都是直接把正常情况永远不会出现的值作为错误值，后者例如 Go 同时返回两个值来进行错误处理。而 Rust 则将两个可能的值用 enum 类型表示，enum 在函数式语言里面叫做代数数据类型(algebraic data type)，而且是和类型(sum type)，表示两个可能的值一次只能取一个。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;enum Option&amp;lt;T&amp;gt; {
-    None,
-    Some(T),
-}
-
-enum Result&amp;lt;T, E&amp;gt; {
-    Ok(T),
-    Err(E),
-}
-&lt;/code&gt;&lt;p&gt;用 Option&amp;lt;T&amp;gt; 表示错误时一般不关心错误原因，出错时直接返回空值 None 而 Result&amp;lt;T, E&amp;gt; 则将错误的不同原因包括进来了，Option&amp;lt;T&amp;gt; 相当于 Result&amp;lt;T, ()&amp;gt;，如果错误只可能是一种原因造成的，一般就直接用 Option&amp;lt;T&amp;gt; 例如从 HashMap 里面取值或者对 Vector 进行 pop 操作，前者出错了只可能是对应的 key 不存在，后者出错只可能是 Vector 已经是空的了。而如果错误可能是多种原因造成的则用 Result&amp;lt;T, E&amp;gt; 来表示，例如 IO 错误，原因可能是 NotFound, PermissionDenied, AlreadyExists, InvalidData…&lt;/p&gt;&lt;p&gt;新手在看各种文档或读别人的代码时发现 Result&amp;lt;T&amp;gt; 的错误类型时可能会有点小疑惑。这里简单提一下，Result&amp;lt;T&amp;gt; 是用到了类型别名，例如 io::Result 定义如下，因为 io 模块里的错误都是 io::Error，用到 Result&amp;lt;T, Error&amp;gt; 的地方如果都换成 Result&amp;lt;T&amp;gt; 会少敲很多次键盘，同时又不会产生歧义(因为 Result 里面的 E 已经被固定成 io::Error 了)&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;type Result&amp;lt;T&amp;gt; = Result&amp;lt;T, Error&amp;gt;;
-&lt;/code&gt;&lt;p&gt;Option 和 Result 作为代数数据类型，可以利用函数式语言里面的组合子(combinator)抽象简化错误处理。Option 和 Result 可以看成是一个包装类型，要对其进行处理的话，一般需要将里面的东西—正确值和错误值取出来，然后根据取出来的值分情况处理，即对 enum 类型常见的操作 match。这种方式是最拿衣服的处理方式，分情况分析，不做任何抽象，与另外两种基于返回值的错误处理方式基本一样。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-
-fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; Result&amp;lt;i32, String&amp;gt; {
-    let mut file = match File::open(file_path) {
-        Ok(file) =&amp;gt; file,
-        Err(err) =&amp;gt; return Err(err.to_string()),
-    };
-    let mut contents = String::new();
-    if let Err(err) = file.read_to_string(&amp;amp;mut contents) {
-        return Err(err.to_string());
-    }
-    let n: i32 = match contents.trim().parse() {
-        Ok(n) =&amp;gt; n,
-        Err(err) =&amp;gt; return Err(err.to_string()),
-    };
-    Ok(2 * n)
-}
-
-fn main() {
-    match file_double(&quot;foobar&quot;) {
-        Ok(n) =&amp;gt; println!(&quot;{}&quot;, n),
-        Err(err) =&amp;gt; println!(&quot;Error: {}&quot;, err),
-    }
-}
-&lt;/code&gt;&lt;p&gt;当然也可以选择不处理错误，用 unwrap 或 expect 直接将正确值取出来，如果出错了就直接让程序挂掉，其中 unwrap 在挂掉时是标准库内置的错误提示，而 expect 则让我们可以自己定义一个字符串在程序挂掉时显示。这两种是最粗暴的处理方式了，程序看起来很简洁，除了每个可能出错的地方有个难看的 unwrap 外(Rust 设计就是让这些不规范的代码看起来丑陋好让你改变一些不规范的写法)。很多动态语言写起来也类似，但是不用写 unwrap，其实可以看成是默认包含了 unwrap。这些看起来很简洁的程序，跑起来一旦有错误程序就直接崩了。&lt;/p&gt;&lt;p&gt;这种错误处理方式一般只适用于原型设计和教程示例，这类程序如果完整的处理错误的话就会分散自己或别人的注意力，而且原型设计之初很多错误该如何处理并不是很明确。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-
-fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; i32 {
-    let mut file = File::open(file_path).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&amp;amp;mut contents).unwrap();
-    let n: i32 = contents.trim().parse().unwrap();
-    2 * n
-}
-
-fn main() {
-    let doubled = file_double(&quot;foobar&quot;);
-    println!(&quot;{}&quot;, doubled);
-}
-&lt;/code&gt;&lt;p&gt;其实很多时候用户并不需要将错误立即返回给上层调用者，而只是希望整个函数给出最后一个计算结果即可，这种情况下可以将出错的结果当作一个普通值继续参与后面的计算，这样从上一步可能出错的结果中取出两种可能的值继续送入下一个可能出错的计算里，一直到最后，计算过程得到的都是可能会出错的结果，即 Option 或 Result，与其从包装类型里面取出值进行计算然后得到一个包装类型再取出来，是否可以把这个过程抽象出来呢。组合子就可以实现这个功能，不用取出计算结果然后参与计算然后再取出。。。标准库里为 Option 和 Result 提供了大量的组合子，map, map_err, and, and_then, or, or_else 等这些组合子将 compute -&amp;gt; unwrap -&amp;gt; case analyze -&amp;gt; compute -&amp;gt; unwrap 的过程抽象出来，从代码上看就使计算本身显得更紧凑，而不是被各种错误处理打断。&lt;/p&gt;&lt;p&gt;map 顾名思义就是把值全部取出来做一个操作，不过 map 只对正确值做处理，而对 None 和 Err 不做任何处理，所以 map 的用处就是不用取出 Option, Result 里面的值然后分情况计算，直接将计算作为闭包放在 map 参数里。map_err 正好相反，只对 Err 进行操作，而不处理 Ok 值。&lt;/p&gt;&lt;p&gt;and 和 or 两个则跟操作符 &amp;amp;&amp;amp; 和  || 一样是短路运算，其中 and 连接的两个 Result(或 Option) 如果第一个就是错误的话就短路直接取第一个 Result(或 Option) 的 Err(或 None) 值，否则就取第二个值，而 or 连接的两个 Result(或 Option) 如果第一个是正确的话就直接短路取第一个正确的值 Ok(或 Some)，否则就取第二个值。还有一点需要注意的是 and 连接的两个 Result 的 Err 类型是一样的，而 or 连接的两个 Result 的 Ok 类型是一样的，具体可以看看下面的几个小例子就能理解了，这里之所以没有用 Option 作例子，是因为前面提到的 Option&amp;lt;T&amp;gt; 其实相当于特殊的 Result 即 Result&amp;lt;T, ()&amp;gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// and
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Ok(2);
-let y: Result&amp;lt;&amp;amp;str, &amp;amp;str&amp;gt; = Err(&quot;late error&quot;);
-assert_eq!(x.and(y), Err(&quot;late error&quot;));
-
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Err(&quot;early error&quot;);
-let y: Result&amp;lt;&amp;amp;str, &amp;amp;str&amp;gt; = Ok(&quot;foo&quot;);
-assert_eq!(x.and(y), Err(&quot;early error&quot;));
-
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Err(&quot;not a 2&quot;);
-let y: Result&amp;lt;&amp;amp;str, &amp;amp;str&amp;gt; = Err(&quot;late error&quot;);
-assert_eq!(x.and(y), Err(&quot;not a 2&quot;));
-
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Ok(2);
-let y: Result&amp;lt;&amp;amp;str, &amp;amp;str&amp;gt; = Ok(&quot;different result type&quot;);
-assert_eq!(x.and(y), Ok(&quot;different result type&quot;));
-
-// or
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Ok(2);
-let y: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Err(&quot;late error&quot;);
-assert_eq!(x.or(y), Ok(2));
-
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Err(&quot;early error&quot;);
-let y: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Ok(2);
-assert_eq!(x.or(y), Ok(2));
-
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Err(&quot;not a 2&quot;);
-let y: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Err(&quot;late error&quot;);
-assert_eq!(x.or(y), Err(&quot;late error&quot;));
-
-let x: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Ok(2);
-let y: Result&amp;lt;u32, &amp;amp;str&amp;gt; = Ok(100);
-assert_eq!(x.or(y), Ok(2));
-&lt;/code&gt;&lt;p&gt;在遇到 Result&amp;lt;Result&amp;lt;T, E1&amp;gt;, E2&amp;gt;&amp;gt; 或 Option&amp;lt;Option&amp;lt;T&amp;gt;&amp;gt; 这种高阶错误类型时就得用 and_then 或 or_else 组合子，高阶错误类型用 match 进行模式匹配的话需要嵌套两层 match，分情况分析的话就有四种可能，而有了 and_then 和 or_else 这两个组合子后，则只用调用这两者中的一个就可以得到普通的一阶错误类型，所以在有些语言里称之为 flatmap。还是跟上面短路运算类似，and_then 如果第一个就是错误的话，就直接取第一个错误值，否则就把 and_then 里面的闭包应用到第一个的正确值上；而 or_else 如果第一个是正确值的话就直接取第一个正确值，否则就把 or_else 里面的闭包应用到第一个错误值上面。可以结合下面的例子辅助理解一下&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn sq(x: u32) -&amp;gt; Result&amp;lt;u32, u32&amp;gt; { Ok(x * x) }
-fn err(x: u32) -&amp;gt; Result&amp;lt;u32, u32&amp;gt; { Err(x) }
-
-assert_eq!(Ok(2).and_then(sq).and_then(sq), Ok(16));
-assert_eq!(Ok(2).and_then(sq).and_then(err), Err(4));
-assert_eq!(Ok(2).and_then(err).and_then(sq), Err(2));
-assert_eq!(Err(3).and_then(sq).and_then(sq), Err(3));
-
-assert_eq!(Ok(2).or_else(sq).or_else(sq), Ok(2));
-assert_eq!(Ok(2).or_else(err).or_else(sq), Ok(2));
-assert_eq!(Err(3).or_else(sq).or_else(err), Ok(9));
-assert_eq!(Err(3).or_else(err).or_else(err), Err(3));
-&lt;/code&gt;&lt;p&gt;这里只简单介绍下上面这几个 combinator，而标准库里面 Option 和 Result 还有大量的 combinator，建议把标准库里 Option 和 Result 的方法都扫一遍，这样在进行错误处理时可以知道用哪些组合子把错误处理串起来。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-
-fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; Result&amp;lt;i32, String&amp;gt; {
-    File::open(file_path)
-         .map_err(|err| err.to_string())
-         .and_then(|mut file| {
-              let mut contents = String::new();
-              file.read_to_string(&amp;amp;mut contents)
-                  .map_err(|err| err.to_string())
-                  .map(|_| contents)
-         })
-         .and_then(|contents| {
-              contents.trim().parse::&amp;lt;i32&amp;gt;()
-                      .map_err(|err| err.to_string())
-         })
-         .map(|n| 2 * n)
-}
-
-fn main() {
-    match file_double(&quot;foobar&quot;) {
-        Ok(n) =&amp;gt; println!(&quot;{}&quot;, n),
-        Err(err) =&amp;gt; println!(&quot;Error: {}&quot;, err),
-    }
-}
-&lt;/code&gt;&lt;p&gt;由于返回值只有一个类型，在上面示例中可能会出现不同的错误 io::Error, num::ParseIntError，为了让程序通过编译，必须将不同的错误转换成同一个类型。这里采用的是最简单的方式，统一转成字符串，对于程序使用者来说，错误就是所能看到的 error message，所以这种处理也是比较自然的。如果同时出现 Option&amp;lt;T&amp;gt; 和 Result&amp;lt;T, E&amp;gt;，则一般是直接通过 ok_or 或 ok_or_else 将 Option&amp;lt;T&amp;gt; 转换成 Result&amp;lt;T, E&amp;gt; 进行处理的。&lt;/p&gt;&lt;p&gt;但是这里在每个地方都写 map_err 会显得很烦琐，后面会介绍如何进行抽象将重复的 map_err 消除掉。除了这个之外，这里还有一个问题，上层调用者拿到 string 类型的错误后，很难再基于这个错误做进一步处理，基本只能将错误打印出来，因为不同的错误都是字符串，上层调用者没法基于字符串对错误进行区分。&lt;/p&gt;&lt;p&gt;要让 Rust 编译器认为本质上不同的类型在编译器层面是相同的，可以利用 trait object 将真正的类型隐藏在指针后面，只要不同类型实现了某个公共 trait，就可以将所有类型都转换成相同的 trait object。trait object 可以通过运行时动态反射得到指针后的类型信息。&lt;/p&gt;&lt;p&gt;Rust 标准库里 Error 就是被定义成 trait 的，而标准库里所有的错误类型都实现了这个 trait，所以都可以转换成 Box&amp;lt;Error&amp;gt; 类型。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;trait Error: Display {
-    fn description(&amp;amp;self) -&amp;gt; &amp;amp;str;
-
-    fn cause(&amp;amp;self) -&amp;gt; Option&amp;lt;&amp;amp;Error&amp;gt; { None }
-}
-&lt;/code&gt;&lt;p&gt;前面的例子中 io::Error 和 num::ParseIntError 都被转换成了 String 类型，利用 trait object 可以用 Box&amp;lt;Error&amp;gt; 替换 String 来表示错误。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-use std::error::Error;
-use std::convert::From;
-
-fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; Result&amp;lt;i32, Box&amp;lt;Error&amp;gt;&amp;gt; {
-    File::open(file_path)
-        .map_err(|err| From::from(err))
-        .and_then(|mut file| {
-            let mut contents = String::new();
-            file.read_to_string(&amp;amp;mut contents)
-                .map_err(|err| From::from(err))
-                .map(|_| contents)
-        })
-        .and_then(|contents| {
-            contents.trim()
-                .parse::&amp;lt;i32&amp;gt;()
-                .map_err(|err| From::from(err))
-        })
-        .map(|n| 2 * n)
-}
-
-fn main() {
-    match file_double(&quot;foobar&quot;) {
-        Ok(n) =&amp;gt; println!(&quot;{}&quot;, n),
-        Err(err) =&amp;gt; println!(&quot;Error: {}&quot;, err),
-    }
-}
-&lt;/code&gt;&lt;p&gt;链式调用有个缺点是没法在出错时提前返回，要提前返回的话必须从组合子跳出然后再跳出外层函数，这是普通函数没法做到的。不过 Rust 还提供了比普通函数更原始的抽象—宏，直接操作语法单元作为模板在编译期展开，使得我们可以将 return 塞到宏里面，而宏本身不是函数，所以可以直接提前返回。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;macro_rules! try {
-    ($expr:expr) =&amp;gt; (match $expr {
-        $crate::result::Result::Ok(val) =&amp;gt; val,
-        $crate::result::Result::Err(err) =&amp;gt; {
-            return $crate::result::Result::Err($crate::convert::From::from(err))
-        }
-    })
-}
-&lt;/code&gt;&lt;p&gt;可以看到 try! 宏里面包括了 convert::From::from 函数调用，所以在 try! 宏调用时只要实现了 From 就可以自动进行类型转换，而不用显式地通过 map_err 进行错误类型的转换。下面的例子就是利用了宏可以提前返回，同时可以自动转换类型的特点，前面提到过 io::Error 和 num::ParseIntError 都实现了 Error trait，而标准库里又有 impl&amp;lt;&#39;a, E: Error + &#39;a&amp;gt; From&amp;lt;E&amp;gt; for Box&amp;lt;Error + &#39;a&amp;gt; 所以最终实现了 io::Error 和 num::ParseIntError 到 Box&amp;lt;Error&amp;gt; 的自动转换。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::error::Error;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-
-fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; Result&amp;lt;i32, Box&amp;lt;Error&amp;gt;&amp;gt; {
-    let mut file = try!(File::open(file_path));
-    let mut contents = String::new();
-    try!(file.read_to_string(&amp;amp;mut contents));
-    let n = try!(contents.trim().parse::&amp;lt;i32&amp;gt;());
-    Ok(2 * n)
-}
-&lt;/code&gt;&lt;p&gt;但是运行时反射要得到错误详细信息是需要一次间接指针访问的，动态分发(dynamic dispatch)访问 Error 的两个方法。这是不太符合 Rust 零开销抽象原则的，所以 Rust 还提供更好的抽象机制处理错误。&lt;/p&gt;&lt;p&gt;这里需要要利用前面提到的 From trait，首先我们看一下这个 trait 的定义，非常简单，只有一个函数&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub trait From&amp;lt;T&amp;gt; {
-    fn from(T) -&amp;gt; Self;
-}
-&lt;/code&gt;&lt;p&gt;前面提到宏里面包括了调用 convert::From::from 所以如果用户自己定义一个错误，然后实现 From trait 将其它错误转成自定义的错误，就可以利用 try! 实现自动调用，上层调用者得到的就是一个用户自定义的错误类型，不用再通过 trait object 间接得到错误类型。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;use std::fs::File;
-use std::io::{self, Read};
-use std::num;
-use std::path::Path;
-
-#[derive(Debug)]
-enum CliError {
-    Io(io::Error),
-    Parse(num::ParseIntError),
-}
-
-impl From&amp;lt;io::Error&amp;gt; for CliError {
-    fn from(err: io::Error) -&amp;gt; CliError {
-        CliError::Io(err)
-    }
-}
-
-impl From&amp;lt;num::ParseIntError&amp;gt; for CliError {
-    fn from(err: num::ParseIntError) -&amp;gt; CliError {
-        CliError::Parse(err)
-    }
-}
-
-fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; Result&amp;lt;i32, CliError&amp;gt; {
-    let mut file = try!(File::open(file_path));
-    let mut contents = String::new();
-    try!(file.read_to_string(&amp;amp;mut contents));
-    let n: i32 = try!(contents.trim().parse());
-    Ok(2 * n)
-}
-&lt;/code&gt;&lt;p&gt;这里我们自定义了错误类型 CliError，并实现了 From trait 从 io::Error 和 ParseIntError 转换到 CliError。既利用了 try! 宏里面的 from 函数自动转换类型省掉了手写烦琐的 map_err，又可以在遇到错误时提前返回，同时上层调用者又可以不用反射就得到具体错误类型方便分情况做进一步处理。&lt;/p&gt;&lt;p&gt;所以算是 Rust 里面比较完美的错误处理方案了，尤其是对库的作者来说，最终发布出来的代码都应该包括自己定义的错误类型，以方便库的使用者拿到错误后能在错误基础上继续分情况进行处理。另外由于库的作者不知道上层应用如何处理错误，所以除非真的需要否则不要在库里面直接 panic。&lt;/p&gt;&lt;p&gt;不过如果需要多次调用 try! 宏的话，代码写出来可能就不大好看了。比如&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let event : EventInfo = try!(try!(try!(try!(try!(self.request(Method::Post, &amp;amp;dsn.get_submit_url()))
-    .with_header(&quot;X-Sentry-Auth&quot;, &amp;amp;dsn.get_auth_header(event.timestamp)))
-    .with_json_body(&amp;amp;event))
-    .send()).convert());
-&lt;/code&gt;&lt;p&gt;这里看一串 try! 宏最里面的，构造了一个 Post 请求，这个可能会失败，所以需要一个 try! 处理一次错误，取出里面的正确值，接着用成功的 request 加上 header 信息，这里又有可能出错，所以得再用一个 try!，再然后用加了 header 的 Post 请求加上 json 数据，又是可能失败的操作，所以再来一个 try!，等总算构造出一个 Post 请求后，真正发送出去又是一个可能失败的操作，接着上 try!，请求发出去后，得到 response convert 成 EventInfo 类型，又是一个可能失败的操作，又得来一个 try! 了，不过经历这么多步可能失败的操作，最终终于完成了一个 Post 请求并把结果转换成了用户要的 EventInfo，简直跟西天取经一样要经历这么多磨难才能拿到想要的信息，这在 IO 操作和网络编程时是非常常见的，与外界打交道总是不能保证一定拿到预期的正确值。这里不仔细数还真不知道有几个 try!，看起来当然就有点恶心了。&lt;/p&gt;&lt;p&gt;官方为响应社区的需求引入了&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/0243-trait-based-exception-handling.md&quot; data-title=&quot;问号语法糖&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;问号语法糖&lt;/a&gt;改善这一点，可以将缩在一坨的 try! 分散开成多个问号。一个返回 Result 的函数或方法后面加一个问号，如果是 Err 的话则提前返回，否则就取出 Ok 里面的值，所以借助这个语法糖，上面那串 try! 就可以改写成&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let event : EventInfo = self.request(Method::Post, &amp;amp;dsn.get_submit_url())?
-    .with_header(&quot;X-Sentry-Auth&quot;, &amp;amp;dsn.get_auth_header(event.timestamp))?
-    .with_json_body(&amp;amp;event)?
-    .send()?.convert()?;
-&lt;/code&gt;&lt;p&gt;是不是看起来清爽一些了，错误处理本来是在返回错误之后进行的，所以用问号放在函数或方法调用后面表示处理错误比 try! 放在前面更合符合直觉一点，同时问号也有表示询问前面的调用返回的是正确的还是错误的意味，另外就是问号也被分散到每一个方法调用后面而不是集中到一起，所以增加了代码的可读性。其实问号语法糖在其它语言里面也比较常见的。&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然 Rust 里面问号语法糖并不是编译器的黑魔法，而是通过 Carrier trait 来实现的&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub trait Carrier {
-    type Success;
-    type Error;
-    fn from_success(Self::Success) -&amp;gt; Self;
-    fn from_error(Self::Error) -&amp;gt; Self;
-    fn translate&amp;lt;T&amp;gt;(self) -&amp;gt; T
-where T: Carrier&amp;lt;Success=Self::Success, Error=Self::Error&amp;gt;
-;
-}
-&lt;/code&gt;&lt;p&gt;只要实现了这个 trait 就可以吃上这口糖，虽然问号语法糖已经在 stable 版里可用了，但是用户要想让自定义的类型使用这个语法糖的话还是需要 nightly 版的。而且标准库里只对 Result 类型实现了这个 trait，根据 Rust 语法规定(类型和 trait 至少有一个是用户定义的才能给类型实现 trait)用户是没法在 Option 类型上使用问号语法糖的。这个语法糖从加到 nightly 到进入 stable 只用了一个多月时间，这在 Rust 惯例里面还是很少见的，说明这个语法糖还是很受欢迎的。&lt;/p&gt;&lt;p&gt;借助这个语法糖，前面 file_double 的错误处理代码可以进一步简化成&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fn file_double&amp;lt;P: AsRef&amp;lt;Path&amp;gt;&amp;gt;(file_path: P) -&amp;gt; Result&amp;lt;i32, CliError&amp;gt; {
-    let mut contents = String::new();
-    File::open(file_path)?.read_to_string(&amp;amp;mut contents)?;
-    let n: i32 = contents.trim().parse()?;
-    Ok(2 * n)
-}
-&lt;/code&gt;&lt;p&gt;其实官方还准备引入 try/throw//catch 语法来处理错误的，不过跟一般语言的 try/throw/catch 机制不同，而仍然是基于 Option/Result 的，要求 Result 在穿越多层时能够 cast 成相同类型的 Result，目前 nightly 里有 try_catch 的特性开关，具体细节这里就不展开讲了，感兴趣的读者可以参考&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/0243-trait-based-exception-handling.md&quot; data-title=&quot;RFC说明&quot; class=&quot;&quot; data-editable=&quot;true&quot;&gt;RFC说明&lt;/a&gt;&lt;/p&gt;&lt;p&gt;所以总结一下 Rust 错误处理有以下几种情况&lt;/p&gt;&lt;ul&gt;&lt;li&gt;原型设计和一些 quick &amp;amp; dirty work 里面可以用 unwrap 或 expect 忽略错误&lt;/li&gt;&lt;li&gt;在不需要提前返回错误时可以链式调用各种 combinator，一气呵成处理错误&lt;/li&gt;&lt;li&gt;需要提前返回错误并且不是写库的话直接用 try! 宏&lt;/li&gt;&lt;li&gt;作为库的作者，应该自己定义错误类型并实现 From trait，然后借助 try! 宏和各种 combinator 综合灵活处理&lt;/li&gt;&lt;li&gt;至于用 try! 宏还是问号语法糖则就看个人和团队喜好了&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;​&lt;/p&gt;&lt;p&gt;&lt;b&gt;---------------更新说明线---------------- &lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt; 感谢 &lt;a href=&quot;http://www.zhihu.com/people/bf95908efb41f3447704e267c6be7139&quot; data-hash=&quot;bf95908efb41f3447704e267c6be7139&quot; class=&quot;member_mention&quot; data-editable=&quot;true&quot; data-title=&quot;@F001&quot; data-hovercard=&quot;p$b$bf95908efb41f3447704e267c6be7139&quot;&gt;@F001&lt;/a&gt;  的指出，问号语法糖这部分官方已经决定要把底层的 Carrier trait 换成 Try trait 了，相应的 try/throw 也不准备引入了。&lt;br&gt;&lt;/p&gt;&lt;p&gt;由于问号语法糖背后的 Carrier trait 还是 nightly 特性，虽然 RFC 0243 已经合并了，但是 Carrier 实现允许任何实现 Carrier trait 之间的类型相互转换，给类型推断增加了很大的难度，如果要限制语义上同类的类型转换则可能需要借助高阶类型(HKT)，而目前 Rust 尚不支持高阶类型，所以 Carrier 的实现和使用被 block 住了，&lt;a href=&quot;https://github.com/nikomatsakis&quot; data-editable=&quot;true&quot; data-title=&quot;nikomatsakis/rfcs&quot; class=&quot;&quot;&gt;Niko &lt;/a&gt;提出的 &lt;a href=&quot;https://github.com/nikomatsakis/rfcs/blob/try-trait/text/0000-try-trait.md&quot; data-editable=&quot;true&quot; data-title=&quot;Try trait&quot; class=&quot;&quot;&gt;Try trait&lt;/a&gt; 就不存在这个问题，&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Try&amp;lt;E&amp;gt; {
-    type Success;
-    fn try(self) -&amp;gt; Result&amp;lt;Self::Success, E&amp;gt;;
-}
-&lt;/code&gt;&lt;p&gt;Try trait 只允许语义上相同的类型通过问号语法糖进行转换，比如 Result&amp;lt;T, E&amp;gt; 和 Result&amp;lt;U, F&amp;gt;，而不允许 Result&amp;lt;T, E&amp;gt; 和 Option&amp;lt;T&amp;gt; 之间转，所以类型推断实现起来相对容易些。&lt;/p&gt;&lt;p&gt;由于这个 RFC 尚未合并，这里就不展开讲了，感兴趣的读者可以自己去读读&lt;a href=&quot;https://github.com/nikomatsakis/rfcs/blob/try-trait/text/0000-try-trait.md&quot; data-editable=&quot;true&quot; data-title=&quot;try-trait RFC&quot; class=&quot;&quot;&gt; try-trait RFC&lt;/a&gt; 和&lt;a href=&quot;https://github.com/rust-lang/rfcs/pull/1859&quot; class=&quot;&quot; data-editable=&quot;true&quot; data-title=&quot;相关的讨论&quot;&gt;相关的讨论&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外 try/throw 的错误处理机制虽然在 RFC 243 里面提到了，不过官方已经放弃引入了。而上面提到的 catch 实际上只是用来将把问号的返回值在函数内部处理掉，如果外层函数的返回值不是 Result 类型，而函数内部又用到了问号语法糖，就会出现类型不匹配的错误， catch 的作用就是把含有问号的表达式或语句框住并处理掉，从而不让 Result 蔓延。&lt;/p&gt;</description>
-<author>tennix</author>
-<guid isPermaLink="false">2017-03-03-25506762</guid>
-<pubDate>Fri, 03 Mar 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
