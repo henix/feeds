@@ -5,7 +5,65 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 25 May 2018 22:56:28 +0800</lastBuildDate>
+<lastBuildDate>Thu, 31 May 2018 14:23:11 +0800</lastBuildDate>
+<item>
+<title>Rust 中，常规的 vector 是一种值</title>
+<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-05-30-37488569.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37488569&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;/p&gt;&lt;a href=&quot;http://smallcultfollowing.com/babysteps/blog/2018/02/01/in-rust-ordinary-vectors-are-values/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;In Rust, ordinary vectors are values&lt;/a&gt;&lt;p&gt;作者：Niko Matsakis  译者：Quan Brew&lt;/p&gt;&lt;p&gt;本文不需要 Rust 基础也能阅读。其中 vector 指的是大多数语言中的 List 或者动态数组。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我最近一直在思考持久化容器 (persistent collections)，特别是它们与 Rust 的关系，我想写下一些我的观察。[1]&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;什么是持久化容器&lt;/h2&gt;&lt;p&gt;传统上，持久化容器被看作是一种与众不同的建立容器的方法。传统的容器有类似&lt;code class=&quot;inline&quot;&gt;push&lt;/code&gt;的方法，能让 vector &lt;b&gt;原地&lt;/b&gt;增长：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;
+vec.push(element); // 往 `vec` 增加元素&lt;/code&gt;&lt;p&gt;而持久化容器有类似&lt;code class=&quot;inline&quot;&gt;add&lt;/code&gt;的方法，能保留原本的 vector 不动，而返回一个已经被修改的&lt;b&gt;新vector&lt;/b&gt;：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let vec2 = vec.add(element);&lt;/code&gt;&lt;p&gt;此处的关键特性在于&lt;code class=&quot;inline&quot;&gt;vec&lt;/code&gt;没有改变，这使得持久化容器非常适合函数式语言（以及适合并行计算）。&lt;/p&gt;&lt;h2&gt;持久化容器如何运作&lt;/h2&gt;&lt;p&gt;我不会详细介绍任何特定的设计，但是大多数都是基于某种树的。比如说，如果有一个 vector 类似于&lt;code class=&quot;inline&quot;&gt;[1, 2, 3, 4, 5, 6]&lt;/code&gt;，可以想象一下，这些值不是以一大块的方式储存，而是将它们储存在某种树中，值保存在叶子结点里。在下面的示意中，元素被分开放在两个叶子结点，父节点的指针指向这两个节点：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+ [*        *] // &amp;lt;-- 这是 vector 的父节点
+  |        |
+-----    -----
+1 2 3    4 5 6&lt;/code&gt;&lt;p&gt;现在想想我们要改变 vector 中的一个值，比如说我们想把&lt;code class=&quot;inline&quot;&gt;6&lt;/code&gt;改成&lt;code class=&quot;inline&quot;&gt;10&lt;/code&gt;。这意味着我们必须改变右节点，但可以继续使用左节点。所以我们创建一个新的父节点，这样就能引用新的右节点。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+ [*        *]   // &amp;lt;-- 原 vector
+  |        |    //     (仍然存在，没有被改变)
+-----    -----
+1 2 3    4 5 6
+-----
+  |      4 5 10 // &amp;lt;-- 右节点的新拷贝
+  |      ------
+  |        |
+ [*        *]   // &amp;lt;-- 新的 vector&lt;/code&gt;&lt;p&gt;对于一个平衡的树中，这通常意味着往一个持久化 vector 中插入元素往往是 &lt;equation&gt;O(\log n)&lt;/equation&gt; ——我们必须复制和修改一些叶子，然后必须复制和修改所有这条路径的父节点。&lt;b&gt;这比修改传统的 vector 开销更大，修改传统的 vector 只是一些CPU指令。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;一些意见：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;如果这个 vector 实际上没有&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E5%88%AB%E5%90%8D_(%E8%AE%A1%E7%AE%97)&quot;&gt;别名&lt;/a&gt;（多处引用同一段内存），并且你知道它没有别名，那么常常可以避免这些复制，仅仅是原地修改树。稍后，我会谈到 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://docs.rs/dogged/0.2.0/dogged/struct.DVec.html&quot;&gt;DVec&lt;/a&gt;&lt;/code&gt;，一个试验性的 Rust 持久化容器库做到了这个特性。但在典型的基于 GC 的语言中很难做到，因为你永远不知道自己在用的是别名。&lt;/li&gt;&lt;li&gt;持久化容器有非常多的其他设计，其中一些设计偏向于特定的使用模式。比如说，&lt;a href=&quot;https://www.lri.fr/~filliatr/ftp/publis/puf-wml07.pdf&quot;&gt;这个论文&lt;/a&gt;提出了一个针对于类似 Prolog 程序的设计；这个设计内部用了可变方式实现 &lt;equation&gt;O(1)&lt;/equation&gt; 插入，但是在接口上对用户隐藏。当然，这些低开销的插入是有代价的：数据结构的较老的拷贝使用起来开销很大。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;持久化容器让容器变成值&lt;/h2&gt;&lt;p&gt;某些情况下，持久化容器能让代码更容易被理解。因为他们更像一个「普通的值」，没有自己的「秉性」。来看这个JS代码，用整数：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;
+function foo() {
+    let x = 0;
+    let y = x;
+    y += 1;
+    return y - x;
+}&lt;/code&gt;&lt;p&gt;此处我们修改 &lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt; 的时候，不期望 &lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt; 也改变，因为 &lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt; 只是一个简单的值。但是如果改成用数组：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;
+function foo() {
+    let x = [];
+    let y = x;
+    y.push(22);
+    use(x, y);
+}&lt;/code&gt;&lt;p&gt;现在修改&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;也会跟着改变。也许这正是我们想要的，但有时候不是。当 vector 藏在对象后面的时候，事情会愈发让人摸不清头脑：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;
+function foo() {
+    let object = {
+        field: []
+    };
+    ...
+    let object2 = {
+        field: object.field
+    };
+    ...
+    // 现在 `object.field` 和 `object2.field` 在幕后秘密相连
+    ...
+}&lt;/code&gt;&lt;p&gt;不要误会，有时候&lt;code class=&quot;inline&quot;&gt;object.field&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;object2.field&lt;/code&gt;是指向同一个 vector 是非常方便的。但另一些时候这不是你想要的。我常常发现改成持久化容器能让我的代码更清晰、易于理解。&lt;/p&gt;&lt;h2&gt;Rust 是特别的&lt;/h2&gt;&lt;p&gt;如果你曾看过我对于 Rust 的一次演讲[2]会知道，我反复强调 Rust 设计的一个核心要素：&lt;/p&gt;&lt;blockquote&gt;数据分享和可变：都是好东西，但放在一起就非常可怕。&lt;/blockquote&gt;&lt;p&gt;基本上，这个想法是，当有两个不同的路径访问同样的内存（在上一个例子中的&lt;code class=&quot;inline&quot;&gt;object.field&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;object2.field&lt;/code&gt;），对它进行修改就是非常危险的意图。对于 Rust 试图放弃使用 GC，情况就尤其如此，因为突然不清楚谁应该管理这块内存了。&lt;b&gt;但哪怕使用 GC 也是如此&lt;/b&gt;，因为一个像&lt;code class=&quot;inline&quot;&gt;object.field.push(...)&lt;/code&gt;的修改可能影响比预料中更多的对象，从而导致错误（尤其是但不限于发生在并行线程中的情况）。&lt;/p&gt;&lt;p&gt;那么，如果试图两次访问同一个 vector，在 Rust 中会发生什么？回到刚刚看到的 JavaScript 例子，但这次使用Rust写。第一个例子是用整数，运作得和JS一样：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;
+let x = 0;
+let mut y = x;
+y += 1;
+return y - x;&lt;/code&gt;&lt;p&gt;但第二个例子，也就是用 vector，根本不会通过编译：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;
+let x = vec![];
+let mut y = x;
+y.push(...);
+use(x, y); // ERROR: use of moved value `x`&lt;/code&gt;&lt;p&gt;问题在于，一旦用了 &lt;code class=&quot;inline&quot;&gt;y = x&lt;/code&gt;，就已经拿走了 &lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt; 的所有权，这样它就不能再被使用了。&lt;/p&gt;&lt;h2&gt;在 Rust 中，普通的 vector 是值&lt;/h2&gt;&lt;p&gt;可以引出结论。在 Rust 中，日常使用的「普通的容器」&lt;b&gt;已经像值一样行事&lt;/b&gt;：实际任何 Rust 类型都是如此——只要不使用&lt;code class=&quot;inline&quot;&gt;Cell&lt;/code&gt;或者&lt;code class=&quot;inline&quot;&gt;RefCell&lt;/code&gt;。换句话说，假设代码通过编译，你知道你的 vector 没有在多个地方被修改：你可以用一个整数来代替它，而它会有相同的行为。这样很好。&lt;/p&gt;&lt;p&gt;&lt;b&gt;这意味着就 Rust 而言，持久化容器和普通容器相比，不必一定要有「不同的接口」。&lt;/b&gt;例如，我创建了一个名为&lt;a href=&quot;https://crates.io/crates/dogged&quot;&gt;dogged&lt;/a&gt; [3] 的持久化 vector。Dogged 提供了一种称为 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://docs.rs/dogged/0.2.0/dogged/struct.DVec.html&quot;&gt;DVec&lt;/a&gt;&lt;/code&gt; 的 vector 类型，它基于&lt;a href=&quot;https://hypirion.com/musings/understanding-persistent-vector-pt-1&quot;&gt;Clojure 提供的持久化 vector&lt;/a&gt;。但如果看看 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://docs.rs/dogged/0.2.0/dogged/struct.DVec.html&quot;&gt;DVec&lt;/a&gt;&lt;/code&gt; 提供的方法，会发现这是一种标准的容器（有 &lt;code class=&quot;inline&quot;&gt;push&lt;/code&gt; 等等）。&lt;/p&gt;&lt;p&gt;比如说这是一种 &lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt; 的有效操作：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let mut x = DVec::new();
+x.push(something);
+x.push(something_else);
+for element in &amp;amp;x { ... }&lt;/code&gt;&lt;p&gt;尽管如此，一个&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;还是一个持久化数据结构。在实现上，一个 &lt;code class=&quot;inline&quot;&gt;Dvec&lt;/code&gt; 被实现为&lt;a href=&quot;https://zh.wikipedia.org/wiki/Trie&quot;&gt;Trie&lt;/a&gt;。它包含一个 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://doc.rust-lang.org/std/sync/struct.Arc.html&quot;&gt;Arc&lt;/a&gt;&lt;/code&gt; （引用计数指针）来引用其内部数据。当调用&lt;code class=&quot;inline&quot;&gt;push&lt;/code&gt;时，我们会更新&lt;code class=&quot;inline&quot;&gt;Arc&lt;/code&gt; 指向新的vector，并把旧数据留在原地。&lt;/p&gt;&lt;p&gt;（顺便说一句，&lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://doc.rust-lang.org/std/sync/struct.Arc.html#method.make_mut&quot;&gt;Arc::make_mut&lt;/a&gt;&lt;/code&gt;是一个&lt;b&gt;非常酷的&lt;/b&gt;方法。它检查&lt;code class=&quot;inline&quot;&gt;Arc&lt;/code&gt;的引用计数：如果是1，则给你对内容的唯一（可变）访问权限；如果引用计数&lt;b&gt;不是&lt;/b&gt;1，那么它将复制&lt;code class=&quot;inline&quot;&gt;Arc&lt;/code&gt;（及其内容），并给你这个复制的数据的可变引用。如果回想起持久化数据结构是如何运作的，就能发现这对于更新一个树是&lt;i&gt;完美的&lt;/i&gt;，它让你在容器没有别名的情况下，可以避免复制操作。）&lt;/p&gt;&lt;h2&gt;但持久化容器间是不同的&lt;/h2&gt;&lt;p&gt;一个 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 和一个 &lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt; 之间的主要区别不是它们提供的操作，而在于&lt;b&gt;它们的开销&lt;/b&gt;。也就是说，当在一个标准的&lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt;上&lt;code class=&quot;inline&quot;&gt;push&lt;/code&gt;时，它是一个 &lt;equation&gt;O(1)&lt;/equation&gt; 操作。当复制它的时候，就是 &lt;equation&gt;O(n)&lt;/equation&gt; 。对于一个&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;，开销截然不同：&lt;code class=&quot;inline&quot;&gt;push&lt;/code&gt;是 &lt;equation&gt;O(\log n)&lt;/equation&gt; ​，但是复制是 ​ &lt;equation&gt;O(1)&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;&lt;b&gt;尤其对于一个&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;clone&lt;/code&gt;操作只是增加内部的&lt;code class=&quot;inline&quot;&gt;Arc&lt;/code&gt;引用计数，而对于普通vector，&lt;code class=&quot;inline&quot;&gt;clone&lt;/code&gt;必须复制所有数据。&lt;/b&gt;当然，对一个&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;执行&lt;code class=&quot;inline&quot;&gt;push&lt;/code&gt;，会在重建树受影响的部分时复制一部分数据（而&lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt;一般只需要在数组末尾写入数据）。&lt;/p&gt;&lt;p&gt;众所周知，「大O」记法只描述渐进耗时。&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;我已经遇到的一个问题在于，在性能上它很难与标准的&lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt;竞争。单纯地整串复制数据经常比更新树以及分配内存要快。我发现只有在极端情况下才有用&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;的理由——比如说做大量复制操作，或者有大量数据。&lt;/p&gt;&lt;p&gt;当然不全关于性能。如果进行大量复制操作，&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt; 也应该使用更少的内存，因为大量内部数据可以共享。&lt;/p&gt;&lt;h2&gt;结论&lt;/h2&gt;&lt;p&gt;在这里我通过持久化容器试图说明，Rust 的所有权系统是如何以一种巧妙的方式，将函数式风格和命令式风格融合。&lt;b&gt;也就是说，Rust 的标准容器虽然以典型的命令式接口实现，但实际上它们像是「值」一样在运作：&lt;/b&gt;在将一个 vector 从一个地方赋值到另一个地方的时候，如果想继续使用原本的那个，就必须&lt;code class=&quot;inline&quot;&gt;clone&lt;/code&gt;它，这就使得新的拷贝独立于旧的那个。&lt;/p&gt;&lt;p&gt;这不是新的见解。比如说1990年，Phil Wadler 写了一篇&lt;a href=&quot;http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.55.5439&amp;amp;rep=rep1&amp;amp;type=pdf&quot;&gt;题为《线性类型可以改变世界！》的论文&lt;/a&gt;，在这之中他得出几乎一摸一样的结论，然而是从相反的起点出发。在论文中他说，依旧能提供一个持久化的接口（例如，&lt;code class=&quot;inline&quot;&gt;vec.add(element)&lt;/code&gt;返回新 vector 的方法），但如果使用线性类型，可以通过一个命令式的数据结构暗地里实现它（例如&lt;code class=&quot;inline&quot;&gt;vec.push(element)&lt;/code&gt;），而不让别人知道。&lt;/p&gt;&lt;p&gt;在摆弄&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;的时候，我发现一个持久化 vector 也提供常规（命令式）接口是很有用的。比如说，我能够非常容易修改&lt;a href=&quot;https://crates.io/crates/ena&quot;&gt;ena 合一库&lt;/a&gt;（在内部它基于一个vector）让它运作在持久化模式（使用&lt;code class=&quot;inline&quot;&gt;DVec&lt;/code&gt;）或者命令式模式（使用&lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt;）。基本的点子是将具体的 vector 类型泛型化，如果这些类型提供一样的接口的话这会很简单。&lt;/p&gt;&lt;p&gt;（另外，我乐意看到更多的实验。比如说，如果一个 vector 开始时是一个常规 vector，但是超过某个长度就会变成持久化 vector，我认为是非常有用的。）&lt;/p&gt;&lt;p&gt;&lt;i&gt;特别&lt;/i&gt;对于 Rust，我觉得有其他的原因让人对持久化容器产生兴趣。同时对数据进行分享和修改是一种有风险的模式，但有时候是必要又有用的，而在 Rust 现在用起来感觉是反人类的。&lt;b&gt;我认为我们应该做一些事情来改善这种情况，我也有一些具体的想法&lt;/b&gt;[4]，但我觉得在这里使用「持久化 vs 命令式容器」的表述是不合理的。换句话说，Rust 已经&lt;i&gt;有了&lt;/i&gt;持久化容器，它只是在&lt;code class=&quot;inline&quot;&gt;clone&lt;/code&gt;操作上特别低效。&lt;/p&gt;&lt;h2&gt;脚注&lt;/h2&gt;&lt;p&gt;[1]: 正好，我之前写的 SLG 求解器似乎特别喜欢用持久化容器。&lt;/p&gt;&lt;p&gt;[2]: 如果还没有，那么我觉得&lt;a href=&quot;https://www.sics.se/nicholas-matsakis&quot;&gt;这个&lt;/a&gt;非常好。&lt;/p&gt;&lt;p&gt;[3​]: 在英语中，如果你“dogged”地追求你的目标，你就很坚持不懈 (persistent)。&lt;/p&gt;&lt;p&gt;[4]: 具体的想法，必须等到下一篇博客文章。现在是让我女儿去上学的时间了！&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>酿泉</author>
+<guid isPermaLink="false">2018-05-30-37488569</guid>
+<pubDate>Wed, 30 May 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust - RFC 导读: async/await 特性（二）</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-05-25-37298671.html</link>
@@ -731,152 +789,6 @@ unsafe impl&amp;lt;T: ?Sized + Send&amp;gt; Sync for Mutex&amp;lt;T&amp;gt; { }
 <author>F001</author>
 <guid isPermaLink="false">2017-06-17-27438530</guid>
 <pubDate>Sat, 17 Jun 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust 妙用：（一）增补标准库和统一错误</title>
-<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-05-26-27102546.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27102546&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;&lt;b&gt;Meta&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;  本系列文是 wayslog 我本人的一些关于 Rust 的总结，发上来将这些作为骗赞的资本。想起来就更新，想不起来也不要催更，log 很懒的。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Trait and Generic&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;  初次接触 Rust 的同学可能对其 trait 的概念表示不能理解，其实这个概念在其他 fp 语言里早已被应用的很广泛了，Rust 作为一门 System Programming Language 引入这个概念，自然是想要让它自己的 type system 拥有更好的表达能力。trait 被国内的翻译者翻译成了 特征、特性， 但是我觉得都不能表达其原有意思，干脆在这这里保留原名字。它规定了一个类型能做的一系列 `动作`，可以看做约束，也可以认为是另一种形式上的 `标记`。具体怎么使用呢，我们可以来看一下下面。&lt;/p&gt;&lt;br&gt;&lt;h2&gt;&lt;b&gt;增补标准库&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;  Rust 提供了一个功能不算多的标准库（就这还天天被吐槽标准库太大了），于是很自然的，我们需要的某些功能在标准库里就可能找不到了。但是，有的时候我们又希望对标准库做一些增补。比如，我想对所有所有实现了 `std::io::Read` 的类型增补一个 `read_u8` 功能，想要从一个 `Read` 里直接读出一个 `u8` 类型（对应 C++ 里面的 char, Go 里面的 byte 类型)。&lt;br&gt;&lt;br&gt;  对于其他 OOP 语言，比如 Java 这种，显式继承 interface 的语言，除非我们能拿到 JVM 的源码，修改，并自己编译一版标准库，不然是不行的。但在 Rust 里，我们可以这么做，先上代码：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::io::{Read, Error, ErrorKind, Result};
-
-trait ReadExt: Read {
-    fn read_u8(&amp;amp;mut self) -&amp;gt; Result&amp;lt;u8&amp;gt; {
-        // 示例代码，效率问题不在考虑之内
-        let mut bytes = [0u8; 1];
-        let size = try!(self.read(&amp;amp;mut bytes[..]));
-        if size != 1 {
-            return Err(Error::new(ErrorKind::UnexpectedEof, &quot;read not one bytes&quot;));
-        }
-        Ok(bytes[0])
-    }
-}
-&lt;/code&gt;&lt;p&gt;这里有些点我们需要解释下：&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;trait inherit&lt;br&gt;&lt;/b&gt;&lt;br&gt;Rust 没有提供 struct 的继承机制，但是，提供了一个被官方称为 `trait inherit` 的机制，具体表现就是上面代码里的 `trait ReadExt: Read {...}` 。这里，`ReadExt` 其实表示了一个类型范围，这个范围会比 `Read` 更广泛。在 Rust 的其他地方，我们可以看到，除非是类型声明，不然 `A: B` 符号总表示一个类型范围: A 的(type Kind)范围里包含 B。此条同样适用于生命周期限制，因为生命周期也是 Rust 的一种 `Kind` 。好了，话题扯远了，回归主题。&lt;br&gt;&lt;br&gt;我们看到，这里我们规定了一个类型，所有实现 `Read` 的类型都可以实现一个 `ReadExt` 来实现 `读取u8` 这么一个操作。但是，仅仅这样就能用了么？答案当然是不能。&lt;br&gt;我们附上上测试代码&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::io::{Read, Error, ErrorKind, Result};
-use std::io::Cursor;
-
-trait ReadExt: Read {
-    fn read_u8(&amp;amp;mut self) -&amp;gt; Result&amp;lt;u8&amp;gt; {...}
-}
-
-fn main() {
-    let mut cursor = Cursor::new(vec![0u8, 1, 2]);
-    let value = cursor.read_u8().unwrap();
-    println!(&quot;read u8: {}&quot;, value);
-}
-&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;br&gt;尝试运行一下，我们得到了这么个错误：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;error: no method named `read_u8` found for type `std::io::Cursor&amp;lt;std::vec::Vec&amp;lt;u8&amp;gt;&amp;gt;` in the current scope
-  --&amp;gt; src/main.rs:21:24
-   |
-21 |     let value = cursor.read_u8().unwrap();
-   |                        ^^^^^^^
-   |
-   = help: items from traits can only be used if the trait is implemented and in scope; the following trait defines an item `read_u8`, perhaps you need to implement it:
-   = help: candidate #1: `ReadExt`&lt;/code&gt;&lt;p&gt;瓦塔？编译信息说的明白：你必须对你使用的类型（这里是`Cursor&amp;lt;Vec&amp;lt;u8&amp;gt;&amp;gt;`) 实现 ReadExt。 所以，我们需要加上这么一行：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait ReadExt: Read {...}
-
-impl&amp;lt;T: Read&amp;gt; ReadExt for T {}
-
-fn main() {...}&lt;/code&gt;&lt;p&gt;这一行： &lt;b&gt;impl&amp;lt;T: Read&amp;gt; ReadExt for T {}&lt;/b&gt;  的意思再明白不过了，就是对所有实现了 trait Read 的类型 T 去实现 ReadExt。再次运行，成功。而且，这里我们的 ReadExt 其实是没有任何 *需要用户提供的函数* 的。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;Error Handle&lt;br&gt;&lt;/h2&gt;&lt;p&gt;异常，在我们目前常见的语言中，几乎都有内建的机制。&lt;br&gt;无论是 C++/Java 的  try/catch, Python 的 try/expect，其实其本质就是一个终止执行并有机会 failover 的过程。与异常对应而生的，还有一个异常安全的问题。这一点，我们不展开。&lt;br&gt;&lt;br&gt;异常，其实是一个非常经典而且直观的错误解决方式。&lt;br&gt;&lt;br&gt;而 Rust 采用了更加函数式而且统一的 Result/Option 来进行错误处理。这里， Result 和 Option 不再是需要 runtime 参与的特殊类型，而是牢牢的嵌入到了其类型系统里。&lt;br&gt;&lt;br&gt;继续以上面的例子来看，我们将完整代码附上：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::io::{Read, Error, ErrorKind, Result};
-use std::io::Cursor;
-
-trait ReadExt: Read {
-    fn read_u8(&amp;amp;mut self) -&amp;gt; Result&amp;lt;u8&amp;gt; {
-        let mut bytes = [0u8; 1];
-        let size = try!(self.read(&amp;amp;mut bytes[..]));
-        if size != 1 {
-            return Err(Error::new(ErrorKind::UnexpectedEof, &quot;read not one bytes&quot;));
-        }
-        Ok(bytes[0])
-    }
-}
-
-impl&amp;lt;T: Read&amp;gt; ReadExt for T {}
-
-fn main() {
-    let mut cursor = Cursor::new(vec![0u8, 1, 2]);
-    let value = cursor.read_u8().unwrap();
-    println!(&quot;read u8: {}&quot;, value);
-}&lt;/code&gt;&lt;p&gt;对于一个 io 操作，我们认为其在操作的时候很有可能会失败，于是 `std::io` 默认提供了 Result 类型。翻开标准库，我们可以看到：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// in std::io source code
-use std::result;
-
-pub type Result&amp;lt;T&amp;gt; = result::Result&amp;lt;T, std::io::Error&amp;gt;;
-&lt;/code&gt;&lt;p&gt;好吧，我们知道了 std::io 下的 Result 类型其实是 std::result 类型下的别名，只不过限定死了错误类型是 std::io::Error。&lt;br&gt;&lt;br&gt;对于一个 Result, 我们可以进行 `unwrap`， 这个操作其实和如下操作等效：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;match some_func() {
-    Ok(val) =&amp;gt; val,
-    Err(err) =&amp;gt; {
-        panic!(&quot;reason {:?}&quot;, err);
-    }
-}&lt;/code&gt;&lt;p&gt;即：取出正确的值，一旦错误，则panic当前线程。&lt;br&gt;&lt;br&gt;这其实是 Rust 的所有错误处理中最不值得推荐的一种处理，但是在程序原型构建期，或者 demo 里还是比较有用的。&lt;br&gt;&lt;br&gt;相对的, 其实我们还可以进行 `match` 操作，这个关键字在 Rust 以及其他函数式语言里被称为 `模式匹配`:&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let value = match cursor.read_u8() {
-    Ok(val) =&amp;gt; val,
-    Err(err) =&amp;gt; {
-        println!(&quot;read faild: {:?}&quot;, err);
-        0
-    }
-};
-&lt;/code&gt;&lt;p&gt;关于模式匹配的概念，这里不再赘述，有想要深入了解的可以参见这里 [模式匹配](&lt;a href=&quot;https://rustcc.gitbooks.io/rustprimer/content/match/overview.html&quot; data-editable=&quot;true&quot; data-title=&quot;模式匹配 · RustPrimer&quot; class=&quot;&quot;&gt;模式匹配 · RustPrimer&lt;/a&gt;)。但是，就算有模式匹配，其实对于错误处理来说，也是略繁琐，我不想在每个地方都进行一次模式匹配的，很多时候，其实模式匹配就是想拿出值来，但是遇到错误则将错误返回,比如下面：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let size = match self.read(&amp;amp;mut bytes[..]) {
-    Ok(val) =&amp;gt; val,
-    Err(err) =&amp;gt; {
-        return Err(err);
-    }
-};
-&lt;/code&gt;&lt;p&gt; 为此，Rust 提供了一个简写的写法：`try!` 宏。这个宏提供了如上的功能，于是我们在代码里就看到了 try! 的用法：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let size = try!(self.read(&amp;amp;mut bytes[..]));&lt;/code&gt;&lt;p&gt;相对来说是简洁了一点点，但是，Rust 的 Result 的很多操作是可以串联起来的比如：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let value = try!(try!(try!(call0()).call1()).call2());
-&lt;/code&gt;&lt;code lang=&quot;rust&quot;&gt;try!(try(try!(....))) .....
-&lt;/code&gt;&lt;p&gt;这么写起来就太麻烦了，于是 Rust 提供了一个名叫 Carrier 的语法糖，在语法上用 `?` 代替，于是我们就可以这么写：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let value = call0()?.call1()?.call2()?;&lt;/code&gt;&lt;p&gt;其作用是和 try! 是一样的。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Uniform Error Type (personal best practice)&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;这里我们要说的，是 Rust 的两个 trait : `From` 和 `Into`。 顾名思义，这是一对相反操作，表示 一种类型可以无任何风险的转换成另一种类型变量（这里其实还有一个限制：前后变量都是 ownership 的，但是这个在这里不是重点）。重要的是， try! 和 ? 里，默认都调用了 Into 操作。前面说，From 和 Into 其实是反操作，那么， Rust 库里自然有互相实现他们的反操作的地方：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;/// (注：摘自标准库注释)
-/// From&amp;lt;T&amp;gt; for U implies Into&amp;lt;U&amp;gt;for T
-&lt;/code&gt;&lt;p&gt;预备知识介绍完毕，我们可以开始了。首先，准备一个错误类型和自己的 Result 类型:&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[derive(Debug)]
-pub enum MyError {
-}
-
-pub type MyResult&amp;lt;T&amp;gt; = result::Result&amp;lt;T, MyError&amp;gt;;&lt;/code&gt;&lt;p&gt;然后，我们让这个类型能承包 `std::io::Error`:&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[derive(Debug)]
-pub enum MyError {
-    IoError(Error),
-}
-
-impl From&amp;lt;io::Error&amp;gt; for MyError {
-    fn from(oe: io::Error) -&amp;gt; MyError {
-        MyError::IoError(oe)
-    }
-}&lt;/code&gt;&lt;p&gt;PS: 我喜欢实现 From，当然你也可以去实现 Into ，一样的。&lt;br&gt;&lt;br&gt;这样，我们实际上得到了一个 `std::io::Error` 的超集。我们最终，整理到的代码就是：&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::io::{self, Read, Error, ErrorKind};
-use std::io::Cursor;
-use std::result;
-use std::convert::From;
-
-#[derive(Debug)]
-pub enum MyError {
-    IoError(Error),
-}
-
-impl From&amp;lt;io::Error&amp;gt; for MyError {
-    fn from(oe: io::Error) -&amp;gt; MyError {
-        MyError::IoError(oe)
-    }
-}
-
-pub type MyResult&amp;lt;T&amp;gt; = result::Result&amp;lt;T, MyError&amp;gt;;
-
-trait ReadExt: Read {
-    fn read_u8(&amp;amp;mut self) -&amp;gt; MyResult&amp;lt;u8&amp;gt; {
-        // 示例代码，效率问题不在考虑之内
-        let mut bytes = [0u8; 1];
-        let size = self.read(&amp;amp;mut bytes[..])?;
-        if size != 1 {
-            return Err(Error::new(ErrorKind::UnexpectedEof, &quot;read not one bytes&quot;))?;
-        }
-        Ok(bytes[0])
-    }
-}
-
-impl&amp;lt;T: Read&amp;gt; ReadExt for T {}
-
-fn main() {
-    let mut cursor = Cursor::new(vec![0u8, 1, 2]);
-    let value = match cursor.read_u8() {
-        Ok(val) =&amp;gt; val,
-        Err(err) =&amp;gt; {
-            println!(&quot;read faild: {:?}&quot;, err);
-            0
-        }
-    };
-    println!(&quot;read u8: {}&quot;, value);
-}&lt;/code&gt;&lt;p&gt;基本上对原代码破坏很小就实现了错误类型的统一。&lt;br&gt;&lt;br&gt;&lt;br&gt;以上。&lt;/p&gt;</description>
-<author>赵雪松</author>
-<guid isPermaLink="false">2017-05-26-27102546</guid>
-<pubDate>Fri, 26 May 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
