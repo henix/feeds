@@ -5,7 +5,214 @@
 <link>https://henix.github.io/feeds/zhuanlan.milocode/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 22 May 2018 00:40:23 +0800</lastBuildDate>
+<lastBuildDate>Wed, 06 Jun 2018 20:05:36 +0800</lastBuildDate>
+<item>
+<title>从零开始的 JSON 库教程（八）：访问与其他功能</title>
+<link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-04-37618664.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37618664&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-58d55d45d37aa51b9ba19f3e3cec0b22_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;本文是&lt;a href=&quot;https://zhuanlan.zhihu.com/json-tutorial&quot;&gt;《从零开始的 JSON 库教程》&lt;/a&gt;的第八个单元。代码位于 &lt;a href=&quot;https://github.com/miloyip/json-tutorial/blob/master/tutorial08&quot;&gt;json-tutorial/tutorial08&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;（题图Photo by &lt;a href=&quot;https://unsplash.com/photos/9Q_pLLP_jmA?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Rob Lambert&lt;/a&gt;）&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;1. 对象键值查询&lt;/h2&gt;&lt;p&gt;我们在第六个单元实现了 JSON 对象的数据结构，它仅为一个 &lt;code class=&quot;inline&quot;&gt;lept_value&lt;/code&gt; 的数组：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;struct lept_value {
+    union {
+        struct { lept_member* m; size_t size; }o;
+        /* ... */
+    }u;
+    lept_type type;
+};
+
+struct lept_member {
+    char* k; size_t klen;   /* member key string, key string length */
+    lept_value v;           /* member value */
+};&lt;/code&gt;&lt;p&gt;为了做相应的解析测试，我们实现了最基本的查询功能：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;size_t lept_get_object_size(const lept_value* v);
+const char* lept_get_object_key(const lept_value* v, size_t index);
+size_t lept_get_object_key_length(const lept_value* v, size_t index);
+lept_value* lept_get_object_value(lept_value* v, size_t index);&lt;/code&gt;&lt;p&gt;在实际使用时，我们许多时候需要查询一个键值是否存在，如存在，要获得其相应的值。我们可以提供一个函数，简单地用线性搜寻实现这个查询功能（时间复杂度 &lt;equation&gt;\mathrm{O}(n)&lt;/equation&gt; ）：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define LEPT_KEY_NOT_EXIST ((size_t)-1)
+
+size_t lept_find_object_index(const lept_value* v, const char* key, size_t klen) {
+    size_t i;
+    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_OBJECT &amp;amp;&amp;amp; key != NULL);
+    for (i = 0; i &amp;lt; v-&amp;gt;u.o.size; i++)
+        if (v-&amp;gt;u.o.m[i].klen == klen &amp;amp;&amp;amp; memcmp(v-&amp;gt;u.o.m[i].k, key, klen) == 0)
+            return i;
+    return LEPT_KEY_NOT_EXIST;
+}}&lt;/code&gt;&lt;p&gt;若对象内没有所需的键，此函数返回 &lt;code class=&quot;inline&quot;&gt;LEPT_KEY_NOT_EXIST&lt;/code&gt;。使用时：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value o;
+size_t index;
+lept_init(&amp;amp;o);
+lept_parse(&amp;amp;o, &quot;{\&quot;name\&quot;:\&quot;Milo\&quot;, \&quot;gender\&quot;:\&quot;M\&quot;}&quot;);
+index = lept_find_object_index(&amp;amp;o, &quot;name&quot;, 4);
+if (index != LEPT_KEY_NOT_EXIST) {
+    lept_value* v = lept_get_object_value(&amp;amp;o, index);
+    printf(&quot;%s\n&quot;, lept_get_string(v));
+}
+lept_free(&amp;amp;o);&lt;/code&gt;&lt;p&gt;由于一般也是希望获取键对应的值，而不需要索引，我们再加入一个辅助函数，返回类型改为 &lt;code class=&quot;inline&quot;&gt;lept_value*&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value* lept_find_object_value(lept_value* v, const char* key, size_t klen) {
+    size_t index = lept_find_object_index(v, key, klen);
+    return index != LEPT_KEY_NOT_EXIST ? &amp;amp;v-&amp;gt;u.o.m[index].v : NULL;
+}&lt;/code&gt;&lt;p&gt;上述例子便可简化为：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value o, *v;
+/* ... */
+if ((v = lept_find_object_value(&amp;amp;o, &quot;name&quot;, 4)) != NULL)
+    printf(&quot;%s\n&quot;, lept_get_string(v));&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;2. 相等比较&lt;/h2&gt;&lt;p&gt;在实现数组和对象的修改之前，为了测试结果的正确性，我们先实现 &lt;code class=&quot;inline&quot;&gt;lept_value&lt;/code&gt; 的&lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E9%97%9C%E4%BF%82%E9%81%8B%E7%AE%97%E5%AD%90&quot;&gt;相等比较&lt;/a&gt;（equality comparison）。首先，两个值的类型必须相同，对于 true、false、null 这三种类型，比较类型后便完成比较。而对于数字和字符串，需进一步检查是否相等：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int lept_is_equal(const lept_value* lhs, const lept_value* rhs) {
+    assert(lhs != NULL &amp;amp;&amp;amp; rhs != NULL);
+    if (lhs-&amp;gt;type != rhs-&amp;gt;type)
+        return 0;
+    switch (lhs-&amp;gt;type) {
+        case LEPT_STRING:
+            return lhs-&amp;gt;u.s.len == rhs-&amp;gt;u.s.len &amp;amp;&amp;amp; 
+                memcmp(lhs-&amp;gt;u.s.s, rhs-&amp;gt;u.s.s, lhs-&amp;gt;u.s.len) == 0;
+        case LEPT_NUMBER:
+            return lhs-&amp;gt;u.n == rhs-&amp;gt;u.n;
+        /* ... */
+        default:
+            return 1;
+    }
+}&lt;/code&gt;&lt;p&gt;由于值可能复合类型（数组和对象），也就是一个树形结构。当我们要比较两个树是否相等，可通过递归实现。例如，对于数组，我们先比较元素数目是否相等，然后递归检查对应的元素是否相等：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int lept_is_equal(const lept_value* lhs, const lept_value* rhs) {
+    size_t i;
+    /* ... */
+    switch (lhs-&amp;gt;type) {
+        /* ... */
+        case LEPT_ARRAY:
+            if (lhs-&amp;gt;u.a.size != rhs-&amp;gt;u.a.size)
+                return 0;
+            for (i = 0; i &amp;lt; lhs-&amp;gt;u.a.size; i++)
+                if (!lept_is_equal(&amp;amp;lhs-&amp;gt;u.a.e[i], &amp;amp;rhs-&amp;gt;u.a.e[i]))
+                    return 0;
+            return 1;
+        /* ... */
+    }
+}&lt;/code&gt;&lt;p&gt;而对象与数组的不同之处，在于概念上对象的键值对是无序的。例如，&lt;code class=&quot;inline&quot;&gt;{&quot;a&quot;:1,&quot;b&quot;:2}&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;{&quot;b&quot;:2,&quot;a&quot;:1}&lt;/code&gt; 虽然键值的次序不同，但这两个 JSON 对象是相等的。我们可以简单地利用 &lt;code class=&quot;inline&quot;&gt;lept_find_object_index()&lt;/code&gt; 去找出对应的值，然后递归作比较。这部分留给读者作为练习。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;3. 复制、移动与交换&lt;/h2&gt;&lt;p&gt;本单元的重点，在于修改数组和对象的内容。我们将会实现一些接口做修改的操作，例如，为对象设置一个键值，我们可能会这么设计：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_set_object_value(lept_value* v, const char* key, size_t klen, const lept_value* value);
+
+void f() {
+    lept_value v, s;
+    lept_init(&amp;amp;v);
+    lept_parse(&amp;amp;v, &quot;{}&quot;);
+    lept_init(&amp;amp;s);
+    lept_set_string(&amp;amp;s, &quot;Hello&quot;, 5);
+    lept_set_object_keyvalue(&amp;amp;v, &quot;s&quot;, &amp;amp;s); /* {&quot;s&quot;:&quot;Hello&quot;} */
+    lept_free(&amp;amp;v)
+    lept_free(&amp;amp;s);  /* 第二次释放！*/
+}&lt;/code&gt;&lt;p&gt;凡涉及赋值，都可能会引起资源拥有权（resource ownership）的问题。值 &lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt; 并不能以指针方式简单地写入对象 &lt;code class=&quot;inline&quot;&gt;v&lt;/code&gt;，因为这样便会有两个地方都拥有 &lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;，会做成重复释放的 bug。我们有两个选择：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;在 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 中，把参数 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt; &lt;a href=&quot;https://en.wikipedia.org/wiki/Object_copying#Deep_copy&quot;&gt;深度复制&lt;/a&gt;（deep copy）一个值，即把整个树复制一份，写入其新增的键值对中。&lt;/li&gt;&lt;li&gt;在 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 中，把参数 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt; 拥有权转移至新增的键值对，再把 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt; 设置成 null 值。这就是所谓的移动语意（move semantics）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;深度复制是一个常用功能，使用者也可能会用到，例如把一个 JSON 复制一个版本出来修改，保持原来的不变。所以，我们实现一个公开的深度复制函数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_copy(lept_value* dst, const lept_value* src) {
+    size_t i;
+    assert(src != NULL &amp;amp;&amp;amp; dst != NULL &amp;amp;&amp;amp; src != dst);
+    switch (src-&amp;gt;type) {
+        case LEPT_STRING:
+            lept_set_string(dst, src-&amp;gt;u.s.s, src-&amp;gt;u.s.len);
+            break;
+        case LEPT_ARRAY:
+            /* \todo */
+            break;
+        case LEPT_OBJECT:
+            /* \todo */
+            break;
+        default:
+            lept_free(dst);
+            memcpy(dst, src, sizeof(lept_value));
+            break;
+    }
+}&lt;/code&gt;&lt;p&gt;C++11 加入了右值引用的功能，可以从语言层面区分复制和移动语意。而在 C 语言中，我们也可以通过实现不同版本的接口（不同名字的函数），实现这两种语意。但为了令接口更简单和正交（orthgonal），我们修改了 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 的设计，让它返回新增键值对的值指针，所以我们可以用 &lt;code class=&quot;inline&quot;&gt;lept_copy()&lt;/code&gt; 去复制赋值，也可以简单地改变新增的键值：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;/* 返回新增键值对的指针 */
+lept_value* lept_set_object_value(lept_value* v, const char* key, size_t klen);
+
+void f() {
+    lept_value v;
+    lept_init(&amp;amp;v);
+    lept_parse(&amp;amp;v, &quot;{}&quot;);
+    lept_set_string(lept_set_object_value(&amp;amp;v, &quot;s&quot;), &quot;Hello&quot;, 5);
+    /* {&quot;s&quot;:&quot;Hello&quot;} */
+    lept_copy(
+        lept_add_object_keyvalue(&amp;amp;v, &quot;t&quot;),
+        lept_get_object_keyvalue(&amp;amp;v, &quot;s&quot;, 1));
+    /* {&quot;s&quot;:&quot;Hello&quot;,&quot;t&quot;:&quot;Hello&quot;} */
+    lept_free(&amp;amp;v);
+}
+&lt;/code&gt;&lt;p&gt;我们还提供了 &lt;code class=&quot;inline&quot;&gt;lept_move()&lt;/code&gt;，它的实现也非常简单：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_move(lept_value* dst, lept_value* src) {
+    assert(dst != NULL &amp;amp;&amp;amp; src != NULL &amp;amp;&amp;amp; src != dst);
+    lept_free(dst);
+    memcpy(dst, src, sizeof(lept_value));
+    lept_init(src);
+}&lt;/code&gt;&lt;p&gt;类似地，我们也实现了一个交换值的接口：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_swap(lept_value* lhs, lept_value* rhs) {
+    assert(lhs != NULL &amp;amp;&amp;amp; rhs != NULL);
+    if (lhs != rhs) {
+        lept_value temp;
+        memcpy(&amp;amp;temp, lhs, sizeof(lept_value));
+        memcpy(lhs,   rhs, sizeof(lept_value));
+        memcpy(rhs, &amp;amp;temp, sizeof(lept_value));
+    }
+}&lt;/code&gt;&lt;p&gt;当我们要修改对象或数组里的值时，我们可以利用这 3 个函数。例如：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;const char* json = &quot;{\&quot;a\&quot;:[1,2],\&quot;b\&quot;:3}&quot;;
+char *out;
+lept_value v;
+lept_init(&amp;amp;v);
+lept_parse(&amp;amp;v, json);
+lept_copy(
+    lept_find_object_value(&amp;amp;v, &quot;b&quot;, 1),
+    lept_find_object_value(&amp;amp;v, &quot;a&quot;, 1));
+printf(&quot;%s\n&quot;, out = lept_stringify(&amp;amp;v, NULL)); /* {&quot;a&quot;:[1,2],&quot;b&quot;:[1,2]} */
+free(out);
+
+lept_parse(&amp;amp;v, json);
+lept_move(
+    lept_find_object_value(&amp;amp;v, &quot;b&quot;, 1),
+    lept_find_object_value(&amp;amp;v, &quot;a&quot;, 1));
+printf(&quot;%s\n&quot;, out = lept_stringify(&amp;amp;v, NULL)); /* {&quot;a&quot;:null,&quot;b&quot;:[1,2]} */
+free(out);
+
+lept_parse(&amp;amp;v, json);
+lept_swap(
+    lept_find_object_value(&amp;amp;v, &quot;b&quot;, 1),
+    lept_find_object_value(&amp;amp;v, &quot;a&quot;, 1));
+printf(&quot;%s\n&quot;, out = lept_stringify(&amp;amp;v, NULL)); /* {&quot;a&quot;:3,&quot;b&quot;:[1,2]} */
+free(out);
+
+lept_free(&amp;amp;v);&lt;/code&gt;&lt;p&gt;在使用时，可尽量避免 &lt;code class=&quot;inline&quot;&gt;lept_copy()&lt;/code&gt;，而改用 &lt;code class=&quot;inline&quot;&gt;lept_move()&lt;/code&gt; 或 &lt;code class=&quot;inline&quot;&gt;lept_swap()&lt;/code&gt;，因为后者不需要分配内存。当中 &lt;code class=&quot;inline&quot;&gt;lept_swap()&lt;/code&gt; 更是无须做释放的工作，令它达到 &lt;equation&gt;\mathrm{O}(1)&lt;/equation&gt; 时间复杂度，其性能与值的内容无关。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;4. 动态数组&lt;/h2&gt;&lt;p&gt;在此单元之前的实现里，每个数组的元素数目在解析后是固定不变的，其数据结构是：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;struct lept_value {
+    union {
+        /* ... */
+        struct { lept_value* e; size_t size; }a; /* array:  elements, element count*/
+        /* ... */
+    }u;
+    lept_type type;
+};&lt;/code&gt;&lt;p&gt;用这种数据结构增删元素时，我们需要重新分配一个数组，把适当的旧数据拷贝过去。但这种做法是非常低效的。例如我们想要从一个空的数组加入 &lt;equation&gt;n&lt;/equation&gt; 个元素，便要做 &lt;equation&gt;n(n - 1)/2&lt;/equation&gt; 次元素复制，即 &lt;equation&gt;\mathrm{O}(n^2)&lt;/equation&gt; 的时间复杂度。&lt;/p&gt;&lt;p&gt;其中一个改进方法，是使用动态数组（&lt;a href=&quot;https://en.wikipedia.org/wiki/Dynamic_array&quot;&gt;dynamic array&lt;/a&gt;，或称可增长数组／growable array）的数据结构。C++ STL 标准库中最常用的 &lt;code class=&quot;inline&quot;&gt;std::vector&lt;/code&gt; 也是使用这种数据结构的容器。&lt;/p&gt;&lt;p&gt;改动也很简单，只需要在数组中加入容量 &lt;code class=&quot;inline&quot;&gt;capacity&lt;/code&gt; 字段，表示当前已分配的元素数目，而 &lt;code class=&quot;inline&quot;&gt;size&lt;/code&gt; 则表示现时的有效元素数目：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;        /* ... */
+        struct { lept_value* e; size_t size, capacity; }a; /* array:  elements, element count, capacity */
+        /* ... */&lt;/code&gt;&lt;p&gt;我们终于提供设置数组的函数，而且它可提供初始的容量：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_set_array(lept_value* v, size_t capacity) {
+    assert(v != NULL);
+    lept_free(v);
+    v-&amp;gt;type = LEPT_ARRAY;
+    v-&amp;gt;u.a.size = 0;
+    v-&amp;gt;u.a.capacity = capacity;
+    v-&amp;gt;u.a.e = capacity &amp;gt; 0 ? (lept_value*)malloc(capacity * sizeof(lept_value)) : NULL;
+}&lt;/code&gt;&lt;p&gt;我们需要稍修改 &lt;code class=&quot;inline&quot;&gt;lept_parse_array()&lt;/code&gt;，调用 &lt;code class=&quot;inline&quot;&gt;lept_set_array()&lt;/code&gt; 去设置类型和分配空间。&lt;/p&gt;&lt;p&gt;另外，类似于 &lt;code class=&quot;inline&quot;&gt;lept_get_array_size()&lt;/code&gt;，也加入获取当前容量的函数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;size_t lept_get_array_capacity(const lept_value* v) {
+    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
+    return v-&amp;gt;u.a.capacity;
+}&lt;/code&gt;&lt;p&gt;如果当前的容量不足，我们需要扩大容量，标准库的 &lt;code class=&quot;inline&quot;&gt;realloc()&lt;/code&gt; 可以分配新的内存并把旧的数据拷背过去：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_reserve_array(lept_value* v, size_t capacity) {
+    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
+    if (v-&amp;gt;u.a.capacity &amp;lt; capacity) {
+        v-&amp;gt;u.a.capacity = capacity;
+        v-&amp;gt;u.a.e = (lept_value*)realloc(v-&amp;gt;u.a.e, capacity * sizeof(lept_value));
+    }
+}&lt;/code&gt;&lt;p&gt;当数组不需要再修改，可以使用以下的函数，把容量缩小至刚好能放置现有元素：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_shrink_array(lept_value* v) {
+    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
+    if (v-&amp;gt;u.a.capacity &amp;gt; v-&amp;gt;u.a.size) {
+        v-&amp;gt;u.a.capacity = v-&amp;gt;u.a.size;
+        v-&amp;gt;u.a.e = (lept_value*)realloc(v-&amp;gt;u.a.e, v-&amp;gt;u.a.capacity * sizeof(lept_value));
+    }
+}&lt;/code&gt;&lt;p&gt;我们不逐一检视每个数组修改函数，仅介绍一下两个例子：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value* lept_pushback_array_element(lept_value* v) {
+    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
+    if (v-&amp;gt;u.a.size == v-&amp;gt;u.a.capacity)
+        lept_reserve_array(v, v-&amp;gt;u.a.capacity == 0 ? 1 : v-&amp;gt;u.a.capacity * 2);
+    lept_init(&amp;amp;v-&amp;gt;u.a.e[v-&amp;gt;u.a.size]);
+    return &amp;amp;v-&amp;gt;u.a.e[v-&amp;gt;u.a.size++];
+}
+
+void lept_popback_array_element(lept_value* v) {
+    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY &amp;amp;&amp;amp; v-&amp;gt;u.a.size &amp;gt; 0);
+    lept_free(&amp;amp;v-&amp;gt;u.a.e[--v-&amp;gt;u.a.size]);
+}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;lept_pushback_array_element()&lt;/code&gt; 在数组末端压入一个元素，返回新的元素指针。如果现有的容量不足，就需要调用 &lt;code class=&quot;inline&quot;&gt;lept_reserve_array()&lt;/code&gt; 扩容。我们现在用了一个最简单的扩容公式：若容量为 0，则分配 1 个元素；其他情况倍增容量。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;lept_popback_array_element()&lt;/code&gt; 则做相反的工作，记得删去的元素需要调用 &lt;code class=&quot;inline&quot;&gt;lept_free()&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;下面这 3 个函数留给读者练习：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;lept_insert_array_element()&lt;/code&gt; 在 &lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt; 位置插入一个元素；&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;lept_erase_array_element()&lt;/code&gt; 删去在 &lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt; 位置开始共 &lt;code class=&quot;inline&quot;&gt;count&lt;/code&gt; 个元素（不改容量）；&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;lept_clear_array()&lt;/code&gt; 清除所有元素（不改容量）。&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;c&quot;&gt;lept_value* lept_insert_array_element(lept_value* v, size_t index);
+void lept_erase_array_element(lept_value* v, size_t index, size_t count);
+void lept_clear_array(lept_value* v);&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;5. 动态对象&lt;/h2&gt;&lt;p&gt;动态对象也是采用上述相同的结构，所以直接留给读者修改结构体，并实现以下函数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_set_object(lept_value* v, size_t capacity);
+size_t lept_get_object_capacity(const lept_value* v);
+void lept_reserve_object(lept_value* v, size_t capacity);
+void lept_shrink_object(lept_value* v);
+void lept_clear_object(lept_value* v);
+lept_value* lept_set_object_value(lept_value* v, const char* key, size_t klen);
+void lept_remove_object_value(lept_value* v, size_t index);&lt;/code&gt;&lt;p&gt;注意 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 会先搜寻是否存在现有的键，若存在则直接返回该值的指针，不存在时才新增。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;6. 总结与练习&lt;/h2&gt;&lt;p&gt;本单元主要加入了数组和对象的访问、修改方法。当中的赋值又引申了三种赋值的方式（复制、移动、交换）。这些问题是各种编程语言中都需要考虑的事情，为了减少深度复制的成本，有些程序库或运行时还会采用&lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E5%AF%AB%E5%85%A5%E6%99%82%E8%A4%87%E8%A3%BD&quot;&gt;写入时复制&lt;/a&gt;（copy-on-write, COW）。而浅复制（shallow copy）则需要 &lt;a href=&quot;https://zh.wikipedia.org/wiki/%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0&quot;&gt;引用计数&lt;/a&gt;（reference count）或 &lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6_(%E8%A8%88%E7%AE%97%E6%A9%9F%E7%A7%91%E5%AD%B8)&quot;&gt;垃圾回收&lt;/a&gt;（garbage collection, GC）等技术。&lt;/p&gt;&lt;p&gt;另外，我们实现了以动态数组的数据结构，能较高效地对数组和对象进行增删操作。至此，我们已经完成本教程的所有核心功能。做完下面的练习后，我们还会作简单讲解，然后将迎来本教程的最后一个单元。&lt;/p&gt;&lt;p&gt;本单元练习内容：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;完成 &lt;code class=&quot;inline&quot;&gt;lept_is_equal()&lt;/code&gt; 里的对象比较部分。不需要考虑对象内有重复键的情况。&lt;/li&gt;&lt;li&gt;打开 &lt;code class=&quot;inline&quot;&gt;test_array_access()&lt;/code&gt; 里的 &lt;code class=&quot;inline&quot;&gt;#if 0&lt;/code&gt;，实现 &lt;code class=&quot;inline&quot;&gt;lept_insert_array_element()&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;lept_erase_array_element()&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;lept_clear_array()&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;打开 &lt;code class=&quot;inline&quot;&gt;test_object_access()&lt;/code&gt; 里的 &lt;code class=&quot;inline&quot;&gt;#if 0&lt;/code&gt;，参考动态数组，实现第 5 部分列出的所有函数。&lt;/li&gt;&lt;li&gt;完成 &lt;code class=&quot;inline&quot;&gt;lept_copy()&lt;/code&gt; 里的数组和对象的复制部分。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;如果你遇到问题，有不理解的地方，或是有建议，都欢迎在评论或 &lt;a href=&quot;https://github.com/miloyip/json-tutorial/issues&quot;&gt;issue&lt;/a&gt; 中提出，让所有人一起讨论。&lt;/p&gt;</description>
+<author>Milo Yip</author>
+<guid isPermaLink="false">2018-06-04-37618664</guid>
+<pubDate>Mon, 04 Jun 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>如何用 C 语言画小猪佩奇</title>
 <link>https://henix.github.io/feeds/zhuanlan.milocode/2018-05-19-37031514.html</link>
@@ -441,68 +648,6 @@ Result scene(float x, float y) {
 <author>Milo Yip</author>
 <guid isPermaLink="false">2017-11-11-30816284</guid>
 <pubDate>Sat, 11 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>用 C 语言画光（二）：构造实体几何</title>
-<link>https://henix.github.io/feeds/zhuanlan.milocode/2017-11-05-30748318.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30748318&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-df4f3f1c919cc14d3abc022646a9cf10_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;在《&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30745861&quot;&gt;用 C 语言画光（一）：基础&lt;/a&gt;》中，我们画了一个发光的圆形，那么，该如何画更多形状呢？&lt;/p&gt;&lt;h2&gt;1. 场景函数&lt;/h2&gt;&lt;p&gt;重温一下，之前的光线步进实现是这样的：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;float trace(float ox, float oy, float dx, float dy) {
-    float t = 0.0f;
-    for (int i = 0; i &amp;lt; MAX_STEP &amp;amp;&amp;amp; t &amp;lt; MAX_DISTANCE; i++) {
-        float sd = circleSDF(ox + dx * t, oy + dy * t, /*...*/); // SDF
-        if (sd &amp;lt; EPSILON) 
-            return 2.0f; // 自发光
-        t += sd;
-    }
-    return 0.0f;
-}&lt;/code&gt;&lt;p&gt;在步进的过程中，我们要取得当前采样点与场景形状的带符号距离（signed distance），当少于阈值，就要返回该形状的自发光强度（emissive）。我们首先进行代码重构（code refactoring），把场景采样功能提取成一个函数（extract function），它返回 SDF 和自发光。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;typedef struct { float sd, emissive; } Result;
-
-Result scene(float x, float y) {
-    Result r = { circleSDF(x, y, 0.5f, 0.5f, 0.1f), 2.0f };
-    return r;
-}
-
-float trace(float ox, float oy, float dx, float dy) {
-    float t = 0.0f;
-    for (int i = 0; i &amp;lt; MAX_STEP &amp;amp;&amp;amp; t &amp;lt; MAX_DISTANCE; i++) {
-        Result r = scene(ox + dx * t, oy + dy * t); // &amp;lt;-
-        if (r.sd &amp;lt; EPSILON)                         // &amp;lt;-
-            return r.emissive;                      // &amp;lt;-
-        t += r.sd;                                  // &amp;lt;-
-    }
-    return 0.0f;
-}&lt;/code&gt;&lt;p&gt;那么，我们之后改动场景时就不用更改 &lt;equation&gt;\texttt{trace()}&lt;/equation&gt; 函数，只需修改 &lt;equation&gt;\texttt{scene()}&lt;/equation&gt; 。&lt;/p&gt;&lt;h2&gt;2. 加入多个形状&lt;/h2&gt;&lt;p&gt;我们在上一篇谈到， &lt;equation&gt;\phi(\mathbf{x})&lt;/equation&gt; 表示坐标 &lt;equation&gt;\mathbf{x}&lt;/equation&gt; 与场景形状的最近距离。如果场景中有两个形状 A 和 B，它们的 SDF 分别为为 &lt;equation&gt;\phi_A(\mathbf{x})&lt;/equation&gt; 和 &lt;equation&gt;\phi_B(\mathbf{x})&lt;/equation&gt; ，那么坐标 &lt;equation&gt;\mathbf{x}&lt;/equation&gt; 与这两个形状的最近距离，就是两个 SDF 的最小值，即 &lt;equation&gt;\min(\phi_A(\mathbf{x}), \phi_B(\mathbf{x}))&lt;/equation&gt; 。这个操作可以定义为，形状 A 和 B 的并集（union） &lt;equation&gt;A \cup B&lt;/equation&gt; ，其 SDF 为：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\phi_{A \cup B}(\mathbf x) = \min\left(\phi_A(\mathbf x), \phi_B(\mathbf x)\right)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;实现也很简单：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result unionOp(Result a, Result b) {
-    return a.sd &amp;lt; b.sd ? a : b;
-}&lt;/code&gt;&lt;p&gt;我们加入 3 个圆形试试，每个圆形的自发光值都不同：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result scene(float x, float y) {
-    Result r1 = { circleSDF(x, y, 0.3f, 0.3f, 0.10f), 2.0f };
-    Result r2 = { circleSDF(x, y, 0.3f, 0.7f, 0.05f), 0.8f };
-    Result r3 = { circleSDF(x, y, 0.7f, 0.5f, 0.10f), 0.0f };
-    return unionOp(unionOp(r1, r2), r3);
-}&lt;/code&gt;&lt;p&gt;运行结果：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2174da795b73e400111ef1c8306f4f3d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;我们发现，此图形增添了一个视觉上的特徵──阴影！这是因为，进行光线步进时，追踪至非常接近形状表面时便会停下来，不会继续穿透形状，所以形状之间是有遮挡关系的，也就形成了阴影。而且因为光源是线条（此例子中是圆孤边界）而不是一点，所以会产生半影（penumbra）的效果。&lt;/p&gt;&lt;h2&gt;3. 构造实体几何&lt;/h2&gt;&lt;p&gt;采用 SDF 来表示形状，还可以简单地实现构造实体几何（constructive solid geometry），即是以形状点集的布尔操作来表示模型。3 个基本运算为并集（union）、交集（intersection）和相对补集（relative complement，或称为 set difference）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \phi_{A \cup B}(\mathbf x) &amp;amp;= \min\left(\phi_A(\mathbf x), \phi_B(\mathbf x)\right)\\ \phi_{A \cap B}(\mathbf x) &amp;amp;= \max\left(\phi_A(\mathbf x), \phi_B(\mathbf x)\right)\\ \phi_{A \setminus B}(\mathbf x) &amp;amp;= \max\left(\phi_A(\mathbf x), -\phi_B(\mathbf x)\right)\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;注意，相对补集运算为非可交换的（non-commutative）。另外，涉及凹的形状时，得出的 SDF 并不代表最近距离，但它的估值是保守的，我们仍然可以用光线步进方法来找出边界。&lt;/p&gt;&lt;p&gt;实现时，要注意除了计算结果的 SDF，还要考虑采用哪个形状的特性（暂时只有自发光）。对于交集，我们要采用相反的形状；对于相对补集则采用左运算元的形状：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result unionOp(Result a, Result b) {
-    return a.sd &amp;lt; b.sd ? a : b;
-}
-
-Result intersectOp(Result a, Result b) {
-    Result r = a.sd &amp;gt; b.sd ? b : a;
-    r.sd = a.sd &amp;gt; b.sd ? a.sd : b.sd;
-    return r;
-}
-
-Result subtractOp(Result a, Result b) {
-    Result r = a;
-    r.sd = (a.sd &amp;gt; -b.sd) ? a.sd : -b.sd;
-    return r;
-}&lt;/code&gt;&lt;p&gt;做一个测试场景，左方是较亮的圆形，右方是较暗的圆形：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result scene(float x, float y) {
-    Result a = { circleSDF(x, y, 0.4f, 0.5f, 0.20f), 1.0f };
-    Result b = { circleSDF(x, y, 0.6f, 0.5f, 0.20f), 0.8f };
-    return unionOp(a, b);
-    // return intersectOp(a, b);
-    // return subtractOp(a, b);
-    // return subtractOp(b, a);
-}&lt;/code&gt;&lt;p&gt;把 4 个语句逐一取消注释，运行结果：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d8e2b1bf29a01e861d06eca2952380eb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1040&quot; data-rawheight=&quot;278&quot;&gt;&lt;h2&gt;4. 结语&lt;/h2&gt;&lt;p&gt;通过 CSG，可以把各种形状组合成不同的形状，这在运算在工业用的建模工具非常常见。你可以尝试做不同的形状，例如齿轮、花朵等。下一篇会讲述更多形状的 SDF 定义和相关运算。&lt;/p&gt;&lt;p&gt;本文的完整代码位于 &lt;a href=&quot;https://github.com/miloyip/light2d/blob/master/csg.c&quot;&gt;csg.c&lt;/a&gt;。&lt;/p&gt;</description>
-<author>Milo Yip</author>
-<guid isPermaLink="false">2017-11-05-30748318</guid>
-<pubDate>Sun, 05 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
