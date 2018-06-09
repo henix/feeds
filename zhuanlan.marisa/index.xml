@@ -5,7 +5,484 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 08 Jun 2018 17:35:38 +0800</lastBuildDate>
+<lastBuildDate>Sat, 09 Jun 2018 08:12:33 +0800</lastBuildDate>
+<item>
+<title>Cardano中的半形式化开发方法</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-08-37869146.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37869146&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;/p&gt;&lt;a href=&quot;https://iohk.io/blog/semi-formal-development-the-cardano-wallet/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-91dbd6bb8b22435eec5028eaca12a2c3&quot; data-image-width=&quot;1053&quot; data-image-height=&quot;592&quot; data-image-size=&quot;180x120&quot;&gt;Semi-Formal Development: The Cardano Wallet&lt;/a&gt;&lt;blockquote&gt;把形式化的建模和QuickCheck的测试结合在一起，是开发高可信软件的一把利刃。 通过对不变量的测试来保证模型的一致性，通过和模型的比对来保证真实实现的正确性。&lt;/blockquote&gt;&lt;p&gt;Well-Typed给IOHK做的咨询工作的一部分，就是和他们一起设计和开发Cardano虚拟货币钱包软件的全新版本。其中一个重要部分就是输出了一份关于钱包的 &lt;a href=&quot;https://cardanodocs.com/files/formal-specification-of-the-cardano-wallet.pdf&quot;&gt;半形式化规范&lt;/a&gt; ， 也就是一个描述钱包运行机制的数学模型以及相关的不变量和定理。&lt;/p&gt;&lt;p&gt;我们把它叫做“半形式化”是因为，虽然它描述了很多钱包的属性，也证明了其中一部分，但并没有证明其所有属性。 不过，就像我们后面会讲到的，我们可以使用 &lt;a href=&quot;http://hackage.haskell.org/package/QuickCheck&quot;&gt;QuickCheck&lt;/a&gt; （译注：一个能自动生成测试数据对属性进行测试的工具） 通过生成反例的方式来测试这些属性。 它不仅能帮助我们开发形式规范本身。如果未来我们真的证明了所有属性的正确性，它也为我们测试真实实现提供重要指导。&lt;/p&gt;&lt;p&gt;本文将向大家介绍这份形式规范，以及它是如何驱动新版本钱包的开发和测试的。 我们会展示了这个形式化开发方法的一部分，让大家大致了解它是什么样的，但不会涉及太多细节。 本文的目的是向大家介绍这套开发方法及其优势, 而不是具体的数学理论。&lt;/p&gt;&lt;blockquote&gt;本文所有图表、不变量、章节编号都来自于 &lt;a href=&quot;https://cardanodocs.com/files/formal-specification-of-the-cardano-wallet.pdf&quot;&gt;1.1版本的规范&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;背景知识：UTxO记账法&lt;/b&gt;&lt;br&gt;正常银行转账交易是从一个账户往另一个账户转移资产，比如张三给李四转账100元。 但是Cardano和比特币这种虚拟货币的交易略有不同。 交易的输出大体上差不多，唯一区别是可以有多个目标账号，比如一笔交易可以同时转70元给李四，30元给王五。 交易的输入就完全不同了，一笔交易的输入不是来自某个账户，而是来自其他交易。 举个例子，我们把这笔“给李四70元给王五30元”的交易叫做t1。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+t1 输入: ...
+   输出: 70元给李四, 30元给王五&lt;/code&gt;&lt;p&gt;现在如果李四想给赵六转50元，他可以创建一笔新交易说：用掉交易t1的第一个输出，然后给赵六50元，剩下20元给自己。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+t2 输入: t1的第一个输出
+   输出: 50元给赵六, 20元给李四&lt;/code&gt;&lt;p&gt;我们注意到李四需要把20元“找零”转回给自己，因为一个交易输出只能被使用(也就是用作另一笔交易的输入)一次。 这种风格的记账风格就叫做UTxO记账法。UTxO的意思就是未使用的交易输出。&lt;br&gt;而区块链就是许多这种交易组成的一个列表。对应的形式化定义差不多是这样的：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-385e9a3a8afcbc70e354ccb884150264_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;356&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-385e9a3a8afcbc70e354ccb884150264&quot; data-watermark-src=&quot;v2-27b666ed92f78d9db683f5e5b5781a6f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;钱包&lt;/b&gt;&lt;br&gt;虚拟货币的钱包就是一个软件工具，它会监控区块链的状态，跟踪用户的资金（准确的说就是用户的UTxO），也支持往区块链发送新的交易请求。 普通用户主要通过钱包和区块链打交道。至于验证新交易的有效性以及决定是否打包到区块中，这些不是钱包的任务，也就不在本文讨论的范围内了。&lt;br&gt;钱包的形式规范是一个数学抽象，它只关心钱包最核心的功能，忽略无关的细节。在Cardano钱包的基本模型中，我们把钱包状态简化到只包含UTxO以及在途交易(pending transactions)。 这份规范简单到用一张纸就可以写完：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-766bc503452948c5b9e11a2bd3d74511_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;617&quot; data-rawheight=&quot;640&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-766bc503452948c5b9e11a2bd3d74511&quot; data-watermark-src=&quot;v2-6d45dae81f30202678e4f3818db0a7a9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这个模型很简单，这样才方便进行更深入的研究，也方便提供相关属性的数学证明。 同时又足够精确，可以用来指导钱包的设计，也可以作为单元测试的基础，并驱动真实实现的开发。 他还可以用来研究可能存在的性能问题，以及如何来解决这些问题。&lt;/p&gt;&lt;p&gt;&lt;b&gt;余额&lt;/b&gt;&lt;br&gt;钱包设计中有一些棘手的问题，余额的处理就是其中一个。 你可能觉得在钱包里展示余额应该是一件很简单的事情，但就算在传统银行账户中，也至少存在两种余额。比如张三给李四转100元之后，他的银行账户可能会说：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;你当前余额为1000元&lt;/li&gt;&lt;li&gt;有一笔100元的在途交易，所以你的可用余额为900元&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;和传统银行交易不同，UTxO风格的交易多了一个找零的概念。 这就会产生三个余额的概念。我们还拿前面的t2交易为例，李四的钱包可能会这么汇报他的余额：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;你的可用UTxO为1070元&lt;/li&gt;&lt;li&gt;有一笔在途交易t2，所以你的可用余额为1000元&lt;/li&gt;&lt;li&gt;交易t2会转回20元，所以你的总余额其实是1020元&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;注意t2的找零只有当它被打包进区块链之后才可以使用。&lt;br&gt;目前为止，从钱包设计角度来看，问题还不算复杂，虽然用户界面的展示上可能还需要斟酌一下(要给用户展示哪个余额？)。真正的复杂性来自临时的区块分叉，也就是区块链上对于哪些交易需要被包含进来的分歧（分叉的产生以及如何解决不在本文探讨的范围）。&lt;br&gt;还是继续上面这个例子，假设t2在途，同时又出现了对t1的争议。争议解决后，钱包发现t1不在区块链中了（可能之后还会被重新包含进来）。 这个时候钱包的可用余额还是1000元，但是总余额如果还是1020元是否合理? 毕竟这样的话，总余额就大于可用UTxO了，倒不是说它一定不对，但总觉得不太舒服。&lt;br&gt;所以我们在形式规范中又定义了一个最小余额的概念：账户在各种可能出现的情况下，最小的那个余额。 在这个例子中，就是t1和t2都没有被打包进区块链的情况下，余额最小，为1000元 （注意不可能出现t2生效但t1不生效的情况，因为t2依赖t1）。 这个概念在直觉上似乎可行，但是为了让它更加精确并且可以计算，我们还需要引入另一个概念: ‘“预期UTxO”，也就是钱包期望包含进来但还没有被包含进来的UTxO。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4c4b490444dab11b1a4d6dd21f99bd41_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;357&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4c4b490444dab11b1a4d6dd21f99bd41&quot; data-watermark-src=&quot;v2-d4096893b8afca0dafb84734f795a8f6&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;当然，就算不通过形式化的方法，我们也可以提出最小余额的概念，并且想出对应的算法。但是有这份形式规范可以让我们对这些问题研究地更加透彻，排除掉真实实现过程中周边的细节问题，专注于最核心的概念。&lt;/p&gt;&lt;p&gt;&lt;b&gt;内部一致性：不变量&lt;/b&gt;&lt;br&gt;当我们引入一个像“预期UTxO”这样的新鲜概念的时候，我们怎么知道它是对的？ 其实，既然新概念是我们自己定义的，再问它是否正确没有太大意义，我们应该问的是，它是否有用？&lt;br&gt;回答这个问题的一个办法就是找出不变量。不变量就是永远为真的属性。 比如上面展示的基本模型中就有这样一个不变量：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;不变量3.4 txins pending ⊆ dom utxo&lt;/code&gt;&lt;p&gt;这个不变量是说，在途交易只能使用UTxO中的输出。这一点在直觉上貌似是显然的：钱包不能让用户使用它自己没有的资金。 然而，就像上面展示的，当我们开始考虑临时分叉的时候，这个不变量就不成立了。 李四提交的t2，使用了t1的一个输出，随后t1被回滚，这个时候他就使用了一个不在当前UTxO中的输出了。&lt;br&gt;这个时候我们又需要用上“预期UTxO”的概念了，在完整模型中，这个不变量需要改成这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;不变量7.8 txins pending ⊆ dom (utxo expected)&lt;/code&gt;&lt;p&gt;换句话说，在途交易只能花费UTxO或者预期UTxO。&lt;br&gt;另一个不变量能够帮助我们巩固对“预期UTxO”这个概念的直觉理解： 一个输出不能既在UTxO中也在预期UTxO中。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;不变量7.6 dom utxo 相交 dom expected = ∅&lt;/code&gt;&lt;p&gt;毕竟如果一个预期UTxO出现在当前UTxO里的话就很奇怪了。 列出这样的不变量可以让我们对新概念的直觉理解变得精确， 而证明他们的正确性也能为形式规范的合理性以及内部一致性提供很强的保证。&lt;/p&gt;&lt;p&gt;&lt;b&gt;半形式化开发&lt;/b&gt;&lt;br&gt;形式化地证明上面这样的不变量不光很耗时，还需要专业的数学训练。 如果能够证明他们当然是最完美的，但本文想说的是，尽管我们没有去证明，这个方法依然为我们提供巨大的帮助。 毕竟，我们之所以选择用Haskell编程，就是因为我们可以很容易地在Haskell代码和数学语言之间来回转换。&lt;br&gt;为了把形式规范中的钱包模型翻译成Haskell，我们使用一个在之前文章中介绍过的方法： &lt;a href=&quot;http://www.well-typed.com/blog/2018/03/oop-in-haskell/&quot;&gt;Haskell中的面向对象编程&lt;/a&gt;(我们发明这个方法就是用来干这个的)。下面就是把基本模型翻译到Haskell代码的样子：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;mkWallet :: (Hash h a, Ord a, Buildable st)
+         =&amp;gt; Ours a -&amp;gt; Lens&#39; st (State h a) -&amp;gt; WalletConstr h a st
+mkWallet ours l self st =
+  (mkDefaultWallet (l . statePending) self st) {
+      utxo       = st ^. l . stateUtxo
+    , ours       = ours
+    , applyBlock = \b -&amp;gt; self (st &amp;amp; l %~ applyBlock&#39; ours b)
+    }
+
+applyBlock&#39; :: Hash h a
+            =&amp;gt; Ours a -&amp;gt; Block h a -&amp;gt; State h a -&amp;gt; State h a
+applyBlock&#39; ours b State{..} = State {
+    _stateUtxo    = updateUtxo ours b _stateUtxo
+  , _statePending = updatePending   b _statePending
+  }
+
+updateUtxo :: forall h a. Hash h a
+           =&amp;gt; Ours a -&amp;gt; Block h a -&amp;gt; Utxo h a -&amp;gt; Utxo h a
+updateUtxo p b = remSpent . addNew
+  where
+    addNew, remSpent :: Utxo h a -&amp;gt; Utxo h a
+    addNew   = utxoUnion (utxoRestrictToOurs p (txOuts b))
+    remSpent = utxoRemoveInputs (txIns b)
+
+updatePending :: Hash h a
+              =&amp;gt; Block h a -&amp;gt; Pending h a -&amp;gt; Pending h a
+updatePending b = Map.filter $ \t -&amp;gt; disjoint (trIns t) (txIns b)&lt;/code&gt;&lt;p&gt;它比形式规范涉及到更多细节；比如它把具体的hash类型和地址类型抽象出去了。虽然它比规范稍微复杂一点，但也很接近了。 它依然是一个模型：没有处理任何网络或者存储方面的问题，可能也不是很高效，等等。也就是说，这个代码还不是真实钱包的设计。 但有这个模型还是有用的，两个原因，一个是我们可以用它来测试真实的钱包，我们会在下一节讨论这个话题； 另一个是我们可以用这个模型来测试不变量。比如下面的代码就是对上面提到的不变量7.8和7.6的Haskell翻译：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pendingInUtxoOrExpected :: WalletInv h a
+pendingInUtxoOrExpected l e =
+  invariant (l &amp;lt;&amp;gt; &quot;/pendingInUtxoOrExpected&quot;) e $ \w -&amp;gt;
+   checkSubsetOf
+    (&quot;txins pending&quot;,
+      txIns (pending w))
+    (&quot;utxo ∪ expected&quot;,
+      utxoDomain (utxo w) `Set.union` utxoDomain (expectedUtxo w))
+
+utxoExpectedDisjoint :: WalletInv h a
+utxoExpectedDisjoint l e =
+  invariant (l &amp;lt;&amp;gt; &quot;/utxoExpectedDisjoint&quot;) e $ \w -&amp;gt;
+   checkDisjoint
+    (&quot;dom utxo&quot;,
+      utxoDomain (utxo w))
+    (&quot;dom expected&quot;,
+      utxoDomain (expectedUtxo w))&lt;/code&gt;&lt;p&gt;和刚才的钱包实现一样，Haskell代码比对应的形式规范涉及更多细节；比如上面这个代码和形式规范主要区别是可以在不变量不成立时提供详细的错误信息。除此之外，大体上还是对规范的直接翻译。&lt;br&gt;这样做的好处是，我们可以用QuickCheck来测试这些不变量。 我们为钱包生成随机(但有效)的事件（&quot;应用这个区块&quot;，&quot;提交这笔新交易&quot;，&quot;切换到另一个分叉&quot;），然后检查这些不变量在每一个时间点都成立。 比如规范发布第一个版本的时候就有一个低级错误：当钱包收到一个新区块时，它从预期UTxO里把该区块的输入移除了，而不是输出。一个很蠢的错误，但是如果人工审核的话很容易被忽视。 当然，证明的话可以发现这个问题，但是用QuickCheck也可以：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Wallet unit tests
+  Test pure wallets
+    Using Cardano model FAILED [1]
+
+Failures:
+
+  test/unit/Test/Spec/Models.hs:36:
+  1) Wallet unit tests, Test pure wallets, Using Cardano model
+       predicate failed on: Invalid [] InvariantViolation {
+           name:     full/utxoExpectedDisjoint
+         , evidence: NotSubsetOf {
+                 dom utxo: ..
+               , dom expected: ..
+               , dom utxo `intersection` dom expected: ..
+             }
+         , events:   {
+                 state: ..
+               , action: ApplyBlock ..
+               , state: ..
+               , action: NewPending Transaction{ .. }
+               , state: ..
+               ..
+               , action: Rollback
+               ..
+             }
+         }&lt;/code&gt;&lt;p&gt;它不光告诉我们这个不变量不成立了；它还输出了能重现问题的事件序列以及相应的钱包状态（包括所有的中间状态），并且它还显示UTxO和预期UTxO的domain以及他们的交集是什么(他们的交集应该为空，却不为空)。&lt;/p&gt;&lt;p&gt;&lt;b&gt;测试真实的实现&lt;/b&gt;&lt;br&gt;上面说到Haskell对钱包规范的翻译依然是一个模型，其中忽略了大量真实世界的复杂情况，而这些情况是完整的钱包实现必须处理的。 甚至模型中实现的数据类型也是真实版本的简化：交易中没有包含签名，区块只是一个交易列表而不是真实的区块等等。&lt;br&gt;尽管如此，我们还是可以用这个模型实现来测试真实实现。我们可以把简化版的类型转换到真实版本。既然我们已经有了针对简化类型的QuickCheck测试数据生成器，并且我们也已经能够对模型实现进行测试，我们就可以用下图的方式对真实实现进行测试：&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e49e3abe2615f3c7b07cf007c5b6fdaf_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;364&quot; data-rawheight=&quot;128&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e49e3abe2615f3c7b07cf007c5b6fdaf&quot; data-watermark-src=&quot;v2-2c7eae05b244c8e821009930b9afdbb8&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我们先用QuickCheck生成器生成简化模型的钱包事件，然后：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;在简化类型的测试数据上执行模型实现，然后把结果翻译到真实实现&lt;/li&gt;&lt;li&gt;我们先把测试数据翻译到真实类型，然后执行真实钱包的实现&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;我们可以比对两条执行路径的结果，如果相同的话，我们就可以认为真实钱包正确地实现了这个模型。 我们在每一步都去验证这一点，加上我们前面保证了模型实现中的不变量在每一步都成立，那么我们就能得出结论：不变量在真实实现中也在每一步都成立。&lt;br&gt;比如，如果真实钱包中有一个bug重复计算了在途交易的找零(比如一笔在途交易使用另一笔在途交易的找零作为输入，这只在分叉的情况下才会出现)，测试用例生成器就会找到一个反例，使得两条执行路径的结果不一致，并且告诉我们导致不一致的具体的钱包事件序列以及相应的钱包状态，以及不一致的具体值。&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论&lt;/b&gt;&lt;br&gt;软件的规范，就算存在，一般也都是些非形式化的文档，使用自然语言描述一下软件预期的功能。 这样的规范不能用来做校验，甚至对测试也用处不大。 另一方面，对所有属性都在数学上加以证明的完整的形式规范，成本很高也很耗时，而且需要相关领域的专家才能搞定。这种做的效果当然是最完美的，但是我们可以有这么一个折中的方案：形式化地描述模型及其属性，然后我们可以用QuickCheck对其属性进行测试。 另外，基于这个模型我们可以对核心功能进行分析，并最终和真实实现进行比对。&lt;br&gt;IOHK对新钱包的开发是开源的，相关代码可以在 &lt;a href=&quot;https://github.com/input-output-hk/cardano-sl/tree/develop/wallet-new&quot;&gt;Github&lt;/a&gt; 上找到。 有趣的是，IOHK最近还招了人去实现Coq版本的钱包规范，这会把整个规范建立在更加坚实的基础之上。当然，这不代表目前的工作就没有意义，虽然这样的话，在模型实现中去测试不变量不再必要，但是有QuickCheck生成器去测试真实实现还是很有价值的。另外，在实际去证明不变量之前先用QuickCheck测试一遍，如果这个不变量确实不成立的话，可以帮助我们提早发现问题，从而节省宝贵的时间。&lt;/p&gt;</description>
+<author>黄毅</author>
+<guid isPermaLink="false">2018-06-08-37869146</guid>
+<pubDate>Fri, 08 Jun 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>正则表达式也是可以跑很快哒</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-08-37864863.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37864863&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-10a3f5aba455da477af9238bdac697b7_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;亲爱的小伙伴们我又回来写正则表达式的东东啦.&lt;/p&gt;&lt;p&gt;有很多小伙伴觉得正则表达式的执行效率低下, 不如自己写的字符匹配. 其实嘛, 这个问题和引擎的实现关系相当大, 现在的很多通用正则表达式引擎在确保功能性的条件下都是使用NFA引擎, NFA引擎在算法时间复杂度上比DFA引擎要高, 特别是在遇到很多回溯的情况下, 差异尤为显著, 关于NFA引擎的优化就显得十分重要啦. 我在之前的文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32896848&quot;&gt;如何让你的正则表达式拥有更好的性能&lt;/a&gt;里面介绍了一些关于NFA引擎的优化方案, 效果是十分显著哒. 过了一段时间我对我的正则表达式引擎又增加了一些优化流程, 效率更高了. 这里再次拿出来和大家分享.&lt;/p&gt;&lt;p&gt;上一篇文章限制于篇幅没有对优化的流程做很详细的介绍, 只是描述了执行思想, 这里我使用一个具体的例子来为大家讲述我的正则表达式引擎是如何进行静态分析和优化的. &lt;/p&gt;&lt;p&gt;首先呢还是要介绍正则表达式的执行模型, 这个在之前的文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24458116&quot;&gt;正则表达式与AOT编译&lt;/a&gt;和&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32896848&quot;&gt;如何让你的正则表达式拥有更好的性能&lt;/a&gt;里提到过多次啦, 这里对细节不再赘述, 想要了解的小伙伴请看之前的文章吧.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们的执行模型是建立在一个非递归的虚拟机上的. 一个典型的虚拟机有以下几条指令:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;equation&gt;\texttt{match_ch} &lt;/equation&gt; 匹配单个字符, &lt;equation&gt; \texttt{match_range}&lt;/equation&gt; 匹配某个范围的字符(如数字 &lt;equation&gt; \texttt{\d} &lt;/equation&gt; 为 &lt;equation&gt;\texttt{match_range 0, 9}&lt;/equation&gt; )&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{if_ch}&lt;/equation&gt; 和 &lt;equation&gt;\texttt{if_range} &lt;/equation&gt; 条件分支, 匹配成功或失败时进行跳转, 如 &lt;equation&gt; \texttt{if_ch a, 3, 7} &lt;/equation&gt; 为匹配字符 &lt;equation&gt;\texttt{a} &lt;/equation&gt; 成功跳转至地址 &lt;equation&gt; \texttt{3} &lt;/equation&gt; 否则跳转至地址 &lt;equation&gt; \texttt{7} &lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{split} &lt;/equation&gt; 分裂当前的匹配状态, 使用于分支 &lt;equation&gt; \texttt{a|b} &lt;/equation&gt; , 分裂当前匹配进程, 其中一条进行匹配 &lt;equation&gt;\texttt{a} &lt;/equation&gt; 另一条匹配 &lt;equation&gt; \texttt{b} &lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{split_if_ch} &lt;/equation&gt; 和 &lt;equation&gt;\texttt{split_if_range}&lt;/equation&gt; 条件分裂当前的匹配状态, 匹配成功则进行分裂, 否则直接跳转到后一个地址.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{jmp} &lt;/equation&gt; 无条件跳转.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{begin, end} &lt;/equation&gt; 匹配锚点, 对应于 &lt;equation&gt; \texttt{^, \$} &lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{inc} &lt;/equation&gt; 向后位移一位, 无条件跳过当前匹配的字符.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{accept} &lt;/equation&gt; 匹配成功, &lt;equation&gt;\texttt{halt} &lt;/equation&gt; 匹配失败放弃当前状态.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;当然啦, 这个虚拟机模型是为了阐述原理而高度简化的, 不过核心思想是一样哒.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;文章下面使用一个非常典型的正则表达式展示优化过程. IP匹配是正则表达式中比较常见和典型的例子, 表达式为:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}\$}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个表达式有点点长, 不过不是很难懂, 我们发现它有四个重复的部分用于匹配0到255的数字, 我们取其中一个进行分析:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2}}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;剩下的部分做一次循环展开后是完全相同的.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最开始是词法分析, 语法分析, NFA构建和指令生成, 这里不做过多介绍, 我们主要关注的是接下来的优化(想了解的小伙伴可以去看第一篇文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24458116&quot;&gt;正则表达式与AOT编译&lt;/a&gt;).&lt;/p&gt;&lt;p&gt;生成的未优化的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 3, 12}\\ &amp;amp;\texttt{3 match_ch &#39;2&#39;}\\ &amp;amp;\texttt{5 match_ch &#39;5&#39;}\\ &amp;amp;\texttt{7 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{10 jmp 23}\\ &amp;amp;\texttt{12 split 15, 25}\\ &amp;amp;\texttt{15 match_ch &#39;2&#39;}\\ &amp;amp;\texttt{17 match_range 0, 4}\\ &amp;amp;\texttt{20 match_range 0, 9}\\ &amp;amp;\texttt{23 jmp 36}\\ &amp;amp;\texttt{25 split 28, 38}\\ &amp;amp;\texttt{28 match_ch &#39;1&#39;}\\ &amp;amp;\texttt{30 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{33 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{36 jmp 52}\\ &amp;amp;\texttt{38 split 41, 49}\\ &amp;amp;\texttt{41 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{44 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{47 jmp 52}\\ &amp;amp;\texttt{49 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{52 accept} \end{align} &lt;/equation&gt; &lt;/p&gt;&lt;p&gt;接下来开始应用优化&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;跳转合并&lt;/h2&gt;&lt;p&gt;连续的无条件的跳转可以合并为一条跳转指令&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{10 jmp 23}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 36}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 36}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{36 jmp 52}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;进行合并后为:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{10 jmp 52}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 52}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 52}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{36 jmp 52}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这是一个非常常见的优化啦.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;分支合并&lt;/h2&gt;&lt;p&gt;第一步开始我们发现 &lt;equation&gt;\texttt{25[0-5]|2[0-4][0-9]}&lt;/equation&gt; 中有共同的匹配前缀 &lt;equation&gt;\texttt{2}&lt;/equation&gt; , 将公共表达式提取出来, 即等价于将表达式变换为 &lt;equation&gt;\texttt{2(5[0-5]|[0-4][0-9])}&lt;/equation&gt; , 得到的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 3, 23}\\ &amp;amp;\texttt{3 match_ch &#39;2&#39;}\\ &amp;amp;\texttt{5 split 8, 15}\\ &amp;amp;\texttt{8 match_ch &#39;5&#39;}\\ &amp;amp;\texttt{10 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{13 jmp 50}\\ &amp;amp;\texttt{15 match_range &#39;0&#39;, &#39;4&#39;}\\ &amp;amp;\texttt{18 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{21 jmp 50}\\ &amp;amp;\texttt{23 split 26, 36}\\ &amp;amp;\texttt{26 match_ch &#39;1&#39;}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{50 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;条件分裂/分支&lt;/h2&gt;&lt;p&gt;我们发现如果使用分支之后第一个字符进行提前匹配, 这样可以减少一些不必要的回溯, 例如在第一个字符为1的情况下没必要进入地址为3的分支对2进行匹配, 可以直接跳转到23, 开启条件分支之后的指令如下&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split_if_ch &#39;2&#39;, 4, 23}\\ &amp;amp;\texttt{4 inc}\\ &amp;amp;\texttt{5 if_ch &#39;5&#39; 9, 15}\\ &amp;amp;\texttt{9 inc}\\ &amp;amp;\texttt{10 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{13 jmp 48}\\ &amp;amp;\texttt{15 match_range &#39;0&#39;, &#39;4&#39;}\\ &amp;amp;\texttt{18 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{21 jmp 48}\\ &amp;amp;\texttt{23 split_if_ch &#39;1&#39;, 27, 36}\\ &amp;amp;\texttt{27 inc}\\ &amp;amp;\texttt{28 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{31 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{34 jmp 48}\\ &amp;amp;\texttt{36 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{39 if_range &#39;0&#39;, &#39;9&#39;, 44, 48}\\ &amp;amp;\texttt{44 inc}\\ &amp;amp;\texttt{48 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;注意在例如 &lt;equation&gt;\texttt{0 split_if_ch &#39;2&#39;, 4, 23}&lt;/equation&gt; 匹配成功进入分支之后我们无需再匹配一次 &lt;equation&gt;\texttt{2}&lt;/equation&gt; , 因为由 &lt;equation&gt;\texttt{split_if_ch}&lt;/equation&gt; 的条件知道当前字符 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 一定匹配, 所以将 &lt;equation&gt;\texttt{match_ch &#39;2&#39;}&lt;/equation&gt; 替换为 &lt;equation&gt;\texttt{inc}&lt;/equation&gt; 直接跳过当前字符, 减少一次重复匹配.&lt;/p&gt;&lt;p&gt;在分支9和15上, 即对应表达式 &lt;equation&gt;\texttt{5[0-5]|[0-4][0-9]}&lt;/equation&gt; , 我们知道这两个表达式匹配的第一个字符没有相交, 所以不需要分裂状态, 直接使用条件分支 &lt;equation&gt;\texttt{if_ch &#39;5&#39; 9, 15}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;在分支44和47上, 若匹配 &lt;equation&gt;\texttt{[0-9]}&lt;/equation&gt; 成功后匹配成功, 不需要回溯, 即可使用条件分支.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;分支分析&lt;/h2&gt;&lt;p&gt;在有了条件分裂和分支的信息之后我们可以对连续的条件分裂进行分析, 减少重复匹配.&lt;/p&gt;&lt;p&gt;例如:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split_if_ch &#39;2&#39;, 4, 23}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 split_if_ch &#39;1&#39;, 27, 36}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{36 match_range &#39;0&#39;, &#39;9&#39;}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;在这里我们知道如果进入了分支 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 后匹配失败了, 例如匹配 &lt;equation&gt;\texttt{27}&lt;/equation&gt; , 那么回溯之后会到地址23上, 进行匹配 &lt;equation&gt;\texttt{1}&lt;/equation&gt; , 但是我们已经知道第一个字符匹配了 &lt;equation&gt;\texttt{2}&lt;/equation&gt; , 这里的匹配一定会失败, 将直接跳转到地址36, 故可以使用条件分支进行更细致的状态分裂.&lt;/p&gt;&lt;p&gt;变换后的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 26}\\ &amp;amp;\texttt{4 split 7, 39}\\ &amp;amp;\texttt{7 inc}\\ &amp;amp;\texttt{8 if_ch &#39;5&#39; 8, 15}\\ &amp;amp;\texttt{12 inc}\\ &amp;amp;\texttt{15 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{16 jmp 21}\\ &amp;amp;\texttt{18 match_range &#39;0&#39;, &#39;4&#39;}\\ &amp;amp;\texttt{21 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{24 jmp 50}\\ &amp;amp;\texttt{26 split_if_ch &#39;1&#39;, 30, 39}\\ &amp;amp;\texttt{30 inc}\\ &amp;amp;\texttt{31 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{34 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{37 jmp 50}\\ &amp;amp;\texttt{39 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{42 if_range &#39;0&#39;, &#39;9&#39;, 47, 48}\\ &amp;amp;\texttt{47 inc}\\ &amp;amp;\texttt{48 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;留意对 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 的匹配成功与失败的分支的不同.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;分支延迟&lt;/h2&gt;&lt;p&gt;在上一步分析中我们得到了:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 26}\\ &amp;amp;\texttt{4 split 7, 39}\\ &amp;amp;\texttt{7 inc}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{39 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{ ...}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;在执行地址4的 &lt;equation&gt;\texttt{split 7, 39}&lt;/equation&gt; 时已经匹配了字符 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 另外一条分支39中立即进行匹配的是&lt;equation&gt;\texttt{[0-9]}&lt;/equation&gt;, 由于 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 是 &lt;equation&gt;\texttt{[0-9]}&lt;/equation&gt; 的子集, 若该分支匹配失败进行回溯, 那么回溯后的 &lt;equation&gt;\texttt{match_range &#39;0&#39;, &#39;9&#39;}&lt;/equation&gt; 将会一定匹配成功, 这时便可将 &lt;equation&gt;\texttt{split}&lt;/equation&gt; 推迟到 &lt;equation&gt;\texttt{inc}&lt;/equation&gt; 之后, 得到的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 26}\\ &amp;amp;\texttt{4 inc}\\ &amp;amp;\texttt{5 split 8, 42}\\ &amp;amp;\texttt{8 if_ch &#39;5&#39; 8, 15}\\ &amp;amp;\texttt{12 inc}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{39 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{42 if_range &#39;0&#39;, &#39;9&#39;, 44, 48}\\ &amp;amp;\texttt{47 inc}\\ &amp;amp;\texttt{48 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt; 在接下来的条件分支 &lt;equation&gt;\texttt{if_ch &#39;5&#39; 8, 15}&lt;/equation&gt; 中, 可以将该分支42推迟进入8和15中, 进一步延迟分支, 对于分支 &lt;equation&gt;\texttt{split_if_ch &#39;1&#39;, 30, 39}&lt;/equation&gt; 亦可进行同样的操作, 得到的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{26 if_ch &#39;1&#39;, 30, 39}\\ &amp;amp;\texttt{30 inc}\\ &amp;amp;\texttt{31 split 31, 42}\\ &amp;amp;\texttt{34 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{37 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{40 jmp 50}\\ &amp;amp;\texttt{42 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{45 if_range &#39;0&#39;, &#39;9&#39;, 44, 48}\\ &amp;amp;\texttt{50 inc}\\ &amp;amp;\texttt{51 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;对于 &lt;equation&gt;\texttt{1}&lt;/equation&gt; 和 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 的两条分支仍然可以继续向后推迟分支. 直到无法继续推迟为止, 我们得到了高度优化的指令:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 30}\\ &amp;amp;\texttt{4 inc}\\ &amp;amp;\texttt{5 if_ch &#39;5&#39;, 9, 17}\\ &amp;amp;\texttt{9 inc}\\ &amp;amp;\texttt{10 if_range &#39;0&#39;, &#39;5&#39;, 15, 57}\\ &amp;amp;\texttt{15 inc}\\ &amp;amp;\texttt{16 accept}\\ &amp;amp;\texttt{17 if_range &#39;0&#39;, &#39;4&#39;, 22, 51}\\ &amp;amp;\texttt{22 inc}\\ &amp;amp;\texttt{23 if_range &#39;0&#39;, &#39;9&#39;, 28, 57}\\ &amp;amp;\texttt{28 inc}\\ &amp;amp;\texttt{29 accept}\\ &amp;amp;\texttt{30 if_ch &#39;1&#39;, 34, 48}\\ &amp;amp;\texttt{34 inc}\\ &amp;amp;\texttt{35 if_range &#39;0&#39;, &#39;9&#39;, 40, 57}\\ &amp;amp;\texttt{40 inc}\\ &amp;amp;\texttt{41 if_range &#39;0&#39;, &#39;9&#39;, 46, 57}\\ &amp;amp;\texttt{46 inc}\\ &amp;amp;\texttt{47 accept}\\ &amp;amp;\texttt{48 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{51 if_range &#39;0&#39;, &#39;9&#39;, 56, 57}\\ &amp;amp;\texttt{56 inc}\\ &amp;amp;\texttt{57 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这里还有一个小优化就是把直接跳转到 &lt;equation&gt;\texttt{accept}&lt;/equation&gt; 的 &lt;equation&gt;\texttt{jmp}&lt;/equation&gt; 指令全部替换为 &lt;equation&gt;\texttt{accept}&lt;/equation&gt; 这样可以节省一条跳转指令.&lt;/p&gt;&lt;p&gt;注意啦, 优化完成后的指令是不含回退的, 一次性匹配, 效率是非常高的. 另外这一份指令很容易自动翻译成C++代码进行AOT编译进一步提升效率.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;到这里当然少不了的就是benchmark啦, 接下来是激动人心的时刻哈哈哈, 来看看优化后的指令和其他正则表达式库的效率对比吧:&lt;/p&gt;&lt;p&gt;这里我选了PCRE和RE2作为对比:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Test case 
+RegExp ^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$
+Match 222.34.191.23
+
+My implement
+VM:        7.1625 ns
+C++ AOT:   1.1776 ns
+
+Comparison
+PCRE2:     28.5163 ns
+PCRE2 JIT: 4.6530  ns
+RE2:       13.7799 ns&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0921073e533644b7310b60d774c11a86_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1036&quot; data-rawheight=&quot;659&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0921073e533644b7310b60d774c11a86&quot; data-watermark-src=&quot;v2-266bd0a5d3800f90d51d0c729775f864&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;可以看到使用C++编译执行是PCRE2 JIT的3倍多的效率, 这份代码的效率已经非常接近甚至可以说等于手工编写的自动机了, 就算是通过VM解释执行的效率也不错, 达到了PCRE2 JIT的64%.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后就是C++与VM实现的源码啦: &lt;/p&gt;&lt;p&gt;其中的byte code都是自动生成的.&lt;/p&gt;&lt;p&gt;VM解释执行:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;#include &amp;lt;string&amp;gt;
+#include &amp;lt;vector&amp;gt;
+
+#define MINI_REGEX_MAX_STACK_SIZE 256
+
+enum BYTE_CODE : size_t
+{
+	MATCH_CH,
+	MATCH_RANGE,
+	IF_CH,
+	IF_RANGE,
+	INC,
+	BEGIN,
+	END,
+	SPLIT,
+	JMP,
+	ACCEPT,
+	HALT,
+};
+
+const std::vector&amp;lt;size_t&amp;gt; byte_code =
+{
+/*addr_0  */ BEGIN,
+/*addr_1  */ IF_CH, &#39;2&#39;, 5, 33,
+/*addr_5  */ INC,
+/*addr_6  */ IF_CH, &#39;5&#39;, 10, 19,
+/*addr_10 */ INC,
+/*addr_11 */ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 16, 61,
+/*addr_16 */ INC,
+/*addr_17 */ JMP, 61,
+/*addr_19 */ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 24, 55,
+/*addr_24 */ INC,
+/*addr_25 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 30, 61,
+/*addr_30 */ INC,
+/*addr_31 */ JMP, 61,
+/*addr_33 */ IF_CH, &#39;1&#39;, 37, 52,
+/*addr_37 */ INC,
+/*addr_38 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 43, 61,
+/*addr_43 */ INC,
+/*addr_44 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 49, 61,
+/*addr_49 */ INC,
+/*addr_50 */ JMP, 61,
+/*addr_52 */ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
+/*addr_55 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 60, 61,
+/*addr_60 */ INC,
+/*addr_61 */ MATCH_CH, &#39;.&#39;,
+/*addr_63 */ IF_CH, &#39;2&#39;, 67, 95,
+/*addr_67 */ INC,
+/*addr_68 */ IF_CH, &#39;5&#39;, 72, 81,
+/*addr_72 */ INC,
+/*addr_73 */ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 78, 123,
+/*addr_78 */ INC,
+/*addr_79 */ JMP, 123,
+/*addr_81 */ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 86, 117,
+/*addr_86 */ INC,
+/*addr_87 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 92, 123,
+/*addr_92 */ INC,
+/*addr_93 */ JMP, 123,
+/*addr_95 */ IF_CH, &#39;1&#39;, 99, 114,
+/*addr_99 */ INC,
+/*addr_100*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 105, 123,
+/*addr_105*/ INC,
+/*addr_106*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 111, 123,
+/*addr_111*/ INC,
+/*addr_112*/ JMP, 123,
+/*addr_114*/ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
+/*addr_117*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 122, 123,
+/*addr_122*/ INC,
+/*addr_123*/ MATCH_CH, &#39;.&#39;,
+/*addr_125*/ IF_CH, &#39;2&#39;, 129, 157,
+/*addr_129*/ INC,
+/*addr_130*/ IF_CH, &#39;5&#39;, 134, 143,
+/*addr_134*/ INC,
+/*addr_135*/ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 140, 185,
+/*addr_140*/ INC,
+/*addr_141*/ JMP, 185,
+/*addr_143*/ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 148, 179,
+/*addr_148*/ INC,
+/*addr_149*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 154, 185,
+/*addr_154*/ INC,
+/*addr_155*/ JMP, 185,
+/*addr_157*/ IF_CH, &#39;1&#39;, 161, 176,
+/*addr_161*/ INC,
+/*addr_162*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 167, 185,
+/*addr_167*/ INC,
+/*addr_168*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 173, 185,
+/*addr_173*/ INC,
+/*addr_174*/ JMP, 185,
+/*addr_176*/ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
+/*addr_179*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 184, 185,
+/*addr_184*/ INC,
+/*addr_185*/ MATCH_CH, &#39;.&#39;,
+/*addr_187*/ IF_CH, &#39;2&#39;, 191, 219,
+/*addr_191*/ INC,
+/*addr_192*/ IF_CH, &#39;5&#39;, 196, 205,
+/*addr_196*/ INC,
+/*addr_197*/ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 202, 247,
+/*addr_202*/ INC,
+/*addr_203*/ JMP, 247,
+/*addr_205*/ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 210, 241,
+/*addr_210*/ INC,
+/*addr_211*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 216, 247,
+/*addr_216*/ INC,
+/*addr_217*/ JMP, 247,
+/*addr_219*/ IF_CH, &#39;1&#39;, 223, 238,
+/*addr_223*/ INC,
+/*addr_224*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 229, 247,
+/*addr_229*/ INC,
+/*addr_230*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 235, 247,
+/*addr_235*/ INC,
+/*addr_236*/ JMP, 247,
+/*addr_238*/ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
+/*addr_241*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 246, 247,
+/*addr_246*/ INC,
+/*addr_247*/ END,
+/*addr_248*/ ACCEPT,
+};
+
+struct state
+{
+	size_t IP;
+	size_t index;
+};
+
+std::vector&amp;lt;state&amp;gt; state_stack;
+
+bool match(const std::string&amp;amp; str)
+{
+	size_t off = 0;
+	while (off &amp;lt; str.length())
+	{
+		state_stack.clear();
+		state_stack.push_back({ 0, off++ });
+
+	fail_loop:;
+		while (!state_stack.empty() &amp;amp;&amp;amp; state_stack.size() &amp;lt; MINI_REGEX_MAX_STACK_SIZE)
+		{
+			auto IP = state_stack.back().IP;
+			auto index = state_stack.back().index;
+			state_stack.pop_back();
+
+		next_loop:;
+			switch (byte_code[IP])
+			{
+			case BYTE_CODE::MATCH_CH:
+				if (index &amp;lt; str.length() &amp;amp;&amp;amp; (str[index] == byte_code[IP + 1]))
+				{
+					index++;
+					IP += 2;
+					goto next_loop;
+				}
+				goto fail_loop;
+			case BYTE_CODE::MATCH_RANGE:
+				if (index &amp;lt; str.length() &amp;amp;&amp;amp; 
+					str[index] &amp;gt;= byte_code[IP + 1] &amp;amp;&amp;amp;
+					str[index] &amp;lt;= byte_code[IP + 2])
+				{
+					index++;
+					IP += 3;
+					goto next_loop;
+				}
+				goto fail_loop;
+			case BYTE_CODE::IF_CH:
+				if (index &amp;lt; str.length() &amp;amp;&amp;amp; str[index] == byte_code[IP + 1])
+				{
+					IP = byte_code[IP + 2];
+					goto next_loop;
+				}
+				else
+				{
+					IP = byte_code[IP + 3];
+					goto next_loop;
+				}
+			case BYTE_CODE::IF_RANGE:
+				if (index &amp;lt; str.length() &amp;amp;&amp;amp; 
+					str[index] &amp;gt;= byte_code[IP + 1] &amp;amp;&amp;amp;
+					str[index] &amp;lt;= byte_code[IP + 2])
+				{
+					IP = byte_code[IP + 3];
+					goto next_loop;
+				}
+				else
+				{
+					IP = byte_code[IP + 4];
+					goto next_loop;
+				}
+			case BYTE_CODE::INC:
+				index++;
+				IP++;
+				goto next_loop;
+			case BYTE_CODE::BEGIN:
+				if (index == 0)
+				{
+					IP++;
+					goto next_loop;
+				}
+				goto fail_loop;
+			case BYTE_CODE::END:
+				if (index == str.length())
+				{
+					IP++;
+					goto next_loop;
+				}
+				goto fail_loop;
+			case BYTE_CODE::SPLIT:
+				state_stack.push_back({ byte_code[IP + 2], index });
+				IP = byte_code[IP + 1];
+				goto next_loop;
+			case BYTE_CODE::JMP:
+				IP = byte_code[IP + 1];
+				goto next_loop;
+			case BYTE_CODE::ACCEPT:
+				return true;
+			case BYTE_CODE::HALT:
+			default:
+				return false;
+			}
+		}
+	}
+	return false;
+}&lt;/code&gt;&lt;p&gt;(这个虚拟机的实现还有优化空间, 例如使用direct threading优化指令分发, 大概还能快10%)&lt;/p&gt;&lt;p&gt;C++编译执行:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;#include &amp;lt;string&amp;gt;
+
+#define MATCH_CH(CH) \
+	do { \
+		if(!(index &amp;lt; str.length() &amp;amp;&amp;amp; str[index] == CH)) \
+			return false; \
+		index++; \
+	} while(0)
+
+#define MATCH_RANGE(CH1, CH2) \
+	do { \
+		if(!(index &amp;lt; str.length() &amp;amp;&amp;amp; str[index] &amp;gt;= CH1 &amp;amp;&amp;amp; str[index] &amp;lt;= CH2)) \
+			return false; \
+		index++; \
+	} while(0)
+
+#define IF_CH(CH, THEN, ELSE) \
+	do { \
+		if(index &amp;gt;= str.length() || str[index] != CH) \
+			goto ELSE; \
+		else \
+			goto THEN; \
+	} while(0)
+
+#define IF_RANGE(CH1, CH2, THEN, ELSE) \
+	do { \
+		if(index &amp;gt;= str.length() || str[index] &amp;lt; CH1 || str[index] &amp;gt; CH2) \
+			goto ELSE; \
+		else \
+			goto THEN; \
+	} while(0)
+
+#define JMP(TO) \
+	do { \
+		goto TO; \
+	} while(0)
+
+#define INC() \
+	do { \
+		index++; \
+	} while(0)
+
+#define BEGIN() \
+	do { \
+		if(index != 0) \
+			return false; \
+	} while(0)
+
+#define END() \
+	do { \
+		if(index != str.length()) \
+			return false; \
+	} while(0)
+
+#define ACCEPT() \
+	return true; 
+
+bool match(const std::string&amp;amp; str)
+{
+	std::string::size_type index = 0;
+
+addr_0  : BEGIN();
+addr_1  : IF_CH(&#39;2&#39;, addr_5, addr_33);
+addr_5  : INC();
+addr_6  : IF_CH(&#39;5&#39;, addr_10, addr_19);
+addr_10 : INC();
+addr_11 : IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_16, addr_61);
+addr_16 : INC();
+addr_17 : JMP(addr_61);
+addr_19 : IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_24, addr_55);
+addr_24 : INC();
+addr_25 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_30, addr_61);
+addr_30 : INC();
+addr_31 : JMP(addr_61);
+addr_33 : IF_CH(&#39;1&#39;, addr_37, addr_52);
+addr_37 : INC();
+addr_38 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_43, addr_61);
+addr_43 : INC();
+addr_44 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_49, addr_61);
+addr_49 : INC();
+addr_50 : JMP(addr_61);
+addr_52 : MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
+addr_55 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_60, addr_61);
+addr_60 : INC();
+addr_61 : MATCH_CH(&#39;.&#39;);
+addr_63 : IF_CH(&#39;2&#39;, addr_67, addr_95);
+addr_67 : INC();
+addr_68 : IF_CH(&#39;5&#39;, addr_72, addr_81);
+addr_72 : INC();
+addr_73 : IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_78, addr_123);
+addr_78 : INC();
+addr_79 : JMP(addr_123);
+addr_81 : IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_86, addr_117);
+addr_86 : INC();
+addr_87 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_92, addr_123);
+addr_92 : INC();
+addr_93 : JMP(addr_123);
+addr_95 : IF_CH(&#39;1&#39;, addr_99, addr_114);
+addr_99 : INC();
+addr_100: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_105, addr_123);
+addr_105: INC();
+addr_106: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_111, addr_123);
+addr_111: INC();
+addr_112: JMP(addr_123);
+addr_114: MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
+addr_117: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_122, addr_123);
+addr_122: INC();
+addr_123: MATCH_CH(&#39;.&#39;);
+addr_125: IF_CH(&#39;2&#39;, addr_129, addr_157);
+addr_129: INC();
+addr_130: IF_CH(&#39;5&#39;, addr_134, addr_143);
+addr_134: INC();
+addr_135: IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_140, addr_185);
+addr_140: INC();
+addr_141: JMP(addr_185);
+addr_143: IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_148, addr_179);
+addr_148: INC();
+addr_149: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_154, addr_185);
+addr_154: INC();
+addr_155: JMP(addr_185);
+addr_157: IF_CH(&#39;1&#39;, addr_161, addr_176);
+addr_161: INC();
+addr_162: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_167, addr_185);
+addr_167: INC();
+addr_168: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_173, addr_185);
+addr_173: INC();
+addr_174: JMP(addr_185);
+addr_176: MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
+addr_179: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_184, addr_185);
+addr_184: INC();
+addr_185: MATCH_CH(&#39;.&#39;);
+addr_187: IF_CH(&#39;2&#39;, addr_191, addr_219);
+addr_191: INC();
+addr_192: IF_CH(&#39;5&#39;, addr_196, addr_205);
+addr_196: INC();
+addr_197: IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_202, addr_247);
+addr_202: INC();
+addr_203: JMP(addr_247);
+addr_205: IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_210, addr_241);
+addr_210: INC();
+addr_211: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_216, addr_247);
+addr_216: INC();
+addr_217: JMP(addr_247);
+addr_219: IF_CH(&#39;1&#39;, addr_223, addr_238);
+addr_223: INC();
+addr_224: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_229, addr_247);
+addr_229: INC();
+addr_230: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_235, addr_247);
+addr_235: INC();
+addr_236: JMP(addr_247);
+addr_238: MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
+addr_241: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_246, addr_247);
+addr_246: INC();
+addr_247: END();
+addr_248: ACCEPT();
+	
+	return false;
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;谢谢大家的阅读啦~&lt;/p&gt;&lt;p&gt;代码生成和指令优化器是使用的是我的千雪的生成器和优化器, 其中做了一些小改动.&lt;/p&gt;&lt;p&gt;如果有需要做正则表达式的静态编译的小伙伴欢迎来讨论喔.&lt;/p&gt;</description>
+<author>梨梨喵</author>
+<guid isPermaLink="false">2018-06-08-37864863</guid>
+<pubDate>Fri, 08 Jun 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>展望未来</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-07-37515535.html</link>
@@ -128,48 +605,6 @@ doubleN&#39;nouniv n&#39; = n2n&#39; (doubleN (n&#39;2n n&#39;))
 <author>祖与占</author>
 <guid isPermaLink="false">2018-05-01-36308855</guid>
 <pubDate>Tue, 01 May 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>lambda演算与数据类型</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-25-36081360.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36081360&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-fc94609d676b4704ccfce8b67fd56e62_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;在大多数编程语言里面，数据类型和函数都是不同的，但它们又有种种关联。我们可以说函数是一种数据类型，换句话说就是first class function。通过pattern match我们可以拿到ADT（代数数据类型）的各个constructor的argument。再用Idris举个例子：&lt;/p&gt;&lt;code lang=&quot;idris&quot;&gt;data Maybe : (a : Type) -&amp;gt; Type where
-    Nothing : Maybe a
-    Just : (x : a) -&amp;gt; Maybe a&lt;/code&gt;&lt;p&gt;我们定义了2个函数：Nothing和Just，这两个function都用于构造数据类型Maybe，所以他们的返回值的类型是Maybe，我们把这两个函数称之为constructor。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;前置知识&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;对函数式编程及相关编程语言的了解&lt;/li&gt;&lt;li&gt;对Lambda演算的基本知识&lt;/li&gt;&lt;li&gt;ADT（代数数据类型）的基本知识&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;数据类型与函数&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在lambda calculus中，一切都是函数。我们通过：variable、abstraction、application来组成lambda的term。一般通过对lambda term应用normal order reduction来对lambda term进行求值。&lt;/p&gt;&lt;p&gt;既然函数可以是一种数据类型，数据类型可不可以用函数来表示呢？当然可以。例如在lambda演算中通常表示自然数的方式，或者说church number则是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;zero := λf.λx.x;
-succ := λn.λf.λx.f (n f x);&lt;/code&gt;&lt;p&gt;如果不熟悉church encoding的自然数可以在维基百科中了解：&lt;/p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Lambda_calculus&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;https://en.wikipedia.org/wiki/Lambda_calculus&lt;/a&gt;&lt;p&gt;我们有多种方式将数据类型encode到lambda calculus中，如church number：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0 := λf.λx.x;
-1 := λf.λx.f x;
-2 := λf.λx.f (f x);&lt;/code&gt;&lt;p&gt;则是通过将参数f递归的应用在x上来encode自然数的。&lt;/p&gt;&lt;p&gt;而peano number，或者也可以说是scott encoding的自然数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;zero := λz.λs.z;
-succ := λn.λz.λs.s n;
-
-0 := λz.λs.z;
-1 := λz.λs.s (λz.λs.z);
-2 := λz.λs.s (λz.λs.s (λz.λs.z));&lt;/code&gt;&lt;p&gt;则是将数据类型的constructor定义出来，并encode每个constructor的pattern match函数。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;数据类型的表示&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们可以通过将数据类型相关的一种operator进行encode，来将数据类型表示到lambda calculus中。例如上文自然数的例子，Church encoding是将”递归的把函数f应用n次到x上(f^n)“这种operator进行encode。Scott encoding则是将pattern match这种operator进行encoding。&lt;/p&gt;&lt;p&gt;一个operator就是一个函数，在Church encoding的自然数中，递归的把函数f应用n次到x上的function是trivial的，而pattern match则不是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;funcPow := λf.λx.λn.n f x;
-matchNat := λz.λs.λn.n (λm.m (λu.λg.g (λf.λx.x)) (λg.λu.λh.h (λf.λx.f (g f x)))) (λx.λu.x) z s;&lt;/code&gt;&lt;p&gt;而用Scott encoding的peano number中，pattern match是trivial的，而funcPow则不是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;funcPow := λf.λx.λn.n x ((λg.(λy.g (y y)) (λy.g (y y))) (λg.λh.f (h x g)));
-matchNat := λz.λs.λn.n z s;&lt;/code&gt;&lt;p&gt;不单单是自然数，其他数据类型也可以用类似的方法进行encode。例如对于List，我们可以将其按fold right进行encode，或者按pattern match进行encode等。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Scott encoding&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在上文中多次提到了scott encoding、pattern match这两个名词。具体来说，对于ADT（也就是有多个constructor，每个constructor有任意argument，或者说product的sum）来说，可能最简单、最直观的encode数据类型的方法就是将pattern match进行encode了，scott encoding就是指的这种encode数据类型的方法。&lt;/p&gt;&lt;p&gt;具体对于有n个constructor的ADT，对于第x个constructor，有m个argument，用如下方法进行encode：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;CtorX := λA_1 A_2 ... A_m.λC_1 C_2 ... C_n.C_x A_1 A_2 ... A_m;&lt;/code&gt;&lt;p&gt;这样就可以对直观的对不同的case进行pattern match了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Encoding of list&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;上文中提到过对list进行encode的2种方法，关于其他的encode方法，可以参考维基百科：&lt;/p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Church_encoding#List_encodings&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;https://en.wikipedia.org/wiki/Church_encoding#List_encodings&lt;/a&gt;&lt;p&gt;这里我们使用Scott encoding来encode list，定义list(pattern match)、nil(constructor)、cons(constructor)、length、null、append、foldr、foldl函数：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;list := λn.λc.λl.l n c;
-
-nil := λn.λc.n;
-cons := λh.λt.λn.λc.c h t;
-
-length := λl.l zero (λh.λt.succ (length t));
-null := λl.l true (λh.λt.false);
-append := λl.λm.l m (λh.λt.cons h (append t m));
-foldr := λf.λx.λl.l x (λh.λt.f h (foldr f x t));
-foldl := λf.λx.λl.l x (λh.λt.foldl f (f x h) t);&lt;/code&gt;&lt;p&gt;每个函数的定义都比较直观，就不详细描述了。对于引用了其他函数的情况可以直接代换，也可以将其当作free variable，并使用abstraction将其捕获，通过application传入其定义，例如对于null：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;null := (λtrue.λfalse.λl.l true (λh.λt.false)) (λt.λf.t) (λt.λf.f);&lt;/code&gt;&lt;p&gt;需要注意的是length、append、foldr、foldl都在定义中引用了自身，也就是使用了递归。对于这种情况，需要使用不动点算子：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;fix := λf.(λx.f (x x)) (λx.f (x x));&lt;/code&gt;&lt;p&gt;将其转化为：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;length := fix (λlength.λl.l zero (λh.λt.succ (length t)));
-append := fix (λappend.λl.λm.l m (λh.λt.cons h (append t m)));
-foldr := fix (λfoldr.λf.λx.λl.l x (λh.λt.f h (foldr f x t)));
-foldl := fix (λfoldl.λf.λx.λl.l x (λh.λt.foldl f (f x h) t));&lt;/code&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本文介绍了如何在lambda calculus中处理数据类型，和各种encoding之间的关系。&lt;/p&gt;&lt;p&gt;这里打个广告，写这篇文章的起因是最近在用scala写一个个人项目，lambda calculus的REPL。在设计标准库的时候涉及到了一些与本文相关的知识。已经实现了tokenizer、parser、beta reducer、eta converter、pretty printer等模块，单纯调用API来处理lambda term是没有问题了。目前正在设计核心的REPL的Extension API、library的dependencies管理、lam文件（library的源文件）的语法、标准库等。如果有兴趣参与开发，欢迎联系我！&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/yuxuanchiadm/lamcalcj&quot;&gt;https://github.com/yuxuanchiadm/lamcalcj&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;参考&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Lambda_calculus&quot;&gt;Lambda calculus&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Church_encoding&quot;&gt;Church encoding&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Mogensen%E2%80%93Scott_encoding&quot;&gt;Mogensen–Scott encoding&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>不可构造的雨轩菌</author>
-<guid isPermaLink="false">2018-04-25-36081360</guid>
-<pubDate>Wed, 25 Apr 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>一款能设置你的DrRacket背景的IDE插件</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-04-23-36027427.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36027427&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e7f5beb3b56104a4ee29bcd37d7e8c1c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;安装方式（两种）：&lt;/p&gt;&lt;p&gt;1.进入终端，输入下面的命令：&lt;/p&gt;&lt;p&gt;raco pkg install DrRacketTheme&lt;/p&gt;&lt;p&gt;在不同操作系统上可能有所不同，如果没有成功，请尝试先进入racket安装目录下然后在运行这条命令。&lt;/p&gt;&lt;p&gt;2.打开DrRacket，打开File菜单下的Package Manager，切换到Available from Catalog选项卡，点击Update Package List按钮，稍等片刻，然后在Filter文本框中输入DrRacketTheme，点击Install按钮。&lt;/p&gt;&lt;p&gt;设置的时候请点击View菜单下的Set Background，选择需要作为背景的图片。&lt;/p&gt;&lt;p&gt;Set Background Alignment能够设置图片的对齐方式。&lt;/p&gt;&lt;p&gt;希望这款插件能够帮助到正在学习racket或是scheme的人。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>御坂黒子</author>
-<guid isPermaLink="false">2018-04-23-36027427</guid>
-<pubDate>Mon, 23 Apr 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
