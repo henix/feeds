@@ -5,7 +5,147 @@
 <link>https://henix.github.io/feeds/zhuanlan.milocode/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 06 Jun 2018 20:05:36 +0800</lastBuildDate>
+<lastBuildDate>Thu, 14 Jun 2018 23:18:01 +0800</lastBuildDate>
+<item>
+<title>波兰表示法与表达式树</title>
+<link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-13-38013510.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38013510&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e53026a0f73a4bcaba68b7aa7ae0619f_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;昨晚撰写答案《&lt;a href=&quot;https://www.zhihu.com/question/280630276/answer/415398747&quot;&gt;Milo Yip：怎么用 C 语言画出二叉树的图形？&lt;/a&gt;》，以 ASCII 字符打印任意深度的满二叉树（full binary tree）。评论中问及如何打印非满二叉树。我记起，整个满二叉树可存储在单个一维数组。那么，可以先把非满二叉树的节点写到一维数组，然后修改打印程序，如果数组中存有该序号的节点，才打印该节点及其指向父节点的连线，否则打印空白占位字符。&lt;/p&gt;&lt;p&gt;我的回评或过于简短，不够清晰，因此我想用实际代码解释。然而，怎样建一个非满二叉树？我想到可以写一个简单的表达式解析器，支持加减乘除，不支持负数操作数。程序也能打印出其表达式树。&lt;/p&gt;&lt;p&gt;最简单的表达式语法，莫过于&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E6%B3%A2%E5%85%B0%E8%A1%A8%E7%A4%BA%E6%B3%95&quot;&gt;波兰表示法&lt;/a&gt;（&lt;a href=&quot;https://en.wikipedia.org/wiki/Polish_notation&quot;&gt;Polish notation&lt;/a&gt;）。波兰表示法又称为前缀表示法，即运算符写在前面。波兰表示法的特点是不需要括号。例如，表达式(&lt;code class=&quot;inline&quot;&gt;1 + 2) * (3 - 4)&lt;/code&gt; 的波表示法是 &lt;code class=&quot;inline&quot;&gt;* + 1 2 - 3 4&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;（题图 &lt;a href=&quot;https://unsplash.com/photos/4xEfxMShEUM&quot;&gt;photo by Elliott Engelmann&lt;/a&gt;）&lt;/p&gt;&lt;hr&gt;&lt;p&gt;首先设计解析后的数据结构，表达式树的节点可能是运算符或操作数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;typedef enum { NUM, ADD, SUB, MUL, DIV } Type;
+
+typedef struct NodeTag {
+    union {
+        double number;
+        struct NodeTag *children[2];
+    } u;
+    Type type;
+} Node;&lt;/code&gt;&lt;p&gt;因为一个节点不会同时为运算符或操作数，采用 &lt;code class=&quot;inline&quot;&gt;union&lt;/code&gt;可能节省一点内存。&lt;/p&gt;&lt;p&gt;波兰表示法的解释器非常简单，可通过递归实现，不需要额外的数据结构：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Node* parse(char** s) {
+    while (isspace(**s))
+        (*s)++;    
+    if (**s == &#39;\0&#39;)
+        return NULL;
+    else {
+        Node* n = (Node*)calloc(1, sizeof(Node));
+        if (isdigit(**s)) {
+            n-&amp;gt;type = NUM;
+            n-&amp;gt;u.number = strtod(*s, s);
+        }
+        else {
+            int i;
+            switch (**s) {
+                case  &#39;+&#39;: n-&amp;gt;type = ADD; break;
+                case  &#39;-&#39;: n-&amp;gt;type = SUB; break;
+                case  &#39;*&#39;: n-&amp;gt;type = MUL; break;
+                case  &#39;/&#39;: n-&amp;gt;type = DIV; break;
+                default: release(n); return NULL;
+            }
+            (*s)++;
+            for (i = 0; i &amp;lt; 2; i++)
+                if ((n-&amp;gt;u.children[i] = parse(s)) == NULL) {
+                    release(n);
+                    return NULL;
+                }
+        }
+        return n;
+    }
+}&lt;/code&gt;&lt;p&gt;每次有内存分配，都匹对释放，也是递归：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void release(Node* n) {
+    int i;
+    if (n-&amp;gt;type != NUM)
+        for (i = 0; i &amp;lt; 2; i++)
+            if (n-&amp;gt;u.children[i])
+                release(n-&amp;gt;u.children[i]);
+    free(n);
+}&lt;/code&gt;&lt;p&gt;然后我们可以打印中缀表示法：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define OPERATOR_CHAR(n) (&quot;+-*/&quot;[n-&amp;gt;type - ADD])
+
+void printInfix(const Node *n) {
+    if (n-&amp;gt;type == NUM)
+        printf(&quot;%lg&quot;, n-&amp;gt;u.number);
+    else {
+        putchar(&#39;(&#39;);
+        printInfix(n-&amp;gt;u.children[0]);
+        printf(&quot; %c &quot;, OPERATOR_CHAR(n));
+        printInfix(n-&amp;gt;u.children[1]);
+        putchar(&#39;)&#39;);
+    }
+}&lt;/code&gt;&lt;p&gt;以及对表达式树求值：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;double eval(const Node* n) {
+    switch (n-&amp;gt;type) {
+        case ADD: return eval(n-&amp;gt;u.children[0]) + eval(n-&amp;gt;u.children[1]);
+        case SUB: return eval(n-&amp;gt;u.children[0]) - eval(n-&amp;gt;u.children[1]);
+        case MUL: return eval(n-&amp;gt;u.children[0]) * eval(n-&amp;gt;u.children[1]);
+        case DIV: return eval(n-&amp;gt;u.children[0]) / eval(n-&amp;gt;u.children[1]);
+        case NUM: return n-&amp;gt;u.number;
+    }
+}&lt;/code&gt;&lt;p&gt;编写&lt;code class=&quot;inline&quot;&gt;main()&lt;/code&gt;： &lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int main(int argc, char** argv) {
+    if (argc != 2)
+        return printf(&quot;Help: pntree \&quot;+ * 1 2 3\&quot;&quot;);
+    else {
+        char** p = &amp;amp;argv[1];
+        Node* root = parse(p);
+        if (root) {
+            printInfix(root);
+            printf(&quot; = %lg\n&quot;, eval(root));
+            release(root);
+        }
+        else
+            return printf(&quot;Invalid input\n&quot;);
+    }
+}&lt;/code&gt;&lt;p&gt;测试：&lt;/p&gt;&lt;code lang=&quot;console&quot;&gt;$ ./pntree &quot;* + 1 2 - 3 4&quot;
+((1 + 2) * (3 - 4)) = -3&lt;/code&gt;&lt;hr&gt;&lt;p&gt;接下来，我们要修改之前的满二叉树打印程序。和之前的需求不一样，树的深度是随输入改变的，所以需先求出最大高度（深度）：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int maxDepth(const Node* n) {
+    if (n-&amp;gt;type == NUM)
+        return 1;
+    else {
+        int maximum = 0, i, d;
+        for (i = 0; i &amp;lt; 2; i++)
+            if (maximum &amp;lt; (d = maxDepth(n-&amp;gt;u.children[i])))
+                maximum = d;
+        return maximum + 1;
+    }
+}&lt;/code&gt;&lt;p&gt;接着是分配一个 &lt;equation&gt;2^d-1&lt;/equation&gt; 大小的数组，把序号映射至节点：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void fillMap(Node** map, Node* n, int index) {
+    int i;
+    map[index] = n;
+    if (n-&amp;gt;type != NUM)
+        for (i = 0; i &amp;lt; 2; i++)
+            fillMap(map, n-&amp;gt;u.children[i], index * 2 + i + 1);
+}
+
+void printTree(Node* n) {
+    int depth = maxDepth(n), i, j, index;
+    Node** map = (Node**)calloc((1 &amp;lt;&amp;lt; depth) - 1, sizeof(Node*));
+    fillMap(map, n, 0);
+    // ...
+    free(map);
+}&lt;/code&gt;&lt;p&gt;这里和原答案一样，使用广度优先遍历去打印节点。先忽略连线的部分：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void putchars(char c, int n) {
+    while (n--)
+        putchar(c);
+}
+
+int printNode(Node* n, int w) {
+    if (n-&amp;gt;type == NUM)
+        return printf(&quot;%*lg&quot;, w, n-&amp;gt;u.number);
+    else
+        return printf(&quot;%*c&quot;, w, &quot;+-*/&quot;[n-&amp;gt;type - ADD]);
+}
+
+void printTree(Node* n) {
+    int depth = maxDepth(n), i, j, index;
+    Node** map = (Node**)calloc((1 &amp;lt;&amp;lt; depth) - 1, sizeof(Node*));
+    fillMap(map, n, 0);
+    for (j = 0, index = 0; j &amp;lt; depth; j++) {
+        int w = 1 &amp;lt;&amp;lt; (depth - j + 1);
+        // Curve to parent ...
+        // Node content
+        for (i = 0; i &amp;lt; 1 &amp;lt;&amp;lt; j; i++, index++)
+            if (map[index])
+                putchars(&#39; &#39;, w * 2 - printNode(map[index], w));
+            else
+                putchars(&#39; &#39;, w * 2);
+        putchar(&#39;\n&#39;);
+    }
+    free(map);
+}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;putchars(c, n)&lt;/code&gt;连续打印 n 个相同字符。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;printNode(n, w)&lt;/code&gt; 打印节点的内容（运算符或操作数），打印寛度为&lt;code class=&quot;inline&quot;&gt;w&lt;/code&gt;个字符，返回实际打印字符数目。&lt;/p&gt;&lt;p&gt;在 &lt;code class=&quot;inline&quot;&gt;printTree(n)&lt;/code&gt;中，采用之前相同的两层循环，在内循环里递增序号&lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt;，并获取当前节点&lt;code class=&quot;inline&quot;&gt;map[index]&lt;/code&gt;。若该序号没有节点，则打印空白字符。 &lt;/p&gt;&lt;p&gt;最终结果：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-327cf535e573aca9c44c62564fc3f19e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1710&quot; data-rawheight=&quot;446&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-327cf535e573aca9c44c62564fc3f19e&quot; data-watermark-src=&quot;v2-cd05f5e7509ba8ea3ed3824ddbf85739&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;hr&gt;&lt;p&gt;本文简单示范如何实现波兰表示法的计算器，并打印其非满二叉表达式树。此方法需要 &lt;equation&gt;O(2^d)&lt;/equation&gt; 的时间和空间复杂度。如实际节点数量远低于 &lt;equation&gt;2^d&lt;/equation&gt; ，可考虑用哈希表存储该映射表，但时间复杂度始终无法降低。另一简单优化方法，是用二维数组存储字符输出，那就只需绘画表达式树含有的节点。&lt;/p&gt;&lt;p&gt;完整代码位于 &lt;a href=&quot;https://github.com/miloyip/misc/blob/master/pntree/pntree.c&quot;&gt;pntree.c&lt;/a&gt;。&lt;/p&gt;</description>
+<author>Milo Yip</author>
+<guid isPermaLink="false">2018-06-13-38013510</guid>
+<pubDate>Wed, 13 Jun 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>从零开始的 JSON 库教程（八）：访问与其他功能</title>
 <link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-04-37618664.html</link>
@@ -589,65 +729,6 @@ float sample(float x, float y) {
 <author>Milo Yip</author>
 <guid isPermaLink="false">2017-11-12-30961545</guid>
 <pubDate>Sun, 12 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>用 C 语言画光（三）：形状</title>
-<link>https://henix.github.io/feeds/zhuanlan.milocode/2017-11-11-30816284.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30816284&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-47190784c56b5f0fd0f0107c2b2b1758_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;再前两篇中，我们一直只用到圆形作为基础形状，本文再介绍一些常用形状的 SDF。但这些形状也只是作为例子，重要的是掌握如何推导出这些 SDF。&lt;/p&gt;&lt;h2&gt;1. 圆形&lt;/h2&gt;&lt;p&gt;我们先重温一下圆形的 SDF：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\phi_\text{circle}(\mathbf{x}) = \left \| \mathbf{x} - \mathbf{c} \right \|-r\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;当中 &lt;equation&gt;\left \| \mathbf{x} - \mathbf{c} \right \|&lt;/equation&gt; 就是坐标 &lt;equation&gt;\mathbf{x}&lt;/equation&gt; 与一个点 &lt;equation&gt;\mathbf{c}&lt;/equation&gt; （圆心）的欧氏距离（Euclidean distance）。把这个距离减去 &lt;equation&gt;r&lt;/equation&gt; ，实际上等同于把一点向外扩展 &lt;equation&gt;r&lt;/equation&gt; 的范围。其实，对于任何形状的 SDF，减去一个常数 &lt;equation&gt;r&lt;/equation&gt; ，都等同于把该形状它向外扩展 &lt;equation&gt;r&lt;/equation&gt; 的范围。本文稍后也会看到更多应用例子。&lt;/p&gt;&lt;p&gt;在数学上，我们还可考虑这是任何形状与（圆心位于原点的）圆盘的闵可夫斯基和（Minkowski sum）。&lt;/p&gt;&lt;h2&gt;2. 平面&lt;/h2&gt;&lt;p&gt;除了圆形，最简单的形状应该是平面（plane）。在二维中这个形状应该称作直线，或者更精确地应称作二维的半空间（half-space），就是把二维空间用直线切割成两个无限大面积的部分。我们这里暂且称这个形状为平面吧。&lt;/p&gt;&lt;p&gt;任意维度空间的（超）平面都可以用平面上的一点 &lt;equation&gt;\mathbf{p}&lt;/equation&gt; 与法线（normal vector） &lt;equation&gt;\mathbf{n}&lt;/equation&gt; 来定义，由于平面与法线垂直，平面上的任意一个矢量 &lt;equation&gt;\mathbf{x} - \mathbf{p}&lt;/equation&gt; 与法线的点积为零：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(\mathbf{x} - \mathbf{p}) \cdot \mathbf{n} = 0\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;如果法矢量为单位矢量 &lt;equation&gt;\hat{\mathbf{n}}&lt;/equation&gt; ，空间中任意一点与平面的带符号距离为：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\phi_\text{plane}(\mathbf{x})=(\mathbf{x}-\mathbf{p})\cdot\hat{\mathbf{n}}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;我们还可把点积展开成这种形式：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\phi_\text{plane}(\mathbf{x})=Ax + By + C\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;但为了方便使用，我们的实现用点和法线作为参数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;float planeSDF(float x, float y, float px, float py, float nx, float ny) {
-    return (x - px) * nx + (y - py) * ny;
-}
-
-Result scene(float x, float y) {
-    Result b = { planeSDF(x, y, 0.0f, 0.5f, 0.0f, 1.0f), 0.8f };
-    return b;
-}&lt;/code&gt;&lt;p&gt;这个例子中，上半部分是发射 0.8 自发光的形状：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b5e34db83700c44cbb500ca9450d07f3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;我们可以用 CSG，例如把圆形与上面的平面相交，得出半圆：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result scene(float x, float y) {
-    Result a = { circleSDF(x, y, 0.5f, 0.5f, 0.2f), 1.0f };
-    Result b = {  planeSDF(x, y, 0.0f, 0.5f, 0.0f, 1.0f), 0.8f };
-    return intersectOp(a, b);
-}&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3450c0fed7e3cf3d396201e2885b5f2b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;h2&gt;3. 胶囊形&lt;/h2&gt;&lt;p&gt;在《&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30553006&quot;&gt;用 C 语言画直线&lt;/a&gt;》已使用到胶囊形（capsule）的 SDF，在这里简单推导一下。&lt;/p&gt;&lt;p&gt;我们把胶囊形以两点 &lt;equation&gt;\mathbf{a}, \mathbf{b}&lt;/equation&gt; 和半径 &lt;equation&gt;r&lt;/equation&gt; 来表示：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-557e74efba6c15cd1765caa3cc99beb6_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;278&quot; data-rawheight=&quot;332&quot;&gt;&lt;p&gt;有些场合可能每使用一点 &lt;equation&gt;\mathbf{a}&lt;/equation&gt; 及矢量 &lt;equation&gt;\mathbf{u} = \mathbf{b} - \mathbf{a}&lt;/equation&gt; 去表示，实际上我们在计算其 SDF 时也需要做这个减法。&lt;/p&gt;&lt;p&gt;计算胶囊形的 SDF，等价于计算一点与线段 ab 的距离，再扩大半径 &lt;equation&gt;r&lt;/equation&gt; （即把结果减去 &lt;equation&gt;r&lt;/equation&gt; ）。而计算一点与线段的距离的方法，是把点 &lt;equation&gt;\mathbf x&lt;/equation&gt; 投影在线段的延长线上，然后把投影点 &lt;equation&gt;\mathbf x&#39;&lt;/equation&gt; 控制在线段的范围内：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-7c6a7d167bc1c041ac425e0333f433b9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;770&quot; data-rawheight=&quot;292&quot;&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \mathbf{x}&#39; &amp;amp;= \mathbf{a} + \max \left( \min \left ( \mathbf{v} \cdot \frac{\mathbf{u}}{\|\mathbf{u}\|}, \|\mathbf{u}\| \right), 0 \right) \frac{\mathbf{u}}{\|\mathbf{u}\|}\\ &amp;amp;= \mathbf{a} + \max \left( \min \left ( \mathbf{v} \cdot \frac{\mathbf{u}}{\|\mathbf{u}\|^2}, 1 \right), 0 \right) \mathbf{u}\\ &amp;amp;= \mathbf{a} + \max \left( \min \left ( \frac{ \mathbf{v} \cdot\mathbf{u}}{\mathbf{u}\cdot\mathbf{u}}, 1 \right), 0 \right) \mathbf{u} \end{align}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;上式把最后的 &lt;equation&gt;1 / \|\mathbf{u}\|&lt;/equation&gt; 因子放进括号里，减少开方运算。然后，所需的距离为：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;d = \|\mathbf{p} - \mathbf{p}&#39;\|\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这里我们把线段和胶囊形的 SDF 分开为两个函数实现：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;float segmentSDF(float x, float y, float ax, float ay, float bx, float by) {
-    float vx = x - ax, vy = y - ay, ux = bx - ax, uy = by - ay;
-    float t = fmaxf(fminf((vx * ux + vy * uy) / (ux * ux + uy * uy), 1.0f), 0.0f);
-    float dx = vx - ux * t, dy = vy - uy * t;
-    return sqrtf(dx * dx + dy * dy);
-}
-
-float capsuleSDF(float x, float y, float ax, float ay, float bx, float by, float r) {
-    return segmentSDF(x, y, ax, ay, bx, by) - r;
-}
-
-Result scene(float x, float y) {
-    Result c = {  capsuleSDF(x, y, 0.4f, 0.4f, 0.6f, 0.6f, 0.1f), 1.0f };
-    return c;
-}&lt;/code&gt;&lt;p&gt;结果：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-12cc950d8599a286efd66fe2c7743bdd_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;4. 矩形&lt;/h2&gt;&lt;p&gt;这里实现的矩形是二维定向矩形包围盒（oriented bounding box, OBB），可以由中心点 &lt;equation&gt;\mathbf{c}&lt;/equation&gt; 、旋转角 &lt;equation&gt;\theta&lt;/equation&gt;  和半长（half length) &lt;equation&gt;\mathbf{s}&lt;/equation&gt; 来表示：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-976f87d5b6cee06743601289976f3957_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;445&quot; data-rawheight=&quot;345&quot;&gt;&lt;p&gt;首先我们要把点 &lt;equation&gt;\mathbf{x}&lt;/equation&gt; 变换至 OBB 的坐标系。我们可反过来思考，如果从 OBB 的坐标系的一点，转换至世界坐标系：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\mathbf{x} = \begin{bmatrix} \cos \theta &amp;amp; -\sin\theta\\ \sin \theta &amp;amp; \cos\theta \end{bmatrix}\mathbf{x}&#39;+\mathbf{c}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;那么，其逆变换就是（旋转矩阵是正交矩阵，有 &lt;equation&gt;Q^{-1}=Q^\mathrm{T}&lt;/equation&gt; ）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\mathbf{x}&#39; = \begin{bmatrix} \cos \theta &amp;amp; \sin\theta\\ -\sin \theta &amp;amp; \cos\theta \end{bmatrix}(\mathbf{x}-\mathbf{c})\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;因为矩形的对称性，我们只需考虑第一象限，可用绝对值把 &lt;equation&gt;\mathbf{x}&#39;&lt;/equation&gt; 移到第一象限。然后，要对内和外分计算距离，再取得最少值。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;float boxSDF(float x, float y, float cx, float cy, float theta, float sx, float sy) {
-    float costheta = cosf(theta), sintheta = sinf(theta);
-    float dx = fabs((x - cx) * costheta + (y - cy) * sintheta) - sx;
-    float dy = fabs((y - cy) * costheta - (x - cx) * sintheta) - sy;
-    float ax = fmaxf(dx, 0.0f), ay = fmaxf(dy, 0.0f);
-    return fminf(fmaxf(dx, dy), 0.0f) + sqrtf(ax * ax + ay * ay);
-}
-
-Result scene(float x, float y) {
-    Result d = { boxSDF(x, y, 0.5f, 0.5f, TWO_PI / 16.0f, 0.3f, 0.1f), 1.0f };
-    return d;
-}&lt;/code&gt;&lt;p&gt;结果：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f4ffdb2c09dc2154387d87efd4a4bea3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;减去一个半径（如 0.1）就获得圆角长方形：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result e = { boxSDF(x, y, 0.5f, 0.5f, TWO_PI / 16.0f, 0.3f, 0.1f) - 0.1f, 1.0f };
-return e;&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9eb084399c7d14f4cb07eed639dee795_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;h2&gt;5. 三角形&lt;/h2&gt;&lt;p&gt;三角形的 SDF 需计算点至三个线段的最短距离，然后再判断点在内还是在外。这里我们用缠绕顺序（winding order）来定义三角形的内外。详细的判断方法请参考 [1]。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;float triangleSDF(float x, float y, float ax, float ay, float bx, float by, float cx, float cy) {
-    float d = fminf(fminf(
-        segmentSDF(x, y, ax, ay, bx, by),
-        segmentSDF(x, y, bx, by, cx, cy)),
-        segmentSDF(x, y, cx, cy, ax, ay));
-    return (bx - ax) * (y - ay) &amp;gt; (by - ay) * (x - ax) &amp;amp;&amp;amp; 
-           (cx - bx) * (y - by) &amp;gt; (cy - by) * (x - bx) &amp;amp;&amp;amp; 
-           (ax - cx) * (y - cy) &amp;gt; (ay - cy) * (x - cx) ? -d : d;
-}
-
-Result scene(float x, float y) {
-    Result f = { triangleSDF(x, y, 0.5f, 0.2f, 0.8f, 0.8f, 0.3f, 0.6f), 1.0f };
-    return f;
-}&lt;/code&gt;&lt;p&gt;结果：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-09fa273c6b0c1b8045c74977930e139e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;减去一个半径就获得圆角三角形：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-664af59808724a27e2b7042e55aeb42b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;h2&gt;6. 结语&lt;/h2&gt;&lt;p&gt;本文介绍了 5 种二维形状的 SDF，当中用到不同的技巧，例如运用形状的对称性质。长方形实际上也可用三角形的做法实现，然而不考虑对称性，所需的运算会更多。&lt;/p&gt;&lt;p&gt;读者可利用这些形状及 CSG 来绘画各种形状的光，也可以尝试推导其他形状的 SDF。&lt;/p&gt;&lt;p&gt;我们之后会再讨论用 SDF 的其他技巧，但接下来的两篇将先回到光学相关内容──&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30961545&quot;&gt;反射&lt;/a&gt;与&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31127076&quot;&gt;折射&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;本文的源程序位于 &lt;a href=&quot;https://github.com/miloyip/light2d/blob/master/shapes.c&quot;&gt;shapes.c&lt;/a&gt; 及 &lt;a href=&quot;https://github.com/miloyip/light2d/blob/master/m.c&quot;&gt;m.c&lt;/a&gt;。&lt;/p&gt;&lt;h2&gt;参考&lt;/h2&gt;&lt;p&gt;[1] Dan Sunday, &lt;a href=&quot;http://geomalgorithms.com/a03-_inclusion.html&quot;&gt;Inclusion of a Point in a Polygon&lt;/a&gt;.&lt;/p&gt;</description>
-<author>Milo Yip</author>
-<guid isPermaLink="false">2017-11-11-30816284</guid>
-<pubDate>Sat, 11 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
