@@ -5,7 +5,82 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 15 Jun 2018 15:31:51 +0800</lastBuildDate>
+<lastBuildDate>Mon, 18 Jun 2018 12:57:45 +0800</lastBuildDate>
+<item>
+<title>The combinator of combinator</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-18-38200636.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38200636&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;组合子的组合子&lt;/p&gt;&lt;p&gt;大雾~&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最近把之前写的&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25411428&quot;&gt;Parser combinator&lt;/a&gt;拿了出来, 因为刚好想到一些有趣的东西. 之前的组合子是不能回溯的, 因为所有的组合子的构建是自下而上的, 当前组合子的语法分析只能看到其子组合子的综合属性, 返回一条分支的值之后便不再尝试其他分支. 这会对其表达能力造成一些限制.&lt;/p&gt;&lt;p&gt;一个解决办法是像一般的Parser combinator一样, 传入一个所有的当前分析位置的list, 对每一个位置进行分析, 保存所有分支的结果传出一个新的list.&lt;/p&gt;&lt;p&gt;我使用的是另一种思路, 对组合子的组合函数进行CPS变换, 这样每一个组合子除了能看见子组合子的综合属性还能看见后续的分析结果, 于是分支选择变成了可能, 即是对应与Direct style的回溯.&lt;/p&gt;&lt;p&gt;详细的构造请看文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25411428&quot;&gt;Parser combinator 在C++里的DSL&lt;/a&gt;更新的第4节, 是我新加入哒.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;为什么需要回溯呢? 那当然是我想到了一些好玩的东西啦, 在之前的文章里通过Parser combinator构造了一个小的四则运算计算器, 组合子是:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;ParserCombinator&amp;lt;int&amp;gt; Additive&lt;/code&gt;&lt;p&gt;返回的是表达式的语义值, 一个 &lt;equation&gt;\texttt{int}&lt;/equation&gt; 类型的数值表示算式的值.&lt;/p&gt;&lt;p&gt;于是问题来了, 很自然地会想到一个生成Parser combinator的Parser combinator是什么呢?&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一个典型的最简单的例子, 正则表达式!&lt;/p&gt;&lt;p&gt;对! 又是正则表达式~&lt;/p&gt;&lt;p&gt;理由很简单, 在Chomsky hierarchy里, 正则表达式是Type-3 grammars, 弱于Parser combinator描述的Type-2 grammars上下文无关文法. 显然地, 我们可以使用组合子来构造一个正则表达式的匹配器.&lt;/p&gt;&lt;p&gt;正则表达式的匹配器是一个返回 &lt;equation&gt;\texttt{bool}&lt;/equation&gt; 型的Parser combinator, 返回 &lt;equation&gt;\texttt{true}&lt;/equation&gt; 表示匹配成功.&lt;/p&gt;&lt;p&gt;对于正则表达式的字符匹配:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;ParserCombinator&amp;lt;bool&amp;gt; match;
+match = (Token(ch) &amp;gt;&amp;gt; Return(true));&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\texttt{ch}&lt;/equation&gt; 是需要匹配的 &lt;equation&gt;\texttt{char}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;对于正则表达式的连接&lt;equation&gt;\texttt{(+)}&lt;/equation&gt;:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;//ParserCombinator&amp;lt;bool&amp;gt; part_1, part_2;
+ParserCombinator&amp;lt;bool&amp;gt; match;
+match = part_1 + part_2 &amp;gt;&amp;gt; Return(true);&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\texttt{part_1}&lt;/equation&gt; 和 &lt;equation&gt;\texttt{part_2}&lt;/equation&gt; 是子表达式.&lt;/p&gt;&lt;p&gt;对于正则表达式的分支 &lt;equation&gt;\texttt{(|)}&lt;/equation&gt; :&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;ParserCombinator&amp;lt;bool&amp;gt; match;
+match = part_1 | part_2;&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\texttt{part_1}&lt;/equation&gt; 和 &lt;equation&gt;\texttt{part_2}&lt;/equation&gt; 是子表达式.&lt;/p&gt;&lt;p&gt;对于正则表达式的闭包&lt;equation&gt;\texttt{(*)}&lt;/equation&gt;:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;ParserCombinator&amp;lt;bool&amp;gt; match;
+match = match + unit &amp;gt;&amp;gt; Return(true) | Epsilon(true);&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\texttt{unit}&lt;/equation&gt; 是子表达式.&lt;/p&gt;&lt;p&gt;有了以上的构造之后可以轻松地写出生成正则表达式组合子:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;ParserCombinator&amp;lt;ParserCombinator&amp;lt;bool&amp;gt;&amp;gt; unit, repeat, connection, branch, regex;
+
+unit = Token([](char ch) { return ch != &#39;(&#39; &amp;amp;&amp;amp; ch != &#39;)&#39; &amp;amp;&amp;amp; ch != &#39;|&#39; &amp;amp;&amp;amp; ch != &#39;+&#39;; }) &amp;gt;&amp;gt;
+	[](char ch)
+{
+	ParserCombinator&amp;lt;bool&amp;gt; match;
+	match = (Token(ch) &amp;gt;&amp;gt; Return(true));
+	return match;
+} | &#39;\\&#39;_T + Token(AnyChar{}) &amp;gt;&amp;gt; [](Placeholder, char ch)
+{
+	ParserCombinator&amp;lt;bool&amp;gt; match;
+	match = (Token(ch) &amp;gt;&amp;gt; Return(true));
+	return match;
+} | &#39;(&#39;_T + regex + &#39;)&#39;_T &amp;gt;&amp;gt; [](Placeholder, const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; unit, Placeholder)
+{
+	return unit;
+};
+
+repeat = unit + &#39;*&#39;_T &amp;gt;&amp;gt; [](const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; unit, Placeholder)
+{
+	ParserCombinator&amp;lt;bool&amp;gt; match;
+	match = match + unit &amp;gt;&amp;gt; Return(true) | Epsilon(true);
+	return match;
+} | unit;
+
+connection = connection + repeat &amp;gt;&amp;gt;
+	[](const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; part_1, const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; part_2)
+{
+	ParserCombinator&amp;lt;bool&amp;gt; match;
+	match = part_1 + part_2 &amp;gt;&amp;gt; Return(true);
+	return match;
+} | repeat;
+
+branch = branch + &#39;|&#39;_T + connection &amp;gt;&amp;gt;
+	[](const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; part_1, Placeholder, const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; part_2)
+{
+	ParserCombinator&amp;lt;bool&amp;gt; match;
+	match = part_1 | part_2;
+	return match;
+} | connection;
+
+regex = branch &amp;gt;&amp;gt; [](const ParserCombinator&amp;lt;bool&amp;gt;&amp;amp; match)
+{
+	ParserCombinator&amp;lt;bool&amp;gt; regex(match);
+	regex.ReturnDefaultWhenFail(true);	//return false
+	return regex;
+};
+
+std::string pattern = &quot;(a|b)*abb&quot;;
+std::string match   = &quot;babaababb&quot;;
+
+std::cout &amp;lt;&amp;lt; regex(pattern)(match) &amp;lt;&amp;lt; std::endl;
+//print: 1&lt;/code&gt;&lt;p&gt;看到 &lt;equation&gt;\texttt{ParserCombinator&amp;lt;ParserCombinator&amp;lt;bool&amp;gt;&amp;gt;}&lt;/equation&gt; 了嘛, 于是我们在50行内写出了一个正则表达式引擎(特大雾).&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我感觉我都快成正则表达式专业户了(笑~). 其实我是用CPS改写了我的Parser combinator, 更新文章了不过感觉没什么人会看到, 于是来水了一篇文章(抱歉占用了大家宝贵的阅读时间).&lt;/p&gt;&lt;p&gt;继续拓展, 一个能生成生成Parser combinator的Parser combinator的Parser combinator会是什么呢? 这个嘛...嗯...我不知道. 更加地, 一个能生成自生Parser combinator的Parser combinator又会是什么呢(无限嵌套的递归类型, C++也里实现不出来呀哈)?&lt;/p&gt;&lt;p&gt;知道的小伙伴请告诉我&amp;gt;.&amp;lt;&lt;/p&gt;</description>
+<author>梨梨喵</author>
+<guid isPermaLink="false">2018-06-18-38200636</guid>
+<pubDate>Mon, 18 Jun 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>PCP Theorem Part 2: Expander Graph</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-18-38113778.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38113778&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cfad1bac7ce7f070d2594ae717c075ac_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;上次我们证明了 &lt;equation&gt;\text{GAP-3SAT}_{1,s} \in \mathsf{NP-hard}&lt;/equation&gt; 和 PCP Theorem是等价的。事实上，在Dinur的证明中，她并没有直接证明 &lt;equation&gt;\text{GAP-3SAT}_{1,s} \in \mathsf{NP-hard}&lt;/equation&gt; 而是通过证明&lt;equation&gt;\text{GAP-3COLOR}_{1,s} \in \mathsf{NP-hard}&lt;/equation&gt; 来得到PCP Theorem。我们知道 &lt;equation&gt;\text{3COLOR} \in \text{NP-hard}&lt;/equation&gt; ,那么 &lt;equation&gt;\text{GAP-3COLOR}_{1,1-\frac{1}{m}} \in \mathsf{NP-hard}&lt;/equation&gt; 是显然的（一个无法被3COLOR的图，不管什么染色方案，至少有一条边不满足限制）。Dinur通过巧妙的构造把gap从 &lt;equation&gt;1-\frac{1}{m}&lt;/equation&gt; 放大到一个常数倍来得到这个结果。其中很大部分都是巧妙的利用 expander graph的性质，这篇文章会给大家补充一些expander graph的知识，在Part 3. 我们会正式进入 Dinur的证明。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;扩展图 (Expander Graph)&lt;/h2&gt;&lt;p&gt;扩展图是一种没有瓶颈的图，也就是说这是一种有很强的联通性的图。下面的定义就是根据它的这个性质定义的。&lt;/p&gt;&lt;p&gt;首先我们需要定义一下Edge Expansion（有的中文资料把他翻译成边扩展率）,对于一个图 &lt;equation&gt;G=(V,E)&lt;/equation&gt; 它的Edge Expansion定义如下&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\phi(G)=\min_{S\subseteq V,|S|\leq \frac{|V|}{2}} \frac{|E(S,\bar S)|}{|S|}&lt;/equation&gt;这里 &lt;equation&gt;\bar S=V\setminus S&lt;/equation&gt; ， &lt;equation&gt;E(S,\bar S) = \{(u,v) \in E | u \in S \text{ and }v\in \bar S\}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;我们说一个图的Edge Expansion是至少是一个正的常数的话，那我们称这个图是一个扩展图。事实上，找到一个扩展图并不难：任何一个完全图都是扩展图。然而在这里我们希望能够找到稀疏的扩展图：更加准确得说，我们希望找到一个扩展图而且它的每个点的度数都是一个常数d，对于这样的图，我们把它称为&lt;b&gt;d-正则扩展图&lt;/b&gt;。（我们把每个点度数都为d的图，叫做d-正则图）&lt;/p&gt;&lt;p&gt;为了方便我们后面的证明，下面介绍一些关于谱图论(Spectral Graph Theory)的记号：&lt;/p&gt;&lt;p&gt;对于一个d-正则图 &lt;equation&gt;G&lt;/equation&gt; ,我们用 &lt;equation&gt;A_G&lt;/equation&gt; 来表示 &lt;equation&gt;G&lt;/equation&gt; 所对应的邻接矩阵，因此对于没有边权且有重边的图 &lt;equation&gt;(A_G)_{i,j}&lt;/equation&gt; 表示i, j之间边的数量。因为&lt;equation&gt;A_G&lt;/equation&gt; 是实对称矩阵，所以它一定有 &lt;equation&gt;n &lt;/equation&gt; 个实数特征值，我们把它们标作 &lt;equation&gt;\lambda_1 \geq \lambda_2 \geq \ldots \geq \lambda_n&lt;/equation&gt; 。显然 &lt;equation&gt;\vec{1}&lt;/equation&gt; 是&lt;equation&gt;A_G&lt;/equation&gt;的一个特征向量，并且它的特征值是 &lt;equation&gt;d&lt;/equation&gt; 。我们可以轻易的证明 &lt;equation&gt;d &lt;/equation&gt; 是最大的特征值：&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;我们不妨设 &lt;equation&gt;\vec{x}&lt;/equation&gt; 是最大特征值 &lt;equation&gt;\lambda_1&lt;/equation&gt; 所对应的特征向量，那么我们有 &lt;equation&gt;\[|\lambda_1|x_k = |\sum_{j=1}^n A_{kj}x_j| \leq \sum_{j=1}^n A_{kj}|x_j| \leq \sum_{j=1}^n A_{kj}x_k = x_k \sum_{j=1}^n A_{kj} = dx_k .\]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;所以特征值一定小于等于d。&lt;/p&gt;&lt;p&gt;因为我们知道对于任意一个d-正则图，它最大的特征值总是d，我们更加关心它绝对值第二大的特征值。我们把这个特征值定义为 &lt;equation&gt;\lambda&lt;/equation&gt; ，也就是说 &lt;equation&gt;\lambda = \max_{i&amp;gt;1}\{|\lambda_i|\}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;b&gt;定义2.1： &lt;/b&gt;对于一个有n个点的d-正则图 G，如果我们有 &lt;equation&gt;\lambda &amp;lt; d&lt;/equation&gt; ，那么我们把他称作 &lt;equation&gt;(n,d,\lambda)-\text{扩展图}&lt;/equation&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;定理2.2 (Cheeger&#39;s inequality)&lt;/b&gt;： &lt;equation&gt;\[\frac{\phi(G)^2}{2d} \leq d-\lambda \leq 2\phi(G)\]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;对于本文来说，我们只关心右边的不等式，所以我们只证明右边的。&lt;/p&gt;&lt;p&gt;证明：假设点集 &lt;equation&gt;S \subseteq V&lt;/equation&gt; 且 &lt;equation&gt;|S| \leq n/2&lt;/equation&gt; ，我们将证明 &lt;equation&gt;\phi(S) \geq (d -\lambda )/2&lt;/equation&gt; 。我们构造一个这样的向量 &lt;equation&gt;\vec{x} = \begin{cases} -|\bar S| &amp;amp; \text{ if } v\in S \\ |S| &amp;amp; \text{ if } v \in \bar S \end{cases}&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;那么我们有 &lt;equation&gt;\vec{x}\cdot \vec{1}=\sum x_v=0&lt;/equation&gt; 所以 &lt;equation&gt;\vec{x}\perp\vec{1}&lt;/equation&gt; 。既然 &lt;equation&gt;\vec{x} \perp \vec{1}&lt;/equation&gt;，那么 &lt;equation&gt;\|A_G\vec{x}\| \leq \lambda \|\vec{x}\|&lt;/equation&gt;，因为我们证明了只有 &lt;equation&gt;\vec{1}&lt;/equation&gt; 才可能有比 &lt;equation&gt;\lambda&lt;/equation&gt; 更大的特征值。那么，我们有 &lt;equation&gt;\langle A_G\vec{x},\vec{x}\rangle \leq \|A_G\vec{x}\|\cdot \|\vec{x}\| \leq \lambda\|\vec{x}\|^2&lt;/equation&gt; ，而且 &lt;equation&gt;\|x\|^2=|S||\bar S|^2+|\bar S||S|^2=|S||\bar S|(|S|+|\bar S|)=|S||\bar S|n&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;现在，我们来算一下 &lt;equation&gt;\langle A_G\vec{x},\vec{x}\rangle&lt;/equation&gt; :&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} \langle A_G\vec{x},\vec{x}\rangle &amp;amp;= \sum_u x_u \sum_{(u,v)\in E} x_v \\ &amp;amp;= 2 \sum_{(u,v)\in E} x_ux_v \\ &amp;amp;= 2 \sum_{(u,v)\in E(S,S)} x_v + 2 \sum_{(u,v)\in E(\bar S, \bar S)} x_v + 2 \sum_{(u,v)\in E(S,\bar S)} x_v\\ &amp;amp;= (d|S|-|E(S,\bar S)|)|\bar S|^2 + (d|\bar S|-|E(S,\bar S)|)|S|^2 - 2|E(S, \bar S)||S||\bar S|\\ &amp;amp;=d|S||\bar S| n - |E(S,\bar S)|n^2 \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;然后我们知道 &lt;equation&gt;\langle A_G\vec{x},\vec{x}\rangle\leq \lambda\|\vec{x}\|^2&lt;/equation&gt; ,也就是 &lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} &amp;amp;d|S||\bar S| n - |E(S,\bar S)|n^2 \leq \lambda |S||\bar S|n \\ &amp;amp;\Rightarrow (d-\lambda)\leq \frac{|E(S,\bar S)|n}{|S||\bar S|} \\ &amp;amp;\Rightarrow \frac{(d-\lambda) |\bar S|}{n}\leq \frac{|E(S,\bar S)|}{|S|} \\ &amp;amp;\Rightarrow \frac{(d-\lambda) |\bar S|}{n}\leq \phi(G) \\ \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;因为 &lt;equation&gt;|S| \leq n/2&lt;/equation&gt; 那么 &lt;equation&gt;|\bar S| &amp;gt; n/2&lt;/equation&gt; ，所以 &lt;equation&gt; \frac{d-\lambda}{2}\leq \frac{(d-\lambda) |\bar S|}{n}\leq \phi(G) &lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;证毕&lt;/p&gt;&lt;p&gt;&lt;b&gt;定理2.3&lt;/b&gt;：如果G是一个d-正则图，H是一个d&#39;-正则图，且G和H的点集相同，那么 &lt;equation&gt;G&#39;=G\cup H=(V,E(G)\cup E(H))&lt;/equation&gt; 是一个(d+d&#39;)-正则图，且满足 &lt;equation&gt;\lambda(G&#39;)\leq \lambda(G)+\lambda(H)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;证明: &lt;/p&gt;&lt;p&gt;假设 &lt;equation&gt;\vec{x}&lt;/equation&gt; 满足 &lt;equation&gt;\|x\|=1&lt;/equation&gt; ， &lt;equation&gt;\vec{x}\perp \vec{1}&lt;/equation&gt; ，且 &lt;equation&gt;\lambda(G&#39;)=\langle A_{G&#39;}\vec{x},\vec{x}\rangle&lt;/equation&gt; 。那么&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align*} \langle A_{G&#39;}\vec{x},\vec{x}\rangle &amp;amp;= \langle A_{G}\vec{x},\vec{x}\rangle + \langle A_{H}\vec{x},\vec{x}\rangle \\ &amp;amp; \leq \lambda(G) + \lambda(H) \end{align*}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;证毕。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定理2.4&lt;/b&gt;: 我们能找到常数 d 和 &lt;equation&gt;\lambda&lt;/equation&gt; (&lt;equation&gt;\lambda &amp;lt; d&lt;/equation&gt;)，使得对于任意整数 n 我们都能找到一个 &lt;equation&gt;(n,d,\lambda&#39;)-\text{正则图}&lt;/equation&gt;  (&lt;equation&gt;\lambda &#39; &amp;lt; \lambda&lt;/equation&gt; )。&lt;/p&gt;&lt;p&gt;在这里我们会给出这样的例子，但是并不会给出证明。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Gaber-Galil Expanders&lt;/b&gt;: 我们可以构造出有 &lt;equation&gt;n^2&lt;/equation&gt; 个点的拓展图，对于一个点 &lt;equation&gt;v=(x,y)&lt;/equation&gt; ，把它连向下列点 &lt;equation&gt;(x+2y,y),(x,2x+y),(x+2y+1,y),(x,2x+y+1)&lt;/equation&gt;  这里的加法是模n意义下的加法。这是一个8-正则图，且我们能够证明 &lt;equation&gt;\lambda \leq 5\sqrt 2 &amp;lt; 8&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;课后习题：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;证明 &lt;equation&gt;\lambda_n=-d&lt;/equation&gt; 当且仅当图 G 是一个二分图。&lt;/li&gt;&lt;li&gt;证明 &lt;equation&gt;\lambda_2 &amp;lt; d&lt;/equation&gt; 当且仅当图 G 是一个联通图。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在下一节中，我们将运用这节关于扩展图的结论来讲解Dinur证明的前两部，并粗略的证明这个方向是可行的。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Guanghao Ye</author>
+<guid isPermaLink="false">2018-06-18-38113778</guid>
+<pubDate>Mon, 18 Jun 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>PCP Theorem Part 1: Introduction</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-13-37270132.html</link>
@@ -587,24 +662,6 @@ doubleN&#39;nouniv n&#39; = n2n&#39; (doubleN (n&#39;2n n&#39;))
 <author>Martin awodey</author>
 <guid isPermaLink="false">2018-05-20-37062630</guid>
 <pubDate>Sun, 20 May 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>后浪</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-05-18-37007550.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37007550&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;最近跟人聊天，他说物理学停歇不前，那像二战的黄金时代，产生了相对论跟量子力学。于是，我想起了去年刚学历史没多久的自己。。当时我觉得CS的黄金时代 - 1960~80已经过去，互联网，OS，GUI，Computer Architecture，等等，全部出自那个时代，而我们只是想方设法去monetize这些。唉。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;现在看来，实在是有失偏颇。&lt;/p&gt;&lt;p&gt;要对历史/当下做评价的最主要的问题是，credit assignment实在太难做。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;举个例子，大家是如何看待区块链的？&lt;/p&gt;&lt;p&gt;我曾经问过我的PHD同事/朋友，他们的答案，除了一个就是搞区块链的，通通是‘敬而远之/bubble/pyramid scheme’。&lt;/p&gt;&lt;p&gt;而这的核心，是因为区块链‘没有现实价值’。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而1970年代的Xerox高层是怎么评价Xerox PARC的？&lt;/p&gt;&lt;p&gt;‘没有用’‘白花钱’。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看出问题了吗？如果我们真穿越回1970，说不定我们会感叹着真是一代不如一代，老冯搞出了老冯架构，IBM搞出了计算机架构，海軍准將弄出了COBOL，一推人搞出了Algol，我们就有些民科般乱搞的人。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而他们也情有可原 - 1960~70出现了PC&amp;amp;GUI&amp;amp;Tablet/Smart Phone的概念，一直到90才步入大众（phone得到2010），而70年同时的出现的internet呢？Amazon在dot com bubble受到的影响一直到2010才恢复过来，这整整隔了40年。从一个东西被发明，到走到现实，往往需要很久的时间去降低成本/建立中层建筑/寻找应用。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而区块链只出现了10年，根据历史的发展，很可能30年后才兑现 - 现在评论区块链有没有用，实在太早。&lt;/p&gt;&lt;p&gt;但是，如果最近各个还在发展中的idea（block chain/deep learning/quantum computing），真在几十年后被发现是www级别的idea呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那我们这就不止是第二春 - 黄金时代只是现在这时代的前传。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;甚至，还有个更基本的问题 - internet固然是伟大的发明，bob taylor 当初也没有预料到会有 search engine存在啊。这credit多少得给Parc/Bob，多少Google？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那，什么时代是最好的时代？&lt;/p&gt;&lt;blockquote&gt;　　杨过问道：“郭伯伯，你说襄阳守得住吗？”郭靖沉吟良久，手指西方郁郁苍苍的丘陵树木，说道：“襄阳古往今来最了不起的人物，自然是诸葛亮。此去以西二十里的隆中，便是他当年耕田隐居的地方。诸葛亮治国安民的才略，我们粗人也懂不了。他曾说只知道‘鞠躬尽瘁，死而後已’，至於最後成功失败，他也看不透了。我与你郭伯母谈论襄阳守得住、守不住，谈到後来，也总只是‘鞠躬尽瘁，死而後已’这八个字。”&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我认为，学历史，是为了抓住&amp;amp;复现各种机会，而不是去怀古伤今或者轻议冢中人 - 那实在是太难了，谋事在人，成事在天就好。&lt;/p&gt;</description>
-<author>圆角骑士魔理沙</author>
-<guid isPermaLink="false">2018-05-18-37007550</guid>
-<pubDate>Fri, 18 May 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>活化石</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-05-04-36427205.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36427205&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;最近计算机架构课组织了一次去&lt;a href=&quot;https://livingcomputers.org/&quot;&gt;Living Computers - Home&lt;/a&gt;的春游（误？），可惜迷路了，导致来晚，只看到一小半。&lt;/p&gt;&lt;p&gt;很好的一点是里面的计算机都是可远观而亦可亵玩 - 事实上我们的作业就是随便找台计算机在上面编程。&lt;/p&gt;&lt;p&gt;对于喜欢计算机历史的人来说很爽啊 - 从书上看着各种电脑各种OS是一码事，真正的看到，然后摸，还能用，感觉完全不一样。&lt;/p&gt;&lt;p&gt;尤其是还有Xerox Alto。还有个巨大的装着Smalltalk的盘盘。把老娘的爪爪放在圆圆的Smalltalk上然后插进Xerox Alto真是满足死我了。可惜不知道为啥Smalltalk跑不起来 - 放太久了？&lt;/p&gt;&lt;p&gt;信仰++++。&lt;/p&gt;&lt;p&gt;然后Digi-Comp（见&lt;a href=&quot;https://www.youtube.com/watch?v=_tZdE-3nR3w&quot;&gt;https://www.youtube.com/watch?v=_tZdE-3nR3w&lt;/a&gt;）也很好玩。&lt;/p&gt;&lt;p&gt;另：某Lisp厨失望了 - 没有Lisp Machine。&lt;/p&gt;&lt;p&gt;另另：有辛去的话，推荐下Pecos Pit Bar-B-Que，好好吃，实习以后大半年都没吃到这么辣的东西辣，sad&lt;/p&gt;</description>
-<author>圆角骑士魔理沙</author>
-<guid isPermaLink="false">2018-05-04-36427205</guid>
-<pubDate>Fri, 04 May 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
