@@ -5,7 +5,136 @@
 <link>https://henix.github.io/feeds/zhuanlan.milocode/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 14 Jun 2018 23:18:01 +0800</lastBuildDate>
+<lastBuildDate>Thu, 21 Jun 2018 02:41:11 +0800</lastBuildDate>
+<item>
+<title>用C语言画希尔伯特曲线</title>
+<link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-20-38276467.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38276467&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d34f3e5d10cf51d8af90f99b49bdcf03_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E5%B8%8C%E7%88%BE%E4%BC%AF%E7%89%B9%E6%9B%B2%E7%B7%9A&quot;&gt;希尔伯特曲线&lt;/a&gt;（&lt;a href=&quot;https://en.wikipedia.org/wiki/Hilbert_curve&quot;&gt;Hilbert curve&lt;/a&gt;）是一种空间填充曲线（space filling curve）的分形图案，由德国数学家 &lt;a href=&quot;https://en.wikipedia.org/wiki/David_Hilbert&quot;&gt;David Hilbert&lt;/a&gt;（1862-1943）发现 [1]。简单来说，空间填充曲线就是可以用「一笔画」的方式填充整个二维、三维或更高维的空间。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d7c0d2f1d9b096b85e79f50e8569082f_r.jpg&quot; data-caption=&quot;[1] 中的插图，展示第1、2、3阶的希尔伯特曲线&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1440&quot; data-rawheight=&quot;612&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-d7c0d2f1d9b096b85e79f50e8569082f&quot; data-watermark-src=&quot;v2-6aee5a02d11ac9d243a38a809e655eae&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;本文描述用 C 语言绘画这种曲线的方法和技巧。&lt;/p&gt;&lt;p&gt;（题图是一个三维的希尔伯特曲线雕塑，来自 &lt;a href=&quot;http://mathbun.com/&quot;&gt;http://mathbun.com/&lt;/a&gt;）&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;1. 递归、坐标变换&lt;/h2&gt;&lt;p&gt;最初，我在 [2] 找到一种基于矢量的绘画方法。它的原理是，一阶的希尔伯特曲线是一个「⊓」的形状，我们可以生成四个顶点，把顶点连接起来。而第二阶则是用第一阶的四个顶点位置，加上旋转和缩小，去画4 个「⊓」形状。只要把最后生成的顶点连接起来，就可以生成整个曲线：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7833b4f3a74fe531aa941a95f9822920_r.jpg&quot; data-caption=&quot;左图是一阶，起点在左下角。右图黑线部分是4个「⊓」形状，它们的中心为左图的顶点位置，加上旋转 -90、0、0、90度、以及缩小为一半。最后把所有顶点连起来，增加了灰线部分。&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;397&quot; data-rawheight=&quot;182&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-7833b4f3a74fe531aa941a95f9822920&quot; data-watermark-src=&quot;v2-a802e01794c71709cd1f2128de4b9241&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我们用一个影像缓冲去绘画这些垂直、水平线，最后用 &lt;a href=&quot;https://zhuanlan.zhihu.com/p/26525083&quot;&gt;极简的 PNG 编码函数 svpng()&lt;/a&gt;  来存储。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#include &quot;svpng.inc&quot;
+#define S 512
+
+unsigned char img[S * S * 3];
+float px = 0.0f, py = 0.0f;
+
+void setpixel(int x, int y) { /* ... */}
+void lineto(float tx, float ty) {/* ... */}
+
+void hilbert(float x, float y, float xi, float xj, float yi, float yj, int n) {
+    if (n) {
+        hilbert(x,                   y,                    yi / 2,  yj / 2,  xi / 2,  xj / 2, n - 1);
+        hilbert(x + xi / 2,          y + xj / 2,           xi / 2,  xj / 2,  yi / 2,  yj / 2, n - 1);
+        hilbert(x + xi / 2 + yi / 2, y + xj / 2 + yj / 2,  xi / 2,  xj / 2,  yi / 2,  yj / 2, n - 1);
+        hilbert(x + xi / 2 + yi,     y + xj / 2 + yj,     -yi / 2, -yj / 2, -xi / 2, -xj / 2, n - 1);
+    }
+    else
+        lineto(x + (xi + yi) / 2, y + (xj + yj) / 2);
+}
+
+int main() {
+    hilbert(0.0f, 0.0f, 0.0f, S, S, 0.0f, 4);
+    svpng(fopen(&quot;hilbert.png&quot;, &quot;wb&quot;), S, S,img, 0);
+}&lt;/code&gt;&lt;p&gt;4阶的结果（为方便起见，起点位于左上角）：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-41985853acabc9b888e3c4d28051e63f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-41985853acabc9b888e3c4d28051e63f&quot; data-watermark-src=&quot;v2-07d283a9aeeb319dbbbcf5ea05f91046&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;注：&lt;code class=&quot;inline&quot;&gt;setpixel()&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;lineto()&lt;/code&gt;较锁碎，不在此展示，完整代码位于&lt;a href=&quot;https://github.com/miloyip/misc/blob/master/hilbert/hilbert.c&quot;&gt;https://github.com/miloyip/misc/blob/master/hilbert/hilbert.c&lt;/a&gt;。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;2. 方向编码&lt;/h2&gt;&lt;p&gt;第一个方法要计算每个顶点的位置，计算量较大。另一种绘画希尔伯特曲线的方式，是考虑它的 L-system：&lt;/p&gt;&lt;blockquote&gt;变数: L, R&lt;br&gt;常数: F, +, -&lt;br&gt;公理: L&lt;br&gt;规则:&lt;br&gt;L → − R F + L F L + F R −&lt;br&gt;R → − L F + R F R + F L −&lt;br&gt;F ： 向前&lt;br&gt;- ： 右转90°&lt;br&gt;+ ： 左转90°&lt;/blockquote&gt;&lt;p&gt;我们可以看到，两条规则其实是对称的，我们只需要把在迭归时，从 L 变成 R时把旋转方向反转。我参考了[3]的代码实现，但每次向前移动只绘画两个像素，当中&lt;code class=&quot;inline&quot;&gt;p&lt;/code&gt;为笔的当前像素位置，参数&lt;code class=&quot;inline&quot;&gt;d&lt;/code&gt;为当前方向，&lt;code class=&quot;inline&quot;&gt;r&lt;/code&gt;记录旋转：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#include &quot;svpng.inc&quot;
+#include &amp;lt;stdlib.h&amp;gt;
+
+unsigned char* img, *p;
+const int n = 4, s = (2 &amp;lt;&amp;lt; n) - 1;
+
+void step(int d) {
+    int a[] = { 3, s * 3, -3, s * -3 }, i;
+    for (i = 0; i &amp;lt; 2; i++, p += a[d &amp;amp; 3])
+        p[0] = p[1] = p[2] = 255;
+}
+
+void hilbert(int d, int r, int n) {
+    if (n--) {
+        hilbert(d + r, -r, n); step(d + r);
+        hilbert(d,      r, n); step(d    );
+        hilbert(d,      r, n); step(d - r);
+        hilbert(d - r, -r, n);
+    }
+}
+
+int main() {
+    p = img = calloc(s * s, 3);
+    hilbert(0, 1, n);
+    p[0] = p[1] = p[2] = 255;
+    svpng(fopen(&quot;hilbert2.png&quot;, &quot;wb&quot;), s, s, img, 0);
+    free(img);
+}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b39f241a8582cf0669bfb3a0af68cf1c_r.jpg&quot; data-caption=&quot;放大 16 倍后的4阶结果&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;496&quot; data-rawheight=&quot;496&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b39f241a8582cf0669bfb3a0af68cf1c&quot; data-watermark-src=&quot;v2-5f1180c240c8f3460c447eb1b0e68d50&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这种实现方式较简单，也能用最少的影像尺寸存储结果。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;3. 简单文本&lt;/h2&gt;&lt;p&gt;既然可以用较小的画布尺寸，我们直接把每个像素变换成&lt;code class=&quot;inline&quot;&gt;**&lt;/code&gt; 两个字符：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#include &amp;lt;stdlib.h&amp;gt;
+#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;string.h&amp;gt;
+
+char* img, *p;
+const int n = 4, s = (2 &amp;lt;&amp;lt; n) - 1, a[] = { 2, s * 2, -2, -s * 2 };
+
+void step(int d) {
+    int i;
+    for (i = 0; i &amp;lt; 2; i++, p += a[d &amp;amp; 3])
+        p[0] = p[1] = &#39;*&#39;;
+}
+
+void hilbert(int d, int r, int n) { /* ... */ }
+
+int main() {
+    memset(p = img = malloc(s * s * 2), &#39; &#39;, s * s * 2);
+    hilbert(0, 1, n);
+    p[0] = p[1] = &#39;*&#39;;
+    for (p = img; p &amp;lt; img + s * s * 2; p += s * 2)
+        printf(&quot;%.*s\n&quot;, s * 2, p);
+    free(img);
+}&lt;/code&gt;&lt;p&gt;输出：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bab9624e85060beacb77194ae95ec8f8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;890&quot; data-rawheight=&quot;898&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-bab9624e85060beacb77194ae95ec8f8&quot; data-watermark-src=&quot;v2-2b008e151d8579c2b45fddf22dcb3081&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;hr&gt;&lt;h2&gt;4. ASCII 字符美化&lt;/h2&gt;&lt;p&gt;上面的输出有点丑。我在 [4] 里找到一种美化方法，可通过方向的改变来决定用什么字符，该映射为：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;┌&lt;/code&gt; → &lt;code class=&quot;inline&quot;&gt; _&lt;/code&gt; &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;┐&lt;/code&gt; →  &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;└&lt;/code&gt; → &lt;code class=&quot;inline&quot;&gt;|_&lt;/code&gt; &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;┘&lt;/code&gt; → &lt;code class=&quot;inline&quot;&gt;| &lt;/code&gt; &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;│&lt;/code&gt; → &lt;code class=&quot;inline&quot;&gt;| &lt;/code&gt; &lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;─&lt;/code&gt; → &lt;code class=&quot;inline&quot;&gt;__&lt;/code&gt; &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;例如：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e9f1bf3371387712e2ce38bf9536636b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;186&quot; data-rawheight=&quot;106&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我通过记录上一次的方向，与当前要步进的方向，去做这个映射。例如之前是向下的（&lt;code class=&quot;inline&quot;&gt;l=3&lt;/code&gt;）当前要向右（&lt;code class=&quot;inline&quot;&gt;d=0&lt;/code&gt;），即&lt;code class=&quot;inline&quot;&gt;└&lt;/code&gt; 的情况，便在笔的位置写进&lt;code class=&quot;inline&quot;&gt;|_&lt;/code&gt;这两个字符。针对 &lt;equation&gt;4\times4=16&lt;/equation&gt; 种组合，我用字符串表示：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#include &amp;lt;stdlib.h&amp;gt;
+#include &amp;lt;stdio.h&amp;gt;
+
+char* img, *p;
+const int n = 4 , s = 1 &amp;lt;&amp;lt; n, a[] = { 2, s * 2, -2, -s * 2 };
+int l = 3;
+
+void step(int d) {
+    d &amp;amp;= 3;
+    p[0] = &quot;_  ||||   _|   |&quot;[l * 4 + d];
+    p[1] = &quot;_   _    ____   &quot;[l * 4 + d];
+    p += a[d];
+    l = d;
+}
+
+void hilbert(int d, int r, int n) { /* ... */ }
+
+int main() {
+    p = img = malloc(s * s * 2);
+    hilbert(0, 1, n);
+    p[0] = p[1] = &#39; &#39;;
+    for (p = img; p &amp;lt; img + s * s * 2; p += s * 2)
+        printf(&quot;%.*s\n&quot;, s * 2, p);
+    free(img);
+}&lt;/code&gt;&lt;p&gt;输出：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f6d81fe1327e9a92219de371b4cca505_r.jpg&quot; data-caption=&quot;4阶&quot; data-size=&quot;small&quot; data-rawwidth=&quot;768&quot; data-rawheight=&quot;478&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-f6d81fe1327e9a92219de371b4cca505&quot; data-watermark-src=&quot;v2-6f64734912d4820a49f0e40933b5835c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-0f01b2e77086e678da2860a55fcba3b7_r.jpg&quot; data-caption=&quot;6阶&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1290&quot; data-rawheight=&quot;1308&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0f01b2e77086e678da2860a55fcba3b7&quot; data-watermark-src=&quot;v2-10deb3eb183f553e27a6da9f87a629de&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;hr&gt;&lt;h2&gt;5. 无内存分配&lt;/h2&gt;&lt;p&gt;为了尽一步简化，我希望能去掉画步的内存分配。方法是把逻辑改为，从上至下左至右打印字符，每画两个字符我们都遍历整个曲线，若曲线的位置和当前打印位置相同，才把那两个字符打印出来。这样会增加大量运算，但可以减少代码量。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#include &amp;lt;stdio.h&amp;gt;
+
+const int n = 4, s = 1 &amp;lt;&amp;lt; n, a[] = { 1, s, -1, -s };
+int l = 3, p, q;
+
+void step(int d) {
+    d &amp;amp;= 3;
+    if (p == q)
+        printf(&quot;%.2s&quot;, &amp;amp;&quot;__    | |_| |      ___|_ _    | &quot;[l * 8 + d * 2]);
+    p += a[l = d];
+}
+
+void hilbert(int d, int r, int n) { /* ... */ }
+
+int main() {
+    for (; q &amp;lt; s * s; q++, p = 0) {
+        hilbert(0, 1, n);
+        if (q % s == s - 1)
+            putchar(&#39;\n&#39;);
+    }
+}&lt;/code&gt;&lt;h2&gt;6. 代码压缩&lt;/h2&gt;&lt;p&gt;最后，我把上面的代码压缩成 256 个字符：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;const n=4,s=1&amp;lt;&amp;lt;n,a[]={1,s,-1,-s};
+l=3,p,q;
+t(d){d&amp;amp;=3;p-q||printf(&quot;%.2s&quot;,&amp;amp;&quot;__    | |_| |      ___|_ _    | &quot;[l*8+d*2]);p+=a[l=d];}
+h(d,r,n){n--&amp;amp;&amp;amp;(h(d+r,-r,n),t(d+r),h(d,r,n),t(d),h(d,r,n),t(d-r),h(d-r,-r,n));}
+main(){for(;p=0,q&amp;lt;s*s;++q%s||putchar(10))h(0,1,n);}&lt;/code&gt;&lt;a href=&quot;https://tio.run/##VY7RaoQwEEV/RYSVxMwU3e1DIeZLREIwuC6k2Zik7IP665vGdvvQCwNz7syFO@JolL2mNN5tiIUV7xBE23UWVD@ItYUA2AKGnRtxAQcLj0TTVVfiwh0u2@b8zcaJlKe3cyihKqUssrZik3mKH0kpN1m8/LI39QfT9Xmg3DGheiP0wPeZaPBg6WoRq4pkZB7wcCAeO4W/j4P/E/5e8RWgfP9UN0voOt094U40sHShDpyx5RRy4684zsqTtqF0Jg20OcP3lJ7jZNQ1JHx8Aw&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;Try It Online&lt;/a&gt;&lt;p&gt;本文所有代码位于 &lt;a href=&quot;https://github.com/miloyip/misc/tree/master/hilbert&quot;&gt;https://github.com/miloyip/misc/tree/master/hilbert&lt;/a&gt;。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;相关文章&lt;/h2&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24688522&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-b082e4583bfbf99f53a075d4510a2f25&quot; data-image-width=&quot;1439&quot; data-image-height=&quot;1080&quot; data-image-size=&quot;180x120&quot;&gt;Milo Yip：用 C 语言画科赫雪花&lt;/a&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/23692828&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-b5818ef7694bbb3236a1bdc7e9a8b572&quot; data-image-width=&quot;1620&quot; data-image-height=&quot;1080&quot; data-image-size=&quot;180x120&quot;&gt;Milo Yip：如何用 C 语言画这个图&lt;/a&gt;&lt;a href=&quot;https://www.zhihu.com/question/27015321/answer/35028446&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;b92e467997b0f799cfb7f085dc06833a&quot; data-image-width=&quot;1018&quot; data-image-height=&quot;884&quot; data-image-size=&quot;ipico&quot;&gt;如何用 C 语言画一个“圣诞树”？&lt;/a&gt;&lt;h2&gt;参考&lt;/h2&gt;&lt;p&gt;[1] D. Hilbert, &lt;a href=&quot;http://www.digizeitschriften.de/dms/img/?PPN=PPN235181684_0038&amp;amp;DMDID=dmdlog40&quot;&gt;Über die stetige Abbildung einer Linie auf ein Flächenstück&lt;/a&gt;, Mathematische Annalen 38 (1891), 459–460.&lt;/p&gt;&lt;p&gt;[2] &lt;a href=&quot;http://www.soc.napier.ac.uk/~andrew/hilbert.html&quot;&gt;http://www.soc.napier.ac.uk/~andrew/hilbert.html&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[3] &lt;a href=&quot;https://zhuanlan.zhihu.com/p/35358486&quot;&gt;形形色色的空间填充曲线 和 L-System&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[4] &lt;a href=&quot;https://codegolf.stackexchange.com/questions/104392/ascii-hilbert-curve&quot;&gt;ASCII Hilbert Curve&lt;/a&gt;&lt;/p&gt;</description>
+<author>Milo Yip</author>
+<guid isPermaLink="false">2018-06-20-38276467</guid>
+<pubDate>Wed, 20 Jun 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>波兰表示法与表达式树</title>
 <link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-13-38013510.html</link>
@@ -659,76 +788,6 @@ a &amp;amp;= c + d -b
 <author>Milo Yip</author>
 <guid isPermaLink="false">2017-11-18-31127076</guid>
 <pubDate>Sat, 18 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>用 C 语言画光（四）：反射</title>
-<link>https://henix.github.io/feeds/zhuanlan.milocode/2017-11-12-30961545.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30961545&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-befa3a3e59433668fea5fac38657dbb6_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30816284&quot;&gt;上一篇&lt;/a&gt;我们讨论了一些形状，本篇回到基于光学的模拟，先谈较简单的──光的反射（reflection）。我们假设形状的边界是平滑的，会产生镜面反射（specular reflection）。实现反射需要一点几何上的推导，以及考虑如何用 SDF 获得边界法线，最后把追踪过程改为递归方式进行。&lt;/p&gt;&lt;h2&gt;1. 反射矢量&lt;/h2&gt;&lt;p&gt;给定一个入射方向 &lt;equation&gt;\mathbf i&lt;/equation&gt; 及边界法线 &lt;equation&gt;\hat {\mathbf n}&lt;/equation&gt; ，我们可以根据下图计算出反射方向 &lt;equation&gt;\mathbf r&lt;/equation&gt; ：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-0393e6a407498f39069c1b6c4550b05b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;766&quot; data-rawheight=&quot;358&quot;&gt;&lt;p&gt;首先，把 &lt;equation&gt;\mathbf i&lt;/equation&gt; 用点积投影至法线方向，得到法线方向的长度（注意法线需为单位矢量），然后再把这长度往法线方向缩放，得到图中蓝色虚线矢量 &lt;equation&gt;(\mathbf{i} \cdot \hat{\mathbf{n}})\hat{\mathbf{n}}&lt;/equation&gt; 。之后，把  &lt;equation&gt;\mathbf i&lt;/equation&gt;  减去两个蓝色虚线矢量就能得到反射矢量 &lt;equation&gt;\mathbf{r}&lt;/equation&gt; ：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\mathbf r = \mathbf{i} - 2(\mathbf{i} \cdot \hat{\mathbf{n}})\hat{\mathbf{n}}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;用 C 语言实现：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void reflect(float ix, float iy, float nx, float ny, float* rx, float* ry) {
-    float idotn2 = (ix * nx + iy * ny) * 2.0f;
-    *rx = ix - idotn2 * nx;
-    *ry = iy - idotn2 * ny;
-}&lt;/code&gt;&lt;p&gt;但问题是，我们怎样从场景中取得边界法线？&lt;/p&gt;&lt;h2&gt;2. 梯度与法线&lt;/h2&gt;&lt;p&gt;在此系列文章中，我们采用了 SDF 来构建场景。在形状的边界，&lt;b&gt;距离场变化最大的方向便是法线方向&lt;/b&gt;。根据矢量微积分（vector calculus），一个纯量场（scalar field）的最大变化方向就是其梯度（gradient），所以我们需要求形状边界位置的 SDF 梯度：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\nabla \phi = \left ( \frac{\partial \phi}{\partial x}, \frac{\partial \phi}{\partial y} \right )\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这梯度其实就是 SDF 分别在 &lt;equation&gt;x&lt;/equation&gt; 和 &lt;equation&gt;y&lt;/equation&gt; 方向的变化率。SDF 几乎处处可导，而且，SDF 为程函方程的（Eikonal equation）特例，具特性：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\| \nabla \phi\|=1\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;换句话说，SDF 的梯度是单位矢量。&lt;/p&gt;&lt;p&gt;假设我们不知道 SDF 梯度的分析解，可利用数值方法，如中心差分法（central difference），求出梯度的近似值： &lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \nabla \phi &amp;amp;= \left( \frac{\partial \phi}{\partial x}, \frac{\partial \phi}{\partial y} \right)\\ &amp;amp;\approx \left( \frac{\phi(x + h, y) - \phi(x - h, y)}{2h}, \frac{\phi(x, y + h) - \phi(x, y - h)}{2h} \right) \end{align}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;用 C 语言实现：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void gradient(float x, float y, float* nx, float* ny) {
-    *nx = (scene(x + EPSILON, y).sd - scene(x - EPSILON, y).sd) * (0.5f / EPSILON);
-    *ny = (scene(x, y + EPSILON).sd - scene(x, y - EPSILON).sd) * (0.5f / EPSILON);
-}&lt;/code&gt;&lt;p&gt;我们用一个测试场景去看看它的梯度，当中有一个圆形、两个矩形：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result scene(float x, float y) {
-    Result a = {  circleSDF(x, y, 0.4f,  0.2f, 0.1f), 2.0f };
-    Result b = {     boxSDF(x, y, 0.5f,  0.8f, TWO_PI / 16.0f, 0.1f, 0.1f), 0.0f };
-    Result c = {     boxSDF(x, y, 0.8f,  0.5f, TWO_PI / 16.0f, 0.1f, 0.1f), 0.0f };
-    return unionOp(unionOp(a, b), c);
-}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-780f61919eab02cb4e37c3150569af19_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;我们改一下 &lt;equation&gt;\texttt{main()}&lt;/equation&gt; 函数，用颜色把梯度可视化，红色通道显示 &lt;equation&gt;\frac{\partial \phi}{\partial x}&lt;/equation&gt; ，绿色通道显示 &lt;equation&gt;\frac{\partial \phi}{\partial y}&lt;/equation&gt; ：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;for (int y = 0; y &amp;lt; H; y++)
-    for (int x = 0; x &amp;lt; W; x++, p += 3) {
-         float nx, ny;
-         gradient((float)x / W, (float)y / H, &amp;amp;nx, &amp;amp;ny);
-         p[0] = (int)((fmaxf(fminf(nx, 1.0f), -1.0f) * 0.5f + 0.5f) * 255.0f);
-         p[1] = (int)((fmaxf(fminf(ny, 1.0f), -1.0f) * 0.5f + 0.5f) * 255.0f);
-         p[2] = 0;
-     }&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-ea5337faa6bfa20fecafe99d8aab0f23_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;上图中可以看到，大部分位置的梯度是连续的，至少我们现在需要在形状边界上的位置是连续的。&lt;/p&gt;&lt;p&gt;（注：由于有数值误差，计算出来的梯度分量可能略超出 &lt;equation&gt;[-1, 1]&lt;/equation&gt; 的范围，所以在输出时限制其范围。但这个轻微的误差不影响我们计算反射。）&lt;/p&gt;&lt;h2&gt;3. 递归追踪&lt;/h2&gt;&lt;p&gt;我们考虑形状边界的反射率（reflectivity）为 &lt;equation&gt;[0, 1]&lt;/equation&gt; 范围，为此增加一个字段：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;typedef struct { float sd, emissive, reflectivity; } Result;
-
-Result scene(float x, float y) {
-    Result a = {  circleSDF(x, y, 0.4f,  0.2f, 0.1f), 2.0f, 0.0f };
-    Result b = {     boxSDF(x, y, 0.5f,  0.8f, TWO_PI / 16.0f, 0.1f, 0.1f), 0.0f, 0.9f };
-    Result c = {     boxSDF(x, y, 0.8f,  0.5f, TWO_PI / 16.0f, 0.1f, 0.1f), 0.0f, 0.9f };
-    return unionOp(unionOp(a, b), c);
-}&lt;/code&gt;&lt;p&gt;如果反射率超过 1，总能量就变多，不符合能量守恒。少于 1 代表形状吸收了能量。&lt;/p&gt;&lt;p&gt;之后，修改 &lt;equation&gt;\texttt{trace()}&lt;/equation&gt; ，当我们在向一个方向追踪光线时，若碰到会反射的形状时，就计算该边界相交点的法线，然后递归追踪反射方向，把收到的所有光加总。为免无限反射做成无限递归，需要限制反射次数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define BIAS 1e-4f
-#define MAX_DEPTH 3
-
-float trace(float ox, float oy, float dx, float dy, int depth) {
-    float t = 0.0f;
-    for (int i = 0; i &amp;lt; MAX_STEP &amp;amp;&amp;amp; t &amp;lt; MAX_DISTANCE; i++) {
-        float x = ox + dx * t, y = oy + dy * t;
-        Result r = scene(x, y);
-        if (r.sd &amp;lt; EPSILON) {
-            float sum = r.emissive;
-            if (depth &amp;lt; MAX_DEPTH &amp;amp;&amp;amp; r.reflectivity &amp;gt; 0.0f) {
-                float nx, ny, rx, ry;
-                gradient(x, y, &amp;amp;nx, &amp;amp;ny);
-                reflect(dx, dy, nx, ny, &amp;amp;rx, &amp;amp;ry);
-                sum += r.reflectivity * trace(x + nx * BIAS, y + ny * BIAS, rx, ry, depth + 1);
-            }
-            return sum;
-        }
-        t += r.sd;
-    }
-    return 0.0f;
-}
-
-float sample(float x, float y) {
-    float sum = 0.0f;
-    for (int i = 0; i &amp;lt; N; i++) {
-        float a = TWO_PI * (i + (float)rand() / RAND_MAX) / N;
-        sum += trace(x, y, cosf(a), sinf(a), 0); // 开始时深度为 0
-    }
-    return sum / N;
-}&lt;/code&gt;&lt;p&gt;另外，由于我们要向反射方向追踪，如果用原来的相交点，追踪时就为立即遇到 &lt;equation&gt;\texttt{r.sd &amp;lt; EPSILON}&lt;/equation&gt; 而停止，所以我们稍微把相交点往法线方向偏移 &lt;equation&gt;\texttt{BIAS}&lt;/equation&gt; 的距离，只要 &lt;equation&gt;\texttt{BIAS} &amp;gt; \texttt{EPSILON}&lt;/equation&gt; ，就可以避免这个问题。但太大的话也会造成误差。结果：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d9fe132160c5b949f29148f6a6d2fc8f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;p&gt;我们可以看到两个矩形之间有第二次的反射。&lt;/p&gt;&lt;p&gt;利用平面和圆形的相对补集，就能做出凹面镜（concave mirror），弧形会产生题图中的焦散（caustics）现象：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;Result scene(float x, float y) {
-    Result a = { circleSDF(x, y, 0.4f, 0.2f, 0.1f), 2.0f, 0.0f };
-    Result d = {  planeSDF(x, y, 0.0f, 0.5f, 0.0f, -1.0f), 0.0f, 0.9f };
-    Result e = { circleSDF(x, y, 0.5f, 0.5f, 0.4f), 0.0f, 0.9f };
-    return unionOp(a, subtractOp(d, e));
-}&lt;/code&gt;&lt;h2&gt;4. 结语&lt;/h2&gt;&lt;p&gt;也许大家在中学物理中都学过镜面反射的知识，但用简单的程序实现出来总会令人觉得更有趣。&lt;/p&gt;&lt;p&gt;本文的重点是用数值方法求 SDF 在边界上的法线，以及通过递归来实现多次反射。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31127076&quot;&gt;下一篇&lt;/a&gt;将讨论折射，那么，我们就可以画出穿过透镜的光了。&lt;/p&gt;&lt;p&gt;本文的源代码位于 &lt;a href=&quot;https://github.com/miloyip/light2d/blob/master/reflection.c&quot;&gt;reflection.c&lt;/a&gt;。&lt;/p&gt;</description>
-<author>Milo Yip</author>
-<guid isPermaLink="false">2017-11-12-30961545</guid>
-<pubDate>Sun, 12 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
