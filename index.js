@@ -1,12 +1,13 @@
 const feeds = [
 	["Finance", [
 		"chinaetfs",
+		"GlobalMacroHedge",
 		"SmartGAA",
 		"shenyantao-60",
 		"DreamyTalks",
 		"lamboCFA",
-		"GlobalMacroHedge",
 		"worldofboss",
+		"mitcshi",
 		"ForrestM",
 		"yan-guan-lin-20",
 		"hthgyj",
