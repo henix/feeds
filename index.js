@@ -88,6 +88,7 @@ const feeds = [
 		"prattle",
 		"programmer_life",
 		"milocode",
+		"newsql",
 	]],
 	["商业", [
 		"jingyunxiaowu",
