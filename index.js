@@ -17,6 +17,10 @@ const feeds = [
 		"trading",
 		"c_106548378",
 		"c_156910707",
+	]],
+	["", [
+		"Trading_CNY",
+		"hthgyj",
 		"Chouma2016",
 		"touyanbang88",
 		"sanleima",
@@ -24,10 +28,6 @@ const feeds = [
 		"Lhtz-Jqxx",
 		"quanttech",
 		"tiangu1",
-	]],
-	["Finance2", [
-		"Trading_CNY",
-		"hthgyj",
 		"sishimiao",
 		"DimensionsCapital",
 	]],
