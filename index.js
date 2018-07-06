@@ -4,6 +4,7 @@ const feeds = [
 		"chinaetfs",
 		"SmartGAA",
 		"lamboCFA",
+		"bwdo",
 		"FICCGeek",
 		"shenyantao-60",
 		"DreamyTalks",
