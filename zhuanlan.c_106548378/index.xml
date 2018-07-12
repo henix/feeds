@@ -5,7 +5,159 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 10 Jul 2018 18:39:24 +0800</lastBuildDate>
+<lastBuildDate>Thu, 12 Jul 2018 12:55:56 +0800</lastBuildDate>
+<item>
+<title>基于event-driven量化回测交易python开源框架</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-11-39536634.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39536634&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-4d2f51c7b2ca67418b7ff842f102b056_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;AmazingQuant&lt;/b&gt;&lt;br&gt;&lt;/h2&gt;&lt;h2&gt;&lt;b&gt;1.简介&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/zhanggao2013/AmazingQuant&quot;&gt;https://github.com/zhanggao2013/AmazingQuant&lt;/a&gt; &lt;/p&gt;&lt;p&gt;AmazingQuant是一款基于event-driven的量化回测交易开源框架，下图是总体框架架构。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-47a2203d5b890ce537c558e77882643d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1537&quot; data-rawheight=&quot;1032&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-47a2203d5b890ce537c558e77882643d&quot; data-watermark-src=&quot;v2-fd3f0eab53331717ac9e80a10a5ed0e9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;ul&gt;&lt;li&gt;data_center&lt;/li&gt;&lt;ul&gt;&lt;li&gt;to_mongoDB 存放行情、财务等各种数据到MongoDB的存储模块&lt;/li&gt;&lt;li&gt;get_data   策略中从数据库中取数据的接口模块&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;trade_center&lt;/li&gt;&lt;ul&gt;&lt;li&gt;mossion_engine   包含下单任务（event_order）和风控（event_risk_management）两部分的engine，分别完成下单前的检查和风控&lt;/li&gt;&lt;li&gt;broker_engine    分为回测时的simulate的broker（主要是event_deal）撮合成交和连接实盘交易CTP、xSpeed等接口两部分&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;strategy_center&lt;/li&gt;&lt;ul&gt;&lt;li&gt;bar_engine       在回测或者交易模式下，用`逐K线`的方式执行每一根bar的交易逻辑，可在日线、分钟线、分笔下运行&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;analysis_center&lt;/li&gt;&lt;ul&gt;&lt;li&gt;analysis_engine  对回测形成的交易记录进行分析和可视化，净值、年化收益、alpha、beta、回撤等指标，brison、Fama等经典模型的实现&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;2.安装配置&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;MongoDB 3.4 &lt;br&gt;&lt;br&gt; 建议使用shard，配置启动项示例&lt;/li&gt;&lt;li&gt;pymongo &lt;br&gt;&lt;br&gt; python调用MongoDB&lt;/li&gt;&lt;li&gt;talib &lt;br&gt;&lt;br&gt; 技术指标计算库&lt;/li&gt;&lt;li&gt;anaconda &lt;br&gt;&lt;br&gt; python 3.5 的版本，如果大于3.5的版本，ctp的接口暂时不能用，因为编译问题，后续可以解决&lt;/li&gt;&lt;li&gt;Linux Ubuntu &lt;br&gt;&lt;br&gt; 开发环境是ubuntu，当然也可以在windows下用，但是数据库的配置和ctp等交易接口需要重新做&lt;/li&gt;&lt;li&gt;安装AmazingQuant&lt;br&gt;&lt;br&gt; pip install AmazingQuant  直接安装&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;3.策略编写&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;text&quot;&gt;# -*- coding: utf-8 -*-
+
+__author__ = &quot;gao&quot;
+
+import numpy as np
+import talib
+
+# import strategy基类
+from AmazingQuant.strategy_center.strategy import *
+
+# import 交易模块
+from AmazingQuant.trade_center.trade import Trade
+
+
+# 继承strategy基类
+class MaStrategy(StrategyBase):
+    def initialize(self):
+        # 设置运行模式，回测或者交易
+        self.run_mode = RunMode.BACKTESTING.value
+        # 设置回测资金账号
+        self.account = [&quot;test0&quot;, &quot;test1&quot;]
+        # 设置回测资金账号资金量
+        self.capital = {&quot;test0&quot;: 2000000, &quot;test1&quot;: 1000}
+        # 设置回测基准
+        self.benchmark = &quot;000300.SH&quot;
+        # 设置复权方式
+        self.rights_adjustment = RightsAdjustment.NONE.value
+        # 设置回测起止时间
+        self.start = &quot;2015-01-11&quot;
+        self.end = &quot;2016-01-16&quot;
+        # 设置运行周期
+        self.period = &quot;daily&quot;
+        # 设置股票池
+        self.universe = [&#39;000001.SZ&#39;, &#39;000002.SZ&#39;, &#39;000008.SZ&#39;, &#39;000060.SZ&#39;, &#39;000063.SZ&#39;, &#39;000069.SZ&#39;, &#39;000100.SZ&#39;,
+                         &#39;000157.SZ&#39;, &#39;000166.SZ&#39;, &#39;000333.SZ&#39;, &#39;000338.SZ&#39;, &#39;000402.SZ&#39;, &#39;000413.SZ&#39;, &#39;000415.SZ&#39;,
+                         &#39;000423.SZ&#39;, &#39;000425.SZ&#39;, &#39;000503.SZ&#39;, &#39;000538.SZ&#39;, &#39;000540.SZ&#39;, &#39;000559.SZ&#39;, &#39;000568.SZ&#39;,
+                         &#39;000623.SZ&#39;, &#39;000625.SZ&#39;, &#39;000627.SZ&#39;, &#39;000630.SZ&#39;, &#39;000651.SZ&#39;, &#39;000671.SZ&#39;, &#39;000686.SZ&#39;,
+                         &#39;000709.SZ&#39;, &#39;000723.SZ&#39;, &#39;000725.SZ&#39;, &#39;000728.SZ&#39;, &#39;000738.SZ&#39;, &#39;000750.SZ&#39;, &#39;000768.SZ&#39;,
+                         &#39;000776.SZ&#39;, &#39;000783.SZ&#39;, &#39;000792.SZ&#39;, &#39;000826.SZ&#39;, &#39;000839.SZ&#39;, &#39;000858.SZ&#39;, &#39;000876.SZ&#39;,
+                         &#39;000895.SZ&#39;, &#39;000898.SZ&#39;, &#39;000938.SZ&#39;, &#39;000959.SZ&#39;, &#39;000961.SZ&#39;, &#39;000963.SZ&#39;, &#39;000983.SZ&#39;,
+                         &#39;001979.SZ&#39;, &#39;002007.SZ&#39;, &#39;002008.SZ&#39;, &#39;002024.SZ&#39;, &#39;002027.SZ&#39;, &#39;002044.SZ&#39;, &#39;002065.SZ&#39;,
+                         &#39;002074.SZ&#39;, &#39;002081.SZ&#39;, &#39;002142.SZ&#39;, &#39;002146.SZ&#39;, &#39;002153.SZ&#39;, &#39;002174.SZ&#39;, &#39;002202.SZ&#39;,
+                         &#39;002230.SZ&#39;, &#39;002236.SZ&#39;, &#39;002241.SZ&#39;, &#39;002252.SZ&#39;, &#39;002292.SZ&#39;, &#39;002294.SZ&#39;, &#39;002304.SZ&#39;,
+                         &#39;002310.SZ&#39;, &#39;002352.SZ&#39;, &#39;002385.SZ&#39;, &#39;002411.SZ&#39;, &#39;002415.SZ&#39;, &#39;002424.SZ&#39;, &#39;002426.SZ&#39;,
+                         &#39;002450.SZ&#39;, &#39;002456.SZ&#39;, &#39;002460.SZ&#39;, &#39;002465.SZ&#39;, &#39;002466.SZ&#39;, &#39;002468.SZ&#39;, &#39;002470.SZ&#39;,
+                         &#39;002475.SZ&#39;, &#39;002500.SZ&#39;, &#39;002508.SZ&#39;, &#39;002555.SZ&#39;, &#39;002558.SZ&#39;, &#39;002572.SZ&#39;, &#39;002594.SZ&#39;,
+                         &#39;002601.SZ&#39;, &#39;002602.SZ&#39;, &#39;002608.SZ&#39;, &#39;002624.SZ&#39;, &#39;002673.SZ&#39;, &#39;002714.SZ&#39;, &#39;002736.SZ&#39;,
+                         &#39;002739.SZ&#39;, &#39;002797.SZ&#39;, &#39;002831.SZ&#39;, &#39;002839.SZ&#39;, &#39;002841.SZ&#39;, &#39;300003.SZ&#39;, &#39;300015.SZ&#39;,
+                         &#39;300017.SZ&#39;, &#39;300024.SZ&#39;, &#39;300027.SZ&#39;, &#39;300033.SZ&#39;, &#39;300059.SZ&#39;, &#39;300070.SZ&#39;, &#39;300072.SZ&#39;,
+                         &#39;300122.SZ&#39;, &#39;300124.SZ&#39;, &#39;300136.SZ&#39;, &#39;300144.SZ&#39;, &#39;300251.SZ&#39;, &#39;300315.SZ&#39;, &#39;600000.SH&#39;,
+                         &#39;600008.SH&#39;, &#39;600009.SH&#39;, &#39;600010.SH&#39;, &#39;600011.SH&#39;, &#39;600015.SH&#39;, &#39;600016.SH&#39;, &#39;600018.SH&#39;,
+                         &#39;600019.SH&#39;, &#39;600021.SH&#39;, &#39;600023.SH&#39;, &#39;600028.SH&#39;, &#39;600029.SH&#39;, &#39;600030.SH&#39;, &#39;600031.SH&#39;,
+                         &#39;600036.SH&#39;, &#39;600038.SH&#39;, &#39;600048.SH&#39;, &#39;600050.SH&#39;, &#39;600061.SH&#39;, &#39;600066.SH&#39;, &#39;600068.SH&#39;,
+                         &#39;600074.SH&#39;, &#39;600085.SH&#39;, &#39;600089.SH&#39;, &#39;600100.SH&#39;, &#39;600104.SH&#39;, &#39;600109.SH&#39;, &#39;600111.SH&#39;,
+                         &#39;600115.SH&#39;, &#39;600118.SH&#39;, &#39;600153.SH&#39;, &#39;600157.SH&#39;, &#39;600170.SH&#39;, &#39;600177.SH&#39;, &#39;600188.SH&#39;,
+                         &#39;600196.SH&#39;, &#39;600208.SH&#39;, &#39;600219.SH&#39;, &#39;600221.SH&#39;, &#39;600233.SH&#39;, &#39;600271.SH&#39;, &#39;600276.SH&#39;,
+                         &#39;600297.SH&#39;, &#39;600309.SH&#39;, &#39;600332.SH&#39;, &#39;600340.SH&#39;, &#39;600352.SH&#39;, &#39;600362.SH&#39;, &#39;600369.SH&#39;,
+                         &#39;600372.SH&#39;, &#39;600373.SH&#39;, &#39;600376.SH&#39;, &#39;600383.SH&#39;, &#39;600390.SH&#39;, &#39;600406.SH&#39;, &#39;600415.SH&#39;,
+                         &#39;600436.SH&#39;, &#39;600482.SH&#39;, &#39;600485.SH&#39;, &#39;600489.SH&#39;, &#39;600498.SH&#39;, &#39;600518.SH&#39;, &#39;600519.SH&#39;,
+                         &#39;600522.SH&#39;, &#39;600535.SH&#39;, &#39;600547.SH&#39;, &#39;600549.SH&#39;, &#39;600570.SH&#39;, &#39;600583.SH&#39;, &#39;600585.SH&#39;,
+                         &#39;600588.SH&#39;, &#39;600606.SH&#39;, &#39;600637.SH&#39;, &#39;600649.SH&#39;, &#39;600660.SH&#39;, &#39;600663.SH&#39;, &#39;600674.SH&#39;,
+                         &#39;600682.SH&#39;, &#39;600685.SH&#39;, &#39;600688.SH&#39;, &#39;600690.SH&#39;, &#39;600703.SH&#39;, &#39;600704.SH&#39;, &#39;600705.SH&#39;,
+                         &#39;600739.SH&#39;, &#39;600741.SH&#39;, &#39;600795.SH&#39;, &#39;600804.SH&#39;, &#39;600816.SH&#39;, &#39;600820.SH&#39;, &#39;600827.SH&#39;,
+                         &#39;600837.SH&#39;, &#39;600871.SH&#39;, &#39;600886.SH&#39;, &#39;600887.SH&#39;, &#39;600893.SH&#39;, &#39;600895.SH&#39;, &#39;600900.SH&#39;,
+                         &#39;600909.SH&#39;, &#39;600919.SH&#39;, &#39;600926.SH&#39;, &#39;600958.SH&#39;, &#39;600959.SH&#39;, &#39;600977.SH&#39;, &#39;600999.SH&#39;,
+                         &#39;601006.SH&#39;, &#39;601009.SH&#39;, &#39;601012.SH&#39;, &#39;601018.SH&#39;, &#39;601021.SH&#39;, &#39;601088.SH&#39;, &#39;601099.SH&#39;,
+                         &#39;601111.SH&#39;, &#39;601117.SH&#39;, &#39;601118.SH&#39;, &#39;601155.SH&#39;, &#39;601163.SH&#39;, &#39;601166.SH&#39;, &#39;601169.SH&#39;,
+                         &#39;601186.SH&#39;, &#39;601198.SH&#39;, &#39;601211.SH&#39;, &#39;601212.SH&#39;, &#39;601216.SH&#39;, &#39;601225.SH&#39;, &#39;601228.SH&#39;,
+                         &#39;601229.SH&#39;, &#39;601288.SH&#39;, &#39;601318.SH&#39;, &#39;601328.SH&#39;, &#39;601333.SH&#39;, &#39;601336.SH&#39;, &#39;601375.SH&#39;,
+                         &#39;601377.SH&#39;, &#39;601390.SH&#39;, &#39;601398.SH&#39;, &#39;601555.SH&#39;, &#39;601600.SH&#39;, &#39;601601.SH&#39;, &#39;601607.SH&#39;,
+                         &#39;601608.SH&#39;, &#39;601611.SH&#39;, &#39;601618.SH&#39;, &#39;601628.SH&#39;, &#39;601633.SH&#39;, &#39;601668.SH&#39;, &#39;601669.SH&#39;,
+                         &#39;601688.SH&#39;, &#39;601718.SH&#39;, &#39;601727.SH&#39;, &#39;601766.SH&#39;, &#39;601788.SH&#39;, &#39;601800.SH&#39;, &#39;601818.SH&#39;,
+                         &#39;601857.SH&#39;, &#39;601866.SH&#39;, &#39;601872.SH&#39;, &#39;601877.SH&#39;, &#39;601878.SH&#39;, &#39;601881.SH&#39;, &#39;601888.SH&#39;,
+                         &#39;601898.SH&#39;, &#39;601899.SH&#39;, &#39;601901.SH&#39;, &#39;601919.SH&#39;, &#39;601933.SH&#39;, &#39;601939.SH&#39;, &#39;601958.SH&#39;,
+                         &#39;601966.SH&#39;, &#39;601985.SH&#39;, &#39;601988.SH&#39;, &#39;601989.SH&#39;, &#39;601991.SH&#39;, &#39;601992.SH&#39;, &#39;601997.SH&#39;,
+                         &#39;601998.SH&#39;, &#39;603160.SH&#39;, &#39;603799.SH&#39;, &#39;603833.SH&#39;, &#39;603858.SH&#39;, &#39;603993.SH&#39;]
+
+        # 设置在运行前是否缓存日线，分钟线等各个周期数据
+        self.daily_data_cache = True
+        print(self.universe)
+
+        # 回测滑点设置，按固定值0.01,20-0.01 = 19.99;百分比0.01,20*(1-0.01) = 19.98;平仓时用&quot;+&quot;
+        self.set_slippage(stock_type=StockType.STOCK.value, slippage_type=SlippageType.SLIPPAGE_FIX.value, value=0.01)
+
+        # 回测股票手续费和印花税，卖出印花税，千分之一；开仓手续费，万分之三；平仓手续费，万分之三，最低手续费，５元
+        # 沪市，卖出有万分之二的过户费，加入到卖出手续费
+        self.set_commission(stock_type=StockType.STOCK_SH.value, tax=0.001, open_commission=0.0003,
+                            close_commission=0.0003,
+                            close_today_commission=0, min_commission=5)
+        # 深市不加过户费
+        self.set_commission(stock_type=StockType.STOCK_SZ.value, tax=0.001, open_commission=0.0003,
+                            close_commission=0.0005,
+                            close_today_commission=0, min_commission=5)
+
+    def handle_bar(self, event):
+        # 取当前bar的持仓情况
+        available_position_dict = {}
+        for position in Environment.bar_position_data_list:
+            available_position_dict[position.instrument + &quot;.&quot; + position.exchange] = position.position - position.frozen
+        # 当前bar的具体时间戳
+        current_date = data_transfer.millisecond_to_date(millisecond=self.timetag, format=&quot;%Y-%m-%d&quot;)
+        # 时间戳转换成int，方便后面取数据
+        current_date_int = data_transfer.date_str_to_int(current_date)
+        print(current_date)
+        # 取数据实例
+        data_class = GetData()
+        # 循环遍历股票池
+        for stock in self.universe:
+            # 取当前股票的收盘价
+            close_price = data_class.get_market_data(Environment.daily_data, stock_code=[stock], field=[&quot;close&quot;],
+                                                     end=current_date)
+            # print(self.start, current_date)
+            close_array = np.array(close_price)
+            if len(close_array) &amp;gt; 0:
+                # 利用talib计算MA
+                ma5 = talib.MA(np.array(close_price), timeperiod=5)
+                ma20 = talib.MA(np.array(close_price), timeperiod=20)
+                # print(type(close_price.keys()))
+                # 过滤因为停牌没有数据
+                if current_date_int in close_price.keys():
+                    # 如果5日均线突破20日均线，并且没有持仓，则买入这只股票100股，以收盘价为指定价交易
+                    if ma5[-1] &amp;gt; ma20[-1] and stock not in available_position_dict.keys():
+                        Trade(self).order_shares(stock_code=stock, shares=100, price_type=&quot;fix&quot;,
+                                                 order_price=close_price[current_date_int],
+                                                 account=self.account[0])
+                        print(&quot;buy&quot;, stock, 1, &quot;fix&quot;, close_price[current_date_int], self.account)
+                    # 如果20日均线突破5日均线，并且有持仓，则卖出这只股票100股，以收盘价为指定价交易
+                    elif ma5[-1] &amp;lt; ma20[-1] and stock in available_position_dict.keys():
+                        Trade(self).order_shares(stock_code=stock, shares=-100, price_type=&quot;fix&quot;,
+                                                 order_price=close_price[current_date_int],
+                                                 account=self.account[0])
+                        print(&quot;sell&quot;, stock, -1, &quot;fix&quot;, close_price[current_date_int], self.account)
+
+
+if __name__ == &quot;__main__&quot;:
+    # 测试运行完整个策略所需时间，目前没有做过多优化，
+    # 300只股票，日线数据，一年的时间区间，4000多次交易记录，在我的虚拟机大概80s，换个性能稍好点的机器，应该会快很多
+    from AmazingQuant.utils.performance_test import Timer
+
+    time_test = Timer(True)
+    with time_test:
+        # 运行策略，设置是否保存委托，成交，资金，持仓
+        MaStrategy().run(save_trade_record=True)
+&lt;/code&gt;&lt;h2&gt;&lt;b&gt;4.回测结果分析&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;自动生成回测结果&lt;br&gt;&lt;br&gt;产生的委托，成交，资金，持仓的cvs文件写入到策略所在文件夹&lt;/li&gt;&lt;li&gt;自动生成回测报告&lt;br&gt;&lt;br&gt;回测报告是html格式，可在浏览器中打开查看，效果如下图： &lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-4319e7503d50d8a47999c5f12f04f8e5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1196&quot; data-rawheight=&quot;811&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4319e7503d50d8a47999c5f12f04f8e5&quot; data-watermark-src=&quot;v2-96490f4f682e4aa2e6e2334ef2894cf1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;b&gt;5.实盘交易&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;目前已实现根据vnpy的方式封装的使用boost对CTP的C++接口进行python3.5的封装，后续将实现与broker_engine的对接&lt;/p&gt;&lt;h2&gt;&lt;b&gt;6.已实现和即将实现的功能&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;已实现&lt;/li&gt;&lt;li&gt;数据库搭建&lt;/li&gt;&lt;li&gt;读取数据&lt;/li&gt;&lt;li&gt;策略运行回测&lt;/li&gt;&lt;li&gt;回测交易记录的保存和分析&lt;/li&gt;&lt;li&gt;实盘CTP接口的封装&lt;/li&gt;&lt;li&gt;即将实现&lt;/li&gt;&lt;li&gt;各种数据的对接&lt;br&gt;&lt;br&gt;例如股票的分钟数据、股票财务数据、股票板块成分股、期货分钟数据、日线数据等&lt;/li&gt;&lt;li&gt;CTP等交易接口与broker_engine对接&lt;br&gt;&lt;br&gt;CTP、xSpeed等&lt;/li&gt;&lt;li&gt;对回测区间的每一根bar的交易和持仓情况可视化&lt;br&gt;&lt;/li&gt;&lt;li&gt;回测分析模块的丰富&lt;br&gt;&lt;br&gt;增加brison、FAMA等各种绩效归因模型的分析和可视化&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;7.联系方式&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;欢迎加qq群讨论: 788279189&lt;br&gt;&lt;br&gt;我的qq：82045571&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>zhanggao2013</author>
+<guid isPermaLink="false">2018-07-11-39536634</guid>
+<pubDate>Wed, 11 Jul 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>路遥知马力，日久见股心</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-10-39437481.html</link>
@@ -85,15 +237,6 @@
 &lt;p&gt;&lt;b&gt;币问送来好项目的扫盲卷&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;合格者将领取方图铁粉通知书，即30000FOTA未来基金&lt;/b&gt;&lt;/p&gt;&lt;p&gt;币问从不缺大佬在平台洒金，方图——一个带着让金融世界更透明理念，从全球场衍生品为方向的金融企业，2016年全球场外衍生品名义金额483万亿美元。这个概念相当于，2016年全球GDP总量74万亿美元，中国占11万亿美元，相当于场外衍生品市场体量的2%，是个“浩瀚无垠的星辰大海”。&lt;/p&gt;&lt;p&gt;方图的金融布局与区块链天然相关，他们最终想做一条仅适配金融场景的公有链，混迹币圈的盆友们不能不了解的一个平台哦！&lt;/p&gt;&lt;p&gt;那么，一起从方图扫盲科普开始吧！&lt;/p&gt;&lt;a href=&quot;https://www.bitask.org/question/11235&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-731f2c115eec8dd6554f150c2ef13940&quot; data-image-width=&quot;289&quot; data-image-height=&quot;288&quot; data-image-size=&quot;ipico&quot;&gt;【一份方图的答题卷，30000FOTA奖学金】 - 币问：能赚钱的问答平台&lt;/a&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;活动时间：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;6月12号——6月15日&lt;/p&gt;&lt;p&gt;&lt;b&gt;活动形式：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;币问用户回贴答考题，转发点赞方式参与活动，两种奖励方式：1、转贴并获得点赞领150FOTA，共计100个名额；2、至少答对6题即可领300FOTA奖学金，共计50个名额。&lt;/p&gt;&lt;p&gt;&lt;b&gt;活动规则：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;1、回答方图问卷，共10题，至少答对6题即可获得300FOTA奖学金，共计50个名额。&lt;/p&gt;&lt;p&gt;2、回答问题并转发本贴给5个好友，将截图发送给币问官方客服，审核通过后即可获得150FOTA，共计100个名额。&lt;/p&gt;&lt;p&gt;3、回答需获得1个威望大于10的用户点赞+官方帐号（点赞），才可获得领奖资格。官方账号将根据回答的质量、是否有刷赞行为等，判断是否给回答者点赞。&lt;/p&gt;&lt;p&gt;4、本次奖励共计150个名额，将送出30000FOTA（价值1万人民币）先到先得，送完即止。&lt;/p&gt;&lt;p&gt;5、回答的问题，请务必注意格式：“1､×× 2、×× 3、×× ; ERC20地址：... ...”&lt;/p&gt;&lt;p&gt;&lt;b&gt;领奖方式：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;客服审核后满足获奖资格者，官方将在活动结束三个工作日内统一发奖。&lt;/p&gt;&lt;p&gt;&lt;b&gt;额外奖励：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;1、加入方图电报群（&lt;a href=&quot;https://0.plus/FortunaOffcial&quot;&gt;https://0.plus/FortunaOffcial&lt;/a&gt;）即可获得50FOTA的奖励。&lt;/p&gt;&lt;p&gt;2、进入币问官方新浪微博（&lt;a href=&quot;http://xn--bitask-o10lw808a/&quot;&gt;@币问bitask&lt;/a&gt;），可参与“币问&amp;amp;方图联合活动”转发抽奖送FOTA活动。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-16edfcf6150fdfd91b48b0dea86a36c1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;1920&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-16edfcf6150fdfd91b48b0dea86a36c1&quot; data-watermark-src=&quot;v2-a31ffe32705d56fa3f1da7159ef2ec03&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>瘦子</author>
 <guid isPermaLink="false">2018-06-12-37977583</guid>
-<pubDate>Tue, 12 Jun 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>2018.06.12股市风云</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-06-12-37974341.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37974341&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6cec30bc1b2f6f8be4ea61e6090d2285_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;2018.06.12股市风云&lt;/b&gt;&lt;/p&gt;&lt;p&gt;今天是本周第二个交易日，美国进入议息会议，昨天的大盘已经创了新低了，不过在国家队护盘之下，涨了一些回来，还有连续四天的利空消息袭来，配合崔永元又有新料爆出，市场又传出华谊兄弟两大股东清仓式质押的消息，对创业板又是一记重击。除了少数个股有机会，大盘还是很危险。&lt;/p&gt;&lt;p&gt;CDR回归板块，小米分支开始露出疲态，意华股份顶板的当日亏损14%，今天大概率又是大幅低开，宇环数控，里面资金开始做T，也失去了龙头地位。同益股份的板不错，可是龙头都倒了，后来的也只是补涨，高度已经被限制。不过中午传出百度将会是CDR回归第一股的消息，路畅科技秒板，创维数字跟风涨停，最后华阳集团助攻。CDR回归概念还能继续炒，不过重心已经在百度分支上，低风偏的朋友考虑阿里、腾讯、京东这三个分支的埋伏，炒完百度之后，大概率轮动这三个分支之一。&lt;/p&gt;&lt;p&gt;亚夏汽车又是一个T字板，章大佬集合竞价砸了10个一万手，也没能砸烂这个股，可见市场人气非常高。欢乐海岸继续锁仓，赵老哥加仓1000多万。市场行情不好的时候，资金的焦点容易集中，更容易出妖股，亚夏汽车基本面不错，题材也很稀缺，昨天的表现说明市场人气很足，盘子大小适中适合大资金进出，今天经过分歧之后很可能继续走强。不过如果今天继续涨停可能会被特停，已经参与或者想参与的朋友需要考虑清楚，选择是否兑现。&lt;/p&gt;&lt;p&gt;这几日行情实在没什么好说的，说点A股中有趣的事，华舟应急今天起改名为中国应急，这名字有点厉害，不过这股不行，典型的庄股走势。ST匹凸今天起改名为ST岩石，这也不是一个省心的公司，过去P2P火，公司股价跌的一塌糊涂就蹭热度改了个名字叫匹凸匹，硬生生两周把股价翻倍。。。。现在P2P跑路一大堆，又准备把名字改回来，但这次改名也难救。&lt;/p&gt;&lt;p&gt;说到名字，今天可以看看川金诺的表现，6月12日美朝将在新加坡会谈，注意名字。。川。。金。。诺。可以看戏，不要参与。&lt;/p&gt;&lt;p&gt;综上，行情不好管住手，只要少数个股才有机会，实在管不住手的可以关注CDR回归概念和亚夏汽车的短线表现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;自选股池&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-ca6a3f4b47013c2fa98648f69b125c38_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;325&quot; data-rawheight=&quot;202&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-ca6a3f4b47013c2fa98648f69b125c38&quot; data-watermark-src=&quot;v2-ecc2e372b751cd8511bfe22d8744d395&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;微信搜索关注公众号：财通期讯     官方微博： @财通期讯     知乎：@财通期讯 &lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;致力于打造成为&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;国内期货新媒体运营佼佼者&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;服务项目：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.宏观经济分析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.市场热点分析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.每日盘面分析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;4.草根投资者经验交流&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;5.在线留言，随时答疑&lt;/b&gt;&lt;/p&gt;</description>
-<author>财通期讯</author>
-<guid isPermaLink="false">2018-06-12-37974341</guid>
 <pubDate>Tue, 12 Jun 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
