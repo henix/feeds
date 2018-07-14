@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 18 Jun 2018 12:57:45 +0800</lastBuildDate>
+<lastBuildDate>Sat, 14 Jul 2018 21:48:12 +0800</lastBuildDate>
+<item>
+<title>tensorflow on idris学习项目</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-07-06-39147186.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39147186&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;希望在idris中实现安全的深度学习api。目前已经成功调用C api获取tf版本&lt;/p&gt;&lt;a href=&quot;https://github.com/doofin/tensorflow-idris&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-03ab6f034de1e41a73ac9fd84abbf1bf&quot; data-image-width=&quot;420&quot; data-image-height=&quot;420&quot; data-image-size=&quot;ipico&quot;&gt;doofin/tensorflow-idris&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Martin awodey</author>
+<guid isPermaLink="false">2018-07-06-39147186</guid>
+<pubDate>Fri, 06 Jul 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>The combinator of combinator</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-18-38200636.html</link>
@@ -602,66 +611,6 @@ addr_248: ACCEPT();
 <author>圆角骑士魔理沙</author>
 <guid isPermaLink="false">2018-05-21-37098961</guid>
 <pubDate>Mon, 21 May 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Homotopy type theory univalence 简明入门(4th深圳函数式聚会)</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-05-20-37062630.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37062630&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;在昨天的聚会中（不少大佬坐飞机从北上赶来！），我讲了如何在Adga中使用Homotopy type theory进行定理证明。本来以为这么冷门的东西没人关注，没想到讲完大家还问了不少问题。这里我把昨天讲的整理一下可以让更多人看到（ppt写得太潦草就不放啦）&lt;/p&gt;&lt;p&gt;代码在这里：&lt;a href=&quot;https://github.com/doofin/hott-examples&quot;&gt;doofin/hott-examples&lt;/a&gt;&lt;/p&gt;&lt;p&gt;其中用到的一个关键而trival的函数是transport，给定任意的depentent type B（B也可以是常数类型）和(p : x == y)，输出一个B x → B y 的函数。也就是说我有一个定理B x是关于x的，又有一个x == y 的证明p，就可以把这个定理transport 从而证明了B y&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;data _==_ {i} {A : Type i} (a : A) : A → Type i where
-  idp : a == a
-
-ap : ∀ {i j} {A : Type i} {B : Type j} (f : A → B) {x y : A}
-  → (x == y → f x == f y)
-ap f idp = idp
-
-coe : ∀ {i} {A B : Type i} (p : A == B) → A → B
-coe idp x = x
-
-transport : ∀ {i j} {A : Type i} (B : A → Type j) {x y : A} (p : x == y)
-  → (B x → B y)
-transport B p = coe (ap B p)
-&lt;/code&gt;&lt;p&gt;这比较容易理解，因为x==y,所以关于x的定理自然可以转到y上。但是因为identity type (_ &lt;i&gt;== _&lt;/i&gt;) 的唯一构造器是idp : a == a ，所以这并没有任何用处，唯一能证明的就是因为x==x 所以B x -&amp;gt; B x.&lt;/p&gt;&lt;p&gt;这时我们自然会想到，难道给出x 和 y 的同构函数对 f : x-&amp;gt; y , g: y -&amp;gt; x , 以及它们互逆的证明不行吗？这是可以的，但是无法利用这个非常generic 的函数transport，我们对于每个定理B x都需要手动地插入f , g .&lt;/p&gt;&lt;p&gt;这时就要用到大名鼎鼎的univalence了。&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;postulate  -- Univalence axiom
-  ua : ∀ {i} {A B : Type i} → (A ≃ B) → A == B
-&lt;/code&gt;&lt;p&gt;对于 同构类型(A ≃ B)，它能构造identity type.在agda里边是一条postulate，也就是如果你使用了ua然后编译为程序是无法运行的，因为只给出了类型而没有给出term.&lt;/p&gt;&lt;p&gt;有了ua以后就简单了，只需要把同构扔进ua，再transport一下，我们就得到了一个非常generic 的函数：B x -&amp;gt; B y &lt;/p&gt;&lt;p&gt;下面是更加具体的例子，用来处理两个同构的自然数：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;doubleN : ℕ -&amp;gt; ℕ -- C n
-doubleN = nind z (\ _ n -&amp;gt; s (s n))
-
-n2n&#39; : ℕ -&amp;gt; ℕ&#39;
-n2n&#39; = nind z&#39; (\ _ n&#39; -&amp;gt; s&#39; n&#39;)
-
-n&#39;2n : ℕ&#39; -&amp;gt; ℕ
-n&#39;2n =  n&#39;ind z (\ _ n&#39; -&amp;gt; s  n&#39;)
-
--- ap :  x == y -&amp;gt; f x == f y
--- transport : ∀ {i j} {A : Type i} (B : A → Type j) {x y : A} (p : x == y)
---  → (B x → B y)
-n~n&#39; : is-equiv n2n&#39; -- simple version
-n~n&#39; = is-eq
-  n2n&#39; --  (f : A → B)
-  n&#39;2n --  (g : B → A)
-  (n&#39;ind {λ x → n2n&#39; (n&#39;2n x) == x} idp (λ _ x=&#39;=y → ap s&#39; x=&#39;=y )) -- (f-g : (b : B) → f (g b) == b) ,idp :0==0
-  (nind {λ x → n&#39;2n (n2n&#39; x) == x} idp (λ _ x==y → ap s x==y ))
- -- (g-f : (a : A) → g (f a) == a)
-doubleN&#39; : ℕ&#39; -&amp;gt; ℕ&#39; -- double from univalence . transport:  a~b -&amp;gt; pa -&amp;gt; pb
-doubleN&#39; = transport ( λ a → a → a) (ua (n2n&#39; , n~n&#39;)) (doubleN) -- P , n == n&#39; , double n -&amp;gt; double n&#39;
--- define + with recursor for natural number,2 
--- using currying,the type A is ℕ
-
-doubleN&#39;nouniv : ℕ&#39; -&amp;gt; ℕ&#39;
-doubleN&#39;nouniv n&#39; = n2n&#39; (doubleN (n&#39;2n n&#39;))
-&lt;/code&gt;&lt;h2&gt;这里可能还体现不出威力，但是如果要证明的是关于更复杂结构的定理比如：&lt;/h2&gt;&lt;code lang=&quot;agda&quot;&gt;record IsSemigroup (∙ : Op₂ A) : Set (a ⊔ ℓ) where
-  field
-    isEquivalence : IsEquivalence _≈_
-    assoc         : Associative ∙
-    ∙-cong        : Congruent₂ ∙
-
-  setoid : Setoid a ℓ
-  setoid = record { isEquivalence = isEquivalence }
-
-  open IsEquivalence isEquivalence public
-&lt;/code&gt;&lt;p&gt;这时有univalence 就确实能省很多功夫了，下次我会尝试给出更好的例子。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;使用HoTT库进行定理证明还有个好处是只需要函数式编程就够了，应该不再需要学rewrite，dependent之类dependent type 语言特有的一些复杂特性()。&lt;/p&gt;&lt;p&gt;如果还想知道如何证明Univalence(也就是让其能够计算)，可以研究一下&lt;a href=&quot;https://github.com/mortberg/cubicaltt&quot;&gt;mortberg/cubicaltt&lt;/a&gt;，cubical type theory 是一个比较热门的方向。&lt;/p&gt;</description>
-<author>Martin awodey</author>
-<guid isPermaLink="false">2018-05-20-37062630</guid>
-<pubDate>Sun, 20 May 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
