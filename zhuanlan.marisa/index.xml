@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 18 Jul 2018 07:02:40 +0800</lastBuildDate>
+<lastBuildDate>Mon, 23 Jul 2018 18:40:37 +0800</lastBuildDate>
+<item>
+<title>Contravariant Functors</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-07-21-40272611.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40272611&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5c90cc84819d9084f9b13fc09bd6abf2_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;&lt;a href=&quot;https://youtu.be/IJ_bVVsQhvc&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;George Wilson - Contravariant Functors: The Other Side of the Coin (youtube)&lt;/a&gt;&lt;p&gt;吃外卖的时候看的, 不长又欢乐的一个 talk.&lt;/p&gt;&lt;p&gt;从 Contravariant 的  Functor 开始介绍它的 Applicative , Alternative 版: Divisible 和 Decidable.&lt;/p&gt;&lt;p&gt;一开始拿 predicate 作为 Contravariant 的例子,  自嘲 so boring 之后换 pretty printer 作为例子最后总结出:&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e31336410b2e758342acc23eaedc4c23_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1396&quot; data-rawheight=&quot;780&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e31336410b2e758342acc23eaedc4c23&quot; data-watermark-src=&quot;v2-b4b6daa28d4c5aaee30d9f7cca8d7d8a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt; Applicative, Alternative 一个比较 practical 的例子是 async 里的 &lt;a href=&quot;https://hackage.haskell.org/package/async/docs/Control-Concurrent-Async.html#t:Concurrently&quot;&gt;Concurrently&lt;/a&gt;, 当 fork 出多个 “线程” 一起计算结果的时候, 所有结果都要就是 applicative, 只需要其中一个就是 alternative (how to combine multiple results). 另外的例子可以看 Parser Combinator (Parser Combinator 真是万能的例子&lt;/p&gt;&lt;p&gt;Contravariant, Divisible, Decidable 的中缀运算符设计得也特别有意思, 就是把&quot;&amp;lt;&amp;gt;&quot;到过来变&quot;&amp;gt;&amp;lt;&quot;, Haskell 里的运算符设计还是有点规律的不是鬼画符  XD&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;BTW, 这个 talk 很好地展现用 Haskell 的语言特性&amp;lt;del&amp;gt;猫论&amp;lt;/del&amp;gt;做抽象吸引我的一面:&lt;/p&gt;&lt;p&gt;type class hierarchy 就是个做抽象跟复用的地图: 当发现一个东西是 Functor 的时候就会想这货有没有可能也是一个 Applicative/Alternative ? 如果是, 这个 “computation”(type class) 在这个 context 下代表什么操作? 更进一步如果是 Applicative 的话, 有没有可能是 Monad? 这个 talk QA部分就有人问是不是 Monad, George 小哥早就准备好了答案 XD.&lt;/p&gt;&lt;p&gt;而且这种抽象和复用不像一些&quot;设计模式&quot;一样, 只能靠例子和自然语言来描述, 它们是有 law 的, talk 里每次提到 law 大家都会欢呼一下 XD&lt;/p&gt;&lt;p&gt;这些抽象的关系有时候就调换个参数(Contravariant), 反转个箭头(monad -&amp;gt; comonad), uncurry 一下 (学 Haskell 真不需要懂多少猫论的, 会看类型签名就好&lt;/p&gt;&lt;p&gt;当然了 &lt;a href=&quot;http://hackage.haskell.org/package/contravariant&quot;&gt;contravariant&lt;/a&gt; 这个库的作者依旧是神奇的 Edward Kmett, 如果想知道更多 Functor 请看依旧是 George Wilson 小哥去年同样在 YOW! Lambda Jam 的 &lt;a href=&quot;https://youtu.be/JUVMiRRq6wU&quot;&gt;The Extended Functor Family&lt;/a&gt;, 当然了里面提到的库都是 Edward Kmett 写的. George Wilson 的 talk 都好赞, 写的库也是.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;(别看到 Haskell 就 BB Monad 了, 还有很多可以 BB 是不是 &lt;/p&gt;</description>
+<author>祖与占</author>
+<guid isPermaLink="false">2018-07-21-40272611</guid>
+<pubDate>Sat, 21 Jul 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Safety and Liveness Properties</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-07-15-37864854.html</link>
@@ -602,15 +611,6 @@ addr_248: ACCEPT();
 <author>祖与占</author>
 <guid isPermaLink="false">2018-06-04-37649613</guid>
 <pubDate>Mon, 04 Jun 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>PCP Theorem Part 0: 序</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-05-22-37132427.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37132427&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cfad1bac7ce7f070d2594ae717c075ac_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;这学期上了一下学校的计算复杂度理论（Computational Complexity）。由于课上只剩下了6个人，所以James决定取消Final，然后让我们六个人一起讲一遍PCP (Probabilistic Checkable Proof) Theorem的证明 ( Irit Dinur 的版本） 我决定把它整理一下，然后挂在这里。&lt;/p&gt;&lt;p&gt;阅读本系列文章，需要一些关于复杂度理论的基础知识，虽然我感觉PCP theorem本身也算基础知识XD.&lt;/p&gt;&lt;p&gt;我估计文章会分为如下几个部分：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;PCP Theorem的介绍 &lt;/li&gt;&lt;li&gt;PCP Theorem 和 &lt;equation&gt;\textrm{GAP-3SAT} \in \textrm{NP-hard}&lt;/equation&gt; 的等价&lt;/li&gt;&lt;li&gt;Expander 图的介绍以及它的基本定理&lt;/li&gt;&lt;li&gt;Irit Dinur 证明的概述&lt;/li&gt;&lt;li&gt;Constraint Graph和Degree Reduction&lt;/li&gt;&lt;li&gt;Gap Amplification&lt;/li&gt;&lt;li&gt;字母表规约 (Alphabet Reduction)&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;本文基本上会按照&lt;a href=&quot;https://courses.cs.washington.edu/courses/cse533/05au/&quot;&gt;我校05年Venkatesan Guruswami 和 Ryan O&#39;Donnell的notes&lt;/a&gt;的顺序来讲。&lt;/p&gt;&lt;p&gt;欢迎大家提出任何证明和翻译上的问题。 &lt;/p&gt;&lt;p&gt;P.S. &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hash=&quot;0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hovercard=&quot;p$b$0251012c87c2d3f56ac34de7d71cdcbc&quot;&gt;@圆角骑士魔理沙&lt;/a&gt; 也在课上！&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Guanghao Ye</author>
-<guid isPermaLink="false">2018-05-22-37132427</guid>
-<pubDate>Tue, 22 May 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
