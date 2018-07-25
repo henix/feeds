@@ -5,7 +5,145 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 23 Jul 2018 23:33:03 +0800</lastBuildDate>
+<lastBuildDate>Wed, 25 Jul 2018 08:03:46 +0800</lastBuildDate>
+<item>
+<title>算法||LSTM</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-24-40449368.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40449368&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;LSTM Networks是递归神经网络（RNNs）的一种，该算法由Sepp Hochreiter和Jurgen Schmidhuber在Neural Computation上首次公布。后经过人们的不断改进，LSTM的内部结构逐渐变得完善起来（图1）。在处理和预测时间序列相关的数据时会比一般的RNNs表现的更好。目前，LSTM Networks已经被广泛应用在机器人控制、文本识别及预测、语音识别、蛋白质同源检测等领域。基于LSTM Networks在这些方面的优异表现，本推文旨在探究LSTM是否可以应用于股票时间序列的预测。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-40e8a6c2517c2d9f2324d0a2fdc9814b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;622&quot; data-rawheight=&quot;412&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-40e8a6c2517c2d9f2324d0a2fdc9814b&quot; data-watermark-src=&quot;v2-b5f7fdb6f2245c6b7e91de03d93903a6&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;b&gt;LSTM Networks 建模流程&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;处理股票时间序列的流程&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本推文使用的LSTM处理股票序列的流程如图2。构建LSTM模型使用库主要为Keras。&lt;/p&gt;&lt;p&gt;&lt;b&gt;数据获取与处理：&lt;/b&gt;对于时间序列，我们通常会以[X(t-n),X(t-n+1),…,X(t-1),X(t)]这n个时刻的数据作为输入来预测(t+1)时刻的输出。对于股票来说，在t时刻会有若干个features，因此，为了丰富features以使模型更加精确，本推文将n(time series)×s(features per time series)的二维向量作为输入。LSTM对于数据标准化的要求很高，因此本推文所有input数据均经过z-score标准化处理。&lt;/p&gt;&lt;p&gt;&lt;b&gt;LSTM模型构建：&lt;/b&gt;作为循环层的一种神经网络结构，只使用LSTM并不能构建出一个完整的模型，LSTM还需要与其他神经网络层（如Dense层、卷积层等）配合使用。此外，还可以构建多层LSTM层来增加模型的复杂性。&lt;/p&gt;&lt;p&gt;&lt;b&gt;回测：&lt;/b&gt;本推文进行的回测分为两种，一是直接将LSTM输出结果作为做单信号在个股上进行回测，二是将LSTM的预测结果作为一种择时信号，再配合其他选股模型（如BigQuant平台的StockRanker）进行回测。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-49b808f7911ab3dee7dae7491b18bcf3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;196&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-49b808f7911ab3dee7dae7491b18bcf3&quot; data-watermark-src=&quot;v2-6bbf089b1ab53b41c8625bcc4af35b7c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;b&gt;LSTM对沪深300未来五日收益率预测&lt;/b&gt;&lt;/p&gt;&lt;p&gt;综合以上两点，本推文所使用的输入和输出为利用过去30天的数据预测将来五天的收益。&lt;/p&gt;&lt;p&gt;测试对象：沪深300&lt;/p&gt;&lt;p&gt;数据选择和处理：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;input的时间跨度为30天，每天的features为[&#39;close&#39;,&#39;open&#39;,&#39;high&#39;,&#39;low&#39;,&#39;amount&#39;,&#39;volume&#39;]共6个，因此每个input为30×6的二维向量。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;output为未来5日收益future_return_5（future_return_5&amp;gt;0.2,取0.2;future_return_5&amp;lt;-0.2,取-0.2)，为使训练效果更加明显，output=future_return_5×10； features均经过标准化处理(在每个样本内每个feature标准化处理一次)。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;训练数据：沪深300 2005-01-01至2014-12-31时间段的数据；测试数据：沪深300 2015-01-01至2017-05-01时间段数据。&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;模型构建：鉴于数据较少（训练数据约2500个，预测数据约500个），因此模型构建的相对简单。模型共四层，为一层LSTM层+三层Dense层（图3）。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;回测：得到LSTM预测结果后，若LSTM预测值小于0，则记为-1，若大于0，记为1。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;部分代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 数据处理：设定每个input（30time series×6features）以及数据标准化
+train_input = []
+train_output = []
+test_input = []
+test_output = []
+for i in range(conf.seq_len-1, len(traindata)):
+    a = scale(scaledata[i+1-conf.seq_len:i+1])
+    train_input.append(a)
+    c = data[&#39;return&#39;][i]
+    train_output.append(c)
+for j in range(len(traindata), len(data)):
+    b = scale(scaledata[j+1-conf.seq_len:j+1])
+    test_input.append(b)
+    c = data[&#39;return&#39;][j]
+    test_output.append(c)
+
+# LSTM接受数组类型的输入
+train_x = np.array(train_input)
+train_y = np.array(train_output)
+test_x = np.array(test_input) 
+test_y = np.array(test_output)
+# 自定义激活函数
+import tensorflow as tf
+def atan(x): 
+    return tf.atan(x)
+
+# 构建神经网络层 1层LSTM层+3层Dense层
+# 用于1个输入情况
+lstm_input = Input(shape=(30,6), name=&#39;lstm_input&#39;)
+lstm_output = LSTM(128, activation=atan, dropout_W=0.2, dropout_U=0.1)(lstm_input)
+Dense_output_1 = Dense(64, activation=&#39;linear&#39;)(lstm_output)
+Dense_output_2 = Dense(16, activation=&#39;linear&#39;)(Dense_output_1)
+predictions = Dense(1, activation=atan)(Dense_output_2)
+
+model = Model(input=lstm_input, output=predictions)
+
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;, metrics=[&#39;mse&#39;])
+
+model.fit(train_x, train_y, batch_size=conf.batch, nb_epoch=10, verbose=2)
+
+# 预测
+predictions = model.predict(test_x)
+
+# 预测值和真实值的关系
+data1 = test_y
+data2 = predictions
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.plot(data2,data1, &#39;o&#39;, label=&quot;data&quot;)
+ax.legend(loc=&#39;best&#39;)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-fba00d7cf1300546eff924d31bbe5dc7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;495&quot; data-rawheight=&quot;361&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-fba00d7cf1300546eff924d31bbe5dc7&quot; data-watermark-src=&quot;v2-546896e11fffb7b6590b73b8d2668a6d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 如果预测值&amp;gt;0,取为1；如果预测值&amp;lt;=0,取为-1.为回测做准备
+for i in range(len(predictions)):    
+    if predictions[i]&amp;gt;0:
+        predictions[i]=1    elif predictions[i]&amp;lt;=0:
+        predictions[i]=-1
+
+# 将预测值与时间整合作为回测数据
+cc = np.reshape(predictions,len(predictions), 1)
+databacktest = pd.DataFrame()
+databacktest[&#39;date&#39;] = datatime
+databacktest[&#39;direction&#39;]=np.round(cc)&lt;/code&gt;&lt;p&gt;每个模型做两次回测，第一次回测（后文简称回测1）为直接以LSTM预测值在沪深300上做单：若LSTM预测值为1，买入并持有5day（若之前已持仓，则更新持有天数），若LSTM预测值为-1，若为空仓期，则继续空仓，若已持有股票，则不更新持有天数；&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二次回测（后文简称回测2）为以LSTM为择时指标，与StockRanker结合在3000只股票做单：若LSTM预测值为1，则允许StockRanker根据其排序分数买入股票，若LSTM预测值为-1，若为空仓期，则继续空仓，若已持有股票，则禁止StockRanker买入股票，根据现有股票的买入时间，5天内清仓；&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b1e30f42a79e874c0bc3b2d1a395035f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;136&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b1e30f42a79e874c0bc3b2d1a395035f&quot; data-watermark-src=&quot;v2-78e81f4dd1c057e0a56c0d4d160d6ee1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;b&gt;1)future_return_5是否二极化处理比较&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于future_return_5的处理分为两种情况，一种为直接将future_return_5作为output进行模型训练，二是将future_return_5二极化（future_return_5&amp;gt;0,取1；future_return_5&amp;lt;=0,取-1），然后将二极化后的数据作为output进行模型训练。&lt;/p&gt;&lt;p&gt;两种处理方法的回测情况如图4，图5。由于模型每次初始化权重不一样，每次预测和回测结果会有一些差别，但经过多次回测统计，直接将future_return_5作为output进行模型训练是一个更好的选择。在本推文接下来的讨论中，将会直接将future_return_5作为output进行模型训练。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-03bdabfee8f59a75e6eda470baeb893d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;468&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-03bdabfee8f59a75e6eda470baeb893d&quot; data-watermark-src=&quot;v2-2fadda2fb35a9479a343c43dda2bb81c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2ee3e51fe1ab0a31f5564506a9cbb7ec_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;474&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-2ee3e51fe1ab0a31f5564506a9cbb7ec&quot; data-watermark-src=&quot;v2-dbe6b9707d8cfe131f5adb6cb63350d7&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2)在权重上施加正则项探究&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;神经网络的过拟合：在训练神经网络过程中，“过拟合”是一项尽量要避免的事。神经网络“死记”训练数据。过拟合意味着模型在训练数据的表现会很好，但对于训练以外的预测则效果很差。原因通常为模型“死记”训练数据及其噪声，从而导致模型过于复杂。本推文使用的沪深300的数据量不是太多，因此防止模型过拟合就尤为重要。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;训练LSTM模型时，在参数层面上有两个十分重要的参数可以控制模型的过拟合：Dropout参数和在权重上施加正则项。Dropout是指在每次输入时随机丢弃一些features，从而提高模型的鲁棒性。它的出发点是通过不停去改变网络的结构，使神经网络记住的不是训练数据本身，而是能学出一些规律性的东西。正则项则是通过在计算损失函数时增加一项L2范数，使一些权重的值趋近于0，避免模型对每个feature强行适应与拟合，从而提高鲁棒性，也有因子选择的效果；在1)的模型训练中，我们加入了Dropout参数来避免过拟合。接下来我们尝试额外在权重上施加正则项来测试模型的表现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;回测结果如图6，加入正则项之后回测1和回测2的最大回撤均有下降，说明加入正则项后确实减轻了模型的过拟合。比较加入正则项前后回测1的持仓情况，可以看到加入正则化后空仓期更长,做单次数减少(19/17)，可以理解为：加入正则项之后，模型会变得更加保守。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;正则项的问题：经过试验,对于一个LSTM模型来说，正则项的参数十分重要，调参也需要长时间尝试，不合适的参数选择会造成模型的预测值偏正分布(大部分预测值大于0)或偏负分布，从而导致预测结果不准确，而较好的正则参数会使模型泛化性非常好(图6所用参数训练出来的模型的预测值属于轻度偏正分布)。本文之后的讨论仍会基于未加权重正则项的LSTM模型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-33156ad39591613a03c2f4001326ae99_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;473&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-33156ad39591613a03c2f4001326ae99&quot; data-watermark-src=&quot;v2-5310c6835ceeb0f0c32e6804f2fc2c41&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;3)双输入模型探究&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;除了传统的Sequential Model(一输入，一输出)外，本推文还尝试构建了Functional Model(支持多输入，多输出)。前面提到的features处理方法丢失了一项重要的信息：价格的高低。相同的input处在3000点和6000点时的future_return_5可能有很大不同。因此，本文尝试构建了&quot;二输入一输出&quot;的Functional Model：标准化后的features作为input输入LSTM，LSTM层的输出结果和一个指标-label(label=np.round(close/500))作为input输入后面的Dense层，最终输出仍为future_return_5(图7)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1960872c7a2a2199ea4a906552f861f8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;177&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-1960872c7a2a2199ea4a906552f861f8&quot; data-watermark-src=&quot;v2-d3ec043369162e1ff233548b5d6a6720&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;部分代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# LSTM与stockranker配合回测
+class conf:    start_date = &#39;2010-01-01&#39;    end_date=&#39;2017-05-01&#39;    # split_date 之前的数据用于训练，之后的数据用作效果评估    split_date = &#39;2015-01-01&#39;    instruments = D.instruments(start_date, end_date)    
+    label_expr = [&#39;return * 100&#39;, &#39;where(label &amp;gt; {0}, {0}, where(label &amp;lt; -{0}, -{0}, label)) + {0}&#39;.format(20)]    # 持有天数，用于计算label_expr中的return值(收益)    hold_days = 5
+    # 特征    features = [&#39;close_5/close_0&#39;,  # 5日收益    &#39;close_10/close_0&#39;,  # 10日收益    &#39;close_20/close_0&#39;,  # 20日收益    &#39;avg_amount_0/avg_amount_5&#39;,  # 当日/5日平均交易额    &#39;avg_amount_5/avg_amount_20&#39;,  # 5日/20日平均交易额    &#39;rank_avg_amount_0/rank_avg_amount_5&#39;,  # 当日/5日平均交易额排名    &#39;rank_avg_amount_5/rank_avg_amount_10&#39;,  # 5日/10日平均交易额排名    &#39;rank_return_0&#39;,  # 当日收益    &#39;rank_return_5&#39;,  # 5日收益    &#39;rank_return_10&#39;,  # 10日收益    &#39;rank_return_0/rank_return_5&#39;,  # 当日/5日收益排名    &#39;rank_return_5/rank_return_10&#39;,  # 5日/10日收益排名    &#39;pe_ttm_0&#39;,  # 市盈率TTM    ]
+# 给数据做标注：给每一行数据（样本）打分，一般分数越高表示越好
+m1 = M.fast_auto_labeler.v5(
+    instruments=conf.instruments, start_date=conf.start_date, end_date=conf.end_date,
+    label_expr=conf.label_expr, hold_days=conf.hold_days,
+    benchmark=&#39;000300.SHA&#39;, sell_at=&#39;open&#39;, buy_at=&#39;open&#39;
+)
+
+# 计算特征数据
+m2 = M.general_feature_extractor.v5(
+    instruments=conf.instruments, start_date=conf.start_date, end_date=conf.end_date,
+    features=conf.features)
+
+# 数据预处理：缺失数据处理，数据规范化，T.get_stock_ranker_default_transforms为StockRanker模型做数据预处理
+m3 = M.transform.v2(
+    data=m2.data, transforms=T.get_stock_ranker_default_transforms(),
+    drop_null=True, astype=&#39;int32&#39;, except_columns=[&#39;date&#39;, &#39;instrument&#39;],
+    clip_lower=0, clip_upper=200000000)
+
+# 合并标注和特征数据
+m4 = M.join.v2(data1=m1.data, data2=m3.data, on=[&#39;date&#39;, &#39;instrument&#39;], sort=True)
+
+# 训练数据集
+m5_training = M.filter.v2(data=m4.data, expr=&#39;date &amp;lt; &quot;%s&quot;&#39; % conf.split_date)
+
+# 评估数据集
+m5_evaluation = M.filter.v2(data=m4.data, expr=&#39;&quot;%s&quot; &amp;lt;= date&#39; % conf.split_date)
+
+# StockRanker机器学习训练
+m6 = M.stock_ranker_train.v2(training_ds=m5_training.data, features=conf.features)
+
+# 对评估集做预测
+m7 = M.stock_ranker_predict.v2(model_id=m6.model_id, data=m5_evaluation.data)
+
+# 生成卖出订单：hold_days天之后才开始卖出；对持仓的股票，按StockRanker预测的排序末位淘汰
+if databacktest[&#39;direction&#39;].values[databacktest.date==current_dt]==-1: # LSTM择时卖    instruments = list(reversed(list(ranker_prediction.instrument[ranker_prediction.instrument.apply(lambda x: x in equities and not context.has_unfinished_sell_order(equities[x]))])))        
+     for instrument in instruments:            
+         if context.trading_calendar.session_distance(pd.Timestamp(context.date[instrument]), pd.Timestamp(current_dt))&amp;gt;=5:
+                context.order_target(context.symbol(instrument), 0)if not is_staging and cash_for_sell &amp;gt; 0:
+    instruments = list(reversed(list(ranker_prediction.instrument[ranker_prediction.instrument.apply(lambda x: x in equities and not context.has_unfinished_sell_order(equities[x]))])))        
+    # print(&#39;rank order for sell %s&#39; % instruments)    for instrument in instruments:
+        context.order_target(context.symbol(instrument), 0)
+        cash_for_sell -= positions[instrument]            
+        if cash_for_sell &amp;lt;= 0:                
+            break
+            
+# 生成买入订单：按StockRanker预测的排序，买入前面的stock_count只股票
+if databacktest[&#39;direction&#39;].values[databacktest.date==current_dt]==1: # LSTM择时买    buy_dt = data.current_dt.strftime(&#39;%Y-%m-%d&#39;)
+    context.date=buy_dt
+    buy_cash_weights = context.stock_weights
+    buy_instruments = list(ranker_prediction.instrument[:len(buy_cash_weights)])
+    max_cash_per_instrument = context.portfolio.portfolio_value * context.max_cash_per_instrument        
+    for i, instrument in enumerate(buy_instruments):
+        cash = cash_for_buy * buy_cash_weights[i]            
+        if cash &amp;gt; max_cash_per_instrument - positions.get(instrument, 0): # 确保股票持仓量不会超过每次股票最大的占用资金量            cash = max_cash_per_instrument - positions.get(instrument, 0)            
+        if cash &amp;gt; 0:
+            context.order_value(context.symbol(instrument), cash)
+            buy_dates[instrument] = current_dt
+
+context.date = buy_dates&lt;/code&gt;&lt;p&gt;回测结果如图8。由回测结果可以看出，加入指示标后的LSTM模型收益率相对下降，但是回撤更小。LSTM预测值小于0的时间段覆盖了沪深300上大多数大幅下跌的时间段,虽然也错误地将一些震荡或上涨趋势划归为下跌趋势。或许这是不可避免的，俗话说高风险高回报，风险低那么回报也不会非常高，高回报和低风险往往不可兼得。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3b68f728634de83ee3dd394e8de8e1a1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;472&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3b68f728634de83ee3dd394e8de8e1a1&quot; data-watermark-src=&quot;v2-49198b1d13b4b81b1149699dc27afb39&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论与展望&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论：&lt;/b&gt;本推文通过探究性地应用LSTM对沪深300未来五日收益率进行预测，初步说明了LSTM Networks是可以用在股票市场上的。由于LSTM更适用于处理个股/指数，因此，将LSTM作为择时模型与其他选股模型配合使用效果较好。利用LSTM模型对沪深300数据进行预测并将结果作为择时信号，可以显著改善stockranker选股模型在回测阶段的回撤。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;展望：&lt;/b&gt;由于个股数据量较少，LSTM模型的可扩展程度和复杂度受到很大制约，features的选择也受到限制（若input的features太多，而data较少的话，会使一部分features不能发挥出应有的作用，也极易造成过拟合）。将来我们希望能在个股/指数的小时或分钟数据上测试LSTM的性能。另外，将探究LSTM模型能否将属于一个行业的所有股票data一起处理也是一个可选的方向。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;说明：&lt;/b&gt;由于每次训练LSTM模型权重更新情况不同以及Dropout的随机性，LSTM模型的每次训练训练结果都会有差异。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;提示：&lt;/b&gt;由于LSTM涉及参数众多，目前还不能保证LSTM模型的稳定性，本推文所附回测结果均为多次训练模型后选取的较为理想的情况，目的是说明LSTM是可以应用于股票市场的以及将其作为择时模型是可能的。本推文所述以及提供的代码仅供探究及讨论，若要形成一个在股票市场比较实用的LSTM模型，还需要在features选择、模型构建、模型参数选择以及调优等方面花费大量精力。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>量化家</author>
+<guid isPermaLink="false">2018-07-24-40449368</guid>
+<pubDate>Tue, 24 Jul 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>【中信证券】量化实习生招聘（2019应届生）</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-24-40441698.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40441698&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;中信证券招聘量化实习生，优异者可留用（2019年校园招聘）。&lt;/p&gt;&lt;p&gt;实习招聘部门：中信证券股权衍生品业务线&lt;/p&gt;&lt;p&gt;股权衍生品业务线是中信证券开展权益类产品交易的业务部门，其业务模式是依托中信证券的信用和资产负债表，作为产品设计者和交易对手方，面向机构和零售客户提供种类丰富的与权益资产相关的投融资产品，满足客户各项需求。 &lt;/p&gt;&lt;p&gt;工作地：北京 亮马桥 中信证券总部。 &lt;/p&gt;&lt;p&gt;有意者请将简历寄送至EQ_HR@citics.com，2018年8月15日之前有效。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;职责： &lt;/p&gt;&lt;p&gt;1、负责数据整理、挖掘、统计分析、展示； &lt;/p&gt;&lt;p&gt;2、从数据中发现规律，为量化分析提供支持； &lt;/p&gt;&lt;p&gt;3、开发量化模型策略； &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;要求：&lt;/p&gt;&lt;p&gt;1、2019年毕业的硕士、博士。&lt;/p&gt;&lt;p&gt;2、知名院校的数学/统计、物理、计算机、电子或其他相关理工科专业； &lt;/p&gt;&lt;p&gt;3、一流的概率统计能力，严谨的研究习惯； &lt;/p&gt;&lt;p&gt;4、有一定的编程能力，至少熟悉Python和C++其中一门编程语言； &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;加分项： &lt;/p&gt;&lt;p&gt;1、顶级的研究能力，有领先的学术成果； &lt;/p&gt;&lt;p&gt;2、学科竞赛、ACM-ICPC获奖； &lt;/p&gt;&lt;p&gt;3、熟悉深度学习原理和基本模型，熟练使用 Tensorflow，并能够灵活的解决实际问题。有过大型机器学习、数据挖掘实践项目者优先； &lt;/p&gt;&lt;p&gt;4、爬虫以及文本处理项目经历； &lt;/p&gt;&lt;p&gt;5、熟悉linux系统的非桌面环境, 良好的编码风格； &lt;/p&gt;</description>
+<author>zhiqiang</author>
+<guid isPermaLink="false">2018-07-24-40441698</guid>
+<pubDate>Tue, 24 Jul 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>策略||缠论</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-23-40365211.html</link>
@@ -220,24 +358,6 @@ if __name__ == &quot;__main__&quot;:
 <author>zhanggao2013</author>
 <guid isPermaLink="false">2018-07-11-39536634</guid>
 <pubDate>Wed, 11 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>路遥知马力，日久见股心</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-10-39437481.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39437481&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f697f574b4770447df833f52cac099c7_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;用时间的成果反推，有时候最能洞见事物的本质。&lt;/b&gt;以往说技术分析，常讲技术分析是一种概率方法而不是确定方法。技术分析的本质，是通过保证多数时候赚钱少数时候亏钱，从而实现稳定盈利。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;但很多时候，基本面分析又何尝不是如此呢。&lt;/b&gt;因为你可能分析了公司的经营模式、高管素质、股东结构、财务状况等等，在深度总结了公司的优势、劣势、机遇和挑战后，信心十足地以为自己发现了一只大牛股。&lt;/p&gt;&lt;p&gt;不想，一朝黑天鹅，宣告你的所以分析成为泡影，甚至你之前所看到的一切都是假象。可能这只小牛股压根就是只庄股，甚至连会计都是用的假名。&lt;/p&gt;&lt;p&gt;此时也只能怪主力太狡猾，大股东太没良心，股市太黑暗，证监会保护不力，在挥刀割肉后，伤心离去。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;基本面分析也是有正确概率的。&lt;/b&gt;你不可能通过基本面分析，乃至高超的基本面分析，抓到所有牛股，且保证自己不踩一次雷，这个不现实。纵然分析得对，但对未来你一无所知，甚至那家公司的高管对公司的前景也只有憧憬而已，对于未来会怎样，同样一无所知。&lt;/p&gt;&lt;p&gt;你在用自己的钱博弈公司未来的时候，高管也在驾驭公司乘风破浪。商业竞争很残酷，你不知道你投资的公司会不会某一天业绩大变脸，乃至突然被ST，之后喜迎N个跌停板。公司高管也不知道会不会一不小心，就把公司驶到了沟里。上述两种情况很多。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;比尔.盖茨说过，微软离破产只有18个月。&lt;/b&gt;李彦宏也曾说，百度离破产只有三天。在公司的成长甚至是生存道路上，危机一直相伴。&lt;b&gt;公司从初创到壮大，经历的绝对不止九九八十一难。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;但有一点毋庸置疑，你投资微软和百度的成功率，绝对比投资一家不知名公司的成功率要高，甚至高很多。&lt;/p&gt;&lt;p&gt;因为在创业路上，最终能壮大的公司，都是踩过无数坑之后，存活并站起来的公司。&lt;/p&gt;&lt;p&gt;行业龙头，更是从行业的搏杀中脱颖而出的优秀代表。即便以后它们还会遇到相似的困境，但它们大抵都有了战胜困境的决心和底气。从统计数据来讲也是如此，初创公司的死亡率超过9成，而商业巨头的倒下少之又少。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;再说到咱们的上市公司，之前听到过这种论调，说中国企业那么多，能上市都是优秀的公司。能上市，必然就有上市的道理。&lt;/p&gt;&lt;p&gt;对于这一点，我承认一半。&lt;/p&gt;&lt;p&gt;那一半是，企业能有小到大，本就不易。它可能是靠管理层和全体员工的拼搏，也可能是靠抓住了时代的机遇，也可能是掌握了得天独厚的资源。&lt;/p&gt;&lt;p&gt;不承认的一半是，&lt;b&gt;上市的原因很多，不一定是自身优秀，而先辈福蕴肯定不算自己优秀，且过去优秀不代表现在和未来优秀。&lt;/b&gt;咱们用上学来打比方，从小学升上初中可能代表着优秀，从初中升上高中可能也代表着优秀，从高中考上大学也能代表优秀，但从大学到完美就业也是优秀……但是这个人最终是否优秀，不能只通过一小段学生时代的表现，那不具有代表性。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;人生和投资一样，都是长跑，以前的优秀只能代表过去。&lt;/b&gt;如果把公司上市比喻成上大学的话，考上大学确实优秀，但考上大学后，它还是否继续奋进，又是另一回事了。&lt;/p&gt;&lt;p&gt;前段时间不还有人说，中国大学生太轻松太堕落了么，要把大学的学业加重，也是类似的道理。公司上市之后，确实轻松了。作业做得不好，公司没钱了，可以找股东融资嘛。连续不及格两年，濒临退学，第三年可以想想办法嘛。&lt;/p&gt;&lt;p&gt;由于已经考上大学了，自然学业上也就松懈了，再也没有了拼搏精神，这种情况也是超级多。由于已经上市，老板已经套现很多，后期减持更是利润丰厚，于是再也没有想要靠公司壮大赚钱的欲望，努力改善生活才是正理，这种状况更多。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;因此，不能单纯认为一个大学生就是优秀人才，得至少看过了他大一、大二的表现后再说。&lt;b&gt;不能简单认为一个上市公司就是优秀公司，至少得看它上市后几年的年报才能知道&lt;/b&gt;，看它业绩有没有松懈、滑坡、虚假，才能认定它是不是一家优秀的公司。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;公司从初创到上市很难，从新上市到稳健壮大，更难。&lt;/b&gt;但至少到上市这一层面，已经过滤掉了很多的公司了。而从收益上来讲，从新上市到壮大，需要翻很多倍，但从稳健壮大到更壮大，膨胀的程度却很有限。&lt;/p&gt;&lt;p&gt;所以很多人都喜欢小盘股，喜欢在中小创里面去挑选牛股。但正如上文所言，从新上市公司到很壮大这条路上，也有很多公司折戟，比如春兰股份。&lt;b&gt;当年的春兰空调多么出名，但今天，空调的巨头是格力&lt;/b&gt;。当初的康佳、长虹多么优秀，但今天A股市场已经没有了彩电巨头。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;投资新上市公司，命中率是不高的&lt;/b&gt;。正如文章开头说的，这也是基本面分析的概率性。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;话分两头，&lt;b&gt;最后说说基本面分析的高确定性，和 适合更多投资者的投资方法&lt;/b&gt;，&lt;b&gt;也就是投资巨头&lt;/b&gt;。因为巨头倒下的概率很低，且纵有这种可能，也可以通过适度的分散来降低这种风险，这是一种非常稳健的投资方法。&lt;/p&gt;&lt;p&gt;因为行业龙头都经过了时间的考验，有多年的好成绩打底，即使碰到恶劣的环境，他们也比很多公司更能适应。最明显的迹象就是，即使在最差的光景，行业龙头大多也能保持盈利。&lt;b&gt;那都是经验的财富，和踩过无数坑攒下的底气。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;好了，这里已经告诉大家提高基本面分析成功率的方法了，下面贴一张图。蓝色部分代表的是机会点，图还没做完，先贴一贴（个人思考，仅供参考，欢迎交流）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-49706f5c61a3b2c19780ce14a3cb4af5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;558&quot; data-rawheight=&quot;153&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-49706f5c61a3b2c19780ce14a3cb4af5&quot; data-watermark-src=&quot;v2-7dd2c2ba6d88fd01dc1acd638eaf4f07&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;br&gt;PS：最近为大家准备了一套投资书籍，如果有感兴趣的朋友，&lt;b&gt;可以公举号关注：股知录&lt;/b&gt;，回复关键词“投资书籍” 领取&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>歌弦</author>
-<guid isPermaLink="false">2018-07-10-39437481</guid>
-<pubDate>Tue, 10 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>贸易战与量化交易</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-07-39235808.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39235808&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;中美贸易冲突持续发酵，原来美国是对中国340亿美元商品征收关税，现在特朗普又狮子打开头要求对5000亿美元商品征税，可见没完没了。&lt;/p&gt;&lt;p&gt;美国最近经济发展不错，股市涨的好，失业率跌的好，但由于特朗普的政策几乎没有一个落地的，而且按照惯例新总统前两年的政绩一般算旧总统的，因此现在的成绩可以看成是奥巴马政策延续的结果。&lt;/p&gt;&lt;p&gt;其实很简单的道理：美国失业率2010年突破10%之后，到奥巴马离任时下降到4%左右，特朗普这两年顺势倒3.9%，即使创最近十几年新低，但正常逻辑来说这算是奥巴马的功劳。不排除一些人逻辑不大正常。&lt;/p&gt;&lt;p&gt;比如像小布什执政期间，2002-2007这5年大牛市，保守派说这是小布什的功劳；然后2007、2008来了个次贷危机，然后保守派说这是克林顿的错。这个逻辑确实有点绕——正常来说，如果克林顿宽松的贷款政策导致了2008的危机，但2002-2007的繁荣也同样是宽松贷款政策的结果；换一句话，如果小布什觉得这个政策有问题，他完全可以在共和党控制两院的情况下废除它。&lt;/p&gt;&lt;p&gt;&lt;b&gt;所以，正常逻辑，2002-2007的繁荣很大程度上是克林顿的功劳；但2007、2008的金融危机，小布什难辞其咎。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;其实我发现很多做量化交易的人，意识形态过于浓厚，失去了客观的判断力和研究能力，这样子的人做交易是相当危险的。&lt;/p&gt;&lt;p&gt;比如分析贸易战，它的起因无外乎三种情况：&lt;/p&gt;&lt;p&gt;1.这是美国跟中国的根本矛盾使然，无论谁当总统都会干；&lt;/p&gt;&lt;p&gt;2.这是共和党为了自身底层白人蓝领选票使然，换了民主党就没有贸易战了；&lt;/p&gt;&lt;p&gt;3.这是特朗普个人所为，换一个总统，哪怕还是共和党，也不会打；&lt;/p&gt;&lt;p&gt;我们一个一个来看。要知道，奥巴马这8年，每年给中国送4000亿美元顺差，8年下来，中国外汇储备3万多亿美元。所以，并不是每个总统都会打贸易战。特朗普自己也说，之前的总统对中国过于友好，他要把过去送的钱拿回来。&lt;/p&gt;&lt;p&gt;对于第2点，客观上是存在的，特朗普也说过雇美国人用美国货，因此更多是共和党从自身党派利益出发，来打这个贸易战。&lt;/p&gt;&lt;p&gt;对于第3点，则更加显然。其实特朗普政府内部也有几股势力，有的对中国友好一些，有的对中国强硬一些。但由于特朗普本人对中国比较强硬，所以目前强硬派占上风。因此，换个总统，哪怕还是共和党，这种力度都会有所下降。&lt;/p&gt;&lt;p&gt;&lt;b&gt;因此，斗争的对象，不应该是整个美国，毕竟民主党是无辜的。斗争的焦点更应该是共和党，特别是特朗普。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;但不少量化从业人员思维逻辑感人，非得说是中美之间不可调和的矛盾，拉民主党下水，这就不对了。&lt;/p&gt;&lt;p&gt;话说回来，贸易战打下来，中国股市大幅下挫，倒是让很多股票类产品净值大幅下滑，不管对冲不对冲，似乎都大幅下滑。但现在貌似也似乎没有见底的迹象。说实话，人民币也大幅度贬值，国家四处缺钱，债券要还利息的，股票反而是低成本融资，因此，股市为国民经济将继续输血。&lt;/p&gt;&lt;p&gt;既然如此，股票这么难做，还是做期货好了。由于特朗普反复无常，也导致商品市场波动剧烈，增加了赚钱的机会。很多这些基本面都难以把握，量化反而有一定优势。因此，新入行者，不妨考虑交易期货。&lt;/p&gt;&lt;p&gt;这年头，赚点钱不容易。听说还要个税改革，明减暗升。找工作的时候，则更应该看重确定的基本工资而不是虚无的奖金，毕竟现在奖金的税率是打进工资交的，将会非常高，公司大概率递延12个月发。那还不如确定的工资好了。从这个角度，私募的吸引力大幅下降，毕竟人家喜欢说“工资只是零花钱”，意味着奖金打税非常严重。&lt;/p&gt;&lt;p&gt;我拉的6群也有400人左右，里面有不少公司HR和猎头，海内外都有，欢迎大家加我微信aaliwei91入群。&lt;/p&gt;</description>
-<author>babyquant</author>
-<guid isPermaLink="false">2018-07-07-39235808</guid>
-<pubDate>Sat, 07 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
