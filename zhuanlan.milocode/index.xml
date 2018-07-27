@@ -5,7 +5,114 @@
 <link>https://henix.github.io/feeds/zhuanlan.milocode/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 21 Jun 2018 02:41:11 +0800</lastBuildDate>
+<lastBuildDate>Fri, 27 Jul 2018 10:26:14 +0800</lastBuildDate>
+<item>
+<title>用C语言实现井字棋（上）</title>
+<link>https://henix.github.io/feeds/zhuanlan.milocode/2018-07-25-39581573.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39581573&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c43e48d68c4d756e3a1a016f910f1382_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;在 &lt;a href=&quot;https://www.zhihu.com/question/284523599/answer/438445079&quot;&gt;Milo Yip：用C++编写游戏容易吗？有什么开源的小游戏吗？能分享一下吗？&lt;/a&gt; 这个答案中，我提到学习游戏编程可从回合制游戏开始，例如井字棋。&lt;/p&gt;&lt;p&gt;考虑到一些&lt;b&gt;初学者&lt;/b&gt;的学习需求，我就写一个井字棋的教程吧。上篇实现二人游戏，下篇加上「人工智能」后约有 100 行 C 语言代码。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;1. 游戏状态的表示&lt;/h2&gt;&lt;p&gt;首先，我认为表示方法（representation）是编程中应最先要考虑的事情。对于回合制游戏，我们需要存储一个回合中的游戏状态（game state）。&lt;/p&gt;&lt;p&gt;以下用一个结构体表示井字棋一个回合中的状态，并加入函数作初始化：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;typedef struct {
+    int board[3][3];    // -1 = empty, 0 = O, 1 = X
+    int turn;           // O first
+} state;
+
+void init(state* s) {
+    int i, j;
+    for (j = 0; j &amp;lt; 3; j++)
+        for (i = 0; i &amp;lt; 3; i++)
+            s-&amp;gt;board[j][i] = -1;
+    s-&amp;gt;turn = 0;
+}&lt;/code&gt;&lt;p&gt;以上用二维数组存储棋盘（board）是其中一种表示方式，另一种方式则是记录每个回合下棋子的位置。我们采用前者是因为它较容易实现胜负判定。有些回合制游戏可能使用冗余的表示方式，以方便实现各种规则。&lt;/p&gt;&lt;p&gt;而使用结构体而不是直接用全局变量，可带来一些优点，例如增强可读性及内聚性。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;2. 显示游戏状态&lt;/h2&gt;&lt;p&gt;编写游戏时，我们通常希望先显示游戏状态，之后才加入其他规则，因为这样可以方便测试。&lt;/p&gt;&lt;p&gt;我希望用这样的文本显示游戏状态，当空置时写上位置编号（1-9），以方便玩家输入下棋位置：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt; 1 | 2 | 3 
+---+---+---
+ 4 | 5 | 6 
+---+---+---
+ 7 | 8 | 9 &lt;/code&gt;&lt;p&gt;简单直白地编写代码的话：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void display(const state* s) {
+    int i, j;
+    for (j = 0; j &amp;lt; 3; j++) {
+        for (i = 0; i &amp;lt; 3; i++) {
+            switch (s-&amp;gt;board[j][i]) {
+                case -1: printf(&quot; %d &quot;, j * 3 + i + 1); break;
+                case  0: printf(&quot; O &quot;); break;
+                case  1: printf(&quot; X &quot;); break;
+            }
+            if (i &amp;lt; 2)
+                printf(&quot;|&quot;);
+            else
+                printf(&quot;\n&quot;);
+        }
+        if (j &amp;lt; 2)
+            printf(&quot;---+---+---\n&quot;);
+        else
+            printf(&quot;\n&quot;);
+    }
+}&lt;/code&gt;&lt;p&gt;由于 &lt;code class=&quot;inline&quot;&gt;display()&lt;/code&gt; 只读而不改变游戏状态，所以其参数类型为 &lt;code class=&quot;inline&quot;&gt;const state*&lt;/code&gt;。 &lt;/p&gt;&lt;p&gt;我们稍压缩一下代码：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void display(const state* s) {
+    int i, j;
+    for (j = 0; j &amp;lt; 3; printf(++j &amp;lt; 3 ? &quot;---+---+---\n&quot; : &quot;\n&quot;))
+        for (i = 0; i &amp;lt; 3; putchar(&quot;||\n&quot;[i++]))
+            printf(&quot; %c &quot;, s-&amp;gt;board[j][i] == -1 ? &#39;1&#39; + j * 3 + i : &quot;OX&quot;[s-&amp;gt;board[j][i]]);
+}&lt;/code&gt;&lt;p&gt;我们可以加入 &lt;code class=&quot;inline&quot;&gt;main()&lt;/code&gt; 函数去显示初始化的状态：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int main() {
+    state s;
+    init(&amp;amp;s);
+    display(&amp;amp;s);
+} &lt;/code&gt;&lt;p&gt;此阶段的完整代码位于 &lt;a href=&quot;https://github.com/miloyip/misc/blob/master/tictactoe/tictactoe0.c&quot;&gt;tictactoe0.c&lt;/a&gt;。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;3. 实现下棋&lt;/h2&gt;&lt;p&gt;然后，我们加入第一个游戏规则，就是下棋：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int move(state* s, int i, int j) {
+    if (s-&amp;gt;board[j][i] != -1)
+        return 0;
+    s-&amp;gt;board[j][i] = s-&amp;gt;turn++ % 2;
+    return 1;
+}&lt;/code&gt;&lt;p&gt;函数内做了一个合法性判断，如果该位置已有棋子，则返回 0 表示失败。成功的话，在偶数回合填入 0，表示 O；奇数回合填入 1，表示 X；然后都把回合加一。&lt;/p&gt;&lt;p&gt;更改 &lt;code class=&quot;inline&quot;&gt;main()&lt;/code&gt; 简单测试： &lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int main() {
+    state s;
+    init(&amp;amp;s);
+    display(&amp;amp;s);
+    move(&amp;amp;s, 1, 1);
+    display(&amp;amp;s);
+    move(&amp;amp;s, 0, 1);
+    display(&amp;amp;s);
+}&lt;/code&gt;&lt;p&gt;输出：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-416ea35bcab6968eb0f15953cac392c5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;162&quot; data-rawheight=&quot;504&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;此阶段的完整代码位于 &lt;a href=&quot;https://github.com/miloyip/misc/blob/master/tictactoe/tictactoe1.c&quot;&gt;tictactoe1.c&lt;/a&gt;。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;4. 处理输入&lt;/h2&gt;&lt;p&gt;在每一回合中，提示当前玩家（O 或 X），并让玩家输入一个下棋位置（1-9），如果位置不合法，则重新输入：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void human(state* s) {
+    char c;
+    do {
+        printf(&quot;%c: &quot;, &quot;OX&quot;[s-&amp;gt;turn % 2]);
+        c = getchar();
+        while (getchar() != &#39;\n&#39;);
+        printf(&quot;\n&quot;);
+    } while (c &amp;lt; &#39;1&#39; || c &amp;gt; &#39;9&#39; || !move(s, (c - &#39;1&#39;) % 3, (c - &#39;1&#39;) / 3));
+}&lt;/code&gt;&lt;p&gt;在标准输入中，要到回车键才能处理输入，所以这里我们读了第一个输入字符后，就忽略其他字符直到读到换行符。我们把表示位置的字符转换成二维数组索引。&lt;/p&gt;&lt;p&gt;然后，就可以修改 &lt;code class=&quot;inline&quot;&gt;main()&lt;/code&gt; 实现二人下棋的流程： &lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int main() {
+    state s;
+    init(&amp;amp;s);
+    display(&amp;amp;s);
+    while (s.turn &amp;lt; 9) {
+        human(&amp;amp;s);
+        display(&amp;amp;s);
+    } 
+}&lt;/code&gt;&lt;p&gt;此阶段的完整代码位于 &lt;a href=&quot;https://github.com/miloyip/misc/blob/master/tictactoe/tictactoe2.c&quot;&gt;tictactoe2.c&lt;/a&gt;。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;5. 胜负判定&lt;/h2&gt;&lt;p&gt;众所周知，井字棋的胜利条件，是有三个棋子在横线、直线或斜线连成一线。我们实现一个 &lt;code class=&quot;inline&quot;&gt;evaluate()&lt;/code&gt; 函数去评估棋局的状态，如果 O 胜出则返回 1，X 胜出则返回 -1，不分胜负则返回 0：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define CHECK(j1, i1, j2, i2, j3, i3) \
+    if (s-&amp;gt;board[j1][i1] != -1 &amp;amp;&amp;amp; s-&amp;gt;board[j1][i1] == s-&amp;gt;board[j2][i2] &amp;amp;&amp;amp; s-&amp;gt;board[j1][i1] == s-&amp;gt;board[j3][i3]) \
+        return s-&amp;gt;board[j1][i1] == 0 ? 1 : -1;
+
+int evaluate(const state* s) {
+    int i;
+    for (i = 0; i &amp;lt; 3; i++) {
+        CHECK(i, 0, i, 1, i, 2);    // horizontal
+        CHECK(0, i, 1, i, 2, i);    // vertical
+    }
+    CHECK(0, 0, 1, 1, 2, 2);        // diagonal
+    CHECK(0, 2, 1, 1, 2, 0);        // diagonal
+    return 0;
+}&lt;/code&gt;&lt;p&gt;上面的代码使用了一个宏 &lt;code class=&quot;inline&quot;&gt;CHECK()&lt;/code&gt; 去检测三个位置是否都为相同的棋子，如是则直接返回胜方。&lt;/p&gt;&lt;p&gt;最后，我们在 &lt;code class=&quot;inline&quot;&gt;main()&lt;/code&gt; 中，待每次下棋及显示状态后， 判定是否出现胜方，如果到达第 9 个回合（回合从 0 开始），则判定是平局（draw）：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int main() {
+    state s;
+    init(&amp;amp;s);
+    display(&amp;amp;s);
+    while (s.turn &amp;lt; 9) {
+        human(&amp;amp;s);
+        display(&amp;amp;s);
+        switch (evaluate(&amp;amp;s)) {
+            case  1: printf(&quot;O win\n&quot;); return 0;
+            case -1: printf(&quot;X win\n&quot;); return 0;
+        }
+    } 
+    printf(&quot;Draw\n&quot;);
+}&lt;/code&gt;&lt;p&gt;此阶段的完整代码位于 &lt;a href=&quot;https://github.com/miloyip/misc/blob/master/tictactoe/tictactoe3.c&quot;&gt;tictactoe3.c&lt;/a&gt;。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;6. 总结&lt;/h2&gt;&lt;p&gt;本篇实现了二人井字棋，它是一个简单的回合制游戏。我们先选择了游戏的状态表示方式（&lt;code class=&quot;inline&quot;&gt;state&lt;/code&gt;结构体及&lt;code class=&quot;inline&quot;&gt;init()&lt;/code&gt;函数），然后把状态以文本形式显示（&lt;code class=&quot;inline&quot;&gt;display()&lt;/code&gt;函数），加入每回合下棋规则（&lt;code class=&quot;inline&quot;&gt;move()&lt;/code&gt;函数），以及人类玩家的输入处理（&lt;code class=&quot;inline&quot;&gt;human()&lt;/code&gt;函数），并作胜负判定（&lt;code class=&quot;inline&quot;&gt;evaluate()&lt;/code&gt;函数），最后在&lt;code class=&quot;inline&quot;&gt;main()&lt;/code&gt;里则实现了按回合的循环及输出胜负结果。&lt;/p&gt;&lt;p&gt;虽然这个游戏本身以及 60 行的示例代码都很简单，但这个框架可以用于实现其他（更复杂的）回合制游戏。实时游戏（如动作游戏）的主要区别，其实也只在于把输入部分做成非阻塞的函数，而该循环则称为游戏循环（game loop）。&lt;/p&gt;&lt;p&gt;下篇将加入不败的「人工智能」。&lt;/p&gt;</description>
+<author>Milo Yip</author>
+<guid isPermaLink="false">2018-07-25-39581573</guid>
+<pubDate>Wed, 25 Jul 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>用C语言画希尔伯特曲线</title>
 <link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-20-38276467.html</link>
@@ -742,52 +849,6 @@ a &amp;amp;= c + d -b
 <author>Milo Yip</author>
 <guid isPermaLink="false">2017-11-19-31188118</guid>
 <pubDate>Sun, 19 Nov 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>用 C 语言画光（五）：折射</title>
-<link>https://henix.github.io/feeds/zhuanlan.milocode/2017-11-18-31127076.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31127076&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e54f30d3a5bd8ac6f6127ce83fa50e31_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;与&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30961545&quot;&gt;上篇反射&lt;/a&gt;（reflection）成对出现的光学现象就是折射（refraction）。当光从一个介质（medium）进入另一个介质，便会出现这两种现象。&lt;/p&gt;&lt;p&gt;基于能量守恒，当没有能量散失时，反射光的能量与折射光的能量之和等于入射光的能量。在本篇中我们先假设反射和折射的比率是恒定的，例如一个形状的表面总是会反射 20% 的入射光，并折射 80% 的入射光。&lt;/p&gt;&lt;p&gt;但我们知道，折射的方向会改变（所以才称为「折」射），那么怎样计算折射方向呢？&lt;/p&gt;&lt;h2&gt;1. 斯涅尔定律&lt;/h2&gt;&lt;p&gt;读者可能在中学阶段已学会斯涅尔定律（Snell&#39;s law），它描述了入射角、折射角与介质折射率（refractive index）的关系：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-95c45d555e019f30ab9a4f4529d087bb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;710&quot; data-rawheight=&quot;709&quot;&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \eta_1 \sin \theta_1 &amp;amp;= \eta_2 \sin \theta_2\\ \Leftrightarrow \frac{\sin \theta_2}{\sin \theta_1} &amp;amp;= \frac{\eta_1}{\eta_2} \end{align}\\ &lt;/equation&gt; &lt;/p&gt;&lt;p&gt;当 &lt;equation&gt;\eta_1 &amp;gt; \eta_2&lt;/equation&gt; 时，例如光线从玻璃（ &lt;equation&gt;\eta_1\approx1.5&lt;/equation&gt; ）进入空气（ &lt;equation&gt;\eta_2\approx 1&lt;/equation&gt; ），会有机会出现内全反射（total internal reflection），从斯涅尔定律分析：&lt;/p&gt;&lt;p&gt;&lt;equation&gt; \sin \theta_2 = \frac{\eta_1}{ \eta_2} \sin \theta_1\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;如果 &lt;equation&gt;\eta_1 &amp;gt; \eta_2 \Leftrightarrow \frac{\eta_1}{\eta_2} &amp;gt; 1&lt;/equation&gt; ，某些入射角 &lt;equation&gt;\theta_1&lt;/equation&gt; 范围会令右侧大于 1，左侧便会超出正弦的值域 &lt;equation&gt;[-1, 1]&lt;/equation&gt; 。在这种情况下，不会发生折射，所有入射光会完全反射。我们把上式左侧设为 1，则可求出临界角（critical angle）：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;1 = \frac{\eta_1}{ \eta_2} \sin \theta_c\\ \Leftrightarrow \theta_c = \sin^{-1}\frac{\eta_2}{ \eta_1}\\&lt;/equation&gt; &lt;/p&gt;&lt;h2&gt;2. 折射矢量&lt;/h2&gt;&lt;p&gt;我们以矢量表示光线方向，需要求出折射方向。这会比上一篇反射复杂一点点。先看图：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0965d651f38f1739b3ff43a0da85d034_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;710&quot; data-rawheight=&quot;709&quot;&gt;&lt;p&gt;与反射不一样，折射最好使用单位矢量表示入射方向 &lt;equation&gt;\hat{\mathbf{i}}&lt;/equation&gt; 和折射方向 &lt;equation&gt;\hat{\mathbf{t}}&lt;/equation&gt; 。这里还定义了界面的切线方向 &lt;equation&gt;\hat{\mathbf{m}}&lt;/equation&gt; 。从上图可以看到，折射矢量可从法线方向与切线方向的矢量之和得出：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\hat{\mathbf{t}} = \sin \theta_2 \hat{\mathbf{m}} -\cos \theta_2 \hat{\mathbf{n}}\tag{1}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;接下来，我们要把上式各部分以 &lt;equation&gt;\hat{\mathbf{i}}, \hat{\mathbf{n}},\eta_1,\eta_2&lt;/equation&gt; 表示。切线 &lt;equation&gt;\hat{\mathbf{m}}&lt;/equation&gt; 可以从入射方向 &lt;equation&gt;\hat{\mathbf{i}}&lt;/equation&gt; 分解得出：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \hat{\mathbf{i}} &amp;amp;= (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})\hat{\mathbf{n}}\ + \sin \theta_1 \hat{\mathbf{m}}\\ \Leftrightarrow \hat{\mathbf{m}} &amp;amp;= \frac{\hat{\mathbf{i}} - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})\hat{\mathbf{n}}}{\sin \theta_1 }\tag{2} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;然后 &lt;equation&gt;\sin\theta_2&lt;/equation&gt; 可通过斯涅尔定律以 &lt;equation&gt;\sin\theta_1, \eta_1, \eta_2&lt;/equation&gt; 表示，而 &lt;equation&gt;\sin\theta_1&lt;/equation&gt; 又可以转换成点积：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \sin \theta_2 &amp;amp;= \frac{\eta_1}{\eta_2} \sin \theta_1 = \frac{\eta_1}{\eta_2} \sqrt{1 - \cos^2\theta_1} = \frac{\eta_1}{\eta_2} \sqrt{1 - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})^2}\\ \end{align}\tag{3}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;有正弦也就可以求余弦：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \cos\theta_2 &amp;amp;= \sqrt{1 - \sin^2\theta_2} = \sqrt{1 - \left(\frac{\eta_1}{\eta_2}\right)^2 \left(1 - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})^2\right)}\\ \end{align}\tag{4}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;把(2)、(3)、(4) 代入 (1)，简化：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} \hat{\mathbf{t}} &amp;amp;= \sin \theta_2 \hat{\mathbf{m}} -\cos \theta_2 \hat{\mathbf{n}}\\ &amp;amp;= \frac{\sin\theta_2}{\sin\theta_1} \left( \hat{\mathbf{i}} - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})\hat{\mathbf{n}}\right) - \sqrt{1 - \left(\frac{\eta_1}{\eta_2}\right)^2 \left(1 - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})^2\right)} \hat{\mathbf{n}}\\ &amp;amp;= \frac{\eta_1}{\eta_2} \left( \hat{\mathbf{i}} - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})\hat{\mathbf{n}}\right) - \sqrt{1 - \left(\frac{\eta_1}{\eta_2}\right)^2 \left(1 - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})^2\right)} \hat{\mathbf{n}}\\ &amp;amp;= \frac{\eta_1}{\eta_2} \hat{\mathbf{i}} - \left(\frac{\eta_1}{\eta_2}(\hat{\mathbf{i}}\cdot\hat{\mathbf{n}}) + \sqrt{1 - \left(\frac{\eta_1}{\eta_2}\right)^2 \left(1 - (\hat{\mathbf{i}}\cdot\hat{\mathbf{n}})^2\right)} \right)\hat{\mathbf{n}}\\ \end{align}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;噢，计算折射矢量竟然一个三角函数都不需要！由于上式只需折射率之比值，我们的函数使用 &lt;equation&gt;\eta =\eta_1 / \eta_2&lt;/equation&gt; 作为参数，实现如下：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int refract(float ix, float iy, float nx, float ny, float eta, float* rx, float* ry) {
-    float idotn = ix * nx + iy * ny;
-    float k = 1.0f - eta * eta * (1.0f - idotn * idotn);
-    if (k &amp;lt; 0.0f)
-        return 0; // 全内反射
-    float a = eta * idotn + sqrtf(k);
-    *rx = eta * ix - a * nx;
-    *ry = eta * iy - a * ny;
-    return 1;
-}&lt;/code&gt;&lt;p&gt;当根号内的值为负数，也是代表全内反射，我们使用返回值代表是否有折射出现。&lt;/p&gt;&lt;h2&gt;3. 递归追踪反射和折射&lt;/h2&gt;&lt;p&gt;前篇在处理反射时，我们假设光线总是来自形状外部。然而，这里反射和折射都可以发生在形状的内部。因此，我们首先需要用 SDF 判断光线的发射坐标 &lt;equation&gt;\mathbf{o}&lt;/equation&gt; 位于形状之内（ &lt;equation&gt;\phi(\mathbf{o})&amp;lt;0&lt;/equation&gt; ）还是之外（ &lt;equation&gt;\phi(\mathbf{o})&amp;gt;0&lt;/equation&gt; ）。由于 SDF 会为正或负，在检测光线步进是否到形状表面时，我们要用绝对值来比较 &lt;equation&gt;|\phi(\mathbf{o}+t\mathbf{d}) |&amp;lt;\epsilon&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;我们为 &lt;equation&gt;\texttt{Result}&lt;/equation&gt; 结构加入形状的折射率：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;typedef struct { float sd, emissive, reflectivity, eta; } Result;&lt;/code&gt;&lt;p&gt;如果光线从外至内，调用 &lt;equation&gt;\texttt{refract()}&lt;/equation&gt; 时，传入 &lt;equation&gt;1 / \eta&lt;/equation&gt; ；从内至外则传入 &lt;equation&gt;\eta&lt;/equation&gt; 。&lt;/p&gt;&lt;p&gt;另外要注意的是，法线的方向需要是入射光的那一方，换句话说，当光线从形状内往外发射时，要反转法线方向。&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;float trace(float ox, float oy, float dx, float dy, int depth) {
-    float t = 1e-3f;
-    float sign = scene(ox, oy).sd &amp;gt; 0.0f ? 1.0f : -1.0f; // 内还是外？
-    for (int i = 0; i &amp;lt; MAX_STEP &amp;amp;&amp;amp; t &amp;lt; MAX_DISTANCE; i++) {
-        float x = ox + dx * t, y = oy + dy * t;
-        Result r = scene(x, y);
-        if (r.sd * sign &amp;lt; EPSILON) { // 判断是否到达表面时要考虑内外
-            float sum = r.emissive;
-            if (depth &amp;lt; MAX_DEPTH &amp;amp;&amp;amp; (r.reflectivity &amp;gt; 0.0f || r.eta &amp;gt; 0.0f)) {
-                float nx, ny, rx, ry, refl = r.reflectivity;
-                gradient(x, y, &amp;amp;nx, &amp;amp;ny);
-                nx *= sign; ny *= sign; // 在内的话，要反转法线
-                if (r.eta &amp;gt; 0.0f) {
-                    if (refract(dx, dy, nx, ny, sign &amp;lt; 0.0f ? r.eta : 1.0f / r.eta, &amp;amp;rx, &amp;amp;ry))
-                        sum += (1.0f - refl) * trace(x - nx * BIAS, y - ny * BIAS, rx, ry, depth + 1);
-                    else
-                        refl = 1.0f; // 全内反射
-                }
-                if (refl &amp;gt; 0.0f) {
-                    reflect(dx, dy, nx, ny, &amp;amp;rx, &amp;amp;ry);
-                    sum += refl * trace(x + nx * BIAS, y + ny * BIAS, rx, ry, depth + 1);
-                }
-            }
-            return sum;
-        }
-        t += r.sd * sign;
-    }
-    return 0.0f;
-}&lt;/code&gt;&lt;p&gt;一些测试场景（矩形、凸透镜、凹透镜、半圆透镜）：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9250dc9c28383dfc9d2791bfeb36d12b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5b9a74e2d88a3dc1e951165c8f2f9ebb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-06302a25f55b437a9494670afd1ec55a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-53e07c8c5f07381b2c06bd661c3c56aa_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;512&quot;&gt;&lt;h2&gt;4. 结语&lt;/h2&gt;&lt;p&gt;这篇仅加入了斯涅尔定律的应用，额外 20 行代码，就能渲染出类似玻璃材质的效果。我们在开始时假设了折射和反射的比率是恒定的（除了内全反射），这并不太接近真实的情况。我们在下篇会作改善。&lt;/p&gt;&lt;p&gt;本文的代码位于 &lt;a href=&quot;https://github.com/miloyip/light2d/blob/master/refraction.c&quot;&gt;refraction.c&lt;/a&gt; 及 &lt;a href=&quot;https://github.com/miloyip/light2d/blob/master/m2.c&quot;&gt;m2.c&lt;/a&gt;。&lt;/p&gt;</description>
-<author>Milo Yip</author>
-<guid isPermaLink="false">2017-11-18-31127076</guid>
-<pubDate>Sat, 18 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
