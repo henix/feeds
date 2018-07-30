@@ -5,7 +5,109 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 27 Jul 2018 20:11:30 +0800</lastBuildDate>
+<lastBuildDate>Tue, 31 Jul 2018 03:49:56 +0800</lastBuildDate>
+<item>
+<title>策略||数据处理</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-30-40876243.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40876243&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;&lt;b&gt;异常数据的影响&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;以2016年5月底全市场股票的ROE数据为例，这里总共有2824个数据：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;between = roe[(roe.ROE &amp;lt;= 0.5) &amp;amp; (roe.ROE &amp;gt;= -0.5)]
+float(len(between))/len(roe)&lt;/code&gt;&lt;p&gt;0.9851274787535411&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;可以看到有98%的数据都在[-0.5, 0.5]之间&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;去掉上下各1%的数据&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;remove = roe[(roe.ROE &amp;lt;= roe.quantile(0.99).iloc[0]) &amp;amp;
+ (roe.ROE &amp;gt;=roe.quantile(0.01).iloc[0])]&lt;/code&gt;&lt;h2&gt;&lt;b&gt;异常值的识别&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;&lt;b&gt;固定比例法&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;上下2%的值进行拉回，这些数据不可信。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;均值标准差法&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这种想法的思路来自于正态分布，假设&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a9d4e5ce53a24c718b892a69ba007d42_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;97&quot; data-rawheight=&quot;23&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;那么&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-547d86e0e8df086419092f49b371cfb2_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;311&quot; data-rawheight=&quot;67&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-547d86e0e8df086419092f49b371cfb2&quot; data-watermark-src=&quot;v2-929ff202a3d3666e155c3235e6f73b91&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;通常把三倍标准差之外的值都视为异常值，不过要注意的是样本均值和样本标准差都不是稳健统计量，其计算本身受极值的影响就非常大，所以可能会出现一种情况，那就是我们从数据分布图上能非常明显的看到异常点，但按照上面的计算方法，这个异常点可能仍在均值三倍标准差的范围内。因此按照这种方法剔除掉异常值后，需要重新观察数据的分布情况，看是否仍然存在显著异常点，若存在则继续重复上述步骤寻找异常点。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;理解：因为剔除掉极值后，样本的方差可能发生变化了（正如文中所说，它不是一个稳健的估计量），每次剔除通常都会变化——就是因为这个，所以需要重复的去做。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果数据不服从正态分布，可以通过切比雪夫不等式依然可以对均值的若干倍标准差之外的样本数据量的占比进行估计：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c65c7beed9d6de49f73eeff4f72985ca_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;212&quot; data-rawheight=&quot;35&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;坏处对于这样的方法，上面不等式右边的上界数值会偏大，在数据分布的偏度和峰度影响下，这种方法可能会把过量的数据认定为异常点。 &lt;/p&gt;&lt;p&gt;如果通过Box-Cox变换将不服从正态分布的数据转化为服从正态分布的数据，那么是否可行呢？熟悉Box-Cox变换方法的都知道，经过这样的一个变换，例如就取对数，它会缩小数据之间的距离，这样可能会使得原来是异常值的点变为不是异常值。&lt;br&gt;&lt;b&gt;MAD法&lt;/b&gt;&lt;/p&gt;&lt;p&gt;MAD 法是针对均值标准差方法的改进，把均值和标准差替换成稳健统计量，样本均值用样本中位数代替，样本标准差用样本MAD（Median Absolute Deviation）代替：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-0313342a387d2e4947bc295003a7d67b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;240&quot; data-rawheight=&quot;31&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c276044210dd85c5c00f0592fd11cfb7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;314&quot; data-rawheight=&quot;28&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f07c81a5dffb04dca08b8400ac85e077_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;184&quot; data-rawheight=&quot;32&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;通常把偏离中位数三倍以上的数据作为异常值。和均值标准差方法比，中位数和MAD的计算不受极端异常值的影响，结果更加稳健。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;boxplot法&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们知道箱线图上其实也会注明异常值，假设Q1和Q3分别为数据从小到大排列的25%和75%分位数，记IQR=Q1-Q3，把&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-ab260048641a01e98e4ea125020dce84_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;309&quot; data-rawheight=&quot;22&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;区间里的数据标识为异常点。分位数也是稳健统计量，因此Boxplot 方法对极值不敏感，但如果样本数据正偏严重，且右尾分布明显偏厚时，Boxplot 方法会把过多的数据划分为异常数据，因此Hubert&amp;amp; Vandervieren （2007）对原有Boxplot 方法进行了偏度调整。首先样本偏度定义采用了Brys(2004)提出的MedCouple方法：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c5206623c31cb6fcf03ab15cb6533930_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;231&quot; data-rawheight=&quot;30&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1428c4297a783136cad3114640a404e7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;457&quot; data-rawheight=&quot;52&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;然后给出了经偏度调整boxplot方法上下限：&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3e82d5d101f6be87936b73cbcdf3b18a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;390&quot; data-rawheight=&quot;103&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3e82d5d101f6be87936b73cbcdf3b18a&quot; data-watermark-src=&quot;v2-f620a2377be043ea6a573877c6df335a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;区间上的点视为异常点。和原始Boxplot 方法相比，当样本数据分布右偏时，此法会提升正常数据区间上限的数值；样本数据左偏时，则会降低正常数据区间下限的数值。&lt;/p&gt;&lt;p&gt;这个mc可以使用statsmodels包中的函数直接进行计算&lt;br&gt;&lt;/p&gt;&lt;p&gt;def _medcouple_1d(y):    &quot;&quot;&quot;&lt;br&gt;    Calculates the medcouple robust measure of skew.&lt;br&gt;    Parameters&lt;br&gt;    ----------&lt;br&gt;    y : array-like, 1-d&lt;br&gt;    Returns&lt;br&gt;    -------&lt;br&gt;    mc : float&lt;br&gt;        The medcouple statistic&lt;br&gt;    Notes&lt;br&gt;    -----&lt;br&gt;    The current algorithm requires a O(N**2) memory allocations, and so may&lt;br&gt;    not work for very large arrays (N&amp;gt;10000).&lt;br&gt;    .. [1] M. Huberta and E. Vandervierenb, &quot;An adjusted boxplot for skewed&lt;br&gt;    distributions&quot; Computational Statistics &amp;amp; Data Analysis, vol. 52,&lt;br&gt;    pp. 5186-5201, August 2008.&lt;br&gt;    &quot;&quot;&quot;&lt;br&gt;    y = np.squeeze(np.asarray(y))    &lt;br&gt;    if y.ndim != 1:        &lt;br&gt;        raise ValueError(&quot;y must be squeezable to a 1-d array&quot;)&lt;br&gt;    y = np.sort(y)&lt;br&gt;    n = y.shape[0]    if n % 2 == 0:&lt;br&gt;        mf = (y[n // 2 - 1] + y[n // 2]) / 2    else:&lt;br&gt;        mf = y[(n - 1) // 2]&lt;br&gt;    z = y - mf&lt;br&gt;    lower = z[z &amp;lt;= 0.0]&lt;br&gt;    upper = z[z &amp;gt;= 0.0]&lt;br&gt;    upper = upper[:, None]&lt;br&gt;    standardization = upper - lower&lt;br&gt;    is_zero = np.logical_and(lower == 0.0, upper == 0.0)&lt;br&gt;    standardization[is_zero] = np.inf&lt;br&gt;    spread = upper + lower    return np.median(spread / standardization)&lt;br&gt;sm.stats.stattools.medcouple(roe.ROE)&lt;/p&gt;&lt;p&gt;array(0.04458953766624774)&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;偏度调整Boxplot和MAD方法对比&lt;/b&gt;&lt;/p&gt;&lt;p&gt;首先使用计算机模拟来进行比较这两种方法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-421667d5d0e372b7e0d0b74cb6f52c10_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;760&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-421667d5d0e372b7e0d0b74cb6f52c10&quot; data-watermark-src=&quot;v2-cd59c1299824ffdb035e8571a91adf23&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 计算异常值占比
+
+def mad(x):    if len(x) == 0:        
+        return np.NaN    
+    else:
+        md = np.median(x)
+        mad_ = np.median([np.abs(i-md) for i in x])
+        mad_e = 1.483*mad_
+        left_percent = len(x[(x&amp;lt;=(md-3*mad_e))])/float(len(x))
+        right_percent = len(x[(x&amp;gt;=(md+3*mad_e))])/float(len(x))
+        total = len(x[(x&amp;lt;=(md-3*mad_e))|(x&amp;gt;=(md+3*mad_e))])/float(len(x))        
+    return [left_percent, right_percent, total]
+
+def adj_boxplot(x):    if len(x) == 0:        
+        return np.NaN    
+    else:
+        mc = sm.stats.stattools.medcouple(x)
+        x.sort()
+        q1 = x[int(0.25*len(x))]
+        q3 = x[int(0.75*len(x))]
+        iqr = q3-q1        
+    if mc &amp;gt;= 0:
+            l = q1-1.5*np.exp(-3.5*mc)*iqr
+            u = q3+1.5*np.exp(4*mc)*iqr        
+    else:
+            l = q1-1.5*np.exp(-4*mc)*iqr
+            u = q3+1.5*np.exp(3.5*mc)*iqr
+        left_percent = len(x[x&amp;lt;=l])/float(len(x))
+        right_percent = len(x[x&amp;gt;=u])/float(len(x))
+        total = len(x[(x&amp;lt;=l)|(x&amp;gt;=u)])/float(len(x))        
+    return [left_percent, right_percent, total]
+fig = plt.figure(figsize=(7, 4))
+ax = fig.add_subplot(111)
+ax.plot(adj_boxplot_left, &#39;-o&#39;, label=&#39;adj_boxplot&#39;)
+ax.plot(mad_method_left, &#39;-^&#39;, label=&#39;mad&#39;)
+l = ax.legend(loc=1)
+l = ax.set_ylabel(u&quot;left percentage&quot;)
+l = ax.set_xticklabels([&#39;SN&#39;, &#39;LN(0, 0.2)&#39;, &#39;LN(0, 0.4)&#39;, &#39;LN(0, 0.6)&#39;, &#39;LN(0, 0.8)&#39;, &#39;LN(0, 1)&#39;])
+l = ax.set_xlabel(u&quot;different distribution&quot;)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8aa5c89791c4155a11747b0480a1a44d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;475&quot; data-rawheight=&quot;274&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-8aa5c89791c4155a11747b0480a1a44d&quot; data-watermark-src=&quot;v2-4477d6a70d85708ceaa909b882039df0&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5f938cbfd5f1febb5018d803b89fe035_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;469&quot; data-rawheight=&quot;274&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-5f938cbfd5f1febb5018d803b89fe035&quot; data-watermark-src=&quot;v2-fc606ac804f028f0d4f0408e08c2c03b&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a781ad80c6b5bc6e86bb697188626d16_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;469&quot; data-rawheight=&quot;274&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a781ad80c6b5bc6e86bb697188626d16&quot; data-watermark-src=&quot;v2-2702af2ec8ae9c2a598685950cb5b0b9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;还可以对单个分布，不同样本量进行测试，不写了。&lt;/p&gt;&lt;p&gt;再拿个几因子实际来比较这两种方法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;def compare_factor(factor_name, month_list):    factor_data = pd.DataFrame(index=month_list, columns=universe)    
+for date in factor_data.index:
+        current_data = DataAPI.MktStockFactorsOneDayProGet(tradeDate=date, secID=universe, 
+                                                           field=[u&quot;secID&quot;, u&quot;tradeDate&quot;,factor_name], pandas=&quot;1&quot;)
+        current_data = current_data.pivot(index=&#39;tradeDate&#39;, columns=&#39;secID&#39;, values=factor_name)
+        factor_data = factor_data.append(current_data)
+    percent_mad = []
+    precent_boxplot = []    
+    for date in factor_data.index:
+        sample = np.array(factor_data.ix[date, :].dropna())        if isinstance(mad(sample), list):
+            percent_mad.append(mad(sample)[2])
+            precent_boxplot.append(adj_boxplot(sample)[2])
+
+    a = np.array(percent_mad).mean()
+    b = np.array(precent_boxplot).mean()    
+return [a, b, factor_data]
+PEG3Y = compare_factor(&#39;PEG3Y&#39;, month_list)
+print u&#39;市盈率/归属于母公司所有者净利润3年复合增长率:&#39;, u&#39;MAD&#39;, PEG3Y[0], &#39;;&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;市盈率/归属于母公司所有者净利润3年复合增长率:&lt;/p&gt;&lt;p&gt;MAD 0.140822936272 &lt;/p&gt;&lt;p&gt; Adj boxplot 0.158164542833&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对数市值:&lt;/p&gt;&lt;p&gt;MAD 0.0291881850994 ;&lt;/p&gt;&lt;p&gt;Adj boxplot 0.00655765983319&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对数流通市值:&lt;/p&gt;&lt;p&gt;MAD 0.0221524346318 ;&lt;/p&gt;&lt;p&gt;Adj boxplot 0.0229505798271&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;和Seo(2002)做的仿真测试结果一致，对于市值这样样本偏度较大的数据，MAD方法识别出的异常数值比例明显高于偏度调整后的Boxplot方法。从研报的结果来看，MAD方法认定的异常数据数量明显高于Boxplot方法，剔除或修改太多数据不利于后续的统计分析。可以尝试人为提高MAD方法中的一些阈值设置来降低异常数据占比，但这样有可能使得一些本该剔除的数据未被侦测出来，如果每个因子都设置一个阈值的话，调试的工作量会比较大。相对来说，偏度调整过的Boxplot方法对不同因子的适应性更强，建议在实证研究中采用。&lt;/p&gt;&lt;p&gt;&lt;b&gt;数据正太转换&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;非正态数据的影响&lt;/b&gt;&lt;/p&gt;&lt;p&gt;因子选股过程中至少有两个地方涉及因子数据的正态分布假设：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Alpha因子的zscore计算。只有当两个因子的分布都为近似正态分布时，基于均值-标准差标准化得到的zscore 才有可比性，否则样本偏度和峰度的影响会使得个股在某一个因子上的得分明显偏大或偏小，其在多因子中的效用被显著放大或缩小，也就是Scinto(2009)提到的Percential Ranking Problem。&lt;/li&gt;&lt;li&gt;风险因子的因子收益率显著性检验。因子收益率由横截面回归得到，其显著性检验有赖于残差项的正态分布假设，虽然线性回归对解释变量与被解释变量的分布没有要求，但当解释变量和被解释变量满足正态分布时，更容易得到符合正态分布的残差。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;每个因子数据都去看下偏度，峰度有点多。主要是电脑还在跑其他的耗内存的代码，所以就不做了。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;def my_winsorize(data):    if isinstance(data, pd.Series):
+        mc = sm.stats.stattools.medcouple(data)
+        data.sort()
+        q1 = data[int(0.25*len(data))]
+        q3 = data[int(0.75*len(data))]
+        iqr = q3-q1        if mc &amp;gt;= 0:
+            l = q1-1.5*np.exp(-3.5*mc)*iqr
+            u = q3+1.5*np.exp(4*mc)*iqr        else:
+            l = q1-1.5*np.exp(-4*mc)*iqr
+            u = q3+1.5*np.exp(3.5*mc)*iqr
+        data[data&amp;lt;l]=l
+        data[data&amp;gt;u]=u    
+return data
+peg_3y = PEG3Y[2]
+factor_skew = []
+factor_kurt = []
+for date in peg_3y.index:
+    data = peg_3y.ix[date,:].dropna()    
+    if len(data) &amp;gt; 0:
+        data = my_winsorize(data)
+        data = np.array(data)
+        factor_skew.append(st.skew(data))
+        factor_kurt.append(st.kurtosis(data))
+print u&#39;极值调整后PEG3Y因子的平均偏度与峰度：&#39;
+print u&#39;偏度：&#39;, np.mean(factor_skew)
+print u&#39;峰度：&#39;, np.mean(factor_kurt)&lt;/code&gt;&lt;p&gt;极值调整后PEG3Y因子的平均偏度与峰度：&lt;/p&gt;&lt;p&gt;偏度： -3.00481152198 峰度： 10.2882451426&lt;/p&gt;&lt;p&gt;极值调整后LCAP因子的平均偏度与峰度：&lt;/p&gt;&lt;p&gt;偏度： 1.22322935534 峰度： 2.08015032857&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.2 Box-Cox变换&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在多元回归分析，时间序列分析中经常都见到Box-Cox变换变换。把非正态数据转换为正态数据通常有取对数、开根号、求倒数等方法，这些都可以归为Box-Cox变换，形式上可以写作：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cf2c73cedb3649c80b6f31ceeee71861_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;215&quot; data-rawheight=&quot;54&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-cf2c73cedb3649c80b6f31ceeee71861&quot; data-watermark-src=&quot;v2-4f93d5a3efc91d493f399d98e66aa436&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;参数λ可以通过极大似然法做估计（Box&amp;amp;Cox，1964）。不过Box-Cox 变换并非万能，变换后的数据仍然可能不满足正态分布，被统计检验拒绝，但是这种变换得到的数据分布往往都有明显的对称性，与正态分布的相似性更高。 只有取正值的数据才能使用Box-Cox变换，对于一些数据是负数或者为零，在Box-Cox变换之前，需要在所有值上加一个正数，使得所有数据为正。但这种移动是主观确定的。另一种方法是适用于任何数据的变换，无论正负，这种方法的一个缺点是，对他的解释不如对Box-Cox变换的解释来得直观，参见Yeo和Johnson(2000)。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.3 正态变换的选择&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们知道一个因子通常包括两个维度，由于通常的alpha因子zscore 打分和风险因子中性化处理都在横截面方向进行，因此我们主要对同一个时间点横截面上的因子数据做正态转换处理。但是如果把数据正态转换当成一个纯粹的数学问题，每个横截面上都用极大似然方法估算一个最优的λ，会发现有的选股因子的λ数值变化非常之大。以EP因子的月度数据为例。&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;PE = compare_factor(&#39;PE&#39;, month_list)
+EP= 1/PE[2]
+lambda_ = pd.Series(index=EP.index)
+for date in EP.index:
+    data = np.array(EP.ix[date,:].dropna()+3, dtype=float)    
+    if len(data) &amp;gt; 0:
+        lambda_.ix[date]=st.boxcox(data)[1]    
+    else:
+        lambda_.ix[date]=np.NaN
+lambda_.dropna(inplace=True)
+ax = lambda_.plot()
+t = ax.set_title(u&#39;EP因子Box-Cox变换的最优lambda&#39;, fontpropert=font, fontsize=16)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-770dc5e5015ab7f146d2c586f089b2e1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;512&quot; data-rawheight=&quot;355&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-770dc5e5015ab7f146d2c586f089b2e1&quot; data-watermark-src=&quot;v2-f1df02d0fec9a4480ea8f28ef7ba3a9b&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;可以看到Lambda中间有一段的变化是非常剧烈的，也就是说每个月我们需要对原始的数据都做不同的数据变化。Box-Cox是一个单调变换，保持了原有数据的相对秩序，因此变换后的因子和原始因子的IC（秩相关系数）相等；但这种变换会改变alpha因子的zscore，频繁剧烈变换的参数可能会对结果产生负面影响，变换后因子的经济含义也更加难以解释，所以把因子数据正态变换当成一个单纯数学问题的方法不可取。&lt;/p&gt;</description>
+<author>量化家</author>
+<guid isPermaLink="false">2018-07-30-40876243</guid>
+<pubDate>Mon, 30 Jul 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>策略||数据可视化</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-27-40701499.html</link>
@@ -434,15 +536,6 @@ context.date = buy_dates&lt;/code&gt;&lt;p&gt;回测结果如图8。由回测结
 <author>量化家</author>
 <guid isPermaLink="false">2018-07-19-40082674</guid>
 <pubDate>Thu, 19 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>仓位控制||启发</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-18-40038927.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40038927&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;资金管理是投资体系中非常重要的部分，却是大多数投资者忽略的环节，至少在我认识的投资朋友中，很少看到注重资金管理的，也很少讨论资金管理问题，很多朋友喜欢总是满仓的，喜欢全部资金或大部分资金重仓一只或两只股票；要么就空仓，资金撤离。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;国内一些知名的价值投资者，也几乎总是处于满仓状态。在熊市中，资金管理不好的问题会逐步暴露出来，让投资者陷入困境或被动之中。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;主要表现：过早加仓并用完资金，当持有的证券出现低得更多的价格时，已经没有能力买入补仓；满仓的一只或两只证券出现大幅向下波动后，带来巨额的账面浮亏，给投资者带来巨大的心理压力，并在压力下做出非理性的投资操作等等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我所说的资金管理主要指&lt;b&gt;现金管理和仓位管理。&lt;/b&gt;现金管理指投资者在所管理的投资资产对现金占比的考虑及安排，这里的现金既指货币现金，也指现金等价物，如短期国债等。仓位管理主要指对单只证券或同类证券在投资组合中的控制比例及额度管理等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;投资者到底该如何进行资金管理，从而在各种环境下都能应对自如呢？我们看看几位着名的价值投资大师是如何做进行资金管理的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;格雷厄姆&lt;/b&gt;——价值投资的鼻祖，巴菲特最尊敬的恩师，《证券分析》、《聪明投资者》的作者。格雷厄姆很早就开始进行投资，为客户管理资金，但在1929年大危机中，损失惨重，几乎破产。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在经历过九死一生的大危机后，格雷厄姆在资金管理方面提出了「&lt;b&gt;75—25」法则&lt;/b&gt;，即：持有普通股的资金比例控制在25%至75%的范围，现金及债券则控制在75%至25%的互补区间之中，当股票资产因占比超过75%时，卖出一定数量的股票，增加现金或债券比例，当因股票资产占比到低于25%时，则卖出一定的债权增加股票的比例。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，股票资产与债券（现金）的比例并不是完全铁定的75%至25%，投资者可以根据市场的高估或低估情况以及投资自身的特点设定一个合适的比例，如50%至50%等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;格雷厄姆说，这样的做法有两个好处：克服人性的弱点；让投资者总是有点事情可做，不至于太单调。同时，格雷厄姆的投资组合非常分散，持有很多数量的证券，单只证券的占比很小。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;巴菲特&lt;/b&gt;——价值投资集大成者，在54年的投资生涯，累计获利62021.72倍，年复合收益率22.67%。巴菲特投资业绩还表现出了极高的稳定性，在54年的漫长投资生涯中，只有两个年份出现小幅亏损（2001年的-6.2%和2008年的-9.6%），这是业绩的稳定性是众多职业投资者梦寐以求的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;巴菲特在1956年至1969年管理合伙投资期间，13年里没有发生一次亏损，累计获利28.88倍，年复合收益率29.5%。在此期间，巴菲特将投资机会类型分为低估类投资、控制类投资、套利类投资三类，并将资金分散投资于这些不同的投资机会上，巴菲特单只股票投资比例最大的股票是美国运通，从1964年开始陆续投入了1300万美元，占到所管理的合伙资产的40%左右。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在巴菲特后期的投资生涯中，投资比例最大的是可口可乐，先后陆续投资了10.24亿美元，占到当时伯克希尔34亿美元净资产的30%左右。巴菲特认为：控制不好的「集中投资」有点类似于再乱流中行驶的飞机，它比地下的火车快，可上下左右摇晃的幅度太大，让人受不了，尽管最后安全着陆。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在现金管理方面，巴菲特喜欢总是保留一定数额的现金，在近10年以来，巴菲特总是保持至少200亿美元的现金，截止2011年6月30日，伯克希尔持有的现金是478.9亿美元。在2008年美国金融危机期间投资了通用电气和高盛后，巴菲特减持了部分股票，他减持的理由是：现金偏少，让他觉得不踏实。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;他对于保持大量现金的理由是：不希望命运掌握他人手中，而是掌握在自己的手中，大量的现金可以让人睡得踏实等。事实上，正是由于总是喜欢持有一定的现金，巴菲特才可以安然度过多次经济危机及金融危机，并能够在危机中优秀公司出现非常低估的价格时，还有能力买入，而大部分投资者此时已经失去买卡入能力。巴菲特在资金管理方面堪称完美，是最值得借鉴、学习的投资大师。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;卡拉曼&lt;/b&gt;——Baupost基金公司总裁，最受投资者尊敬的价值投资大师之一，他的代表作《安全边际》（Margin of Safety）已成为重要的投资经典着作。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;卡拉曼管理的基金从1982 年到2009年的27年间年均收益率为19%，而同期的标准普尔500指数收益率仅为10.7%，更为难得的是，这25年里仅有一年亏损记录。卡拉曼投资管理的一大特点就是喜欢持有大量的现金。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;他在《晚上睡得着比什么都重要》的演讲说到：在过去的25年中，我们试图每天为客户做正确的事情，从不使用融资杠杆，且有时会持有大量现金，他有时候会持有40%多的现金（如1999年4月30日投资组合现金比例为42.1%）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;他认为：在任何时候都保持满仓投资简化了投资任务，投资者似乎只要找到的最好的投资就可以了。相对诱人成了唯一的投资准绳，而无需满足绝对的价值标准。此类投资顶多只会带来普通的回报，最糟糕的情就是会产生高昂的机会成本——指错过了下一个出色的投资机会——并承受了出现巨大损失的风险。同时，卡拉曼的投资组合比较分散，单只证券投资比例不高。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;分析这三位价值投资大师的资金管理模式后，可以看到有两个共同特点：总是保留一定的现金；控制单只证券的投资比例，进行一定程度的分散。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;「保留一定的现金」的内在逻辑：&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;对市场保持敬畏，市场未来的发展是无法预测的，必须为可能出现的极端情况做一定准备；当没有非常具有吸引力的投资机会时，保留现金，宁缺毋滥；追求绝对回报，而不是相对表现；在意所管理资产表现的稳定性等。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;「进行一定的分散」的内在逻辑：&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;投资判断可能出错，或者发生小概率事件，避免判断失误或发生的小概率事件带来致命的损失；考虑到其它机会成本；在意资产整体的稳定性等。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;面三位价值投资的大师都是价值投资者的精神导师，他们资金管理模式给我们带来什么样的启示呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;事实上，一个投资者的资金管理模式反映了他的投资哲学、世界观甚至性格。总是保留部分现金的投资者，他的投资哲学或性格可能是：认为对市场的未来持难以预测，对市场总是保持敬畏，担心会发生更为极端的情况，并为此对有所准备；追求绝对回报，坚持严格的投资标准，当没有满足符合条件的投资机会时，宁愿保留现金等；担心自己的判断有错误的可能，并为此留有余地等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而总是满仓的投资者：对自己的判断具有绝对的信心；希望资金总是处于高效使用状态；担心错过现在的投资机会；在意跑赢市场，而不是追求绝对回报等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;只持有一只或两只股票的过度集中投资者，反映了他们：对自己的判断有绝对信心，总是认为有十足的把握；投资的证券是最好的等。而适当分散的投资者，则：担心自己判断可能出错；担心发生不利的小概率事件；希望保持资产组合表现一定的稳定性等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我自己经过多次惨痛的教训后，认识到了资金管理的重要性，一直在探索适合自己的资金管理的模式，经过多年的学习和实践之后，逐步形成了适合自己的资金管理模式。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如：总是喜欢保留至少10%的现金；单只证券的投资比例一般控制在20%以下，确定性特别高的投资机会则控制在40%以下；当确定投资目标后，喜欢分批建仓等。在这种资金管理模式下，我会觉得非常坦然，晚上睡觉也非常非常踏实。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;每个投资者可能因为自身投资哲学、性格等方面的不同，而选择不同的资金模式，只有这种模式是经过深思熟虑并适合自己的，都无可厚非。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但对于专业投资者来说，特别是对于那些管理客户资金的职业投资者来说，格雷厄姆、巴菲特、卡拉曼三位投资大师的资金管理模式非常值得学习和借鉴，这种模式不仅带来了非常高的长期投资回报率，更为重要的是，业绩表现非常稳定。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在不断惨烈下跌的熊市下，做好资金管理的重要性更加彰显。做好资金管理最大的障碍还是人性，特别是贪婪！&lt;/p&gt;&lt;p&gt;在量化上进行资金管理更为重要，因为一开始就设置好仓位逻辑，不进行人为的干预，才能更完全实现的策略的精准化。&lt;/p&gt;</description>
-<author>量化家</author>
-<guid isPermaLink="false">2018-07-18-40038927</guid>
-<pubDate>Wed, 18 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
