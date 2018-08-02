@@ -14,6 +14,7 @@ const feeds = [
 		"TokyoTradingFloor",
 		"worldofboss",
 		"yan-guan-lin-20",
+		"Gaosweco",
 		"ricequant",
 		"forex-analysis",
 		"yuefenginvest",
