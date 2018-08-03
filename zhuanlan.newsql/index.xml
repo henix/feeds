@@ -5,7 +5,99 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 28 Jul 2018 01:04:12 +0800</lastBuildDate>
+<lastBuildDate>Fri, 03 Aug 2018 23:02:37 +0800</lastBuildDate>
+<item>
+<title>30 分钟成为 TiKV Contributor</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2018-08-02-41103417.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/41103417&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3e6973721ffe23e838d18d1d6cebc858_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;&lt;blockquote&gt;作者：吴雪莲&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;背景知识&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;SQL 语句发送到 TiDB 后经过 parser 生成 AST（抽象语法树），再经过 Query Optimizer 生成执行计划，执行计划切分成很多子任务，这些子任务以表达式的方式最后下推到底层的各个 TiKV 来执行。&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d54ea1017d24caf90ab9d7f987f40fae_r.jpg&quot; data-caption=&quot;图 1&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1228&quot; data-rawheight=&quot;860&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-d54ea1017d24caf90ab9d7f987f40fae&quot; data-watermark-src=&quot;v2-d826905412f823c66e227f7c2ec3f603&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;如图 1，当 TiDB 收到来自客户端的查询请求&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;select count(*) from t where a + b &amp;gt; 5&lt;/code&gt;&lt;/p&gt;&lt;p&gt;时，执行顺序如下：&lt;/p&gt;&lt;p&gt;1.TiDB 对 SQL 进行解析，组织成对应的表达式，下推给 TiKV&lt;/p&gt;&lt;p&gt;2. TiKV 收到请求后，循环以下过程&lt;/p&gt;&lt;ul&gt;&lt;ul&gt;&lt;li&gt;获取下一行完整数据，并按列解析&lt;/li&gt;&lt;li&gt;使用参数中的 where 表达式对数据进行过滤&lt;/li&gt;&lt;li&gt;若上一条件符合，进行聚合计算&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;3. TiKV 向 TiDB 返回聚合计算结果&lt;/p&gt;&lt;p&gt;4. TiDB 对所有涉及的结果进行二次聚合，返回给客户端&lt;/p&gt;&lt;p&gt;这里的 where 条件便是以表达式树的形式下推给 TiKV。在此之前 TiDB 只会向 TiKV 下推一小部分简单的表达式，比如取出某一个列的某个数据类型的值，简单数据类型的比较操作，算术运算等。为了充分利用分布式集群的资源，进一步提升 SQL 在整个集群的执行速度，我们需要将更多种类的表达式下推到 TiKV 来运行，其中的一大类就是 MySQL built-in 函数。&lt;br&gt;目前，由于 TiKV 的 built-in 函数尚未全部实现，对于无法下推的表达式，TiDB 只能自行解决。这无疑将成为提升 TiDB 速度的最大绊脚石。好消息是，TiKV 在实现 built-in 函数时，可以直接参考 TiDB 的对应函数逻辑（顺便可以帮 TiDB 找找 Bug），为我们减少了不少工作量。&lt;/p&gt;&lt;p&gt;Built-in 函数无疑是 TiDB 和 TiKV 成长道路上不可替代的一步，如此艰巨又庞大的任务，我们需要广大社区朋友们的支持与鼓励。亲爱的朋友们，想玩 Rust 吗？想给 TiKV 提 PR 吗？想帮助 TiDB 跑得更快吗？动动您的小手指，拿 PR 来砸我们吧。您的 PR 一旦被采用，将会有小惊喜哦。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;手把手教你实现 built-in 函数&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;Step 1：准备下推函数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 TiKV 的 &lt;a href=&quot;https://github.com/pingcap/tikv/issues/3275&quot;&gt;https://github.com/pingcap/tikv/issues/3275&lt;/a&gt; issue 中，找到未实现的函数签名列表，选一个您想要实现的函数。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Step 2：获取 TiDB 中可参考的逻辑实现&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 TiDB 的 &lt;a href=&quot;https://github.com/pingcap/tidb/tree/master/expression&quot;&gt;expression&lt;/a&gt; 目录下查找相关 builtinXXXSig 对象，这里 XXX 为您要实现的函数签名，本例中以 &lt;a href=&quot;https://github.com/pingcap/tikv/pull/3277&quot;&gt;MultiplyIntUnsigned&lt;/a&gt; 为例，可以在 TiDB 中找到其对应的函数签名（&lt;code class=&quot;inline&quot;&gt;builtinArithmeticMultiplyIntUnsignedSig&lt;/code&gt;）及 &lt;a href=&quot;https://github.com/pingcap/tidb/blob/master/expression/builtin_arithmetic.go#L532&quot;&gt;实现&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Step 3：确定函数定义&lt;/b&gt;&lt;/p&gt;&lt;p&gt;1.built-in 函数所在的文件名要求与 TiDB 的名称对应，如 TiDB 中，&lt;a href=&quot;https://github.com/pingcap/tidb/tree/master/expression&quot;&gt;expression&lt;/a&gt; 目录下的下推文件统一以 builtin_XXX 命名，对应到 TiKV 这边，就是 &lt;code class=&quot;inline&quot;&gt;builtin_XXX.rs&lt;/code&gt;。若同名对应的文件不存在，则需要自行在同级目录下新建。对于本例，当前函数存放于 TiDB 的 &lt;a href=&quot;https://github.com/pingcap/tidb/blob/master/expression/builtin_arithmetic.go#L532&quot;&gt;builtin_arithmetic.go&lt;/a&gt; 文件里，对应到 TiKV 便是存放在 &lt;a href=&quot;https://github.com/pingcap/tikv/blob/master/src/coprocessor/dag/expr/builtin_arithmetic.rs&quot;&gt;builtin_arithmetic.rs&lt;/a&gt; 中。&lt;/p&gt;&lt;p&gt;2. 函数名称：函数签名转为 Rust 的函数名称规范，这里 &lt;code class=&quot;inline&quot;&gt;MultiplyIntUnsigned&lt;/code&gt; 将会被定义为 &lt;code class=&quot;inline&quot;&gt;multiply_int_unsigned&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;3. 函数返回值，可以参考 TiDB 中实现的 &lt;code class=&quot;inline&quot;&gt;Eval&lt;/code&gt; 函数，对应关系如下：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4fb256c456c3220224e6055ca6ab6bf6_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1158&quot; data-rawheight=&quot;838&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4fb256c456c3220224e6055ca6ab6bf6&quot; data-watermark-src=&quot;v2-6781bac667ad6b94c4a8b7ec58af83eb&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;可以看到 TiDB 的 &lt;code class=&quot;inline&quot;&gt;builtinArithmeticMultiplyIntUnsignedSig&lt;/code&gt;  对象实现了 evalInt 方法，故当前函数（&lt;code class=&quot;inline&quot;&gt;multiply_int_unsigned&lt;/code&gt;）的返回类型应该为 &lt;code class=&quot;inline&quot;&gt;Result&amp;lt;Option&amp;lt;i64&amp;gt;&amp;gt;&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;4. 函数的参数, 所有 builtin-in 的参数都与 Expression 的 &lt;code class=&quot;inline&quot;&gt;eval&lt;/code&gt; 函数一致，即：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;环境配置量 (ctx:&amp;amp;StatementContext)&lt;/li&gt;&lt;li&gt;该行数据每列具体值 (row:&amp;amp;[Datum])&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;综上，&lt;code class=&quot;inline&quot;&gt;multiply_int_unsigned&lt;/code&gt; 的下推函数定义为：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub fn multiply_int_unsigned(
+       &amp;amp;self,
+       ctx: &amp;amp;mut EvalContext,
+       row: &amp;amp;[Datum],
+   ) -&amp;gt; Result&amp;lt;Option&amp;lt;i64&amp;gt;&amp;gt;&lt;/code&gt;&lt;p&gt;&lt;b&gt;Step 4：实现函数逻辑&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这一块相对简单，直接对照 TiDB 的相关逻辑实现即可。这里，我们可以看到 TiDB 的 &lt;code class=&quot;inline&quot;&gt;builtinArithmeticMultiplyIntUnsignedSig&lt;/code&gt; 的具体实现如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;func (s *builtinArithmeticMultiplyIntUnsignedSig) evalInt(row types.Row) (val int64, isNull bool, err error) {
+  a, isNull, err := s.args[0].EvalInt(s.ctx, row)
+  if isNull || err != nil {
+     return 0, isNull, errors.Trace(err)
+  }
+  unsignedA := uint64(a)
+  b, isNull, err := s.args[1].EvalInt(s.ctx, row)
+  if isNull || err != nil {
+     return 0, isNull, errors.Trace(err)
+  }
+  unsignedB := uint64(b)
+  result := unsignedA * unsignedB
+  if unsignedA != 0 &amp;amp;&amp;amp; result/unsignedA != unsignedB {
+     return 0, true, types.ErrOverflow.GenByArgs(&quot;BIGINT UNSIGNED&quot;, fmt.Sprintf(&quot;(%s * %s)&quot;, s.args[0].String(), s.args[1].String()))
+  }
+  return int64(result), false, nil
+}&lt;/code&gt;&lt;p&gt;参考以上代码，翻译到 TiKV 即可，如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pub fn multiply_int_unsigned(
+       &amp;amp;self,
+       ctx: &amp;amp;mut EvalContext,
+       row: &amp;amp;[Datum],
+   ) -&amp;gt; Result&amp;lt;Option&amp;lt;i64&amp;gt;&amp;gt; {
+       let lhs = try_opt!(self.children[0].eval_int(ctx, row));
+       let rhs = try_opt!(self.children[1].eval_int(ctx, row));
+       let res = (lhs as u64).checked_mul(rhs as u64).map(|t| t as i64);
+       // TODO: output expression in error when column&#39;s name pushed down.
+       res.ok_or_else(|| Error::overflow(&quot;BIGINT UNSIGNED&quot;, &amp;amp;format!(&quot;({} * {})&quot;, lhs, rhs)))
+           .map(Some)
+   }&lt;/code&gt;&lt;p&gt;&lt;b&gt;Step 5：添加参数检查&lt;/b&gt;&lt;/p&gt;&lt;p&gt;TiKV 在收到下推请求时，首先会对所有的表达式进行检查，表达式的参数个数检查就在这一步进行。&lt;/p&gt;&lt;p&gt;TiDB 中对每个 built-in 函数的参数个数有严格的限制，这一部分检查可参考 TiDB 同目录下 builtin.go 相关代码。&lt;/p&gt;&lt;p&gt;在 TiKV 同级目录的 scalar_function.rs 文件里，找到 ScalarFunc 的 check_args 函数，按照现有的模式，加入参数个数的检查即可。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Step 6：添加下推支持&lt;/b&gt;&lt;/p&gt;&lt;p&gt;TiKV 在对一行数据执行具体的 expression 时，会调用 eval 函数，eval 函数又会根据具体的返回类型，执行具体的子函数。这一部分工作在 scalar_function.rs 中以宏（dispatch_call）的形式完成。&lt;/p&gt;&lt;p&gt;对于 MultiplyIntUnsigned, 我们最终返回的数据类型为 Int，所以可以在 dispatch_call 中找到 INT_CALLS，然后照着加入 MultiplyIntUnsigned =&amp;gt; multiply_int_unsigned , 表示当解析到函数签名 MultiplyIntUnsigned 时，调用上述已实现的函数 multiply_int_unsigned。&lt;/p&gt;&lt;p&gt;至此 MultiplyIntUnsigned 下推逻辑已完全实现。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Step 7：添加测试&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在函数 multiply_int_unsigned 所在文件 &lt;a href=&quot;https://github.com/pingcap/tikv/blob/master/src/coprocessor/dag/expr/builtin_arithmetic.rs&quot;&gt;builtin_arithmetic.rs&lt;/a&gt; 底部的 test 模块中加入对该函数签名的单元测试，要求覆盖到上述添加的所有代码，这一部分也可以参考 TiDB 中相关的测试代码。本例在 TiKV 中实现的测试代码如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#[test]
+   fn test_multiply_int_unsigned() {
+       let cases = vec![
+           (Datum::I64(1), Datum::I64(2), Datum::U64(2)),
+           (
+               Datum::I64(i64::MIN),
+               Datum::I64(1),
+               Datum::U64(i64::MIN as u64),
+           ),
+           (
+               Datum::I64(i64::MAX),
+               Datum::I64(1),
+               Datum::U64(i64::MAX as u64),
+           ),
+           (Datum::U64(u64::MAX), Datum::I64(1), Datum::U64(u64::MAX)),
+       ];
+
+       let mut ctx = EvalContext::default();
+       for (left, right, exp) in cases {
+           let lhs = datum_expr(left);
+           let rhs = datum_expr(right);
+
+           let mut op = Expression::build(
+               &amp;amp;mut ctx,
+               scalar_func_expr(ScalarFuncSig::MultiplyIntUnsigned, &amp;amp;[lhs, rhs]),
+           ).unwrap();
+           op.mut_tp().set_flag(types::UNSIGNED_FLAG as u32);
+
+           let got = op.eval(&amp;amp;mut ctx, &amp;amp;[]).unwrap();
+           assert_eq!(got, exp);
+       }
+
+       // test overflow
+       let cases = vec![
+           (Datum::I64(-1), Datum::I64(2)),
+           (Datum::I64(i64::MAX), Datum::I64(i64::MAX)),
+           (Datum::I64(i64::MIN), Datum::I64(i64::MIN)),
+       ];
+
+       for (left, right) in cases {
+           let lhs = datum_expr(left);
+           let rhs = datum_expr(right);
+
+           let mut op = Expression::build(
+               &amp;amp;mut ctx,
+               scalar_func_expr(ScalarFuncSig::MultiplyIntUnsigned, &amp;amp;[lhs, rhs]),
+           ).unwrap();
+           op.mut_tp().set_flag(types::UNSIGNED_FLAG as u32);
+
+           let got = op.eval(&amp;amp;mut ctx, &amp;amp;[]).unwrap_err();
+           assert!(check_overflow(got).is_ok());
+       }
+   }&lt;/code&gt;&lt;p&gt;&lt;b&gt;Step 8：运行测试&lt;/b&gt;&lt;/p&gt;&lt;p&gt;运行 make expression，确保所有的 test case 都能跑过。&lt;/p&gt;&lt;p&gt;完成以上几个步骤之后，就可以给 TiKV 项目提 PR 啦。想要了解提 PR 的基础知识，尝试移步 &lt;a href=&quot;https://pingcap.com/blog-how-to-contribute-zh&quot;&gt;此文&lt;/a&gt;，看看是否有帮助。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;欢迎大家踊跃贡献代码，加入 TiDB community ！&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://github.com/pingcap.com&quot;&gt;http://github.com/pingcap.com&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2018-08-02-41103417</guid>
+<pubDate>Thu, 02 Aug 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>社区 | 如何优雅降落到 TiDB 星球？</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2018-07-25-40529913.html</link>
@@ -122,15 +214,6 @@ cout &amp;lt;&amp;lt; &quot;Find trying &quot; &amp;lt;&amp;lt; s.lookupKey(&quo
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2018-06-19-38254903</guid>
 <pubDate>Tue, 19 Jun 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Succinct Data Structure</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2018-06-18-38194127.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38194127&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ff9172b4ded7b8341521e52359f5736f_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;作者：唐刘&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最近看了一篇论文 &lt;a href=&quot;https://db.cs.cmu.edu/papers/2018/mod601-zhangA-hm.pdf&quot;&gt;SuRF: Practical Range Query Filtering with Fast Succinct Tries&lt;/a&gt;，里面提到使用一种新的数据结构 Succinct Range Filter(SuRF) 替换掉了 RocksDB 默认的 Bloom filter， 在一些性能测试上面，尤其是 seek 上面，性能提升了不少，并且也降低了很多 I/O 开销，这一下子就引起了我的兴趣。&lt;/p&gt;&lt;p&gt;大家都知道，RocksDB 里面，为了加速 key 查询的速度，使用了 Bloom filter，但 Bloom filter 只适用于 point get，对于 seek 就无能为力了。虽然 RocksDB 后面引入了 &lt;a href=&quot;https://github.com/facebook/rocksdb/wiki/Prefix-Seek-API-Changes&quot;&gt;prefix seek&lt;/a&gt;，但对于 key 的格式有要求，使用比较受限。为了提高 RocksDB range query 的速度，论文的作者引入了一种省空间的数据结构，也就是 SuRF。&lt;/p&gt;&lt;p&gt;在了解 SuRF 之前，首先要了解掌握的就是 Succinct data structure 相关的知识，这篇文章主要是讲 Succinct data structure 相关的东西，后面再讨论 SuRF 如何实现的。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rank 和 Select&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Succinct data structure 第一次提出，应该是 Guy Jacobson 的论文 &quot;Succinct static data structures&quot;，但实话，我在网上找了半天，都没找到这篇 paper，只是找到了作者另一篇 &lt;a href=&quot;https://www.computer.org/csdl/proceedings/focs/1989/1982/00/063533.pdf&quot;&gt;Space-efficient static trees and graphs&lt;/a&gt;。它的主要思想就是使用非常少量的空间（接近信息编码的下界）来存储数据。你可以认为就是使用了一种非常高效的压缩算法，但不同于压缩，它同时来提供非常高效的查询。&lt;/p&gt;&lt;p&gt;对于 Succinct data structure 来说，我们会将数据按 0 和 1 来编码，所以可以用 bits，而不是 bytes。操作 succinct 数据，通常的就是几个操作函数：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;rank1(x)&lt;/code&gt; - 返回在 range &lt;code class=&quot;inline&quot;&gt;[0, x] &lt;/code&gt;里面 1 的个数&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;select1(y)&lt;/code&gt; - 返回第 y 个 1 所在的位置&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;上面我们只是列举了 rank1 和 select1，对应的也有 rank0 和 select0，这里就不需要解释了。这么说有点过于抽象，这里举一个简单的例子。假设我们有一个 bits 序列 &lt;code class=&quot;inline&quot;&gt;11000001&lt;/code&gt;，那么 rank1 和 select1 可以映射如下：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-72b4ddac338988955659d310baa8fb06_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;627&quot; data-rawheight=&quot;154&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-72b4ddac338988955659d310baa8fb06&quot; data-watermark-src=&quot;v2-e1efc8d4d59f1d646f99911c5336ba78&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;另外，大家可以注意到，rank 和 select 其实是相反的，上面的例子，&lt;code class=&quot;inline&quot;&gt;select1(3) = 7&lt;/code&gt;，然后我们也会发现，&lt;code class=&quot;inline&quot;&gt;rank1(7) = 3&lt;/code&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Level Order Unary Degree Sequence&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;上面简单介绍了下 Succinct data structure 的 rank 和 select。 在 SuRF 里面，它参考的基础编码方式，是 Level order unary degree sequence(LOUDS)，在 LOUDS 里面，我们会将一颗树，分层依次进行编码。而规则也是非常的简单，如果这个树的节点有 N 个子节点，那么就用 N 个 1 来编码，然后最后加上 0。&lt;/p&gt;&lt;p&gt;假设我们有如下的 tree：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-db87a1aa60b4a0a3faf5e95b4b8d5487_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;628&quot; data-rawheight=&quot;418&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-db87a1aa60b4a0a3faf5e95b4b8d5487&quot; data-watermark-src=&quot;v2-cc129d1610a5eabd1c020d73c88d82e4&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;为了计算简单，LOUDS 会加入一个 pseudo root 节点，这里我们变成如下的 tree：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9d23f7729fb2bb3d41fbaaa614c8af52_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;625&quot; data-rawheight=&quot;524&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9d23f7729fb2bb3d41fbaaa614c8af52&quot; data-watermark-src=&quot;v2-ce54c62bc874167f09514a4cd17ff9df&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;然后我们对这个 tree 进行编码，得到：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-82332386cb20c9cdbc75bf0307ccb1e4_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;625&quot; data-rawheight=&quot;523&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-82332386cb20c9cdbc75bf0307ccb1e4&quot; data-watermark-src=&quot;v2-3f2e25516bb2a09b69e7d647c26fb76f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;那么生成的 bits 序列为：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-612fed57670c2200ed027168d0da223f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;695&quot; data-rawheight=&quot;229&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-612fed57670c2200ed027168d0da223f&quot; data-watermark-src=&quot;v2-0fa3ee7e129088f6ed765c1545e8d0fc&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;那么我们拿到了这一个序列到底有什么用呢？在 LOUDS 里面，我们可以非常方便的进行很多操作，假设我们的 node 就是按照上面的，0，1，2，这样的 number 来标记的，position 对应的就是 bits 里面的 position。我们通常会用两个计算公式来得到 node number 和 position 的对应关系：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;node-num = rank1(i)&lt;/code&gt;：在 position i 得到对应的 node number，譬如 &lt;code class=&quot;inline&quot;&gt;rank1(2) = 2&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;i = select1(node-num)&lt;/code&gt;，根据 node number，知道对应的 position，譬如 &lt;code class=&quot;inline&quot;&gt;select1(2) = 2&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;有了上面的公式，我们就能对这个 tree 进行操作了：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;first_child(i) = select0(rank1(i)) + 1&lt;/code&gt; - 得到第 i 个位置所在节点的第一个子节点所在的 position&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;last_child(i) = select0(rank1(i) + 1) - 1&lt;/code&gt; - 得到第 i 个位置所在节点的最后一个子节点所在的 position&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;parent(i) = select1(rank0(i))&lt;/code&gt; - 得到第 i 个位置所在节点的父节点所在的 position&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;children(i) = last_child(i) - first_child(i) + 1&lt;/code&gt; - 得到第 i 个位置所在节点的子节点的个数&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;child(i, num) = first_child(i) + num&lt;/code&gt; 得到第 i 个位置所在节点的第 num 个子节点所在的 position，&lt;code class=&quot;inline&quot;&gt;num &amp;gt;= 0&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;上面这些公式感觉好绕，那么我们来一个简单的例子，以节点 4 为例。从上面的 tree 可以知道，4 的 parent node 是 1，它的第一个子节点是 7，最后一个是 8，总共有两个子节点。&lt;/p&gt;&lt;p&gt;首先我们需要计算节点 4 的位置，根据上面的公式 &lt;code class=&quot;inline&quot;&gt;select1(4)&lt;/code&gt; 我们得到 position 是 4。那么第一个子节点位置就是 &lt;code class=&quot;inline&quot;&gt;first_child(4) = select0(rank1(4)) + 1 = select0(4) + 1 = 9 + 1 = 10&lt;/code&gt;，那么第一个子节点就是 &lt;code class=&quot;inline&quot;&gt;rank1(10) = 7&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;我们再来计算最后一个子节点，根据公式，最后一个就是 &lt;code class=&quot;inline&quot;&gt;last_child(4) = select0(rank1(4) + 1) - 1 = select0(4 + 1) - 1 = 12 - 1 = 11&lt;/code&gt;，那么最后一个子节点就是 &lt;code class=&quot;inline&quot;&gt;rank1(11) = 8&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;再来看看父节点，就是 &lt;code class=&quot;inline&quot;&gt;parent(4) = select1(rank0(4)) = select1(1) = 0&lt;/code&gt;，那么父节点就是 &lt;code class=&quot;inline&quot;&gt;rank1(0) = 1&lt;/code&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Epilogue&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;使用 LODUS，我们可以用 bits 方便的编码一棵树，然后用 rank 和 select 操作，就能方便的对 tree 进行遍历，业内已经有很多 paper，能将 rank 和 select 做到 O(1) 的开销，所以速度还是很快的。&lt;/p&gt;&lt;p&gt;但在实际中，如果光用 LODUS，性能还是没法保证的，所以这也是为啥会有 SuRF 的原因，关于 SuRF，后面会在说明。&lt;/p&gt;&lt;p&gt;在数据库领域，Succinct 是一个比较有趣的研究方向，也有很多数据库采用了 succinct 来保存数据，毕竟如果能用更少的空间存放数据，memory 能装的更多，cache 更友好，性能就更好。但现在 succinct 还没有大规模的落地，可以看看后续的发展。如果你对构建新的存储引擎有兴趣，欢迎联系我 &lt;a href=&quot;mailto:tl@pingcap.com&quot;&gt;tl@pingcap.com&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.jianshu.com/p/36781efac8e9&quot;&gt;原文链接&lt;/a&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2018-06-18-38194127</guid>
-<pubDate>Mon, 18 Jun 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

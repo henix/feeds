@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>机器学习与编译优化的入门介绍</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/36884760">原文</a></p>
+<p>该篇文章也算凑个AI的热点::)。 对编译器后端技术基本熟悉的研究工作者应该会感觉写中后端优化策略相当地依赖于既有领域经验，所以说设计一个比较好的启发是优化策略是相当的困难并且玄学(说的就是GCC中的LRA和LLVM中的Spiller)。机器学习算法的主要优势就是学习已有的经验，从而降低对人类的工作负担，实现一个相对较优的决策。比如：根据以往的气候数据预测将来多少天的天气，根据地质结构数据等预测某个地区的石油、天然气等矿产的储量。</p><p><br></p><p>编译器研究人员在设计Loop unrolling策略的时候，会考虑多种不同的因子对展开策略的影响。比如：目标机器的向量寄存器的数据宽度，循环内部的指令数，分支语句的数目，算术运算指令的数目，访存操作的数目等。以往的算法都是根据已有的benchmark得到这个决策结果。很显然这个过程可以使用机器利用机器学习算法来辅助编译器设计人员[1]。</p><p><br></p><p>另外一方面，当前所有的寄存器分配算法中用到的Spilling策略都是基于启发式的优先级策略，这方面也可以从机器特性，程序结构中抽取对应的特征向量来决定溢出哪一个物理寄存器是最合适的[2]。</p><p><br></p><p>当然，还可以利用机器学习的算法，从输入的命令行选项，目标机器的特性（如：机器字长，寄存器数目，寄存器类别，指令种类，指令支持的操作，cache特征）来学习得到一个相对比较合适的pass调度顺序，当然这个模型的决策变量非常之多，训练的数据量也比较大。而且模型中使用到的参数的选择对模型的效果非常重要，目前学界还没有比较好的模型[3][4]。</p><p><br></p><p>文章[5]中给出了当前两者结合的研究热点。</p><p>[1]. <a href="ftp://nozdr.ru/biblio/kolxo3/Cs/CsLn/A/Artificial%20Intelligence..%20Methodology,%20Systems,%20and%20Applications,%2010%20conf.,%20AIMSA%202002%28LNCS2443,%20Springer,%202002%29%28ISBN%203540441271%29%28287s%29_CsLn_.pdf#page=49">ftp://nozdr.ru/biblio/kolxo3/Cs/CsLn/A/Artificial%20Intelligence..%20Methodology,%20Systems,%20and%20Applications,%2010%20conf.,%20AIMSA%202002%28LNCS2443,%20Springer,%202002%29%28ISBN%203540441271%29%28287s%29_CsLn_.pdf#page=49</a> (p41).</p><p>[2]. <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.14.3402&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.14.3402&amp;rep=rep1&amp;type=pdf</a></p><p>[3]. <a href="https://www.eecis.udel.edu/~cavazos/cgo-2006-talk.pdf">https://www.eecis.udel.edu/~cavazos/cgo-2006-talk.pdf</a></p><p>[4].<a href="https://www.researchgate.net/profile/Abdul_Wahid_Memon/publication/225732776_Milepost_GCC_Machine_Learning_Enabled_Self-tuning_Compiler/links/0fcfd50ca24ef6fdcb000000/Milepost-GCC-Machine-Learning-Enabled-Self-tuning-Compiler.pdf">https://www.researchgate.net/profile/Abdul_Wahid_Memon/publication/225732776_Milepost_GCC_Machine_Learning_Enabled_Self-tuning_Compiler/links/0fcfd50ca24ef6fdcb000000/Milepost-GCC-Machine-Learning-Enabled-Self-tuning-Compiler.pdf</a></p><p>[5]. <a href="https://arxiv.org/abs/1801.04405">[1801.04405] A Survey on Compiler Autotuning using Machine Learning</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

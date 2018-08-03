@@ -1,0 +1,84 @@
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-3e6973721ffe23e838d18d1d6cebc858_r.jpg" alt=""></div><p></p><blockquote>作者：吴雪莲</blockquote><h2><b>背景知识</b></h2><p>SQL 语句发送到 TiDB 后经过 parser 生成 AST（抽象语法树），再经过 Query Optimizer 生成执行计划，执行计划切分成很多子任务，这些子任务以表达式的方式最后下推到底层的各个 TiKV 来执行。<br></p><img src="https://pic1.zhimg.com/v2-d54ea1017d24caf90ab9d7f987f40fae_r.jpg" data-caption="图 1" data-size="normal" data-rawwidth="1228" data-rawheight="860" data-watermark="watermark" data-original-src="v2-d54ea1017d24caf90ab9d7f987f40fae" data-watermark-src="v2-d826905412f823c66e227f7c2ec3f603" data-private-watermark-src=""><p><br>如图 1，当 TiDB 收到来自客户端的查询请求</p><p><code class="inline">select count(*) from t where a + b &gt; 5</code></p><p>时，执行顺序如下：</p><p>1.TiDB 对 SQL 进行解析，组织成对应的表达式，下推给 TiKV</p><p>2. TiKV 收到请求后，循环以下过程</p><ul><ul><li>获取下一行完整数据，并按列解析</li><li>使用参数中的 where 表达式对数据进行过滤</li><li>若上一条件符合，进行聚合计算</li></ul></ul><p>3. TiKV 向 TiDB 返回聚合计算结果</p><p>4. TiDB 对所有涉及的结果进行二次聚合，返回给客户端</p><p>这里的 where 条件便是以表达式树的形式下推给 TiKV。在此之前 TiDB 只会向 TiKV 下推一小部分简单的表达式，比如取出某一个列的某个数据类型的值，简单数据类型的比较操作，算术运算等。为了充分利用分布式集群的资源，进一步提升 SQL 在整个集群的执行速度，我们需要将更多种类的表达式下推到 TiKV 来运行，其中的一大类就是 MySQL built-in 函数。<br>目前，由于 TiKV 的 built-in 函数尚未全部实现，对于无法下推的表达式，TiDB 只能自行解决。这无疑将成为提升 TiDB 速度的最大绊脚石。好消息是，TiKV 在实现 built-in 函数时，可以直接参考 TiDB 的对应函数逻辑（顺便可以帮 TiDB 找找 Bug），为我们减少了不少工作量。</p><p>Built-in 函数无疑是 TiDB 和 TiKV 成长道路上不可替代的一步，如此艰巨又庞大的任务，我们需要广大社区朋友们的支持与鼓励。亲爱的朋友们，想玩 Rust 吗？想给 TiKV 提 PR 吗？想帮助 TiDB 跑得更快吗？动动您的小手指，拿 PR 来砸我们吧。您的 PR 一旦被采用，将会有小惊喜哦。</p><p><br></p><h2><b>手把手教你实现 built-in 函数</b></h2><p><b>Step 1：准备下推函数</b></p><p>在 TiKV 的 <a href="https://github.com/pingcap/tikv/issues/3275">https://github.com/pingcap/tikv/issues/3275</a> issue 中，找到未实现的函数签名列表，选一个您想要实现的函数。</p><p><b>Step 2：获取 TiDB 中可参考的逻辑实现</b></p><p>在 TiDB 的 <a href="https://github.com/pingcap/tidb/tree/master/expression">expression</a> 目录下查找相关 builtinXXXSig 对象，这里 XXX 为您要实现的函数签名，本例中以 <a href="https://github.com/pingcap/tikv/pull/3277">MultiplyIntUnsigned</a> 为例，可以在 TiDB 中找到其对应的函数签名（<code class="inline">builtinArithmeticMultiplyIntUnsignedSig</code>）及 <a href="https://github.com/pingcap/tidb/blob/master/expression/builtin_arithmetic.go#L532">实现</a>。</p><p><b>Step 3：确定函数定义</b></p><p>1.built-in 函数所在的文件名要求与 TiDB 的名称对应，如 TiDB 中，<a href="https://github.com/pingcap/tidb/tree/master/expression">expression</a> 目录下的下推文件统一以 builtin_XXX 命名，对应到 TiKV 这边，就是 <code class="inline">builtin_XXX.rs</code>。若同名对应的文件不存在，则需要自行在同级目录下新建。对于本例，当前函数存放于 TiDB 的 <a href="https://github.com/pingcap/tidb/blob/master/expression/builtin_arithmetic.go#L532">builtin_arithmetic.go</a> 文件里，对应到 TiKV 便是存放在 <a href="https://github.com/pingcap/tikv/blob/master/src/coprocessor/dag/expr/builtin_arithmetic.rs">builtin_arithmetic.rs</a> 中。</p><p>2. 函数名称：函数签名转为 Rust 的函数名称规范，这里 <code class="inline">MultiplyIntUnsigned</code> 将会被定义为 <code class="inline">multiply_int_unsigned</code>。</p><p>3. 函数返回值，可以参考 TiDB 中实现的 <code class="inline">Eval</code> 函数，对应关系如下：</p><img src="https://pic1.zhimg.com/v2-4fb256c456c3220224e6055ca6ab6bf6_r.jpg" data-caption="" data-size="normal" data-rawwidth="1158" data-rawheight="838" data-watermark="watermark" data-original-src="v2-4fb256c456c3220224e6055ca6ab6bf6" data-watermark-src="v2-6781bac667ad6b94c4a8b7ec58af83eb" data-private-watermark-src=""><p>可以看到 TiDB 的 <code class="inline">builtinArithmeticMultiplyIntUnsignedSig</code>  对象实现了 evalInt 方法，故当前函数（<code class="inline">multiply_int_unsigned</code>）的返回类型应该为 <code class="inline">Result&lt;Option&lt;i64&gt;&gt;</code>。</p><p>4. 函数的参数, 所有 builtin-in 的参数都与 Expression 的 <code class="inline">eval</code> 函数一致，即：</p><ul><li>环境配置量 (ctx:&amp;StatementContext)</li><li>该行数据每列具体值 (row:&amp;[Datum])</li></ul><p>综上，<code class="inline">multiply_int_unsigned</code> 的下推函数定义为：</p><code lang="text">pub fn multiply_int_unsigned(
+       &amp;self,
+       ctx: &amp;mut EvalContext,
+       row: &amp;[Datum],
+   ) -&gt; Result&lt;Option&lt;i64&gt;&gt;</code><p><b>Step 4：实现函数逻辑</b></p><p>这一块相对简单，直接对照 TiDB 的相关逻辑实现即可。这里，我们可以看到 TiDB 的 <code class="inline">builtinArithmeticMultiplyIntUnsignedSig</code> 的具体实现如下：</p><code lang="text">func (s *builtinArithmeticMultiplyIntUnsignedSig) evalInt(row types.Row) (val int64, isNull bool, err error) {
+  a, isNull, err := s.args[0].EvalInt(s.ctx, row)
+  if isNull || err != nil {
+     return 0, isNull, errors.Trace(err)
+  }
+  unsignedA := uint64(a)
+  b, isNull, err := s.args[1].EvalInt(s.ctx, row)
+  if isNull || err != nil {
+     return 0, isNull, errors.Trace(err)
+  }
+  unsignedB := uint64(b)
+  result := unsignedA * unsignedB
+  if unsignedA != 0 &amp;&amp; result/unsignedA != unsignedB {
+     return 0, true, types.ErrOverflow.GenByArgs("BIGINT UNSIGNED", fmt.Sprintf("(%s * %s)", s.args[0].String(), s.args[1].String()))
+  }
+  return int64(result), false, nil
+}</code><p>参考以上代码，翻译到 TiKV 即可，如下：</p><code lang="text">pub fn multiply_int_unsigned(
+       &amp;self,
+       ctx: &amp;mut EvalContext,
+       row: &amp;[Datum],
+   ) -&gt; Result&lt;Option&lt;i64&gt;&gt; {
+       let lhs = try_opt!(self.children[0].eval_int(ctx, row));
+       let rhs = try_opt!(self.children[1].eval_int(ctx, row));
+       let res = (lhs as u64).checked_mul(rhs as u64).map(|t| t as i64);
+       // TODO: output expression in error when column's name pushed down.
+       res.ok_or_else(|| Error::overflow("BIGINT UNSIGNED", &amp;format!("({} * {})", lhs, rhs)))
+           .map(Some)
+   }</code><p><b>Step 5：添加参数检查</b></p><p>TiKV 在收到下推请求时，首先会对所有的表达式进行检查，表达式的参数个数检查就在这一步进行。</p><p>TiDB 中对每个 built-in 函数的参数个数有严格的限制，这一部分检查可参考 TiDB 同目录下 builtin.go 相关代码。</p><p>在 TiKV 同级目录的 scalar_function.rs 文件里，找到 ScalarFunc 的 check_args 函数，按照现有的模式，加入参数个数的检查即可。</p><p><b>Step 6：添加下推支持</b></p><p>TiKV 在对一行数据执行具体的 expression 时，会调用 eval 函数，eval 函数又会根据具体的返回类型，执行具体的子函数。这一部分工作在 scalar_function.rs 中以宏（dispatch_call）的形式完成。</p><p>对于 MultiplyIntUnsigned, 我们最终返回的数据类型为 Int，所以可以在 dispatch_call 中找到 INT_CALLS，然后照着加入 MultiplyIntUnsigned =&gt; multiply_int_unsigned , 表示当解析到函数签名 MultiplyIntUnsigned 时，调用上述已实现的函数 multiply_int_unsigned。</p><p>至此 MultiplyIntUnsigned 下推逻辑已完全实现。</p><p><b>Step 7：添加测试</b></p><p>在函数 multiply_int_unsigned 所在文件 <a href="https://github.com/pingcap/tikv/blob/master/src/coprocessor/dag/expr/builtin_arithmetic.rs">builtin_arithmetic.rs</a> 底部的 test 模块中加入对该函数签名的单元测试，要求覆盖到上述添加的所有代码，这一部分也可以参考 TiDB 中相关的测试代码。本例在 TiKV 中实现的测试代码如下：</p><code lang="text">#[test]
+   fn test_multiply_int_unsigned() {
+       let cases = vec![
+           (Datum::I64(1), Datum::I64(2), Datum::U64(2)),
+           (
+               Datum::I64(i64::MIN),
+               Datum::I64(1),
+               Datum::U64(i64::MIN as u64),
+           ),
+           (
+               Datum::I64(i64::MAX),
+               Datum::I64(1),
+               Datum::U64(i64::MAX as u64),
+           ),
+           (Datum::U64(u64::MAX), Datum::I64(1), Datum::U64(u64::MAX)),
+       ];
+
+       let mut ctx = EvalContext::default();
+       for (left, right, exp) in cases {
+           let lhs = datum_expr(left);
+           let rhs = datum_expr(right);
+
+           let mut op = Expression::build(
+               &amp;mut ctx,
+               scalar_func_expr(ScalarFuncSig::MultiplyIntUnsigned, &amp;[lhs, rhs]),
+           ).unwrap();
+           op.mut_tp().set_flag(types::UNSIGNED_FLAG as u32);
+
+           let got = op.eval(&amp;mut ctx, &amp;[]).unwrap();
+           assert_eq!(got, exp);
+       }
+
+       // test overflow
+       let cases = vec![
+           (Datum::I64(-1), Datum::I64(2)),
+           (Datum::I64(i64::MAX), Datum::I64(i64::MAX)),
+           (Datum::I64(i64::MIN), Datum::I64(i64::MIN)),
+       ];
+
+       for (left, right) in cases {
+           let lhs = datum_expr(left);
+           let rhs = datum_expr(right);
+
+           let mut op = Expression::build(
+               &amp;mut ctx,
+               scalar_func_expr(ScalarFuncSig::MultiplyIntUnsigned, &amp;[lhs, rhs]),
+           ).unwrap();
+           op.mut_tp().set_flag(types::UNSIGNED_FLAG as u32);
+
+           let got = op.eval(&amp;mut ctx, &amp;[]).unwrap_err();
+           assert!(check_overflow(got).is_ok());
+       }
+   }</code><p><b>Step 8：运行测试</b></p><p>运行 make expression，确保所有的 test case 都能跑过。</p><p>完成以上几个步骤之后，就可以给 TiKV 项目提 PR 啦。想要了解提 PR 的基础知识，尝试移步 <a href="https://pingcap.com/blog-how-to-contribute-zh">此文</a>，看看是否有帮助。<br></p><p><i>欢迎大家踊跃贡献代码，加入 TiDB community ！</i></p><p><a href="http://github.com/pingcap.com">http://github.com/pingcap.com</a></p><p></p>
