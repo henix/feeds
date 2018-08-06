@@ -1,0 +1,6 @@
+<p>linear type是类型系统的一种扩展，可以实现在编译期指定资源必须且只能使用一次，另外LT的特性也表达了量子力学不可复制原理。为了在Haskell中实现LT，我们只需要引入一个新的linear函数类型：⊸ 。这个新类型和原来的普通函数类型 -&gt;  很相似，但是在定义一个a⊸b的linear函数时，其参数a必须使用一次，即给定a计算b时，a必须要使用而且只能用一次。比如下面这2种都无法通过编译：</p><code lang="haskell">fst :: (a,b) ⊸ a
+fst (x,_) = x
+
+dup :: a ⊸ (a,a)
+dup x = (x,x)
+</code><p><br></p><a href="https://www.tweag.io/posts/2017-03-13-linear-types.html" data-draft-node="block" data-draft-type="link-card">Linear typesmake performance more predictable</a><p>另外，现在很火的Rust是affine type system（move semantics）,与Linear type同属Substructural type system,不同之处是参数最多使用一次，而不是必须使用一次。</p><a href="https://gankro.github.io/blah/linear-rust/" data-draft-node="block" data-draft-type="link-card">The Pain Of Real Linear Types in Rust</a><p></p>
