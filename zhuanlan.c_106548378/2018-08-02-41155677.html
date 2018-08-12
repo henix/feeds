@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>1.6 量化技术篇—优化择时策略的思路</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/41155677">原文</a></p>
+<p><b>------从零开始学量化------</b><br><b>简书</b>：<a href="https://www.jianshu.com/p/2c34aee64649">量化目录传送门</a><br><b>知乎</b>：<a href="https://zhuanlan.zhihu.com/p/38656100">量化目录传送门</a> </p><hr><h2>0. 前言</h2><p>上篇使用zipline回测了一个简单策略，收益图如下：</p><p><br></p><img src="https://pic4.zhimg.com/v2-9fc26cb0d26a6f7a4e2ff158d7e19ea9_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="480" data-watermark="watermark" data-original-src="v2-9fc26cb0d26a6f7a4e2ff158d7e19ea9" data-watermark-src="v2-84d37accd772d5c13a4cbd590c0f3ac1" data-private-watermark-src=""><p><br></p><p><b>评价指标如下</b>：<br><br>年化收益率 = 8.34%<br><br>累计收益率 = 17.37%<br><br>最大回撤 = -16.14%<br><br>夏普比率 = 0.62  </p><p>综合以上指标，我们发现这个策略存在以下几个问题：<br>1. 夏普比率比较低，也就是承受单位风险带来的收益并不是很高。<br>2. 最大回撤较大，风险较大。</p><p>很明显，这个策略过于简单，效果并不理想，所以本篇主要介绍优化这个择时策略的思路。</p><h2>1. 改进的思路</h2><p>改进的第一个思路就是添加更多的技术指标，但千万不要立即去这样做，如果你直接尝试不同的技术指标，最终的结果可能是吃力不讨好，花了很大精力，却收效甚微。</p><p>为什么？？？</p><p>因为你没有抓住问题的本质，你的优化更像是一种遍历式的组合，明显是低效的。</p><p>那么，我们该怎么办？</p><ol><li><b>了解问题的本质。</b></li><li><b>站在巨人的肩膀上。</b></li></ol><h2>2. 了解问题的本质</h2><blockquote>First principle, Simplicity. Read Macrus Aurelius. Of each particular thing, ask:What is it initself?What is its nature?<br><br>来源于电影《沉默的羔羊》</blockquote><p>上面一段话来源于《沉默的羔羊》，他说出了如何去寻找问题的本质。 </p><h2>2.1 策略的核心</h2><p>我个人认为，量化获利的本质，不是预测未来。因为未来根本是不可预测的，所以拟合曲线的想法是不可行的。</p><p>未来不可预测，但是规律却是可以找到的。</p><p>在历史的长河中，没有任何力量可以抵挡历史的车轮，因为历史轮回的规律是无可抗拒的。</p><p><b>量化策略的核心————不是拟合曲线，而是服规律。</b> </p><h2>2.2 择时优化点</h2><p>上一篇策略使用的是CCI指标（顺势指标，Commodity Channel Index）</p><p>CCI指标的核心思想是：根据统计学原理，使用价格与固定期间的股价平均区间的偏离程度，来度量股价是否超出常态分布范围。CCI是一种超买超卖类指标。</p><p>根据定义，我们知道上篇文章实现的是一种趋势跟踪的择时策略，股票超买的时候买入，超买结束就卖出。</p><p>趋势跟踪策略的盈利逻辑是，市场是非有效的，当市场中某些因素变化，导致某些资产的价值短期内迅速变化，但是这些资产的价格变化滞后于价值变化，那么该资产就具有趋势性，策略顺应这样的趋势实现盈利。</p><p>所以趋势跟踪的择时策略，非常依赖于市场的波动性。当市场出现大方向的波动性，策略的收益会比较高；当市场没有明显波动的时候，策略的收益往往就不如人意。这种策略典型的特征是“亏小赚大”。</p><p>因此改进有两个方向：<br><br>1. <b>添加有效的趋势指标，增强信号的可信度。</b><br><br>2. <b>选择具有趋势特性的股票。</b></p><p>所以接下来的核心问题就是：  </p><ol><li><b>寻找有效的趋势指标？</b></li><li><b>如何判断股票具有趋势性？</b></li></ol><p>为了解决以上两个问题，我们就需要站在巨人的肩膀上了。</p><h2>3. 站在巨人的肩膀上</h2><p>做策略的时候，尽量不要闭门造车，因为自己极有可能在做前人做过的工作，凭一己之力，很难有所作为。</p><p>所以我们需要站在巨人的肩膀上，再出发，这样才可能有所突破。</p><p>巨人的肩膀指的就是机构的研报、相关的学术研究、优秀的基金经理的理论框架。</p><p>当我们站在这些优秀的研究成果上，再进行尝试，事半功倍。</p><p>那么前人在择时指标和选股的问题中，有什么好的成果呢？</p><h2>3.1 择时指标的成果</h2><ol><li>众泰证券——《传统技术指标有效性的量化分析》，该文章分析了移动平均线（MA）、乖离率（BIAS）和成交量（VOL）的有效性分析。</li><li>《Foundations of Technical Analysis:Computational Algorithms, Statistical Inference, and Empirical Implementation》 ，该文章使用了美国的股票数据，研究了10个技术指标的有效性，最终得出5个指标是显著有效的。</li><li>《Technical analysis of stock trends》</li></ol><h2>3.2 选股的成果</h2><p><b>目前还未找到好的文章，后续更新</b></p><p>最后列举一些我看过的，比较有收获的文章：</p><h2>3.3 量化策略的科普文章</h2><ol><li>天风证券——《商品期货CTA专题报告》</li><li>渤海证券——《商品期货跨品种择时套利策略》</li><li>中信证券——《关于多因子模型构建方法实用性的理论探讨》</li></ol><h2>3.4 启发量化策略的文章</h2><ol><li><b>缠中说禅的缠论</b>，<a href="http://blog.sina.com.cn/u/1215172700">缠师博客</a>。</li><li><b>周金涛的周期嵌套理论</b></li></ol><p>本人还是比较推崇以上两位大牛的大局观和理论分析能力的，从他们的字里行间中，就可以看出他们对问题认识的深度和分析问题独特的思路，从中可以获益不少。</p><p><b>后期会继续更新，也希望大家推荐好的文章</b></p><hr><p>如果你对我的文章有兴趣，可以关注一下我的简书和知乎，后期会在简书和知乎上定期更新，传送门在下方：<br><b>简书</b>：<a href="https://www.jianshu.com/u/d436b7e60253">潇潇夜雨归何处</a><br><b>知乎</b>：<a href="https://www.zhihu.com/people/edwardzhang0630/activities">潇潇夜雨</a><br><br>我相信，有趣的灵魂总会相遇！！！<br><br>你的关注，是我前进的动力！！！</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

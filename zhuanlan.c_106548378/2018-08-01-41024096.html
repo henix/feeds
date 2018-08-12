@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>策略||止损思路</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/41024096">原文</a></p>
+<p><b>一、时间止损</b></p><p>认为时间是有价值的，若在一定的时间内某股票的回报收益低于一个预设值就认为该交易低于预期，选择卖出。 这是一个非常简单的止损策略， 由于止损线是固定的， 所以不能很好的减少回撤。若不是专门研究时间止损， 不建议使用。</p><img src="https://pic4.zhimg.com/v2-b0e42f37aa24af1f9a421287701d9481_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="352" data-watermark="watermark" data-original-src="v2-b0e42f37aa24af1f9a421287701d9481" data-watermark-src="v2-f9452b856d60541dd3e8afff98e947f3" data-private-watermark-src=""><p><br></p><code lang="text">if 持仓时间&gt; X 天 and 区间涨幅 小于Y% ： 
+卖出止损else：
+继续持有
+import pandas as pd import numpy as np import time import datetime import mathimport itertools
+
+def init(context):    context.to_buy = ('300033.XSHE','000025.XSHE')
+    context.period=10 # 持股天数X     context.total_return=0.05 # 持股天数内的回报率     # 实时打印日志    #scheduler.run_daily(stoploss)    logger.info("Interested at stock: " + str(context.to_buy))
+    context.time=pd.DataFrame()
+    scheduler.run_monthly(rebalance,1)
+    scheduler.run_daily(stoploss)
+
+def handle_bar(context, bar_dict):    pass 
+
+def stoploss( context,bar_dict):    # 根据时间 清仓    print(context.time)    
+    for stock in  context.portfolio.positions: 
+        if stock in context.time.columns:
+            buytime=context.time[stock][0] # 获取买入时间            currenttime=context.now.replace(tzinfo=None) # 获取当前时间            print ('buytime='+str(buytime))
+            print('currenttime='+str(currenttime))
+
+            total_return=context.portfolio.positions[stock].market_value/context.portfolio.positions[stock].bought_value # 计算回报            escape=(currenttime-buytime).days # 计算持有天数            if escape&gt;context.period and total_return&lt;1+context.total_return:
+                print(str(stock)+ '大于' + str (context.period)+'天 且回报过小， 卖出')
+                order_target_percent(stock, 0)                
+                del context.time[stock]            
+            elif total_return&gt;1+context.total_return: 
+                print(str(stock)+'回报为: ' +str(total_return)+'大于预设值'+str(1+context.total_return))            
+            else:
+                print(str(stock)+ '持仓未到' +str(context.period)+'天,继续持有')
+
+def record(context,bar_dict,stock):    if stock not in context.time.columns:
+        temp=pd.DataFrame({str(stock):[context.now.replace(tzinfo=None)]})
+        logger.info (temp)
+        context.time = pd.concat([context.time, temp], axis=1, join='inner')
+
+def rebalance(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            record(context,bar_dict,stock)
+            order_target_percent(stock,1/len(context.to_buy))            
+    else: 
+        order_target_percent(stock,0)</code><p><b>二、时间+ 阶梯 止损</b></p><p>时间+阶梯 止损是将“时间有价值” 和 “动态止损” 这两个思路结合在一起的策略。 止损价会随着 持股周期的变化而变化， 一旦跌破止损价，则卖出。 良好的止损策略。</p><p><br></p><img src="https://pic4.zhimg.com/v2-75f416fcc44d4800b194c230c182c153_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="350" data-watermark="watermark" data-original-src="v2-75f416fcc44d4800b194c230c182c153" data-watermark-src="v2-215d36dd8c25c2763559ea1340ed2ca9" data-private-watermark-src=""><p><br></p><p><br></p><code lang="text">止损价 =fx ( 持股周期， 期望回报率)if 现价&lt; 止损价：
+卖出止损
+阶梯次数= floor(log(1+最大涨幅%)/log(1+阶梯长度%))
+止损价位=初始止损价*(1+Y%)^周期次数if 现价&lt;止损价位:
+卖出止损
+阶梯次数= floor (持股时间(天)/周期X(天))
+止损价= 买入价*(1+阶梯次数* Y%)if 持股时间&gt;周期 X  and 现价&lt; 止损价：
+卖出止损else if  持股时间&lt;周期X and 现价&lt;买入价*预设止损比例：
+在第一个周期内亏损过多， 卖出止损else：
+继续持有  
+import numpy as np import time import datetime import mathimport itertools
+
+def init(context):    context.to_buy = ('300033.XSHE','000025.XSHE')
+    context.period=10 # 持股天数X     context.increment=0.15    # 实时打印日志    context.time=pd.DataFrame()
+    scheduler.run_monthly(rebalance,1)
+    scheduler.run_daily(stoploss)
+
+def handle_bar(context, bar_dict):    pass 
+
+def stoploss( context,bar_dict):    # 根据时间 清仓    print(context.time)    f
+    or stock in  context.portfolio.positions: 
+        if stock in context.time.columns:
+            buytime=context.time[stock][0] # 获取买入时间            currenttime=context.now.replace(tzinfo=None) # 获取当前时间            print ('buytime='+str(buytime))
+            print('currenttime='+str(currenttime))
+
+            total_return=context.portfolio.positions[stock].market_value/context.portfolio.positions[stock].bought_value # 计算回报
+            escape=(currenttime-buytime).days # 计算持有天数            threshold=math.floor(escape/context.period)*context.increment+1 # 计算期望。            if escape&gt;context.period and total_return&lt;threshold:
+                print(str(stock)+ '大于' + str (context.period)+'天 且回报小于'+ str(threshold)+' 卖出')
+                order_target_percent(stock, 0)                
+                del context.time[stock]            
+            elif total_return&gt;threshold: 
+                print(str(stock)+'回报为: ' +str(total_return)+'大于预设值'+str(threshold)+', 继续持有')            
+            elif total_return&lt;0.95:
+                print(str(stock)+'周期内跌幅超过5% 直接止损')           
+             else:
+                print(str(stock)+ '持仓未到' +str(context.period)+'天,继续持有')
+
+def record(context,bar_dict,stock):    if stock not in context.time.columns:
+        temp=pd.DataFrame({str(stock):[context.now.replace(tzinfo=None)]})
+        logger.info (temp)
+        context.time = pd.concat([context.time, temp], axis=1, join='inner')
+
+def rebalance(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            record(context,bar_dict,stock)
+            order_target_percent(stock,1/len(context.to_buy))    else: 
+    order_target_percent(stock,0)</code><p><br></p><p><b>三、限价止损</b></p><p>限价止损 将买入价设置为基准价， 一旦股价上涨大于X% 或下跌大于 Y% 就卖出该股。这是也是一个固定止损/止盈价位的止损方案， 和时间止损存在相同问题：不能有效减少回撤。</p><p><br></p><img src="https://pic3.zhimg.com/v2-a9ce1c29dd1f28e8dedea412140b0d80_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="352" data-watermark="watermark" data-original-src="v2-a9ce1c29dd1f28e8dedea412140b0d80" data-watermark-src="v2-b4a9561d8773b5067ae63584997244b2" data-private-watermark-src=""><p>if 现价&gt;(1+X%)*买入价：<br>卖出 止盈else if 现价&lt;(1-Y%)*买入价：<br>卖出止损else：<br>继续持有</p><code lang="text">import numpy as np import time import datetime 
+def init(context):    context.to_buy = ('300033.XSHE','000025.XSHE','601766.XSHG')
+    context.stoplossmultipler= 0.95 #止损 乘数     context.stoppofitmultipler= 1.5 #止盈 乘数    # 实时打印日志    #scheduler.run_daily(stoploss)    logger.info("Interested at stock: " + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)def stoploss(context,bar_dict):    for stock in context.portfolio.positions:        
+        if bar_dict[stock].last&lt;context.portfolio.positions[stock].average_cost*context.stoplossmultipler:# 现价低于 原价一定比例            order_target_percent(stock,0)
+            print(str(stock)+'跌幅超过'+str((1-context.stoplossmultipler)*100) +'%  触发止损')        
+        elif bar_dict[stock].last&gt;context.portfolio.positions[stock].average_cost*context.stoppofitmultipler:# 现价高于原价一定比例            order_target_percent(stock,0)
+            print(str(stock)+'涨幅幅超过'+str((context.stoppofitmultipler-1)*100) +'%  触发止盈')    
+    pass 
+
+def handle_bar(context, bar_dict):    pass
+
+def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            order_target_percent(stock,1/len(context.to_buy))    
+    else: 
+        order_target_percent(stock,0)</code><p><b>四、跟踪止损</b></p><p>跟踪止损 考虑的是该股的回撤， 若回撤大于某预设值X% 就将其卖出。 此方案的止损价会随着最高价的变化而变化， 在股灾和熔断中有很好的表现。</p><p><br></p><p><br></p><img src="https://pic2.zhimg.com/v2-b590d65735a0a8045f6ab88d5a85af0f_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="361" data-watermark="watermark" data-original-src="v2-b590d65735a0a8045f6ab88d5a85af0f" data-watermark-src="v2-85f542cdbca8de0d56e457e41e873adc" data-private-watermark-src=""><p><br></p><p>X=允许最大回撤if 现价&lt;持股周期内最高价*(1-X %):<br>卖出止损else：<br>继续持有</p><code lang="text">import pandas as pd import numpy as np import time import mathimport datetime def init(context):    context.to_buy = ('300033.XSHE','000025.XSHE','601390.XSHG')
+    context.drawdown= 0.1 # 回撤限度 10%     context.maxvalue=pd.DataFrame()
+    logger.info("Interested at stock: " + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)
+
+def stoploss(context,bar_dict):    for stock in context.portfolio.positions:
+        market_value=context.portfolio.positions[stock].market_value# 该股市场价值 单位（RMB）        bought_value=context.portfolio.positions[stock].bought_value#该股初始价值 单位（RMB）        stockdic=context.maxvalue[stock]
+        maxvalue=stockdic[0]        
+
+del context.maxvalue[stock]
+        temp=pd.DataFrame({str(stock):[max(maxvalue,market_value)]})
+        context.maxvalue=pd.concat([context.maxvalue,temp], axis=1, join='inner') # 更新其盘中最高价值和先阶段比例。         drawdown=1-market_value/max(maxvalue,market_value)
+
+        print(str(stock)+'的成本为：' +str( bought_value) +', 最高价值为：'+str(maxvalue)+'现价值为：'+ str(market_value))
+        print(str(stock) +'的现 回撤为: ' +str(drawdown*100)+ '%')        
+    if drawdown&gt;context.drawdown:# 现价低于 原价一定比例            order_target_percent(stock,0)
+            print(str(stock)+'回撤大于'+ str(context.drawdown*100)+ '%'+'  触发止损')            
+            del context.maxvalue[stock]    
+pass 
+
+def handle_bar(context, bar_dict):    pass
+
+def createdic(context,bar_dict,stock):    if stock not in context.maxvalue.columns:
+        temp=pd.DataFrame({str(stock):[context.portfolio.positions[stock].bought_value]})    
+        context.maxvalue = pd.concat([context.maxvalue, temp], axis=1, join='inner')
+    print(context.maxvalue)
+
+def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            order_target_percent(stock,1/len(context.to_buy))
+            createdic(context,bar_dict,stock)    
+    else: 
+        order_target_percent(stock,0)</code><p><b>五、阶梯止损</b></p><p>阶梯止损是一种 动态止损策略。 止损价会根据持股周期内最高价的变化而变化。 和跟踪止损的思路类似， 但是止损价的计算方式略有不同， 股灾期间表现良好。 但不及阶梯止损。</p><p><br></p><p><br></p><img src="https://pic1.zhimg.com/v2-31f6fa0e09cbbc85cb97e5a2bf328c31_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="344" data-watermark="watermark" data-original-src="v2-31f6fa0e09cbbc85cb97e5a2bf328c31" data-watermark-src="v2-68550f44fb9fe01bb1feb606188703d6" data-private-watermark-src=""><p><br></p><p><br></p><code lang="text">M= 初始止损比例
+X= 阶梯长度  
+Y= 阶梯变化率 （阶梯每改变一次， 止损线上涨的幅度）
+
+止损线改变次数=floor[log(周期内最高股价/买入价)/log(1+ X%)]
+止损价= M * [1+Y%] ^ 止损线改变次数if 现价&lt; 止损价： 
+直接跌破止损价， 卖出止损。else：
+继续持有
+import pandas as pd import numpy as np import time import mathimport datetime 
+def init(context):    context.to_buy = ('300033.XSHE','000025.XSHE')
+    context.initSLM=0.9 # 初始止损比例 M     context.step=0.10    # 间隔 X    context.increment=0.09 # 止损增量  Y    context.maxvalue=pd.DataFrame()
+    logger.info("Interested at stock: " + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)
+
+def stoploss(context,bar_dict):    for stock in context.portfolio.positions:
+        market_value=context.portfolio.positions[stock].market_value# 该股市场价值 单位（RMB）        bought_value=context.portfolio.positions[stock].bought_value#该股初始价值 单位（RMB）        stockdic=context.maxvalue[stock]
+        maxvalue=stockdic[0]        
+
+del context.maxvalue[stock]
+        currSL=context.initSLM*(1+context.increment)**math.floor((math.log(maxvalue/bought_value)/math.log(1+context.step)))#阶梯止损算法 
+
+        temp=pd.DataFrame({str(stock):[max(maxvalue,market_value),currSL]})
+        context.maxvalue=pd.concat([context.maxvalue,temp], axis=1, join='inner') # 更新dataframe。 
+        print(str(stock)+'的成本为：' +str( bought_value) +', 最高价值为：'+str(maxvalue)+'现价值为：'+ str(market_value))
+        print(str(stock) +'的现 止损价位为: ' +str(currSL))        if market_value&lt;bought_value*currSL:# 现价初始止损价            order_target_percent(stock,0)
+            print(str(stock)+ ('触发止损'))    
+    pass 
+
+def handle_bar(context, bar_dict):    pass            
+
+def createdic(context,bar_dict,stock):    if stock not in context.maxvalue.columns:
+        temp=pd.DataFrame({str(stock):[context.portfolio.positions[stock].bought_value,context.initSLM]})    
+        context.maxvalue = pd.concat([context.maxvalue, temp], axis=1, join='inner')
+    print(context.maxvalue)
+
+def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            order_target_percent(stock,1/len(context.to_buy))
+            createdic(context,bar_dict,stock)    
+        else: 
+        order_target_percent(stock,0)</code><p><b>6、ATR 止损</b></p><p>ATR止损 会先计算 一个叫做平均真实波幅 (Average True Range )的指标，ATR止损是根据这一指标发散出来编写的策略。</p><p><br></p><p><br></p><img src="https://pic3.zhimg.com/v2-28a13ba20e5e8f07218ffb0c0cdbd7d4_r.jpg" data-caption="" data-size="normal" data-rawwidth="640" data-rawheight="344" data-watermark="watermark" data-original-src="v2-28a13ba20e5e8f07218ffb0c0cdbd7d4" data-watermark-src="v2-87a149c04566deb8fcdf504ee93fde9d" data-private-watermark-src=""><code lang="text">Raw_ATR=max(|今日振幅|， |昨天收盘-今日最高价|，|昨天收盘-今日最低价|)# 未处理ATR = 这三个指标的最大值
+ATR=moving_average (ATR ,N)  #真实ATR 为 Raw_ATR 的N 日简单移动平均,默认N=22
+import pandas as pd import numpy as np import time import mathimport talibimport datetime 
+def init(context):    context.to_buy = ('300033.XSHE','000025.XSHE')
+    context.ATRperiod=22# ATR 中moving average 的N 值,可自己调, 默认为22    update_universe(context.to_buy)
+    context.trigger=0    context.initSL=0.9    context.profit=0.2 # 当盈利大于20% 就将阶梯设为此价位。    context.maxvalue=pd.DataFrame()
+    logger.info("Interested at stock: " + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)def findATR(context,bar_dict,stock): # 玄学指标        close=history(context.ATRperiod+2,'1d','close')[stock][0:context.ATRperiod]
+        high=history(context.ATRperiod+2,'1d','high')[stock][1:context.ATRperiod+1]
+        low=history(context.ATRperiod+2,'1d','low')[stock][1:context.ATRperiod+1]
+        art1=high.values-low.values
+        art2=abs(close.values-high.values)
+        art3=abs(close.values-low.values)
+        art123=np.matrix([art1, art2,art3])
+        rawatr=np.array(art123.max(0)).flatten()
+        ATR=rawatr.sum()/len(rawatr)
+        print(str(rawatr)+'ATR='+str(rawatr))
+        print(str(stock)+'ATR='+str(ATR))        
+    return ATR
+
+def stoploss(context,bar_dict):    for stock in context.portfolio.positions:
+        high=bar_dict[stock].high
+        current=bar_dict[stock].last
+        bought_value=context.portfolio.positions[stock].bought_value#该股初始价值 单位（RMB）
+        stockdic=context.maxvalue[stock]
+        highest=stockdic[0]        
+
+del context.maxvalue[stock]
+        ATR=findATR(context,bar_dict,stock)
+        temp=pd.DataFrame({str(stock):[max(highest,high)]})
+        context.maxvalue=pd.concat([context.maxvalue,temp], axis=1, join='inner') # 更新其盘中最高价值和先阶段比例。         print(str(stock)+'的成本为：' +str( context.portfolio.positions[stock].average_cost) +', 最高价为：'+str(highest)+'ATR为：'+ str(ATR))        
+    if bar_dict[stock].last&lt;highest-3*ATR:
+            print('吊灯止损')
+            order_target_percent(stock,0)            
+del context.maxvalue[stock]    
+    pass 
+
+def handle_bar(context, bar_dict):    pass       
+
+def createdic(context,bar_dict,stock):    if stock not in context.maxvalue.columns:
+        temp=pd.DataFrame({str(stock):[0]})    
+        context.maxvalue = pd.concat([context.maxvalue, temp], axis=1, join='inner')
+    print(context.maxvalue)def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            createdic(context,bar_dict,stock)
+            order_target_percent(stock,1/len(context.to_buy))    else: 
+        order_target_percent(stock,0)</code><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

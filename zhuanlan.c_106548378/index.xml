@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 08 Aug 2018 13:44:04 +0800</lastBuildDate>
+<lastBuildDate>Sun, 12 Aug 2018 12:02:47 +0800</lastBuildDate>
 <item>
 <title>策略||框架</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-08-07-41446711.html</link>
@@ -23,6 +23,246 @@
 <author>量化家</author>
 <guid isPermaLink="false">2018-08-03-41207512</guid>
 <pubDate>Fri, 03 Aug 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>1.6 量化技术篇—优化择时策略的思路</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-08-02-41155677.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/41155677&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;------从零开始学量化------&lt;/b&gt;&lt;br&gt;&lt;b&gt;简书&lt;/b&gt;：&lt;a href=&quot;https://www.jianshu.com/p/2c34aee64649&quot;&gt;量化目录传送门&lt;/a&gt;&lt;br&gt;&lt;b&gt;知乎&lt;/b&gt;：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38656100&quot;&gt;量化目录传送门&lt;/a&gt; &lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0. 前言&lt;/h2&gt;&lt;p&gt;上篇使用zipline回测了一个简单策略，收益图如下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9fc26cb0d26a6f7a4e2ff158d7e19ea9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;480&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9fc26cb0d26a6f7a4e2ff158d7e19ea9&quot; data-watermark-src=&quot;v2-84d37accd772d5c13a4cbd590c0f3ac1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;评价指标如下&lt;/b&gt;：&lt;br&gt;&lt;br&gt;年化收益率 = 8.34%&lt;br&gt;&lt;br&gt;累计收益率 = 17.37%&lt;br&gt;&lt;br&gt;最大回撤 = -16.14%&lt;br&gt;&lt;br&gt;夏普比率 = 0.62  &lt;/p&gt;&lt;p&gt;综合以上指标，我们发现这个策略存在以下几个问题：&lt;br&gt;1. 夏普比率比较低，也就是承受单位风险带来的收益并不是很高。&lt;br&gt;2. 最大回撤较大，风险较大。&lt;/p&gt;&lt;p&gt;很明显，这个策略过于简单，效果并不理想，所以本篇主要介绍优化这个择时策略的思路。&lt;/p&gt;&lt;h2&gt;1. 改进的思路&lt;/h2&gt;&lt;p&gt;改进的第一个思路就是添加更多的技术指标，但千万不要立即去这样做，如果你直接尝试不同的技术指标，最终的结果可能是吃力不讨好，花了很大精力，却收效甚微。&lt;/p&gt;&lt;p&gt;为什么？？？&lt;/p&gt;&lt;p&gt;因为你没有抓住问题的本质，你的优化更像是一种遍历式的组合，明显是低效的。&lt;/p&gt;&lt;p&gt;那么，我们该怎么办？&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;了解问题的本质。&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;站在巨人的肩膀上。&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;2. 了解问题的本质&lt;/h2&gt;&lt;blockquote&gt;First principle, Simplicity. Read Macrus Aurelius. Of each particular thing, ask:What is it initself?What is its nature?&lt;br&gt;&lt;br&gt;来源于电影《沉默的羔羊》&lt;/blockquote&gt;&lt;p&gt;上面一段话来源于《沉默的羔羊》，他说出了如何去寻找问题的本质。 &lt;/p&gt;&lt;h2&gt;2.1 策略的核心&lt;/h2&gt;&lt;p&gt;我个人认为，量化获利的本质，不是预测未来。因为未来根本是不可预测的，所以拟合曲线的想法是不可行的。&lt;/p&gt;&lt;p&gt;未来不可预测，但是规律却是可以找到的。&lt;/p&gt;&lt;p&gt;在历史的长河中，没有任何力量可以抵挡历史的车轮，因为历史轮回的规律是无可抗拒的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;量化策略的核心————不是拟合曲线，而是服规律。&lt;/b&gt; &lt;/p&gt;&lt;h2&gt;2.2 择时优化点&lt;/h2&gt;&lt;p&gt;上一篇策略使用的是CCI指标（顺势指标，Commodity Channel Index）&lt;/p&gt;&lt;p&gt;CCI指标的核心思想是：根据统计学原理，使用价格与固定期间的股价平均区间的偏离程度，来度量股价是否超出常态分布范围。CCI是一种超买超卖类指标。&lt;/p&gt;&lt;p&gt;根据定义，我们知道上篇文章实现的是一种趋势跟踪的择时策略，股票超买的时候买入，超买结束就卖出。&lt;/p&gt;&lt;p&gt;趋势跟踪策略的盈利逻辑是，市场是非有效的，当市场中某些因素变化，导致某些资产的价值短期内迅速变化，但是这些资产的价格变化滞后于价值变化，那么该资产就具有趋势性，策略顺应这样的趋势实现盈利。&lt;/p&gt;&lt;p&gt;所以趋势跟踪的择时策略，非常依赖于市场的波动性。当市场出现大方向的波动性，策略的收益会比较高；当市场没有明显波动的时候，策略的收益往往就不如人意。这种策略典型的特征是“亏小赚大”。&lt;/p&gt;&lt;p&gt;因此改进有两个方向：&lt;br&gt;&lt;br&gt;1. &lt;b&gt;添加有效的趋势指标，增强信号的可信度。&lt;/b&gt;&lt;br&gt;&lt;br&gt;2. &lt;b&gt;选择具有趋势特性的股票。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;所以接下来的核心问题就是：  &lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;寻找有效的趋势指标？&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;如何判断股票具有趋势性？&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;为了解决以上两个问题，我们就需要站在巨人的肩膀上了。&lt;/p&gt;&lt;h2&gt;3. 站在巨人的肩膀上&lt;/h2&gt;&lt;p&gt;做策略的时候，尽量不要闭门造车，因为自己极有可能在做前人做过的工作，凭一己之力，很难有所作为。&lt;/p&gt;&lt;p&gt;所以我们需要站在巨人的肩膀上，再出发，这样才可能有所突破。&lt;/p&gt;&lt;p&gt;巨人的肩膀指的就是机构的研报、相关的学术研究、优秀的基金经理的理论框架。&lt;/p&gt;&lt;p&gt;当我们站在这些优秀的研究成果上，再进行尝试，事半功倍。&lt;/p&gt;&lt;p&gt;那么前人在择时指标和选股的问题中，有什么好的成果呢？&lt;/p&gt;&lt;h2&gt;3.1 择时指标的成果&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;众泰证券——《传统技术指标有效性的量化分析》，该文章分析了移动平均线（MA）、乖离率（BIAS）和成交量（VOL）的有效性分析。&lt;/li&gt;&lt;li&gt;《Foundations of Technical Analysis:Computational Algorithms, Statistical Inference, and Empirical Implementation》 ，该文章使用了美国的股票数据，研究了10个技术指标的有效性，最终得出5个指标是显著有效的。&lt;/li&gt;&lt;li&gt;《Technical analysis of stock trends》&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;3.2 选股的成果&lt;/h2&gt;&lt;p&gt;&lt;b&gt;目前还未找到好的文章，后续更新&lt;/b&gt;&lt;/p&gt;&lt;p&gt;最后列举一些我看过的，比较有收获的文章：&lt;/p&gt;&lt;h2&gt;3.3 量化策略的科普文章&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;天风证券——《商品期货CTA专题报告》&lt;/li&gt;&lt;li&gt;渤海证券——《商品期货跨品种择时套利策略》&lt;/li&gt;&lt;li&gt;中信证券——《关于多因子模型构建方法实用性的理论探讨》&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;3.4 启发量化策略的文章&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;缠中说禅的缠论&lt;/b&gt;，&lt;a href=&quot;http://blog.sina.com.cn/u/1215172700&quot;&gt;缠师博客&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;&lt;b&gt;周金涛的周期嵌套理论&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;本人还是比较推崇以上两位大牛的大局观和理论分析能力的，从他们的字里行间中，就可以看出他们对问题认识的深度和分析问题独特的思路，从中可以获益不少。&lt;/p&gt;&lt;p&gt;&lt;b&gt;后期会继续更新，也希望大家推荐好的文章&lt;/b&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;如果你对我的文章有兴趣，可以关注一下我的简书和知乎，后期会在简书和知乎上定期更新，传送门在下方：&lt;br&gt;&lt;b&gt;简书&lt;/b&gt;：&lt;a href=&quot;https://www.jianshu.com/u/d436b7e60253&quot;&gt;潇潇夜雨归何处&lt;/a&gt;&lt;br&gt;&lt;b&gt;知乎&lt;/b&gt;：&lt;a href=&quot;https://www.zhihu.com/people/edwardzhang0630/activities&quot;&gt;潇潇夜雨&lt;/a&gt;&lt;br&gt;&lt;br&gt;我相信，有趣的灵魂总会相遇！！！&lt;br&gt;&lt;br&gt;你的关注，是我前进的动力！！！&lt;/p&gt;</description>
+<author>潇潇夜雨</author>
+<guid isPermaLink="false">2018-08-02-41155677</guid>
+<pubDate>Thu, 02 Aug 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>策略||止损思路</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-08-01-41024096.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/41024096&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;一、时间止损&lt;/b&gt;&lt;/p&gt;&lt;p&gt;认为时间是有价值的，若在一定的时间内某股票的回报收益低于一个预设值就认为该交易低于预期，选择卖出。 这是一个非常简单的止损策略， 由于止损线是固定的， 所以不能很好的减少回撤。若不是专门研究时间止损， 不建议使用。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b0e42f37aa24af1f9a421287701d9481_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;352&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b0e42f37aa24af1f9a421287701d9481&quot; data-watermark-src=&quot;v2-f9452b856d60541dd3e8afff98e947f3&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;if 持仓时间&amp;gt; X 天 and 区间涨幅 小于Y% ： 
+卖出止损else：
+继续持有
+import pandas as pd import numpy as np import time import datetime import mathimport itertools
+
+def init(context):    context.to_buy = (&#39;300033.XSHE&#39;,&#39;000025.XSHE&#39;)
+    context.period=10 # 持股天数X     context.total_return=0.05 # 持股天数内的回报率     # 实时打印日志    #scheduler.run_daily(stoploss)    logger.info(&quot;Interested at stock: &quot; + str(context.to_buy))
+    context.time=pd.DataFrame()
+    scheduler.run_monthly(rebalance,1)
+    scheduler.run_daily(stoploss)
+
+def handle_bar(context, bar_dict):    pass 
+
+def stoploss( context,bar_dict):    # 根据时间 清仓    print(context.time)    
+    for stock in  context.portfolio.positions: 
+        if stock in context.time.columns:
+            buytime=context.time[stock][0] # 获取买入时间            currenttime=context.now.replace(tzinfo=None) # 获取当前时间            print (&#39;buytime=&#39;+str(buytime))
+            print(&#39;currenttime=&#39;+str(currenttime))
+
+            total_return=context.portfolio.positions[stock].market_value/context.portfolio.positions[stock].bought_value # 计算回报            escape=(currenttime-buytime).days # 计算持有天数            if escape&amp;gt;context.period and total_return&amp;lt;1+context.total_return:
+                print(str(stock)+ &#39;大于&#39; + str (context.period)+&#39;天 且回报过小， 卖出&#39;)
+                order_target_percent(stock, 0)                
+                del context.time[stock]            
+            elif total_return&amp;gt;1+context.total_return: 
+                print(str(stock)+&#39;回报为: &#39; +str(total_return)+&#39;大于预设值&#39;+str(1+context.total_return))            
+            else:
+                print(str(stock)+ &#39;持仓未到&#39; +str(context.period)+&#39;天,继续持有&#39;)
+
+def record(context,bar_dict,stock):    if stock not in context.time.columns:
+        temp=pd.DataFrame({str(stock):[context.now.replace(tzinfo=None)]})
+        logger.info (temp)
+        context.time = pd.concat([context.time, temp], axis=1, join=&#39;inner&#39;)
+
+def rebalance(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            record(context,bar_dict,stock)
+            order_target_percent(stock,1/len(context.to_buy))            
+    else: 
+        order_target_percent(stock,0)&lt;/code&gt;&lt;p&gt;&lt;b&gt;二、时间+ 阶梯 止损&lt;/b&gt;&lt;/p&gt;&lt;p&gt;时间+阶梯 止损是将“时间有价值” 和 “动态止损” 这两个思路结合在一起的策略。 止损价会随着 持股周期的变化而变化， 一旦跌破止损价，则卖出。 良好的止损策略。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-75f416fcc44d4800b194c230c182c153_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;350&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-75f416fcc44d4800b194c230c182c153&quot; data-watermark-src=&quot;v2-215d36dd8c25c2763559ea1340ed2ca9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;止损价 =fx ( 持股周期， 期望回报率)if 现价&amp;lt; 止损价：
+卖出止损
+阶梯次数= floor(log(1+最大涨幅%)/log(1+阶梯长度%))
+止损价位=初始止损价*(1+Y%)^周期次数if 现价&amp;lt;止损价位:
+卖出止损
+阶梯次数= floor (持股时间(天)/周期X(天))
+止损价= 买入价*(1+阶梯次数* Y%)if 持股时间&amp;gt;周期 X  and 现价&amp;lt; 止损价：
+卖出止损else if  持股时间&amp;lt;周期X and 现价&amp;lt;买入价*预设止损比例：
+在第一个周期内亏损过多， 卖出止损else：
+继续持有  
+import numpy as np import time import datetime import mathimport itertools
+
+def init(context):    context.to_buy = (&#39;300033.XSHE&#39;,&#39;000025.XSHE&#39;)
+    context.period=10 # 持股天数X     context.increment=0.15    # 实时打印日志    context.time=pd.DataFrame()
+    scheduler.run_monthly(rebalance,1)
+    scheduler.run_daily(stoploss)
+
+def handle_bar(context, bar_dict):    pass 
+
+def stoploss( context,bar_dict):    # 根据时间 清仓    print(context.time)    f
+    or stock in  context.portfolio.positions: 
+        if stock in context.time.columns:
+            buytime=context.time[stock][0] # 获取买入时间            currenttime=context.now.replace(tzinfo=None) # 获取当前时间            print (&#39;buytime=&#39;+str(buytime))
+            print(&#39;currenttime=&#39;+str(currenttime))
+
+            total_return=context.portfolio.positions[stock].market_value/context.portfolio.positions[stock].bought_value # 计算回报
+            escape=(currenttime-buytime).days # 计算持有天数            threshold=math.floor(escape/context.period)*context.increment+1 # 计算期望。            if escape&amp;gt;context.period and total_return&amp;lt;threshold:
+                print(str(stock)+ &#39;大于&#39; + str (context.period)+&#39;天 且回报小于&#39;+ str(threshold)+&#39; 卖出&#39;)
+                order_target_percent(stock, 0)                
+                del context.time[stock]            
+            elif total_return&amp;gt;threshold: 
+                print(str(stock)+&#39;回报为: &#39; +str(total_return)+&#39;大于预设值&#39;+str(threshold)+&#39;, 继续持有&#39;)            
+            elif total_return&amp;lt;0.95:
+                print(str(stock)+&#39;周期内跌幅超过5% 直接止损&#39;)           
+             else:
+                print(str(stock)+ &#39;持仓未到&#39; +str(context.period)+&#39;天,继续持有&#39;)
+
+def record(context,bar_dict,stock):    if stock not in context.time.columns:
+        temp=pd.DataFrame({str(stock):[context.now.replace(tzinfo=None)]})
+        logger.info (temp)
+        context.time = pd.concat([context.time, temp], axis=1, join=&#39;inner&#39;)
+
+def rebalance(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            record(context,bar_dict,stock)
+            order_target_percent(stock,1/len(context.to_buy))    else: 
+    order_target_percent(stock,0)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;三、限价止损&lt;/b&gt;&lt;/p&gt;&lt;p&gt;限价止损 将买入价设置为基准价， 一旦股价上涨大于X% 或下跌大于 Y% 就卖出该股。这是也是一个固定止损/止盈价位的止损方案， 和时间止损存在相同问题：不能有效减少回撤。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a9ce1c29dd1f28e8dedea412140b0d80_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;352&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a9ce1c29dd1f28e8dedea412140b0d80&quot; data-watermark-src=&quot;v2-b4a9561d8773b5067ae63584997244b2&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;if 现价&amp;gt;(1+X%)*买入价：&lt;br&gt;卖出 止盈else if 现价&amp;lt;(1-Y%)*买入价：&lt;br&gt;卖出止损else：&lt;br&gt;继续持有&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;import numpy as np import time import datetime 
+def init(context):    context.to_buy = (&#39;300033.XSHE&#39;,&#39;000025.XSHE&#39;,&#39;601766.XSHG&#39;)
+    context.stoplossmultipler= 0.95 #止损 乘数     context.stoppofitmultipler= 1.5 #止盈 乘数    # 实时打印日志    #scheduler.run_daily(stoploss)    logger.info(&quot;Interested at stock: &quot; + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)def stoploss(context,bar_dict):    for stock in context.portfolio.positions:        
+        if bar_dict[stock].last&amp;lt;context.portfolio.positions[stock].average_cost*context.stoplossmultipler:# 现价低于 原价一定比例            order_target_percent(stock,0)
+            print(str(stock)+&#39;跌幅超过&#39;+str((1-context.stoplossmultipler)*100) +&#39;%  触发止损&#39;)        
+        elif bar_dict[stock].last&amp;gt;context.portfolio.positions[stock].average_cost*context.stoppofitmultipler:# 现价高于原价一定比例            order_target_percent(stock,0)
+            print(str(stock)+&#39;涨幅幅超过&#39;+str((context.stoppofitmultipler-1)*100) +&#39;%  触发止盈&#39;)    
+    pass 
+
+def handle_bar(context, bar_dict):    pass
+
+def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            order_target_percent(stock,1/len(context.to_buy))    
+    else: 
+        order_target_percent(stock,0)&lt;/code&gt;&lt;p&gt;&lt;b&gt;四、跟踪止损&lt;/b&gt;&lt;/p&gt;&lt;p&gt;跟踪止损 考虑的是该股的回撤， 若回撤大于某预设值X% 就将其卖出。 此方案的止损价会随着最高价的变化而变化， 在股灾和熔断中有很好的表现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b590d65735a0a8045f6ab88d5a85af0f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;361&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b590d65735a0a8045f6ab88d5a85af0f&quot; data-watermark-src=&quot;v2-85f542cdbca8de0d56e457e41e873adc&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;X=允许最大回撤if 现价&amp;lt;持股周期内最高价*(1-X %):&lt;br&gt;卖出止损else：&lt;br&gt;继续持有&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;import pandas as pd import numpy as np import time import mathimport datetime def init(context):    context.to_buy = (&#39;300033.XSHE&#39;,&#39;000025.XSHE&#39;,&#39;601390.XSHG&#39;)
+    context.drawdown= 0.1 # 回撤限度 10%     context.maxvalue=pd.DataFrame()
+    logger.info(&quot;Interested at stock: &quot; + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)
+
+def stoploss(context,bar_dict):    for stock in context.portfolio.positions:
+        market_value=context.portfolio.positions[stock].market_value# 该股市场价值 单位（RMB）        bought_value=context.portfolio.positions[stock].bought_value#该股初始价值 单位（RMB）        stockdic=context.maxvalue[stock]
+        maxvalue=stockdic[0]        
+
+del context.maxvalue[stock]
+        temp=pd.DataFrame({str(stock):[max(maxvalue,market_value)]})
+        context.maxvalue=pd.concat([context.maxvalue,temp], axis=1, join=&#39;inner&#39;) # 更新其盘中最高价值和先阶段比例。         drawdown=1-market_value/max(maxvalue,market_value)
+
+        print(str(stock)+&#39;的成本为：&#39; +str( bought_value) +&#39;, 最高价值为：&#39;+str(maxvalue)+&#39;现价值为：&#39;+ str(market_value))
+        print(str(stock) +&#39;的现 回撤为: &#39; +str(drawdown*100)+ &#39;%&#39;)        
+    if drawdown&amp;gt;context.drawdown:# 现价低于 原价一定比例            order_target_percent(stock,0)
+            print(str(stock)+&#39;回撤大于&#39;+ str(context.drawdown*100)+ &#39;%&#39;+&#39;  触发止损&#39;)            
+            del context.maxvalue[stock]    
+pass 
+
+def handle_bar(context, bar_dict):    pass
+
+def createdic(context,bar_dict,stock):    if stock not in context.maxvalue.columns:
+        temp=pd.DataFrame({str(stock):[context.portfolio.positions[stock].bought_value]})    
+        context.maxvalue = pd.concat([context.maxvalue, temp], axis=1, join=&#39;inner&#39;)
+    print(context.maxvalue)
+
+def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            order_target_percent(stock,1/len(context.to_buy))
+            createdic(context,bar_dict,stock)    
+    else: 
+        order_target_percent(stock,0)&lt;/code&gt;&lt;p&gt;&lt;b&gt;五、阶梯止损&lt;/b&gt;&lt;/p&gt;&lt;p&gt;阶梯止损是一种 动态止损策略。 止损价会根据持股周期内最高价的变化而变化。 和跟踪止损的思路类似， 但是止损价的计算方式略有不同， 股灾期间表现良好。 但不及阶梯止损。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-31f6fa0e09cbbc85cb97e5a2bf328c31_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;344&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-31f6fa0e09cbbc85cb97e5a2bf328c31&quot; data-watermark-src=&quot;v2-68550f44fb9fe01bb1feb606188703d6&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;M= 初始止损比例
+X= 阶梯长度  
+Y= 阶梯变化率 （阶梯每改变一次， 止损线上涨的幅度）
+
+止损线改变次数=floor[log(周期内最高股价/买入价)/log(1+ X%)]
+止损价= M * [1+Y%] ^ 止损线改变次数if 现价&amp;lt; 止损价： 
+直接跌破止损价， 卖出止损。else：
+继续持有
+import pandas as pd import numpy as np import time import mathimport datetime 
+def init(context):    context.to_buy = (&#39;300033.XSHE&#39;,&#39;000025.XSHE&#39;)
+    context.initSLM=0.9 # 初始止损比例 M     context.step=0.10    # 间隔 X    context.increment=0.09 # 止损增量  Y    context.maxvalue=pd.DataFrame()
+    logger.info(&quot;Interested at stock: &quot; + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)
+
+def stoploss(context,bar_dict):    for stock in context.portfolio.positions:
+        market_value=context.portfolio.positions[stock].market_value# 该股市场价值 单位（RMB）        bought_value=context.portfolio.positions[stock].bought_value#该股初始价值 单位（RMB）        stockdic=context.maxvalue[stock]
+        maxvalue=stockdic[0]        
+
+del context.maxvalue[stock]
+        currSL=context.initSLM*(1+context.increment)**math.floor((math.log(maxvalue/bought_value)/math.log(1+context.step)))#阶梯止损算法 
+
+        temp=pd.DataFrame({str(stock):[max(maxvalue,market_value),currSL]})
+        context.maxvalue=pd.concat([context.maxvalue,temp], axis=1, join=&#39;inner&#39;) # 更新dataframe。 
+        print(str(stock)+&#39;的成本为：&#39; +str( bought_value) +&#39;, 最高价值为：&#39;+str(maxvalue)+&#39;现价值为：&#39;+ str(market_value))
+        print(str(stock) +&#39;的现 止损价位为: &#39; +str(currSL))        if market_value&amp;lt;bought_value*currSL:# 现价初始止损价            order_target_percent(stock,0)
+            print(str(stock)+ (&#39;触发止损&#39;))    
+    pass 
+
+def handle_bar(context, bar_dict):    pass            
+
+def createdic(context,bar_dict,stock):    if stock not in context.maxvalue.columns:
+        temp=pd.DataFrame({str(stock):[context.portfolio.positions[stock].bought_value,context.initSLM]})    
+        context.maxvalue = pd.concat([context.maxvalue, temp], axis=1, join=&#39;inner&#39;)
+    print(context.maxvalue)
+
+def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            order_target_percent(stock,1/len(context.to_buy))
+            createdic(context,bar_dict,stock)    
+        else: 
+        order_target_percent(stock,0)&lt;/code&gt;&lt;p&gt;&lt;b&gt;6、ATR 止损&lt;/b&gt;&lt;/p&gt;&lt;p&gt;ATR止损 会先计算 一个叫做平均真实波幅 (Average True Range )的指标，ATR止损是根据这一指标发散出来编写的策略。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-28a13ba20e5e8f07218ffb0c0cdbd7d4_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;344&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-28a13ba20e5e8f07218ffb0c0cdbd7d4&quot; data-watermark-src=&quot;v2-87a149c04566deb8fcdf504ee93fde9d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;code lang=&quot;text&quot;&gt;Raw_ATR=max(|今日振幅|， |昨天收盘-今日最高价|，|昨天收盘-今日最低价|)# 未处理ATR = 这三个指标的最大值
+ATR=moving_average (ATR ,N)  #真实ATR 为 Raw_ATR 的N 日简单移动平均,默认N=22
+import pandas as pd import numpy as np import time import mathimport talibimport datetime 
+def init(context):    context.to_buy = (&#39;300033.XSHE&#39;,&#39;000025.XSHE&#39;)
+    context.ATRperiod=22# ATR 中moving average 的N 值,可自己调, 默认为22    update_universe(context.to_buy)
+    context.trigger=0    context.initSL=0.9    context.profit=0.2 # 当盈利大于20% 就将阶梯设为此价位。    context.maxvalue=pd.DataFrame()
+    logger.info(&quot;Interested at stock: &quot; + str(context.to_buy))
+    scheduler.run_monthly(position,1)
+    scheduler.run_daily(stoploss)def findATR(context,bar_dict,stock): # 玄学指标        close=history(context.ATRperiod+2,&#39;1d&#39;,&#39;close&#39;)[stock][0:context.ATRperiod]
+        high=history(context.ATRperiod+2,&#39;1d&#39;,&#39;high&#39;)[stock][1:context.ATRperiod+1]
+        low=history(context.ATRperiod+2,&#39;1d&#39;,&#39;low&#39;)[stock][1:context.ATRperiod+1]
+        art1=high.values-low.values
+        art2=abs(close.values-high.values)
+        art3=abs(close.values-low.values)
+        art123=np.matrix([art1, art2,art3])
+        rawatr=np.array(art123.max(0)).flatten()
+        ATR=rawatr.sum()/len(rawatr)
+        print(str(rawatr)+&#39;ATR=&#39;+str(rawatr))
+        print(str(stock)+&#39;ATR=&#39;+str(ATR))        
+    return ATR
+
+def stoploss(context,bar_dict):    for stock in context.portfolio.positions:
+        high=bar_dict[stock].high
+        current=bar_dict[stock].last
+        bought_value=context.portfolio.positions[stock].bought_value#该股初始价值 单位（RMB）
+        stockdic=context.maxvalue[stock]
+        highest=stockdic[0]        
+
+del context.maxvalue[stock]
+        ATR=findATR(context,bar_dict,stock)
+        temp=pd.DataFrame({str(stock):[max(highest,high)]})
+        context.maxvalue=pd.concat([context.maxvalue,temp], axis=1, join=&#39;inner&#39;) # 更新其盘中最高价值和先阶段比例。         print(str(stock)+&#39;的成本为：&#39; +str( context.portfolio.positions[stock].average_cost) +&#39;, 最高价为：&#39;+str(highest)+&#39;ATR为：&#39;+ str(ATR))        
+    if bar_dict[stock].last&amp;lt;highest-3*ATR:
+            print(&#39;吊灯止损&#39;)
+            order_target_percent(stock,0)            
+del context.maxvalue[stock]    
+    pass 
+
+def handle_bar(context, bar_dict):    pass       
+
+def createdic(context,bar_dict,stock):    if stock not in context.maxvalue.columns:
+        temp=pd.DataFrame({str(stock):[0]})    
+        context.maxvalue = pd.concat([context.maxvalue, temp], axis=1, join=&#39;inner&#39;)
+    print(context.maxvalue)def position(context,bar_dict):    if len(context.to_buy)!=0:        
+        for stock in context.to_buy:
+            createdic(context,bar_dict,stock)
+            order_target_percent(stock,1/len(context.to_buy))    else: 
+        order_target_percent(stock,0)&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>量化家</author>
+<guid isPermaLink="false">2018-08-01-41024096</guid>
+<pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>策略||隐马尔可夫模型</title>
@@ -136,6 +376,15 @@ t = ax.set_title(u&#39;EP因子Box-Cox变换的最优lambda&#39;, fontpropert=fo
 <pubDate>Mon, 30 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
+<title>人工智能会给外汇行业带来什么样的改变？EA可以帮你赚钱吗？</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-27-40728317.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40728317&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-15469ac443d0584e6416cc25cea83381_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;人工智能，这几年是人们津津乐道的话题，各国政府、商界大佬都纷纷把注意力集中在人工智能技术上面，谷歌、百度等公司更是将AI作为下一步发展的战略核心。，可以说，抓住了人工智能，也就抓住了未来，科技这个东西，向来都是先到者先得。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果说我们现在是互联网的时代，未来一定是人工智能的天下，人工智能将会给整个世界带来的变革，不会弱于互联网。随着无人驾驶，AI医疗等技术的发展，各行各业都被人工智能这个新技术撼动，外汇行业也不例外。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;人工智能为外汇行业带来的改变&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;2017年底，美国时代周刊发文称2018年将是金融机构全面智能化转型的一年，人工智能将成为金融机构的一种核心能力。高盛、花旗以及汇丰等大型金融机构每年都投入数十亿美金研究金融领域的人工智能技术应用，人工智能领域俨然已经成为国际金融公司重金搏杀的新战场。&lt;/h2&gt;&lt;h2&gt;&lt;b&gt;人工智能的崛起，正在逐步改变着外汇市场的格局。&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;相比较其它行业的工作岗位，金&lt;b&gt;融行业因为数据量丰富，可以流程标准化的岗位较多，所以用 AI 算法代替人工，在提升效率的同时更降低了人工成本。&lt;/b&gt;同时，人工智能还有助于降低银行的合规成本，满足监管当局有关外汇定价和收费更加透明化的监管要求。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;各大银行都没有无视这种转变，&lt;/b&gt;花旗银行计划5年内裁员50%，采用人工智能算法代替他们的工作；巴克莱银行95%的即期交易从交易到结算都由自动化程序完成；瑞士联合银行约三分之二的交易通过其Neo平台处理......&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在外汇行业到处裁员的同时，自动化交易模式也开始盛行，&lt;b&gt;量化交易、程序化交易越来越受到各大机构的青睐，&lt;/b&gt;这也进一步减少了外汇行业从业人员的需求。与此同时，零售外汇行业也有越来越多的人倾向于自动化交易，各种策略、软件层出不穷，产品宣传更让人眼花缭乱，吸引了很多行业内外的人，人工智能正在从交易技术、成本、行业参与者等各个方面，重构整个外汇行业。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;人工智能可以帮交易者持续盈利吗&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;人工智能不管在银行间外汇市场还是在零售外汇市场都大受追捧，这是因为&lt;b&gt;人工智能在外汇交易方面有着其先天的优势。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;人工智能交易系统是个集合体，里面包含着无数人的智慧结晶，相当于站在巨人的肩膀上。&lt;b&gt;无论是在行情判断、仓位控制、交易纪律、风险控制和盈利能力方面，都会优于人工操作，优于普通的交易者&lt;/b&gt;；同时，它可以摆脱人生理上的局限，克服人性的弱点。人工智能交易系统不需要休息，&lt;b&gt;可以24小时无休的工作，&lt;/b&gt;对行情持续不断地监视，并且严格执行交易策略，不会有犹豫、恐惧和贪婪等情绪，也就是说，&lt;b&gt;你有一个保证盈利的交易策略，你就一定会赚钱。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么，问题就在这里，&lt;b&gt;“一个保证盈利的交易策略”这本身就不是那么容易做到的。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;普通的交易者，现在所接触的人工智能交易系统，大多是各种EA，它是将外汇交易策略编程后应用于交易平台，让电脑按照事先设定好的条件自动地执行持仓和买卖。所以盈利与否，取决于两点，&lt;b&gt;交易策略本身的优劣，以及交易策略的执行效果。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一个良好的交易策略可以实现稳定的盈利，即使发生亏损也会在极小的范围内得到控制，而差的交易策略则可能会导致交易账户在极短的时间内就发生巨量亏损甚至爆仓。&lt;b&gt;所以一个优秀的EA其实要求非常高，需要有顶级的操盘手的经验和杰出的程序员进行设计编程。&lt;/b&gt;同时，没有一个固定的策略可以应对不断变化着的市场，EA策略还要随着时间不断进行人为优化。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;此外，由于EA运行过程中，需要大量的判断和计算，网络环境就显得至关重要，&lt;b&gt;配置强大的电脑和畅通的网络环境是EA顺利运行的保障，&lt;/b&gt;这些也是为什么大机构的自动化交易可以赚钱，很多投资者却在EA上赔了钱的原因。&lt;b&gt;EA总的来说是个工具，&lt;/b&gt;可以代替人工进行大量重复的劳动，处理海量人工无法处理的数据，&lt;b&gt;它是一个完美的执行者，但是它取胜的核心仍旧是人。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;事实上，人工智能最重要的还有一点就是它的学习能力，这也是AI与EA之间的差距。严格来说，EA是人工智能在外汇领域发展过程当中的一个孩子，还需要人的扶持和引导，而在未来，人工智能真的发展成熟了，可以自己对行情进行记录分析，并不断修正自己的策略，电脑对面将会剩下一个没有感情的，只有超强的判断力和运算能力的机器，那将会对是对现有模式的一种颠覆。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;内容转自网络，欢迎关注私信，有问必答！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;我是投资界C.Roiee，一个搞金融的男人。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;欢迎私信交流，有问必答！互相学习，共同进步！&lt;/b&gt;&lt;/p&gt;</description>
+<author>投资界C.Roiee</author>
+<guid isPermaLink="false">2018-07-27-40728317</guid>
+<pubDate>Fri, 27 Jul 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
 <title>策略||数据可视化</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-27-40701499.html</link>
 <description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40701499&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
@@ -154,388 +403,13 @@ t = ax.set_title(u&#39;EP因子Box-Cox变换的最优lambda&#39;, fontpropert=fo
 <pubDate>Thu, 26 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
-<title>1.5 量化技术篇—使用zipline回测</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-25-40565731.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40565731&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;------从零开始学量化------&lt;/b&gt;&lt;br&gt;&lt;b&gt;简书&lt;/b&gt;：&lt;a href=&quot;https://www.jianshu.com/p/2c34aee64649&quot;&gt;量化目录传送门&lt;/a&gt;&lt;br&gt;&lt;b&gt;知乎&lt;/b&gt;：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38656100&quot;&gt;量化目录传送门&lt;/a&gt; &lt;/p&gt;&lt;hr&gt;&lt;h2&gt;0. 前言&lt;/h2&gt;&lt;p&gt;在1.4中，我们实现了一个简单的量化择时策略，那么该策略到底效果如何呢？我们该使用什么开源框架，使用历史数据回测策略呢？我们又该用那些指标评价一个策略？&lt;/p&gt;&lt;p&gt;本篇的内容就是回答以上的问题的，下面给一个简要的答案：  &lt;/p&gt;&lt;p&gt;&lt;b&gt;回测的开源框架&lt;/b&gt;：&lt;b&gt;zipline&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;策略的评价指标&lt;/b&gt;：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;累计收益&lt;/li&gt;&lt;li&gt;年化收益&lt;/li&gt;&lt;li&gt;最大回撤&lt;/li&gt;&lt;li&gt;夏普比率&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;为什么选择zipline？主要由以下几点原因：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在quant的框架中star数最多，版本更新和维护比较快。&lt;/li&gt;&lt;li&gt;社区生态比较好，出现问题，google容易找到解决方案。&lt;/li&gt;&lt;li&gt;该框架在国外已经比较成熟，坑少。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;1. 策略的回测结果&lt;/h2&gt;&lt;h2&gt;1.1 策略的回测指标&lt;/h2&gt;&lt;p&gt;年化收益率 = 8.34%&lt;br&gt;&lt;br&gt;累计收益率 = 17.37%&lt;br&gt;&lt;br&gt;最大回撤 = -16.14%&lt;br&gt;&lt;br&gt;夏普比率 = 0.62  &lt;/p&gt;&lt;h2&gt;1.2 策略的收益图&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9fc26cb0d26a6f7a4e2ff158d7e19ea9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;480&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9fc26cb0d26a6f7a4e2ff158d7e19ea9&quot; data-watermark-src=&quot;v2-84d37accd772d5c13a4cbd590c0f3ac1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;1.3 回测的环境&lt;/h2&gt;&lt;p&gt;量化框架：zipline（version = 1.3.0）&lt;/p&gt;&lt;h2&gt;1.4 策略追踪的股票和benchmark&lt;/h2&gt;&lt;p&gt;追踪的股票：个股选择了苹果（AAPL）&lt;br&gt;&lt;br&gt;benchmark：美国标普500（SPX）的指数&lt;br&gt;&lt;br&gt;策略时间： 2015-01-01 ~ 2017-01-01  &lt;/p&gt;&lt;h2&gt;1.5 择时策略描述&lt;/h2&gt;&lt;p&gt;买入： 当cci &amp;gt;= 50&lt;br&gt;&lt;br&gt;卖出：当cci &amp;lt; 50&lt;/p&gt;&lt;h2&gt;2. zipline回测前的准备&lt;/h2&gt;&lt;p&gt;在开始回测之前，zipline首先需要下载数据包（data bundle）。由于在1.2篇——环境安装中已经说明了zipline的安装方式,如果还有问题可以查看&lt;a href=&quot;https://github.com/quantopian/zipline#installation&quot;&gt;zipline github installation&lt;/a&gt;。下面假设大家已经使用anaconda安装好了zipline（我的zipline的版本是1.3.0）。&lt;/p&gt;&lt;p&gt;zipline安装完毕后，可以打开命令行，输入命令查询zipline目前支持的数据包，具体可以参考&lt;a href=&quot;https://blog.csdn.net/qq_39377696/article/details/80414711&quot;&gt;Zipline Data Bundles&lt;/a&gt;，输入的命令如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 命令行中输入查询数据包的命令
-zipline bundles
-
-# 返回的结果
-csvdir &amp;lt;no ingestions&amp;gt;
-quandl &amp;lt;no ingestions&amp;gt;
-quantopian-quandl &amp;lt;no ingestions&amp;gt;&lt;/code&gt;&lt;p&gt;从命令行中可以看到，zipline中没有载入任何数据包。然后我们开始下载数据包，具体可以参考&lt;a href=&quot;https://blog.ihanai.com/2018/04/08/install-and-config-zipline/&quot;&gt;Zipline 的安装配置&lt;/a&gt;。下载数据包主要分为两步：&lt;/p&gt;&lt;p&gt;&lt;b&gt;第一步&lt;/b&gt;：登录&lt;a href=&quot;https://www.quandl.com/account/api&quot;&gt;quandl&lt;/a&gt;官网，进行注册，获得api key。&lt;/p&gt;&lt;p&gt;&lt;b&gt;第二部&lt;/b&gt;：设置api key，并下载数据包，具体命令如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 设置quandl的api key
-set QUANDL_API_KEY=your_key
-
-# 下载数据包
-zipline ingest -b quandl
-
-# 查询数据包
- zipline bundles
-# 返回
-csvdir &amp;lt;no ingestions&amp;gt;
-quandl 2018-07-23 09:34:37.144466
-quandl 2018-07-23 09:28:37.817531
-quantopian-quandl &amp;lt;no ingestions&amp;gt;&lt;/code&gt;&lt;p&gt;当zipline bundles 返回的quandl中出现上面的返回，说明数据下载成功。&lt;/p&gt;&lt;h2&gt;3. 策略代码&lt;/h2&gt;&lt;code lang=&quot;text&quot;&gt;from datetime import datetime
-
-import matplotlib.pyplot as plt
-import pytz
-import seaborn as sns
-import talib as ta
-from empyrical import cum_returns, annual_return, sharpe_ratio, max_drawdown
-from matplotlib.dates import DateFormatter
-from zipline import run_algorithm
-from zipline.api import symbol, order, record
-from zipline.finance import commission, slippage
-
-
-def initialize(context):
-    # 记录股票代码，通过股票代码获取股票对象
-    context.asset = symbol(&#39;AAPL&#39;)
-
-    # 定义是否买入股票的标记
-    context.invested = False
-
-    # 设置交易的手续费，股票成交时，手续费按成交金额一定比例收取
-    # 设置手续费率和最低费用
-    context.set_commission(commission.PerShare(cost=.0075, min_trade_cost=1.0))
-
-    # 设置模拟真实交易的滑价，当实际下单交易时，下单订单将影响市场。买单驱使价格上涨，卖单驱使价格下滑;
-    # 这通常被称为交易的“价格影响”。价格影响的大小取决于订单与当前交易量相比有多大。
-    context.set_slippage(slippage.VolumeShareSlippage(volume_limit=0.025, price_impact=0.1))
-
-
-def handle_data(context, data):
-    # 获取历史股票数据
-    # context.asset表示股票列表
-    # fields – 历史数据项或集合，项可以为’close’, ‘open’, ‘high’, ‘low’, ‘price’
-    # bar_count – 获取多少单位时间
-    # frequency – 可以取值‘1m’ 或 ‘1d’。 ‘1m’表示分钟单位, ‘1d’表示日单位, 现在只支持日单位
-    trailing_window = data.history(context.asset, [&#39;high&#39;, &#39;low&#39;, &#39;close&#39;, &#39;open&#39;], 40, &#39;1d&#39;)
-
-    # 数据为空则返回
-    if trailing_window.isnull().values.any():
-    return
-
-    # 计算cci指标
-    cci = ta.CCI(trailing_window[&#39;high&#39;].values, trailing_window[&#39;low&#39;].values, trailing_window[&#39;close&#39;].values,
-    timeperiod=14)
-
-    # 定义买入和卖出的标志位
-    buy = False
-    sell = False
-
-    if (cci[-1] &amp;gt;= 50) and not context.invested:
-    # 买卖股票，按股票数量生成订单，amount为负，表示做空。
-    # 参数:
-    # asset – 股票
-    # amount – 交易数量, 正数表示买入, 负数表示卖出
-    # style –（可选参数）指定下单类型，默认为市价单，可用的下单类型如下：
-    #   style=MarketOrder()，下市价单
-    #   style=StopOrder(stop_price)，下止损单，通常用来止损或者锁定利润
-    #   style=LimitOrder(limit_price)，下限价单，限定一个价格买入或卖出
-    #   style=StopLimitOrder(limit_price=price1, stop_price=price2)，指定限价和止损价格
-    order(context.asset, 100)
-    # 设置买入
-    context.invested = True
-    buy = True
-    elif (cci[-1] &amp;lt; 50) and context.invested:
-    order(context.asset, -100)
-    context.invested = False
-    sell = True
-
-    # 记录函数，在交易执行时记录用户自定义数据，该数据存放在回测输出结果中
-    record(open=data.current(context.asset, &quot;open&quot;),
-        high=data.current(context.asset, &quot;high&quot;),
-        low=data.current(context.asset, &quot;low&quot;),
-        close=data.current(context.asset, &quot;close&quot;),
-        cci=cci[-1],
-        buy=buy,
-        sell=sell)
-
-
-# 定义分析回测效果的函数
-def analyze(context=None, results=None):
-    pass
-
-
-def draw_return_rate_line(result):
-    sns.set_style(&#39;darkgrid&#39;)
-    sns.set_context(&#39;notebook&#39;)
-    ax = plt.axes()
-    # 设置时间显示格式
-    years_fmt = DateFormatter(&#39;%Y-%m-%d&#39;)
-    ax.xaxis.set_major_formatter(years_fmt)
-    # 让x轴坐标旋转45度
-    labels = ax.get_xticklabels()
-    plt.setp(labels, rotation=35, horizontalalignment=&#39;right&#39;)
-    # 画出收益率曲线
-    sns.lineplot(x=&#39;period_close&#39;,
-    y=&#39;algorithm_period_return&#39;,
-    data=result,
-    label=&quot;AAPL&quot;)
-    sns.lineplot(x=&#39;period_close&#39;,
-        y=&#39;benchmark_period_return&#39;,
-        data=result, label=&quot;SPX&quot;)
-
-    plt.legend(loc=&#39;upper left&#39;)
-    plt.title(&quot;return rate of AAPL and SPX&quot;)
-    plt.xlabel(&#39;time&#39;)
-    plt.ylabel(&#39;return rate&#39;)
-    plt.show()
-
-
-if __name__ == &#39;__main__&#39;:
-    capital_base = 10000
-    start = datetime(2015, 1, 1, 0, 0, 0, 0, pytz.utc)
-    end = datetime(2017, 1, 1, 0, 0, 0, 0, pytz.utc)
-
-    # 运行算法
-    result = run_algorithm(start=start, end=end, initialize=initialize,
-        capital_base=capital_base, handle_data=handle_data,
-        bundle=&#39;quandl&#39;, analyze=analyze)
-
-    # 画出收益曲线图
-    draw_return_rate_line(result)
-
-    return_list = result[&#39;returns&#39;]
-
-    # 计算年化收益率
-    ann_return = annual_return(return_list)
-
-    # 计算累计收益率
-    cum_return_list = cum_returns(return_list)
-
-    # 计算sharp ratio
-    sharp = sharpe_ratio(return_list)
-
-    # 最大回撤
-    max_drawdown_ratio = max_drawdown(return_list)
-
-    print(&quot;年化收益率 = {:.2%}, 累计收益率 = {:.2%}, 最大回撤 = {:.2%}, 夏普比率 = {:.2f} &quot;.format
-        (ann_return, cum_return_list[-1], max_drawdown_ratio, sharp))&lt;/code&gt;&lt;hr&gt;&lt;p&gt;如果你对我的文章有兴趣，可以关注一下我的简书和知乎，后期会在简书和知乎上定期更新，传送门在下方：&lt;br&gt;&lt;b&gt;简书&lt;/b&gt;：&lt;a href=&quot;https://www.jianshu.com/u/d436b7e60253&quot;&gt;潇潇夜雨归何处&lt;/a&gt;&lt;br&gt;&lt;b&gt;知乎&lt;/b&gt;：&lt;a href=&quot;https://www.zhihu.com/people/edwardzhang0630/activities&quot;&gt;潇潇夜雨&lt;/a&gt;&lt;br&gt;&lt;br&gt;我相信，有趣的灵魂总会相遇！！！&lt;br&gt;&lt;br&gt;你的关注，是我前进的动力！！！&lt;/p&gt;</description>
-<author>潇潇夜雨</author>
-<guid isPermaLink="false">2018-07-25-40565731</guid>
-<pubDate>Wed, 25 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>策略||模型校正</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-25-40528417.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40528417&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;斯蒂文管理着一个交易组合包含着各种资产类 (asset class) 的金融产品。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;老板：有一百万欧元，欧元对美元 (EURUSD) 可能会涨，3 个月后 锁定一个汇率换成美元&lt;/p&gt;&lt;p&gt;斯蒂文：买 EURUSD 看涨期权 (call option)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;老板：美元三个月同业拆放利率 (USD Libor3M) 可能会降，1 年后 锁定一个利率赚利差&lt;/p&gt;&lt;p&gt;斯蒂文：买 USD 利率下限 (IR floor)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;老板：咖啡价格 3 个月可能会涨，抓住它的平均涨幅&lt;/p&gt;&lt;p&gt;斯蒂文：买咖啡亚式固定行权看涨期权(Asian fixed strike calloption)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;老板：通用汽车 (GM) 在 1 年内可能会涨，但是一旦超过 38 就不 会跌破 30&lt;/p&gt;&lt;p&gt;斯蒂文；买 GM 向上敲出障碍看跌期权 (up-and-out put option)， 障碍价位 38，行权价为 30。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;要买这么多金融衍生品，以什么价格买?这可不是简单的折现现金流(discounted cash flow) 就可以算出来，都需要对其原生资产 (underlying asset) 价格进行建模。原因很简单，衍生品的价值是原生资产价格的函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;• 外汇看涨期权的价值是汇率价格的函数 &lt;/p&gt;&lt;p&gt;• 利率下限的价值是利率价格的函数&lt;/p&gt;&lt;p&gt;• 商品亚式期权的价值是商品价格的函数 &lt;/p&gt;&lt;p&gt;• 股权障碍期权的价值是股票价格的函数&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但是产品定价 (instrument pricing) 易，模型校正 (model calibration) 难， 因为&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;• 定价是个正问题，给定模型参数算出产品价格&lt;/p&gt;&lt;p&gt;• 校正是个反问题，给定产品价格反推模型参数 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;为了让大家保持兴趣，现在来看看两个最简单的定价和校正：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;定价问题是1 + 2 = 3，把加法看成是个“模型”，那么与之对应的校正问题就是 1 加上多少等于 3，校正 (用减法3 - 1) 出来的结果是2。&lt;/li&gt;&lt;li&gt;定价问题是sin(π/6) = 0.5，把正弦函数看成是个“模型”，那么与之对应的校正问题就是sin多少等于0.5，校正 (用反正弦argsin(0.5)) 出来的结果是π/6 。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;虽然上面两例“校正”不难，但也比“定价”难吧。在量化金融中，用复杂模型的定价问题已经不易，那么相对应的校正问题更加困难，如：&lt;/p&gt;&lt;p&gt;定价问题是BS(σ) = 1美元，把BS看成是个模型，那么与之对应的校正问题就是多少波动率σ带入BS公式里得到期权价值1美元。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本推文就为大家展示各种资产类的常见模型的模型校正！里面画的图全是基于真实的市场数据，而作者也有一套系统的程序来实现各种模型校正。&lt;b&gt;出于里面有些技巧是公司或客户的私有财产和作者多年以来的心血，作者还是不发整套代码怕担当法律责任，但是有问必答！&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;前戏王&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;0.1 模型参数形式&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在金融模型中，时间 t 是个很重要的变量，而模型参数 c 通常认为和 t 有 关，写作 c(t)。在建模时，将 c(t) 的整个函数形式完全描述出来不容易也 不实际，通常把 c(t) 看成是常数形式和分段常数形式，如下图: &lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-ecb5b856aebdd09cb131ab0735166c03_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;438&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-ecb5b856aebdd09cb131ab0735166c03&quot; data-watermark-src=&quot;v2-b0e9518b7ca1f872c5e0669db743e37b&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;给定时间结构 t0 &amp;lt; t1 &amp;lt; ... &amp;lt; ti-1 &amp;lt; ... &amp;lt; tn，常数和分段常数的表达形式如下表所示 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3662d2ac0bc65897eff7d5970c8ade8d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;582&quot; data-rawheight=&quot;186&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3662d2ac0bc65897eff7d5970c8ade8d&quot; data-watermark-src=&quot;v2-81e4fdbd5463723dd87c7168de5010a8&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;0.2 随机微分方程&lt;/b&gt;&lt;/p&gt;&lt;p&gt;随机微分方程 (SDE) 就是常微分方程 (ODE) 加个随机过程。在各种金融 衍生品模型中，其对应的原生资产都能用 SDE 来描述。比如股票类Black-Scholes 模型，利率类 Hull-White 模型，商品类 Schwartz 模型和外 汇类 Heston 模型相对应的 SDE 如下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f76f848fb70a024f1bf043cb42c55d23_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;336&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-f76f848fb70a024f1bf043cb42c55d23&quot; data-watermark-src=&quot;v2-c965afb51a3f170f92887f801bda0511&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们可以不严谨把 SDE 当成模型，而里面红色项就是模型参数，这些参数都不是随意给定，而是从金融市场中“校正”出来的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;股权类&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.1 Black-Scholes 模型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型介绍&lt;/b&gt;&lt;/p&gt;&lt;p&gt;股权类的 Black-Scholes (BS) 模型下的 SDE 是描述股票价格 (stock price) 的走势：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-222a895052e30100308fed7cea8fe089_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;77&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;p&gt;S(t) = 股票价格&lt;/p&gt;&lt;p&gt;r(t) = 瞬时无风险利率&lt;/p&gt;&lt;p&gt;q(t) = 瞬时红利率&lt;/p&gt;&lt;p&gt;ς(t) = S(t)的瞬时波动率 &lt;/p&gt;&lt;p&gt;B(t) = 布朗运动&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;该模型是 Fischer Black 和 Myron Scholes 在 1973 年提出，其论文题目是 &lt;i&gt;The Pricing of Options and Corporate Liabilities&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;一般情况下&lt;/p&gt;&lt;p&gt; r(t) 和 q(t) 当成常数&lt;/p&gt;&lt;p&gt; ς( ) 可以是常数，但通常是分段常数 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;它们的获取方式为&lt;/p&gt;&lt;ul&gt;&lt;li&gt;r：根据股票结算的货币，找到其掉期曲线，如美元对应 USD Libor 3M 曲线，欧元对应 EUR Euribor 6M 曲线等，在曲线上插出 T 点 的r值&lt;/li&gt;&lt;li&gt;q：根据该股票在估值日和到期日 T 之间的所有离散红利，折现到 0 点得到红利现值 div，再利用公式 div = e-qT 计算出 T 点的 q 值， q = -ln(div/T)&lt;/li&gt;&lt;li&gt; ς 或 ς( ) :从一系列股权欧式期权中校正出来&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.2 市场标准产品和数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;产品定义&lt;/b&gt;&lt;/p&gt;&lt;p&gt;股权类市场标准产品是“一系列不同行权价格 K 和不同年限 T 股权欧式 期权 (EQ option)”，定义如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在股权欧式期权 (equity vanilla option) 合约下，买方和卖方将同意以下内容：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 买方付出期权金 (premium) 便有权利 (right)去行使，而卖方收取 期权金后则有义务 (obligation) 履行买方行使权利的义务。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 看涨期权:买方有权在到期日以 K 买入 S，而卖方一旦被行使期权 时，则有责任以 K 卖出 S&lt;/li&gt;&lt;li&gt; 看跌期权:买方有权在到期日以 K 卖出 S，而卖方一旦被行使期权 时，则有责任以 K 买入 S&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;其中 S 是到期日股权的价格，K 是执行价格 (strike price)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;它们的成交价就是用于模型校正的市场数据，但市场惯例是用波动率当市 场数据，原因是价格在价内和价外是差别会很大，而波动率是一个没有单 位的量。某天的日经平均指数 (N225) 的真实数据如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-472a564b35e7a7e46b4ab38780f925fb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;148&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-472a564b35e7a7e46b4ab38780f925fb&quot; data-watermark-src=&quot;v2-d5527f5c1d9beb2e48b920ea8c1173e0&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上图数据又称 EQ option 波动率平面，它是二维数据结构&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 行对应的年限 (expiry)，期权年限从 1 个月到 5 年&lt;/li&gt;&lt;li&gt; 列对应的行权价格 (strike)，注意第三列白色粗体 17450.77 是&lt;/li&gt;&lt;li&gt;ATM 行权价格，其对应的绿色粗体是 ATM 波动率&lt;/li&gt;&lt;li&gt; 波动率与行权价格和年限有关，可写成 ς(K, T)&lt;/li&gt;&lt;li&gt; 波动率单位是%，28.63 实际上指的是 28.63%&lt;/li&gt;&lt;li&gt; 市场波动率带进 BS 公式得到期权的市场价格&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.3 市场价格和模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a5929135e8070fa00c92e8d1cca8eed9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;195&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a5929135e8070fa00c92e8d1cca8eed9&quot; data-watermark-src=&quot;v2-be5b161afd4186e076f0faeae0769219&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;EQ option 市场价格是之后模型校正的基准 (benchmark)。关于 BS 模型的 EQ option 公式推导细节，可参考 &lt;i&gt;Options, Futures And Other Derivatives, 9th edition, Chapter15, Appendix.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-75f3f99ee795e63a39472631593d6acc_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;176&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-75f3f99ee795e63a39472631593d6acc&quot; data-watermark-src=&quot;v2-c2f0287ad1f09c384412e7c43e515784&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-58433216e55a62af703dda68d8f3a78a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;240&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-58433216e55a62af703dda68d8f3a78a&quot; data-watermark-src=&quot;v2-f9d352ee22ac8067414f37a09ec0b6ca&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当模型参数为 t 的函数时，关于 BS 模型的 EQ option 公式推导细节，可参考 &lt;i&gt;Volatility and Correlation, 2th edition, Chapter3.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.4 模型校正&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 EQ option 市场上，对每一个标准 K 有 n 个到期的 EQ option，到期日分别为&lt;/p&gt;&lt;p&gt;0 = T0 &amp;lt; T1 &amp;lt; ... &amp;lt; i &amp;lt; ... &amp;lt; n&lt;/p&gt;&lt;p&gt;而对于每一个 Ti，EQ option 的行权价格为 K1 ... j ... m。 接下来我们分别讨论当模型参数为常数和分段常数是的校正过程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当参数为常数时，BS 模型校正本质上是找到“最优”ς，从而最小化一系列 EQ option 的市场价格和模型价格之间的差异，其目标函数为:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-f034c6378e67077e5e37e8d51c1cd0d1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;210&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-f034c6378e67077e5e37e8d51c1cd0d1&quot; data-watermark-src=&quot;v2-c6ae9067a11f318c2d6475a8e68e0c8a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Vmkt是 EQ option 市场价格，惯例是用 BS 公式计算的&lt;/li&gt;&lt;li&gt;ςmkt(K, T) 是 EQ option 市场波动率，有 n 个 T 和 m 个 K&lt;/li&gt;&lt;li&gt;VBS 是 EQ option 模型价格&lt;/li&gt;&lt;li&gt;ς 是 BS 模型的模型参数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;分段常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当参数为分段常数时，对每一个标准 K，市场上都有一系列 Ti 到期的 EQ option，由上面公式发现期权价格 V 是 ς2(t) 积分的函数，如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-fbbfa5ea8fbc52e67ba2c8f64a9eb324_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;279&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-fbbfa5ea8fbc52e67ba2c8f64a9eb324&quot; data-watermark-src=&quot;v2-7c6ac09f29e7ab5a205aebd3e197616d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;注意 ς0-i 是从 0 到 Ti 的波动率 ς(t )的均方根 (root-mean-square)，而它们可以直接反解 BS公式得到。之后我们可以得到从 Ti 到 Ti+1&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c67569762f36bd35e8aaa663dc8f91f5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;216&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c67569762f36bd35e8aaa663dc8f91f5&quot; data-watermark-src=&quot;v2-9d26d00ae0dcc5fdbbe5aa8625d33740&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上面公式建立了即期波动率到远期波动率的关系，而这个关系通常称为方 差平衡条件 (balance-of-variance condition)。具体步骤如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;步骤 1&lt;/b&gt; - 在每个 Kj 下的所有年限 T 上计算:即期方差 = ς2mkt*T&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a68e6b484fb11a6323672977721d2fbd_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;199&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a68e6b484fb11a6323672977721d2fbd&quot; data-watermark-src=&quot;v2-bf61a7e8bd4488fe2de9cfb9dbcd7cf5&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;步骤 2&lt;/b&gt;- 用方差平衡条件从即期方差推出远期波动率，如下表所示&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3938fa5280ec8a5c4ee991a3eabc7416_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;311&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3938fa5280ec8a5c4ee991a3eabc7416&quot; data-watermark-src=&quot;v2-d226aaac03b006958943d217ca7908fb&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#BS模型校正代码
-spot_var = spot_vol.*2.*Te
-for i = 1 : size(spot_vol,2)
-    fwd_Vol(:,i) = sqrt( diff([0; spot_var(:,i)]) ./ diff([0;Te]) )
-end&lt;/code&gt;&lt;p&gt;在做模型校正的同时，一旦我们发现下面的关系，那么就有套利机会。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a75b1aa33ce12bc15dd138855f752de3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;148&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a75b1aa33ce12bc15dd138855f752de3&quot; data-watermark-src=&quot;v2-3527cfb65ae78386bbf1d7ea73fdbf0c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上式意思就是股票价格到 Ti+1 的不确定性比到 Ti 的不确定性还小，这显然违背常理。如果有这种机会出现，买 Ti+1 到期的便宜期权，卖 Ti 到期 的昂贵期权。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.5 校正结果&lt;/b&gt;&lt;/p&gt;&lt;p&gt;下图展示着 N225 option 的市场价格 (红圈) 和模型价格 (蓝线)，发现它们在不同 K 和 T 时都高度吻合。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9cca54dc8e91829579520f6cfeceeb37_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9cca54dc8e91829579520f6cfeceeb37&quot; data-watermark-src=&quot;v2-10875c5776b5346c65c600ac244b4e68&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下图展示着在不同 K 下的分段常数 ς( )，基本上 ς( ) 是 t 的增函数，走 势正常。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-41fdd5321499a2c42e80e2616ae2e90c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-41fdd5321499a2c42e80e2616ae2e90c&quot; data-watermark-src=&quot;v2-0c8f2a77c50bc2c23da7c14d17fa4373&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;利率类&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.1 Hull-White 模型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型介绍&lt;/b&gt;&lt;/p&gt;&lt;p&gt;利率类的 Hull-White (HW) 模型下的 SDE 是描述短期利率 (short rate) 的走势:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-36f684652e2299f6a88a482a4e1f3f6b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;41&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;ul&gt;&lt;li&gt;r(t) = 短期利率&lt;/li&gt;&lt;li&gt;k( )=r(t)的均值回归速率&lt;/li&gt;&lt;li&gt;ς( )=r(t)的均值&lt;/li&gt;&lt;li&gt;6(t)= r(t)的波动率&lt;/li&gt;&lt;li&gt;B(t) = 布朗运动&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;该模型是 John Hull 和 Alan White 在 1990 年提出，其论文题目是&lt;/p&gt;&lt;p&gt;&lt;i&gt;Pricing Interest-Rate Derivative Securities&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;一般情况下&lt;/p&gt;&lt;ul&gt;&lt;li&gt;k (t) 当成常数&lt;/li&gt;&lt;li&gt; 6(t) 可以是常数，但通常是分段常数 &lt;/li&gt;&lt;li&gt;ς(t )是 t 的函数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;它们的获取方式为&lt;/p&gt;&lt;ul&gt;&lt;li&gt;k：根据历史数据人为设定，也可以从一系列利率期权中校正出来 &lt;/li&gt;&lt;li&gt;6或 6(t)：从一系列利率期权中校正出来&lt;/li&gt;&lt;li&gt;ς( )：从收益率曲线中校正出来&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-70dbeacc7c93b617dfcd8ec29d978adc_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;62&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中 f(0, t)是 0 点观察到的 t 点瞬时远期利率&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;为了消除 ( ) 这个复杂项，令 x(t) = r(t) – f(0, t)，那么 x(0) = r(0) –f(0,0) = 0。原来 r(t) 的 SDE 转换成 x(t) 的 SDE:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-34a77508898cd3624831e3311f303a42_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;31&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1c988fcfeb822979c554eb47a89ab387_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;55&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这样在 HW 模型下的零息债券的公式如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7e863eb8b51ec0e50c0c67a00a8b43fd_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;63&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5780aeaca84cae5cacdadbc5509bd15e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;64&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;关于上面 ( ) 和 P(t, T) 推导细节，可以参考 &lt;i&gt;Interest Rate Modeling Volumn II, Term Structure Model, Chapter 10, 10.1.2.2.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.2 市场标准产品和数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;产品定义&lt;/b&gt;&lt;/p&gt;&lt;p&gt;利率类市场标准产品包括:&lt;/p&gt;&lt;p&gt;1. 一系列不同行权价格 K 和不同年限 T 利率上限 (cap)&lt;/p&gt;&lt;p&gt;2. 一系列不同行权价格 K，不同期权年限 TO 和不同掉期年限 TU 利率&lt;/p&gt;&lt;p&gt;掉期期权 (swaption) Cap 和 swaption 定义如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Cap 和 swaption 定义如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在利率上限或下限 (interest rate cap/floor) 合约下，买方和卖方将同意以 下内容:&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 买方付出期权金 (premium) 便有权利 (right) 去行使，而卖方收取期权金后则有义务 (obligation) 履行买方行使权利的义务。&lt;/li&gt;&lt;li&gt; 双方就未来某一时期商定一个固定利率 K 作为利率上限/下限&lt;/li&gt;&lt;li&gt; 上限：买方有权利在每期获得市场利率 L 与上限利率 K 的差额 (L – K)，而卖方一旦被行使期权时，则有义务将市场利率 L 与上限利率 K 的差额支付给买方&lt;/li&gt;&lt;li&gt; 下限：买方有权利在每期获得下限利率 K 和市场利率 L 的差额 (K – L)，而卖方一旦被行使期权时，则有义务将下限利率 K 和市场利率 L 的差额支付给买方&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中 L 通常是 LIBOR，但是不是当期定盘，而是上一期定盘的 LIBOR。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;市场上流动性强的 cap 以美元、欧元和日元计价，每个 cap 都一连串 caplet 组成&lt;/p&gt;&lt;ul&gt;&lt;li&gt; USD cap 每年由 4 个 caplet 组成，每个 caplet 期限是 3 个月，以 USD LIBOR 3M 作标的利率&lt;/li&gt;&lt;li&gt; EUR cap 每年由 2 个 caplet 组成，每个 caplet 期限是 6 个月，以 EUR EURIBOR 6M 作标的利率&lt;/li&gt;&lt;li&gt; JPY cap 每年由 2 个 caplet 组成，每个 caplet 期限是 6 个月，以 JPY LIBOR 6M 作标的利率&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在利率掉期期权 (interest rate swaption) 合约下，买方和卖方将同意以下 内容:&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 买方付出期权金 (premium) 便有权利 (right) 去行使，而卖方收取 期权金后则有义务 (obligation) 履行买方行使权利的义务。&lt;/li&gt;&lt;li&gt; 支付类掉期期权 (payer swaption):买方有权利在期权到期日获得 一个“支付固定利率接受浮动利率 (pay fixed receive floating) 的利率 掉期”，而卖方一旦被行使期权时，则有义务将上述利率掉期给买 方&lt;/li&gt;&lt;li&gt; 接受类掉期期权 (payer swaption):买方有权利在期权到期日获得一个“接受固定利率支付浮动利率 (receive fixed pay floating) 的利率 掉期”，而卖方一旦被行使期权时，则有义务将上述利率掉期给买 方&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中利率掉期 (interest rate swap, IRS) 是指交易双方以一定的名义本金为 基础，将该本金产生的一种利率计算的利息收入 (支出) 与另一种利率计 算的利息收入 (支出)。交换的只是不同特征的利息，没有实质本金的互 换。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;市场上流动性强的以美元、欧元和日元计价的 swaption。其实 swaption 波动率是一个立方 (cube)，有行权利率、期权到期日、掉期到期日这三 个维度。通常我们用的最多的是 ATM swaption 波动率，当行权利率等于 远期掉期率，那么波动率立方降维成一个波动率平面，维度为二维。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;某天的 JPY cap 的真实数据如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-148e1017173dc2e4a6e142db8b0fc9a0_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;199&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-148e1017173dc2e4a6e142db8b0fc9a0&quot; data-watermark-src=&quot;v2-e2ab3ccce5b93352d63af90584d4497e&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上图数据又称 cap 波动率平面，它是二维数据结构&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 行对应的年限 (expiry)，期权年限从 1 年到 20 年&lt;/li&gt;&lt;li&gt; 列对应的行权利率 (strike rate)，注意第一列绿色粗体是 ATM 波动率，而每个年限对应的 ATM 行权利率都不同&lt;/li&gt;&lt;li&gt; 波动率与行权价格和年限有关，可写成 ς(K, T)&lt;/li&gt;&lt;li&gt; 波动率单位是 %，43.01 实际上指的是 43.01%&lt;/li&gt;&lt;li&gt;市场波动率带进 Black 公式得到利率上限的市场价格&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;某天的 USD ATM swaption 的真实数据如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-df05513cb349e28c6fc24e0dabacec42_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;187&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-df05513cb349e28c6fc24e0dabacec42&quot; data-watermark-src=&quot;v2-842e1849552671470db6fc5eda785ca7&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上图数据又称 ATM swaption 波动率平面，它是二维数据结构&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 行对应的利率掉期的年限 (maturity)，年限从 1 年到 30 年&lt;/li&gt;&lt;li&gt; 列对应的掉期期权的年限 (expiry)，年限从 1 个月到 30 年&lt;/li&gt;&lt;li&gt; ATM 波动率与期权年限和掉期年限有关，可写成 ς(TO, TU)&lt;/li&gt;&lt;li&gt; 波动率单位是%，59.80 实际上指的是 59.80%&lt;/li&gt;&lt;li&gt;市场波动率带进 Black 公式得到掉期期权的市场价格&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.3 市场价格和模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;定义T0 &amp;lt;T1 &amp;lt;...&amp;lt; k &amp;lt;...&amp;lt; N 是cap 的年限结构，那么定义&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;{T0, T1, ..., TN-1} = LIBOR 定盘日 &lt;/p&gt;&lt;p&gt;{T1, T2, ..., TN} = 支付日&lt;/p&gt;&lt;p&gt;N = caplet 的个数&lt;/p&gt;&lt;p&gt;τk =Tk–Tk-1&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Cap 市场价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Cap 市场价格是之后模型校正的基准 (benchmark)。关于 Black 模型的 cap 推导细节，可以参考 &lt;i&gt;Interest Rate Model – Theory and Practice, Chapter 1 and Appendix D.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-44366d83f6a1984c89d1dc084cd145df_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;288&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-44366d83f6a1984c89d1dc084cd145df&quot; data-watermark-src=&quot;v2-ce8cdcd1b01290164f9b21e43341cc75&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Cap 模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-98bad03dfee7c7d17ba177441d8c635e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;269&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-98bad03dfee7c7d17ba177441d8c635e&quot; data-watermark-src=&quot;v2-5a60ed797fc1ce330ed6df5bb7a18e42&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当模型参数为常数时，关于 HW 模型的 cap 推导细节，可以参考 &lt;i&gt;Interest Rate Model – Theory and Practice, Chapter 3.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;function price = HW_IRO( omega, Ds, De, Ts, Te, tau, K, kappa, sigma )
-
-X = 1 + K*tau;
-price = X .* HW_ZBO( -omega, Ts, Te, Ds, De, 1./X, kappa, sigma );
-end
---------------------------------------
-function price = HW_ZBO( omega, T1, T2, PT1, PT2, X, kappa, sigma )
-
-tau = T2 - T1;
-
-if kappa &amp;lt; 1e-12    
-    sigmaP = sigma * tau .* sqrt(T1);
-else
-    sigmaP = sigma * sqrt((1-exp(-2*kappa*T1))/2/kappa) /kappa .* (1- exp(-kappa*tau));
-end
-
-h1 = (1./sigmaP) .* log(PT2./(PT1.*X)) + sigmaP/2;
-h2 = h1 - sigmaPprice = omega * ( PT2.*normcdf(omega*h1) - X.*PT1.*normcdf(omega*h2) )
-
-end&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5ed17be97c36fbd1630c8dcdeb10d965_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;272&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-5ed17be97c36fbd1630c8dcdeb10d965&quot; data-watermark-src=&quot;v2-98582bf8cf339adc80ff8d561654c041&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Swaption 市场价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;定义T0 &amp;lt;T1 &amp;lt;...&amp;lt; k &amp;lt;...&amp;lt; N 是swaption 的年限结构，那么定义&lt;/p&gt;&lt;ul&gt;&lt;li&gt;T0 = swaption 到期日 &lt;/li&gt;&lt;li&gt;TN = swap 到期日&lt;/li&gt;&lt;li&gt;τk =Tk–Tk-1&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-76653f11f91e59ee2fc79239e3f387de_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;312&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-76653f11f91e59ee2fc79239e3f387de&quot; data-watermark-src=&quot;v2-525eea7a0479c969be46ab0a5201fa4a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Swaption 市场价格是之后模型校正的基准 (benchmark)。关于 Black 模 型的 Swaption 推导细节，可以参考 &lt;i&gt;Interest Rate Model – Theory and Practice, Chapter 1 and Appendix D.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Swaption 模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Swaption 可看成在期权到期日 T1 时交换 IRS 的固定端和浮动端，因此它在 T1 的支付函数为&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-baa029ae64217e4dec8dbc6e82d45701_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;67&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;由小节 2.1 可知 P(t, T;x)是 x 的减函数，因此定义一个临界值 x* 使得&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b89dcea4870f45c9fec9314a4dd90c20_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;232&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b89dcea4870f45c9fec9314a4dd90c20&quot; data-watermark-src=&quot;v2-7c3d5a13a982671d5c3c82774483d987&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4d25f76e4522fd5dce064baced457707_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;39&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;根据 Jamshidian Trick，swaption 只有在 w x(T1) &amp;gt; * 时才有 payout， 为了简化符号引进 P1,k(x) = P(T1,Tk, x)，我们有&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-1c45813d0e81e415a9b27d5b701f1b08_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;136&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-1c45813d0e81e415a9b27d5b701f1b08&quot; data-watermark-src=&quot;v2-60ecfb7178958f44f28f5a71e1921777&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后 swaption 在 T1 的 payout 可表示为一系列的零息债券期权 (zero- coupon bond option, ZBO) 在的 payout，因此其价值为这些 ZBO 的价值 的组合。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-59764b769adc4bef96bee49a8926b885_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;329&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-59764b769adc4bef96bee49a8926b885&quot; data-watermark-src=&quot;v2-16d62d1d7d03a5ff358f91b3fc8b150b&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#计算 HW Swaption 代码
-function price = HW_Swaption( D, Tvec, tau, c, kappa, sigma )
-Pt = D(1); PT = D(2:end); t = Tvec(1); T = Tvec(2:end);
-x_star = fzero( @(x) Jamshidian( Pt, PT, kappa, sigma, t, T, c, tau, x ), 0 );
-K = HW_zcb( Pt, PT, kappa, sigma, t, T, x_star )&#39;;
-
-price = HW_ZBO( -1, t, T(end), Pt, PT(end), K(end), kappa, sigma ) ... + c*sum( tau.*HW_ZBO( -1, t, T, Pt, PT, K, kappa, sigma ) );
-end
-function y = Jamshidian( Pt, PT, kappa, sigma, t, T, c, tau, x )
-y = HW_zcb(Pt, PT(end), kappa, sigma, t, T(end), x) ...
-+ c*sum( tau.*HW_zcb(Pt, PT, kappa, sigma, t, T, x)&#39; ) - 1;
-end
---------------------------------------
-function PtT = HW_zcb( Pt, PT, kappa, sigma, t, T, Xt ) 
-G = 1-exp(-kappa*(T-t))) / kappa;
-y = sigma^2 * (1-exp(-2*kappa*t)) / (2*kappa)
-PtT = (PT/Pt) * exp( -Xt*G -0.5*y*G^2 );
-end&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e38e56d9d1f631a954c64861a6cc5b87_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;322&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e38e56d9d1f631a954c64861a6cc5b87&quot; data-watermark-src=&quot;v2-28b1e39cca7dc59f4dbc7f1453158cfd&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;关于 HW 模型的 swaption 推导细节，可以参考 &lt;i&gt;Interest Rate Modeling – Volumn II, Term Structure Model, Chapter 10, 10.1.3.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.4 模型校正 (cap)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 cap 市场上，对每一个标准 K 有 n 个到期的 cap，到期日分别为&lt;/p&gt;&lt;p&gt;0 = T0 &amp;lt; T1 &amp;lt; ... &amp;lt; i &amp;lt; ... &amp;lt; n&lt;/p&gt;&lt;p&gt;而对于每一个 Ti，cap 的行权价格为 K1 ... j ... m。 接下来我们分别讨论当模型参数为常数和分段常数是的校正过程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当参数为常数时，HW 模型校正本质上是找到“最优” 和 ς，从而最小 化一系列 cap 的市场价格和模型价格之间的差异，其目标函数为:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b2123d4062fd99a43fc886d29174ad6f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;213&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b2123d4062fd99a43fc886d29174ad6f&quot; data-watermark-src=&quot;v2-ca880c56fbef6cbe914d3d885d4e0788&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Cap 是市场价格，惯例是用 Black 公式计算的&lt;/li&gt;&lt;li&gt;ςmkt(K, T) 是市场波动率，有 n 个 T 和 m 个 K&lt;/li&gt;&lt;li&gt;CapHW 是模型价格&lt;/li&gt;&lt;li&gt;k和 ς 是 HW 模型的模型参数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;分段常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;从小节 2.3 的公式出发，&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 用上标i表示每一个K下的第i个cap&lt;/li&gt;&lt;li&gt; 用 Ni 表示该 cap 里面 caplet 的个数&lt;/li&gt;&lt;li&gt; 用tNi 代表第i 个cap 到期日，tNi =Ti&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cea78b49fcddc88102fb8a336f59e2eb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;380&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-cea78b49fcddc88102fb8a336f59e2eb&quot; data-watermark-src=&quot;v2-64dec05ec8f477209a6f643d7fb0cda1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当参数为分段常数时，假设选取 ATM cap 做校正，那么 HW 模型校正的 步骤为:&lt;/p&gt;&lt;p&gt;步骤 1 - 参数 根据历史数据手动输入，或者用常数形式的 HW 模型校 正得出&lt;/p&gt;&lt;p&gt;步骤 2 - 对第 1 个 cap，反解 ς1 使得 Capmkt(T1) = Cap1HW(ς1)&lt;/p&gt;&lt;p&gt;步骤 3 - 对第 2 个 cap，已知 ς1，反解 ς2 使得 Capmkt(T2) = Cap2HW(ς1,ς2)&lt;/p&gt;&lt;p&gt;步骤 4 - 重复上面过程到第 n 个 cap，已知 ς1, ς2 ... ςn-1，反解 ςn 使得 Capmkt(Tn) = CapnHW(ς1,ς2 ... ςn-1,ςn)&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;%HW 模型校正代码
-sigma = zeros(num_of_T,1);
-for i = 1 : num_of_T,
-    [ itau, iTs, iTe, iDs, iDe ] = reference( (1:nFlt(i)-1), tau, Ts, Te, Ds, De );
-    sigma(i) = fzero(@(x) Cap_diff( iDs, iDe, iTs, iTe, itau, K(i), kappa, x, mkt_price(i) ), 0.005 );
-end&lt;/code&gt;&lt;p&gt;以上过程把 1 个 n 维的优化问题转成 n 个 1 维的优化问题，增加了模型 校正的效率。需要注意的是，上述步骤并不是每次都行得通，这种情况称 为“波动率紧缩 (volatility squeeze)”，出现在当 Ti+1 到期的 cap 比 Ti 到期的 cap 价格小很多的时候。这种情况很少见，一旦出现可以当成是套 利的信号。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.5 模型校正 (swaption)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在 ATM swaption 市场上，在以下的年限结构上考虑一串特殊的 swaption&lt;/p&gt;&lt;p&gt;0 = T0 &amp;lt; T1 &amp;lt; ... &amp;lt; i &amp;lt; ... &amp;lt; n&lt;/p&gt;&lt;p&gt;此类 swaption 的 option 到期日为 Ti, ... -1，而它们的 swap 到 期日都是 Tn，这样的 swaption 成为 coterminal swaption，记作 aYbY， 指的是 a 年 option 到期可以换一个 b 年 swap 的 swaption。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;由于此类结构和市场交易的百慕大期权 (Bermudan swaption) 很类似，因 此 coterminal swaption 经常被当作校正工具来使用。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来我们分别讨论当模型参数为常数和分段常数是的校正过程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当参数为常数时，HW 模型校正本质上是找到“最优” 和 ς，从而最小 化一系列 coterminal swaption 的市场价格和模型价格之间的差异，其目 标函数为:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e1274b9d884c293eba89a45975f70345_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;68&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Swaption是市场价格，惯例是用 Black 公式计算的 &lt;/li&gt;&lt;li&gt;ςmkt(K, T) 是市场波动率，有 n 个 T 和 m 个 K &lt;/li&gt;&lt;li&gt;Swaption HW是模型价格&lt;/li&gt;&lt;li&gt;k和 ς 是 HW 模型的模型参数 &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;分段常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a4583276097585f735175eec5d025183_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;348&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a4583276097585f735175eec5d025183&quot; data-watermark-src=&quot;v2-b66a0945174f3628224b40e37d60653f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当参数为分段常数时，选取 ATM coterminal swaption 做校正，那么 HW 模型校正的步骤为:&lt;/p&gt;&lt;p&gt;步骤 1 - 参数 根据历史数据手动输入，或者用常数形式的 HW 模型校 正而得&lt;/p&gt;&lt;p&gt;步骤 2 - 对第 1 个 swaption，反解 ς1 使得 swaptionmkt(T1) = swaption1HW(ς1)&lt;/p&gt;&lt;p&gt;步骤 3 - 对第 2 个 swaption，已知 ς1，反解 ς2 使得 swaptionmkt(T2) = swaption2HW(ς1,ς2)&lt;/p&gt;&lt;p&gt;步骤 4 - 重复上面过程到第 n-1 个 swaption，已知 ς1, ς2 ... ςn-2，反解 ςn- 1 使得 swaptionmkt(Tn-1) = swaptionn-1HW(ς1,ς2 ... ςn-2,ςn-1)&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#HW 模型校正代码
-sigma = zeros(num_of_T,1);
-for i = 1 : num_of_T,
-    T = getTenor( settle, fixedLegDate{i}, &#39;act/365&#39; );
-    D = getDiscount( settle, spotDate, fixedLegDate{i}, LiborCurve ); 
-    [ iT, iD ] = reference( 1:nFix(i), T, D );
-    sigma(i) = fzero(@(x) Swaption_diff( iD, iT, fixtau{i,i}, K(i),
-kappa, x, mkt_price(i) ), 0.005 );     
-end&lt;/code&gt;&lt;p&gt;和 cap 校正是遇到的问题一样，波动率紧缩也是 swaption 的校正可能出 现的问题。该情况出现在当 Ti+1 到期的 swaption 比 Ti 到期的 swaption 价格小很多的时候。这种情况很少见，一旦出现可以当成是套利的信号。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.6 校正结果&lt;/b&gt;&lt;/p&gt;&lt;p&gt;下图展示着当 和 ς 为常数时，USD ATM cap 的市场价格 (红圈) 和模型 价格 (蓝线)，发现它们在不同 T 时结果相近但不完全吻合，原因是 2 个 未知量来拟合 13 个 cap，只能平均接近不能各个匹配。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-28c2c82df0287e2bcbc7110dfcc48f91_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-28c2c82df0287e2bcbc7110dfcc48f91&quot; data-watermark-src=&quot;v2-3f037e1d7057305de977bb234a420262&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下图展示着当 为已设好的 0.01 和 ς(t) 为分段常数时，USD ATM cap 的 市场价格 (红圈) 和模型价格 (蓝线)，发现它们在不同 T 时完全吻合，原 因是当 已知，每个 cap 和 ς 是一一对应关系。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-46765c49338460f58fc9c194cb7b3cea_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-46765c49338460f58fc9c194cb7b3cea&quot; data-watermark-src=&quot;v2-67e0ce5becb27caa627b9b983a661961&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下图展示着当 和 ς 为常数时，USD ATM coterminal swaption 的市场价 格 (红圈) 和模型价格 (蓝线)，发现它们在短期 T 时结果相近但长期 T 相 差很远。原因是 2 个未知量来拟合 11 个 cap，只能平均接近不能各个匹 配，而且后面几个 swaption 的到期日从 15 年到 30 年，常数参数很难能 把这么长的掉期期权拟合好。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3bcd78b60f8d82021ff2b164e8637ec2_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3bcd78b60f8d82021ff2b164e8637ec2&quot; data-watermark-src=&quot;v2-02630b7756dae9a5f6075e90a3581814&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下图展示着当 为常数和 ς( ) 为分段常数时，USD ATM coterminal swaption 的市场价格 (红圈) 和模型价格 (蓝线)，发现它们在不同 T 时完 全吻合，原因是当 先校正好，每个 swaption 和 ς 是一一对应关系。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-386339a35bc5ffc2d9c85e2a3f84bb81_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-386339a35bc5ffc2d9c85e2a3f84bb81&quot; data-watermark-src=&quot;v2-1cb72648327911c1d9cddcfeded8e342&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;商品类&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.1 Schwartz 模型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型介绍&lt;/b&gt;&lt;/p&gt;&lt;p&gt;股权类的 Black-Scholes 模型也适用于商品类，但是它无法处理具有均值 回归 (mean-reverting) 特征的商品。为解决上述缺点，一个方法就是将均 值回归特征融合到商品价格过程中，而 Schwartz 模型涵盖这些特点。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;商品类的 Schwartz (SW) 模型下的 SDE 是描述商品即期价格 (commodity spot price) 的走势:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-49a0c5231f70799e27d02e52be688e75_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;53&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;ul&gt;&lt;li&gt;r(t) = 短期利率&lt;/li&gt;&lt;li&gt;k(t)=C(t) 的均值回归速率 &lt;/li&gt;&lt;li&gt;ς(t)=C(t) 的均值&lt;/li&gt;&lt;li&gt;6(t)=C(t) 的波动率&lt;/li&gt;&lt;li&gt;B(t) = 布朗运动&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;该模型是 Eduardo S. Schwartz 在 1997 年提出，其论文题目是&lt;/p&gt;&lt;p&gt;&lt;i&gt;The Stochastic Behavior of Commodity Prices Implications for Valuation and Hedging&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;一般情况下&lt;/p&gt;&lt;ul&gt;&lt;li&gt; r(t) 当成常数&lt;/li&gt;&lt;li&gt;6 (t)和k(t)当成常数 &lt;/li&gt;&lt;li&gt;ς(t)当成分段常数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;它们的获取方式为&lt;/p&gt;&lt;ul&gt;&lt;li&gt;r：根据商品结算的货币，绝大部分情况是 USD，用其掉期曲线 USD Libor 3M 曲线，在曲线上插出 T 点的 r 值&lt;/li&gt;&lt;li&gt;k和6：从一系列商品期货欧式期权中校正出来 &lt;/li&gt;&lt;li&gt;ς(t) :从商品期货曲线中校正出来&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.2 市场标准产品和数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;产品定义&lt;/b&gt;&lt;/p&gt;&lt;p&gt;商品类市场标准产品是一系列“不同行权价格 K 和不同年限 T 商品欧式期货期权 (CM futures option)”，定义如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;定义:期权买方和卖方进入商品欧式期货期权 (commodity futures option) 合约的将同意以下内容:&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 期权买方付出期权金 (premium) 便有权利 (right)去行使，而卖方 收取期权金后则有义务 (obligation) 履行买方行使权利的义务。&lt;/li&gt;&lt;li&gt; 看涨期权:买方有权在到期日以 K 买入期货，而卖方一旦被行使期 权时，则有责任以 K 卖出期货&lt;/li&gt;&lt;li&gt; 看跌期权:买方有权在到期日以 K 卖出期货，而卖方一旦被行使期 权时，则有责任以 K 买入期货&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;其中 K 是执行价格 (strike price)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;某天的咖啡期货期权和期货价格的真实数据如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-71ff88d7da586e27f399d5fa2cd443fb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;207&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-71ff88d7da586e27f399d5fa2cd443fb&quot; data-watermark-src=&quot;v2-90d274c5dc1c6348266fb3b910381012&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上图数据又称 CM futures option 波动率平面，它是二维数据结构&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 行对应的年限 (expiry)，期权年限从 1 个月到 2 年&lt;/li&gt;&lt;li&gt; 行对应的行权价格 (strike)，注意第四行白色粗体 302.85 是 ATM&lt;/li&gt;&lt;li&gt; 行权价格，其对应的绿色粗体是 ATM 波动率&lt;/li&gt;&lt;li&gt; 波动率单位是%，32.33 实际上指的是 32.33%&lt;/li&gt;&lt;li&gt; 市场波动率带进 Black 公式得到期货期权的市场价格&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b1dd0655221abecf909cd64938a76466_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;269&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b1dd0655221abecf909cd64938a76466&quot; data-watermark-src=&quot;v2-1af8b3eef51969b7b7e225d6afd79854&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上图数据又称 CM futures 价格曲线，它是一维数据结构，每一个年限对 应一个期货价格。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.3 市场价格和模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-d642cd51b43f28e4dd5ab41f58afc2e1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;198&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-d642cd51b43f28e4dd5ab41f58afc2e1&quot; data-watermark-src=&quot;v2-aa56197ae63a2da515172503df699ee9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;CM futures option 的市场价格是之后模型校正的基准 (benchmark)。关于 Black 模型的 CM futures option 推导细节，可以参考 &lt;i&gt;Commodities and&lt;/i&gt; &lt;i&gt;Commodity Derivatives Modeling and Pricing for Agriculturals, Metals and Energy, Chapter 4.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;给定k和6，通过 Ito&#39;s&#39;lemma 可以推出F(0,T)在 SW 模型下的表达式以及它的 SDE:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-915ea72e3c12b907cec2b1fdd0a99564_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;115&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-915ea72e3c12b907cec2b1fdd0a99564&quot; data-watermark-src=&quot;v2-9134c5f3fa3bc7dd8b1e090b11ad3ee0&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;从上面的 SDE 发现参数 ( ) 不见了，而且在 SW 模型下 FSW(0,T) 的分布 和 Black 模型下的分布非常相似，不同的只是离散项。因此，套用 Black 模型的公式，类比出 CM futures option 的定价公式:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a8825149731e5852cd7865699b7bd531_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;265&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a8825149731e5852cd7865699b7bd531&quot; data-watermark-src=&quot;v2-97fe2d96f2374e22140a9e47244d0617&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.4 模型校正&lt;/b&gt;&lt;/p&gt;&lt;p&gt;SW 模型校正步骤总结如下:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;先假设FSW(0,Ti)=F(0,Ti),从一系列欧式期货期权校正出和&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;    2. 再使得FSW(0,Ti)=F(0,Ti),从期货曲线进行校正出(t)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;步骤 1&lt;/p&gt;&lt;p&gt;SW 模型校正本质上是找到“最优” 和 ς，从而最小化一系列 ATM CM futures option 的市场价格和模型价格之间的差异，其目标函数为:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a14a59b836fed4deecfb184d4c8160dd_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;80&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#SF 模型校正步骤 1 代码
-MP = fminsearch(@(x) option_diff( F_mkt, K, r, 0, x, T1, OptFlavor, vol_mkt), [0.1;0.1] ); 
-function diff = option_diff( F, K, r, b, x, T, Flavor, vol_mkt )
-
-kappa = x(1); sigma = x(2);
-
-vol_mdl = sigma .* sqrt( (1-exp(-2*kappa.*T))./(2*kappa.*T) );
-opt_mdl = OPTION_BLACK( Flavor, F, K, T, r, b, vol_mdl ); 
-opt_mkt = OPTION_BLACK( Flavor, F, K, T, r, b, vol_mkt );
-
-diff = sum( (opt_mdl - opt_mkt).^2 );
-end&lt;/code&gt;&lt;p&gt;步骤 2&lt;/p&gt;&lt;p&gt;在 SW 模型下定价 CM futures option 时不需要 ，因为 F 是从期货曲线中 提取的。在确定了6和k 之后，再校正 (t) 从而完全匹配期货的市场价格 和模型价格，其目标函数为:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-aab1006ff98b2f5ddf4f9abe44bd0391_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;86&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中&lt;/p&gt;&lt;p&gt;Fmkt(0, Ti) = 从期货曲线插出 Ti 时点的期货价格 &lt;/p&gt;&lt;p&gt;FSW(0, Ti; ) = SW 模型计算的 Ti 时点的期货价格&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a13b30aee7f51f5ad38c40e19b1d9127_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;372&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a13b30aee7f51f5ad38c40e19b1d9127&quot; data-watermark-src=&quot;v2-edf0edd18d403287d2f409ecf3504d47&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;#SF 模型校正步骤 2 代码
-theta = Calibration_F( MP, SRspline, C, F_mkt, T );
-
-function theta = Calibration_F( x, SRspline, C, F, T )
-kappa = x(1); sigma = x(2);
-temp = integration( SRspline, kappa, T );
-RHS = exp(-kappa*T).*log(C)-log(F)+temp-0.5*sigma^2/kappa.*(1-exp(-kappa*T)) + 0.25*sigma^2/kappa*(1-exp(-2*kappa*T)); LHS = (1-exp(-kappa*T)) / kappa;
-
-theta = RHS ./ LHS;
-end&lt;/code&gt;&lt;p&gt;&lt;b&gt;3.5 季节性调整&lt;/b&gt;&lt;/p&gt;&lt;p&gt;与典型的投资性资产相比，农产品的价格通常显示出季节性特征。在旺季 时，农产品的产量会剧增而导致价格下降。之后，农产品价格通常会逐渐 上涨，当然这也取决农产品不可预见的存储量。因此，在对农产品价格进 行建模时会考虑季节性因素。对那些长期期权进行定价时，季节性因素显 得更为重要。&lt;/p&gt;&lt;p&gt;为了在商品价格过程中体现季节性因素的影响，通常会用一个函数来对 “季节性的贡献”进行建模。说明如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4b5270404652a27577fa7fe3d0d64a50_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;168&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4b5270404652a27577fa7fe3d0d64a50&quot; data-watermark-src=&quot;v2-1d7bebc610484db78aa27cdc3f5f3bb7&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;带季节性调整的 SW 模型校正步骤总结如下:&lt;/p&gt;&lt;p&gt;1. 用KalmanFilter和m个期货校正季节性函数的β和ψ&lt;/p&gt;&lt;p&gt;2. 最小化一系列欧式期货期权的市场价格和模型价格得出和&lt;/p&gt;&lt;p&gt;3. 最小化一系列期货曲线的市场价格和模型价格得出(t)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上述步骤 2 和 3 和不带季节性调整的 SW 模型步骤 1 和 2 一样 (见小节 3.4)，不同的是期权公式里面的 FSW(0,T)要做季节性调整。&lt;/p&gt;&lt;p&gt;因此在上面校正过程之前，我们必须知道季节函数 f 里面的参数 β 和 ψ， 而校正它们用的是 Kalman Filter (KF)方法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.6 Kalman Filter 方法&lt;/b&gt;&lt;/p&gt;&lt;p&gt;为了节省空间，将时间 t 写成下标，比如 S(t)写成 St，F(t, T) 写成 Ft,T，定义&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;xt = lnSt = 现货价格的对数&lt;/p&gt;&lt;p&gt;yt = lnFt,T + fT = 经过季节因素调整后的期货价格的对数 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;根据以上符号和 SW 模型可推出以下两个线性方程:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-210e2874902599c57d47a2a7464328c4_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;349&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-210e2874902599c57d47a2a7464328c4&quot; data-watermark-src=&quot;v2-13b5400461b9b8ddfadd455f77df9e16&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上面两个方程:&lt;/p&gt;&lt;ul&gt;&lt;li&gt; E2 是一个观察方程，它将列向量 yt 和标量 xt，解释列向量 ct 和误差列向量 et 联系起来。&lt;/li&gt;&lt;li&gt;E1 是一个动态方程，它描述一个一阶马可夫链 (Markov chain) 过 程。变量 Tt, Rt, Qt, Zt 和 Ht 称为系统变量，它们是关于 SW 模型参数的函数。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在 KF 校正过程中需要不同期限期货的历史价格，如下图所示&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-0d4465287370b9487f0f9fc4a0ffc6ae_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;281&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0d4465287370b9487f0f9fc4a0ffc6ae&quot; data-watermark-src=&quot;v2-9e42c09c88680300ead7a1edc9cfb7c1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;每行代表不同天数上的期货价格 (每隔 7 天)&lt;/li&gt;&lt;li&gt; 每列代表不同期限的期货价格 (1 个月、3 个月到 15 个月)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;KF 方法是在已知数据 Yt = {y1, y2 ... yt} 和相关模型的情况下，更新 xt+1 条 件分布。因为条件分布是一个正态分布过程，用条件均值和协方差矩阵就 足以说明此过程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;将 xj|i 和 Σ j|i 定义在已知 Yi 的情况下 xj 的条件均值和协方差矩阵，我们有 xj|Yi~N(xj|i Σj|i)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;做好准备工作&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 算出起始值 x1|0 和 Σ1|0&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-262b6f0ead53507b61b1dfd8bd3ba163_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;28&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 初始化对数密度概率函数 p = 0&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;KF 算法描述如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-13980ba58165f4a49a12d4b7c1c29d9e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;544&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-13980ba58165f4a49a12d4b7c1c29d9e&quot; data-watermark-src=&quot;v2-6c197de760b1527f12c9602e0b71375a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后最大化 p 来得到 β* ψ* ς* * μ* H*。关于以上 Kalman Filter 校正步 骤，可以参考&lt;i&gt;Analysis of Financial Time Series, Chapter 11.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-2e1cf2e9f3606e5de1c0c2c59be6e475_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;652&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-2e1cf2e9f3606e5de1c0c2c59be6e475&quot; data-watermark-src=&quot;v2-6e0a5753fc595de453d0d4a13d149891&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;外汇类&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;4.1 Heston 模型&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型介绍&lt;/b&gt;&lt;/p&gt;&lt;p&gt;虽然 Black-Scholes 模型在市场上被广泛应用于定价欧式期权，该模型假 设波动性是常数或是时间 t 的函数。从实证证据可以看出，这一假设是错 的，资产的波动率也表现出随机性，就像资产价格一样。而 Heston 模型 在 Black-Scholes 模型基础上把波动率看成是个随机变量。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;股权类的 Heston 模型下的 2 个 SDE 分别描述即期汇率 (spot FX rate) 和 其波动率 (volatility) 的走势:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-d14944d03889d5dfc39dd2f7a9029e42_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;284&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-d14944d03889d5dfc39dd2f7a9029e42&quot; data-watermark-src=&quot;v2-5584bb6d1e13c4944a1de6baf8af412f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;该模型是 Steven L. Heston 在 1993 年提出，其论文题目是&lt;/p&gt;&lt;p&gt;&lt;i&gt;A Closed-Form Solution for Options with Stochastic Volatility with Applications to Bond and Currency Options&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;一般情况下&lt;/p&gt;&lt;ul&gt;&lt;li&gt; rd(t) 和 rf(t) 当成常数  &lt;/li&gt;&lt;li&gt;v0 当成常数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;它们的获取方式为&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-7a517c73bacf86bdc90f3e9622cbd68b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;94&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;4.2 市场标准产品和数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;产品定义&lt;/b&gt;&lt;/p&gt;&lt;p&gt;外汇类市场标准产品是一系列“不同 Delta 和不同年限 T 外汇欧式期权 (FX option)”，定义如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;用 FOR 代表外币，DOM 代表本币，FOR/DOM 为货币对。 期权买方和卖 方进入外汇欧式期权 (FX vanilla option) 合约的将同意以下内容:&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 买方付出期权金 (premium) 便有权利 (right)去行使，而卖方收取 期权金后则有义务 (obligation) 履行买方行使权利的义务。&lt;/li&gt;&lt;li&gt; 看涨 FOR/DOM 期权 (看涨外币看跌本币): 买方有权在到期日进入 当前即期市场买入外币 N，并卖出本币 N×K;而卖方一旦被行使期 权时，则有责任卖出外币 N，并买入本币 N×K&lt;/li&gt;&lt;li&gt; 看跌 FOR/DOM 期权 (看跌外币看涨本币): 买方有权在到期日进入 当前即期市场卖出外币 N，并买入本币 N×K ;而卖方一旦被行使 期权时，则有责任买入外币 N，并卖出本币 N×K&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;其中 N 是名义金额 (notional)，K 是执行汇率 (strike rate)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场数据&lt;/b&gt;&lt;/p&gt;&lt;p&gt;某天的 EURUSD 期权的真实数据如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e65862fab60181dc3edda4d73f859d4f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;230&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e65862fab60181dc3edda4d73f859d4f&quot; data-watermark-src=&quot;v2-73cc59acbb049b4c40f273fc3ac7f312&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上图数据又称 FX option 波动率平面，它是二维数据结构&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 行对应的年限 (expiry)，期权年限从 1 天到 2 年&lt;/li&gt;&lt;li&gt; 行对应的报价惯例 (convention)，外汇市场最常见的报价类型是价中(ATM)，25 和 10 风险反转 (risk reversal, RR) 组合，25 和 10 蝶式 (butterfly, BF) 组合&lt;/li&gt;&lt;li&gt; 波动率单位是%，6.44 实际上指的是 6.44%&lt;/li&gt;&lt;li&gt;市场波动率带进 BS 公式得到期权的市场价格&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下表根据 ATM, RR 和 BF 之间波动率的联系推出 10 和 25 delta 对应的波动率:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-589fb1724376d6c2014300ff6b485084_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;199&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-589fb1724376d6c2014300ff6b485084&quot; data-watermark-src=&quot;v2-8d3cee0aa6ea1b9a5a4bda9caaedc128&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;利用上表右边的公式算出各个 delta 和 T 下的波动率。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-fae05b3dfddf066d2a614d46405dda97_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;372&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-fae05b3dfddf066d2a614d46405dda97&quot; data-watermark-src=&quot;v2-d67d90767407be6829585932b389644f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;4.3 市场价格和模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;市场价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4dc75ee35df3d6c1bcc931fe6abd5eab_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;211&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4dc75ee35df3d6c1bcc931fe6abd5eab&quot; data-watermark-src=&quot;v2-d361658b1dbe9eb24840993fb03b3468&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;FX option 的市场价格是之后模型校正的基准 (benchmark)。关于 BS 模型 的 FX option 公式推导细节，可参考 &lt;i&gt;Foreign Exchange Option Pricing - A Practitioner&#39;s Guide, Chapter 2.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;模型价格&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e602ffc7f26812d3f85da357cb116b1c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;516&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e602ffc7f26812d3f85da357cb116b1c&quot; data-watermark-src=&quot;v2-bc0ef11883e2bd8ad63d0602366b0cca&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当模型参数为常数时，关于 Heston 模型的 option 推导细节，可以参考 &lt;i&gt;The Heston Model and Its Extensions in Matlab and C#, Chapter 1.&lt;/i&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当参数为分段常数时，表达如下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-8e0f08f2bca0614cbcbda63e4d158941_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;110&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-8e0f08f2bca0614cbcbda63e4d158941&quot; data-watermark-src=&quot;v2-69272942863ff3d2c318a696ad75325a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;为了简化公式，用 Wk 代表 Heston 模型参数集，即&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-654125d6eb2bb96a5958d68a1e89bef9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;36&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-d9b85912332f6fa634e220b11f07f0fe_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;690&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-d9b85912332f6fa634e220b11f07f0fe&quot; data-watermark-src=&quot;v2-7069bdf57d94e571622378c101394649&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当模型参数为分段常数时，关于 Heston 模型的 option 推导细节，可以参考 &lt;i&gt;The Heston Model and Its Extensions in Matlab and C#, Chapter 9.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;上面公式难点就是如何用迭代的方法求得 C 和 D，最后计算出 P，代码如 下:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b3c33c68744c5ea37dbf6784e7ab38b3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;521&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b3c33c68744c5ea37dbf6784e7ab38b3&quot; data-watermark-src=&quot;v2-d9eb616a678ae44c79e69bd90aa63979&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;4.4 模型校正&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在外汇期权市场上，对每一个标准 delta 有 n 个到期的 option，到期日分别为&lt;/p&gt;&lt;p&gt;0 = T0 &amp;lt; T1 &amp;lt; ... &amp;lt; k &amp;lt; ... &amp;lt; n&lt;/p&gt;&lt;p&gt;而对于每一个 Tk，option 的行权汇率为 K1,k ... j,k ... m,k。 &lt;/p&gt;&lt;p&gt;接下来我们分别讨论当模型参数为常数和分段常数是的校正过程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;常数型参数&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c276df44faf0d052f083b28f9fa96074_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;614&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c276df44faf0d052f083b28f9fa96074&quot; data-watermark-src=&quot;v2-1fc257913f0f12f0276daf2354a0a025&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;分段常数型参数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-e3ae88afe441d44a5b19008595df2e0a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;533&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e3ae88afe441d44a5b19008595df2e0a&quot; data-watermark-src=&quot;v2-9bc7349231f9233561723539f01e7f93&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-095b155165259f43fc2a75fe27f740c1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;483&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-095b155165259f43fc2a75fe27f740c1&quot; data-watermark-src=&quot;v2-e0e072c2bcbd999d1ff2476e5a09929f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;4.5 校正结果&lt;/b&gt;&lt;/p&gt;&lt;p&gt;下图展示着 USDJPY option 的市场价格 (红圈) 和模型价格 (蓝线)，发现它们在不同 delta 和 T 时差别不大。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-b5241ae4155851826d510c3db8b9069d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b5241ae4155851826d510c3db8b9069d&quot; data-watermark-src=&quot;v2-0365125e202c8853127634ff3e1e2140&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下图展示着模型参数的分段常数形式，发现它们都不是和时间 t 呈单调关 系，但除了 上下摇摆而变化很大之外，其他三个参数总体来讲还比较 稳定。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a90a5a70831dcabf83c0066ca49f2962_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;560&quot; data-rawheight=&quot;420&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a90a5a70831dcabf83c0066ca49f2962&quot; data-watermark-src=&quot;v2-252db598cf6908c897963438efe1e29c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/p&gt;&lt;p&gt;模型校正是选择模型中的参数使得市场流动性强的交易价格 (市场价格) 和模型输出 (模型价格) 完全匹配或尽可能接近。完全匹配价格意味着消 除套利机会。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;几乎所有的金融模型都有一些不能准确测量的参数。在最简单 Black- Scholes 模型，该参数是波动率。如果我们无法测量该参数，我们如何决 定波动率的值?如果决定不了，那么该模型是无用的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;两种方式可以得到波动率的值。一个是使用历史数据，另一个是使用当天 的期权价格数据。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;历史波动率：它的主要问题是使用过去的数据向后看而未来无关。 另一个问题是，它可能给出一个和市场价格不一致的价格。例如你 有兴趣购买一个期权。 你根据历史波动率算出的价格是 10 美元， 然而该期权的市场价格是 19 美元。你还有兴趣购买吗? 这时候， 要不期权市价错了，要不你对波动率的估计的不正确。&lt;/li&gt;&lt;li&gt; 隐含波动率：它是隐含在市场交易产品的价格里面。在上面的例子 中，我们要问什么波动率放入 Black-Scholes 以获得 19 美元的“正 确”价格。然后使用该波动率来定价其他复杂产品。 这时我们是向 前看的，而不是用来自过去的信息。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在量化金融上，第二种叫做模型校正，第一种不是。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;模型校正使得市场流动性强的交易价格接近模型价格，但是这些产品的市 场价格已经有了，为何还需要模型价格呢?请注意，模型校正从来不是为 了定价那些有市价的简单产品，而且为了定价那些没有市价的复杂产品。 但是，一个模型连一个简单产品的价格都算不准，谁还会对它算准一个复 杂产品有信心呢?理清这个就知道模型校正的意义了。本文只是讲了模型 校正的基本知识，此外:&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 模型校正在实际应用上还会有许多变种，目标函数除了最小化绝对 价格，还有最小化相对价格或绝对波动率，它们各有优缺点限于篇 幅就不延伸了。&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 模型校正和机器学习也有同异，相同之处是它们最终都是用“最小化代价函数技巧”来解决问题;不同之处是前者用数量少的当前数 据，而后者用数量多的历史数据。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 模型校正也可以用于量化交易上，比如校正一个均值回归例如 Hull-White 模型加上 Kalman Filter 方法可以用于配对交易 (pairs trading)。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt; 模型校正还有更有挑战的内容，比如 Libor Market+SABR 模型、 Local Stochastic Volatility 模型，这些内容是量化金融的巅峰。&lt;/li&gt;&lt;/ul&gt;</description>
-<author>量化家</author>
-<guid isPermaLink="false">2018-07-25-40528417</guid>
-<pubDate>Wed, 25 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>算法||LSTM</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-24-40449368.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40449368&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;LSTM Networks是递归神经网络（RNNs）的一种，该算法由Sepp Hochreiter和Jurgen Schmidhuber在Neural Computation上首次公布。后经过人们的不断改进，LSTM的内部结构逐渐变得完善起来（图1）。在处理和预测时间序列相关的数据时会比一般的RNNs表现的更好。目前，LSTM Networks已经被广泛应用在机器人控制、文本识别及预测、语音识别、蛋白质同源检测等领域。基于LSTM Networks在这些方面的优异表现，本推文旨在探究LSTM是否可以应用于股票时间序列的预测。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-40e8a6c2517c2d9f2324d0a2fdc9814b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;622&quot; data-rawheight=&quot;412&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-40e8a6c2517c2d9f2324d0a2fdc9814b&quot; data-watermark-src=&quot;v2-b5f7fdb6f2245c6b7e91de03d93903a6&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;b&gt;LSTM Networks 建模流程&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;处理股票时间序列的流程&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本推文使用的LSTM处理股票序列的流程如图2。构建LSTM模型使用库主要为Keras。&lt;/p&gt;&lt;p&gt;&lt;b&gt;数据获取与处理：&lt;/b&gt;对于时间序列，我们通常会以[X(t-n),X(t-n+1),…,X(t-1),X(t)]这n个时刻的数据作为输入来预测(t+1)时刻的输出。对于股票来说，在t时刻会有若干个features，因此，为了丰富features以使模型更加精确，本推文将n(time series)×s(features per time series)的二维向量作为输入。LSTM对于数据标准化的要求很高，因此本推文所有input数据均经过z-score标准化处理。&lt;/p&gt;&lt;p&gt;&lt;b&gt;LSTM模型构建：&lt;/b&gt;作为循环层的一种神经网络结构，只使用LSTM并不能构建出一个完整的模型，LSTM还需要与其他神经网络层（如Dense层、卷积层等）配合使用。此外，还可以构建多层LSTM层来增加模型的复杂性。&lt;/p&gt;&lt;p&gt;&lt;b&gt;回测：&lt;/b&gt;本推文进行的回测分为两种，一是直接将LSTM输出结果作为做单信号在个股上进行回测，二是将LSTM的预测结果作为一种择时信号，再配合其他选股模型（如BigQuant平台的StockRanker）进行回测。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-49b808f7911ab3dee7dae7491b18bcf3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;196&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-49b808f7911ab3dee7dae7491b18bcf3&quot; data-watermark-src=&quot;v2-6bbf089b1ab53b41c8625bcc4af35b7c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;b&gt;LSTM对沪深300未来五日收益率预测&lt;/b&gt;&lt;/p&gt;&lt;p&gt;综合以上两点，本推文所使用的输入和输出为利用过去30天的数据预测将来五天的收益。&lt;/p&gt;&lt;p&gt;测试对象：沪深300&lt;/p&gt;&lt;p&gt;数据选择和处理：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;input的时间跨度为30天，每天的features为[&#39;close&#39;,&#39;open&#39;,&#39;high&#39;,&#39;low&#39;,&#39;amount&#39;,&#39;volume&#39;]共6个，因此每个input为30×6的二维向量。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;output为未来5日收益future_return_5（future_return_5&amp;gt;0.2,取0.2;future_return_5&amp;lt;-0.2,取-0.2)，为使训练效果更加明显，output=future_return_5×10； features均经过标准化处理(在每个样本内每个feature标准化处理一次)。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;训练数据：沪深300 2005-01-01至2014-12-31时间段的数据；测试数据：沪深300 2015-01-01至2017-05-01时间段数据。&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;模型构建：鉴于数据较少（训练数据约2500个，预测数据约500个），因此模型构建的相对简单。模型共四层，为一层LSTM层+三层Dense层（图3）。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;回测：得到LSTM预测结果后，若LSTM预测值小于0，则记为-1，若大于0，记为1。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;部分代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 数据处理：设定每个input（30time series×6features）以及数据标准化
-train_input = []
-train_output = []
-test_input = []
-test_output = []
-for i in range(conf.seq_len-1, len(traindata)):
-    a = scale(scaledata[i+1-conf.seq_len:i+1])
-    train_input.append(a)
-    c = data[&#39;return&#39;][i]
-    train_output.append(c)
-for j in range(len(traindata), len(data)):
-    b = scale(scaledata[j+1-conf.seq_len:j+1])
-    test_input.append(b)
-    c = data[&#39;return&#39;][j]
-    test_output.append(c)
-
-# LSTM接受数组类型的输入
-train_x = np.array(train_input)
-train_y = np.array(train_output)
-test_x = np.array(test_input) 
-test_y = np.array(test_output)
-# 自定义激活函数
-import tensorflow as tf
-def atan(x): 
-    return tf.atan(x)
-
-# 构建神经网络层 1层LSTM层+3层Dense层
-# 用于1个输入情况
-lstm_input = Input(shape=(30,6), name=&#39;lstm_input&#39;)
-lstm_output = LSTM(128, activation=atan, dropout_W=0.2, dropout_U=0.1)(lstm_input)
-Dense_output_1 = Dense(64, activation=&#39;linear&#39;)(lstm_output)
-Dense_output_2 = Dense(16, activation=&#39;linear&#39;)(Dense_output_1)
-predictions = Dense(1, activation=atan)(Dense_output_2)
-
-model = Model(input=lstm_input, output=predictions)
-
-model.compile(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;, metrics=[&#39;mse&#39;])
-
-model.fit(train_x, train_y, batch_size=conf.batch, nb_epoch=10, verbose=2)
-
-# 预测
-predictions = model.predict(test_x)
-
-# 预测值和真实值的关系
-data1 = test_y
-data2 = predictions
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.plot(data2,data1, &#39;o&#39;, label=&quot;data&quot;)
-ax.legend(loc=&#39;best&#39;)&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-fba00d7cf1300546eff924d31bbe5dc7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;495&quot; data-rawheight=&quot;361&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-fba00d7cf1300546eff924d31bbe5dc7&quot; data-watermark-src=&quot;v2-546896e11fffb7b6590b73b8d2668a6d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# 如果预测值&amp;gt;0,取为1；如果预测值&amp;lt;=0,取为-1.为回测做准备
-for i in range(len(predictions)):    
-    if predictions[i]&amp;gt;0:
-        predictions[i]=1    elif predictions[i]&amp;lt;=0:
-        predictions[i]=-1
-
-# 将预测值与时间整合作为回测数据
-cc = np.reshape(predictions,len(predictions), 1)
-databacktest = pd.DataFrame()
-databacktest[&#39;date&#39;] = datatime
-databacktest[&#39;direction&#39;]=np.round(cc)&lt;/code&gt;&lt;p&gt;每个模型做两次回测，第一次回测（后文简称回测1）为直接以LSTM预测值在沪深300上做单：若LSTM预测值为1，买入并持有5day（若之前已持仓，则更新持有天数），若LSTM预测值为-1，若为空仓期，则继续空仓，若已持有股票，则不更新持有天数；&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二次回测（后文简称回测2）为以LSTM为择时指标，与StockRanker结合在3000只股票做单：若LSTM预测值为1，则允许StockRanker根据其排序分数买入股票，若LSTM预测值为-1，若为空仓期，则继续空仓，若已持有股票，则禁止StockRanker买入股票，根据现有股票的买入时间，5天内清仓；&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-b1e30f42a79e874c0bc3b2d1a395035f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;136&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b1e30f42a79e874c0bc3b2d1a395035f&quot; data-watermark-src=&quot;v2-78e81f4dd1c057e0a56c0d4d160d6ee1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;b&gt;1)future_return_5是否二极化处理比较&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于future_return_5的处理分为两种情况，一种为直接将future_return_5作为output进行模型训练，二是将future_return_5二极化（future_return_5&amp;gt;0,取1；future_return_5&amp;lt;=0,取-1），然后将二极化后的数据作为output进行模型训练。&lt;/p&gt;&lt;p&gt;两种处理方法的回测情况如图4，图5。由于模型每次初始化权重不一样，每次预测和回测结果会有一些差别，但经过多次回测统计，直接将future_return_5作为output进行模型训练是一个更好的选择。在本推文接下来的讨论中，将会直接将future_return_5作为output进行模型训练。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-03bdabfee8f59a75e6eda470baeb893d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;468&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-03bdabfee8f59a75e6eda470baeb893d&quot; data-watermark-src=&quot;v2-2fadda2fb35a9479a343c43dda2bb81c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2ee3e51fe1ab0a31f5564506a9cbb7ec_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;474&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-2ee3e51fe1ab0a31f5564506a9cbb7ec&quot; data-watermark-src=&quot;v2-dbe6b9707d8cfe131f5adb6cb63350d7&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;2)在权重上施加正则项探究&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;神经网络的过拟合：在训练神经网络过程中，“过拟合”是一项尽量要避免的事。神经网络“死记”训练数据。过拟合意味着模型在训练数据的表现会很好，但对于训练以外的预测则效果很差。原因通常为模型“死记”训练数据及其噪声，从而导致模型过于复杂。本推文使用的沪深300的数据量不是太多，因此防止模型过拟合就尤为重要。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;训练LSTM模型时，在参数层面上有两个十分重要的参数可以控制模型的过拟合：Dropout参数和在权重上施加正则项。Dropout是指在每次输入时随机丢弃一些features，从而提高模型的鲁棒性。它的出发点是通过不停去改变网络的结构，使神经网络记住的不是训练数据本身，而是能学出一些规律性的东西。正则项则是通过在计算损失函数时增加一项L2范数，使一些权重的值趋近于0，避免模型对每个feature强行适应与拟合，从而提高鲁棒性，也有因子选择的效果；在1)的模型训练中，我们加入了Dropout参数来避免过拟合。接下来我们尝试额外在权重上施加正则项来测试模型的表现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;回测结果如图6，加入正则项之后回测1和回测2的最大回撤均有下降，说明加入正则项后确实减轻了模型的过拟合。比较加入正则项前后回测1的持仓情况，可以看到加入正则化后空仓期更长,做单次数减少(19/17)，可以理解为：加入正则项之后，模型会变得更加保守。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;正则项的问题：经过试验,对于一个LSTM模型来说，正则项的参数十分重要，调参也需要长时间尝试，不合适的参数选择会造成模型的预测值偏正分布(大部分预测值大于0)或偏负分布，从而导致预测结果不准确，而较好的正则参数会使模型泛化性非常好(图6所用参数训练出来的模型的预测值属于轻度偏正分布)。本文之后的讨论仍会基于未加权重正则项的LSTM模型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-33156ad39591613a03c2f4001326ae99_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;473&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-33156ad39591613a03c2f4001326ae99&quot; data-watermark-src=&quot;v2-5310c6835ceeb0f0c32e6804f2fc2c41&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;3)双输入模型探究&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;除了传统的Sequential Model(一输入，一输出)外，本推文还尝试构建了Functional Model(支持多输入，多输出)。前面提到的features处理方法丢失了一项重要的信息：价格的高低。相同的input处在3000点和6000点时的future_return_5可能有很大不同。因此，本文尝试构建了&quot;二输入一输出&quot;的Functional Model：标准化后的features作为input输入LSTM，LSTM层的输出结果和一个指标-label(label=np.round(close/500))作为input输入后面的Dense层，最终输出仍为future_return_5(图7)。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1960872c7a2a2199ea4a906552f861f8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;177&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-1960872c7a2a2199ea4a906552f861f8&quot; data-watermark-src=&quot;v2-d3ec043369162e1ff233548b5d6a6720&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;部分代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# LSTM与stockranker配合回测
-class conf:    start_date = &#39;2010-01-01&#39;    end_date=&#39;2017-05-01&#39;    # split_date 之前的数据用于训练，之后的数据用作效果评估    split_date = &#39;2015-01-01&#39;    instruments = D.instruments(start_date, end_date)    
-    label_expr = [&#39;return * 100&#39;, &#39;where(label &amp;gt; {0}, {0}, where(label &amp;lt; -{0}, -{0}, label)) + {0}&#39;.format(20)]    # 持有天数，用于计算label_expr中的return值(收益)    hold_days = 5
-    # 特征    features = [&#39;close_5/close_0&#39;,  # 5日收益    &#39;close_10/close_0&#39;,  # 10日收益    &#39;close_20/close_0&#39;,  # 20日收益    &#39;avg_amount_0/avg_amount_5&#39;,  # 当日/5日平均交易额    &#39;avg_amount_5/avg_amount_20&#39;,  # 5日/20日平均交易额    &#39;rank_avg_amount_0/rank_avg_amount_5&#39;,  # 当日/5日平均交易额排名    &#39;rank_avg_amount_5/rank_avg_amount_10&#39;,  # 5日/10日平均交易额排名    &#39;rank_return_0&#39;,  # 当日收益    &#39;rank_return_5&#39;,  # 5日收益    &#39;rank_return_10&#39;,  # 10日收益    &#39;rank_return_0/rank_return_5&#39;,  # 当日/5日收益排名    &#39;rank_return_5/rank_return_10&#39;,  # 5日/10日收益排名    &#39;pe_ttm_0&#39;,  # 市盈率TTM    ]
-# 给数据做标注：给每一行数据（样本）打分，一般分数越高表示越好
-m1 = M.fast_auto_labeler.v5(
-    instruments=conf.instruments, start_date=conf.start_date, end_date=conf.end_date,
-    label_expr=conf.label_expr, hold_days=conf.hold_days,
-    benchmark=&#39;000300.SHA&#39;, sell_at=&#39;open&#39;, buy_at=&#39;open&#39;
-)
-
-# 计算特征数据
-m2 = M.general_feature_extractor.v5(
-    instruments=conf.instruments, start_date=conf.start_date, end_date=conf.end_date,
-    features=conf.features)
-
-# 数据预处理：缺失数据处理，数据规范化，T.get_stock_ranker_default_transforms为StockRanker模型做数据预处理
-m3 = M.transform.v2(
-    data=m2.data, transforms=T.get_stock_ranker_default_transforms(),
-    drop_null=True, astype=&#39;int32&#39;, except_columns=[&#39;date&#39;, &#39;instrument&#39;],
-    clip_lower=0, clip_upper=200000000)
-
-# 合并标注和特征数据
-m4 = M.join.v2(data1=m1.data, data2=m3.data, on=[&#39;date&#39;, &#39;instrument&#39;], sort=True)
-
-# 训练数据集
-m5_training = M.filter.v2(data=m4.data, expr=&#39;date &amp;lt; &quot;%s&quot;&#39; % conf.split_date)
-
-# 评估数据集
-m5_evaluation = M.filter.v2(data=m4.data, expr=&#39;&quot;%s&quot; &amp;lt;= date&#39; % conf.split_date)
-
-# StockRanker机器学习训练
-m6 = M.stock_ranker_train.v2(training_ds=m5_training.data, features=conf.features)
-
-# 对评估集做预测
-m7 = M.stock_ranker_predict.v2(model_id=m6.model_id, data=m5_evaluation.data)
-
-# 生成卖出订单：hold_days天之后才开始卖出；对持仓的股票，按StockRanker预测的排序末位淘汰
-if databacktest[&#39;direction&#39;].values[databacktest.date==current_dt]==-1: # LSTM择时卖    instruments = list(reversed(list(ranker_prediction.instrument[ranker_prediction.instrument.apply(lambda x: x in equities and not context.has_unfinished_sell_order(equities[x]))])))        
-     for instrument in instruments:            
-         if context.trading_calendar.session_distance(pd.Timestamp(context.date[instrument]), pd.Timestamp(current_dt))&amp;gt;=5:
-                context.order_target(context.symbol(instrument), 0)if not is_staging and cash_for_sell &amp;gt; 0:
-    instruments = list(reversed(list(ranker_prediction.instrument[ranker_prediction.instrument.apply(lambda x: x in equities and not context.has_unfinished_sell_order(equities[x]))])))        
-    # print(&#39;rank order for sell %s&#39; % instruments)    for instrument in instruments:
-        context.order_target(context.symbol(instrument), 0)
-        cash_for_sell -= positions[instrument]            
-        if cash_for_sell &amp;lt;= 0:                
-            break
-            
-# 生成买入订单：按StockRanker预测的排序，买入前面的stock_count只股票
-if databacktest[&#39;direction&#39;].values[databacktest.date==current_dt]==1: # LSTM择时买    buy_dt = data.current_dt.strftime(&#39;%Y-%m-%d&#39;)
-    context.date=buy_dt
-    buy_cash_weights = context.stock_weights
-    buy_instruments = list(ranker_prediction.instrument[:len(buy_cash_weights)])
-    max_cash_per_instrument = context.portfolio.portfolio_value * context.max_cash_per_instrument        
-    for i, instrument in enumerate(buy_instruments):
-        cash = cash_for_buy * buy_cash_weights[i]            
-        if cash &amp;gt; max_cash_per_instrument - positions.get(instrument, 0): # 确保股票持仓量不会超过每次股票最大的占用资金量            cash = max_cash_per_instrument - positions.get(instrument, 0)            
-        if cash &amp;gt; 0:
-            context.order_value(context.symbol(instrument), cash)
-            buy_dates[instrument] = current_dt
-
-context.date = buy_dates&lt;/code&gt;&lt;p&gt;回测结果如图8。由回测结果可以看出，加入指示标后的LSTM模型收益率相对下降，但是回撤更小。LSTM预测值小于0的时间段覆盖了沪深300上大多数大幅下跌的时间段,虽然也错误地将一些震荡或上涨趋势划归为下跌趋势。或许这是不可避免的，俗话说高风险高回报，风险低那么回报也不会非常高，高回报和低风险往往不可兼得。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3b68f728634de83ee3dd394e8de8e1a1_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;472&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3b68f728634de83ee3dd394e8de8e1a1&quot; data-watermark-src=&quot;v2-49198b1d13b4b81b1149699dc27afb39&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论与展望&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论：&lt;/b&gt;本推文通过探究性地应用LSTM对沪深300未来五日收益率进行预测，初步说明了LSTM Networks是可以用在股票市场上的。由于LSTM更适用于处理个股/指数，因此，将LSTM作为择时模型与其他选股模型配合使用效果较好。利用LSTM模型对沪深300数据进行预测并将结果作为择时信号，可以显著改善stockranker选股模型在回测阶段的回撤。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;展望：&lt;/b&gt;由于个股数据量较少，LSTM模型的可扩展程度和复杂度受到很大制约，features的选择也受到限制（若input的features太多，而data较少的话，会使一部分features不能发挥出应有的作用，也极易造成过拟合）。将来我们希望能在个股/指数的小时或分钟数据上测试LSTM的性能。另外，将探究LSTM模型能否将属于一个行业的所有股票data一起处理也是一个可选的方向。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;说明：&lt;/b&gt;由于每次训练LSTM模型权重更新情况不同以及Dropout的随机性，LSTM模型的每次训练训练结果都会有差异。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;提示：&lt;/b&gt;由于LSTM涉及参数众多，目前还不能保证LSTM模型的稳定性，本推文所附回测结果均为多次训练模型后选取的较为理想的情况，目的是说明LSTM是可以应用于股票市场的以及将其作为择时模型是可能的。本推文所述以及提供的代码仅供探究及讨论，若要形成一个在股票市场比较实用的LSTM模型，还需要在features选择、模型构建、模型参数选择以及调优等方面花费大量精力。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>量化家</author>
-<guid isPermaLink="false">2018-07-24-40449368</guid>
-<pubDate>Tue, 24 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>【中信证券】量化实习生招聘（2019应届生）</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-24-40441698.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40441698&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;中信证券招聘量化实习生，优异者可留用（2019年校园招聘）。&lt;/p&gt;&lt;p&gt;实习招聘部门：中信证券股权衍生品业务线&lt;/p&gt;&lt;p&gt;股权衍生品业务线是中信证券开展权益类产品交易的业务部门，其业务模式是依托中信证券的信用和资产负债表，作为产品设计者和交易对手方，面向机构和零售客户提供种类丰富的与权益资产相关的投融资产品，满足客户各项需求。 &lt;/p&gt;&lt;p&gt;工作地：北京 亮马桥 中信证券总部。 &lt;/p&gt;&lt;p&gt;有意者请将简历寄送至EQ_HR@citics.com，2018年8月15日之前有效。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;职责： &lt;/p&gt;&lt;p&gt;1、负责数据整理、挖掘、统计分析、展示； &lt;/p&gt;&lt;p&gt;2、从数据中发现规律，为量化分析提供支持； &lt;/p&gt;&lt;p&gt;3、开发量化模型策略； &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;要求：&lt;/p&gt;&lt;p&gt;1、2019年毕业的硕士、博士。&lt;/p&gt;&lt;p&gt;2、知名院校的数学/统计、物理、计算机、电子或其他相关理工科专业； &lt;/p&gt;&lt;p&gt;3、一流的概率统计能力，严谨的研究习惯； &lt;/p&gt;&lt;p&gt;4、有一定的编程能力，至少熟悉Python和C++其中一门编程语言； &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;加分项： &lt;/p&gt;&lt;p&gt;1、顶级的研究能力，有领先的学术成果； &lt;/p&gt;&lt;p&gt;2、学科竞赛、ACM-ICPC获奖； &lt;/p&gt;&lt;p&gt;3、熟悉深度学习原理和基本模型，熟练使用 Tensorflow，并能够灵活的解决实际问题。有过大型机器学习、数据挖掘实践项目者优先； &lt;/p&gt;&lt;p&gt;4、爬虫以及文本处理项目经历； &lt;/p&gt;&lt;p&gt;5、熟悉linux系统的非桌面环境, 良好的编码风格； &lt;/p&gt;</description>
-<author>zhiqiang</author>
-<guid isPermaLink="false">2018-07-24-40441698</guid>
-<pubDate>Tue, 24 Jul 2018 00:00:00 +0800</pubDate>
+<title>人工智能如何为投资研究插上翅膀</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2018-07-26-40598695.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40598695&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-8d0f47213590a405e04a95bea46c355f_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;一、消息面情绪-尚待挖掘的金矿&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;       资本市场参与者，常形象的说市场有三面：基本面、技术面、消息面，用以概括影响驱动资本市场的因素。其中，对基本面和技术面的研究远比消息面深入，基本面和技术面的奠基著作《证券分析》和《股票趋势技术分析》第一版分别出版于1934年和1948年。这并非是投资者和交易者认为消息面不重要，实际上几乎所有市场参与者都在不停的关注消息面的变化，但不断增加的财经资讯体量已经超出任何人甚至团队的阅读能力，投资者需要有效的工具在资讯的海洋中找到真正影响市场的信息。    &lt;/p&gt;&lt;p&gt;       情绪分析是古老而有诱惑力的一种市场策略，其想法非常简单：如果你知道别人如何看待市场，你就很容易从中获得，在他们极度恐慌时买入，在他们过份自信时卖出。只要你能正确解读市场情绪，这钱不难赚。在信息技术发展之前，市场情绪解决完全依赖交易者的经验，比如“擦皮鞋的小男孩都要买股票了”，这种分析更像是艺术而非科学。随着信息技术的发展，研究市场情绪的方法主要包括直接法和间接法，直接法通过市场问卷调查的方式统计投资者情绪，间接法通过市场换手率、IPO首日涨跌幅、封闭式基金折溢价率等指标观察市场情绪。直接法能够直接获取投资者的意见，但数据获得成本高且容易受到取样偏差、调查对象意见表达偏差等问题的影响；间接法是对将投资者数据加工成全市场数据后的再加工，其有效性和稳定性很大程度上取决于模型构建者如何解读上述指标与市场情绪的经济和数理逻辑。互联网和自然语言处理及机器学习的发展重塑情绪研究的方法论，任何人不管是职业交易者还是接近随机操作的外行人都可以在互联网上发表对交易品种的看法，表达其真正的市场情绪，相当于其主动提交的市场问卷，只是问卷调查的结果和倾向需要我们用更先进的算法和更深刻的洞见提取，合理的应用自然语言处理和机器学习就是情绪提取的钥匙。&lt;/p&gt;&lt;p&gt;       数据地平线是中国科学院软件研究所智能金融研究团队的成果商业化平台，在人工智能、大数据、自然语言处理、知识图谱等领域有深入的理论基础和技术积累，通过与十几家证券公司和基金机构的深入交流及合作，数据地平线深入用户的工作流程和工作场景，应用先进的NLP技术更深入的挖掘非结构化文本中的信息，进行更有效的情绪评分并将其无缝嵌入到用户的工作流程，帮助用户用很小的代价获得市场Alpha。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;二、舆情智子-市场情绪传感器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;       舆情智子是数据地平线市场情绪的研究成果，下面以焦炭舆情智子为例，介绍舆情智子的构建过程。&lt;/p&gt;&lt;p&gt;       1.实时抓取多个数据源（包括垂直行业网站、财经网站、行业协会、综合门户网站、政府网站、行业电商网站）的相关资讯，其中资讯源由数据地平线的分析师经过分析后确定，并为每个数据权根据其相关性、重要性和权威性打分，对来源的区分和打分，有利于控制噪音；&lt;/p&gt;&lt;p&gt;       2.利用自然语言处理技术识别每篇资讯中涉及的实体，对于数据地平线而言，确定资讯讨论的交易品种，有时，一篇资讯提及多个交易品种，此时综合考虑实体、特征词以及来源打分，计算该资讯与焦炭的相关性，过滤掉相关性小于特定阈值的资讯，目前数据地平线累计处理与焦炭相关的资讯量160万篇，每日资讯量约为100篇。在资讯采集中，我们发现11年前后焦炭相关资讯量激增，大商所的焦炭期货上市日期为2011年4月15日，这也能在侧面看出焦炭期货的上市拉动与焦炭相关的资讯量；&lt;/p&gt;&lt;p&gt;       3.应用独有的NLP和情感分析技术为每篇相关资讯分配一个与焦炭相关的情绪值。要知道一篇文章所包含的情绪最普遍的作法是搜索并计算表达情绪的词语，如“高兴”、“生气”、“悲观”并统计其出现的次数。对于焦炭的情绪评分，数据地平线创建并维护与焦炭和期货相关的特征词和情绪词库，从而加强情绪度量的精度。得到每篇文章的情绪值后我们将其集成为特定时间段内的焦炭市场情绪值（即舆情智子），舆情智子每日更新两次，更新时间为每天早上8:30和12:30。&lt;/p&gt;&lt;p&gt;       作为市场情绪的“晴雨表”, 情绪数据能够帮助投资者及时跟进上述产业链资讯数据对投资者情绪及焦炭市场的潜在影响，舆情智子的可视化分析结果见下图：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5b98a4cd3908e62dced9b854791c20d5_r.jpg&quot; data-caption=&quot;图1：舆情智子、焦炭指数及舆情智子5日均值&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;554&quot; data-rawheight=&quot;368&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;       其中舆情智子的值域为[-50,50], 大于0表示情绪乐观，小于0表示情绪悲观，图1上半部分提供舆情智子柱图和焦炭指数的5日均值，下半部为舆情智子的5日均值，图中表示的时间区间为2017年12月至今，从上图，我们可以看出，在选定时间区间内:&lt;/p&gt;&lt;p&gt;       1.  焦炭市场情绪相对稳定，图中未出现从极乐观（大红柱）至极悲观（大绿柱）直接相邻的情况，且市场情绪乐观悲观转换处多是小红柱、小绿柱，即市场在乐观、悲观之间的转换比较平缓；&lt;/p&gt;&lt;p&gt;       2.  市场情绪处于乐观的时段（红柱子）显著多于悲观时段，而在这个时间段内，市场处于震荡走势而非单边上行走势。这一情况可能跟国内市场普遍报喜不报忧的倾向有关，虽然期货市场本身多空都能赚钱，但国内交易者普遍有做多的倾向，也即市场的情绪分布是有偏的，情绪的变化比情绪的绝对正负更能代表市场涨跌，例如，如果前一个交易日的市场情绪为极度悲观，而当日的情绪有所恢复，即使当日的情绪值并不为正，这对市场情绪而言也是个积极的信号，其中舆情智子不同周期的移动均值也是市场相对情绪的一个有效度量，如舆情智子的3日均值和5日均值，或5日均值与10日规均值之间的比价关系；&lt;/p&gt;&lt;p&gt;       焦炭走势的5日均值与舆情智子的5日均值有较高的相关性，“趋势是你的朋友”这句老句同样适用于情绪数据，当情绪的趋势和价格的趋势相一致时，情绪支持趋势的延续，否则预示趋势即将反转&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7d2aee2991164052208510de0cd510a6_r.jpg&quot; data-caption=&quot;图1.1：舆情智子、焦炭指数及舆情智子5日均值背离示意图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;554&quot; data-rawheight=&quot;370&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;       如上图所示，在左侧红箭头处，焦炭指数达到阶段低点而情绪未创阶段新低，预示着市场已经度过了最悲观的时期，后市将出现较大幅度上涨；右侧红箭头处，焦炭指数创阶段新高但市场情绪未创新高，预示着市场情绪不支持价格继续上涨。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;三、舆情智子模型-预测焦炭未来3、5天的涨跌&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;       为展示情绪数据的潜在应用，DataHorizon将舆情智子与传统的持仓、价量等特征结合相结合，通过机器学习模型预测焦炭未来3天和未来5天的涨跌，其中：未来3天和5天的涨跌标准为T+3和T+5收盘价相对于T+0收盘价的变动；&lt;/p&gt;&lt;p&gt;       1.  将每日持仓数据按会员进行分组求和，得到成交量、多头持仓、空头持仓等排名（前5/前10/前20）数据，从而更准确体现焦炭整体持仓情况；&lt;/p&gt;&lt;p&gt;       2.  将舆情智子和价量指标与加工后的持仓数据作为模型的自变量，将未来3天和5天的涨跌幅作为因变量，构建机器学习模型对焦炭未来3天和5天的涨跌进行预测；&lt;/p&gt;&lt;p&gt;       3.  于每月第一个交易日更新模型；&lt;/p&gt;&lt;p&gt;模型预测结果如下：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2710a91285e4ee5022e1be3865d4d256_r.jpg&quot; data-caption=&quot;图2：焦炭预测未来3天涨跌预测&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;489&quot; data-rawheight=&quot;337&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-38059e209277b45a9988cdc7ad1654d2_r.jpg&quot; data-caption=&quot;图3：焦炭未来5天涨跌预测结果&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;499&quot; data-rawheight=&quot;344&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;       其中，图的上半部分的蓝色折线显示选中时间区间的焦炭指数，折线上向上的红箭头表示模型预测结果为上涨，向下的绿箭头表示模型预测结果为下跌，图的下半部分显示模型的：&lt;/p&gt;&lt;p&gt;       1.  未来3天的准确率60.00%,综合盈亏比1.33，未来5天的准确率59.47,综合盈亏比1.52，模型对5天的预测效果优于3天，其中综合盈亏比=所有盈利之和/所有亏损之和，此处对准确率和综合盈亏比的统计是模型的长期表现，而选中的时间区间；&lt;/p&gt;&lt;p&gt;       2.  由此，可以初步推断模型向后预测时间段的选择与所处的市场环境有关，未来的工作中，我们将提供模型在不同市场环境中（牛市、熊市、高波动率市场、低波动率市场等）的表现，以帮助用户更好的理解和使用模型。&lt;br&gt;&lt;/p&gt;&lt;p&gt;       目前新用户注册，限时7天免费使用所有功能，快登录电脑端网页&lt;a href=&quot;http://www.datahorizon.cn/index&quot;&gt;DataHorizon&lt;/a&gt; 速速体验吧~~&lt;/p&gt;</description>
+<author>DataHorizon</author>
+<guid isPermaLink="false">2018-07-26-40598695</guid>
+<pubDate>Thu, 26 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
