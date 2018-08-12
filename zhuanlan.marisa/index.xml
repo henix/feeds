@@ -5,7 +5,148 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 07 Aug 2018 01:50:28 +0800</lastBuildDate>
+<lastBuildDate>Sun, 12 Aug 2018 15:17:53 +0800</lastBuildDate>
+<item>
+<title>Recursion Schemes（一）新手入门</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-10-41754330.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/41754330&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e5a2a9858bfa0c0e317c6943a84edb5b_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;序章&lt;/h2&gt;&lt;p&gt;时间回到1991年，Erik Meijer， Maarten Fokkinga， 和 Ross Paterson 发表了一篇论文，&lt;a href=&quot;http://maartenfokkinga.github.io/utwente/mmf91m.pdf&quot;&gt;Functional Programming with Bananas, Lenses, Envelopes and Barbed Wire&lt;/a&gt; 这篇论文在即使在今天看来仍是函数式编程领域的经典之作。尽管在函数式编程社区之外，这篇论文并不广为人知，但它的贡献仍然是巨大的：作者使用范畴论表达了一组被称为 Recursion Schemes 的简洁组合子。使用这组组合子，可以自动化地完成嵌套式数据结构的递归遍历。尽管 Recursion Schemes 的提出早于 Erik Meijer 等人的工作，这篇文章将范畴论中的强大抽象能力应用于遍历数据结构这一主题——这正是范畴论如何使我们日常编程任务变得简洁而富有秩序的一个有力例证。&lt;/p&gt;&lt;p&gt;嵌套式数据结构几乎出现在每一个编程领域中，从3D绘图到文件系统，遍历这样的数据结构是非常常见的，常见到程序员们几乎感知不到他们做了这件事。因此，泛化递归和遍历这一动作几乎立即就可以为真实世界带来好处：使用新的泛化的遍历模式取代掉那些旧的依赖于类型的遍历函数。而且通过将如何遍历数据和如何使用数据解耦，可以减轻程序员们的对代码的理解负担，而更专注于如何使用数据这一核心行为。无论怎样的数据结构，链表，目录树，控制流图还是数据库表项，使用 Recursion Schemes 都可以准确有序地遍历它们。而且 Recursion Schemes 并不依赖与编程语言或编程环境——任何将函数作为一等公民的语言都可以使用 Recursion Schemes，例如 Clojure 的 &lt;a href=&quot;http://richhickey.github.io/clojure/clojure.walk-api.html&quot;&gt;clojure.walk&lt;/a&gt; API 就广泛使用了 Recursion Schemes 来遍历 s-expression 和 map。&lt;/p&gt;&lt;p&gt;实际上 Meijer 等人的工作非常成功，以至于基本上可以说函数式编程缺少 Recursion Schemes 就等于在命令式编程中使用 &lt;code class=&quot;inline&quot;&gt;goto&lt;/code&gt;。仅管这里引用 Djikstra 写给 ACM 的&lt;a href=&quot;http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html&quot;&gt;那封广为人知的信&lt;/a&gt;不免有些陈词滥调，但是这个比喻是恰当的：只使用 &lt;code class=&quot;inline&quot;&gt;for&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;while&lt;/code&gt; 而不使用 &lt;code class=&quot;inline&quot;&gt;goto&lt;/code&gt; 使得命令式语言的控制流和谐简洁，对于函数式语言，使用 Recursion Schemes 而非为对数据结构手写递归计算，带来了相似的效果。这一见解非常深刻，以至于我要再重复一遍：&lt;i&gt;Recursion Schemes 之于函数式编程范式，就如同 &lt;code class=&quot;inline&quot;&gt;for&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;while&lt;/code&gt; 之于命令式编程范式。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;尽管 &lt;i&gt;Bananas, Lenses, Envelopes and Barbed Wire&lt;/i&gt; 论文发表时间远早于 Haskell 语言的诞生时间，本文仍选择使用 Haskell 作为编程语言来展示文中背后的想法[1]。如果你并不十分熟悉 Haskell， &lt;i&gt;&lt;b&gt;别慌：&lt;/b&gt;&lt;/i&gt; 理解本文的思想不需要您成为一个 Haskell 专家。我实际上只用到了 Haskell 的&lt;a href=&quot;http://cheatsheet.codeslower.com/CheatSheet.pdf&quot;&gt;语法&lt;/a&gt;以及 &lt;a href=&quot;http://learnyouahaskell.com/making-our-own-types-and-typeclasses&quot;&gt;algebraic data types&lt;/a&gt;。我会使用一些语法特性来更好地展示 Recursion Schemes 背后的思想，在我使用这些语法特性的时候，我都会解释一下它们的作用。如果您之前完全没有 Haskell 的使用经验，或许阅读 &lt;a href=&quot;http://learnyouahaskell.com/&quot;&gt;Learn You a Haskell&lt;/a&gt; 的前几章的内容有助于您理解本文。&lt;/p&gt;&lt;p&gt;本文的例子会从一个简单的类型完备的语法树的定义开始，接着我会展示在这样一颗语法树上进行泛化遍历和修改树结构是相当困难的。接着我们会使用 Haskell 的语法特性以及强大的 parameterized data types 来重新定义语法树，而就在我们使用常见的 Haskell 语法一步步定义和描述递归模式的过程中，Recursion Schemes 自然而然地就会被导出。&lt;/p&gt;&lt;p&gt;如果你对本文中使用的代码感兴趣，你可以在这个 &lt;a href=&quot;https://github.com/patrickt/recschemes/blob/master/src/Part1.hs&quot;&gt;Github 仓库&lt;/a&gt; 中找到对应的代码。代码中还包括一组单元测试以用来验证代码的正确性。&lt;/p&gt;&lt;h2&gt;递归的语法树&lt;/h2&gt;&lt;p&gt;我们首先来看一下在 Haskell 中使用 algebraic datatype 来最简单地表达一个语法树应该怎样做。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Lit  
+  = StrLit String
+  | IntLit Int
+  | Ident String
+  deriving (Show, Eq)
+
+data Expr  
+  = Index Expr Expr
+  | Call Expr [Expr]
+  | Unary String Expr
+  | Binary Expr String Expr
+  | Paren Expr
+  | Literal Lit
+  deriving (Show, Eq)
+
+data Stmt  
+  = Break 
+  | Continue
+  | Empty
+  | IfElse Expr [Stmt] [Stmt]
+  | Return (Maybe Expr)
+  | While Expr [Stmt]
+  | Expression Expr
+  deriving (Show, Eq)&lt;/code&gt;&lt;p&gt;可以看到这已经是一个相当不错的语法树了：它简单直白，可以直接应用在一些语法树解析库上，例如 &lt;a href=&quot;http://hackage.haskell.org/package/attoparsec&quot;&gt;attoparsec&lt;/a&gt; 或 &lt;a href=&quot;http://tanakh.github.io/Peggy/&quot;&gt;Peggy&lt;/a&gt;。然而为这样的一棵语法树写一个操作子节点和子表达式的函数是一件非常乏味的工作。下面是一个例子，flatten 函数接受一棵语法树，并递归地删除其所有的代表括号的 &lt;code class=&quot;inline&quot;&gt;Paren&lt;/code&gt; 节点：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;-- this would turn the expression  
+--    (((anArray[(10)])))
+-- into
+--    anArray[10]
+
+flatten :: Expr -&amp;gt; Expr  
+-- base case: do nothing to literals
+flatten (Literal i) = Literal i
+
+-- this is the important case: we shed the Paren constructor and just 
+-- apply `flatten` to its contents
+flatten (Paren e) = flatten e
+
+-- all the other cases preserve their constructors and just apply 
+-- the flatten function to their children that are of type `Expr`.
+flatten (Index e i)     = Index (flatten e) (flatten i)  
+flatten (Call e args)   = Call (flatten e) (map flatten args)  
+flatten (Unary op arg)  = Unary op (flatten arg)  
+flatten (Binary l op r) = Binary (flatten l) op (flatten r)&lt;/code&gt;&lt;p&gt;可以看到这段代码难以忍受地丑陋，并且难以维护。6行代码中的4行代码实际上在完成一件非常无聊但又不得不做的工作，确保 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt; 函数在可以正确地在子表达式下递归下去。这样的代码不仅书写十分无趣，而且之后对&lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;的任何改变（例如增加了新的域或语法关键字）都必须修改这个函数。（我把这种递归行为称为&lt;i&gt;显式递归&lt;/i&gt;，以与 Recursion Schemes 提供的&lt;i&gt;隐式递归&lt;/i&gt;进行区别）而且，这样的定义方式极易出错——显式递归引入的语法噪音使得检查是否有子表达式遗漏变得非常困难。而这样的疏漏就有可能引入灾难性的 bug。&lt;/p&gt;&lt;p&gt;我们可以使用 &lt;code class=&quot;inline&quot;&gt;apply&lt;/code&gt; 函数为这段混乱的代码带来些许秩序，它接受一个以 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 为参数的函数 &lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt; 并应用这个函数操作 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 和它所有的子表达式：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;applyExpr :: (Expr -&amp;gt; Expr) -&amp;gt; Expr -&amp;gt; Expr  
+-- base case: applyExpr is the identity function on constants
+applyExpr f (Literal i) = Literal i
+
+-- recursive cases: apply f to each subexpression
+applyExpr f (Paren p) = Paren (f p)  
+applyExpr f (Index e i) = Index (f e) (f i)  
+applyExpr f (Call e args) = Call (f e) (map f args)  
+applyExpr f (Unary op arg) = Unary op (f arg)  
+applyExpr f (Binary l op r) = Binary (f l) op (f r)&lt;/code&gt;&lt;p&gt;通过隔离递归这一操作，我们可以将 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt; 函数从6行减为2行，在 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt; 函数内部，我们只需要关注 &lt;code class=&quot;inline&quot;&gt;Paren&lt;/code&gt; 节点即可，而将其他节点上的递归操作交给 &lt;code class=&quot;inline&quot;&gt;applyExpr&lt;/code&gt; 函数即可：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;flatten (Paren e) = flatten e  
+flatten x = applyExpr flatten x&lt;/code&gt;&lt;p&gt;这使得我们可以非常方便地书写和维护一段代码了。&lt;code class=&quot;inline&quot;&gt;apply&lt;/code&gt; 函数将负责所有平凡情况的处理，并且完成在子表达式上的递归，而我们写的函数只需要负责那些我们感兴趣的部分即可，例如，处理 &lt;code class=&quot;inline&quot;&gt;Paren&lt;/code&gt; 节点，&lt;i&gt;酷！&lt;/i&gt;&lt;/p&gt;&lt;p&gt;但我们暂且不要高兴得太早，实际上我们并没有杜绝模板文件，这里仍有出现 bug 的可能：&lt;code class=&quot;inline&quot;&gt;applyExpr&lt;/code&gt; 仅仅只是隔离了模板与内容，每当我们定义了新的语法或类型，我们都需要重写 &lt;code class=&quot;inline&quot;&gt;applyExpr&lt;/code&gt; 函数。但实际上一个异常聪明的编译器，例如 GHC，可以帮助我们完成这件事。不过首先我们需要对 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 数据类型进行适当的修改，以使其具有更加泛化的表达能力。&lt;/p&gt;&lt;h2&gt;参数化类型&lt;/h2&gt;&lt;code lang=&quot;haskell&quot;&gt;data Expr a  
+  = Index a a
+  | Call a [a]
+  | Unary String a
+  | Binary a String a
+  | Paren a
+  | Literal Lit
+  deriving (Show, Eq)&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 的新定义与我们之前的完全相同，除了我们加入了一个类型变量 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 并且用它将所有递归出现的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 替换掉。换句话来说，我们对 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 的子表达式完成了&lt;i&gt;参数化&lt;/i&gt;。因此我们也需要修改 &lt;code class=&quot;inline&quot;&gt;applyExpr&lt;/code&gt;：我们向下层的函数类型不再是 &lt;code class=&quot;inline&quot;&gt;Expr -&amp;gt; Expr&lt;/code&gt; 而变为了 &lt;code class=&quot;inline&quot;&gt;a -&amp;gt; a&lt;/code&gt;：实际上我们甚至可以定义为 &lt;code class=&quot;inline&quot;&gt;a -&amp;gt; b&lt;/code&gt;，这样输入函数就具备了改变底层 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 的底层子表达式的能力。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;apply :: (a -&amp;gt; b) -&amp;gt; Expr a -&amp;gt; Expr b&lt;/code&gt;&lt;p&gt;敏锐的读者已经察觉到了这个函数与内置与 &lt;code class=&quot;inline&quot;&gt;list&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt; 函数多么相似：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;-- `map` takes a function (a -&amp;gt; b) and makes it operate on lists containing &#39;a&#39;s  
+map :: (a -&amp;gt; b) -&amp;gt; [a] -&amp;gt; [b]&lt;/code&gt;&lt;p&gt;这并不是一个巧合，实际上 &lt;code class=&quot;inline&quot;&gt;apply&lt;/code&gt; 函数就是和 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt; 同构的——你可以将这两个函数都看作将函数 &lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt; 提升并应用于更大的数据类型上，这个更大的数据类型可以是 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 也可以是列表(&lt;code class=&quot;inline&quot;&gt;[]&lt;/code&gt;)。而这种映射的模式实际上在 Haskell 中十分常见，以至于它的泛化版本正是 Haskell 中的一个核心概念：类型类 &lt;code class=&quot;inline&quot;&gt;Functor&lt;/code&gt; 代表了所有的能提供类似映射功能的函数，称作 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;[2]:&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;class Functor f where  
+  fmap :: Functor f =&amp;gt; (a -&amp;gt; b) -&amp;gt; f a -&amp;gt; f b&lt;/code&gt;&lt;p&gt;无数的类型——列表，树，可选值（&lt;code class=&quot;inline&quot;&gt;Maybe&lt;/code&gt;），IO 操作，甚至于函数本身，都实现了 &lt;code class=&quot;inline&quot;&gt;Functor&lt;/code&gt; 类型类。实际上由于这个函数如此常见，而实现 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt; 又非常直白，GHC 提供了一个内置的机制来帮你实现 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;：我们只需要将 &lt;code class=&quot;inline&quot;&gt;Functor&lt;/code&gt; 加入 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 的推导声明中，就跟 &lt;code class=&quot;inline&quot;&gt;Show&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Eq&lt;/code&gt; 一样：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;{-# LANGUAGE DeriveFunctor #-}
+
+data Expr a  
+  = Index a a
+  | Call [a]
+  | Unary String a
+  | Binary a String a
+  | Paren a
+  | Literal Lit
+  deriving (Show, Eq, Functor) -- fmap for free&lt;/code&gt;&lt;p&gt;甚至于说，你可以导出 &lt;code class=&quot;inline&quot;&gt;Foldable&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Traversable&lt;/code&gt; 这些类型类，这为我们访问和遍历 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 提供了丰富的手段，在我们为 &lt;code class=&quot;inline&quot;&gt;Functor&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;Foldable&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Traversable&lt;/code&gt; 所提供的丰富功能震惊时，也必须要注意到，现在的参数化版本 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 其实和我们之前的版本并不完全一样！&lt;/p&gt;&lt;p&gt;我们之前版本的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 因为在子节点上是递归的，所以我们可以表达任意嵌套的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;，但我们的新版本定义做不到这一点。一个任意嵌套的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;，我们在叶子节点使用 &lt;code class=&quot;inline&quot;&gt;Lit&lt;/code&gt; :&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Expr Lit&lt;/code&gt; 表示一个没有子表达式的表达式&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Expr (Expr Lit)&lt;/code&gt; 表示一个含有一层子表达式的表达式&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Expr (Expr (Expr Lit))&lt;/code&gt; 表示一个含有两层的，以此类推&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;为了使我们的参数化版本定义的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 具备这种特性，我们需要一种类型，这种类型可以在当我们确定 &lt;code class=&quot;inline&quot;&gt;Expr a&lt;/code&gt; 中的 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 类型时，得到一个嵌套任意多层 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 子表达式的类型。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type NestedExpr = Expr (Expr (Expr (Expr …)))&lt;/code&gt;&lt;p&gt;为了得到这种类型，我们需要一些技巧，使我们可以用有限长的语句，构造任意多层嵌套类型的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;。&lt;/p&gt;&lt;h2&gt;不动点&lt;/h2&gt;&lt;p&gt;考虑一个 Y-组合子，给定一个输入为一个参数的函数 &lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;y(f)&lt;/code&gt; 实际上就表示了不断将 f 应用在自己本身上：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;y(f) = f(f(f(f(f ...))))&lt;/code&gt;&lt;p&gt;敏锐的读者们想必已经察觉 &lt;code class=&quot;inline&quot;&gt;y(f)&lt;/code&gt; 的形式与我们所需要的 &lt;code class=&quot;inline&quot;&gt;NestedExpr&lt;/code&gt; 的形式非常相似，如果我们把一个 Y-组合子整合进类型系统的话，我们就可以描述 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 不断应用于自己这样的形式了，而整合的过程只需保持与在值域上作用于函数的 Y-组合子的同构即可。这样我们就可以描述任意嵌套的表达式 &lt;code class=&quot;inline&quot;&gt;Expr a&lt;/code&gt; 了，其中 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 代表任意嵌套的表达式 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type Y t = t (t (t (t (t ...))))&lt;/code&gt;&lt;p&gt;实际上这就是不动点[3]的定义：我们称 &lt;code class=&quot;inline&quot;&gt;y(f)&lt;/code&gt; 是函数 &lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt; 的一个不动点，而 &lt;code class=&quot;inline&quot;&gt;Y Expr&lt;/code&gt; 就是函子 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 的一个&lt;i&gt;不动点&lt;/i&gt;。而关键性的一点在于，我们可以在类型系统中构建 Y-组合子，这样就可以表示 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 和其子表达式间相似这一本质特征。&lt;/p&gt;&lt;p&gt;我们需要一个类型 &lt;code class=&quot;inline&quot;&gt;Y&lt;/code&gt;，它接受另一个类型 &lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;，它将 &lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt; 应用到类型为 (Y f) 的子节点上，我们定义这样的 &lt;code class=&quot;inline&quot;&gt;Y&lt;/code&gt; 类型为 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt;，而它的构造函数为 &lt;code class=&quot;inline&quot;&gt;In&lt;/code&gt;，表示我们将一层的递归变成了固定形式，接着我们定义 &lt;code class=&quot;inline&quot;&gt;out&lt;/code&gt; 函数来辅助解析 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Term f = In (f (Term f))
+
+out :: Term f -&amp;gt; f (Term f)  
+out (In t) = t&lt;/code&gt;&lt;p&gt;接着我们非常自然地应用 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 到 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt; 上：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;Term Expr = In (Expr (Term Expr))
+
+out :: Term Expr -&amp;gt; Expr (Term Expr)&lt;/code&gt;&lt;p&gt;从这个定义我们可以看到，给定一个 &lt;code class=&quot;inline&quot;&gt;Term Expr&lt;/code&gt;，我们可以使用 &lt;code class=&quot;inline&quot;&gt;out&lt;/code&gt; 函数将其转化为一个 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 表达式，而它的子表达式是 &lt;code class=&quot;inline&quot;&gt;Term Expr&lt;/code&gt;。这表示我们对一个 &lt;code class=&quot;inline&quot;&gt;Term Expr&lt;/code&gt; 连续应用 &lt;code class=&quot;inline&quot;&gt;out&lt;/code&gt; 函数就可以把它解析成&lt;i&gt;任意嵌套&lt;/i&gt;的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;：&lt;code class=&quot;inline&quot;&gt;Term Expr&lt;/code&gt; 可以变成 &lt;code class=&quot;inline&quot;&gt;Expr (Term Expr)&lt;/code&gt; 接着变为 &lt;code class=&quot;inline&quot;&gt;Expr (Expr (Term Expr))&lt;/code&gt;，以此类推。这种使用函子不动点来定义递归类型的风格，正是一个 &lt;i&gt;codata&lt;/i&gt; 的例子，完整地讨论 codata 理论（还有 codata 的各种变种）已经超出了本文的范围。感兴趣的话，&lt;a href=&quot;http://www.tac-tics.net/data-vs-codata&quot;&gt;这里&lt;/a&gt;有一个非常详尽的介绍。&lt;/p&gt;&lt;h2&gt;泛化遍历&lt;/h2&gt;&lt;p&gt;在本章，我们将为使用不动点和函子来定义我们的数据结构打下基础。&lt;/p&gt;&lt;p&gt;考虑一个自底向上的遍历过程，我们用伪码来看看一个函子的不动点遍历需要具备哪些功能：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;我们使用 ƒ 自底向上地遍历一个 Term
+  1. 解析 Term 以访问它的所有孩子
+  2. 使用 ƒ 递归地应用于 Term 的每一个孩子
+  3. 重新封装好 Term
+  4. 应用 ƒ 到 Term 上&lt;/code&gt;&lt;p&gt;我们定义函数 &lt;code class=&quot;inline&quot;&gt;bottomUp&lt;/code&gt; 来总结刚才伪码所做的过程。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;bottomUp :: Functor a =&amp;gt; (Term a -&amp;gt; Term a) -&amp;gt; Term a -&amp;gt; Term a&lt;/code&gt;&lt;p&gt;给定一个从 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt; 到 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt; 的函数 &lt;code class=&quot;inline&quot;&gt;fn&lt;/code&gt;，我们先用 &lt;code class=&quot;inline&quot;&gt;out&lt;/code&gt; 函数对 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt; 解包，接着使用  &lt;code class=&quot;inline&quot;&gt;fmap (bottomUp fn)&lt;/code&gt; 来递归遍历它的每一个子节点，接着使用 &lt;code class=&quot;inline&quot;&gt;In&lt;/code&gt; 重新封装，最后只需要应用 &lt;code class=&quot;inline&quot;&gt;fn&lt;/code&gt; 得到最后结果即可。其中 &lt;code class=&quot;inline&quot;&gt;fmap bottomUp&lt;/code&gt; 的调用完成了函数中最重要的类型提升部分：它使用函子完成了对所有子节点的递归遍历。&lt;/p&gt;&lt;p&gt;我不会分别定义 &lt;code class=&quot;inline&quot;&gt;fn&lt;/code&gt; 的参数和 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt; 的参数，取而代之的是我准备直接定义 &lt;code class=&quot;inline&quot;&gt;bottomUp&lt;/code&gt; 函数，直接把 &lt;code class=&quot;inline&quot;&gt;out&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;fmap bottomUp&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;In&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;fn&lt;/code&gt; 组合起来。这里会用到在 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/Control.Arrow&quot;&gt;Control.Arrow&lt;/a&gt;&lt;/code&gt; 中的 &lt;code class=&quot;inline&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt; 操作符，从左向右结合，&lt;code class=&quot;inline&quot;&gt;f &amp;gt;&amp;gt;&amp;gt; g x&lt;/code&gt; 等价于 &lt;code class=&quot;inline&quot;&gt;g(f(x))&lt;/code&gt;。这个风格稍显古怪，实际上自右向左的结合 &lt;code class=&quot;inline&quot;&gt;.&lt;/code&gt; 更加常见，这里我们使用这个风格是因为这样我们将对于函数间的调用顺序有一个清晰的可视化，而这一顺序之后会变得十分重要。&lt;/p&gt;&lt;p&gt;现在我们按自左向右的顺序使用 &lt;code class=&quot;inline&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt; 操作符将函数拼接起来：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;bottomUp fn =  
+  out                    -- 1) unpack
+  &amp;gt;&amp;gt;&amp;gt; fmap (bottomUp fn) -- 2) recurse
+  &amp;gt;&amp;gt;&amp;gt; In                 -- 3) repack
+  &amp;gt;&amp;gt;&amp;gt; fn                 -- 4) apply&lt;/code&gt;&lt;p&gt;于是，我们的第一个 Recursion Schemes 函数出现了！我们可以使用 &lt;code class=&quot;inline&quot;&gt;bottomUp&lt;/code&gt; 函数完成了一个类型安全并且支持泛型的组合子，使其可以递归地对任何函子进行变换：比如我们的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt;，或者列表，多叉树，或任何其他结构。老实说，这非常酷！我们再一次重写之前的 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt; 函数，以使它支持嵌套了任意多层 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt;:&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;flattenTerm :: Term Expr -&amp;gt; Term Expr  
+flattenTerm (In (Paren e)) = e  -- remove all Parens  
+flattenTerm other = other       -- do nothing otherwise
+
+flatten :: Term Expr -&amp;gt; Term Expr  
+flatten = bottomUp flattenTerm&lt;/code&gt;&lt;p&gt;我们的上一个使用 &lt;code class=&quot;inline&quot;&gt;apply&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt; 版本不可谓不简洁，但是新的版本更加优雅：我们的 &lt;code class=&quot;inline&quot;&gt;bottomUp&lt;/code&gt; 函数使用 Recusion Scheme 使我们彻底规避了定义递归形式。我们可以专注于 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt; 函数的行为本身——从语法树中去除所有的括号节点——而完成这一函数也仅仅只需 2 行。而且使用 &lt;code class=&quot;inline&quot;&gt;bottomUp&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;flattenTerm&lt;/code&gt; 比显式的定义整个递归函数更加简明清晰。相比于我们之前版本的 &lt;code class=&quot;inline&quot;&gt;flatten&lt;/code&gt;，我们已经获得了不小的进展，我想不到比这更简洁的表达方式编码方式了。&lt;/p&gt;&lt;p&gt;但是我们还是不要就此止步为好，让我们考虑一下自底向上遍历的天然对偶形式，自顶向下遍历一个 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;我们使用 ƒ 自顶向下地遍历一个 Term
+  1. 应用 ƒ 到 Term
+  2. 解析 Term 以访问它的所有孩子
+  3. 使用 ƒ 递归地应用于 Term 的每一个孩子
+  4. 重新封装好 Term&lt;/code&gt;&lt;p&gt;注意到这些指令与自底向上遍历的指令惊人地相似，只需要我们逆序整个流程，并把解析和封装交换下位置，二者就完全相同了，而美妙的是：我们的代码也可以这样做。代码中我们只需要将自左向右的操作符 &lt;code class=&quot;inline&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt; 替换为自右向左的操作符 &lt;code class=&quot;inline&quot;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/code&gt;[4]，并把 &lt;code class=&quot;inline&quot;&gt;In&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Out&lt;/code&gt; 交换位置就可以了！&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;topDown, bottomUp :: Functor f =&amp;gt; (Term f -&amp;gt; Term f) -&amp;gt; Term f -&amp;gt; Term f
+
+topDown f  = In &amp;lt;&amp;lt;&amp;lt; fmap (topDown f) &amp;lt;&amp;lt;&amp;lt; out &amp;lt;&amp;lt;&amp;lt; f 
+
+bottomUp f = out &amp;gt;&amp;gt;&amp;gt; fmap (bottomUp f) &amp;gt;&amp;gt;&amp;gt; In &amp;gt;&amp;gt;&amp;gt; f&lt;/code&gt;&lt;p&gt;我们通过“反转箭头”就完成了自顶向下自底向上这一组对偶概念的表达，同时保持类型安全并不失一般性，而且这些概又可由 Haskell 的两大核心概念函子和不动点自然导出，还有什么比这更激动人心呢？&lt;/p&gt;&lt;h2&gt;结语&lt;/h2&gt;&lt;p&gt;自顶向下和自底向上是 Recursion Schemes 中最为简单的一组。我们只是接触到了 &lt;i&gt;Bananas, Lenses, Envelopes and Barbed Wire&lt;/i&gt; 论文的一些初级应用。在下一篇介绍中，我会谈谈 Recursion Schemes 的另外两个变种以及如何让 Recursion Schemes 更加泛化。&lt;/p&gt;&lt;p&gt;我要感谢所有阅读这篇文章的人，特别是 Nate Soares 和 Manuel Chakravarty，我还要感谢 Colin Barrett，与我熬夜讨论文章的细节，如果你有任何关于本文的评论或疑问，可以在 &lt;a href=&quot;https://twitter.com/importantshock&quot;&gt;Twitter&lt;/a&gt; 上找到我。&lt;/p&gt;&lt;p&gt;下一章我们将定义并讨论 catamorphisms 和 anamorphisms。&lt;/p&gt;&lt;h2&gt;译者后记&lt;/h2&gt;&lt;p&gt;译者也是还在 Haskell 学习中，本来是在读 &lt;a href=&quot;https://www.amazon.com/Pearls-Functional-Algorithm-Design-Richard/dp/0521513383&quot;&gt;Pearls Functional Algorithm Design&lt;/a&gt;，一不留神就掉进了 Recursion Schemes 的坑里，目前来看坑也是有越开越大的趋势。本文翻译自 &lt;a href=&quot;https://blog.sumtypeofway.com/&quot;&gt;Adventures in Uncertainty&lt;/a&gt; 博客，关于一些术语和技术的翻译可能不够准确，原文的神韵也多有折扣，恳请大家指正。阅读的过程中如果遇到什么问题，也欢迎与我交流讨论。&lt;/p&gt;&lt;p&gt;最后再次感谢大家的阅读！&lt;/p&gt;&lt;p&gt;[1]:实际上在 &lt;i&gt;Bananas, Lenses, Envelopes and Barbed Wire&lt;/i&gt; 一文中，Meijer 等人并没有使用任何一种特定的编程语言，而是使用了一套由 &lt;a href=&quot;http://en.wikipedia.org/wiki/Bird%E2%80%93Meertens_Formalism&quot;&gt;Bird-Meertens formalism&lt;/a&gt; 导出的符号。（Bird-Meertens formalism 是一套基于 Recursion Schemes 的程序构造演算系统，Meijer 的博士论文就是在讨论一套使用 Bird-Meertens formalis 的编译器规范）这套演算系统也被称为 “Squiggol”，这是源于它扭曲的符号记法。尽管记法本身十分详尽，单其中的一些描述符号如“香蕉括号”（形如&lt;code class=&quot;inline&quot;&gt;(||)&lt;/code&gt;）和 “凹透镜”（形如&lt;code class=&quot;inline&quot;&gt;[()]&lt;/code&gt;）仍令人倍感困惑。&lt;/p&gt;&lt;p&gt;[2]:你或许会好奇既然 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt; 只是 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt; 的一个特化，那么为什么 Haskell 提供了 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt; 两个函数，而这正是 Haskell 社区的一个核心论点。正如 &lt;a href=&quot;http://www.haskell.org/haskellwiki/Typeclassopedia#Instances&quot;&gt;Typeclassopedia&lt;/a&gt; 的作者 Brent Yorgey 所说：“对于一个 Haskell 的初学者，当错误的使用 &lt;code class=&quot;inline&quot;&gt;map&lt;/code&gt; 函数时，他显然更想看到一个关于列表的错误，而非一个关于函子的错误”。&lt;/p&gt;&lt;p&gt;[3]:完整地讨论不动点的优雅与重要显然超出了本文的范围，对此感兴趣的读者可以阅读 Raymond Smullyan 的一篇精彩教材 &lt;a href=&quot;http://www.amazon.com/To-Mock-Mockingbird-Other-Puzzles/dp/0192801422&quot;&gt;Mock a Mockingbird&lt;/a&gt; 或是阅读 Reginald Braithwaite 的 &lt;a href=&quot;https://github.com/raganwald/combinators.info&quot;&gt;combinators.info&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;[4]:即为 Haskell 中的 &lt;code class=&quot;inline&quot;&gt;.&lt;/code&gt; 操作符。&lt;/p&gt;</description>
+<author>禾木旁</author>
+<guid isPermaLink="false">2018-08-10-41754330</guid>
+<pubDate>Fri, 10 Aug 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>从 Haskell 到 WebAssembly（2）</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-10-41377372.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/41377372&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5eb1e96120e1c903ae939425f3d2b173_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;GHC 的编译管线和插件机制&lt;/h2&gt;&lt;p&gt;上期讲了 WebAssembly 跑起来和写起来是什么感觉。这期讲讲怎么把 Haskell 代码变成 WebAssembly 代码。首先要设法从 GHC 的编译管线里面把某个 IR 捞出来（而且要 in-memory 的形式，要是 dump 到文本再解析那就实在太。。）&lt;/p&gt;&lt;p&gt;这里我们先只关心单个 Haskell module 的 pipeline。在 GHC 进程启动以后，首先会解析 major mode，如果 major mode 对应 &quot;ghc --make&quot; 或者 &quot;ghc -c&quot; 等编译 Haskell 代码的模式，经过依赖分析以后，会对每一个 Haskell module 启动一个 pipeline，相关代码在 GHC API 的 DriverPipeline 模块中。&lt;/p&gt;&lt;p&gt;在 pipeline 中，Haskell 源代码经过预处理器展开 CPP 宏以后，经历的中间表示有：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Parsed module。保留了所有的源代码语法特性的 AST。&lt;/li&gt;&lt;li&gt;Renamed module。解析所有 identifier 的作用域，诸如 lambda 参数之类的 identifier 重命名到全局唯一，从模块导出的 identifier 带上模块前缀。从这一步开始，GHC 要求跑一个模块的 pipeline 之前，其依赖模块的 pipeline 必须已经跑过，并且成功通过类型检查，将相关信息存入其 interface file 以供查询。&lt;/li&gt;&lt;li&gt;Typechecked module。类型检查过的模块。类型检查一通过，可以生成 interface file 了，其他依赖该模块的模块在编译时需要查询 interface file 里面的各种信息。值得一提的是，前面这几个中间表示共用一套 AST，至于如何区分诸如 identifier 等细节的类型差异？依靠 Trees that Grow 设计模式。&lt;/li&gt;&lt;li&gt;Core。这是一个极小的带类型 lambda calculus，基于某个 System F 变种。大多数优化都是在 Core 上跑的带类型优化。Core 是有形式化 spec，并且保证 Core 类型不出错，运行时就不会 segfault 的（前提是如果你不用 FFI 之类的作死）&lt;/li&gt;&lt;li&gt;STG。这是一个经过 ANF 变换，term 形状受限的另一个极小 lambda calculus，在 STG 中，所有的 thunk allocation 和 evaluation 的时机直接由 term 的形状决定。大多数 Haskell to JavaScript 编译器（haste 和 ghcjs）选择用 STG 作为编译到 JavaScript 的中间表示。&lt;/li&gt;&lt;li&gt;Cmm。一个长得勉强有点像 C（毕竟叫 C-minus-minus）的玩意，作为各种不同平台代码生成器共用的中间表示，设计目的是“平台无关汇编”。当然，GHC 的年代比 LLVM 年代早多了所以用这个，要是 LLVM 火了以后再开坑，估计就直接用 LLVM IR 了。&lt;/li&gt;&lt;li&gt;默认的汇编后端，生成 gcc 能识别的 .asm 文本，然后 gcc 编译成 .o 文件。LLVM 后端会生成 LLVM IR 文本，调用 llc/opt 编译。C 后端直接生成 C 代码编译。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;我们要从 Haskell 编译到 WebAssembly，自然要挑一个接近底层的 IR，这里我们选择 Cmm，从 Cmm 开始做代码生成，大致相当于开发一个新架构的原生后端。（选其他的也不是不行，我跟同事讨论时开玩笑说能不能做个新后端把 x64 assembly 编译到 WebAssembly，他说你还是直接用 Emscripten 编译个 qemu 算了。。）&lt;/p&gt;&lt;p&gt;接下来的任务是：设法劫持正常的 GHC pipeline，加载我们自定义的逻辑，获得 in-memory IR 并进行我们自己的代码生成。如果你是个想要写函数式编译器来玩玩的萌新，觉得拿 GHC 搞有戏的话，听我一句劝，转去弄 Idris 后端还来得及。还不听劝？好吧，你大致会经历几个阶段：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;看了一些 GHC API 的文档和博客啥的，觉得有搞头。写了一个能编译单个 .hs 的 demo。&lt;/li&gt;&lt;li&gt;能编译自己的 .hs 模块了，这很 OK，然后你如果想成为新世界的卡密，不对，写面向新架构的编译器的话，你需要把整个 Haskell 标准库，连带整个运行时都能编译过去。这个过程叫“booting”。但是你的小儿科 demo 没有办法编译标准库，因为标准库的编译流程相当复杂，一堆涉及 autoconf，sed 之类的乱七八糟的脚本。。。&lt;/li&gt;&lt;li&gt;经过 n 个小时以后，你发现 ezyang 的某篇 &lt;a href=&quot;http://blog.ezyang.com/2017/02/how-to-integrate-ghc-api-programs-with-cabal/&quot;&gt;blog&lt;/a&gt; 提到，GHC 有个叫 &lt;a href=&quot;https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/extending_ghc.html#frontend-plugins&quot;&gt;frontend plugin&lt;/a&gt; 的机制，可以用来制造一个 ghc wrapper，这个 ghc wrapper 用于替代正常的 ghc，执行自定义逻辑。很好，你写了一个 ghc frontend plugin，然后额外花了 n 个小时，处理诸如 cabal/stack 支持、package database 相关参数等琐碎问题，总算能把 ghc wrapper 跑起来了。&lt;/li&gt;&lt;li&gt;ghc wrapper 里面可以实现自定义逻辑，但是手头还是没有结构化的 IR，咋整？如果需要的是 Typechecked module 或者 Core 那都比较好办，不过 STG 和 Cmm 是没有暴露出相关表示的，在 pipeline 里面一个 doCodegen 一把梭，直接从 desugared Core 搞到汇编了。你又花了 n 小时，找到了 GHC 的 Hooks 机制，可以用来对 GHC 运行中的一些函数下钩子，其中有个 runPhaseHook 可以把整个 pipeline 换掉！你有了一个大胆的想法。&lt;/li&gt;&lt;li&gt;又过了 n 小时，你的自定义 pipeline 上线了，可喜可贺。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;总的来说，为了最大化与 Cabal 的兼容性，我们需要假装自己是 ghc，也完成 ghc 本身的编译任务生成 native code，但是可以夹带私货干点别的（配置和输入输出不能污染 process args/stdout 什么的，但是可以用环境变量）。&lt;/p&gt;&lt;p&gt;跟 GHC API 打交道相当不愉快，you&#39;ve been warned。不过我靠对 Haskell 的爱扛下来了。&lt;/p&gt;&lt;h2&gt;ghc-toolkit：Haskell to X 编译器的可重用框架&lt;/h2&gt;&lt;p&gt;跟 GHC API 打过交道以后，一个自然的想法就是能不能做个框架封装一下所有这些 hacks，这样一来我做 Haskell to X 的编译器时用框架就不用管太多了。所以 asterius 项目的一个子库就是 ghc-toolkit，实现了这个封装。&lt;/p&gt;&lt;p&gt;使用 ghc-toolkit 大致只需要关心以下几个东西：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data HaskellIR = HaskellIR
+  { parsed :: HsParsedModule
+  , typeChecked :: TcGblEnv
+  , core :: CgGuts
+  , stg :: [StgTopBinding]
+  , cmm :: [CmmDecl]
+  , cmmRaw :: [RawCmmDecl]
+  }
+
+data CmmIR = CmmIR
+  { cmm :: [CmmDecl]
+  , cmmRaw :: [RawCmmDecl]
+  }
+
+data Compiler = Compiler
+  { patch :: ModSummary -&amp;gt; HsParsedModule -&amp;gt; Hsc HsParsedModule
+  , withHaskellIR :: ModSummary -&amp;gt; HaskellIR -&amp;gt; CompPipeline ()
+  , withCmmIR :: CmmIR -&amp;gt; CompPipeline ()
+  , finalize :: Ghc ()
+  }
+
+makeFrontendPlugin :: Ghc Compiler -&amp;gt; FrontendPlugin
+
+data FakeGHCOptions = FakeGHCOptions
+  { ghc, ghcLibDir :: FilePath
+  , frontendPlugin :: GHC.FrontendPlugin
+  }
+
+fakeGHCMain :: FakeGHCOptions -&amp;gt; IO ()&lt;/code&gt;&lt;p&gt;解释一下。前面两个数据类型是 GHC 在编译 .hs/.cmm 时分别会获得的 IR 的集合。假如想要写一个基于 GHC 的 Haskell to X 编译器，那么把自定义的逻辑放在 Compiler 类型里面就行了——Hsc、CompPipeline、Ghc 等这几个不同 GHC phase 对应的 monad 都是 MonadIO instance，所以也支持插入任意副作用（比如读写你自己的 object file 之类的玩意）。每当 GHC 对一个模块启动 pipeline 时，会触发 withHaskellIR/withCmmIR 回调函数，执行你自己自定义的逻辑，其中你可以拿到当前模块的模块信息以及各种 IR。&lt;/p&gt;&lt;p&gt;为了把 Compiler 类型用起来，首先用 makeFrontendPlugin，可以把 Compiler 转换成一个 GHC 的 frontend plugin（Compiler 是在 Ghc monad 里面初始化的，按前面说的，初始化的逻辑也可以带副作用，而所有模块编译完以后的 finalizer 也可以插进去）。这个 frontend plugin 可以用 GHC 的 --frontend 机制动态加载，也可以通过 fakeGHCMain 直接生成一个假的 ghc wrapper executable，这个 ghc wrapper executable 的行为大多数时候和 ghc 一致，不过用 --make 编译 Haskell 模块时，会自动加载 Compiler 中的各种回调函数。&lt;/p&gt;&lt;p&gt;简而言之，使用 ghc-toolkit，用上面的机制搞出一个假的 ghc，然后编译标准库或者自己的模块时，用这个假的 ghc 直接代替 ghc，即可把自己的 Haskell 编译器给跑起来了。可喜可贺。&lt;/p&gt;&lt;p&gt;最后值得一提的是，Compiler 里面额外提供了一个 patch 回调函数，这个玩意可以用来重写 parsed IR（实现重写其他 IR 的回调函数很容易，但是其他 IR 很容易改坏了，自己改要么把 GHC 给 crash 掉，要么编译出什么不可名状的玩意）。这个重写机制可以拿来做很多很有意思的事，比如给所有函数打个 INLINEABLE 标记，让 GHC 自动变成全局优化编译器（逃。GHC 8.6 已经加了 source plugin 功能，可以用 GHC Plugin 重写 parsed/renamed/typechecked IR，原理和这个基本上一样。&lt;/p&gt;&lt;p&gt;这期先讲这么多。感觉都是 GHC 相关的 hack，下一期就有 WebAssembly 了。&lt;/p&gt;</description>
+<author>Felis sapiens</author>
+<guid isPermaLink="false">2018-08-10-41377372</guid>
+<pubDate>Fri, 10 Aug 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>从 Haskell 到 WebAssembly（1）</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-05-41324925.html</link>
@@ -139,483 +280,6 @@ std::cout &amp;lt;&amp;lt; regex(pattern)(match) &amp;lt;&amp;lt; std::endl;
 <author>Guanghao Ye</author>
 <guid isPermaLink="false">2018-06-13-37270132</guid>
 <pubDate>Wed, 13 Jun 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Cardano中的半形式化开发方法</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-08-37869146.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37869146&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;/p&gt;&lt;a href=&quot;https://iohk.io/blog/semi-formal-development-the-cardano-wallet/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-91dbd6bb8b22435eec5028eaca12a2c3&quot; data-image-width=&quot;1053&quot; data-image-height=&quot;592&quot; data-image-size=&quot;180x120&quot;&gt;Semi-Formal Development: The Cardano Wallet&lt;/a&gt;&lt;blockquote&gt;把形式化的建模和QuickCheck的测试结合在一起，是开发高可信软件的一把利刃。 通过对不变量的测试来保证模型的一致性，通过和模型的比对来保证真实实现的正确性。&lt;/blockquote&gt;&lt;p&gt;Well-Typed给IOHK做的咨询工作的一部分，就是和他们一起设计和开发Cardano虚拟货币钱包软件的全新版本。其中一个重要部分就是输出了一份关于钱包的 &lt;a href=&quot;https://cardanodocs.com/files/formal-specification-of-the-cardano-wallet.pdf&quot;&gt;半形式化规范&lt;/a&gt; ， 也就是一个描述钱包运行机制的数学模型以及相关的不变量和定理。&lt;/p&gt;&lt;p&gt;我们把它叫做“半形式化”是因为，虽然它描述了很多钱包的属性，也证明了其中一部分，但并没有证明其所有属性。 不过，就像我们后面会讲到的，我们可以使用 &lt;a href=&quot;http://hackage.haskell.org/package/QuickCheck&quot;&gt;QuickCheck&lt;/a&gt; （译注：一个能自动生成测试数据对属性进行测试的工具） 通过生成反例的方式来测试这些属性。 它不仅能帮助我们开发形式规范本身。如果未来我们真的证明了所有属性的正确性，它也为我们测试真实实现提供重要指导。&lt;/p&gt;&lt;p&gt;本文将向大家介绍这份形式规范，以及它是如何驱动新版本钱包的开发和测试的。 我们会展示了这个形式化开发方法的一部分，让大家大致了解它是什么样的，但不会涉及太多细节。 本文的目的是向大家介绍这套开发方法及其优势, 而不是具体的数学理论。&lt;/p&gt;&lt;blockquote&gt;本文所有图表、不变量、章节编号都来自于 &lt;a href=&quot;https://cardanodocs.com/files/formal-specification-of-the-cardano-wallet.pdf&quot;&gt;1.1版本的规范&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;背景知识：UTxO记账法&lt;/b&gt;&lt;br&gt;正常银行转账交易是从一个账户往另一个账户转移资产，比如张三给李四转账100元。 但是Cardano和比特币这种虚拟货币的交易略有不同。 交易的输出大体上差不多，唯一区别是可以有多个目标账号，比如一笔交易可以同时转70元给李四，30元给王五。 交易的输入就完全不同了，一笔交易的输入不是来自某个账户，而是来自其他交易。 举个例子，我们把这笔“给李四70元给王五30元”的交易叫做t1。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-t1 输入: ...
-   输出: 70元给李四, 30元给王五&lt;/code&gt;&lt;p&gt;现在如果李四想给赵六转50元，他可以创建一笔新交易说：用掉交易t1的第一个输出，然后给赵六50元，剩下20元给自己。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-t2 输入: t1的第一个输出
-   输出: 50元给赵六, 20元给李四&lt;/code&gt;&lt;p&gt;我们注意到李四需要把20元“找零”转回给自己，因为一个交易输出只能被使用(也就是用作另一笔交易的输入)一次。 这种风格的记账风格就叫做UTxO记账法。UTxO的意思就是未使用的交易输出。&lt;br&gt;而区块链就是许多这种交易组成的一个列表。对应的形式化定义差不多是这样的：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-385e9a3a8afcbc70e354ccb884150264_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;356&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-385e9a3a8afcbc70e354ccb884150264&quot; data-watermark-src=&quot;v2-27b666ed92f78d9db683f5e5b5781a6f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;钱包&lt;/b&gt;&lt;br&gt;虚拟货币的钱包就是一个软件工具，它会监控区块链的状态，跟踪用户的资金（准确的说就是用户的UTxO），也支持往区块链发送新的交易请求。 普通用户主要通过钱包和区块链打交道。至于验证新交易的有效性以及决定是否打包到区块中，这些不是钱包的任务，也就不在本文讨论的范围内了。&lt;br&gt;钱包的形式规范是一个数学抽象，它只关心钱包最核心的功能，忽略无关的细节。在Cardano钱包的基本模型中，我们把钱包状态简化到只包含UTxO以及在途交易(pending transactions)。 这份规范简单到用一张纸就可以写完：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-766bc503452948c5b9e11a2bd3d74511_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;617&quot; data-rawheight=&quot;640&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-766bc503452948c5b9e11a2bd3d74511&quot; data-watermark-src=&quot;v2-6d45dae81f30202678e4f3818db0a7a9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这个模型很简单，这样才方便进行更深入的研究，也方便提供相关属性的数学证明。 同时又足够精确，可以用来指导钱包的设计，也可以作为单元测试的基础，并驱动真实实现的开发。 他还可以用来研究可能存在的性能问题，以及如何来解决这些问题。&lt;/p&gt;&lt;p&gt;&lt;b&gt;余额&lt;/b&gt;&lt;br&gt;钱包设计中有一些棘手的问题，余额的处理就是其中一个。 你可能觉得在钱包里展示余额应该是一件很简单的事情，但就算在传统银行账户中，也至少存在两种余额。比如张三给李四转100元之后，他的银行账户可能会说：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;你当前余额为1000元&lt;/li&gt;&lt;li&gt;有一笔100元的在途交易，所以你的可用余额为900元&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;和传统银行交易不同，UTxO风格的交易多了一个找零的概念。 这就会产生三个余额的概念。我们还拿前面的t2交易为例，李四的钱包可能会这么汇报他的余额：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;你的可用UTxO为1070元&lt;/li&gt;&lt;li&gt;有一笔在途交易t2，所以你的可用余额为1000元&lt;/li&gt;&lt;li&gt;交易t2会转回20元，所以你的总余额其实是1020元&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;注意t2的找零只有当它被打包进区块链之后才可以使用。&lt;br&gt;目前为止，从钱包设计角度来看，问题还不算复杂，虽然用户界面的展示上可能还需要斟酌一下(要给用户展示哪个余额？)。真正的复杂性来自临时的区块分叉，也就是区块链上对于哪些交易需要被包含进来的分歧（分叉的产生以及如何解决不在本文探讨的范围）。&lt;br&gt;还是继续上面这个例子，假设t2在途，同时又出现了对t1的争议。争议解决后，钱包发现t1不在区块链中了（可能之后还会被重新包含进来）。 这个时候钱包的可用余额还是1000元，但是总余额如果还是1020元是否合理? 毕竟这样的话，总余额就大于可用UTxO了，倒不是说它一定不对，但总觉得不太舒服。&lt;br&gt;所以我们在形式规范中又定义了一个最小余额的概念：账户在各种可能出现的情况下，最小的那个余额。 在这个例子中，就是t1和t2都没有被打包进区块链的情况下，余额最小，为1000元 （注意不可能出现t2生效但t1不生效的情况，因为t2依赖t1）。 这个概念在直觉上似乎可行，但是为了让它更加精确并且可以计算，我们还需要引入另一个概念: ‘“预期UTxO”，也就是钱包期望包含进来但还没有被包含进来的UTxO。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4c4b490444dab11b1a4d6dd21f99bd41_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;357&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4c4b490444dab11b1a4d6dd21f99bd41&quot; data-watermark-src=&quot;v2-d4096893b8afca0dafb84734f795a8f6&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;当然，就算不通过形式化的方法，我们也可以提出最小余额的概念，并且想出对应的算法。但是有这份形式规范可以让我们对这些问题研究地更加透彻，排除掉真实实现过程中周边的细节问题，专注于最核心的概念。&lt;/p&gt;&lt;p&gt;&lt;b&gt;内部一致性：不变量&lt;/b&gt;&lt;br&gt;当我们引入一个像“预期UTxO”这样的新鲜概念的时候，我们怎么知道它是对的？ 其实，既然新概念是我们自己定义的，再问它是否正确没有太大意义，我们应该问的是，它是否有用？&lt;br&gt;回答这个问题的一个办法就是找出不变量。不变量就是永远为真的属性。 比如上面展示的基本模型中就有这样一个不变量：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;不变量3.4 txins pending ⊆ dom utxo&lt;/code&gt;&lt;p&gt;这个不变量是说，在途交易只能使用UTxO中的输出。这一点在直觉上貌似是显然的：钱包不能让用户使用它自己没有的资金。 然而，就像上面展示的，当我们开始考虑临时分叉的时候，这个不变量就不成立了。 李四提交的t2，使用了t1的一个输出，随后t1被回滚，这个时候他就使用了一个不在当前UTxO中的输出了。&lt;br&gt;这个时候我们又需要用上“预期UTxO”的概念了，在完整模型中，这个不变量需要改成这样：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;不变量7.8 txins pending ⊆ dom (utxo expected)&lt;/code&gt;&lt;p&gt;换句话说，在途交易只能花费UTxO或者预期UTxO。&lt;br&gt;另一个不变量能够帮助我们巩固对“预期UTxO”这个概念的直觉理解： 一个输出不能既在UTxO中也在预期UTxO中。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;不变量7.6 dom utxo 相交 dom expected = ∅&lt;/code&gt;&lt;p&gt;毕竟如果一个预期UTxO出现在当前UTxO里的话就很奇怪了。 列出这样的不变量可以让我们对新概念的直觉理解变得精确， 而证明他们的正确性也能为形式规范的合理性以及内部一致性提供很强的保证。&lt;/p&gt;&lt;p&gt;&lt;b&gt;半形式化开发&lt;/b&gt;&lt;br&gt;形式化地证明上面这样的不变量不光很耗时，还需要专业的数学训练。 如果能够证明他们当然是最完美的，但本文想说的是，尽管我们没有去证明，这个方法依然为我们提供巨大的帮助。 毕竟，我们之所以选择用Haskell编程，就是因为我们可以很容易地在Haskell代码和数学语言之间来回转换。&lt;br&gt;为了把形式规范中的钱包模型翻译成Haskell，我们使用一个在之前文章中介绍过的方法： &lt;a href=&quot;http://www.well-typed.com/blog/2018/03/oop-in-haskell/&quot;&gt;Haskell中的面向对象编程&lt;/a&gt;(我们发明这个方法就是用来干这个的)。下面就是把基本模型翻译到Haskell代码的样子：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;mkWallet :: (Hash h a, Ord a, Buildable st)
-         =&amp;gt; Ours a -&amp;gt; Lens&#39; st (State h a) -&amp;gt; WalletConstr h a st
-mkWallet ours l self st =
-  (mkDefaultWallet (l . statePending) self st) {
-      utxo       = st ^. l . stateUtxo
-    , ours       = ours
-    , applyBlock = \b -&amp;gt; self (st &amp;amp; l %~ applyBlock&#39; ours b)
-    }
-
-applyBlock&#39; :: Hash h a
-            =&amp;gt; Ours a -&amp;gt; Block h a -&amp;gt; State h a -&amp;gt; State h a
-applyBlock&#39; ours b State{..} = State {
-    _stateUtxo    = updateUtxo ours b _stateUtxo
-  , _statePending = updatePending   b _statePending
-  }
-
-updateUtxo :: forall h a. Hash h a
-           =&amp;gt; Ours a -&amp;gt; Block h a -&amp;gt; Utxo h a -&amp;gt; Utxo h a
-updateUtxo p b = remSpent . addNew
-  where
-    addNew, remSpent :: Utxo h a -&amp;gt; Utxo h a
-    addNew   = utxoUnion (utxoRestrictToOurs p (txOuts b))
-    remSpent = utxoRemoveInputs (txIns b)
-
-updatePending :: Hash h a
-              =&amp;gt; Block h a -&amp;gt; Pending h a -&amp;gt; Pending h a
-updatePending b = Map.filter $ \t -&amp;gt; disjoint (trIns t) (txIns b)&lt;/code&gt;&lt;p&gt;它比形式规范涉及到更多细节；比如它把具体的hash类型和地址类型抽象出去了。虽然它比规范稍微复杂一点，但也很接近了。 它依然是一个模型：没有处理任何网络或者存储方面的问题，可能也不是很高效，等等。也就是说，这个代码还不是真实钱包的设计。 但有这个模型还是有用的，两个原因，一个是我们可以用它来测试真实的钱包，我们会在下一节讨论这个话题； 另一个是我们可以用这个模型来测试不变量。比如下面的代码就是对上面提到的不变量7.8和7.6的Haskell翻译：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;pendingInUtxoOrExpected :: WalletInv h a
-pendingInUtxoOrExpected l e =
-  invariant (l &amp;lt;&amp;gt; &quot;/pendingInUtxoOrExpected&quot;) e $ \w -&amp;gt;
-   checkSubsetOf
-    (&quot;txins pending&quot;,
-      txIns (pending w))
-    (&quot;utxo ∪ expected&quot;,
-      utxoDomain (utxo w) `Set.union` utxoDomain (expectedUtxo w))
-
-utxoExpectedDisjoint :: WalletInv h a
-utxoExpectedDisjoint l e =
-  invariant (l &amp;lt;&amp;gt; &quot;/utxoExpectedDisjoint&quot;) e $ \w -&amp;gt;
-   checkDisjoint
-    (&quot;dom utxo&quot;,
-      utxoDomain (utxo w))
-    (&quot;dom expected&quot;,
-      utxoDomain (expectedUtxo w))&lt;/code&gt;&lt;p&gt;和刚才的钱包实现一样，Haskell代码比对应的形式规范涉及更多细节；比如上面这个代码和形式规范主要区别是可以在不变量不成立时提供详细的错误信息。除此之外，大体上还是对规范的直接翻译。&lt;br&gt;这样做的好处是，我们可以用QuickCheck来测试这些不变量。 我们为钱包生成随机(但有效)的事件（&quot;应用这个区块&quot;，&quot;提交这笔新交易&quot;，&quot;切换到另一个分叉&quot;），然后检查这些不变量在每一个时间点都成立。 比如规范发布第一个版本的时候就有一个低级错误：当钱包收到一个新区块时，它从预期UTxO里把该区块的输入移除了，而不是输出。一个很蠢的错误，但是如果人工审核的话很容易被忽视。 当然，证明的话可以发现这个问题，但是用QuickCheck也可以：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Wallet unit tests
-  Test pure wallets
-    Using Cardano model FAILED [1]
-
-Failures:
-
-  test/unit/Test/Spec/Models.hs:36:
-  1) Wallet unit tests, Test pure wallets, Using Cardano model
-       predicate failed on: Invalid [] InvariantViolation {
-           name:     full/utxoExpectedDisjoint
-         , evidence: NotSubsetOf {
-                 dom utxo: ..
-               , dom expected: ..
-               , dom utxo `intersection` dom expected: ..
-             }
-         , events:   {
-                 state: ..
-               , action: ApplyBlock ..
-               , state: ..
-               , action: NewPending Transaction{ .. }
-               , state: ..
-               ..
-               , action: Rollback
-               ..
-             }
-         }&lt;/code&gt;&lt;p&gt;它不光告诉我们这个不变量不成立了；它还输出了能重现问题的事件序列以及相应的钱包状态（包括所有的中间状态），并且它还显示UTxO和预期UTxO的domain以及他们的交集是什么(他们的交集应该为空，却不为空)。&lt;/p&gt;&lt;p&gt;&lt;b&gt;测试真实的实现&lt;/b&gt;&lt;br&gt;上面说到Haskell对钱包规范的翻译依然是一个模型，其中忽略了大量真实世界的复杂情况，而这些情况是完整的钱包实现必须处理的。 甚至模型中实现的数据类型也是真实版本的简化：交易中没有包含签名，区块只是一个交易列表而不是真实的区块等等。&lt;br&gt;尽管如此，我们还是可以用这个模型实现来测试真实实现。我们可以把简化版的类型转换到真实版本。既然我们已经有了针对简化类型的QuickCheck测试数据生成器，并且我们也已经能够对模型实现进行测试，我们就可以用下图的方式对真实实现进行测试：&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e49e3abe2615f3c7b07cf007c5b6fdaf_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;364&quot; data-rawheight=&quot;128&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e49e3abe2615f3c7b07cf007c5b6fdaf&quot; data-watermark-src=&quot;v2-2c7eae05b244c8e821009930b9afdbb8&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我们先用QuickCheck生成器生成简化模型的钱包事件，然后：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;在简化类型的测试数据上执行模型实现，然后把结果翻译到真实实现&lt;/li&gt;&lt;li&gt;我们先把测试数据翻译到真实类型，然后执行真实钱包的实现&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;我们可以比对两条执行路径的结果，如果相同的话，我们就可以认为真实钱包正确地实现了这个模型。 我们在每一步都去验证这一点，加上我们前面保证了模型实现中的不变量在每一步都成立，那么我们就能得出结论：不变量在真实实现中也在每一步都成立。&lt;br&gt;比如，如果真实钱包中有一个bug重复计算了在途交易的找零(比如一笔在途交易使用另一笔在途交易的找零作为输入，这只在分叉的情况下才会出现)，测试用例生成器就会找到一个反例，使得两条执行路径的结果不一致，并且告诉我们导致不一致的具体的钱包事件序列以及相应的钱包状态，以及不一致的具体值。&lt;/p&gt;&lt;p&gt;&lt;b&gt;结论&lt;/b&gt;&lt;br&gt;软件的规范，就算存在，一般也都是些非形式化的文档，使用自然语言描述一下软件预期的功能。 这样的规范不能用来做校验，甚至对测试也用处不大。 另一方面，对所有属性都在数学上加以证明的完整的形式规范，成本很高也很耗时，而且需要相关领域的专家才能搞定。这种做的效果当然是最完美的，但是我们可以有这么一个折中的方案：形式化地描述模型及其属性，然后我们可以用QuickCheck对其属性进行测试。 另外，基于这个模型我们可以对核心功能进行分析，并最终和真实实现进行比对。&lt;br&gt;IOHK对新钱包的开发是开源的，相关代码可以在 &lt;a href=&quot;https://github.com/input-output-hk/cardano-sl/tree/develop/wallet-new&quot;&gt;Github&lt;/a&gt; 上找到。 有趣的是，IOHK最近还招了人去实现Coq版本的钱包规范，这会把整个规范建立在更加坚实的基础之上。当然，这不代表目前的工作就没有意义，虽然这样的话，在模型实现中去测试不变量不再必要，但是有QuickCheck生成器去测试真实实现还是很有价值的。另外，在实际去证明不变量之前先用QuickCheck测试一遍，如果这个不变量确实不成立的话，可以帮助我们提早发现问题，从而节省宝贵的时间。&lt;/p&gt;</description>
-<author>黄毅</author>
-<guid isPermaLink="false">2018-06-08-37869146</guid>
-<pubDate>Fri, 08 Jun 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>正则表达式也是可以跑很快哒</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-06-08-37864863.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37864863&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-10a3f5aba455da477af9238bdac697b7_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;亲爱的小伙伴们我又回来写正则表达式的东东啦.&lt;/p&gt;&lt;p&gt;有很多小伙伴觉得正则表达式的执行效率低下, 不如自己写的字符匹配. 其实嘛, 这个问题和引擎的实现关系相当大, 现在的很多通用正则表达式引擎在确保功能性的条件下都是使用NFA引擎, NFA引擎在算法时间复杂度上比DFA引擎要高, 特别是在遇到很多回溯的情况下, 差异尤为显著, 关于NFA引擎的优化就显得十分重要啦. 我在之前的文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32896848&quot;&gt;如何让你的正则表达式拥有更好的性能&lt;/a&gt;里面介绍了一些关于NFA引擎的优化方案, 效果是十分显著哒. 过了一段时间我对我的正则表达式引擎又增加了一些优化流程, 效率更高了. 这里再次拿出来和大家分享.&lt;/p&gt;&lt;p&gt;上一篇文章限制于篇幅没有对优化的流程做很详细的介绍, 只是描述了执行思想, 这里我使用一个具体的例子来为大家讲述我的正则表达式引擎是如何进行静态分析和优化的. &lt;/p&gt;&lt;p&gt;首先呢还是要介绍正则表达式的执行模型, 这个在之前的文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24458116&quot;&gt;正则表达式与AOT编译&lt;/a&gt;和&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32896848&quot;&gt;如何让你的正则表达式拥有更好的性能&lt;/a&gt;里提到过多次啦, 这里对细节不再赘述, 想要了解的小伙伴请看之前的文章吧.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们的执行模型是建立在一个非递归的虚拟机上的. 一个典型的虚拟机有以下几条指令:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;equation&gt;\texttt{match_ch} &lt;/equation&gt; 匹配单个字符, &lt;equation&gt; \texttt{match_range}&lt;/equation&gt; 匹配某个范围的字符(如数字 &lt;equation&gt; \texttt{\d} &lt;/equation&gt; 为 &lt;equation&gt;\texttt{match_range 0, 9}&lt;/equation&gt; )&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{if_ch}&lt;/equation&gt; 和 &lt;equation&gt;\texttt{if_range} &lt;/equation&gt; 条件分支, 匹配成功或失败时进行跳转, 如 &lt;equation&gt; \texttt{if_ch a, 3, 7} &lt;/equation&gt; 为匹配字符 &lt;equation&gt;\texttt{a} &lt;/equation&gt; 成功跳转至地址 &lt;equation&gt; \texttt{3} &lt;/equation&gt; 否则跳转至地址 &lt;equation&gt; \texttt{7} &lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{split} &lt;/equation&gt; 分裂当前的匹配状态, 使用于分支 &lt;equation&gt; \texttt{a|b} &lt;/equation&gt; , 分裂当前匹配进程, 其中一条进行匹配 &lt;equation&gt;\texttt{a} &lt;/equation&gt; 另一条匹配 &lt;equation&gt; \texttt{b} &lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{split_if_ch} &lt;/equation&gt; 和 &lt;equation&gt;\texttt{split_if_range}&lt;/equation&gt; 条件分裂当前的匹配状态, 匹配成功则进行分裂, 否则直接跳转到后一个地址.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{jmp} &lt;/equation&gt; 无条件跳转.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{begin, end} &lt;/equation&gt; 匹配锚点, 对应于 &lt;equation&gt; \texttt{^, \$} &lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{inc} &lt;/equation&gt; 向后位移一位, 无条件跳过当前匹配的字符.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\texttt{accept} &lt;/equation&gt; 匹配成功, &lt;equation&gt;\texttt{halt} &lt;/equation&gt; 匹配失败放弃当前状态.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;当然啦, 这个虚拟机模型是为了阐述原理而高度简化的, 不过核心思想是一样哒.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;文章下面使用一个非常典型的正则表达式展示优化过程. IP匹配是正则表达式中比较常见和典型的例子, 表达式为:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}\$}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个表达式有点点长, 不过不是很难懂, 我们发现它有四个重复的部分用于匹配0到255的数字, 我们取其中一个进行分析:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2}}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;剩下的部分做一次循环展开后是完全相同的.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最开始是词法分析, 语法分析, NFA构建和指令生成, 这里不做过多介绍, 我们主要关注的是接下来的优化(想了解的小伙伴可以去看第一篇文章&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24458116&quot;&gt;正则表达式与AOT编译&lt;/a&gt;).&lt;/p&gt;&lt;p&gt;生成的未优化的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 3, 12}\\ &amp;amp;\texttt{3 match_ch &#39;2&#39;}\\ &amp;amp;\texttt{5 match_ch &#39;5&#39;}\\ &amp;amp;\texttt{7 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{10 jmp 23}\\ &amp;amp;\texttt{12 split 15, 25}\\ &amp;amp;\texttt{15 match_ch &#39;2&#39;}\\ &amp;amp;\texttt{17 match_range 0, 4}\\ &amp;amp;\texttt{20 match_range 0, 9}\\ &amp;amp;\texttt{23 jmp 36}\\ &amp;amp;\texttt{25 split 28, 38}\\ &amp;amp;\texttt{28 match_ch &#39;1&#39;}\\ &amp;amp;\texttt{30 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{33 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{36 jmp 52}\\ &amp;amp;\texttt{38 split 41, 49}\\ &amp;amp;\texttt{41 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{44 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{47 jmp 52}\\ &amp;amp;\texttt{49 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{52 accept} \end{align} &lt;/equation&gt; &lt;/p&gt;&lt;p&gt;接下来开始应用优化&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;跳转合并&lt;/h2&gt;&lt;p&gt;连续的无条件的跳转可以合并为一条跳转指令&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{10 jmp 23}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 36}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 36}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{36 jmp 52}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;进行合并后为:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{10 jmp 52}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 52}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 jmp 52}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{36 jmp 52}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这是一个非常常见的优化啦.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;分支合并&lt;/h2&gt;&lt;p&gt;第一步开始我们发现 &lt;equation&gt;\texttt{25[0-5]|2[0-4][0-9]}&lt;/equation&gt; 中有共同的匹配前缀 &lt;equation&gt;\texttt{2}&lt;/equation&gt; , 将公共表达式提取出来, 即等价于将表达式变换为 &lt;equation&gt;\texttt{2(5[0-5]|[0-4][0-9])}&lt;/equation&gt; , 得到的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split 3, 23}\\ &amp;amp;\texttt{3 match_ch &#39;2&#39;}\\ &amp;amp;\texttt{5 split 8, 15}\\ &amp;amp;\texttt{8 match_ch &#39;5&#39;}\\ &amp;amp;\texttt{10 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{13 jmp 50}\\ &amp;amp;\texttt{15 match_range &#39;0&#39;, &#39;4&#39;}\\ &amp;amp;\texttt{18 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{21 jmp 50}\\ &amp;amp;\texttt{23 split 26, 36}\\ &amp;amp;\texttt{26 match_ch &#39;1&#39;}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{50 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;条件分裂/分支&lt;/h2&gt;&lt;p&gt;我们发现如果使用分支之后第一个字符进行提前匹配, 这样可以减少一些不必要的回溯, 例如在第一个字符为1的情况下没必要进入地址为3的分支对2进行匹配, 可以直接跳转到23, 开启条件分支之后的指令如下&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split_if_ch &#39;2&#39;, 4, 23}\\ &amp;amp;\texttt{4 inc}\\ &amp;amp;\texttt{5 if_ch &#39;5&#39; 9, 15}\\ &amp;amp;\texttt{9 inc}\\ &amp;amp;\texttt{10 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{13 jmp 48}\\ &amp;amp;\texttt{15 match_range &#39;0&#39;, &#39;4&#39;}\\ &amp;amp;\texttt{18 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{21 jmp 48}\\ &amp;amp;\texttt{23 split_if_ch &#39;1&#39;, 27, 36}\\ &amp;amp;\texttt{27 inc}\\ &amp;amp;\texttt{28 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{31 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{34 jmp 48}\\ &amp;amp;\texttt{36 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{39 if_range &#39;0&#39;, &#39;9&#39;, 44, 48}\\ &amp;amp;\texttt{44 inc}\\ &amp;amp;\texttt{48 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;注意在例如 &lt;equation&gt;\texttt{0 split_if_ch &#39;2&#39;, 4, 23}&lt;/equation&gt; 匹配成功进入分支之后我们无需再匹配一次 &lt;equation&gt;\texttt{2}&lt;/equation&gt; , 因为由 &lt;equation&gt;\texttt{split_if_ch}&lt;/equation&gt; 的条件知道当前字符 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 一定匹配, 所以将 &lt;equation&gt;\texttt{match_ch &#39;2&#39;}&lt;/equation&gt; 替换为 &lt;equation&gt;\texttt{inc}&lt;/equation&gt; 直接跳过当前字符, 减少一次重复匹配.&lt;/p&gt;&lt;p&gt;在分支9和15上, 即对应表达式 &lt;equation&gt;\texttt{5[0-5]|[0-4][0-9]}&lt;/equation&gt; , 我们知道这两个表达式匹配的第一个字符没有相交, 所以不需要分裂状态, 直接使用条件分支 &lt;equation&gt;\texttt{if_ch &#39;5&#39; 9, 15}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;在分支44和47上, 若匹配 &lt;equation&gt;\texttt{[0-9]}&lt;/equation&gt; 成功后匹配成功, 不需要回溯, 即可使用条件分支.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;分支分析&lt;/h2&gt;&lt;p&gt;在有了条件分裂和分支的信息之后我们可以对连续的条件分裂进行分析, 减少重复匹配.&lt;/p&gt;&lt;p&gt;例如:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 split_if_ch &#39;2&#39;, 4, 23}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{23 split_if_ch &#39;1&#39;, 27, 36}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{36 match_range &#39;0&#39;, &#39;9&#39;}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;在这里我们知道如果进入了分支 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 后匹配失败了, 例如匹配 &lt;equation&gt;\texttt{27}&lt;/equation&gt; , 那么回溯之后会到地址23上, 进行匹配 &lt;equation&gt;\texttt{1}&lt;/equation&gt; , 但是我们已经知道第一个字符匹配了 &lt;equation&gt;\texttt{2}&lt;/equation&gt; , 这里的匹配一定会失败, 将直接跳转到地址36, 故可以使用条件分支进行更细致的状态分裂.&lt;/p&gt;&lt;p&gt;变换后的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 26}\\ &amp;amp;\texttt{4 split 7, 39}\\ &amp;amp;\texttt{7 inc}\\ &amp;amp;\texttt{8 if_ch &#39;5&#39; 8, 15}\\ &amp;amp;\texttt{12 inc}\\ &amp;amp;\texttt{15 match_range &#39;0&#39;, &#39;5&#39;}\\ &amp;amp;\texttt{16 jmp 21}\\ &amp;amp;\texttt{18 match_range &#39;0&#39;, &#39;4&#39;}\\ &amp;amp;\texttt{21 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{24 jmp 50}\\ &amp;amp;\texttt{26 split_if_ch &#39;1&#39;, 30, 39}\\ &amp;amp;\texttt{30 inc}\\ &amp;amp;\texttt{31 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{34 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{37 jmp 50}\\ &amp;amp;\texttt{39 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{42 if_range &#39;0&#39;, &#39;9&#39;, 47, 48}\\ &amp;amp;\texttt{47 inc}\\ &amp;amp;\texttt{48 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;留意对 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 的匹配成功与失败的分支的不同.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;分支延迟&lt;/h2&gt;&lt;p&gt;在上一步分析中我们得到了:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 26}\\ &amp;amp;\texttt{4 split 7, 39}\\ &amp;amp;\texttt{7 inc}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{39 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{ ...}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;在执行地址4的 &lt;equation&gt;\texttt{split 7, 39}&lt;/equation&gt; 时已经匹配了字符 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 另外一条分支39中立即进行匹配的是&lt;equation&gt;\texttt{[0-9]}&lt;/equation&gt;, 由于 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 是 &lt;equation&gt;\texttt{[0-9]}&lt;/equation&gt; 的子集, 若该分支匹配失败进行回溯, 那么回溯后的 &lt;equation&gt;\texttt{match_range &#39;0&#39;, &#39;9&#39;}&lt;/equation&gt; 将会一定匹配成功, 这时便可将 &lt;equation&gt;\texttt{split}&lt;/equation&gt; 推迟到 &lt;equation&gt;\texttt{inc}&lt;/equation&gt; 之后, 得到的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 26}\\ &amp;amp;\texttt{4 inc}\\ &amp;amp;\texttt{5 split 8, 42}\\ &amp;amp;\texttt{8 if_ch &#39;5&#39; 8, 15}\\ &amp;amp;\texttt{12 inc}\\ &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{39 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{42 if_range &#39;0&#39;, &#39;9&#39;, 44, 48}\\ &amp;amp;\texttt{47 inc}\\ &amp;amp;\texttt{48 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt; 在接下来的条件分支 &lt;equation&gt;\texttt{if_ch &#39;5&#39; 8, 15}&lt;/equation&gt; 中, 可以将该分支42推迟进入8和15中, 进一步延迟分支, 对于分支 &lt;equation&gt;\texttt{split_if_ch &#39;1&#39;, 30, 39}&lt;/equation&gt; 亦可进行同样的操作, 得到的指令如下:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{ ...}\\ &amp;amp;\texttt{26 if_ch &#39;1&#39;, 30, 39}\\ &amp;amp;\texttt{30 inc}\\ &amp;amp;\texttt{31 split 31, 42}\\ &amp;amp;\texttt{34 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{37 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{40 jmp 50}\\ &amp;amp;\texttt{42 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{45 if_range &#39;0&#39;, &#39;9&#39;, 44, 48}\\ &amp;amp;\texttt{50 inc}\\ &amp;amp;\texttt{51 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;对于 &lt;equation&gt;\texttt{1}&lt;/equation&gt; 和 &lt;equation&gt;\texttt{2}&lt;/equation&gt; 的两条分支仍然可以继续向后推迟分支. 直到无法继续推迟为止, 我们得到了高度优化的指令:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\texttt{0 if_ch &#39;2&#39;, 4, 30}\\ &amp;amp;\texttt{4 inc}\\ &amp;amp;\texttt{5 if_ch &#39;5&#39;, 9, 17}\\ &amp;amp;\texttt{9 inc}\\ &amp;amp;\texttt{10 if_range &#39;0&#39;, &#39;5&#39;, 15, 57}\\ &amp;amp;\texttt{15 inc}\\ &amp;amp;\texttt{16 accept}\\ &amp;amp;\texttt{17 if_range &#39;0&#39;, &#39;4&#39;, 22, 51}\\ &amp;amp;\texttt{22 inc}\\ &amp;amp;\texttt{23 if_range &#39;0&#39;, &#39;9&#39;, 28, 57}\\ &amp;amp;\texttt{28 inc}\\ &amp;amp;\texttt{29 accept}\\ &amp;amp;\texttt{30 if_ch &#39;1&#39;, 34, 48}\\ &amp;amp;\texttt{34 inc}\\ &amp;amp;\texttt{35 if_range &#39;0&#39;, &#39;9&#39;, 40, 57}\\ &amp;amp;\texttt{40 inc}\\ &amp;amp;\texttt{41 if_range &#39;0&#39;, &#39;9&#39;, 46, 57}\\ &amp;amp;\texttt{46 inc}\\ &amp;amp;\texttt{47 accept}\\ &amp;amp;\texttt{48 match_range &#39;0&#39;, &#39;9&#39;}\\ &amp;amp;\texttt{51 if_range &#39;0&#39;, &#39;9&#39;, 56, 57}\\ &amp;amp;\texttt{56 inc}\\ &amp;amp;\texttt{57 accept}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这里还有一个小优化就是把直接跳转到 &lt;equation&gt;\texttt{accept}&lt;/equation&gt; 的 &lt;equation&gt;\texttt{jmp}&lt;/equation&gt; 指令全部替换为 &lt;equation&gt;\texttt{accept}&lt;/equation&gt; 这样可以节省一条跳转指令.&lt;/p&gt;&lt;p&gt;注意啦, 优化完成后的指令是不含回退的, 一次性匹配, 效率是非常高的. 另外这一份指令很容易自动翻译成C++代码进行AOT编译进一步提升效率.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;到这里当然少不了的就是benchmark啦, 接下来是激动人心的时刻哈哈哈, 来看看优化后的指令和其他正则表达式库的效率对比吧:&lt;/p&gt;&lt;p&gt;这里我选了PCRE和RE2作为对比:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Test case 
-RegExp ^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$
-Match 222.34.191.23
-
-My implement
-VM:        7.1625 ns
-C++ AOT:   1.1776 ns
-
-Comparison
-PCRE2:     28.5163 ns
-PCRE2 JIT: 4.6530  ns
-RE2:       13.7799 ns&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0921073e533644b7310b60d774c11a86_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1036&quot; data-rawheight=&quot;659&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0921073e533644b7310b60d774c11a86&quot; data-watermark-src=&quot;v2-266bd0a5d3800f90d51d0c729775f864&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;可以看到使用C++编译执行是PCRE2 JIT的3倍多的效率, 这份代码的效率已经非常接近甚至可以说等于手工编写的自动机了, 就算是通过VM解释执行的效率也不错, 达到了PCRE2 JIT的64%.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后就是C++与VM实现的源码啦: &lt;/p&gt;&lt;p&gt;其中的byte code都是自动生成的.&lt;/p&gt;&lt;p&gt;VM解释执行:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;#include &amp;lt;string&amp;gt;
-#include &amp;lt;vector&amp;gt;
-
-#define MINI_REGEX_MAX_STACK_SIZE 256
-
-enum BYTE_CODE : size_t
-{
-	MATCH_CH,
-	MATCH_RANGE,
-	IF_CH,
-	IF_RANGE,
-	INC,
-	BEGIN,
-	END,
-	SPLIT,
-	JMP,
-	ACCEPT,
-	HALT,
-};
-
-const std::vector&amp;lt;size_t&amp;gt; byte_code =
-{
-/*addr_0  */ BEGIN,
-/*addr_1  */ IF_CH, &#39;2&#39;, 5, 33,
-/*addr_5  */ INC,
-/*addr_6  */ IF_CH, &#39;5&#39;, 10, 19,
-/*addr_10 */ INC,
-/*addr_11 */ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 16, 61,
-/*addr_16 */ INC,
-/*addr_17 */ JMP, 61,
-/*addr_19 */ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 24, 55,
-/*addr_24 */ INC,
-/*addr_25 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 30, 61,
-/*addr_30 */ INC,
-/*addr_31 */ JMP, 61,
-/*addr_33 */ IF_CH, &#39;1&#39;, 37, 52,
-/*addr_37 */ INC,
-/*addr_38 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 43, 61,
-/*addr_43 */ INC,
-/*addr_44 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 49, 61,
-/*addr_49 */ INC,
-/*addr_50 */ JMP, 61,
-/*addr_52 */ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
-/*addr_55 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 60, 61,
-/*addr_60 */ INC,
-/*addr_61 */ MATCH_CH, &#39;.&#39;,
-/*addr_63 */ IF_CH, &#39;2&#39;, 67, 95,
-/*addr_67 */ INC,
-/*addr_68 */ IF_CH, &#39;5&#39;, 72, 81,
-/*addr_72 */ INC,
-/*addr_73 */ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 78, 123,
-/*addr_78 */ INC,
-/*addr_79 */ JMP, 123,
-/*addr_81 */ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 86, 117,
-/*addr_86 */ INC,
-/*addr_87 */ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 92, 123,
-/*addr_92 */ INC,
-/*addr_93 */ JMP, 123,
-/*addr_95 */ IF_CH, &#39;1&#39;, 99, 114,
-/*addr_99 */ INC,
-/*addr_100*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 105, 123,
-/*addr_105*/ INC,
-/*addr_106*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 111, 123,
-/*addr_111*/ INC,
-/*addr_112*/ JMP, 123,
-/*addr_114*/ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
-/*addr_117*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 122, 123,
-/*addr_122*/ INC,
-/*addr_123*/ MATCH_CH, &#39;.&#39;,
-/*addr_125*/ IF_CH, &#39;2&#39;, 129, 157,
-/*addr_129*/ INC,
-/*addr_130*/ IF_CH, &#39;5&#39;, 134, 143,
-/*addr_134*/ INC,
-/*addr_135*/ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 140, 185,
-/*addr_140*/ INC,
-/*addr_141*/ JMP, 185,
-/*addr_143*/ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 148, 179,
-/*addr_148*/ INC,
-/*addr_149*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 154, 185,
-/*addr_154*/ INC,
-/*addr_155*/ JMP, 185,
-/*addr_157*/ IF_CH, &#39;1&#39;, 161, 176,
-/*addr_161*/ INC,
-/*addr_162*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 167, 185,
-/*addr_167*/ INC,
-/*addr_168*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 173, 185,
-/*addr_173*/ INC,
-/*addr_174*/ JMP, 185,
-/*addr_176*/ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
-/*addr_179*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 184, 185,
-/*addr_184*/ INC,
-/*addr_185*/ MATCH_CH, &#39;.&#39;,
-/*addr_187*/ IF_CH, &#39;2&#39;, 191, 219,
-/*addr_191*/ INC,
-/*addr_192*/ IF_CH, &#39;5&#39;, 196, 205,
-/*addr_196*/ INC,
-/*addr_197*/ IF_RANGE, &#39;0&#39;, &#39;5&#39;, 202, 247,
-/*addr_202*/ INC,
-/*addr_203*/ JMP, 247,
-/*addr_205*/ IF_RANGE, &#39;0&#39;, &#39;4&#39;, 210, 241,
-/*addr_210*/ INC,
-/*addr_211*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 216, 247,
-/*addr_216*/ INC,
-/*addr_217*/ JMP, 247,
-/*addr_219*/ IF_CH, &#39;1&#39;, 223, 238,
-/*addr_223*/ INC,
-/*addr_224*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 229, 247,
-/*addr_229*/ INC,
-/*addr_230*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 235, 247,
-/*addr_235*/ INC,
-/*addr_236*/ JMP, 247,
-/*addr_238*/ MATCH_RANGE, &#39;0&#39;, &#39;9&#39;,
-/*addr_241*/ IF_RANGE, &#39;0&#39;, &#39;9&#39;, 246, 247,
-/*addr_246*/ INC,
-/*addr_247*/ END,
-/*addr_248*/ ACCEPT,
-};
-
-struct state
-{
-	size_t IP;
-	size_t index;
-};
-
-std::vector&amp;lt;state&amp;gt; state_stack;
-
-bool match(const std::string&amp;amp; str)
-{
-	size_t off = 0;
-	while (off &amp;lt; str.length())
-	{
-		state_stack.clear();
-		state_stack.push_back({ 0, off++ });
-
-	fail_loop:;
-		while (!state_stack.empty() &amp;amp;&amp;amp; state_stack.size() &amp;lt; MINI_REGEX_MAX_STACK_SIZE)
-		{
-			auto IP = state_stack.back().IP;
-			auto index = state_stack.back().index;
-			state_stack.pop_back();
-
-		next_loop:;
-			switch (byte_code[IP])
-			{
-			case BYTE_CODE::MATCH_CH:
-				if (index &amp;lt; str.length() &amp;amp;&amp;amp; (str[index] == byte_code[IP + 1]))
-				{
-					index++;
-					IP += 2;
-					goto next_loop;
-				}
-				goto fail_loop;
-			case BYTE_CODE::MATCH_RANGE:
-				if (index &amp;lt; str.length() &amp;amp;&amp;amp; 
-					str[index] &amp;gt;= byte_code[IP + 1] &amp;amp;&amp;amp;
-					str[index] &amp;lt;= byte_code[IP + 2])
-				{
-					index++;
-					IP += 3;
-					goto next_loop;
-				}
-				goto fail_loop;
-			case BYTE_CODE::IF_CH:
-				if (index &amp;lt; str.length() &amp;amp;&amp;amp; str[index] == byte_code[IP + 1])
-				{
-					IP = byte_code[IP + 2];
-					goto next_loop;
-				}
-				else
-				{
-					IP = byte_code[IP + 3];
-					goto next_loop;
-				}
-			case BYTE_CODE::IF_RANGE:
-				if (index &amp;lt; str.length() &amp;amp;&amp;amp; 
-					str[index] &amp;gt;= byte_code[IP + 1] &amp;amp;&amp;amp;
-					str[index] &amp;lt;= byte_code[IP + 2])
-				{
-					IP = byte_code[IP + 3];
-					goto next_loop;
-				}
-				else
-				{
-					IP = byte_code[IP + 4];
-					goto next_loop;
-				}
-			case BYTE_CODE::INC:
-				index++;
-				IP++;
-				goto next_loop;
-			case BYTE_CODE::BEGIN:
-				if (index == 0)
-				{
-					IP++;
-					goto next_loop;
-				}
-				goto fail_loop;
-			case BYTE_CODE::END:
-				if (index == str.length())
-				{
-					IP++;
-					goto next_loop;
-				}
-				goto fail_loop;
-			case BYTE_CODE::SPLIT:
-				state_stack.push_back({ byte_code[IP + 2], index });
-				IP = byte_code[IP + 1];
-				goto next_loop;
-			case BYTE_CODE::JMP:
-				IP = byte_code[IP + 1];
-				goto next_loop;
-			case BYTE_CODE::ACCEPT:
-				return true;
-			case BYTE_CODE::HALT:
-			default:
-				return false;
-			}
-		}
-	}
-	return false;
-}&lt;/code&gt;&lt;p&gt;(这个虚拟机的实现还有优化空间, 例如使用direct threading优化指令分发, 大概还能快10%)&lt;/p&gt;&lt;p&gt;C++编译执行:&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;#include &amp;lt;string&amp;gt;
-
-#define MATCH_CH(CH) \
-	do { \
-		if(!(index &amp;lt; str.length() &amp;amp;&amp;amp; str[index] == CH)) \
-			return false; \
-		index++; \
-	} while(0)
-
-#define MATCH_RANGE(CH1, CH2) \
-	do { \
-		if(!(index &amp;lt; str.length() &amp;amp;&amp;amp; str[index] &amp;gt;= CH1 &amp;amp;&amp;amp; str[index] &amp;lt;= CH2)) \
-			return false; \
-		index++; \
-	} while(0)
-
-#define IF_CH(CH, THEN, ELSE) \
-	do { \
-		if(index &amp;gt;= str.length() || str[index] != CH) \
-			goto ELSE; \
-		else \
-			goto THEN; \
-	} while(0)
-
-#define IF_RANGE(CH1, CH2, THEN, ELSE) \
-	do { \
-		if(index &amp;gt;= str.length() || str[index] &amp;lt; CH1 || str[index] &amp;gt; CH2) \
-			goto ELSE; \
-		else \
-			goto THEN; \
-	} while(0)
-
-#define JMP(TO) \
-	do { \
-		goto TO; \
-	} while(0)
-
-#define INC() \
-	do { \
-		index++; \
-	} while(0)
-
-#define BEGIN() \
-	do { \
-		if(index != 0) \
-			return false; \
-	} while(0)
-
-#define END() \
-	do { \
-		if(index != str.length()) \
-			return false; \
-	} while(0)
-
-#define ACCEPT() \
-	return true; 
-
-bool match(const std::string&amp;amp; str)
-{
-	std::string::size_type index = 0;
-
-addr_0  : BEGIN();
-addr_1  : IF_CH(&#39;2&#39;, addr_5, addr_33);
-addr_5  : INC();
-addr_6  : IF_CH(&#39;5&#39;, addr_10, addr_19);
-addr_10 : INC();
-addr_11 : IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_16, addr_61);
-addr_16 : INC();
-addr_17 : JMP(addr_61);
-addr_19 : IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_24, addr_55);
-addr_24 : INC();
-addr_25 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_30, addr_61);
-addr_30 : INC();
-addr_31 : JMP(addr_61);
-addr_33 : IF_CH(&#39;1&#39;, addr_37, addr_52);
-addr_37 : INC();
-addr_38 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_43, addr_61);
-addr_43 : INC();
-addr_44 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_49, addr_61);
-addr_49 : INC();
-addr_50 : JMP(addr_61);
-addr_52 : MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
-addr_55 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_60, addr_61);
-addr_60 : INC();
-addr_61 : MATCH_CH(&#39;.&#39;);
-addr_63 : IF_CH(&#39;2&#39;, addr_67, addr_95);
-addr_67 : INC();
-addr_68 : IF_CH(&#39;5&#39;, addr_72, addr_81);
-addr_72 : INC();
-addr_73 : IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_78, addr_123);
-addr_78 : INC();
-addr_79 : JMP(addr_123);
-addr_81 : IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_86, addr_117);
-addr_86 : INC();
-addr_87 : IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_92, addr_123);
-addr_92 : INC();
-addr_93 : JMP(addr_123);
-addr_95 : IF_CH(&#39;1&#39;, addr_99, addr_114);
-addr_99 : INC();
-addr_100: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_105, addr_123);
-addr_105: INC();
-addr_106: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_111, addr_123);
-addr_111: INC();
-addr_112: JMP(addr_123);
-addr_114: MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
-addr_117: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_122, addr_123);
-addr_122: INC();
-addr_123: MATCH_CH(&#39;.&#39;);
-addr_125: IF_CH(&#39;2&#39;, addr_129, addr_157);
-addr_129: INC();
-addr_130: IF_CH(&#39;5&#39;, addr_134, addr_143);
-addr_134: INC();
-addr_135: IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_140, addr_185);
-addr_140: INC();
-addr_141: JMP(addr_185);
-addr_143: IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_148, addr_179);
-addr_148: INC();
-addr_149: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_154, addr_185);
-addr_154: INC();
-addr_155: JMP(addr_185);
-addr_157: IF_CH(&#39;1&#39;, addr_161, addr_176);
-addr_161: INC();
-addr_162: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_167, addr_185);
-addr_167: INC();
-addr_168: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_173, addr_185);
-addr_173: INC();
-addr_174: JMP(addr_185);
-addr_176: MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
-addr_179: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_184, addr_185);
-addr_184: INC();
-addr_185: MATCH_CH(&#39;.&#39;);
-addr_187: IF_CH(&#39;2&#39;, addr_191, addr_219);
-addr_191: INC();
-addr_192: IF_CH(&#39;5&#39;, addr_196, addr_205);
-addr_196: INC();
-addr_197: IF_RANGE(&#39;0&#39;, &#39;5&#39;, addr_202, addr_247);
-addr_202: INC();
-addr_203: JMP(addr_247);
-addr_205: IF_RANGE(&#39;0&#39;, &#39;4&#39;, addr_210, addr_241);
-addr_210: INC();
-addr_211: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_216, addr_247);
-addr_216: INC();
-addr_217: JMP(addr_247);
-addr_219: IF_CH(&#39;1&#39;, addr_223, addr_238);
-addr_223: INC();
-addr_224: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_229, addr_247);
-addr_229: INC();
-addr_230: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_235, addr_247);
-addr_235: INC();
-addr_236: JMP(addr_247);
-addr_238: MATCH_RANGE(&#39;0&#39;, &#39;9&#39;);
-addr_241: IF_RANGE(&#39;0&#39;, &#39;9&#39;, addr_246, addr_247);
-addr_246: INC();
-addr_247: END();
-addr_248: ACCEPT();
-	
-	return false;
-}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;谢谢大家的阅读啦~&lt;/p&gt;&lt;p&gt;代码生成和指令优化器是使用的是我的千雪的生成器和优化器, 其中做了一些小改动.&lt;/p&gt;&lt;p&gt;如果有需要做正则表达式的静态编译的小伙伴欢迎来讨论喔.&lt;/p&gt;</description>
-<author>梨梨喵</author>
-<guid isPermaLink="false">2018-06-08-37864863</guid>
-<pubDate>Fri, 08 Jun 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
