@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Recursion Schemes（二）Morphism军团</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/42352830">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-0fc7e6a4d32be72240441e4a84bde5c4_r.jpg" alt=""></div><h2>引言</h2><p>上一章中，我们讨论了如何表示和遍历一个嵌套结构体，而这只是 <a href="http://maartenfokkinga.github.io/utwente/mmf91m.pdf">Programming with Bananas, Lenses, Envelopes, and Barbed Wire</a> 一文的冰山一角而已，本章我们将讨论两种简单的 Recursion Scheme 以及它们的关系[1]。</p><p>首先我们沿用上一章中使用的语法树，文章中的所有代码实现可以在<a href="https://github.com/patrickt/recschemes/blob/master/src/Part2.hs">这里</a>找到。</p><code lang="haskell">{-# LANGUAGE DeriveFunctor #-}
+
+data Expr a  
+  = Literal { intVal :: Int }
+  | Ident   { name :: String  }
+  | Index   { target :: a, idx :: a }
+  | Unary   { op :: String, target :: a }
+  | Binary  { lhs :: a, op :: String, rhs :: a }
+  | Call    { func :: a, args :: [a] }
+  | Paren   { target :: a }
+  deriving (Show, Eq, Functor)</code><p>表达式有两种叶子节点形式 <code class="inline">Literal</code> 和 <code class="inline">Ident</code> 同时包含函数的声明和调用，一元和二元运算等[2]。我们使用 <code class="inline">DeriveFunctor</code> 使 GHC 帮助我们推导定义了 <code class="inline">Functor</code>，<code class="inline">Functor</code> 会递归地将函数 <code class="inline">f</code> 应用到子表达式上，直到叶节点为止。</p><p>上一章中，我们将叶子节点的表达式记为 <code class="inline">Expr ()</code>，而包含一层的子表达式的表达式记为 <code class="inline">Expr (Expr ())</code>, 以此类推。但 Haskell 并不支持无限类型，所以我们使用一个最小不动点组合子 <code class="inline">Term</code> 通过 <code class="inline">In</code> 和 <code class="inline">Out</code> 完成构造和解析。</p><code lang="haskell">newtype Term f = In { out :: f (Term f) }</code><p>从而我们可以使用 <code class="inline">Term Expr</code> 用 <code class="inline">In</code> 来构造任意嵌套多层的数据结构[3]：</p><code lang="haskell">ten, add, call :: Term Expr  
+ten  = In (Literal { intVal = 10 })  
+add  = In (Ident { name = "add" })  
+call = In (Call { func = add, args = [ten, ten]}) -- add(10, 10)</code><p>接着使用 <code class="inline">&gt;&gt;&gt;</code> 操作符我们形象地表达了自底向上遍历任何实现了 <code class="inline">Functor</code> 的类型的操作。</p><code lang="haskell">bottomUp :: Functor a =&gt; (Term a -&gt; Term a) -&gt; Term a -&gt; Term a  
+bottomUp fn =  
+  out                    -- 1) 将 `Term a` 解析为 `a (Term a)`
+  &gt;&gt;&gt; fmap (bottomUp fn) -- 2) 递归地对子项应用 fn
+  &gt;&gt;&gt; In                 -- 3) 将 `a (Term a)` 封装回 `Term a`
+  &gt;&gt;&gt; fn                 -- 4) 对 `Term a` 应用 fn</code><p>虽然这一过程十分优雅，但是其表达能力还是很弱的，比如说 <code class="inline">fn</code> 的输入输出都必须为 <code class="inline">Term f</code> 我们不能使用 <code class="inline">bottomUp</code> 来做表达式计数（ <code class="inline">Expr</code>  转换为 <code class="inline">Int</code>），或者将其转换为一个 DOM 树（ <code class="inline">Expr</code>  转换为 <code class="inline">Node</code>），或者将它打印出来（ <code class="inline">Expr</code>  转换为 <code class="inline">Doc</code>）等操作。</p><p>这是由于上面第三步 <code class="inline">In</code> 的输出是 <code class="inline">fn</code> 的输入，而 <code class="inline">fmap (bottomUp fn)</code> 的输出又是 <code class="inline">In</code> 的输入，这导致了 <code class="inline">fn</code> 的输入和输出值必须是 <code class="inline">Term</code>。如果我们去除 <code class="inline">In</code> 和 <code class="inline">bottomUp</code>，那么这样还能通过类型检查吗？</p><code lang="haskell">mystery fn =  
+  out                   -- 1) 解析 Term
+  &gt;&gt;&gt; fmap (mystery fn) -- 2) 递归应用 `fn`
+  &gt;&gt;&gt; fn                -- 3) 应用 `fn`</code><p>竟然可以的！我们是用 <code class="inline">ghci</code> 来看下类型：</p><code lang="haskell">λ&gt; :t mystery  
+mystery :: Functor f =&gt; (f a -&gt; a) -&gt; Term f -&gt; a</code><p>好吧，这又是什么鬼？</p><h2>Algebra</h2><p>我们仔细观察一下它的参数</p><code lang="haskell">Functor f =&gt; (f a -&gt; a)</code><p>它是一个函数，接受一个装在容器[4] <code class="inline">f</code> 中的类型 <code class="inline">a</code> 并返回类型 <code class="inline">a</code> 如果我们想做节点计数，显然 <code class="inline">a</code> 应该是一个 <code class="inline">Int</code> 类型，而 <code class="inline">f</code> 则是 <code class="inline">Expr</code> 类型。于是我们有：</p><code lang="haskell">countNodes :: Expr Int -&gt; Int</code><p>我们在转换的过程中，使用 <code class="inline">Expr</code> 捕捉了其本身需要的属性信息，并依据递归结构向上传递，这意味着对于 <code class="inline">countNodes</code> 这样的函数，我们只需要在子表达式的基础上加 1 即可：</p><code lang="haskell">countNodes (Unary _ arg)         = arg + 1  
+countNodes (Binary left _ right) = left + right + 1  
+countNodes (Call fn args)        = fn + sum args + 1  
+countNodes (Index it idx)        = it + idx + 1  
+countNodes (Paren arg)           = arg + 1</code><p>而对于递归出口的叶子节点，我们只需要简单返回 1 即可：</p><code lang="haskell">countNodes (Literal _) = 1  
+countNodes (Ident   _) = 1</code><p>如果我们对 <code class="inline">add(10, 10)</code> 使用 <code class="inline">mystery countNodes</code> 应该得到 4，那么结果如何呢？</p><code lang="haskell">λ&gt; mystery countNodes call  
+4</code><p>确实得到了期望的结果。</p><p>注意 <code class="inline">mystery</code> 中的 <code class="inline">fmap (mystery fn)</code> 正是这个语句对所有的子表达式完成了递归操作，同时在叶子节点时达到了递归出口，并开始将原结构体内的数据转化为新计算得出的属性，并向上传递。所以通过 <code class="inline">fmap</code> 以及表达式定义，我们就非常简单地实现了对一个嵌套数据结构的操作。</p><p>由于 <code class="inline">f a -&gt; a</code> 这一操作的普遍性，我们命名：  <code class="inline">Haskell  type Algebra f a = f a -&gt; a</code></p><p>所以我们重写一下 <code class="inline">countNodes</code> 函数：</p><code lang="haskell">countNodes :: Algebra Expr Int</code><p>这里我们使用的 “Algebra” 并不是一般意义上代数的意思，从词源学的角度上分析，它来自阿拉伯语的词根，   ，代表重组，团聚，整修的意思，正如 Algebra 函数将一个个在容器中的 <code class="inline">a</code> 即 <code class="inline">f a</code> “重组”为一个单一累积的 <code class="inline">a</code>。</p><h2>Catamorphism</h2><p>我们使用 Algebra 重新一下 <code class="inline">mystery</code> 函数：</p><code lang="haskell">mystery :: (Functor f) =&gt; Algebra f a -&gt; Term f -&gt; a</code><p><code class="inline">mystery</code> 实际上就是 <i>catamorphism</i>，简称为 <code class="inline">cata</code>：</p><code lang="haskell">cata :: (Functor f) =&gt; Algebra f a -&gt; Term f -&gt; a  
+cata f = out &gt;&gt;&gt; fmap (cata f) &gt;&gt;&gt; f</code><p>“cata” 作为 “catamorphism” 的前缀，表达的意义和在 “catastrophe”，“catabolism”，“catalyst” 中一样，它来源于希腊语 κατα，代表向下，向里，解析等意思。正如 catastrophe 代表不幸摧毁了事物，而 catabolism 表示肌肉纤维分解，catamorphism 表示了 Algebra 将一堆容器中值摧毁，变成了一个单一的值。</p><p>考虑 <code class="inline">foldr</code> 操作，实际上 <code class="inline">foldr</code> 就是一个限制在列表上的 catamorphism，这是因为 <code class="inline">[]</code> 就是一个实例化了的 <code class="inline">Functor</code>，换句话说，catamorphism 可以被认为是 <code class="inline">foldr</code> 操作在其它 <code class="inline">Functor</code> 上的泛化  [5]，它们都不需要写任何遍历规则，同时保持着类型安全。</p><p>我们再来看一个文档展示的例子，一个文档实际上是一个 从 <code class="inline">Expr</code> 到 <code class="inline">Doc</code> 的 Algebra，其中 <code class="inline">Doc</code> 在 <a href="https://hackage.haskell.org/package/pretty-1.1.1.0/docs/Text-PrettyPrint.html">Text.PrettyPrint</a> 模块中定义。</p><code lang="haskell">import Text.PrettyPrint (Doc)  
+import qualified Text.PrettyPrint as P
+
+prettyPrint :: Algebra Expr Doc</code><p>这里 Algebra 需要定义如何将一个子表达式已经是 <code class="inline">Doc</code> 的 <code class="inline">Expr</code> 变成 <code class="inline">Doc</code>，首先是叶子节点：</p><code lang="haskell">prettyPrint (Literal i) = P.int i  
+prettyPrint (Ident s) = P.text s</code><p>向上递归的部分也同样整洁：</p><code lang="haskell">-- f(a,b...)  
+prettyPrint (Call f as)     = f &lt;&gt; P.parens (P.cat (P.punctuate ", " as))  
+-- a[b]
+prettyPrint (Index it idx)  = it &lt;&gt; P.brackets idx  
+-- op x
+prettyPrint (Unary op it)   = P.text op &lt;&gt; it  
+-- lhs op rhs
+prettyPrint (Binary l op r) = l &lt;&gt; P.text op &lt;&gt; r  
+-- (op)
+prettyPrint (Paren exp)     = P.parens exp</code><p>我们将 <code class="inline">prettyPrint</code> 应用到 <code class="inline">call</code> 上：</p><code lang="haskell">λ&gt; cata prettyPrint call  
+add(10,10)</code><p>最后一个例子是我们将使用 <code class="inline">cata</code> 来表示 <code class="inline">bottomUp</code> 实际上，对于 <code class="inline">cata</code> 来说，<code class="inline">bottomUp</code> 只需要我们先对输入应用 <code class="inline">In</code> 即可：</p><code lang="haskell">bottomUp f = cata (In &gt;&gt;&gt; f)</code><h2>Anamorphism</h2><p>上一篇专栏中，我们使用了“翻转箭头”的技巧构造了 <code class="inline">bottomUp</code> 的对偶方法 <code class="inline">topDown</code>，我们将 <code class="inline">&gt;&gt;&gt;</code> 翻转为 <code class="inline">&lt;&lt;&lt;</code> 将 <code class="inline">In</code> 和 <code class="inline">out</code> 互换了位置：</p><code lang="haskell">bottomUp f = out &gt;&gt;&gt; fmap (bottomUp f) &gt;&gt;&gt; In  &gt;&gt;&gt; f  
+topDown  f = In  &lt;&lt;&lt; fmap (topDown  f) &lt;&lt;&lt; out &lt;&lt;&lt; f</code><p>如果我们将同样的技巧应用在 <code class="inline">cata</code> 上，会发生什么呢？</p><code lang="haskell">cata f = out &gt;&gt;&gt; fmap (cata f) &gt;&gt;&gt; f
+
+-- 翻转箭头： &gt;&gt;&gt; 变为 &lt;&lt;&lt;， out 变为 In
+
+what f = In &lt;&lt;&lt; fmap (what f) &lt;&lt;&lt; f</code><p>你的直觉是正确的，这是一个合法的函数，那么它的类型是什么呢？</p><code lang="haskell">what :: (Functor f) =&gt; (a -&gt; f a) -&gt; a -&gt; Term f</code><p>正如自底向下和自顶向上这组对偶关系一样，我们得到了 fold 操作的对偶形式 unfold 的泛化形式。我们仔细看一下第一个参数：</p><code lang="haskell">Functor f =&gt; (a -&gt; f a)</code><p>完全就是 Algebra 的对偶形式，我们将它称为 Coalgebra。</p><code lang="haskell">type Coalgebra f a = a -&gt; f a</code><p>同理，<code class="inline">what</code> 被称为 anamorphism，其中的 “ana” 前缀正是 “cata” 的反义词，代表构建的意义，正如 <code class="inline">cata</code> 泛化了 <code class="inline">fold</code> 操作，<code class="inline">ana</code> 泛化了 <code class="inline">unfold</code> 操作。</p><code lang="haskell">ana :: (Functor f) =&gt; Coalgebra f a -&gt; a -&gt; Term f  
+ana f = In &lt;&lt;&lt; fmap (ana f) &lt;&lt;&lt; f</code><p>如果说 Algebra 带有重组，团聚的意味，那么 Coalgebra 就是拆解，分解的意思。它利用一个单一的值 <code class="inline">a</code>，构建容器 <code class="inline">f</code>，如果 <code class="inline">f</code> 是 <code class="inline">Maybe</code>，那么就可以构建一个含有或不含有值的容器，如果是 <code class="inline">[]</code>，那么就会构建一个可能为空的列表。（对于那些敏锐的类型专家来说，你们可能已经发现了 <code class="inline">Algebra</code> 和 <code class="inline">Coalgebra</code> 实际上和 <code class="inline">Pointed</code> 和 <code class="inline">Copointed</code> 非常相似）</p><h2>并没有很难，对吧？</h2><p>我要感谢 Rob Rix 对我的支持。</p><p>同样欢迎大家给我任何评论，不论是意见或者建议。</p><p>下一章中，我们将讨论 catamorphism 的局限性，并介绍更加泛化的 paramorphism 和 apomorphism。</p><h2>译者后记</h2><p>本章的原文链接 <a href="https://blog.sumtypeofway.com/recursion-schemes-part-2/#fnref5">Recursion Schemes, Part II: A Mob of Morphisms</a>，自本章开始，我尝试在翻译时对原文进行了一些精简，以使文章聚焦在干货部分，而且更加贴合中文习惯。同样有什么翻译上的意见或建议可以给我留言，如果有哪里翻译不到位或者文章本身不明白的地方也欢迎给我留言，大家一起讨论。</p><p>谢谢大家的耐心阅读！</p><p>[1]: 原论文的前2页内容。</p><p>[2]: 换句话说，<code class="inline">Expr</code> 定义了类型类 <code class="inline">* -&gt; *</code>。 </p><p>[3]: <a href="https://hackage.haskell.org/package/compdata">compdata</a> 等函数包实际上提供了隐藏 <code class="inline">In</code> 构造器的方法，给定 <code class="inline">Expr</code> 的定义，我们可以使用 <code class="inline">smartConstructors</code> 来生成 <code class="inline">iLiteral</code>，<code class="inline">iIdent</code>，<code class="inline">iUnary</code> 等方法。每一个提供了不动点组合子 <code class="inline">In</code> 与对应 <code class="inline">Expr</code> 构造器的组合函数。 </p><p>[4]: 一些咬文嚼字的读者可能会注意到“容器”这个词其实并不贴切，函子其实具有更宽泛的范围，实际上 <code class="inline">f</code> 是一个 <code class="inline">a</code> 的可计算上下文，这里我们姑且称为“容器”。 </p><p>[5]: 可能有些好奇的读者会问，如果说 catamorphism 是 <code class="inline">foldr</code> 的一种泛化，那么 <code class="inline">foldl</code> 相应的泛化是什么呢？这个问题很有趣，因为实际上 <code class="inline">foldl</code> 可以被 <code class="inline">foldr</code> 表示，参见 <a href="http://okmij.org/ftp/Haskell/AlgorithmsH1.html#foldl">Oleg demonstrates</a>。 </p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
