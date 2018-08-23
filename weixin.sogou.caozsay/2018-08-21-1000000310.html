@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>一个至简推荐系统的实现(附源代码)</title>
+</head>
+<body>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1535025202&amp;src=3&amp;ver=1&amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5cbSiGPv*mCgY50Kda82sIVBSaOhMaZywcU*KRGPZDIzja-A5544qvHG124jQh2z9yNGOzxLptWqGlrN5QDuUOE=">原文</a></p>
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    一个至简推荐系统的实现(附源代码)
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                <span id="js_author_name" class="rich_media_meta_link" data-rewardsn="" data-timestamp="" data-canreward="0">caoz的赞赏</span>
+                                            </span>
+                                        
+                                       
+                                                                    
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        caoz的梦呓                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">caoz的梦呓</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">caozsay</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">caoz的心得与分享，只此一家，别无分号。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p><span style="font-size: 15px;">本文主要内容对非技术背景的人来说确实有点无趣，如果你不是技术人员，可以直接拖到底下看总结，还是有一点价值的。</span></p><p><br></p><p><span style="font-size: 15px;">相关旧文 </span><a href="http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=209302719&amp;idx=1&amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;scene=21#wechat_redirect" target="_blank" style="text-decoration: underline;font-size: 15px;"><span style="font-size: 15px;">史上最简单的推荐系统设计</span></a><span style="font-size: 15px;"> </span></p><p><span style="font-size: 15px;"> 其实本文核心价值没有脱离如上旧文，不过重新用实战案例说明一下，可能更有助于理解，并开放源代码。</span></p><p><br></p><p><span style="font-size: 15px;">在我的知识星球里，经常有新人问这样的问题，有什么星球是可以推荐的。这似乎是一个常见的新人话题。</span></p><p><br></p><p><span style="font-size: 15px;">嗯，最近跟知识星球合作，征询吴鲁加老板同意，获取了一些数据练手，简单实现了一下相关推荐。</span></p><p><br></p><p><span style="font-size: 15px;">先说推荐系统测试的结果，以 我个人的知识星球 为例，在这个推荐系统的测算中，相关度最高的星球是哪些呢？以下结果为程序测算，无任何人工干预和修正。</span></p><p><br></p><p><span style="font-size: 15px;">相关度第一名，是亦仁的 “生财有术”。</span></p><p><span style="font-size: 15px;">相关度第二名，是冯大辉老师的“小道消息”。<br></span></p><p><span style="font-size: 15px;">相关度第三名，是冯大辉老师的”小程序淘金“。</span></p><p><span style="font-size: 15px;">相关度第四名，抖音红利研究小组，嗯，貌似圈主是在我的知识星球里做过推广。</span></p><p><span style="font-size: 15px;">相关度第五名，余弦的慢雾区。</span></p><p><span style="font-size: 15px;">相关度第六名，是<span style="font-size: 15px;font-family: sans-serif;background-color: rgb(255, 255, 255);">鞠海深的"</span>创业直播间"，他曾经在我的知识星球里非常活跃，他的知识星球过半数用户与我的知识星球的重合。</span></p><p><span style="font-size: 15px;">相关度第七名，硅谷女网红 angela zhu的 ”嘀嗒嘀嗒“。<br></span></p><p><span style="font-size: 15px;">相关度第八名，海外营销交流圈。</span></p><p><span style="font-size: 15px;">相关度第九名，明白老师的webscraper精进。</span></p><p><span style="font-size: 15px;">相关度第十名，池老师的 MacTalk的朋友们。</span></p><p><span style="font-size: 15px;">相关度第十一名，冯大辉老师的”招聘/求职/跳槽“。</span></p><p><span style="font-size: 15px;">相关度第十二名，刘老师的计算广告。</span></p><p><span style="font-size: 15px;">相关度第十三名，外贸协会。//讲外贸建站和营销的，星主也是我星球里非常活跃的。</span></p><p><span style="font-size: 15px;">相关度第十四名，投资人子柳。</span></p><p><span style="font-size: 15px;">相关度第十五名，WLJ的创业笔记。</span></p><p><br></p><p><span style="font-size: 15px;">后面就不罗列了。</span></p><p><span style="font-size: 15px;">这个结果，我觉得是非常符合预期的。</span></p><p><br></p><p><span style="font-size: 15px;">所谓符合预期，要特别说明的是，其实前文也提到过，在相关推荐的权值因素里，有两个最简单的数值代表了两个极端，一个是共同的推举数，也就是两个知识星球共同参与的人数，这个很容易理解，共同人数多是不是相关度就好呢，其实不是，如果按照共同人数来计算相关度，那么最高的一定是那些人数众多的热门免费群，包括几个火爆的摄影和美图群都会在这个榜单前列，这显然不是相关推荐理想的结果。 第二个极端是基于在对方星球的人数占比，如果对方星球的人数80%都出现在你的星球里，是不是相关度就极高了呢，但这样会出现一个很严重的问题，推荐出来的一定是一大堆人数稀少的小星球，有些几十人的星球绝大部分用户与我的星球用户重合，但其实价值不大，这些星球可能活跃度很差，而且星球没有什么号召力，所以这也不符合预期。</span></p><p><br></p><p><span style="font-size: 15px;">实际上我做过几轮不同权值的测试，最后发现，十几年前我在百度用的权值土方法，依然是效果最理想的，很好的兼顾了两个因素，既体现了二者的相关价值，又同时削弱了它们的极端影响。</span></p><p><br></p><p><span style="font-size: 15px;">但这个事情其实没结束，如果我作为用户，而非星主，我已经加入了30多个星球，那么系统会如何推荐给我其他未加入的呢。</span></p><p><br></p><p><span style="font-size: 15px;">基于我个人已加入星球的情况，计算出来推荐结果如下</span></p><p><span style="font-size: 15px;">1、池老师的 MacTalk的朋友们，不好意思，一直没有加入。</span></p><p><span style="font-size: 15px;">2、二爷书友会</span></p><p><span style="font-size: 15px;">3、KCon黑客大会（嗯，我加入了灰袍技能，慢雾区这样的社群）</span></p><p><span style="font-size: 15px;">4、抖音红利研究小组</span></p><p><span style="font-size: 15px;">5、每日运营热点案例</span></p><p><span style="font-size: 15px;">6、裂变增长实验室</span></p><p><span style="font-size: 15px;">7、鹅厂公益笔记 </span></p><p><span style="font-size: 15px;">8、我滴妈呀 （一个小社群，完全不知道怎么关联出来的，哈哈）</span></p><p><span style="font-size: 15px;">9、创业直播间</span></p><p><span style="font-size: 15px;">10、新媒体玩法大全</span></p><p><br></p><p><span style="font-size: 15px;">当然，前面结果中很多星球我都已经加入了，这里有一些和前面结果明显不同，是因为这是基于我加入的所有星球来判断的，我觉得结果也还是比较满意的，出现了一些之前想不到的星球，但推荐本身不就是为了让你发现自己不知道而又可能感兴趣的东西么。</span></p><p><br></p><p><span style="font-size: 15px;">把结果放前面，是想证明，这个算法的效果，还是可以的。</span></p><p><br></p><p><span style="font-size: 15px;">那么，下面，代码展示，代码逻辑参见旧文 </span></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=209302719&amp;idx=1&amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;scene=21#wechat_redirect" target="_blank" style="text-decoration: underline;font-size: 15px;"><span style="font-size: 15px;">史上最简单的推荐系统设计</span></a><br></p><p><br></p><p><span style="font-size: 15px;">前置说明，数据准备，吴鲁加老师要求信息必须严格脱敏，本文章不涉及任何知识星球的数据结构和知识星球的数据获取方法。如何通过知识星球获取数据并整理的过程略，整理后的结果是我做相关推荐的中间结果，有这样几个数据结构。</span></p><p><br></p><p><span style="font-size: 15px;">gcount，每个星球的人数统计 </span></p><p><span style="font-size: 15px;">格式为 ： 群组id - 用户人数</span></p><p><br></p><p><span style="font-size: 15px;">mcount，每个用户加入的星球数统计</span></p><p><span style="font-size: 15px;">格式为 ：用户id - 加入星球数</span></p><p><br></p><p><span style="font-size: 15px;">nmlist，每个用户加入的星球列表</span></p><p><span style="font-size: 15px;">格式为 ：用户id - 星球1，星球2，星球3，</span></p><p><br></p><p><span style="font-size: 15px;">glist，每个星球的用户列表</span></p><p><span style="font-size: 15px;">格式为：星球id - 用户1，用户2，用户3，</span></p><p><br></p><p><span style="font-size: 15px;">再次说明，以上为我整理的中间数据，非知识星球原始数据结构。</span></p><p><br></p><p><span style="font-size: 15px;">caoz_data 是我自建的数据分析库，非知识星球数据库，其中group_relate表用于存储相关关系。</span></p><p><br></p><p><span style="font-size: 15px;">表结构为</span></p><p><br></p><p><span style="font-size: 15px;">id 自加1主键</span></p><p><span style="font-size: 15px;">fromgid 星球id </span></p><p><span style="font-size: 15px;">togid 相关星球id</span></p><p><span style="font-size: 15px;">sums 共同用户数</span></p><p><span style="font-size: 15px;">rights 相关权值 //生效的是这个，sums和nrights用于对比不同策略的效果</span></p><p><span style="font-size: 15px;">nrights 对比权值</span></p><p><br></p><p><span style="font-size: 15px;">相关推荐的数据生成代码，该代码完全基于中间数据，不涉及任何与知识星球系统交互的过程。</span></p><p><br></p><p><span style="font-size: 15px;">1 &lt;?</span></p><p><span style="font-size: 15px;">  2     set_time_limit(0);</span></p><p><span style="font-size: 15px;">  3     error_reporting(E_ALL || ~E_NOTICE);</span></p><p><span style="font-size: 15px;">  4     $now=time();</span></p><p><span style="font-size: 15px;">  5     function getarr($fname)</span></p><p><span style="font-size: 15px;">  6     {</span></p><p><span style="font-size: 15px;">  7         $fd=fopen($fname,"r");</span></p><p><span style="font-size: 15px;">  8         $seed=0;</span></p><p><span style="font-size: 15px;">  9         while ($str=trim(fgets($fd)))</span></p><p><span style="font-size: 15px;"> 10         {</span></p><p><span style="font-size: 15px;"> 11             $arr=explode(" - ",$str);</span></p><p><span style="font-size: 15px;"> 12             $key=$arr[0];</span></p><p><span style="font-size: 15px;"> 13             $value=$arr[1];</span></p><p><span style="font-size: 15px;"> 14             $listarr[$key]=$value;</span></p><p><span style="font-size: 15px;"> 15             $seed++;</span></p><p><span style="font-size: 15px;"> 16 //            if ($seed&gt;2000) break;</span></p><p><span style="font-size: 15px;"> 17         }</span></p><p><span style="font-size: 15px;"> 18         return ($listarr);</span></p><p><span style="font-size: 15px;"> 19     }</span></p><p><span style="font-size: 15px;"> 20     function putskip($now,$key)</span></p><p><span style="font-size: 15px;"> 21     {</span></p><p><span style="font-size: 15px;"> 22         $skip=time()-$now;</span></p><p><span style="font-size: 15px;"> 23         echo "$key  - $skip\n";</span></p><p><span style="font-size: 15px;"> 24     }</span></p><p><span style="font-size: 15px;"> 25     $garr=getarr("gcount");</span></p><p><span style="font-size: 15px;"> 26     $marr=getarr("mcount");</span></p><p><span style="font-size: 15px;"> 27     $mlarr=getarr("nmlist");</span></p><p><span style="font-size: 15px;"> 28     $glarr=getarr("glist");</span></p><p><span style="font-size: 15px;"> 29     putskip($now,"START");</span></p><p><span style="font-size: 15px;"> 30     require 'conn.php';</span></p><p><span style="font-size: 15px;"> 31     $seed=0;$seed2=0;</span></p><p><span style="font-size: 15px;"> 32     mysql_selectdb("caoz_data");</span></p><p><span style="font-size: 15px;"> 33     foreach ($glarr as $gid=&gt;$value)</span></p><p><span style="font-size: 15px;"> 34     {</span></p><p><span style="font-size: 15px;"> 35         $seed++;</span></p><p><span style="font-size: 15px;"> 36         $seed2++;</span></p><p><span style="font-size: 15px;"> 37         $v=$garr[$gid];</span></p><p><span style="font-size: 15px;"> 38         if ($v&lt;5 or $v&gt;1000000) continue;</span></p><p><span style="font-size: 15px;"> 39         $listarr=explode(",",$value);</span></p><p><span style="font-size: 15px;"> 40         foreach ($listarr as $key2=&gt;$mid)</span></p><p><span style="font-size: 15px;"> 41         {</span></p><p><span style="font-size: 15px;"> 42             if ($marr[$mid]==1 or $marr[$mid]&gt;1000) continue;</span></p><p><span style="font-size: 15px;"> 43             $gidlist=explode(",",$mlarr[$mid]);</span></p><p><span style="font-size: 15px;"> 44             foreach ($gidlist as $key3=&gt;$togid)</span></p><p><span style="font-size: 15px;"> 45             {</span></p><p><span style="font-size: 15px;"> 46                 if (trim($togid)=="") continue;</span></p><p><span style="font-size: 15px;"> 47                 if ($gid==$togid) continue;</span></p><p><span style="font-size: 15px;"> 48                 if ($garr[$togid]&gt;1000000) continue;</span></p><p><span style="font-size: 15px;"> 49                 if ($garr[$togid]&lt;2) continue;</span></p><p><span style="font-size: 15px;"> 50                 $sumlist[$gid][$togid]++;</span></p><p><span style="font-size: 15px;"> 51                 $tmpright=1/(sqrt($marr[$mid]+1)*sqrt($garr[$togid]+1));</span></p><p><span style="font-size: 15px;"> 52                 $tmpright2=1/(50+$garr[$togid]);</span></p><p><span style="font-size: 15px;"> 53                 $rlist[$gid][$togid]+=$tmpright;</span></p><p><span style="font-size: 15px;"> 54                 $nrlist[$gid][$togid]+=$tmpright2;</span></p><p><span style="font-size: 15px;"> 55             }</span></p><p><span style="font-size: 15px;"> 56         }</span></p><p><span style="font-size: 15px;"> 57         $value=$rlist[$gid];</span></p><p><span style="font-size: 15px;"> 58         $sql="delete from group_relate where fromgid=$gid";</span></p><p><span style="font-size: 15px;"> 59         mysql_query($sql);</span></p><p><span style="font-size: 15px;"> 60</span></p><p><span style="font-size: 15px;"> 61         $tmpseed=0;</span></p><p><span style="font-size: 15px;"> 62         arsort($value);</span></p><p><span style="font-size: 15px;"> 63         foreach ($value as $togid=&gt;$rights)</span></p><p><span style="font-size: 15px;"> 64         {</span></p><p><span style="font-size: 15px;"> 65             $tmpseed++;</span></p><p><span style="font-size: 15px;"> 66             $rights=$rlist[$gid][$togid];</span></p><p><span style="font-size: 15px;"> 67             $rights2=$nrlist[$gid][$togid];</span></p><p><span style="font-size: 15px;"> 68             if ($tmpseed==1)</span></p><p><span style="font-size: 15px;"> 69             {</span></p><p><span style="font-size: 15px;"> 70                 $zright=$rights; //归一化</span></p><p><span style="font-size: 15px;"> 71                 $zright2=$rights2;</span></p><p><span style="font-size: 15px;"> 72             }</span></p><p><span style="font-size: 15px;"> 73             $tmpsum=$sumlist[$gid][$togid];</span></p><p><span style="font-size: 15px;"> 74             if ($tmpseed&gt;30) break;</span></p><p><span style="font-size: 15px;"> 75             if ($tmpsum&lt;2) continue;</span></p><p><span style="font-size: 15px;"> 76             $rights=$rights/$zright*10000;</span></p><p><span style="font-size: 15px;"> 77             $nrights=$rights2/$zright2*10000;</span></p><p><span style="font-size: 15px;"> 78             $sql="insert into group_relate (fromgid,togid,sums,rights,nrights) values ('$gid','$togid','$tmpsum','$rights','$nrights')";</span></p><p><span style="font-size: 15px;"> 79             mysql_query($sql);</span></p><p><span style="font-size: 15px;"> 80             //echo "$sql\n";</span></p><p><span style="font-size: 15px;"> 81             //echo mysql_error();</span></p><p><span style="font-size: 15px;"> 82             //echo "$gid $togid $rights $tmpsum \n";</span></p><p><span style="font-size: 15px;"> 83         }</span></p><p><span style="font-size: 15px;"> 84         unset($rlist[$gid]);</span></p><p><span style="font-size: 15px;"> 85         unset($nrlist[$gid]);</span></p><p><span style="font-size: 15px;"> 86         unset($sumlist[$gid]);</span></p><p><span style="font-size: 15px;"> 87         if ($seed==1000) { putskip($now,$seed2); $seed=0; }</span></p><p><span style="font-size: 15px;"> 88</span></p><p><span style="font-size: 15px;"> 89     }</span></p><p><span style="font-size: 15px;"> 90 ?&gt;</span></p><p><span style="font-size: 15px;"> </span></p><p><span style="font-size: 15px;">代码只有90行，php写成，而且有些是调试的痕迹也没去掉，简单粗暴，初阶程序员一定能看懂。其中 putskip函数的意义就是，代码执行的时候，我能知道执行到哪里了，这是我做数据分析的一个习惯，要不怎么判断要等多久呢。扣掉这些调试代码，看看还剩多少行。</span></p><p><br></p><p><span style="font-size: 15px;">conn.php就是链接数据库而已，里面是啥就不许问了。</span></p><p><br></p><p><span style="font-size: 15px;">查询就简单了，以下查询均基于我自建的caoz_data数据库，无任何涉及知识星球部分。</span></p><p><br></p><p><span style="font-size: 15px;">1、查询星球相关的</span></p><p><span style="font-size: 15px;"> $str="select * from group_relate where fromgid=$gid order by rights desc";</span></p><p><span style="font-size: 15px;">这个不用解释</span></p><p><br></p><p><span style="font-size: 15px;">2、基于用户加入的星球，查询推荐的</span></p><p><span style="font-size: 15px;">（$gids 是用户已加入的星球列表）</span></p><p><span style="font-size: 15px;">$str="select distinct(togid) as tgid,sum(rights) as sumrights from group_relate where fromgid in($gids) and togid not in ($gids) group by tgid order by s    umrights desc limit 20";</span></p><p><br></p><p><span style="font-size: 15px;">那有人会说，这个SQL开销太大吧，线上跑不起来吧。</span></p><p><br></p><p><span style="font-size: 15px;">其实还好，开销不会很大，如果你对数据库的索引效率有一定理解，结合上面的生成代码逻辑比对，应该能测算这个开销是多少。结合内存缓存来用的话，对于知识星球这种体量的应用，没太大问题。这可以作为课后题，有兴趣的可以分析一下这个SQL开销是怎么测算的，每秒可以支撑多少量级。</span></p><p><br></p><p><span style="font-size: 15px;">补充说一下，前期数据筛选中，剔除了已退出星球的用户和免费试用的用户。前段时间我放了免费试用卡，人数有点多，发现对数据结果的影响还是有点大的，剔除后恢复了正常。筛选数据确实存在一定的策略，但是基于规则，而非为了合理结果人工定向筛选。</span></p><p><br></p><p><span style="font-size: 15px;">其实这个只是一个快速的测试方案，距离理想的结果依然存在一点距离，比如说，可以增加针对用户活跃度的权值，以及针对星球活跃度的权值，以避免推荐的是一些很久不更新的星球。此外，基于续费率的权值，基于星球主活跃度的权值，也都是可以考虑的一些方向，这也是运营团队需要思考的。</span></p><p><br></p><p><span style="font-size: 15px;">毕竟，相关推荐的目的是什么，说白了，用户价值的挖掘。大量数据实践证明，个性推荐的转化效率远高于系统无差别推荐。转化率是最终的目标，而转化率最终也会成为自学习指标，甚至超过以上所有策略。</span></p><p><span style="font-size: 15px;"><br></span></p><p><span style="font-size: 15px;"><br></span></p><hr><p><br></p><p><span style="font-size: 15px;">总结，</span></p><p><br></p><p><span style="font-size: 15px;">其实写这段代码可能有点自爆其丑，你看我写的代码也平平无奇，一点不像高手写出来的东西，这个确实也不是。</span></p><p><br></p><p><span style="font-size: 15px;">我常说自己是经济适用架构师，如果我们把代码抹掉，把我的前文链接抹掉，我只给你看上面列出来的关联结果，是不是觉得这个东西技术上还是有点厉害的。</span></p><p><br></p><p><span style="font-size: 15px;">这才是本文的重点，其实很多时候，用简单的方式，低成本的方式可以实现还不错的效果，第一看你有没有这个意识和行动，第二看你有没有整体评估的思维，只看代码一定很简单，但如果让一个程序员直接设计这个系统，几乎95%都会用很复杂的方式去实现。（当然，对于巨头或一些独角兽企业来说，肯定存在更好的方法，再高的成本也是值得的。这就不是经济适用架构师所能处理的场景了）</span></p><p><br></p><p><span style="font-size: 15px;">有，总比没有强，然后求精，迭代，后续需要更多技术投入，这也是合理的，但如果一开始就卡在实现成本过高，代价过大，很多创业项目是耗不起的。</span></p><p><br></p><p><span style="font-size: 15px;">我以前写 </span><a href="http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=209302719&amp;idx=1&amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;scene=21#wechat_redirect" target="_blank" style="text-decoration: underline;font-size: 15px;"><span style="font-size: 15px;">史上最简单的推荐系统设计</span></a><span style="font-size: 15px;"> 的时候，访问量就不高，不知道这篇会怎样。如果你公司有类似业务诉求，而一直苦于实现成本过高的话，本文可以转给有关的业务<strong>和</strong>技术负责人，请记住是“和”，不是“或”。</span></p><p><br></p><p><span style="font-size: 15px;">独角兽们请忽略，省的我被技术大牛鄙视，这样的东西也敢拿出来现眼？</span></p><p><br></p><hr><p>最后，本文发布前已经交由吴鲁加老师审阅并征得同意。</p><p>此外，该系统所涉及数据为个人研究所用，数据所有权为知识星球，鉴于数据保密原则，本人不提供公开查询和数据开放服务，相关需求免开尊口。</p>
+                </div>
+                <script nonce="823914884" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx3ec991.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_reward_area" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_reward_avatar">
+                        <img src="" alt="" id="js_reward_author_head">
+                    </div>
+                    
+                                       
+                                                <div class="reward-author" style="display: none;" id="js_reward_author">caoz的赞赏</div>
+                                            
+                                       
+
+                                        <p class="reward_tips js_reward_wording">感谢您的支持</p>
+                                        <p>
+                        <a class="reward_button" id="js_reward_link" href="##"><span id="js_reward_link_text">赞赏</span></a>
+                    </p>
+                    <div id="js_reward_inner" class="reward_area_inner" style="display:none;">
+                        <p class="weui-loadmore weui-loadmore_line reward_user_tips" id="js_reward_total_parent">
+                          <span class="weui-loadmore__tips"><a href="##" id="js_reward_total"></a> 人<span id="js_reward_total_text">赞赏</span></span>
+                        </p>
+                        
+                        <div id="js_reward_list" class="reward_user_list"></div>
+                    </div>
+                </div>
+                                <div class="reward_qrcode_area reward_area tc" id="js_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                                        <p class="reward_tips">感谢您的支持</p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" id="js_reward_qrcode_img"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+                        <div class="rich_media_tool" id="js_toobar3">
+
+                                            <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+                <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like3">
+                    <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum3"></span>
+                </span>
+
+                
+
+            </div>
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

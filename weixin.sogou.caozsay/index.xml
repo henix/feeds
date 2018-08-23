@@ -5,11 +5,222 @@
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/</link>
 <description>caoz的心得与分享,只此一家,别无分号.</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 21 Aug 2018 09:18:03 +0800</lastBuildDate>
+<lastBuildDate>Thu, 23 Aug 2018 19:53:25 +0800</lastBuildDate>
+<item>
+<title>一个至简推荐系统的实现(附源代码)</title>
+<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-08-21-1000000310.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5cbSiGPv*mCgY50Kda82sIVBSaOhMaZywcU*KRGPZDIzja-A5544qvHG124jQh2z9yNGOzxLptWqGlrN5QDuUOE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+                                    
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    一个至简推荐系统的实现(附源代码)
+
+                                                                                &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                &lt;span id=&quot;js_author_name&quot; class=&quot;rich_media_meta_link&quot; data-rewardsn=&quot;&quot; data-timestamp=&quot;&quot; data-canreward=&quot;0&quot;&gt;caoz的赞赏&lt;/span&gt;
+                                            &lt;/span&gt;
+                                        
+                                       
+                                                                    
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        caoz的梦呓                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;本文主要内容对非技术背景的人来说确实有点无趣，如果你不是技术人员，可以直接拖到底下看总结，还是有一点价值的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关旧文 &lt;/span&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209302719&amp;amp;idx=1&amp;amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; style=&quot;text-decoration: underline;font-size: 15px;&quot;&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;史上最简单的推荐系统设计&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 其实本文核心价值没有脱离如上旧文，不过重新用实战案例说明一下，可能更有助于理解，并开放源代码。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;在我的知识星球里，经常有新人问这样的问题，有什么星球是可以推荐的。这似乎是一个常见的新人话题。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;嗯，最近跟知识星球合作，征询吴鲁加老板同意，获取了一些数据练手，简单实现了一下相关推荐。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;先说推荐系统测试的结果，以 我个人的知识星球 为例，在这个推荐系统的测算中，相关度最高的星球是哪些呢？以下结果为程序测算，无任何人工干预和修正。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第一名，是亦仁的 “生财有术”。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第二名，是冯大辉老师的“小道消息”。&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第三名，是冯大辉老师的”小程序淘金“。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第四名，抖音红利研究小组，嗯，貌似圈主是在我的知识星球里做过推广。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第五名，余弦的慢雾区。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第六名，是&lt;span style=&quot;font-size: 15px;font-family: sans-serif;background-color: rgb(255, 255, 255);&quot;&gt;鞠海深的&quot;&lt;/span&gt;创业直播间&quot;，他曾经在我的知识星球里非常活跃，他的知识星球过半数用户与我的知识星球的重合。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第七名，硅谷女网红 angela zhu的 ”嘀嗒嘀嗒“。&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第八名，海外营销交流圈。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第九名，明白老师的webscraper精进。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第十名，池老师的 MacTalk的朋友们。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第十一名，冯大辉老师的”招聘/求职/跳槽“。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第十二名，刘老师的计算广告。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第十三名，外贸协会。//讲外贸建站和营销的，星主也是我星球里非常活跃的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第十四名，投资人子柳。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关度第十五名，WLJ的创业笔记。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;后面就不罗列了。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;这个结果，我觉得是非常符合预期的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;所谓符合预期，要特别说明的是，其实前文也提到过，在相关推荐的权值因素里，有两个最简单的数值代表了两个极端，一个是共同的推举数，也就是两个知识星球共同参与的人数，这个很容易理解，共同人数多是不是相关度就好呢，其实不是，如果按照共同人数来计算相关度，那么最高的一定是那些人数众多的热门免费群，包括几个火爆的摄影和美图群都会在这个榜单前列，这显然不是相关推荐理想的结果。 第二个极端是基于在对方星球的人数占比，如果对方星球的人数80%都出现在你的星球里，是不是相关度就极高了呢，但这样会出现一个很严重的问题，推荐出来的一定是一大堆人数稀少的小星球，有些几十人的星球绝大部分用户与我的星球用户重合，但其实价值不大，这些星球可能活跃度很差，而且星球没有什么号召力，所以这也不符合预期。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;实际上我做过几轮不同权值的测试，最后发现，十几年前我在百度用的权值土方法，依然是效果最理想的，很好的兼顾了两个因素，既体现了二者的相关价值，又同时削弱了它们的极端影响。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;但这个事情其实没结束，如果我作为用户，而非星主，我已经加入了30多个星球，那么系统会如何推荐给我其他未加入的呢。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;基于我个人已加入星球的情况，计算出来推荐结果如下&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;1、池老师的 MacTalk的朋友们，不好意思，一直没有加入。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;2、二爷书友会&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;3、KCon黑客大会（嗯，我加入了灰袍技能，慢雾区这样的社群）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;4、抖音红利研究小组&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;5、每日运营热点案例&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;6、裂变增长实验室&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;7、鹅厂公益笔记 &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;8、我滴妈呀 （一个小社群，完全不知道怎么关联出来的，哈哈）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;9、创业直播间&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;10、新媒体玩法大全&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;当然，前面结果中很多星球我都已经加入了，这里有一些和前面结果明显不同，是因为这是基于我加入的所有星球来判断的，我觉得结果也还是比较满意的，出现了一些之前想不到的星球，但推荐本身不就是为了让你发现自己不知道而又可能感兴趣的东西么。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;把结果放前面，是想证明，这个算法的效果，还是可以的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;那么，下面，代码展示，代码逻辑参见旧文 &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209302719&amp;amp;idx=1&amp;amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; style=&quot;text-decoration: underline;font-size: 15px;&quot;&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;史上最简单的推荐系统设计&lt;/span&gt;&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;前置说明，数据准备，吴鲁加老师要求信息必须严格脱敏，本文章不涉及任何知识星球的数据结构和知识星球的数据获取方法。如何通过知识星球获取数据并整理的过程略，整理后的结果是我做相关推荐的中间结果，有这样几个数据结构。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;gcount，每个星球的人数统计 &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;格式为 ： 群组id - 用户人数&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;mcount，每个用户加入的星球数统计&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;格式为 ：用户id - 加入星球数&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;nmlist，每个用户加入的星球列表&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;格式为 ：用户id - 星球1，星球2，星球3，&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;glist，每个星球的用户列表&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;格式为：星球id - 用户1，用户2，用户3，&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;再次说明，以上为我整理的中间数据，非知识星球原始数据结构。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;caoz_data 是我自建的数据分析库，非知识星球数据库，其中group_relate表用于存储相关关系。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;表结构为&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;id 自加1主键&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;fromgid 星球id &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;togid 相关星球id&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;sums 共同用户数&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;rights 相关权值 //生效的是这个，sums和nrights用于对比不同策略的效果&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;nrights 对比权值&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;相关推荐的数据生成代码，该代码完全基于中间数据，不涉及任何与知识星球系统交互的过程。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;1 &amp;lt;?&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  2     set_time_limit(0);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  3     error_reporting(E_ALL || ~E_NOTICE);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  4     $now=time();&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  5     function getarr($fname)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  6     {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  7         $fd=fopen($fname,&quot;r&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  8         $seed=0;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;  9         while ($str=trim(fgets($fd)))&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 10         {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 11             $arr=explode(&quot; - &quot;,$str);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 12             $key=$arr[0];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 13             $value=$arr[1];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 14             $listarr[$key]=$value;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 15             $seed++;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 16 //            if ($seed&amp;gt;2000) break;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 17         }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 18         return ($listarr);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 19     }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 20     function putskip($now,$key)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 21     {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 22         $skip=time()-$now;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 23         echo &quot;$key  - $skip\n&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 24     }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 25     $garr=getarr(&quot;gcount&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 26     $marr=getarr(&quot;mcount&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 27     $mlarr=getarr(&quot;nmlist&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 28     $glarr=getarr(&quot;glist&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 29     putskip($now,&quot;START&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 30     require &#39;conn.php&#39;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 31     $seed=0;$seed2=0;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 32     mysql_selectdb(&quot;caoz_data&quot;);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 33     foreach ($glarr as $gid=&amp;gt;$value)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 34     {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 35         $seed++;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 36         $seed2++;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 37         $v=$garr[$gid];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 38         if ($v&amp;lt;5 or $v&amp;gt;1000000) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 39         $listarr=explode(&quot;,&quot;,$value);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 40         foreach ($listarr as $key2=&amp;gt;$mid)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 41         {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 42             if ($marr[$mid]==1 or $marr[$mid]&amp;gt;1000) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 43             $gidlist=explode(&quot;,&quot;,$mlarr[$mid]);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 44             foreach ($gidlist as $key3=&amp;gt;$togid)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 45             {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 46                 if (trim($togid)==&quot;&quot;) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 47                 if ($gid==$togid) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 48                 if ($garr[$togid]&amp;gt;1000000) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 49                 if ($garr[$togid]&amp;lt;2) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 50                 $sumlist[$gid][$togid]++;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 51                 $tmpright=1/(sqrt($marr[$mid]+1)*sqrt($garr[$togid]+1));&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 52                 $tmpright2=1/(50+$garr[$togid]);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 53                 $rlist[$gid][$togid]+=$tmpright;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 54                 $nrlist[$gid][$togid]+=$tmpright2;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 55             }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 56         }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 57         $value=$rlist[$gid];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 58         $sql=&quot;delete from group_relate where fromgid=$gid&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 59         mysql_query($sql);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 60&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 61         $tmpseed=0;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 62         arsort($value);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 63         foreach ($value as $togid=&amp;gt;$rights)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 64         {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 65             $tmpseed++;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 66             $rights=$rlist[$gid][$togid];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 67             $rights2=$nrlist[$gid][$togid];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 68             if ($tmpseed==1)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 69             {&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 70                 $zright=$rights; //归一化&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 71                 $zright2=$rights2;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 72             }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 73             $tmpsum=$sumlist[$gid][$togid];&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 74             if ($tmpseed&amp;gt;30) break;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 75             if ($tmpsum&amp;lt;2) continue;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 76             $rights=$rights/$zright*10000;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 77             $nrights=$rights2/$zright2*10000;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 78             $sql=&quot;insert into group_relate (fromgid,togid,sums,rights,nrights) values (&#39;$gid&#39;,&#39;$togid&#39;,&#39;$tmpsum&#39;,&#39;$rights&#39;,&#39;$nrights&#39;)&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 79             mysql_query($sql);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 80             //echo &quot;$sql\n&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 81             //echo mysql_error();&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 82             //echo &quot;$gid $togid $rights $tmpsum \n&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 83         }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 84         unset($rlist[$gid]);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 85         unset($nrlist[$gid]);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 86         unset($sumlist[$gid]);&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 87         if ($seed==1000) { putskip($now,$seed2); $seed=0; }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 88&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 89     }&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 90 ?&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;代码只有90行，php写成，而且有些是调试的痕迹也没去掉，简单粗暴，初阶程序员一定能看懂。其中 putskip函数的意义就是，代码执行的时候，我能知道执行到哪里了，这是我做数据分析的一个习惯，要不怎么判断要等多久呢。扣掉这些调试代码，看看还剩多少行。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;conn.php就是链接数据库而已，里面是啥就不许问了。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;查询就简单了，以下查询均基于我自建的caoz_data数据库，无任何涉及知识星球部分。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;1、查询星球相关的&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; $str=&quot;select * from group_relate where fromgid=$gid order by rights desc&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;这个不用解释&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;2、基于用户加入的星球，查询推荐的&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;（$gids 是用户已加入的星球列表）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;$str=&quot;select distinct(togid) as tgid,sum(rights) as sumrights from group_relate where fromgid in($gids) and togid not in ($gids) group by tgid order by s    umrights desc limit 20&quot;;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;那有人会说，这个SQL开销太大吧，线上跑不起来吧。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;其实还好，开销不会很大，如果你对数据库的索引效率有一定理解，结合上面的生成代码逻辑比对，应该能测算这个开销是多少。结合内存缓存来用的话，对于知识星球这种体量的应用，没太大问题。这可以作为课后题，有兴趣的可以分析一下这个SQL开销是怎么测算的，每秒可以支撑多少量级。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;补充说一下，前期数据筛选中，剔除了已退出星球的用户和免费试用的用户。前段时间我放了免费试用卡，人数有点多，发现对数据结果的影响还是有点大的，剔除后恢复了正常。筛选数据确实存在一定的策略，但是基于规则，而非为了合理结果人工定向筛选。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;其实这个只是一个快速的测试方案，距离理想的结果依然存在一点距离，比如说，可以增加针对用户活跃度的权值，以及针对星球活跃度的权值，以避免推荐的是一些很久不更新的星球。此外，基于续费率的权值，基于星球主活跃度的权值，也都是可以考虑的一些方向，这也是运营团队需要思考的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;毕竟，相关推荐的目的是什么，说白了，用户价值的挖掘。大量数据实践证明，个性推荐的转化效率远高于系统无差别推荐。转化率是最终的目标，而转化率最终也会成为自学习指标，甚至超过以上所有策略。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;总结，&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;其实写这段代码可能有点自爆其丑，你看我写的代码也平平无奇，一点不像高手写出来的东西，这个确实也不是。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;我常说自己是经济适用架构师，如果我们把代码抹掉，把我的前文链接抹掉，我只给你看上面列出来的关联结果，是不是觉得这个东西技术上还是有点厉害的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;这才是本文的重点，其实很多时候，用简单的方式，低成本的方式可以实现还不错的效果，第一看你有没有这个意识和行动，第二看你有没有整体评估的思维，只看代码一定很简单，但如果让一个程序员直接设计这个系统，几乎95%都会用很复杂的方式去实现。（当然，对于巨头或一些独角兽企业来说，肯定存在更好的方法，再高的成本也是值得的。这就不是经济适用架构师所能处理的场景了）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;有，总比没有强，然后求精，迭代，后续需要更多技术投入，这也是合理的，但如果一开始就卡在实现成本过高，代价过大，很多创业项目是耗不起的。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;我以前写 &lt;/span&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209302719&amp;amp;idx=1&amp;amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; style=&quot;text-decoration: underline;font-size: 15px;&quot;&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;史上最简单的推荐系统设计&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt; 的时候，访问量就不高，不知道这篇会怎样。如果你公司有类似业务诉求，而一直苦于实现成本过高的话，本文可以转给有关的业务&lt;strong&gt;和&lt;/strong&gt;技术负责人，请记住是“和”，不是“或”。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;独角兽们请忽略，省的我被技术大牛鄙视，这样的东西也敢拿出来现眼？&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;最后，本文发布前已经交由吴鲁加老师审阅并征得同意。&lt;/p&gt;&lt;p&gt;此外，该系统所涉及数据为个人研究所用，数据所有权为知识星球，鉴于数据保密原则，本人不提供公开查询和数据开放服务，相关需求免开尊口。&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;823914884&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx3ec991.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_reward_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                       
+                                                &lt;div class=&quot;reward-author&quot; style=&quot;display: none;&quot; id=&quot;js_reward_author&quot;&gt;caoz的赞赏&lt;/div&gt;
+                                            
+                                       
+
+                                        &lt;p class=&quot;reward_tips js_reward_wording&quot;&gt;感谢您的支持&lt;/p&gt;
+                                        &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_reward_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                    &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;p class=&quot;weui-loadmore weui-loadmore_line reward_user_tips&quot; id=&quot;js_reward_total_parent&quot;&gt;
+                          &lt;span class=&quot;weui-loadmore__tips&quot;&gt;&lt;a href=&quot;##&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt; 人&lt;span id=&quot;js_reward_total_text&quot;&gt;赞赏&lt;/span&gt;&lt;/span&gt;
+                        &lt;/p&gt;
+                        
+                        &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                                        &lt;p class=&quot;reward_tips&quot;&gt;感谢您的支持&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; id=&quot;js_reward_qrcode_img&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+                                            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like3&quot;&gt;
+                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+                &lt;/span&gt;
+
+                
+
+            &lt;/div&gt;
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                            
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>caoz的赞赏</author>
+<guid isPermaLink="false">2018-08-21-1000000310</guid>
+<pubDate>Tue, 21 Aug 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>当微课遇上星球</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-08-19-1000000309.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd2O6pFD3Fu-IpMKziRl7acWv2TegRwVI4YAACJG4HMDa3RzIzdB0nMSwu8NxkyvAptnOGYbrRj3ff*bDKaX*dlU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5e5y3QZs0S7VgU1BztKkT3omRF4T2*5oGN2Scqq5kUy1JI5R4gF0MhvWUN9HqrFIBvBU5A-Ty13zcBv6u6fOgtg=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -208,7 +419,7 @@
 <item>
 <title>人在职场，都长点心吧</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-08-14-1000000308.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd0WpT2Mn82p93Ppddup1*HEHY5YoTCMZ5nYgKj9mqDhpR88RTMWR73UsagCc081ombqCSKItrQw7nlH2lbzV*mw=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5WsYa8IvzJKW8b0k7DJ82NvCYgUBW3pgIeRDMaskonFY-HqpEVObEuUrrgjX7AJPwSZkCURxHsYAAL4EfQJbGPg=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -418,7 +629,7 @@
 <item>
 <title>人口红利的另一面</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-08-05-1000000306.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd*mC8WV95fJ0iOIj69R4Ap1ewY1dXKQbJXyHe-qCrCnxFzieJ892ziHFbvFVNMxc5PU9YxfvfWUK5t62n1kZu60=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5TkRoW0HWZvPTVmmqYaMifwS0*tPM9YgUO2sbdDkNOVzhZ6MZj38xOaKF17QyxDA2fp0l*oI*Zp*HwBImXTyZeA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -628,7 +839,7 @@
 <item>
 <title>浅谈负面评价设计</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-08-02-1000000305.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd-F2U*Iu9z774uuRD8s6hvZjuAmhsmuZr1OS78Biv4xCHS5pKxNG9Fz9YGllu3CBJ7Kk8sFlS5-sU10YFlI5mOM=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5ZJVqBy*Rx0sZ5pww-qRUQUhV0j7Er10EeM0vV5Neofnsl2VxRoTqMSAiGNXiTa1CqmdCg2*KsdnqEWjeQAiAaA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -838,7 +1049,7 @@
 <item>
 <title>求职是需要诚意的</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-07-30-1000000303.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd3wHo4E1w03OE3Mt0nne2MQILnW20c3Z*QyOgYY2lVvCgfNajwWRWyp5lmIRX0Cr4kBa*A970T8K*riMBSVfnxk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5RJZ7Jkk9nu7CpEOM6azJ6ldlOBovDcyXxZC6Ha8V3Wi89NnXxWd5hEEXitX4W-ZZQtsMjxo75Uv9*PMZ*oLPx4=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1048,7 +1259,7 @@
 <item>
 <title>再谈话术</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-07-28-1000000302.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvdz5g6C1x9XNbGE-tydpQAXCftqtFtTRJQ5xcD-PtkbSUtLvtBVXW1D4w51y56Ng7fvwSZS4WxAtmDtv*4mzxETU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5SyeVzvcU4GDZwfNr9K9qA1jZZM2gPMaFl6jiNesuN1wvh5yjd8SId1KPoxHO6JmfZjDG*OO-y6*QxnfJCbjN2s=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1258,7 +1469,7 @@
 <item>
 <title>小米算不算帮凶？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-07-24-1000000301.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvdzntagH9Qcszhg6GjIPuZgLe3TX47TMKsFypTfw4xhW3Op4VWslbYv7BWLM7-m8-dD8yO8*zKrsT3vPVc3l3oM8=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5cz4ovfAp0-QiVe9vJqlq7QYdB1VjCxPIbPoRMwwyT2xi0J3HfqjK62WCojj9n7iEfEpZxrBHBtWlOCGxOI0P0Y=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1487,7 +1698,7 @@
 <item>
 <title>公众号信息流，假如我来设计。。。</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-07-21-1000000300.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvdz2E2mAB1DU5KjSWvSf-FAhLU3BFKZUYKBoQHeiFzbNHc-kbWuULasRG*L0HZyYBjVbKosFnLqG2T6nXasS9z*8=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5T-v8zPs*5IzZImMB9to9tz*4AJArz8NYxkQ-o8mBIJ86FIWXfR4dkkOOL-wF65P-CZjWdrMTSbAOCFOUuGhP2g=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1692,7 +1903,7 @@
 <item>
 <title>科学，宗教，与信仰</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-07-18-1000000299.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd6qcfAqykF*OMinadsO888L6uhAaxn8RQFHrwQyJYDxtsVKoZKLQipwYCluoFpPK*hpb-Ec7OycJh-rTAwM3rVA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1535025202&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=El3m8osuiYdBJpGiCK0Ym1zUNFoBhtLlCvEg*TsHBnvYxCmCNkaFlrXVwPyUVH-WRDM7rPhOmFSWWlanRRia5YqFQq6liocgdjDPNpWsgrbbkcUWrBwfbeNBPHQen2*P9F68HmJ*7LQf1hjIN2IBdvAOi5UmDkMneMfXat7LNdQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1891,209 +2102,6 @@
 <author>caoz的赞赏</author>
 <guid isPermaLink="false">2018-07-18-1000000299</guid>
 <pubDate>Wed, 18 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>抑郁症，莫要讳疾忌医。</title>
-<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2018-07-15-1000000298.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1534814282&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=8eXMbQwB08F4D6zyYC5kxr2MR4jmGIJt-*yHnhVb6I6LyDHf613bC0l*SIKb*Bhu56A3U8ejUCBP4KX*ieMvd-LTT5PkkcgZ3eu3fv5GFozlJ2LOrJOm-omr38CKS1wsCff04fPjKbyN9-rxU-wgs*39570ubtRISAX9D0Ukc98=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-
-                                    
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    抑郁症，莫要讳疾忌医。
-
-                                                                                &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
-                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                &lt;span id=&quot;js_author_name&quot; class=&quot;rich_media_meta_link&quot; data-rewardsn=&quot;&quot; data-timestamp=&quot;&quot; data-canreward=&quot;0&quot;&gt;caoz的赞赏&lt;/span&gt;
-                                            &lt;/span&gt;
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        caoz的梦呓                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; lang=&#39;=&quot;en&quot;&#39; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p&gt;如果说你得了一种病，你去跟你的朋友，家人去说，他们不但不担心你，不陪你去看病，不给你安慰，甚至还会揶揄和嘲讽，“你别找借口了吧。”，“你吓唬谁啊。”，“就你事多，少瞎琢磨。” 这事怎么体会？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这事很常见，这个病就是抑郁症。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;翟欣欣的案子还在审理，一些名校毕业的中年人因职场失意而跳楼的案例也都历历在目，实际上，这些只是抑郁症爆发，冰山上的一角。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多时候，我们会天然的觉得，那些功成名就的成功人士，那些朋友圈里不断打鸡血的创业者，通常是不会抑郁的，但实际上，根据我的观察，现实恰恰相反。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;还记得前段时间周鸿祎朋友圈突然感言人生失败的事情么，内情确实不了解，但我不负责拍脑袋猜测一下，老周那个时候绝对是抑郁了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;创业者会抑郁，因为压力，因为责任，因为挫折带来的沮丧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;责任心往往与抑郁症成正比，你越想为所有的人负责，为团队负责，为投资人负责，为合作伙伴负责，为家庭负责，你就不得不背负起沉重的负担，如山一般。如果你的家人又不体谅你，那压力就要加个更字。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;身边很多创业者家庭，甚至成功人士家庭，都曾经面临家庭中的压力，离婚的已经不少了，长期分居的，经常夫妻冷战的，有些还涉及跟长辈的纷争，那问题就更加头大。女方通常会感慨悔教夫婿觅封侯，而男方通常会觉得女方无法体谅自己的压力和责任。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在咪蒙这样的女性大号里，故事往往是优秀的男生又能赚钱又顾家，左手事业右手生活，长得帅还浪漫，不符合如上条件的一概渣男，但现实中，很抱歉，想要面面俱到的实在太难了，我偷偷说个真相给妹子们，专一的男生往往不会太浪漫，大多数情况下，浪漫和温存是拿很多姑娘练出来的。算了，扯远了，还会被女性大V批判，我知道朋友谁谁谁就都符合，所以你不符合你是渣男。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;回到这个话题，有的人善于处理错综复杂的人际和各种关系，有的人不善于，前者可能还能安抚好各方情绪并度过难关，而后者可能就只会越搞越糟，翟欣欣这样的是比较极端的，但其实出状况而没有被曝光的非常多，很多事情也不都是一方的问题，因为家庭关系处置不当，女方抑郁的其实也不少见。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;知乎上经常有这样的讨论，开车到家楼下，停车半小时再回家，很多职场上的风头人物都有这样的经历，平复心情，自我疏解，然后用尽可能若无其事的样子回到家庭，把工作中的压力阻断在外。但也难免被心细的家人看出端倪，“你怎么这么心不在焉”，“你有听我说的话么？”，“我让你去查查煤气费/水电费/停车费/物业费/托管费 的事情你怎么又忘了？&quot; 对外气势坚强，对内怀柔温存，人活得非常分裂，坚持的住就是赢家，坚持不住就会爆发。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;成功人士，有些人会觉得，有钱不能摆平一切么？真不能。&lt;/p&gt;&lt;p&gt;职场，商业竞争的明争暗斗；政治风向的风吹草动；利益下的人心浮动，太多可说的不可说的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867730&amp;amp;idx=1&amp;amp;sn=541e9fc9ec47ab7cd9574d596ebc8673&amp;amp;chksm=f1075fbfc670d6a96ab274098ed9ae60c8a6254f809222b625d2c07f9300a73b849e31628cda&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot;&gt;那些表面光鲜的成功人士背后&lt;/a&gt; 旧文也提到，很多身价很高的成功人士，其实可能并没有那么光鲜，在股权质押问题上，在财务上也会面临捉襟见肘的窘境，而这时候，他们还要维系自己的形象和身价，努力在公众面前表现出泰然自若的样子，那么焦虑和恐慌就只能憋在自己心里。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;冯小刚和崔永元的事情，很多人追热点，我这里提一句，大部分解读都没说到点子上。华谊兄弟的几个主要股东股权已经质押的七七八八了，而且按照正常逻辑，最近这跌幅可能已经是接近强平线了，可能政府现在不让强平了，但这种勒着脖子的感受可以体会一下。冯小刚靠明显利益输送的收购条款从华谊兄弟赚到了不少钱，但对赌协议也不是闹着玩的，股价好的时候股东们可以做点手段，股价不好大股东们自顾不暇，这么说吧，要是“手机2”这部电影跪了，基本上华谊兄弟股东们就要团灭了。崔永元的爆料打在了七寸上，冯导不怒才怪。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;场面上不服软，骨子里很焦虑，这是很多成功人士彼此撕逼的常态，至于这两年某些来钱不正的大佬就更不用说了，被约谈的约谈，被边控的边控，大佬们嘴上硬，各种不在乎，心里怎么想，我也不敢乱说。最近p2p金融开始狂爆雷，一波波的开始收网抓人了，那么币圈见光死的垃圾项目这么多，某些大佬站台骗了这么多钱，未来会怎样，谁知道。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;你说他们不焦虑，不在乎，或许吧，人家可能真不在乎，我只能说为啥我一直不敢碰这个，我要是处于这样的场景，我想想自己肯定恐慌死了，被套牢的韭菜追杀怎么办，被政府抓怎么办，身败名裂怎么办，所以回过头来说，我这种人是不能碰这种事的，钱没赚到自己先崩溃了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;创业者要有大心脏，有时候说难听点，混不吝，什么都不在乎，可能抗压能力就强一些，但还是那句话，如果你责任心很强，想对得起所有人，想承担所有的责任，那可能没多大事，自己就把自己压垮了。而有不少创业者，真就是这么压垮自己的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么，成功人士，那么有钱，不会找专业的医生去做心理问诊来调解么？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那我特别强调一点，在中国，就心理问诊，情绪调节这方面的治疗，最大的难点是，很难建立彼此信任关系。越是大佬，知名人物，越不敢轻信外人。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们很多人对心理医生的认识，可能来自于香港电影《无间道》，梁朝伟卧底的身份非常隐秘，是绝对不能外传的，但他很苦闷，把隐私告诉了心理医生。他必须找人倾诉，又无人倾诉，心理医生是他唯一的寄托。而心理医生的职业准则之一，就是切实维护患者的隐私。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但现实中，人们很难相信自己的隐私不会被传播。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一个看上去十分体面风光风云人物，怎么敢把自己郁闷，苦恼的事情告诉一个心理医生，这基本不可能，万一被传出去还了得，分分钟身败名裂有没有，说白了，我怎么可能把自己的前程和身家，寄托在你心理医生的职业操守上。但也邪门，有时候宗教，甚至假借宗教名号的伪大师就会趁虚而入，从王林道长到李一大师，很多时候也扮演了给风云人物排忧解难，指点迷津的作用。是否能指点迷津不知道，但至少那些人有了倾诉和交流的对象。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;通常，抑郁只能自我疏解，怎么疏解？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第一就是给自己打鸡血，天天发励志信息，然后让自己忙起来，相信只要肯努力就能克服一切问题。（然而并不能）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二就是自我麻醉，找出无数理由，借口来蒙骗自己，让自己相信那些责任和压力并不存在。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如说，&lt;/p&gt;&lt;p&gt;典型的1，你们这些韭菜自己非要来送钱，我说有风险你们都不听，不是我骗你们对不对。&lt;/p&gt;&lt;p&gt;典型的2，这些韭菜的钱怎么也会被人骗走，与其那些坏人骗走，还不如我来收，我可是好人啊。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第三是暂时逃避，算了，由他去吧，爱谁谁，爱咋咋地。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，有的时候，这种行为仍然会有一些看上去堂皇的理由，去休息一段时间，出去禅修一下，或者说去游学一下，当然我不能说这些行为都是自暴自弃，但有些人压力大了，会选择这种方式暂时逃避，放松后再回归职场和事业。乔帮主当年不也来过这么一段，然后才上演的王者归来。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第四是求助于宗教和玄学。这就数不胜数了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而求助于专业心理咨询和心理医生的，可能真的微乎其微了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;换个立场看，其实这个市场空间是很大的，我年轻的时候看过一个热播的美剧，现在年轻人可能不知道，叫做成长的烦恼，其中家庭男主人就是一名心理医生，自己开诊所，收入颇丰。当时觉得很新奇，在美国看来心理医生是个非常不错的职业，但在中国，这个行业可能非常尴尬，基本不被认可，而且很难获得信任，但中国需要心理咨询和心理疏导的人，其实我认为是非常庞大的，我觉得这里可能有个关键点是可以去尝试的，就是隐私信息脱敏，如果能通过一些匿名方法，将隐私信息脱敏处理，让医生能够体会患者的困扰和情绪起因，而又不会真的知道具体隐私信息，这可能是一个值得去尝试的方向。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我不是心理医生，也没有特别好的建议，但有时候我也觉得挺无奈，甚至挺尴尬，你发现身边的人可能存在抑郁症的情况，你其实也无能为力，只能说些稍作宽解的话，但可能也没什么卵用。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;抑郁是种病，不要一个人抗。&lt;/p&gt;&lt;p&gt;如果发现你的亲人，家人可能存在抑郁风险，要多宽解，不要不以为然。更不要斤斤计较，吹毛求疵。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我测试过基因，基因报告显示，我的抑郁症发病概率超出正常值的6倍。前几天我的合伙人告诉我，他的基因报告出来了，他的抑郁症发病概率超出正常值的21倍，认真的说，我迫切觉得我们应该需要换个CEO了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;mp-miniprogram class=&quot;miniprogram_element&quot; data-miniprogram-appid=&quot;wx46dd76c08122dbd1&quot; data-miniprogram-path=&quot;page/web/view&quot; data-miniprogram-nickname=&quot;易灵微课&quot; data-miniprogram-avatar=&quot;http://mmbiz.qpic.cn/mmbiz_png/nz9JE0ubmmDZibYTIDaUdG8Sn5SniclBCQm80eGmNxHxkgtY7bN7FMxdAj9IpDU9icGEdZvaD6JAnjLLc2jbe3YFw/0?wx_fmt=png&quot; data-miniprogram-title=&quot;易灵微课小程序&quot; data-miniprogram-imageurl=&quot;http://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer0s7dVZSSnFAkWEg7UV8YlvlMYlffCcgYrxs43mNBWTjibQTqCDGTOcFEXEtIURnGfhdUbicLCCPHSA/0?wx_fmt=jpeg&quot;&gt;&lt;/mp-miniprogram&gt;&lt;/p&gt;&lt;p&gt;我们易灵微课小程序上了。新开了一门前端课程，有兴趣的朋友可以看看。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;偷偷说一句，很多产品经理都会一点前端技能，设计不求人，小修改自己来，很多企业也喜欢用这样的产品经理。&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;717352247&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx3ec991.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_reward_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    &lt;div class=&quot;reward-author&quot; style=&quot;display: none;&quot; id=&quot;js_reward_author&quot;&gt;caoz的赞赏&lt;/div&gt;
-
-                                        &lt;p class=&quot;reward_tips js_reward_wording&quot;&gt;感谢您的支持&lt;/p&gt;
-                                        &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_reward_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                    &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
-                        &lt;p class=&quot;weui-loadmore weui-loadmore_line reward_user_tips&quot; id=&quot;js_reward_total_parent&quot;&gt;
-                          &lt;span class=&quot;weui-loadmore__tips&quot;&gt;&lt;a href=&quot;##&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt; 人&lt;span id=&quot;js_reward_total_text&quot;&gt;赞赏&lt;/span&gt;&lt;/span&gt;
-                        &lt;/p&gt;
-                        
-                        &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-                                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                                        &lt;p class=&quot;reward_tips&quot;&gt;感谢您的支持&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; id=&quot;js_reward_qrcode_img&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-                                            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
-
-                &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like3&quot;&gt;
-                    &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-                &lt;/span&gt;
-
-                
-
-            &lt;/div&gt;
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                            
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>caoz的赞赏</author>
-<guid isPermaLink="false">2018-07-15-1000000298</guid>
-<pubDate>Sun, 15 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
