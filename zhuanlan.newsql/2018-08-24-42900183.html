@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>【详解】What’s New in TiDB 2.1 RC1</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/42900183">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-c5471d4c277c4314ece59344787b7a49_r.jpg" alt=""></div><p>2018 年 4 月底，我们发布了 TiDB 2.0 GA 版本，过去的几个月中，这个版本在上百家用户的生产环境中上线，覆盖了多个行业，包括大型互联网、银行、教育、电信、制造业等。与此同时，我们也开始了 2.1 版本的开发，经过 4 个月时间、1058 次代码提交，2.1 RC1 带着更全面的功能和大幅性能提升来到这里，与大家见面。</p><h2><b>新增特性</b></h2><ul><li><b>Raft 新特性</b></li></ul><p>Raft 是整个 TiKV 存储引擎的基础，2.1 版本中我们引入了 PreVote、Learner、Region Merge、Region Batch Split 这样四个特性，提升这一基础组件的性能和稳定性。其中 Learner 也是由我们贡献给 Etcd 的新特性。</p><ul><li><b>热点调度</b></li></ul><p>热点是分布式系统最大的敌人之一，并且大家的业务场景复杂多变，让热点问题捉摸不定，也是最狡猾的敌人。2.1 版本中，我们一方面增强热点检测能力，尽可能详细地统计系统负载，更快的发现热点；另一方面优化热点调度策略，用尽可能小的代价，尽快地打散热点。</p><ul><li><b>并行 DDL</b></li></ul><p>DDL 是 SQL 的基础。在 2.1 版本之前，所有的 DDL 操作的都是串行进行，比如在对一张大表进行 Add Index 操作时，所有的 Create Table、Create Database 语句都会被阻塞，我们在 2.1 版本中对此进行了优化。Add Index 操作和其他 DDL 操作的处理分离，不相关的表上面的操作不会相互阻塞。</p><ul><li><b>Table Partition（实验性）</b></li></ul><p>分布式数据库可以很容易的存储海量数据，但是 Table Parition 也能找到用武之地。比如在存储日志并定期进行数据归档的场景下，可以通过 Drop Partition 来方便的清理历史数据。在高并发写入的场景下，将单表数据分成多个 Parition 也有助于将写入流量打散在集群上。我们期望这个特性能够在 2.2 或者 3.0 版本中稳定下来。</p><ul><li><b>统计信息动态更新</b></li></ul><p>在 OLTP 场景中，数据的统计分布决定了查询计划的合理性，在数据变化频繁的场景下，维护统计信息的实时性和准确性非常重要。2.1 版本中我们重点优化了统计信息的实时更新，通过执行查询过程中的反馈信息，不断地纠正已有的统计信息。</p><ul><li><b>并行聚合算子</b></li></ul><p>在 OLAP 场景中，聚合和 Join 是最重要的两个算子，其性能决定了语句的处理速度，Join 算子在 2.0 版本中已经是并行模式，2.1 版本中我们对聚合算子做了重点优化，一方面将单线程变成多线程模式，另一方面对聚合的框架做了重构，聚合算子的运行速度、内存使用效率都有极大地提升。</p><h2><b>性能优化</b></h2><p>TiDB 的定位是一个 HTAP 数据库，OLTP 和 OLAP 都是目标场景。2.1 RC1 版本中，我们对点查、区间扫描、聚合运算这些通用场景进行了优化，也对 “replace into” 语句， Add Index 这些特定场景做了优化。这些场景都有很好的性能提升，有的甚至有数量级的提升。</p><p>我们将会在 2.1 GA 版本中发布相比 2.0 GA 的 Benchmark 结果，也希望大家在自己的业务场景中实测对比，然后告诉我们在实际业务上的表现。</p><h2><b>开源社区</b></h2><p>在这些激动人心的特性背后，一方面是 PingCAP 开发团队的辛勤工作，另一方面是日益壮大的 TiDB 全球社区。我们欣喜地看到，从 TiDB 2.1 Beta 版发布到现在的短短两个月时间，新增 30 多位 Contributor，其中杜川成为了 TiDB Committer。在这里对社区贡献者表示由衷的感谢，也希望更多志同道合的人能加入进来。</p><p><b><i>做分布式关系型数据库这样一个通用基础软件如同在夜晚的茫茫大海中航行，充满无数的未知和挑战，社区就是照亮我们前进路线的满天星斗。</i></b></p><p><br></p><blockquote><b>TiDB 2.1 Beta 版到 RC1 版期间新增 Contributor List</b><br>mz1999<br>liuzhengyang<br>cityonsky<br>mail2fish<br>ceohockey60<br>crazycs520<br>zbdba<br>laidahe<br>birdstorm<br>gregwebs<br>hhxcc<br>liukun4515<br>morgo<br>supernan1994<br>bb7133<br>maninalift<br>kbacha<br>ceohockey60<br>DorianZheng<br>GuillaumeGomez<br>TennyZhuang<br>lerencao<br>smallyard<br>sweetIan<br>arosspope<br>York Xiang<br>Mason Hua<br>ice1000<br>opensourcegeek<br>xiangyuf</blockquote><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
