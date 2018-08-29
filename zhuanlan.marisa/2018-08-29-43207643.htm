@@ -1,0 +1,12 @@
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-51d5125f46b7553c669a0878c104eb41_r.jpg" alt=""></div><p>搜了一圈<b>竟然没有</b>。</p><p>就是这个众所周知的把 call/cc 玩出花来的。</p><a href="https://www.zhihu.com/question/27683900" data-draft-node="block" data-draft-type="link-card" data-image="e95c1c2b95f924056dca52e6b7a9bf01" data-image-width="1241" data-image-height="1376" data-image-size="ipico">如何实现 Call / CC 或者阴阳谜题（Yin Yang Puzzle）？</a><p>创造宇宙这种事，没有 call/cc 可以每次新建一个 generator 啊。</p><code lang="python3">def puzzle():
+    def yin(yin):
+        yield '@'
+        def yang(yang):
+            yield '*'
+            yield from yin(yang)
+        yield from yang(yang)
+    yield from yin(yin)
+
+for x, _ in zip(puzzle(), range(256)):
+    print(x, end='')
+print()</code><p>输出</p><code lang="text">@*@**@***@****@*****@******@*******@********@*********@**********@***********@************@*************@**************@***************@****************@*****************@******************@*******************@********************@*********************@***</code><p></p>

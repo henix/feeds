@@ -5,7 +5,263 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 27 Aug 2018 07:10:05 +0800</lastBuildDate>
+<lastBuildDate>Wed, 29 Aug 2018 14:29:08 +0800</lastBuildDate>
+<item>
+<title>Python 实现阴阳谜题（Yin Yang Puzzle）</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-29-43207643.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43207643&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-51d5125f46b7553c669a0878c104eb41_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;搜了一圈&lt;b&gt;竟然没有&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;就是这个众所周知的把 call/cc 玩出花来的。&lt;/p&gt;&lt;a href=&quot;https://www.zhihu.com/question/27683900&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;e95c1c2b95f924056dca52e6b7a9bf01&quot; data-image-width=&quot;1241&quot; data-image-height=&quot;1376&quot; data-image-size=&quot;ipico&quot;&gt;如何实现 Call / CC 或者阴阳谜题（Yin Yang Puzzle）？&lt;/a&gt;&lt;p&gt;创造宇宙这种事，没有 call/cc 可以每次新建一个 generator 啊。&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;def puzzle():
+    def yin(yin):
+        yield &#39;@&#39;
+        def yang(yang):
+            yield &#39;*&#39;
+            yield from yin(yang)
+        yield from yang(yang)
+    yield from yin(yin)
+
+for x, _ in zip(puzzle(), range(256)):
+    print(x, end=&#39;&#39;)
+print()&lt;/code&gt;&lt;p&gt;输出&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;@*@**@***@****@*****@******@*******@********@*********@**********@***********@************@*************@**************@***************@****************@*****************@******************@*******************@********************@*********************@***&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>HOOCCOOH</author>
+<guid isPermaLink="false">2018-08-29-43207643</guid>
+<pubDate>Wed, 29 Aug 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>如何制造SCP018</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-28-43163820.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43163820&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;什么是Tail Call？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Tail Call（尾调用）指，我们调用一个函数后，立刻返回。&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;def triple(x): # 返回的不是函数
+    return x * 3
+
+def is_tail_call(x): # 是尾调用，因为我们调用后就返回了
+    return triple(x)
+
+def not_tail_call(x): # 不是尾调用，因为我们调用完还要1 + result
+    return 1 + triple(x)
+
+def half_tail_call(x): # 外面的是尾调用，里面的不是
+    return triple(triple(x))&lt;/code&gt;&lt;p&gt;在以上例子中，is_tail_call的triple，跟half_tail_call的外面的triple，是tail call。&lt;/p&gt;&lt;p&gt;&lt;b&gt;为什么Tail Call很重要？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;因为Tail Call提供了很好的优化。&lt;/p&gt;&lt;p&gt;假设我们是register machine，return address存在一个register里面，如果我们tail call，我们需要：把argument放对位置，然后goto function就可以了！&lt;/p&gt;&lt;p&gt;如果是non tail call，我们需要把argument放对位置，保存旧的return address（比如说塞上stack），设定return address为下一行，goto function，把旧的return address restore掉，然后该干啥干啥。&lt;/p&gt;&lt;p&gt;这样，我们额外的多做了一push一pop，space &amp;amp; time overhead一下子上来了，怪不得60~70年代的人不肯用函数。。&lt;/p&gt;&lt;p&gt;当我们递归的时候，不做这个优化导致了big O上的空间差距 - 一个要不停的push stack，一个说，stack是啥？&lt;/p&gt;&lt;p&gt;另一点是，当递归的时候，argument的位置是对的，‘放对位置’这一步就没有了，于是就成为了一个goto self - 也就是loop。&lt;/p&gt;&lt;p&gt;尾递归优化，其实就是Tail Call Optimization在taill call self下的优化。（见&lt;a href=&quot;https://dspace.mit.edu/handle/1721.1/5753&quot;&gt;Debunking the &#39;Expensive Procedure Call&#39; Myth, or, Procedure Call Implementations Considered Harmful, or, Lambda: The Ultimate GOTO&lt;/a&gt;）&lt;/p&gt;&lt;p&gt;如果你会continuation，Tail Call说的就是，当你call进去的continuation，跟你自己的cont是eta equivalent时，直接传就好了。&lt;/p&gt;&lt;p&gt;Continuation某种程度下对应返回地址，所以这也是说，如果没有必要，不需要动返回地址。&lt;/p&gt;&lt;p&gt;&lt;b&gt;但是：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;很不幸的，有些解释器/编译器不做tail call optimization。这代表上面写递归函数，会占用大量空间。怎么办？&lt;/p&gt;&lt;p&gt; 假设我们是C语言。&lt;/p&gt;&lt;p&gt;那很简单，直接inline asm啊！啥地方要tail call，直接inline一个goto过去，一切解决。&lt;/p&gt;&lt;p&gt;当然，inline asm没多少语言支持 - 连C也要开编译器扩展才行。&lt;/p&gt;&lt;p&gt;&lt;b&gt;那，我们在程序里面模拟一个program counter，不就一切OK了吗？&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;# 转换：
+# 在函数头插入global pc
+# 所有尾调用变成pc = ...
+# 改用eval
+
+pc = None # program counter
+
+def eval(f):
+    global pc
+    pc = f
+    while True:
+        pc()
+
+cnt = 0
+def naive_rec():
+    global cnt
+    print(cnt)
+    cnt += 1
+    naive_rec()
+    
+# naive_rec() # 错误：达到最深递归层次
+
+cnt = 0
+def rec():
+    global pc
+    global cnt
+    print(cnt)
+    cnt += 1
+    pc = rec
+
+# eval(rec) # 远远超过了递归限制！&lt;/code&gt;&lt;p&gt;好像可以呢！&lt;/p&gt;&lt;p&gt;&lt;b&gt;但是函数参数是不是要像register那样手动设置？那样实在太丑了。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;幸好，python有closure，我们放进closure里面就行了。&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;# 转换：
+# 尾调用变lambda
+# eval加上lambda
+
+pc = None # program counter
+
+def eval(f):
+    global pc
+    pc = f
+    while True:
+        pc()
+
+def naive_rec_arg(cnt):
+    print(cnt)
+    naive_rec_arg(cnt + 1)
+
+# naive_rec_arg(0) # 毫无意外，同一错误
+
+def rec_arg(cnt):
+    global pc
+    print(cnt)
+    pc = lambda: rec_arg(cnt + 1)
+
+# eval(lambda: rec_arg(0)) # 再一次超越极限！&lt;/code&gt;&lt;p&gt;一切都好。但是，函数有输入，当然也有输出，现在怎么办？&lt;/p&gt;&lt;p&gt;要注意的是，我们不能用全局变量来模拟。&lt;/p&gt;&lt;p&gt;原因很简单，eval是个死循环，永远不返回，就算返回值assign到某全局变量，我们也不能让当前函数调用完，让调用者使用返回结果。&lt;/p&gt;&lt;p&gt;怎么办？&lt;/p&gt;&lt;p&gt;&lt;b&gt;既然核心问题是eval，我们使得eval不是死循环就可以了啊！&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;# 转换：
+# 对尾调用，pc = lambda: ... 跟上 return None
+# 对普通返回，pc = None 跟上 return ...
+# 函数尾：pc = None
+
+pc = None # program counter
+
+def eval(f):
+    global pc
+    old_pc = pc # 如果eval里面用eval怎么办？保存老pc就OK
+    pc = f
+    result = None
+    while pc:
+        result = pc()
+    pc = old_pc
+    return result
+
+def naive_is_even_0(x):
+    if x &amp;gt; 1:
+        return naive_is_even_1(x - 2)
+    if x == 1: # 故意这样写，测试early return正确性
+        return False
+    else:
+        return True # 通过互递归提高难度
+
+def naive_is_even_1(x):
+    return naive_is_even_0(x)
+
+assert not naive_is_even_0(123)
+# assert not naive_is_even_0(2345) # 又是你
+
+def is_even_0(x):
+    global pc
+    if x &amp;gt; 1:
+        pc = lambda: is_even_1(x - 2)
+        return None # 没有这行会接着运行！
+    if x == 1:
+        pc = None
+        return False
+    else:
+        pc = None
+        return True
+    pc = None # 这很二，但是我们希望转换越简单越好！
+
+def is_even_1(x):
+    global pc
+    pc = lambda: is_even_0(x)
+    return None
+    pc = None
+
+assert not eval(lambda: is_even_0(2345)) # 过！&lt;/code&gt;&lt;p&gt;很好。但是我们看一下，这代码很危险！&lt;/p&gt;&lt;p&gt;很简单，我们要先set pc，然后再return一些东西。&lt;/p&gt;&lt;p&gt;但是，如果我们手滑了一下，忘了set pc，会怎么样？&lt;/p&gt;&lt;p&gt;这样，我们就会进入死循环，而得益于我们的优化，我们甚至不能stack overflow来表示无限递归了！&lt;/p&gt;&lt;p&gt;我们也希望，pc set成lambda的时候，返回值是None：那时，返回值是被无视的，但是限制返回为None能更早暴露程序的问题。&lt;/p&gt;&lt;p&gt;我们希望，有一个python表达式，SetFunAndReturnNone，来保证set pc后才能return。&lt;/p&gt;&lt;p&gt;同理，如果有个python表达式，SetNoneAndReturnVal，保证set None后会返回一个值（没有返回的就返回None，表示没忘）也好，这样能确定程序员在用pc修改器的时候，不会忘记设返回值。&lt;/p&gt;&lt;p&gt;python没有这两个表达式，但是还好，这两个表达式都是会返回一个值的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;既然eval已经在操控pc了，我们可以让他担任更多解释器的工作：我们可以定义代表这两表达式的class，pc的返回值只能是这两表达式（如果忘记设定，导致pc返回None，算作错误，因为这情况下pc也会忘记更新了）&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;# 转换：
+# 去掉global pc
+# pc = lambda:... 接 return None 改写成 return SetFunAndReturnNone(...)
+# pc = None 接 return ... 改写成 return SetNoneAndReturnVal(...)
+# 行尾插入SetNoneAndReturnVal(None)
+
+class SetFunAndReturnNone:
+    def __init__(self, f):
+        self.f = f
+
+class SetNoneAndReturnVal:
+    def __init__(self, x):
+        self.x = x
+
+pc = None # program counter
+
+def eval(f):
+    global pc
+    old_pc = pc # 如果eval里面用eval怎么办？保存老pc就OK
+    pc = f
+    result = None
+    while pc:
+        command = pc()
+        if isinstance(command, SetFunAndReturnNone):
+            pc = command.f
+            result = None
+        else:
+            assert isinstance(command, SetNoneAndReturnVal)
+            pc = None
+            result = command.x
+    pc = old_pc
+    return result
+
+def is_even_0(x):
+    if x &amp;gt; 1:
+        return SetFunAndReturnNone(lambda: is_even_1(x - 2))
+    if x == 1:
+        return SetNoneAndReturnVal(False)
+    else:
+        return SetNoneAndReturnVal(True)
+    return SetNoneAndReturnVal(None)
+
+def is_even_1(x):
+    return SetFunAndReturnNone(lambda: is_even_0(x))
+    return SetNoneAndReturnVal(None)
+
+assert not eval(lambda: is_even_0(2345)) # 过!&lt;/code&gt;&lt;p&gt;我们现在架构的改动已经做完了。但是，还能优化下这个文件。&lt;/p&gt;&lt;p&gt;最基本的，pc只有eval在用了，能搬进去，也不用担心重入的问题了，因为每个eval的调用都会有自己的pc&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;def eval(f):
+    pc = f # program counter
+    result = None
+    while pc:
+        command = pc()
+        if isinstance(command, SetFunAndReturnNone):
+            pc = command.f
+            result = None
+        else:
+            assert isinstance(command, SetNoneAndReturnVal)
+            pc = None
+            result = command.x
+    return result&lt;/code&gt;&lt;p&gt;pc = None的时候能直接返回，不需要在while里面：&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;def eval(f):
+    pc = f # program counter
+    result = None
+    while pc:
+        command = pc()
+        if isinstance(command, SetFunAndReturnNone):
+            pc = command.f
+            result = None
+        else:
+            assert isinstance(command, SetNoneAndReturnVal)
+            return command.x
+    return result&lt;/code&gt;&lt;p&gt;result可以去掉了，因为只会assign成None&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;def eval(f):
+    pc = f # program counter
+    while pc:
+        command = pc()
+        if isinstance(command, SetFunAndReturnNone):
+            pc = command.f
+        else:
+            assert isinstance(command, SetNoneAndReturnVal)
+            return command.x&lt;/code&gt;&lt;p&gt;如果我们假设SetFunAndReturnNone.f不会是None，f也不是None，pc在循环中不会变成None。我们就能直接while True:&lt;/p&gt;&lt;p&gt;我们也假设f不会是None - 我们的所有代码都不会传个None进去&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;def eval(f):
+    pc = f # program counter
+    while True:
+        command = pc()
+        if isinstance(command, SetFunAndReturnNone):
+            pc = command.f
+        else:
+            assert isinstance(command, SetNoneAndReturnVal)
+            return command.x&lt;/code&gt;&lt;p&gt;这两个class名字好长。。。而且pc已经是内部实现了，我们不应该暴露出来。&lt;/p&gt;&lt;p&gt;&lt;b&gt;我们重命名SetFunAndReturnNone做More（需要更多计算），同样的，重命名SetNoneAndReturnVal为Done（搞定）。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们最后，再优化一下使用代码，去掉不需要的return。&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;class More:
+    def __init__(self, f):
+        self.f = f
+
+class Done:
+    def __init__(self, x):
+        self.x = x
+
+def eval(f):
+    pc = f # program counter
+    while True:
+        command = pc()
+        if isinstance(command, More):
+            pc = command.f
+        else:
+            assert isinstance(command, Done)
+            return command.x
+
+def is_even_0(x):
+    if x &amp;gt; 1:
+        return More(lambda: is_even_1(x - 2))
+    if x == 1:
+        return Done(False)
+    else:
+        return Done(True)
+
+def is_even_1(x):
+    return More(lambda: is_even_0(x))
+
+assert not eval(lambda: is_even_0(2345)) # pass!&lt;/code&gt;&lt;p&gt;大功告成。&lt;/p&gt;&lt;p&gt;&lt;b&gt;我们最后，跟小杰站着世界树之巅，看看我们实现了什么，顺带找找爸爸：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;当我们eval的时候，我们会先调用pc。&lt;/p&gt;&lt;p&gt;然后，我们会push一个stack frame。&lt;/p&gt;&lt;p&gt;当tail call出现的时候，与其去apply之（并且把这个stack frame也push进去），我们直接返回！&lt;/p&gt;&lt;p&gt;这样，我们当前的stack frame就会pop掉。&lt;/p&gt;&lt;p&gt;pop掉后，我们又立刻进入该 call，再push一个frame。&lt;/p&gt;&lt;p&gt;我们的frame数量，就会这样0-1-0-1-0-1，循环往复。故此，这个方法叫做trampoline。&lt;/p&gt;&lt;p&gt;如果你觉得trampoline很有趣，我推荐去看&lt;a href=&quot;http://blog.higher-order.com/assets/trampolines.pdf&quot;&gt;http://blog.higher-order.com/assets/trampolines.pdf&lt;/a&gt;，简单又漂亮的一篇paper。&lt;/p&gt;</description>
+<author>圆角骑士魔理沙</author>
+<guid isPermaLink="false">2018-08-28-43163820</guid>
+<pubDate>Tue, 28 Aug 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>流派未月亭</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-25-42907876.html</link>
@@ -254,24 +510,6 @@ dup x = (x,x)
 <author>祖与占</author>
 <guid isPermaLink="false">2018-07-21-40272611</guid>
 <pubDate>Sat, 21 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Safety and Liveness Properties</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-07-15-37864854.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37864854&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;在程序运行时, 我们会特别在意程序的一些性质(Program properties), 例如程序正确, 程序停机, 无异常等等. 对于我们关心的程序性质, 将可以分为两类:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Safety Properties&lt;/b&gt;, 在程序运行中不会进入非预期的状态(如非法调用参数, 数组下标越界等运行错误).&lt;/li&gt;&lt;li&gt;&lt;b&gt;Liveness Properties&lt;/b&gt;, 在程序运行中预期状态一定会到达(如停机, 获取资源请求一定有返回结果等等).&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;下面将介绍程序性质的拓扑结构, 最后展示对于任意程序性质, 均可将其分解为其Safety分量(safety component)与Liveness分量(liveness component)的交.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义1: 转移系统(transition system)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;转移系统由一个状态集合 &lt;equation&gt;\Sigma&lt;/equation&gt; 与转移关系 &lt;equation&gt;\to\subseteq\Sigma\times\Sigma&lt;/equation&gt; 构成, 形如 &lt;equation&gt;\langle\Sigma,\to\rangle&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;其中状态表示程序执行的当前状态, 一般由当前执行程序位置(指令指针)与程序符号值(内存空间)构成. 转移关系由程序语义定义.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义2: 轨迹(trace)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\Sigma^{*} = \bigcup_{k=0}^{}\Sigma^{k}\\ &amp;amp;\Sigma^{\overrightarrow{*}} = \left\{ \sigma=(\sigma_1\sigma_2\cdots\sigma_k)\in \Sigma^{*}\;|\;\forall i&amp;lt;|\sigma|:\sigma_i \to\sigma_{i+1}\right\} \\ &amp;amp;\Sigma^{\overrightarrow{\omega}} = \left\{ \sigma=(\sigma_1\sigma_2\sigma_3\cdots)\in \Sigma^{\omega}\;|\;\forall i:\sigma_i \to\sigma_{i+1}\right\}\\ &amp;amp;\Sigma^{\overrightarrow{\infty}} = \Sigma^{\overrightarrow{*}}\cup\Sigma^{\overrightarrow{\omega}} \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;( &lt;equation&gt;|\sigma|&lt;/equation&gt; 为 &lt;equation&gt;\sigma&lt;/equation&gt; 的长度)&lt;/p&gt;&lt;p&gt;显然 &lt;equation&gt;\Sigma^{\overrightarrow{*}}\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 其中 &lt;equation&gt;\sigma\in\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 称为trace.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义3: 拼接(concatenation), 前缀(prefix), 后缀(suffix), 拓展(extension)&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于 &lt;equation&gt;u=(u_1\cdots u_n)\in\Sigma^{\overrightarrow{*}}&lt;/equation&gt; , &lt;equation&gt;v=(v_1,v_2\cdots)\in\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , &lt;equation&gt;u_{n}\to v_1&lt;/equation&gt;, 记&lt;equation&gt;uv=(u_1\cdots u_n,v_1,v_2\cdots)&lt;/equation&gt; 为 &lt;equation&gt;u&lt;/equation&gt; 与 &lt;equation&gt;v&lt;/equation&gt; 的拼接.&lt;/p&gt;&lt;p&gt;对于 &lt;equation&gt;U, V\subseteq \Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 记 &lt;equation&gt;UV=\left\{ uv\;|\;u\in U,v\in V \right\}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;若 &lt;equation&gt;\exists v:uv=w &lt;/equation&gt; 则称 &lt;equation&gt;u&lt;/equation&gt; 为 &lt;equation&gt;w&lt;/equation&gt; 的前缀, &lt;equation&gt;v&lt;/equation&gt; 为 &lt;equation&gt;w&lt;/equation&gt; 的后缀, 记作 &lt;equation&gt;u\preceq w&lt;/equation&gt; , 称 &lt;equation&gt;w&lt;/equation&gt; 为 &lt;equation&gt;u&lt;/equation&gt; 的拓展, 记作 &lt;equation&gt;w\succeq u&lt;/equation&gt;.&lt;/p&gt;&lt;p&gt;空串为 &lt;equation&gt;\epsilon&lt;/equation&gt; , 其中有 &lt;equation&gt;|\varepsilon|=0&lt;/equation&gt; , &lt;equation&gt;\epsilon\sigma=\sigma\epsilon=\sigma&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义4: Prefix与Extension Closed&lt;/b&gt;&lt;/p&gt;&lt;p&gt;令 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; &lt;/p&gt;&lt;ul&gt;&lt;li&gt;若 &lt;equation&gt;\forall u\preceq v\in V&lt;/equation&gt; 有 &lt;equation&gt;u\in V&lt;/equation&gt; , 则称 &lt;equation&gt;V&lt;/equation&gt; 为prefix closed.&lt;/li&gt;&lt;li&gt;若 &lt;equation&gt;\forall w\succeq v\in V&lt;/equation&gt; 有 &lt;equation&gt;w\in V&lt;/equation&gt; , 则称 &lt;equation&gt;V&lt;/equation&gt; 为extension closed.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义5: Limit Closed与Finite Witnesses&lt;/b&gt;&lt;/p&gt;&lt;p&gt;令 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;若 &lt;equation&gt;\forall w\in \Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 对于任意有限长度 &lt;equation&gt;u\preceq w&lt;/equation&gt; 均满足 &lt;equation&gt;u\in V&lt;/equation&gt; 那么有 &lt;equation&gt;w\in V&lt;/equation&gt; , 则称 &lt;equation&gt;V&lt;/equation&gt; 为limit closed.&lt;/li&gt;&lt;li&gt;若 &lt;equation&gt;\forall w\in V&lt;/equation&gt; , 存在有限长度 &lt;equation&gt;u\preceq w&lt;/equation&gt; 使得 &lt;equation&gt;u\in V&lt;/equation&gt; , 则称 &lt;equation&gt;V&lt;/equation&gt; 为finite witnesses.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题1:&lt;/b&gt; &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 为prefix closed(extension closed)集, 则&lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为extension closed(prefix closed)集.&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;若 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为非extension closed集, 则 &lt;equation&gt;\exists w\succeq v\in \Sigma^{\overrightarrow{\infty}}\setminus V: w\not\in \Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 即 &lt;equation&gt;w\in V&lt;/equation&gt; . 因为 &lt;equation&gt;V&lt;/equation&gt; 为prefix closed, 故 &lt;equation&gt;w\succeq v\in V&lt;/equation&gt; . 矛盾, 故 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为extension closed集.&lt;/p&gt;&lt;p&gt;类似地, 若 &lt;equation&gt;V&lt;/equation&gt; 为extension closed集, 则&lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为prefix closed集.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题2:&lt;/b&gt; &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 为limit closed(finite witnesses)集, 则&lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为finite witnesses(limit closed)集.&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;若 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为非finite witnesses集, 则 &lt;equation&gt;\exists w\in \Sigma^{\overrightarrow{\infty}}\setminus V: \forall u\preceq w: u\not\in \Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; ( &lt;equation&gt;u&lt;/equation&gt; 长度有限) 即 &lt;equation&gt;\forall u\preceq w: u\in V&lt;/equation&gt; . 因为 &lt;equation&gt;V&lt;/equation&gt; 为limit closed, 故 &lt;equation&gt;w\in V&lt;/equation&gt; . 矛盾, 故 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为finite witnesses集.&lt;/p&gt;&lt;p&gt;类似地, 若 &lt;equation&gt;V&lt;/equation&gt; 为finite witnesses集, 则&lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为limit closed集.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义6: Topology space on &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; :  &lt;equation&gt;(\Sigma^{\overrightarrow{\infty}}, \tau)&lt;/equation&gt;&lt;/b&gt; &lt;/p&gt;&lt;p&gt;&lt;equation&gt;\tau&lt;/equation&gt; 为开集族(open sets), &lt;equation&gt;\tau = \left\{ W\Sigma^{\overrightarrow{\infty}}\;|\;W\subseteq\Sigma^{\overrightarrow{*}}\right\}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题3:&lt;/b&gt; &lt;equation&gt;\tau&lt;/equation&gt; 为开集族&lt;/p&gt;&lt;p&gt;证明: &lt;/p&gt;&lt;p&gt;• &lt;equation&gt;\emptyset=W\Sigma^{\overrightarrow{\infty}}\in\tau&lt;/equation&gt; , 其中 &lt;equation&gt;W=\emptyset&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;• &lt;equation&gt;\Sigma^{\infty}=W\Sigma^{\overrightarrow{\infty}}\in\tau&lt;/equation&gt; , 其中 &lt;equation&gt;W=\{\epsilon\}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;• &lt;equation&gt;W_{\alpha}\subseteq\Sigma^{\overrightarrow{*}}&lt;/equation&gt; , &lt;equation&gt;\alpha\in I&lt;/equation&gt; , 有 &lt;equation&gt;\bigcup_{\alpha\in I}^{}(W_{\alpha}\Sigma^{\overrightarrow{\infty}})=W\Sigma^{\overrightarrow{\infty}}\in\tau&lt;/equation&gt; , 其中 &lt;equation&gt;W=\left( \bigcup_{\alpha\in I}^{}W_{\alpha} \right)\subseteq\Sigma^{\overrightarrow{*}}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;• &lt;equation&gt;U, V\subseteq \Sigma^{\overrightarrow{*}}&lt;/equation&gt; , 定义 &lt;equation&gt;U_{V}=\{u\in U\;|\;\exists v\in V: v\preceq u\}\subseteq U&lt;/equation&gt; , 类似地定义 &lt;equation&gt;V_{U}&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;w\in U\Sigma^{\overrightarrow{\infty}}\cap V\Sigma^{\overrightarrow{\infty}}\\ \Leftrightarrow\;&amp;amp;\exists u\in U, v\in V: x, y\in \Sigma^{\overrightarrow{\infty}}, w=ux=vy\\ \Leftrightarrow\;&amp;amp;w\in V_U\Sigma^{\overrightarrow{\infty}}\;\text{or}\;w\in U_V\Sigma^{\overrightarrow{\infty}}\;(u\preceq v\;\text{or}\;v\preceq u) \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;   因此有 &lt;equation&gt;U\Sigma^{\overrightarrow{\infty}} \cap V\Sigma^{\overrightarrow{\infty}}=U_V\Sigma^{\overrightarrow{\infty}} \cup V_U\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 设 &lt;equation&gt;W=U_V \cup V_U\subseteq\Sigma^{\overrightarrow{*}}&lt;/equation&gt; , 那么&lt;/p&gt;&lt;p&gt;&lt;equation&gt;U\Sigma^{\overrightarrow{\infty}} \cap V\Sigma^{\overrightarrow{\infty}}=W\Sigma^{\overrightarrow{\infty}}\in \tau&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;故 &lt;equation&gt;(\Sigma^{\overrightarrow{\infty}}, \tau)&lt;/equation&gt; 为 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 上的一个拓扑.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;引理1:&lt;/b&gt; &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 为闭集当且仅当:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\forall w\in \Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 若对于任意有限长度 &lt;equation&gt;u\preceq w&lt;/equation&gt; 存在 &lt;equation&gt;v\succeq u&lt;/equation&gt; 使得 &lt;equation&gt;v\in V&lt;/equation&gt; , 那么 &lt;equation&gt;w\in V&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(\Rightarrow)&lt;/equation&gt; 若 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 为闭集, 则存在 &lt;equation&gt;U\subseteq\Sigma^{\overrightarrow{*}}&lt;/equation&gt; 满足 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V=U\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 若 &lt;equation&gt;w\in \Sigma^{\overrightarrow{\infty}}, w\not\in V&lt;/equation&gt; , 那么 &lt;equation&gt;w\in U\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 存在长度有限前缀 &lt;equation&gt;u\preceq w, u\in U&lt;/equation&gt; , 有 &lt;equation&gt;\forall v\succeq u: v\in U\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 即 &lt;equation&gt;v\not\in V&lt;/equation&gt; , 故逆否命题&lt;equation&gt;(\forall (w\in \Sigma^{\overrightarrow{\infty}}, \text{finite}\;u\preceq w): \exists v\succeq u: v\in V) \to w\in V&lt;/equation&gt; 成立.&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(\Leftarrow)&lt;/equation&gt; 令 &lt;equation&gt;U=\left\{ u\in\Sigma^{\overrightarrow{*}}\;|\; \forall v\succeq u: v\not\in V \right\}&lt;/equation&gt;, 显然 &lt;equation&gt;U\Sigma^{\overrightarrow{\infty}}\subseteq\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; . 若 &lt;equation&gt;w\not\in V&lt;/equation&gt; 则有 &lt;equation&gt;\exists \text{finite}\;u\preceq w: \forall v\succeq u: v\not\in V&lt;/equation&gt; , 那么 &lt;equation&gt;u\in U&lt;/equation&gt; 故 &lt;equation&gt;\exists v:uv=w&lt;/equation&gt; 即 &lt;equation&gt;w\in U\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V\subseteq U\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; . 因此 &lt;equation&gt;U\Sigma^{\overrightarrow{\infty}}=\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为开集, 即 &lt;equation&gt;V&lt;/equation&gt; 为闭集.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题4: open and closed set&lt;/b&gt;&lt;/p&gt;&lt;p&gt;令 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;equation&gt;V&lt;/equation&gt; 为闭集当且仅当 &lt;equation&gt;V&lt;/equation&gt; 为prefix closed与limit closed.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;V&lt;/equation&gt; 为开集当且仅当 &lt;equation&gt;V&lt;/equation&gt; 为extension closed与finite witnesses.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;• &lt;equation&gt;(\Rightarrow)&lt;/equation&gt; 若 &lt;equation&gt;V&lt;/equation&gt; 为闭集, 对于任意 &lt;equation&gt;u\preceq v\in V&lt;/equation&gt; , 设 &lt;equation&gt;u^{&#39;}&lt;/equation&gt; 为 &lt;equation&gt;u&lt;/equation&gt; 的任意有限前缀 &lt;equation&gt;u^{&#39;}\preceq u&lt;/equation&gt; , 有 &lt;equation&gt;v\succeq u \succeq u^{&#39;}&lt;/equation&gt; , 根据引理1得 &lt;equation&gt;u\in V&lt;/equation&gt; 即 &lt;equation&gt;V&lt;/equation&gt; 为prefix closed. &lt;/p&gt;&lt;p&gt;由引理1直接可得 &lt;equation&gt;V&lt;/equation&gt; 为limit closed.&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(\Leftarrow)&lt;/equation&gt; 若 &lt;equation&gt;V&lt;/equation&gt; 为prefix closed与limit closed, 若 &lt;equation&gt;w\not\in V&lt;/equation&gt; 即 &lt;equation&gt;w\in \Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; , 由命题1和命题2得, &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为extension closed与finite witnesses, 由finite witnesses存在有限长度 &lt;equation&gt;u\preceq w&lt;/equation&gt; 使得 &lt;equation&gt;u\in \Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; , 又由extension closed对于任意 &lt;equation&gt;v\succeq u&lt;/equation&gt; 均有 &lt;equation&gt;v\in \Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 即 &lt;equation&gt;v\not\in V&lt;/equation&gt; , 故其逆否命题&lt;equation&gt;(\forall (w\in \Sigma^{\overrightarrow{\infty}}, \text{finite}\;u\preceq w): \exists v\succeq u: v\in V) \to w\in V&lt;/equation&gt; 成立. 由引理1得 &lt;equation&gt;V&lt;/equation&gt; 为闭集.&lt;/p&gt;&lt;p&gt;•   &lt;equation&gt;V&lt;/equation&gt; 为开集当且仅当 &lt;equation&gt;V&lt;/equation&gt; 为extension closed与finite witnesses.&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\Leftrightarrow&lt;/equation&gt; &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为prefix closed与limit closed. (命题1和命题2)&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\Leftrightarrow&lt;/equation&gt; &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 为闭集 (proved above)&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\Leftrightarrow&lt;/equation&gt; &lt;equation&gt;V&lt;/equation&gt; 为开集&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题5: closure与interior&lt;/b&gt;&lt;/p&gt;&lt;p&gt;令 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;equation&gt;cl(V)=\left\{ w\in\Sigma^{\overrightarrow{\infty}} \;|\; \forall \text{finite}\;u\preceq w:\exists v\succeq u: v\in V\right\}&lt;/equation&gt;.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;int(V)=\left\{ w\in\Sigma^{\overrightarrow{\infty}} \;|\; \exists \text{finite}\;u\preceq w:\forall v\succeq u: v\in V\right\}&lt;/equation&gt;.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;• 令 &lt;equation&gt;C(V)=\left\{ w\in\Sigma^{\overrightarrow{\infty}} \;|\; \forall \text{finite}\;u\preceq w:\exists v\succeq u: v\in V\right\}&lt;/equation&gt; , &lt;equation&gt;\forall w\in \Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 若对于任意有限长度 &lt;equation&gt;u\preceq w&lt;/equation&gt; 存在 &lt;equation&gt;v\succeq u&lt;/equation&gt; 使得 &lt;equation&gt;v\in C(V)&lt;/equation&gt; , 由 &lt;equation&gt;C(V)&lt;/equation&gt; 的定义存在 &lt;equation&gt;v^{&#39;}\succeq u&lt;/equation&gt; 使得 &lt;equation&gt;v^{&#39;}\in V&lt;/equation&gt; , 故 &lt;equation&gt;w\in C(V)&lt;/equation&gt; 由引理1得 &lt;equation&gt;C(V)&lt;/equation&gt; 为闭集.&lt;/p&gt;&lt;p&gt;令 &lt;equation&gt;V\subseteq \Gamma \subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , &lt;equation&gt; \Gamma&lt;/equation&gt; 为闭集, 设 &lt;equation&gt;w\in C(V)&lt;/equation&gt; 那么有 &lt;equation&gt;\forall \text{finite}\;u\preceq w:\exists v\succeq u: v\in V \subseteq \Gamma &lt;/equation&gt; , 又由 &lt;equation&gt; \Gamma&lt;/equation&gt; 为闭集, 根据引理1得 &lt;equation&gt;w\in \Gamma&lt;/equation&gt; 即 &lt;equation&gt;C(V)\subseteq\Gamma&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;故 &lt;equation&gt;C(V)&lt;/equation&gt; 为 &lt;equation&gt;V&lt;/equation&gt; 的closure.&lt;/p&gt;&lt;p&gt;• 令 &lt;equation&gt;I(V)=\left\{ w\in\Sigma^{\overrightarrow{\infty}} \;|\; \exists\text{finite}\;u\preceq w:\forall v\succeq u: v\in V\right\}&lt;/equation&gt; , 设 &lt;equation&gt;w\in I(V)&lt;/equation&gt; 那么 &lt;equation&gt;\exists\text{finite}\;u\preceq w:\forall v\succeq u: v\in V&lt;/equation&gt; , 由 &lt;equation&gt;I(V)&lt;/equation&gt; 的定义 &lt;equation&gt;\forall v\succeq u: v\in I(V)&lt;/equation&gt; , 故 &lt;equation&gt;w\in u\Sigma^{\overrightarrow{\infty}}\subseteq I(V)&lt;/equation&gt; 且 &lt;equation&gt;u\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 为开集, &lt;equation&gt;I(V)=\bigcup_{w\in I(V)}^{}u\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 因此 &lt;equation&gt;I(V)&lt;/equation&gt; 为开集.&lt;/p&gt;&lt;p&gt;令 &lt;equation&gt;w\in\Delta\subseteq V&lt;/equation&gt; , &lt;equation&gt;\Delta&lt;/equation&gt; 为开集, 故存在 &lt;equation&gt;U \subseteq\Sigma^{\overrightarrow{*}}&lt;/equation&gt; 满足 &lt;equation&gt;w\in U\Sigma^{\overrightarrow{\infty}} \subseteq \Delta&lt;/equation&gt; , 因此 &lt;equation&gt;\exists u\in U: u\preceq w&lt;/equation&gt; , 故 &lt;equation&gt;\forall v\succeq u: v\in U\Sigma^{\overrightarrow{\infty}} \subseteq \Delta\subseteq V&lt;/equation&gt; , 根据 &lt;equation&gt;I(V)&lt;/equation&gt; 定义有 &lt;equation&gt;w\in I(V)&lt;/equation&gt; 即 &lt;equation&gt;\Delta\subseteq I(V)&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;故 &lt;equation&gt;I(V)&lt;/equation&gt; 为 &lt;equation&gt;V&lt;/equation&gt; 的interior.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义7: safety property与liveness property&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;若 &lt;equation&gt;\forall w\in\left(\Sigma^{\overrightarrow{\infty}}\setminus W\right): \exists\text{finite}\;u\preceq w\;\text{s.t.}\;\forall v:uv\in\left(\Sigma^{\overrightarrow{\infty}}\setminus W\right)&lt;/equation&gt; 则称 &lt;equation&gt;W&lt;/equation&gt; 为safety property.&lt;/li&gt;&lt;li&gt;若 &lt;equation&gt;\forall\text{finite}\;u:\exists v\;\text{s.t.}\;uv\in W&lt;/equation&gt; 则称 &lt;equation&gt;W&lt;/equation&gt; 为liveness property.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;注: safety property的含义为若某trace违反safety property则能通过其有限长度的前缀识别. liveness property的含义为对于任意的有限长度的trace, 总存在拓展满足liveness property.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题6:&lt;/b&gt; &lt;equation&gt;W&lt;/equation&gt; 为safety property当且仅当 &lt;equation&gt;W&lt;/equation&gt; 为闭集.&lt;/p&gt;&lt;p&gt;证明: &lt;/p&gt;&lt;p&gt;&lt;equation&gt;W&lt;/equation&gt; 为safety property&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\Leftrightarrow \forall w\in\left(\Sigma^{\overrightarrow{\infty}}\setminus W\right): \exists\text{finite}\;u\preceq w\;\text{s.t.}\;\forall v:uv\in\left(\Sigma^{\overrightarrow{\infty}}\setminus W\right)\\ &amp;amp;\Leftrightarrow \left(\forall w\not\in W\right)\to\left(\exists\text{finite}\;u\preceq w\;\text{s.t.}\;\forall u^{&#39;}\succeq u:u^{&#39;}\in\left(\Sigma^{\overrightarrow{\infty}}\setminus W\right)\right)\\ &amp;amp;\Leftrightarrow \left(\forall\text{finite}\;u\preceq w\;\text{s.t.}\;\exists u^{&#39;}\succeq u:u^{&#39;}\in W\right)\to w\in W \quad\text{[contrapositive]}\\ &amp;amp;\Leftrightarrow W\;\text{is closed}\;\quad\text{[lemma 1]}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;命题7: &lt;/b&gt;&lt;equation&gt;V&lt;/equation&gt; 为liveness property当且仅当 &lt;equation&gt;V&lt;/equation&gt; 稠密.&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(\Rightarrow)&lt;/equation&gt; &lt;equation&gt;V&lt;/equation&gt; 为liveness property. 设 &lt;equation&gt;V\subseteq \Gamma&lt;/equation&gt; , &lt;equation&gt;\Gamma&lt;/equation&gt; 为闭集. 若存在 &lt;equation&gt;w\in\Sigma^{\overrightarrow{\infty}}\setminus \Gamma&lt;/equation&gt; 即 &lt;equation&gt;w\not\in\Gamma&lt;/equation&gt; , 由引理1得存在有限长度 &lt;equation&gt;u\preceq w&lt;/equation&gt; 对于任意 &lt;equation&gt;v\succeq u&lt;/equation&gt; 使得 &lt;equation&gt;v\not\in V&lt;/equation&gt; . 又由 &lt;equation&gt;V&lt;/equation&gt; 为liveness property, 故存在 &lt;equation&gt;v\succeq u&lt;/equation&gt; 满足 &lt;equation&gt;v\in V\subseteq \Gamma&lt;/equation&gt; , 矛盾. 故 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus \Gamma=\emptyset&lt;/equation&gt; 即 &lt;equation&gt;\Gamma=\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , &lt;equation&gt;V&lt;/equation&gt; 稠密.&lt;/p&gt;&lt;p&gt;&lt;equation&gt;(\Leftarrow)&lt;/equation&gt; &lt;equation&gt;V&lt;/equation&gt; 稠密. 若 &lt;equation&gt;V&lt;/equation&gt; 不为liveness property, 则存在有限长度 &lt;equation&gt;u&lt;/equation&gt; 使得 &lt;equation&gt;\forall v\succeq u&lt;/equation&gt; 均有 &lt;equation&gt;v\not\in V&lt;/equation&gt; , 因此 &lt;equation&gt;u\Sigma^{\overrightarrow{\infty}}\subseteq\Sigma^{\overrightarrow{\infty}}\setminus V&lt;/equation&gt; 即 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}\setminus u\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , 又 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus u\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; 为闭集, 而 &lt;equation&gt;V&lt;/equation&gt; 稠密, 故 &lt;equation&gt;\Sigma^{\overrightarrow{\infty}}\setminus u\Sigma^{\overrightarrow{\infty}}=\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; , &lt;equation&gt;u\Sigma^{\overrightarrow{\infty}}=\emptyset&lt;/equation&gt; 即 &lt;equation&gt;u&lt;/equation&gt; 不存在, 矛盾. 故 &lt;equation&gt;V&lt;/equation&gt; 为liveness property.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定义8: safety component与liveness component&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;equation&gt;safe(V)=cl(V)&lt;/equation&gt; .&lt;/li&gt;&lt;li&gt;&lt;equation&gt;live(V)=\Sigma^{\overrightarrow{\infty}}\setminus \left( cl(V)\setminus V \right)&lt;/equation&gt; .&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;引理2:&lt;/b&gt; &lt;equation&gt;(X,\tau)&lt;/equation&gt; 为Topology space, &lt;equation&gt;Y\subseteq X&lt;/equation&gt; 则 &lt;equation&gt;X\setminus (cl(Y)\setminus Y)&lt;/equation&gt; 稠密.&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;设 &lt;equation&gt;X\setminus (cl(Y)\setminus Y)\subseteq Z&lt;/equation&gt; , &lt;equation&gt;Z&lt;/equation&gt; 为闭集.&lt;/p&gt;&lt;p&gt;&lt;equation&gt;X\setminus Z \subseteq cl(Y) \setminus Y&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;又由 &lt;equation&gt;Y\subseteq cl(Y)&lt;/equation&gt; 故&lt;/p&gt;&lt;p&gt;&lt;equation&gt;Y\subseteq cl(Y)\setminus(X\setminus Z)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;equation&gt;X\setminus Z&lt;/equation&gt; 为闭集故 &lt;equation&gt;cl(Y)\setminus(X\setminus Z)&lt;/equation&gt; 亦为闭集, 那么有 &lt;equation&gt;cl(Y)\setminus(X\setminus Z) \subseteq cl(Y)&lt;/equation&gt; 即 &lt;equation&gt;X\setminus Z=\emptyset&lt;/equation&gt; ,&lt;equation&gt;Z=X&lt;/equation&gt; . 因此 &lt;equation&gt;X\setminus (cl(Y)\setminus Y)&lt;/equation&gt; 稠密.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;推论1: &lt;/b&gt;&lt;equation&gt;V&lt;/equation&gt; 为safety property当且仅当 &lt;equation&gt;safe(V)=V&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;由命题6得, &lt;equation&gt;V&lt;/equation&gt; 为safety property当且仅当 &lt;equation&gt;V&lt;/equation&gt; 为闭集, 故 &lt;equation&gt;V=cl(V)\overset{\mathrm{def}}{=}safe(V)&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;推论2:&lt;/b&gt; 对于任意 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt;, &lt;equation&gt;safe(V)&lt;/equation&gt; 为safety property.&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;safe(V)\overset{\mathrm{def}}{=}cl(V)&lt;/equation&gt; 为闭集, 由命题6得, &lt;equation&gt;safe(V)&lt;/equation&gt; 为safety property.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;推论3:&lt;/b&gt; &lt;equation&gt;V&lt;/equation&gt; 为liveness property当且仅当 &lt;equation&gt;live(V)=V&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;由命题7得, &lt;equation&gt;V&lt;/equation&gt; 为liveness property当且仅当 &lt;equation&gt;V&lt;/equation&gt; 稠密, 故 &lt;equation&gt;cl(V)=\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt; &lt;equation&gt;live(V)\overset{\mathrm{def}}{=}\Sigma^{\overrightarrow{\infty}}\setminus \left( cl(V)\setminus V \right)=\Sigma^{\overrightarrow{\infty}}\setminus \left( \Sigma^{\overrightarrow{\infty}}\setminus V \right)=V&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;推论4: &lt;/b&gt;对于任意 &lt;equation&gt;V\subseteq\Sigma^{\overrightarrow{\infty}}&lt;/equation&gt;, &lt;equation&gt;live(V)&lt;/equation&gt; 为liveness property.&lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;live(V)\overset{\mathrm{def}}{=}\Sigma^{\overrightarrow{\infty}}\setminus \left( cl(V)\setminus V \right)&lt;/equation&gt; 由引理2得其稠密, 由命题7得, &lt;equation&gt;live(V)&lt;/equation&gt; 为liveness property.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;引理3:&lt;/b&gt; &lt;equation&gt;(X,\tau)&lt;/equation&gt; 为Topology space, &lt;equation&gt;Y\subseteq X&lt;/equation&gt; 则&lt;/p&gt;&lt;p&gt;&lt;equation&gt;Y=cl(Y)\cap(X\setminus (cl(Y)\setminus Y))&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} cl(Y)\cap(X\setminus (cl(Y)\setminus Y))&amp;amp;=(X\cap cl(Y))\setminus ((cl(Y)\setminus Y)\cap cl(Y))\\ &amp;amp;=cl(Y)\setminus (cl(Y)\setminus Y)\\ &amp;amp;=Y \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;定理1: property decomposition&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于任意性质 &lt;equation&gt;P&lt;/equation&gt; , 其均可分解为safety component与liveness component的交.&lt;/p&gt;&lt;p&gt;&lt;equation&gt;P=safe(P)\cap live(P)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} P&amp;amp;=safe(P)\cap live(P)\\ &amp;amp;\overset{\mathrm{def}}{=}cl(P)\cap\left(\Sigma^{\overrightarrow{\infty}}\setminus (cl(P)\setminus P)\right)\\ &amp;amp;=P\quad\text{[lemma 3]} \end{align}&lt;/equation&gt; &lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一个例子: &lt;/p&gt;&lt;p&gt;程序total correctness可以分解为partial correctness(safety component)与termination(liveness component).&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;equation&gt;\Upsilon\subseteq\Sigma&lt;/equation&gt; 为初始状态.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\Omega\subseteq\Sigma&lt;/equation&gt; 为终止状态.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\Psi\subseteq\Upsilon\times\Omega&lt;/equation&gt; 为partial correctness relation.&lt;/li&gt;&lt;li&gt;&lt;equation&gt;\Phi\overset{\mathrm{def}}{=}\left\{ (s,s^{&#39;})\;|\;(s\in\Upsilon) \Rightarrow((s\to^{*}s^{&#39;})\wedge (s^{&#39;}\in\Omega)\wedge (s,s^{&#39;})\in\Psi)\right\}&lt;/equation&gt;为total correctness relation.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;partial correctness:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\forall s,s^{&#39;}\in\Sigma:\left((s\to^{*}s^{&#39;})\wedge (s\in\Upsilon)\wedge (s^{&#39;}\in\Omega))\right)\Rightarrow \left( (s,s^{&#39;})\in\Psi \right)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;termination:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\forall \sigma\in\Sigma^{\overrightarrow{*}}:\left( \sigma_0 \in\Upsilon \right)\Rightarrow\left(\exists l=|\sigma|:\sigma_l\in\Omega\right)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;total correctness:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\forall \sigma\in\Sigma^{\overrightarrow{*}}:\left(\exists l=|\sigma|:(\sigma_1,\sigma_l)\in\Phi\right)&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;证明:&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align} &amp;amp;\forall \sigma\in\Sigma^{\overrightarrow{*}}:\left( \sigma_0 \in\Upsilon \right)&amp;amp;\text{[initial states]}\\ \Rightarrow\;&amp;amp;\sigma_0 \in\Upsilon\wedge\exists l=|\sigma|:\sigma_l\in\Omega&amp;amp;\text{[termination]}\\ \Rightarrow\;&amp;amp;(\sigma_0, \sigma_l)\in\Psi&amp;amp;\text{[partial correctness]}\\ \Rightarrow\;&amp;amp;(\sigma_0, \sigma_l)\in\Phi&amp;amp;\text{[proving total correctness]}\\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;好久都没写新文章啦, 最近了解了一下程序性质的拓扑结构觉得还蛮有趣的, 所以来写个小文章介绍一下.  有机会将来再深入介绍一下在此之上与Linear temporal logic(LTL)的一些有趣的性质, 在model checking中有着比较多的应用.&lt;/p&gt;&lt;p&gt;谢谢大家的阅读~&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>梨梨喵</author>
-<guid isPermaLink="false">2018-07-15-37864854</guid>
-<pubDate>Sun, 15 Jul 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>tensorflow on idris学习项目</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-07-06-39147186.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39147186&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;希望在idris中实现安全的深度学习api。目前已经成功调用C api获取tf版本&lt;/p&gt;&lt;a href=&quot;https://github.com/doofin/tensorflow-idris&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-03ab6f034de1e41a73ac9fd84abbf1bf&quot; data-image-width=&quot;420&quot; data-image-height=&quot;420&quot; data-image-size=&quot;ipico&quot;&gt;doofin/tensorflow-idris&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Martin awodey</author>
-<guid isPermaLink="false">2018-07-06-39147186</guid>
-<pubDate>Fri, 06 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
