@@ -9,6 +9,7 @@ const feeds = [
 		"shenyantao-60",
 		"ForrestM",
 		"mitcshi",
+		"factor-investing",
 		"gh_2b9f00c52678",
 		"DreamyTalks",
 		"TokyoTradingFloor",
