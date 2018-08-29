@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>一个现代的parser generator框架应该是什么样的</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/43206998">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-04f502b196883798b6fcc7f8f94c59aa_r.jpg" alt=""></div><p>8102年，在编译前端这个方面，原始的气息还没有远离我们。<br> 对于某种并非常用格式的字符串，我们想要解析它们，通常会确实地花费一些心思。 在<a href="https://en.wikipedia.org/wiki/Comparison_of_parser_generators">这方面的工具</a>中，我们耳熟能详的东西有<a href="http://www.antlr.org/">Antlr4</a>, <a href="http://dinosaur.compilertools.net/">Lex &amp; Yacc</a>, 各种<a href="https://en.wikipedia.org/wiki/Parser_combinator">ParserC</a>的实现。在我开始敲码的这几年，也出现了<a href="http://www.lihaoyi.com/fastparse/">Fastparse</a>这样的框架。</p><p>我们来看一些parse二元<code class="inline">+/-</code>运算的例子:<br> <code class="inline">Antlr4</code>(ruby片段), 来自<a href="https://github.com/Antlr/grammars-v4/blob/master/ruby/Corundum.g4">这里</a>:</p><code lang="text">dynamic_result : 
+               | &lt;此处省略...&gt;
+               | dynamic_result op=( PLUS | MINUS ) int_result
+               | int_result op=( PLUS | MINUS ) dynamic_result
+               | dynamic_result op=( PLUS | MINUS )  float_result
+               | float_result op=( PLUS | MINUS )  dynamic_result
+               | dynamic_result op=( PLUS | MINUS ) dynamic_result
+               | &lt;此处省略...&gt;
+               ;</code><p><code class="inline">cpython自己实现的pgen</code>(cpython片段), 来自<a href="https://github.com/python/cpython/blob/master/Grammar/Grammar">这里</a>:</p><code lang="text">arith_expr: term (('+'|'-') term)*</code><p><code class="inline">Lex &amp;&amp; Yacc</code>, 来自<a href="https://www.ibm.com/developerworks/aix/tutorials/au-lexyacc/index.html">这里</a>:</p><code lang="antlr">addexpr: NUMBER PLUSTOKEN NUMBER 
+         { 
+             printf("%f\n",($1+$3));
+         }
+         | NUMBER MINUSTOKEN NUMBER 
+         { 
+             printf("%f\n",($1-$3));
+         }
+         ;</code><p><code class="inline">Fastparse</code>, 来自<a href="http://www.lihaoyi.com/fastparse">这里</a>:</p><code lang="scala">val addSub: P[Int] = P( divMul ~ (CharIn("+-").! ~/ divMul).rep ).map(eval)</code><p><code class="inline">nom(parserc for Rust)</code>(片段), 来自<a href="https://stevedonovan.github.io/rust-gentle-intro/nom-intro.html">这里</a>:</p><code lang="rust">named!(expr&lt;&amp;str,f64&gt;, do_parse!(
+        init: term &gt;&gt;
+        res: fold_many0!(
+            tuple!(
+                alt!(tag_s!("+") | tag_s!("-")),
+                term
+            ),
+            init,
+            |acc, v:(_,f64)| {
+                if v.0 == "+" {acc + v.1} else {acc - v.1}
+            }
+        )
+        &gt;&gt; (res)
+    ));</code><p>经过对上述代码的预览，以及简要地查看相关链接，我们能够了解一点它们的差异。</p><p>我不太清楚人们在看到它们之后会如何选择，什么是加分项，什么可能会被diss。这种时候，我总会怀着这样一种考虑进行选择: </p><p><b>功能是否完备正交，约定是否简洁必要</b>。</p><p>但说实在的，在<b>功能完备</b>这个方面，人们可能就会出现分歧，例如有人认为, parser就按照文法定义(如果有的话)生成s-expression好了，一个列表头部有一个tag, 用以唯一识别node的结构，其余的都是子结构; 有的人又会觉得, 我就是要从一堆字符串里面parse出来一个结构体又有什么问题。更多的，有些parser框架还不支持left recur(比如cpython那个pgen)，也有人写的框架需要<a href="https://www.zhihu.com/question/266250146/answer/306132266">把左递归explicitly标记出来</a>, 有的框架则默认处理了。</p><p>这时总得有自己的判断，这也是文章的观点:</p><h2>功能完备正交</h2><h2>功能1: AST的重写</h2><p>比方说重写ast这件事，cpython自己实现那玩意儿是没有的，Antlr可以轻松实现同为ast结构的重写，但是形成特定的数据结构，Antlr和yacc能以极其扭曲复杂的方式给出相应的笨重实现(而且这在使用中是极其常见的)，而这一切对于<code class="inline">fastparse</code>和<code class="inline">nom</code>这种parser combinator基本是算是稀松平常。</p><p>一些相关事件如下:</p><ul><li><a href="https://github.com/Antlr/Antlr4/issues/1732">Antlr4 issue1732</a><br> </li><li><a href="https://www.quora.com/What-are-the-steps-to-use-antlr-to-create-an-abstract-syntax-tree-of-Java-source-code-and-then-walk-the-tree">Antlr: about ast rewriting</a><br> </li></ul><p>AST的重写有一些非常重大的意义，这个意义和我们需要结构体，而不是把其field数据存放到不同类型的数组中一样。请耐心看下面这个事情。</p><p>合格的文法书写者总会写出这样一种文法，使得parsing后一阶段需要处理的数据结构与这种文法保持着结构上的一致。</p><p>例如(因为非技术原因，我会尽量使用python写例子):</p><p>文法:</p><code lang="text">Add ::= Expr '+' Expr
+# 一个二元运算的ast表示
+class Add(Expr):
+    left: Expr
+    right: Expr</code><p>而仅仅是parse一段符合<code class="inline">Expr '+' Expr</code>的文法，你的parse结果很可能是这样的:</p><code lang="text">[Expr([Token(...)]), Token(+), Expr([Token(...)])]</code><p>拿到这样原始的ast，虽说确实可以进行下一步的工作，但说真的，操作这样的ast可读性太差了，<b>"你在一段sexpr里取第三个位置，鬼知道你取的是什么"</b>，而且类型也没有，不安全，不可维护。</p><p>我经历过这样的时期，你可以观光一下，我是如何用这样的ast造出一门门语言的。。 </p><ul><li><a href="https://github.com/thautwarm/Rem">功能缺失的EBNFParser</a> </li><li><a href="https://github.com/thautwarm/Rem">Rem语言</a></li></ul><p>这个时候，我认为需要这样一种功能:</p><code lang="text">Add ::= left=Expr '+' right=Expr 
+    -&gt;  Add(left, right)</code><p>有一件非常有意思的事情是，如果你的文法中，除开辅助的语法结构，如果每一个都写了这样的重写规则，你会发现你似乎可以直接把你parse后的东西交给编译器的后端, 比如下面这样一段可能不严谨但比较形象的叙述:</p><ul><li>parse数字出来了一个叫Number的结构体，里面包了一个数字</li><li>parse加法出来了一个叫Add的结构体，里面左右分别是Number实例</li><li>parse lambda表达式出来了一个叫Lambda的结构体，里面的body属性正好是之前parse出来那个Add实例  </li><li>以此类推...</li></ul><p>对于经常使用ADT的人，我觉得还有必要说一下，在这样的重写功能下，你直接得到了一棵<code class="inline">data/type</code>定义的语法树，而你所做的不过是仅仅写了一段文法。</p><p>关于语法树重写有更多基于易用性的简化，如果有兴趣请与我直接讨论。</p><h2>功能2: 额外的Parsing约束条件</h2><p>就是说Parsing guard.</p><p>比如，我们都知道，一段xml或者其derivative总是以<code class="inline">&lt;xxx&gt;</code>开头，然后以<code class="inline">&lt;/xxx&gt;</code>结尾。这里是一个状态相关的要素，并非所有parser都能对xml的parsing是否成功做出判断。</p><p>我在昨年的某一天产生了这样一个想法，它重重地敲击着我的神经，呼唤着我的实现:</p><code lang="text">xml = '&lt;' tag1 = tagName '&gt;' 
+       ...省略
+       '&lt;' '/' tag2 = tagName '&gt;'
+       with tag1 == tag2</code><p>我设计了<code class="inline">with</code>子句，让一个<b>有名字的parser</b>成功parse后，还需要对捕捉到的tag1和tag2进行相等比较，如果表达式为假，则parse失败。</p><p>同样的，还有一个<code class="inline">when</code>子句，用于刚刚进入某个<b>有名字的parser</b>时，进行的预先判断，如果判断为假，则该parser失败。</p><p>在我的方法下，这个<b>有名字的parser</b>对于context sensitive的文法处理是一个比较重要的概念，但是这个是<a href="https://github.com/thautwarm/RBNF">私货</a>，有兴趣请直接与我细聊。</p><p>通过这些额外的parsing约束条件，我们可以轻易实现很多复杂的功能。人们总喜欢通过构造context sensitive的tokenizers来实现缩进，可是这并不是唯一的方式，甚至不是好的方式，如果有兴趣不妨看一下<a href="https://github.com/thautwarm/merlin/blob/master/rml/rml/rml.rbnf">我是如何实现一个类ocaml语言的缩进的</a>.</p><h2>功能3: 左递归的支持</h2><p>无论是显式表明左递归，还是不需要额外约定直接处理，我认为左递归的支持是必要的。上升到用户层面，且不说不是所有人都关心各种各样的左递归消除方式，即使了解且熟悉，让用户使用你的服务时需要为之付出精力，怎么想也是一种缺憾。<br> 当然从根本上讲，左递归所代表的左结合的关系，在数据结构中不可避免。  </p><h2>关于功能的完备正交 &amp; 关于parser的抽象</h2><p>在parser本身的功能上, 我认为，如果拥有上述三种功能，那么几乎可以解决任何parsing问题，不仅仅是缩进这种小菜, 还可以</p><ul><li><a href="https://zhuanlan.zhihu.com/p/30279723">各减平均各自乘相加除以项数开方</a>, 根据用户自定义的词语，动态的生成新的parser，不再需要空格分隔关键字这些操作。<br> </li><li><a href="https://github.com/thautwarm/RBNF/blob/master/demos/calc-for-rbnf/calc-immediately.rbnf">parser写完，解释器即写完</a><br> </li></ul><p>总之要什么有什么，确实就是这么为所欲为。</p><p>但关于正交的问题，则需要说得多一点了。</p><p>既然完备，既然正交，那么核心里就必然有一些基本的东西来生成所有可能的构造。</p><p>我们写后端都知道讲language constructs, 而写前端，如果是上下文无关语法，我们有前人们给好的BNF和EBNF，其语法结构对应了一套正交完备的、描述context free的语法功能，由于这些语法结构可以直接和不同的parser combinator一一对应，所以我们可以知道, 严格按照BNF/EBNF语法结构实现的parserc框架可以正交地表达出完备的、受限于context free情境下的parsing能力。</p><p>P.S : 有些版本的EBNF中可能存在一些不正交的功能(例如A ::= [B] C和 A ::= B C | C等价)，这是为了使用上的便利性。因为并没有带来超过一只手的新约定，学习曲线和遗忘曲线依然令人满意。</p><p>而给EBNF添加之前讲到的<b>语法树重写</b>以及<b>额外的Parsing约束条件</b>(parsing guard)之后，这个<b>扩展的扩展BNF</b>就成为能轻松描述诸多context sensitive cases的强大范式，而它的language constructs，满打满算，好像也才是个位数。</p><code lang="fsharp">type Rewrite = ...
+type Guard   = ...
+
+type EEBNFParser = 
+(** '&lt;token&gt;' *)
+| Literal of string
+(** A ::= a b c d e*)
+| And     of EEBNFParser list
+(** A ::= a | b | c | d*)
+| Or      of EEBNFParser list
+(** A ::= a{1, 10} *)
+| Rep     of at_least: int * at_most: int * EEBNFParser
+(** A ::= b=B c=C D E *)
+| Bind    of name: string * EEBNFParser
+(** A ::= ... // 语法树重写、parsing guard
+          when ...
+          with ...
+          rewrite ...
+ *)
+| Named   of name: string * EEBNFParser * Rwrite * Guard</code><p>看清楚了，<b>context sensitive的parser只要5种基本结构</b>, 左递归的实现则涉及具体parser算法的问题。 更多的，这里的parser不再是一个type constructor，如果你脑子里仍然装有<code class="inline">'t Parser</code>把tokenizers转换成<code class="inline">'t</code>或是<code class="inline">'t AST</code>类型，不妨看一下我<a href="https://github.com/thautwarm/Ruiko.fs/tree/master/RBNF/Core">对parser的定义和其parse所得对象的一种解耦</a>。</p><p>以上，是我对于一个现代parser generator框架的抽象核心的导出。</p><h2>约定简洁必要</h2><p>这个时候，往前翻一翻rust的<code class="inline">nom</code>的示例代码，以及doc里<a href="https://docs.rs/nom/4.0.0/nom/#modules">这一大堆API</a>, 是什么考虑让设计者们抛弃parserc的紧凑优美，达到这样一种神奇的现状?</p><p>个人看法 ———— 我觉得这exactly就是<code class="inline">overdeveloped</code>。该rewrite就rewrite，不用自己搞一套。如无必要，勿增实体。</p><p>从之前我说的那个功能完备正交的核心走过来，我有理由认为绝大多数的parser框架都极度冗长，Antlr 和 lex&amp;yacc要实现rewrite和parsing guard简直就像原始人在玩泥巴，需要手写一坨坨巨长的、需要遵守一堆conventions的嵌入代码，  </p><p><b>没有快速实践想法的repl之类的东西</b>(我知道Antlr有一个<a href="https://stackoverflow.com/questions/24766006/getting-Antlr-to-generate-a-script-interpreter">这个</a>, 但是对着dsl/esdl的文件直接执行的，目前不存在的。 <b>私货</b>: <code class="inline">rbnf run &lt;script&gt;</code>了解一下),</p><p><b>甚至lexer居然还不是自动生成的</b> ———— 这样的直接结果是因为需要用户手写lexer又要引入一堆conventions。同时，由于<a href="https://softwareengineering.stackexchange.com/questions/337676/what-is-the-procedure-that-is-followed-when-writing-a-lexer-based-upon-a-grammar">一套文法的定义已然可以蕴含对应的lexer</a>，你再让用户手写，令人窒息何如！</p><p>如此看来，除了fastparse简直没有一个能看。</p><p>fastparse的话, 基本上很符合之前那个5个基本constructs的核心，API比起核心也就是多搞了一些糖。</p><p>若真非要我挑好多刺，我觉得有点迫真。但并不是没有，"鬼画桃符"可以黑一个。</p><code lang="scala">val option = P( "c".? ~ "a".rep(sep="b").! ~ End)
+val captureRep = P( "a".!.rep ~ "b" ~ End)</code><p>虽然这并不是大问题, 你稍微认真看还是相当可读的，况且向scala这种语言要求颜值是不是有点精分?</p><p>更多地，对于real world来说，Repeat有sep这个玩意儿真的蛮方便的，我觉得比较惊艳的一个特性还有<a href="http://www.lihaoyi.com/fastparse/#Opaque">Opaque</a>。</p><p>以上并没有非常详细地说明<b>约定简洁必要</b>这个主题，因为本身API的简洁必要已经是非常明确的概念:</p><ul><li>必要: 保证功能完整</li><li>简洁: 这个结构被使用起来轻量，可读性较高</li></ul><p>在这个section的最后，我提一个事情。 一个半月前我基本实现了一个sql(这个就不能放链接了因为是工作相关)，照着<a href="https://github.com/apache/spark/blob/master/sql/catalyst/src/main/Antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4">Antlr 1094行ebnf的sparksql</a>改，然后简化为350行，且直接生成极其high level的tagged union(python里我不好意思说这是ADT)。那几天看g4不知道恶心了多少次。</p><h2>其他重要的特性</h2><ul><li>模块化与代码复用</li></ul><p>parser generator使用某种dsl刻画，那么应该使用模块的方式进行管理，并且这种模块的语法还应该对不同后端做出合理描述。</p><p>这里不上一下私货的话，实在没什么别的替代品。</p><code lang="text"># bnf源码的模块，不同后端可以复用
+import std.common.[Number Space]
+
+# `[python] import` 引导python specific的模块，用以构造rewrite和parsing guard。
+# 不同后端不复用
+[python] import functools.[reduce]
+[python] import operator.[add sub mul truediv floordiv mod]</code><ul><li>parser可持久化</li></ul><p>也许由于巨量的编译前优化，构造某些parser相对缓慢，但应该容许构造完毕后能dump到存储单元，并以二进制方式进行快速的load。</p><p>可持久化并非总是为了性能，如果load持久化的parser对象不需要原parser generator库的依赖，也会是一个巨大的优势。</p><ul><li>Automatically lexer</li></ul><p>之前已经有提到，我认为这也是现代parser generator的一种标志。</p><p>当lexer可以被文法决定时，用户不应该再被要求书写它。</p><h2>最后</h2><ul><li> 私货<br> 以上一切，在<a href="https://github.com/thautwarm/RBNF">RBNF</a>中<b>高度完成</b>。<br> 之前 <a class="member_mention" href="http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc" data-hash="0251012c87c2d3f56ac34de7d71cdcbc" data-hovercard="p$b$0251012c87c2d3f56ac34de7d71cdcbc">@圆角骑士魔理沙</a>  给我说了一个东西，从一个写好的AST自动生成一个Parser。<br> 然而我都有这个东西了，还要啥自行车...(雾:<br> </li></ul><code lang="text">// 定义文法; 事实上还有embedded python的方式，和写AST差不多。
+A :: = B C as c D as d
+
+// 不仅生成了parser, 还帮我自动定义了AST =_=
+
+type AST = A | C | D | ...
+type A = {
+    c : C
+    d : D
+} 
+type C = ...
+...
+//然后parse一下符合文法的字符串，就是那套ADT了。</code><ul><li> 错误定位怎么做<br> 首先，tokenizer里面要包含lineno(行号), colno(列号), filename(可选，如果你的语言没有source code inline的话是不需要的)。<br> 然后AST可以都增加lineno, colno, filename三个属性。 当然对于AST错误定位，更好的办法是下面这段代码所示。详见<a href="https://github.com/thautwarm/LLAST/tree/master/LLAST/LLVM">LLAST</a>.<br> </li></ul><code lang="fsharp">type location = {
+(**
+for location resolving in exception reporting.
+*)
+    filename: string
+    lineno  : int
+    colno   : int
+}
+type AST = 
+    | ...
+    | Locate of location * AST</code><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 29 Aug 2018 14:29:08 +0800</lastBuildDate>
+<lastBuildDate>Thu, 30 Aug 2018 05:08:21 +0800</lastBuildDate>
 <item>
 <title>Python 实现阴阳谜题（Yin Yang Puzzle）</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-29-43207643.html</link>
@@ -24,6 +24,100 @@ for x, _ in zip(puzzle(), range(256)):
 print()&lt;/code&gt;&lt;p&gt;输出&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;@*@**@***@****@*****@******@*******@********@*********@**********@***********@************@*************@**************@***************@****************@*****************@******************@*******************@********************@*********************@***&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>HOOCCOOH</author>
 <guid isPermaLink="false">2018-08-29-43207643</guid>
+<pubDate>Wed, 29 Aug 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>一个现代的parser generator框架应该是什么样的</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-29-43206998.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43206998&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-04f502b196883798b6fcc7f8f94c59aa_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;8102年，在编译前端这个方面，原始的气息还没有远离我们。&lt;br&gt; 对于某种并非常用格式的字符串，我们想要解析它们，通常会确实地花费一些心思。 在&lt;a href=&quot;https://en.wikipedia.org/wiki/Comparison_of_parser_generators&quot;&gt;这方面的工具&lt;/a&gt;中，我们耳熟能详的东西有&lt;a href=&quot;http://www.antlr.org/&quot;&gt;Antlr4&lt;/a&gt;, &lt;a href=&quot;http://dinosaur.compilertools.net/&quot;&gt;Lex &amp;amp; Yacc&lt;/a&gt;, 各种&lt;a href=&quot;https://en.wikipedia.org/wiki/Parser_combinator&quot;&gt;ParserC&lt;/a&gt;的实现。在我开始敲码的这几年，也出现了&lt;a href=&quot;http://www.lihaoyi.com/fastparse/&quot;&gt;Fastparse&lt;/a&gt;这样的框架。&lt;/p&gt;&lt;p&gt;我们来看一些parse二元&lt;code class=&quot;inline&quot;&gt;+/-&lt;/code&gt;运算的例子:&lt;br&gt; &lt;code class=&quot;inline&quot;&gt;Antlr4&lt;/code&gt;(ruby片段), 来自&lt;a href=&quot;https://github.com/Antlr/grammars-v4/blob/master/ruby/Corundum.g4&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;dynamic_result : 
+               | &amp;lt;此处省略...&amp;gt;
+               | dynamic_result op=( PLUS | MINUS ) int_result
+               | int_result op=( PLUS | MINUS ) dynamic_result
+               | dynamic_result op=( PLUS | MINUS )  float_result
+               | float_result op=( PLUS | MINUS )  dynamic_result
+               | dynamic_result op=( PLUS | MINUS ) dynamic_result
+               | &amp;lt;此处省略...&amp;gt;
+               ;&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;cpython自己实现的pgen&lt;/code&gt;(cpython片段), 来自&lt;a href=&quot;https://github.com/python/cpython/blob/master/Grammar/Grammar&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;arith_expr: term ((&#39;+&#39;|&#39;-&#39;) term)*&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Lex &amp;amp;&amp;amp; Yacc&lt;/code&gt;, 来自&lt;a href=&quot;https://www.ibm.com/developerworks/aix/tutorials/au-lexyacc/index.html&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;antlr&quot;&gt;addexpr: NUMBER PLUSTOKEN NUMBER 
+         { 
+             printf(&quot;%f\n&quot;,($1+$3));
+         }
+         | NUMBER MINUSTOKEN NUMBER 
+         { 
+             printf(&quot;%f\n&quot;,($1-$3));
+         }
+         ;&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Fastparse&lt;/code&gt;, 来自&lt;a href=&quot;http://www.lihaoyi.com/fastparse&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;val addSub: P[Int] = P( divMul ~ (CharIn(&quot;+-&quot;).! ~/ divMul).rep ).map(eval)&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;nom(parserc for Rust)&lt;/code&gt;(片段), 来自&lt;a href=&quot;https://stevedonovan.github.io/rust-gentle-intro/nom-intro.html&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;named!(expr&amp;lt;&amp;amp;str,f64&amp;gt;, do_parse!(
+        init: term &amp;gt;&amp;gt;
+        res: fold_many0!(
+            tuple!(
+                alt!(tag_s!(&quot;+&quot;) | tag_s!(&quot;-&quot;)),
+                term
+            ),
+            init,
+            |acc, v:(_,f64)| {
+                if v.0 == &quot;+&quot; {acc + v.1} else {acc - v.1}
+            }
+        )
+        &amp;gt;&amp;gt; (res)
+    ));&lt;/code&gt;&lt;p&gt;经过对上述代码的预览，以及简要地查看相关链接，我们能够了解一点它们的差异。&lt;/p&gt;&lt;p&gt;我不太清楚人们在看到它们之后会如何选择，什么是加分项，什么可能会被diss。这种时候，我总会怀着这样一种考虑进行选择: &lt;/p&gt;&lt;p&gt;&lt;b&gt;功能是否完备正交，约定是否简洁必要&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;但说实在的，在&lt;b&gt;功能完备&lt;/b&gt;这个方面，人们可能就会出现分歧，例如有人认为, parser就按照文法定义(如果有的话)生成s-expression好了，一个列表头部有一个tag, 用以唯一识别node的结构，其余的都是子结构; 有的人又会觉得, 我就是要从一堆字符串里面parse出来一个结构体又有什么问题。更多的，有些parser框架还不支持left recur(比如cpython那个pgen)，也有人写的框架需要&lt;a href=&quot;https://www.zhihu.com/question/266250146/answer/306132266&quot;&gt;把左递归explicitly标记出来&lt;/a&gt;, 有的框架则默认处理了。&lt;/p&gt;&lt;p&gt;这时总得有自己的判断，这也是文章的观点:&lt;/p&gt;&lt;h2&gt;功能完备正交&lt;/h2&gt;&lt;h2&gt;功能1: AST的重写&lt;/h2&gt;&lt;p&gt;比方说重写ast这件事，cpython自己实现那玩意儿是没有的，Antlr可以轻松实现同为ast结构的重写，但是形成特定的数据结构，Antlr和yacc能以极其扭曲复杂的方式给出相应的笨重实现(而且这在使用中是极其常见的)，而这一切对于&lt;code class=&quot;inline&quot;&gt;fastparse&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;nom&lt;/code&gt;这种parser combinator基本是算是稀松平常。&lt;/p&gt;&lt;p&gt;一些相关事件如下:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/Antlr/Antlr4/issues/1732&quot;&gt;Antlr4 issue1732&lt;/a&gt;&lt;br&gt; &lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.quora.com/What-are-the-steps-to-use-antlr-to-create-an-abstract-syntax-tree-of-Java-source-code-and-then-walk-the-tree&quot;&gt;Antlr: about ast rewriting&lt;/a&gt;&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;AST的重写有一些非常重大的意义，这个意义和我们需要结构体，而不是把其field数据存放到不同类型的数组中一样。请耐心看下面这个事情。&lt;/p&gt;&lt;p&gt;合格的文法书写者总会写出这样一种文法，使得parsing后一阶段需要处理的数据结构与这种文法保持着结构上的一致。&lt;/p&gt;&lt;p&gt;例如(因为非技术原因，我会尽量使用python写例子):&lt;/p&gt;&lt;p&gt;文法:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Add ::= Expr &#39;+&#39; Expr
+# 一个二元运算的ast表示
+class Add(Expr):
+    left: Expr
+    right: Expr&lt;/code&gt;&lt;p&gt;而仅仅是parse一段符合&lt;code class=&quot;inline&quot;&gt;Expr &#39;+&#39; Expr&lt;/code&gt;的文法，你的parse结果很可能是这样的:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[Expr([Token(...)]), Token(+), Expr([Token(...)])]&lt;/code&gt;&lt;p&gt;拿到这样原始的ast，虽说确实可以进行下一步的工作，但说真的，操作这样的ast可读性太差了，&lt;b&gt;&quot;你在一段sexpr里取第三个位置，鬼知道你取的是什么&quot;&lt;/b&gt;，而且类型也没有，不安全，不可维护。&lt;/p&gt;&lt;p&gt;我经历过这样的时期，你可以观光一下，我是如何用这样的ast造出一门门语言的。。 &lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/Rem&quot;&gt;功能缺失的EBNFParser&lt;/a&gt; &lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/Rem&quot;&gt;Rem语言&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这个时候，我认为需要这样一种功能:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Add ::= left=Expr &#39;+&#39; right=Expr 
+    -&amp;gt;  Add(left, right)&lt;/code&gt;&lt;p&gt;有一件非常有意思的事情是，如果你的文法中，除开辅助的语法结构，如果每一个都写了这样的重写规则，你会发现你似乎可以直接把你parse后的东西交给编译器的后端, 比如下面这样一段可能不严谨但比较形象的叙述:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;parse数字出来了一个叫Number的结构体，里面包了一个数字&lt;/li&gt;&lt;li&gt;parse加法出来了一个叫Add的结构体，里面左右分别是Number实例&lt;/li&gt;&lt;li&gt;parse lambda表达式出来了一个叫Lambda的结构体，里面的body属性正好是之前parse出来那个Add实例  &lt;/li&gt;&lt;li&gt;以此类推...&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;对于经常使用ADT的人，我觉得还有必要说一下，在这样的重写功能下，你直接得到了一棵&lt;code class=&quot;inline&quot;&gt;data/type&lt;/code&gt;定义的语法树，而你所做的不过是仅仅写了一段文法。&lt;/p&gt;&lt;p&gt;关于语法树重写有更多基于易用性的简化，如果有兴趣请与我直接讨论。&lt;/p&gt;&lt;h2&gt;功能2: 额外的Parsing约束条件&lt;/h2&gt;&lt;p&gt;就是说Parsing guard.&lt;/p&gt;&lt;p&gt;比如，我们都知道，一段xml或者其derivative总是以&lt;code class=&quot;inline&quot;&gt;&amp;lt;xxx&amp;gt;&lt;/code&gt;开头，然后以&lt;code class=&quot;inline&quot;&gt;&amp;lt;/xxx&amp;gt;&lt;/code&gt;结尾。这里是一个状态相关的要素，并非所有parser都能对xml的parsing是否成功做出判断。&lt;/p&gt;&lt;p&gt;我在昨年的某一天产生了这样一个想法，它重重地敲击着我的神经，呼唤着我的实现:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;xml = &#39;&amp;lt;&#39; tag1 = tagName &#39;&amp;gt;&#39; 
+       ...省略
+       &#39;&amp;lt;&#39; &#39;/&#39; tag2 = tagName &#39;&amp;gt;&#39;
+       with tag1 == tag2&lt;/code&gt;&lt;p&gt;我设计了&lt;code class=&quot;inline&quot;&gt;with&lt;/code&gt;子句，让一个&lt;b&gt;有名字的parser&lt;/b&gt;成功parse后，还需要对捕捉到的tag1和tag2进行相等比较，如果表达式为假，则parse失败。&lt;/p&gt;&lt;p&gt;同样的，还有一个&lt;code class=&quot;inline&quot;&gt;when&lt;/code&gt;子句，用于刚刚进入某个&lt;b&gt;有名字的parser&lt;/b&gt;时，进行的预先判断，如果判断为假，则该parser失败。&lt;/p&gt;&lt;p&gt;在我的方法下，这个&lt;b&gt;有名字的parser&lt;/b&gt;对于context sensitive的文法处理是一个比较重要的概念，但是这个是&lt;a href=&quot;https://github.com/thautwarm/RBNF&quot;&gt;私货&lt;/a&gt;，有兴趣请直接与我细聊。&lt;/p&gt;&lt;p&gt;通过这些额外的parsing约束条件，我们可以轻易实现很多复杂的功能。人们总喜欢通过构造context sensitive的tokenizers来实现缩进，可是这并不是唯一的方式，甚至不是好的方式，如果有兴趣不妨看一下&lt;a href=&quot;https://github.com/thautwarm/merlin/blob/master/rml/rml/rml.rbnf&quot;&gt;我是如何实现一个类ocaml语言的缩进的&lt;/a&gt;.&lt;/p&gt;&lt;h2&gt;功能3: 左递归的支持&lt;/h2&gt;&lt;p&gt;无论是显式表明左递归，还是不需要额外约定直接处理，我认为左递归的支持是必要的。上升到用户层面，且不说不是所有人都关心各种各样的左递归消除方式，即使了解且熟悉，让用户使用你的服务时需要为之付出精力，怎么想也是一种缺憾。&lt;br&gt; 当然从根本上讲，左递归所代表的左结合的关系，在数据结构中不可避免。  &lt;/p&gt;&lt;h2&gt;关于功能的完备正交 &amp;amp; 关于parser的抽象&lt;/h2&gt;&lt;p&gt;在parser本身的功能上, 我认为，如果拥有上述三种功能，那么几乎可以解决任何parsing问题，不仅仅是缩进这种小菜, 还可以&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30279723&quot;&gt;各减平均各自乘相加除以项数开方&lt;/a&gt;, 根据用户自定义的词语，动态的生成新的parser，不再需要空格分隔关键字这些操作。&lt;br&gt; &lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/RBNF/blob/master/demos/calc-for-rbnf/calc-immediately.rbnf&quot;&gt;parser写完，解释器即写完&lt;/a&gt;&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;总之要什么有什么，确实就是这么为所欲为。&lt;/p&gt;&lt;p&gt;但关于正交的问题，则需要说得多一点了。&lt;/p&gt;&lt;p&gt;既然完备，既然正交，那么核心里就必然有一些基本的东西来生成所有可能的构造。&lt;/p&gt;&lt;p&gt;我们写后端都知道讲language constructs, 而写前端，如果是上下文无关语法，我们有前人们给好的BNF和EBNF，其语法结构对应了一套正交完备的、描述context free的语法功能，由于这些语法结构可以直接和不同的parser combinator一一对应，所以我们可以知道, 严格按照BNF/EBNF语法结构实现的parserc框架可以正交地表达出完备的、受限于context free情境下的parsing能力。&lt;/p&gt;&lt;p&gt;P.S : 有些版本的EBNF中可能存在一些不正交的功能(例如A ::= [B] C和 A ::= B C | C等价)，这是为了使用上的便利性。因为并没有带来超过一只手的新约定，学习曲线和遗忘曲线依然令人满意。&lt;/p&gt;&lt;p&gt;而给EBNF添加之前讲到的&lt;b&gt;语法树重写&lt;/b&gt;以及&lt;b&gt;额外的Parsing约束条件&lt;/b&gt;(parsing guard)之后，这个&lt;b&gt;扩展的扩展BNF&lt;/b&gt;就成为能轻松描述诸多context sensitive cases的强大范式，而它的language constructs，满打满算，好像也才是个位数。&lt;/p&gt;&lt;code lang=&quot;fsharp&quot;&gt;type Rewrite = ...
+type Guard   = ...
+
+type EEBNFParser = 
+(** &#39;&amp;lt;token&amp;gt;&#39; *)
+| Literal of string
+(** A ::= a b c d e*)
+| And     of EEBNFParser list
+(** A ::= a | b | c | d*)
+| Or      of EEBNFParser list
+(** A ::= a{1, 10} *)
+| Rep     of at_least: int * at_most: int * EEBNFParser
+(** A ::= b=B c=C D E *)
+| Bind    of name: string * EEBNFParser
+(** A ::= ... // 语法树重写、parsing guard
+          when ...
+          with ...
+          rewrite ...
+ *)
+| Named   of name: string * EEBNFParser * Rwrite * Guard&lt;/code&gt;&lt;p&gt;看清楚了，&lt;b&gt;context sensitive的parser只要5种基本结构&lt;/b&gt;, 左递归的实现则涉及具体parser算法的问题。 更多的，这里的parser不再是一个type constructor，如果你脑子里仍然装有&lt;code class=&quot;inline&quot;&gt;&#39;t Parser&lt;/code&gt;把tokenizers转换成&lt;code class=&quot;inline&quot;&gt;&#39;t&lt;/code&gt;或是&lt;code class=&quot;inline&quot;&gt;&#39;t AST&lt;/code&gt;类型，不妨看一下我&lt;a href=&quot;https://github.com/thautwarm/Ruiko.fs/tree/master/RBNF/Core&quot;&gt;对parser的定义和其parse所得对象的一种解耦&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以上，是我对于一个现代parser generator框架的抽象核心的导出。&lt;/p&gt;&lt;h2&gt;约定简洁必要&lt;/h2&gt;&lt;p&gt;这个时候，往前翻一翻rust的&lt;code class=&quot;inline&quot;&gt;nom&lt;/code&gt;的示例代码，以及doc里&lt;a href=&quot;https://docs.rs/nom/4.0.0/nom/#modules&quot;&gt;这一大堆API&lt;/a&gt;, 是什么考虑让设计者们抛弃parserc的紧凑优美，达到这样一种神奇的现状?&lt;/p&gt;&lt;p&gt;个人看法 ———— 我觉得这exactly就是&lt;code class=&quot;inline&quot;&gt;overdeveloped&lt;/code&gt;。该rewrite就rewrite，不用自己搞一套。如无必要，勿增实体。&lt;/p&gt;&lt;p&gt;从之前我说的那个功能完备正交的核心走过来，我有理由认为绝大多数的parser框架都极度冗长，Antlr 和 lex&amp;amp;yacc要实现rewrite和parsing guard简直就像原始人在玩泥巴，需要手写一坨坨巨长的、需要遵守一堆conventions的嵌入代码，  &lt;/p&gt;&lt;p&gt;&lt;b&gt;没有快速实践想法的repl之类的东西&lt;/b&gt;(我知道Antlr有一个&lt;a href=&quot;https://stackoverflow.com/questions/24766006/getting-Antlr-to-generate-a-script-interpreter&quot;&gt;这个&lt;/a&gt;, 但是对着dsl/esdl的文件直接执行的，目前不存在的。 &lt;b&gt;私货&lt;/b&gt;: &lt;code class=&quot;inline&quot;&gt;rbnf run &amp;lt;script&amp;gt;&lt;/code&gt;了解一下),&lt;/p&gt;&lt;p&gt;&lt;b&gt;甚至lexer居然还不是自动生成的&lt;/b&gt; ———— 这样的直接结果是因为需要用户手写lexer又要引入一堆conventions。同时，由于&lt;a href=&quot;https://softwareengineering.stackexchange.com/questions/337676/what-is-the-procedure-that-is-followed-when-writing-a-lexer-based-upon-a-grammar&quot;&gt;一套文法的定义已然可以蕴含对应的lexer&lt;/a&gt;，你再让用户手写，令人窒息何如！&lt;/p&gt;&lt;p&gt;如此看来，除了fastparse简直没有一个能看。&lt;/p&gt;&lt;p&gt;fastparse的话, 基本上很符合之前那个5个基本constructs的核心，API比起核心也就是多搞了一些糖。&lt;/p&gt;&lt;p&gt;若真非要我挑好多刺，我觉得有点迫真。但并不是没有，&quot;鬼画桃符&quot;可以黑一个。&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;val option = P( &quot;c&quot;.? ~ &quot;a&quot;.rep(sep=&quot;b&quot;).! ~ End)
+val captureRep = P( &quot;a&quot;.!.rep ~ &quot;b&quot; ~ End)&lt;/code&gt;&lt;p&gt;虽然这并不是大问题, 你稍微认真看还是相当可读的，况且向scala这种语言要求颜值是不是有点精分?&lt;/p&gt;&lt;p&gt;更多地，对于real world来说，Repeat有sep这个玩意儿真的蛮方便的，我觉得比较惊艳的一个特性还有&lt;a href=&quot;http://www.lihaoyi.com/fastparse/#Opaque&quot;&gt;Opaque&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以上并没有非常详细地说明&lt;b&gt;约定简洁必要&lt;/b&gt;这个主题，因为本身API的简洁必要已经是非常明确的概念:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;必要: 保证功能完整&lt;/li&gt;&lt;li&gt;简洁: 这个结构被使用起来轻量，可读性较高&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;在这个section的最后，我提一个事情。 一个半月前我基本实现了一个sql(这个就不能放链接了因为是工作相关)，照着&lt;a href=&quot;https://github.com/apache/spark/blob/master/sql/catalyst/src/main/Antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4&quot;&gt;Antlr 1094行ebnf的sparksql&lt;/a&gt;改，然后简化为350行，且直接生成极其high level的tagged union(python里我不好意思说这是ADT)。那几天看g4不知道恶心了多少次。&lt;/p&gt;&lt;h2&gt;其他重要的特性&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;模块化与代码复用&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;parser generator使用某种dsl刻画，那么应该使用模块的方式进行管理，并且这种模块的语法还应该对不同后端做出合理描述。&lt;/p&gt;&lt;p&gt;这里不上一下私货的话，实在没什么别的替代品。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# bnf源码的模块，不同后端可以复用
+import std.common.[Number Space]
+
+# `[python] import` 引导python specific的模块，用以构造rewrite和parsing guard。
+# 不同后端不复用
+[python] import functools.[reduce]
+[python] import operator.[add sub mul truediv floordiv mod]&lt;/code&gt;&lt;ul&gt;&lt;li&gt;parser可持久化&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;也许由于巨量的编译前优化，构造某些parser相对缓慢，但应该容许构造完毕后能dump到存储单元，并以二进制方式进行快速的load。&lt;/p&gt;&lt;p&gt;可持久化并非总是为了性能，如果load持久化的parser对象不需要原parser generator库的依赖，也会是一个巨大的优势。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Automatically lexer&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;之前已经有提到，我认为这也是现代parser generator的一种标志。&lt;/p&gt;&lt;p&gt;当lexer可以被文法决定时，用户不应该再被要求书写它。&lt;/p&gt;&lt;h2&gt;最后&lt;/h2&gt;&lt;ul&gt;&lt;li&gt; 私货&lt;br&gt; 以上一切，在&lt;a href=&quot;https://github.com/thautwarm/RBNF&quot;&gt;RBNF&lt;/a&gt;中&lt;b&gt;高度完成&lt;/b&gt;。&lt;br&gt; 之前 &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hash=&quot;0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hovercard=&quot;p$b$0251012c87c2d3f56ac34de7d71cdcbc&quot;&gt;@圆角骑士魔理沙&lt;/a&gt;  给我说了一个东西，从一个写好的AST自动生成一个Parser。&lt;br&gt; 然而我都有这个东西了，还要啥自行车...(雾:&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;text&quot;&gt;// 定义文法; 事实上还有embedded python的方式，和写AST差不多。
+A :: = B C as c D as d
+
+// 不仅生成了parser, 还帮我自动定义了AST =_=
+
+type AST = A | C | D | ...
+type A = {
+    c : C
+    d : D
+} 
+type C = ...
+...
+//然后parse一下符合文法的字符串，就是那套ADT了。&lt;/code&gt;&lt;ul&gt;&lt;li&gt; 错误定位怎么做&lt;br&gt; 首先，tokenizer里面要包含lineno(行号), colno(列号), filename(可选，如果你的语言没有source code inline的话是不需要的)。&lt;br&gt; 然后AST可以都增加lineno, colno, filename三个属性。 当然对于AST错误定位，更好的办法是下面这段代码所示。详见&lt;a href=&quot;https://github.com/thautwarm/LLAST/tree/master/LLAST/LLVM&quot;&gt;LLAST&lt;/a&gt;.&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;fsharp&quot;&gt;type location = {
+(**
+for location resolving in exception reporting.
+*)
+    filename: string
+    lineno  : int
+    colno   : int
+}
+type AST = 
+    | ...
+    | Locate of location * AST&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>NightyNight</author>
+<guid isPermaLink="false">2018-08-29-43206998</guid>
 <pubDate>Wed, 29 Aug 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
@@ -501,15 +595,6 @@ dup x = (x,x)
 <author>Martin awodey</author>
 <guid isPermaLink="false">2018-08-04-41266828</guid>
 <pubDate>Sat, 04 Aug 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Contravariant Functors</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-07-21-40272611.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/40272611&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5c90cc84819d9084f9b13fc09bd6abf2_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;&lt;a href=&quot;https://youtu.be/IJ_bVVsQhvc&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;George Wilson - Contravariant Functors: The Other Side of the Coin (youtube)&lt;/a&gt;&lt;p&gt;吃外卖的时候看的, 不长又欢乐的一个 talk.&lt;/p&gt;&lt;p&gt;从 Contravariant 的  Functor 开始介绍它的 Applicative , Alternative 版: Divisible 和 Decidable.&lt;/p&gt;&lt;p&gt;一开始拿 predicate 作为 Contravariant 的例子,  自嘲 so boring 之后换 pretty printer 作为例子最后总结出:&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e31336410b2e758342acc23eaedc4c23_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1396&quot; data-rawheight=&quot;780&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e31336410b2e758342acc23eaedc4c23&quot; data-watermark-src=&quot;v2-b4b6daa28d4c5aaee30d9f7cca8d7d8a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt; Applicative, Alternative 一个比较 practical 的例子是 async 里的 &lt;a href=&quot;https://hackage.haskell.org/package/async/docs/Control-Concurrent-Async.html#t:Concurrently&quot;&gt;Concurrently&lt;/a&gt;, 当 fork 出多个 “线程” 一起计算结果的时候, 所有结果都要就是 applicative, 只需要其中一个就是 alternative (how to combine multiple results). 另外的例子可以看 Parser Combinator (Parser Combinator 真是万能的例子&lt;/p&gt;&lt;p&gt;Contravariant, Divisible, Decidable 的中缀运算符设计得也特别有意思, 就是把&quot;&amp;lt;&amp;gt;&quot;到过来变&quot;&amp;gt;&amp;lt;&quot;, Haskell 里的运算符设计还是有点规律的不是鬼画符  XD&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;BTW, 这个 talk 很好地展现用 Haskell 的语言特性&amp;lt;del&amp;gt;猫论&amp;lt;/del&amp;gt;做抽象吸引我的一面:&lt;/p&gt;&lt;p&gt;type class hierarchy 就是个做抽象跟复用的地图: 当发现一个东西是 Functor 的时候就会想这货有没有可能也是一个 Applicative/Alternative ? 如果是, 这个 “computation”(type class) 在这个 context 下代表什么操作? 更进一步如果是 Applicative 的话, 有没有可能是 Monad? 这个 talk QA部分就有人问是不是 Monad, George 小哥早就准备好了答案 XD.&lt;/p&gt;&lt;p&gt;而且这种抽象和复用不像一些&quot;设计模式&quot;一样, 只能靠例子和自然语言来描述, 它们是有 law 的, talk 里每次提到 law 大家都会欢呼一下 XD&lt;/p&gt;&lt;p&gt;这些抽象的关系有时候就调换个参数(Contravariant), 反转个箭头(monad -&amp;gt; comonad), uncurry 一下 (学 Haskell 真不需要懂多少猫论的, 会看类型签名就好&lt;/p&gt;&lt;p&gt;当然了 &lt;a href=&quot;http://hackage.haskell.org/package/contravariant&quot;&gt;contravariant&lt;/a&gt; 这个库的作者依旧是神奇的 Edward Kmett, 如果想知道更多 Functor 请看依旧是 George Wilson 小哥去年同样在 YOW! Lambda Jam 的 &lt;a href=&quot;https://youtu.be/JUVMiRRq6wU&quot;&gt;The Extended Functor Family&lt;/a&gt;, 当然了里面提到的库都是 Edward Kmett 写的. George Wilson 的 talk 都好赞, 写的库也是.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;(别看到 Haskell 就 BB Monad 了, 还有很多可以 BB 是不是 &lt;/p&gt;</description>
-<author>祖与占</author>
-<guid isPermaLink="false">2018-07-21-40272611</guid>
-<pubDate>Sat, 21 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
