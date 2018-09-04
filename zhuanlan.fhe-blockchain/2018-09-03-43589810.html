@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>最清晰的比特币白皮书解析2-时间戳服务</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/43589810">原文</a></p>
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-d77484395746a6d77e841733fb50dcd3_r.jpg" alt=""></div><p></p><p></p><p><b>3. 时间戳服务</b></p><p>通过上节知道，解决双花问题成为了去中心化点对点系统的核心问题。上一节指出为了解决双花问题，需要系统能够对交易的先后顺序达成一致共识。但是如何做并没有说。显然顺序和时间有关，那么在系统内如何体现时间呢？</p><p>首先要清楚什么是时间戳。时间戳就是为某个文档的时间提供证明。在某些商务场合很重要，例如签合同，时间是具有法律意义的。在电子文档环境下要提供时间戳，需要保证两件事情：</p><p>一是文档没有被修改；</p><p>二是为该文档添加的时间戳具有信用背书。也就是需要一个可信的第三方机构来发布时间戳。</p><p>第一点可以通过对文档的哈希来解决，第二点如果在可以有中心化的场景，可以通过专业的可信第三方提供时间戳服务。但是现在是点对点的去中心化环境，如何提供时间戳呢？</p><p> 所以白皮书的第一句话，就说为了提出解决方案，我们先从时间戳服务说起。</p><p>The solution we propose begins with a timestamp server. </p><p> 紧接着白皮书解释了如何提供时间戳。</p><p>A timestamp server works by taking a hash of a block of items to be timestamped and widely publishing the hash, such as in a newspaper or Usenet post [2-5]. </p><p> 时间戳服务可以通过计算区块数据的哈希值，并且广而告之该哈希值，例如刊登在报纸或者其它媒体上来提供。</p><p>上述方法通过哈希解决了数据的不可篡改性，通过报纸等媒体解决了时间性。因为报纸等媒体是按照时间发行，具有时间特征的。而且哈希值一旦在报纸等公开媒体发布，其时间和哈希值就牢牢绑定无法更改了，被永远记录在媒体上。从而实现了分布式时间戳的目的（即不需要一个可信的机构来发布时间戳）。</p><p>所以白皮书紧接着说</p><p>The timestamp proves that the data must have existed at the time, obviously, in order to get into the hash. Each timestamp includes the previous timestamp in its hash, forming a chain, with each additional timestamp reinforcing the ones before it. </p><p>显然通过计算区块数据的哈希值来提供时间戳服务，该时间戳证明了区块数据在某个时间的存在性。在计算区块的哈希时，包含了前一区块的时间戳，从而形成了一个链条，即每一个区块的时间戳都包含了它之前区块的时间戳。通俗的讲，前面所有区块的特征都被遗传到了后面的时间戳中。如果想篡改某一个区块的时间戳，必须篡改其后的所有时间戳才可以。这是一个非常好的特性，使得时间戳链条越长，安全性越好。</p><p>从而时间戳链条越长，就越能增强前面时间戳的不可篡改性。因为要花更大的代价去篡改其后的所有时间戳。这就是这句话的本质含义Each timestamp includes the previous timestamp in its hash, forming a chain, with each additional timestamp reinforcing the ones before it. 目前的中文版都没有对背后的意思进行解读，这是需要功力的。如果不对比特币系统有深入的理解，很难读懂其白皮书。</p><p> 整个白皮书一环套一环，很紧凑，很简洁，但是也造成了理解上的困难。相信经过我们这样的深入解析，会让您豁然开朗。</p><p>到此，上述论述的时间戳本质上就是一个哈希链，而且每个哈希值都被打了时间戳的一个链。要在点对点的分布式环境下，实现该时间戳是需要一种新机制的。</p><p>这里存在一个问题，哈希只是解决了数据不可篡改的目的，如何和时间挂上钩呢？可以通过可信的第三方来提供时间戳服务，也可以把哈希值记录在报纸等公开的媒体上。但是现在是一个点对点的网络，即不存在中心化的第三方。那么如何体现可信时间这个概念呢？</p><p>由于是点对点的网络，所以时间必须是随机的由网络中的某个节点提供。如果不是随机的，就不能体现点对点网络的去中心化特征，时间就可能被提供者控制。有些人可能会想，那就由随机选定的节点提供时间就可以了。这样做不能保证时间的真实性（因为可能会被篡改），因为不能保证每个节点都是诚实的。那么既要保证时间提供者的随机性，又不能让提供者直接提供时间，这不是矛盾吗？如何解决呢？</p><p>办法总是人想出来了的。中本聪想的办法是通过事件来体现时间，即把事件和时间关联起来。就像把哈希值记录在报纸上一样。只要事件是随机的，那么完成该事件就意味着在某个时间完成了该事件，从而体现了时间。关键是体现了交易的先后顺序。</p><p>文章首发在微信公众号：btc201800</p><p>http://weixin.qq.com/r/GC8UDDjEjmXxrXxv93oK (二维码自动识别)</p><p>相应的音频，已发布到喜马拉雅“解读区块链白皮书”上，欢迎收听。</p><p>http://m.ximalaya.com/42927243/sound/119777482 (二维码自动识别)</p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
