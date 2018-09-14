@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>谈谈“脱裤”这点事</title>
+<title>感恩，不只是一种美德</title>
 </head>
 <body>
-<p><a href="https://mp.weixin.qq.com/s?timestamp=1536918348&amp;src=3&amp;ver=1&amp;signature=iwHpY9RsyhziO-UUwUttLnar3S*ALuEQRpRavmUHvt-XCOQlbq-7feHr5YklWAM3BB3ooYyhCsoG9OykkIE5AjT0xINmO3auQnl75374H4t3A7gV2sG1u7z-cf9wORyTUkjUo2IZ6-fXIMbOMWxsU2nbEb2Ic09T3h3L90W5*mw=">原文</a></p>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1536918348&amp;src=3&amp;ver=1&amp;signature=iwHpY9RsyhziO-UUwUttLnar3S*ALuEQRpRavmUHvt-XCOQlbq-7feHr5YklWAM3BB3ooYyhCsoG9OykkIE5Ao2KF2VXJT2KImdsBFrcG4YlXaFsf2OAbygDBjoTcyoSGufpXWLOaIK8BXobqFCfH*CLBWFst*JT7c5I9eh9E14=">原文</a></p>
 <div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
 
         
@@ -21,7 +21,7 @@
                 <h2 class="rich_media_title" id="activity-name">
                     
                     
-                    谈谈“脱裤”这点事
+                    感恩，不只是一种美德
 
                                                                                 </h2>
                 <div id="meta_content" class="rich_media_meta_list">
@@ -81,9 +81,9 @@
 
                     
                     
-                    <p>别想歪，“脱裤”是一种俗称，其实是拖库，或者说，数据库被黑客整个拖下来。</p><p><br></p><p>其实我在我们易灵微课的信息安全培训课程里提到过github敏感信息上传的风险，很不幸的是，同样的问题，你看，华住会犯了同样的错误，因为数据库密码被传递到了github上，数据被拖库，现在已经在地下黑市流通。想想几亿条开房记录，我还是华住会金会籍呢。要不要瑟瑟发抖呢？</p><p><br></p><p>今天说一下华住会这个脱裤事件暴露的问题，和防脱裤的几个原则。</p><p><br></p><p>1、github信息脱敏</p><p><br></p><p>根据公开的一些截屏信息看，华住会不仅仅是数据库密码被暴露，（还是弱密码），而且连微信的appid 和secret也被暴露，想想黑客要是利用这个在华住会的官方微信公众号里发一条钓鱼信息，这特么的多可怕。</p><p><br></p><p>代码使用github我觉得不是说非要严格禁止，但代码脱敏是非常重要的，关键密码和关键信息是绝对不能放在公开的代码里的。</p><p><br></p><p>2、数据库应禁止外网ip</p><p><br></p><p>数据库应只保留内网端口，如果必须保留外网端口，应通过白名单策略，仅限指定服务器访问。</p><p><br></p><p>3、数据中间层过滤</p><p><br></p><p>对于高安全性系统而言，程序代码应只访问中间层，只能在中间层以许可的逻辑访问数据库，中间层应能过滤一些危险操作，或只设置白名单操作。类似全库拖库的操作，应该是中间层所不能许可的，或者仅限于指定管理备份主机或仅限于最高权限管理账户，而程序是不能使用最高权限账户登录数据库的。</p><p><br></p><p>4、密码严禁明文存储</p><p>不但要加密存储，还要不可逆加密，</p><p>不但要不可逆加密，还要加盐，</p><p>不但要加盐，还要加随机盐。</p><p><br></p><p>cmd5.com 我以前说过，不加盐的不可逆加密秒秒钟被彩虹库撞出来。</p><p>不理解为什么要随机盐的程序员都回去补课去，这个问题必须理解透彻。</p><p><br></p><p>5、敏感信息应混淆存储</p><p><br></p><p>敏感信息必须可逆，不能做不可逆加密，这是没办法的事情。</p><p>但信息混淆还是要做的，不能让黑客那么容易拿到。</p><p><br></p><p>当然，如果代码都公开了，github上都被人拿到了，混淆也是很容易被破解出来的，但，怎么说呢，每一步都是增加黑客的入侵成本，提高黑客拖库门槛不是么。如果代码没公开而只是数据库被拖，那么敏感信息混淆还是很有意义的。</p><p><br></p><p>6、任何企业的程序员入职，都应该有信息安全培训，怎么强调都不过分。</p><p><br></p><p>拖库的可能性，想到哪里写到哪里</p><p><br></p><p>1、这种github密码泄露，惨剧挺多的了已经。</p><p>2、内鬼。</p><p>3、SQL注入，惨剧也极多，而且经久不衰。</p><p>4、服务器被其他原因入侵，连带数据库被拖</p><p>5、研发或运维的个人电脑被入侵，植入木马</p><p>6、备份服务器安全策略不当，或者第三方备份系统出问题，也包括数据分析服务器。很多时候这就是个意识问题，觉得反正不是线上业务，随便跑跑数据。</p><p>7、云穿透，云主机现在太流行了，虽然暂时案例可能没有，风险还是存在的，而且一出问题肯定不小。</p><p>8、授权滥用，比如第三方接口给的权限太高，或者没注意到授权验证逻辑上的风险。</p><p>9、报废服务器处置不当，硬盘被人数据修复什么的，别说异想天开，只要资料有价值，就有人会琢磨这些。有些公司业务关停，二手服务器批量出售，如果处理不当，这个风险还是有的。</p><p>10、基于社工，拿到数据库密码，比如微信上假冒技术总监找运维工程师要到密码。</p><p>11、嗅探侦听，通过sniffer拿到管理员密码入侵服务器。不过现在应该没有管理员用telnet了吧。</p><p>12、钓鱼，比如机房如果安全配置很扯淡，在同机房内搞个服务器，弄个arp欺骗，把管理员骗到蜜罐里，密码轻松到手。</p><p><br></p><p>先想到这些。有其他的欢迎留言补充。</p><p><br></p><p>微信能不能给开留言赞赏，很多次都想给留言者赞赏的。</p><hr><p><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;mid=2649867800&amp;idx=1&amp;sn=08577d98b68bf7da85007e8efdcd8bb0&amp;chksm=f1075c75c670d5630a98ef25ba72b58f9e86276e2b540ca0a2fc7fbf18418f9d644b256a4765&amp;scene=21#wechat_redirect" target="_blank">算法是如何体现价值的</a> 这么好的广告访问量居然不高，对不起广告主么。<br></p><p><br></p><p>题图，朋友圈偷来的，侵删</p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer3I4hvLazvFia8XTuiaOrSZ0jZW11icjbq54a6Wz8ias0VMYxfCjHYkqbdoUmNKmtnEiceibDXCxFHR3pQg/640?wx_fmt=jpeg" data-type="jpeg" data-w="720" style=""></p><p><br></p>
+                    <p style="white-space: normal;">有很多谈及感恩的鸡汤，那么我说点可能不同的。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">前段时间有一些刷屏的文章，说有些人做慈善，结果因为某种原因无法坚持，那些曾经受过他们恩惠的人就会反目相向，口出恶言，让人心寒。这种事情，确实，一而再，再而三的发生。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">其实以前我也说过，不要做烂好人，要懂一些人性的恶。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">有些人值得帮助，有些人不值得帮助，不懂得感恩的人，是不值得帮助的。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">那么，反过来想，作为一个普通人，希望事业上能够得到贵人相助，希望能够有知遇之恩的大佬提拔你一把，你就要想想，那些有资源，有能力帮助你的人，他们凭什么帮助你？他们也会和我一样思考，首先要看你值得不值得帮助。也许偶然帮过你，然后你以为理所当然，那么第二次，第三次，对不起，他们凭什么还会帮助你？</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">说直白一点，感恩其实也是很功利的，让自己在别人的心目里，留下这么一个印象，自己是一个值得帮助的人。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">当然，由于能力，资源的不同，我们在回馈别人帮助的时候，可能很难做到等价交换，别人给了我们极大的帮助，我现在还是小透明，暂时给不出匹配的回报，第一，你要有回报感谢的意识，哪怕微信上一个红包呢？第二，当你后续基于对方的帮助，指点，获得充分回报的时候，有足够能力和资源的时候，要知道再给予对方足够的价值回馈。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">这样人家以后有好事情的时候，自然还会记得你，为什么，你这个人值得帮啊，帮了有回报啊。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">你说这也太俗了吧，对不起，事实就是这么俗。</p><p><br></p><p>冯大辉老师都说过好多次了，留言要联系方式，谈合作，说的天花乱坠，什么崇拜了，敬仰了，学到很多啦，收获很大啦，然后一点头像，一次赞赏都没有过，谈什么谈。 我以前也讲过，有那年轻人，每篇都赞赏，前后上百次，是的，一次两块钱，真不多，你说我在乎那点钱么，人家有这个态度，你说我愿意不愿意帮。</p><p><br></p><p>心怀感恩，对每个帮助过你的人给予积极回馈，你的人脉，职场，事业之路会越来越宽。大家都愿意帮助值得帮助的人，多换位思考，不要觉得什么都是自己理所当然的。</p><p><br></p><p>记得微博上曾经看到一个事情，特别值得分享，好像是哪个医生发的，原文不记得了，有知道的可以评论里标注一下。</p><p><br></p><p>这个医生遇到一个危重病人，当时感觉凶多吉少，而且这个病人家庭环境一般，也就是说不算富裕，如果手术治疗，成本很高，而且，失败的概率也很高。大家都知道，现在医闹那么厉害，医生会怎么想，多一事不如少一事，跟家属商量了一下，说明情况，手术挽救成功的概率很低，开销又大不值得，基本上就是放弃了，家属也同意了。医生已经忙了一整天，非常辛苦，也打算回家休息了，这时候护士跑来说，这个病人想见见医生。</p><p><br></p><p>那么病人先是问医生自己是不是基本没救了，医生也只好实话实说，病人并没有恳求医生，也没有情绪失控，而是先感谢了医生之前的救治，然后表示自己愿意捐献器官给其他人，说的很诚恳。这个医生出了病房，觉得实在不忍心就这么放弃了，于是又去跟家属商谈，说虽然成功概率不高，但还是想试试手术治疗，希望家属能支持，那么医生都这么说，家属自然也同意了。于是医生主动加班加了一床手术。</p><p><br></p><p>手术的时候发现很幸运，之前x光看某个部位里面很多血块，血管各种破裂，但打开一看，主动脉居然没事，结果人给救下来了。医生发微博感慨，说人不是他救的，是病人自己救了自己，医生愿意去博一把，是因为这个病人懂得感恩。</p><p><br></p><p>感恩，在关键时刻，是可以救自己一条命的。</p><p><br></p><p>当然，感恩也是需要讲一点原则的，别人帮过你，那么你是不是就要无原则的帮助别人，他为非作歹了你还要为他站台？他去割韭菜了你还要替他撑腰？或者利用你的职权为对方的需求去渎职犯罪？这时候，我觉得，直言规劝，尽量阻止对方陷入万劫不复的境地，才是真感恩。</p><p><br></p><p>当我们把感恩与你的成长相结合来看的时候，其实感恩是一种能力，能够获得别人信任，别人支持的一种素质。</p><p><br></p><p>我觉得很多所谓美德，我们就功利一点，其实是有价值的，有正回馈的，这才是正能量。</p><p><br></p><p>美德不能是说好人就活该吃亏的。</p><p><br></p><p>那有人会觉得，你这样讲不对，优秀的美德，回报不应该是自己内心的愉悦么，为什么一定要跟功利挂钩呢。</p><p><br></p><p>重复旧文的观点，所谓道德，用来约束自己的，是好人，用来约束别人的，是流氓。你要做一个大爱无疆的人，你不计回报的帮助每个人，你是好人，我尊重并敬仰，真心的。你觉得别人帮助你就应该是不计回报的，这才是有道德的表现，那你就是流氓，妥妥的。</p><p><br></p><p>以前我记得有人回复我某篇旧文提过，自己只要有价值，很多人就愿意帮助你，我说这个不对，你有价值固然好，人家可能也愿意帮助你，但如果不懂得感恩，你的价值和别人有什么关系，凭什么你觉得自己理所当然的能获得别人的帮助？ </p><p><br></p><hr><p><br></p><p>题图，说起感恩，不知道为什么，想到了这个。</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.665" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer3vs8R7IvAqdATz8jIiaibycJvpqIu0qRT7jdO65VmIObTuoYbk4QAnohSFPorB2nwndu8AOExfFDicw/640?wx_fmt=jpeg" data-type="jpeg" data-w="600" style=""></p><p><br></p><p>下面是广告时间</p><p><br></p><p>沟通技巧和话术其实一直是职场中重要的部分，说到话术，不能说都是歪门邪道，你推销一个产品，一个服务，如何让别人信服你，就算你产品好，你一定赢得了山寨伪劣产品么？以前我强调过很多次，但内容都展不开，为啥展不开，因为我能力不够啊！我连自己的课都卖不出多少份。</p><p><br></p><p>但有人可以，参见如下</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="1.7786666666666666" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer3vs8R7IvAqdATz8jIiaibycJp3TUem1dgbTzxWb3v7yIUmh9I8ibpktuTrwLdfMkFibX51T5icegI7xJg/640?wx_fmt=jpeg" data-type="jpeg" data-w="750" style=""></p><p><br></p><p>听着不对可以退款，不过稍微你学到哪怕一个技巧，一个思路能学以致用，这点学费很容易赚回来百倍千倍。</p>
                 </div>
-                <script nonce="377214398" type="text/javascript">
+                <script nonce="759090784" type="text/javascript">
                     var first_sceen__time = (+new Date());
 
                     if ("" == 1 && document.getElementById('js_content')) {
@@ -139,6 +139,8 @@
                 
                             </div>
                                     
+                        <div class="article_modify_area tips_global_primary article_modify_area_primary">
+              文章已于<span id="js_modify_time"></span>修改            </div>
                         
 
 
