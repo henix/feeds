@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Resolving Python Symbols</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/45835774">原文</a></p>
+<p>该文对Python作用域相关知识进行彻底剖析。</p><p><br></p><h2><b>Python中的变量符号</b></h2><p>Python的一个变量符号在一个作用域下只有以下中一种形式: </p><ul><li>Local</li><li>Free</li><li>Cell</li><li>Global</li></ul><p>注: Python解释器允许实现多重作用域</p><p>不同形式的符号对数据的存取方式不同。local, cell, free变量被存放在可随机访问的序列结构中，而global变量存于可变的哈希表中。</p><p>有一个基本概念 <a href="https://en.wikipedia.org/wiki/Name_binding">bound</a> 用来形容来自非外部的符号, 对于Python我们有</p><ul><li>bound vars = cell vars+ local vars</li></ul><p>按照概念, global vars应当属于free vars, 但python为了实现可变的全局符号表, 两者被分离开来。可以这样理解: free vars的符号在作用域被定义时即可确定, 而全局符号表可在任意时刻被增减修改。</p><h2>free vars可以用如下方式描述:</h2><ol><li>当一个符号无法在当前作用域内被找到，且能够在其上的某一层作用域被找到，以及找到符号的作用域不是全局的, 那么它在当前作用域内表示一个free vars。</li></ol><p>2. 在某个作用域中符号被标记为nonlocal的变量，如果这个作用域不是顶层或者顶层之下一个。</p><p><br></p><h2>cell vars可以被如下方式描述:</h2><p>当一个变量可以在当前作用域被找到，且在其下的作用域是自由变量。</p><p><br></p><p>则</p><h2>local vars可以被如下方式描述</h2><p>在当前作用域进入(enter), 不是cell vars, 没有被nonlocal标记的变量。</p><p><br></p><p>例子:</p><code lang="python3">x = 1     # x : global
+def f(a): # a : local
+   b = 1  # b : local
+   def g(y):  # g在f中, local;  y在g中, local
+      c + y   # c在g中, free
+   c = 2      # c在f中, cell
+   d = 2      # d在f中, cell
+   def h():   
+       # d在不h中,但位于h存放free vars的位置
+       def i():
+          nonlocal d # d在i中, free 
+          d = 3
+   </code><p><br></p><p><br></p><h2><b>求出一个程序中的所有符号及其作用域</b></h2><p><br></p><p>运算被加载的符号的函数为(<equation>R</equation> = requires), 被存储的符号(<equation>E </equation> = entered), 被显式标记为nonlocal的符号(<equation>N </equation> = explicit_nonlocals)，被显式标记为global的符号( <equation>G</equation>  = explicit globals)。</p><p>记取作用域 <equation>C</equation> 的多个下层为 <equation>Children\; C</equation> .</p><p>取作用域的上层为 <equation>Parent\; C</equation> .</p><p>则</p><p><equation>\begin{align}  Local\; C  &amp;=  \{ v \in Bound\; C  \;| \; v \not \in Cell\;C\}  \\  Cell\;C     &amp;= \{ v   \in Bound \; C \; | v \in \cup_{C' \in Children\; C} \;  Free \; C' \} \\ Free\; C &amp;=  N\; C \cup (\cup_{i \in Z^+} \{ v \in R \;C\cap Bound\;Parent^i  \;C \}) \\ Bound \; C &amp;= \{ v \in E \; C \;|\; v  \not \in Global\; C, \; v \not \in N\; C \} \\ \end{align}</equation> </p><p>计算时，先bound，再free, 后cell, 再local。</p><p>实现: <a href="https://github.com/thautwarm/kizmi/blob/master/kizmi/extended_python/symbol_analyzer.py">Yet Another Python Python</a></p><p>效果: (如下图)</p><p>用处: 实现原汁原味的Python时，可以预先计算好作用域符号表，将<a href="https://github.com/python/cpython/blob/master/Python/symtable.c">https://github.com/python/cpython/blob/master/Python/symtable.c</a> 大幅简化。</p><img src="https://pic3.zhimg.com/v2-6f74cd2c911b5cd4ee29df4234b7d55c_r.jpg" data-caption="" data-size="normal" data-rawwidth="933" data-rawheight="776" data-watermark="watermark" data-original-src="v2-6f74cd2c911b5cd4ee29df4234b7d55c" data-watermark-src="v2-d45f5dbf97b19fa9a8180a005528987c" data-private-watermark-src=""><p><br></p><p><br></p><p>注: 使用pending/future的策略可以不预先计算作用域表，但书写较为麻烦。实现如下:</p><p><a href="https://github.com/thautwarm/reley/blob/master/reley/impl/compiler.py">Haskell like language in Python</a></p><p>思路:</p><code lang="text">async def emit_stmt(...):
+    # 加载名字
+    await declared(...)
+    # 对内部结构进行编译
+    await compiled(...)
+    # 对作用域符号表进行修正
+    await resolved(...)
+    # 后续编译</code><p></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
