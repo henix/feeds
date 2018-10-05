@@ -1,0 +1,62 @@
+<p><code class="inline">Control.Dsl</code>为Haskell提供了一套工具集来创建“可扩展”的领域特定语言，定制DSL<code class="inline">do</code>语句块。</p><p>DSL <code class="inline">do</code>语句块可以包含来自不同作者提供的各种操作。每个操作可以定义为一个GADT，由<code class="inline">Dsl</code>类型类来解释执行，既可以有副作用，也可以是纯函数。</p><p>DSL <code class="inline">do</code>语句块是个抽象的“脚本”，其依赖的类型类可以自动推断。因此，只要提供不同的类型类实例，数据结构和解释器实现都可以随之改变。</p><p>本文剩下部分将会介绍如何用<code class="inline">Control.Dsl</code>创建一门可扩展DSL，以及可以切换的两个解释器。 文中所有代码都基于<code class="inline">control-dsl</code>包，可以在<code class="inline">ghci</code>中运行。</p><h2><b>Getting started</b></h2><p><code class="inline">Dsl</code>类型类提供了<code class="inline">&gt;&gt;</code>、 <code class="inline">&gt;&gt;=</code>、<code class="inline">return</code>、<code class="inline">fail</code>等操作，用来代替<code class="inline">Monad</code>中的对应操作。 你可以使用<code class="inline">RebindableSyntax</code>扩展来启用<code class="inline">Dsl</code>版的定制<code class="inline">do</code>语句块。 </p><code lang="haskell">&gt;&gt;&gt; :set -XRebindableSyntax
+&gt;&gt;&gt; import Prelude hiding ((&gt;&gt;), (&gt;&gt;=), return, fail)
+&gt;&gt;&gt; import Control.Dsl</code><h2><b>DSL model</b></h2><p>如果你要创建一门DSL来执行控制台的IO操作，你可以以GADT方式定义一些DSL中的基本操作：</p><code lang="haskell">&gt;&gt;&gt; data MaxLengthConfig r a where MaxLengthConfig :: MaxLengthConfig r Int
+&gt;&gt;&gt; data GetLine r a where GetLine :: GetLine r String
+&gt;&gt;&gt; data PutStrLn r a where PutStrLn :: String -&gt; PutStrLn r ()</code><h2><b>DSL</b> <b><code class="inline">do</code></b>语句块</h2><p>以上操作可以用于<code class="inline">do</code>语句块：</p><code lang="haskell">&gt;&gt;&gt; :{
+dslBlock = do
+  maxLength &lt;- MaxLengthConfig
+  line1 &lt;- GetLine
+  line2 &lt;- GetLine
+  when (length line1 + length line2 &gt; maxLength) $ do
+    PutStrLn "The input is too long"
+    fail "Illegal input"
+  PutStrLn ("The input is " ++ line1 ++ " and " ++ line2)
+  return ()
+:}</code><p>以上<code class="inline">dslBlock</code>函数利用刚定义的操作和Control.Dsl内置操作创建了一段DSL抽象脚本。</p><p>GADT操作和结果语句（<code class="inline">return</code>和<code class="inline">fail</code>）都是特设多态的限界continuation（ad-hoc polymorphic delimited continuations），由类型类<code class="inline">PolyCont</code>解释执行。GHC可以把所需的<code class="inline">PolyCont</code>类型自动推断出来：</p><code lang="haskell">&gt;&gt;&gt; :type dslBlock
+dslBlock
+  :: (PolyCont (Return IOError) r Void, PolyCont (Return ()) r Void,
+      PolyCont MaxLengthConfig r Int, PolyCont GetLine r [Char],
+      PolyCont PutStrLn r ()) =&gt;
+     r</code><h2><b>创建无副作用解释器</b></h2><p>只要提供了适用的<code class="inline">PolyCont</code> 实例，<code class="inline">r</code>可以是任意类型。比如：以下代码定义了无副作用的解释器<code class="inline">PureInterpreter</code>以及对应的<code class="inline">PolyCont</code>实例：</p><code lang="haskell">&gt;&gt;&gt; type PureInterpreter = Int -&gt; [String] -&gt; Cont [String] IOError</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont MaxLengthConfig PureInterpreter Int where
+  runPolyCont MaxLengthConfig = runPolyCont Get
+:}</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont PutStrLn PureInterpreter () where
+  runPolyCont (PutStrLn s) = runPolyCont (Yield s)
+:}</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont (Return ()) PureInterpreter Void where
+  runPolyCont (Return ()) = runPolyCont Empty
+:}</code><p>以上三个<code class="inline">PolyCont</code>实例简单的转发到Control.Dsl的内置操作上。</p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont GetLine PureInterpreter String where
+  runPolyCont k = runCont $ do
+    x : xs &lt;- Get @[String]
+    Put xs
+    return x
+:}</code><p><code class="inline">GetLine</code>的<code class="inline">PolyCont</code>实例要稍微复杂一些，实现为一个<code class="inline">Cont</code> ，由若干个内置操作组合而成。</p><h2><b>无副作用地运行DSL</b></h2><code lang="haskell">&gt;&gt;&gt; runPurely = dslBlock :: PureInterpreter
+&gt;&gt;&gt; errorHandler e = ["(handled) " ++ show e]</code><p><br></p><code lang="haskell">&gt;&gt;&gt; runCont (runPurely 80 ["LINE_1", "LINE_2"]) errorHandler
+["The input is LINE_1 and LINE_2"]</code><p><br></p><code lang="haskell">&gt;&gt;&gt; longInput = [replicate 40 '*', replicate 41 '*']
+&gt;&gt;&gt; runCont (runPurely 80 longInput) errorHandler
+["The input is too long","(handled) user error (Illegal input)"]</code><p><br></p><code lang="haskell">&gt;&gt;&gt; runCont (runPurely 80 ["ONE_LINE"]) errorHandler
+["(handled) user error (Pattern match failure in do expression at &lt;interactive&gt;..."]</code><h2><b>创建有副作用的解释器</b></h2><p>此外，只要提供了有副作用的<code class="inline">PolyCont</code>实例，<code class="inline">dslBlock</code>还能以带副作用的方式运行。</p><code lang="haskell">&gt;&gt;&gt; type EffectfulInterpreter = Handle -&gt; IO ()</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont GetLine EffectfulInterpreter String where
+  runPolyCont GetLine = runCont $ do
+    h &lt;- Get
+    line &lt;- Monadic (hGetLine h)
+    return line
+:}</code><p><code class="inline">Monadic</code>是个内置操作，可以在DSL <code class="inline">do</code>语句块执行monad操作，比如IO。其他操作（比如<code class="inline">Get</code>）可以和<code class="inline">Monadic</code>出现在同一个<code class="inline">do</code>语句块，而不需要任何monad transformer。</p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont MaxLengthConfig (IO ()) Int where
+  runPolyCont MaxLengthConfig f = f 80
+:}</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont PutStrLn (IO ()) () where
+  runPolyCont (PutStrLn s) = (Prelude.&gt;&gt;=) (putStrLn s)
+:}</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+instance PolyCont (Return IOError) (IO ()) Void where
+  runPolyCont (Return e) _ = hPutStrLn stderr (show e)
+:}</code><h2><b>以副作用方式运行DSL</b></h2><code lang="haskell">&gt;&gt;&gt; runEffectfully = dslBlock :: EffectfulInterpreter</code><p><br></p><code lang="haskell">&gt;&gt;&gt; :{
+withSystemTempFile "tmp-input-file" $ \_ -&gt; \h -&gt; do
+  Monadic $ hPutStrLn h "LINE_1"
+  Monadic $ hPutStrLn h "LINE_2"
+  Monadic $ hSeek h AbsoluteSeek 0
+  runEffectfully h
+:}
+The input is LINE_1 and LINE_2</code><h2><b>结论</b></h2><p>本文介绍了如何用<code class="inline">Control.Dsl</code>创建自己的DSL。不同于<code class="inline">Monad</code>，用<code class="inline">Control.Dsl</code>创建的DSL可以扩展。只要创建GADT和对应的<code class="inline">PolyCont</code>，就可以为现有的解释器添加新操作。</p><h2><b>相关链接</b></h2><ul><li><a href="https://github.com/Atry/Control.Dsl">Control.Dsl on Github</a></li><li><a href="https://hackage.haskell.org/package/control-dsl">control-dsl on Hackage</a></li></ul>
