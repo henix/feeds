@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 06 Oct 2018 02:23:51 +0800</lastBuildDate>
+<lastBuildDate>Sun, 07 Oct 2018 01:08:42 +0800</lastBuildDate>
 <item>
 <title>用Control.Dsl代替Monad</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-05-46014989.html</link>
@@ -75,6 +75,91 @@ The input is LINE_1 and LINE_2&lt;/code&gt;&lt;h2&gt;&lt;b&gt;结论&lt;/b&gt;&l
 <author>杨博</author>
 <guid isPermaLink="false">2018-10-05-46014989</guid>
 <pubDate>Fri, 05 Oct 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>SICP习题2.16解题报告</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-03-45914836.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45914836&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-2e00403771dbac27f351f472f5dbd324_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;前言&lt;/h2&gt;&lt;p&gt;SICP：一种数学书，虽然名字里带计算机三个字，但是看这本书的时候基本可以不用电脑&lt;/p&gt;&lt;p&gt;被誉为“只有在校学生才有时间阅读的书”和“抽象训练集中营”&lt;/p&gt;&lt;p&gt;曾用半页来介绍MIT第一任校长的生平（第二章2.2.4节脚注89）&lt;/p&gt;&lt;p&gt;其习题以消磨时间的高效率著称&lt;/p&gt;&lt;p&gt;其中习题2.16附有一句话“警告：这个问题非常难”&lt;/p&gt;&lt;p&gt;于是就有了这个解题报告&lt;/p&gt;&lt;h2&gt;背景&lt;/h2&gt;&lt;p&gt;题目的前半部分（习题2.7-习题2.15）都在描述一种“区间算法”。区间算法定义为对有一定误差的数值的运算，其中区间的运算结果定义为区间可能取值的结果的最大值和最小值。如：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\left[a,b\right]+\left[c,d\right] = \left[a+c,b+d\right]\\ \frac{\left[a,b\right]}{\left[c,d\right]} = \left[\frac{a}{d},\frac{b}{c}\right]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;*和-同理。&lt;/p&gt;&lt;h2&gt;题面&lt;/h2&gt;&lt;p&gt;清秋的早晨，阳光明媚，风和日丽，窗外鸟儿时不时轻鸣两声。突然，电话铃响了。你接起电话，电话那端传来了客户的怒吼，鸟儿吓得扑棱着翅膀飞走了。&lt;/p&gt;&lt;p&gt;众所周知，并联电路的电阻计算公式有两种代数等价的写法，可以写成这样子：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;R_总=\frac{1}{\frac{1}{R_1}+\frac{1}{R_2}}=\frac{R_1R_2}{R_1+R_2}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;那位客户用你的系统对两个公式都分别写了一份代码。突然，诡异的背景音乐响起，两份代码计算出来的结果区间竟然不一样！&lt;/p&gt;&lt;p&gt;这就是为什么你在这个明媚的秋日不外出散步，而又坐在办公桌前打开代码编辑器的原因。&lt;/p&gt;&lt;p&gt;请给出一个一般性的解释：为什么等价的代数式会给出不同的结果？你能设计一个系统，使之没有这个缺陷吗？或者说这件事根本不可能做到？&lt;/p&gt;&lt;h2&gt;解题报告&lt;/h2&gt;&lt;p&gt;练习2.14要求计算A/A的结果，计算出来之后发现并不是1，而是 &lt;equation&gt;\left[\frac{a}{b},\frac{b}{a}\right]&lt;/equation&gt; 。它离 &lt;equation&gt;\left[1,1\right]&lt;/equation&gt; 很近，但是还差一点。&lt;/p&gt;&lt;p&gt;但是，从代数的角度来说A/A应该为1。&lt;/p&gt;&lt;p&gt;略作思考后就能明白，区间运算的含义是：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\left[a,b\right]\oplus\left[c,d\right] = \left[e,f\right]，当且仅当对于任意x_1\in\left[a,b\right]，x_2\in\left[c,d\right]，x_1\oplus x_2\in\left[e,f\right]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;也就是说，e为所有可能运算结果的最小值，f为所有可能运算结果的最大值&lt;/p&gt;&lt;p&gt;而我们调用过程的时候，过程并不知道区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 和区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 是不是同一个变量，他们可能是两个独立变量，只是区间恰好相同。于是过程就假设这是两个独立取值的变量，计算出了区间 &lt;equation&gt;\left[\frac{a}{b},\frac{b}{a}\right]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;那么，如何让区间运算过程知道区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 和区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 是不是同一个变量呢？&lt;/p&gt;&lt;h2&gt;解题方法1&lt;/h2&gt;&lt;p&gt;我的第一个想法是给相同的区间附一个相同的符号，让区间运算过程在进行运算前先对符号进行一个符号运算，再根据符号运算结果生成结果区间&lt;/p&gt;&lt;p&gt;但是很显然，Scheme和Common Lisp并没有自带符号运算系统，如果自带了的话我也不知道。如果要自己写一个符号运算系统的话，虽然能做到，但是费时费力费人脑，不像是正解&lt;/p&gt;&lt;p&gt;以及，根据符号生成结果区间的过程可能有点慢，并且需要一张全局哈希表来记录符号和区间的映射（反正我是不想每次调用运算符都得传一个Env）。然而，SICP从第一章到习题2.15，从来没有用到过一句有副作用的语句（输出语句除外），显然这种做法太暴力了&lt;/p&gt;&lt;p&gt;【如果是Mathematica的话我或许会考虑一下&lt;/p&gt;&lt;h2&gt;解题方法2&lt;/h2&gt;&lt;p&gt;（&lt;a href=&quot;https://www.xuebuyuan.com/1470405.html&quot;&gt;来源&lt;/a&gt;）（&lt;a href=&quot;http://www.aichengxu.com/other/7368174.htm&quot;&gt;另一个相似内容（更详细）&lt;/a&gt;）&lt;/p&gt;&lt;p&gt;于是，抱着“反正SICP都警告过了我做不出来也情有可原”的想法去网上找了一下题解&lt;/p&gt;&lt;p&gt;然后看到了这篇&lt;/p&gt;&lt;p&gt;我的思路是在操作符和构造符这一抽象层面上进行构造来解决问题，而这一答案采取的是在操作层面进行构造&lt;/p&gt;&lt;p&gt;答案大致内容是对于一个算式，将n个区间所有 &lt;equation&gt;2^n&lt;/equation&gt; 个取值都列举一遍，求出所有取值所产生的最大值和最小值打包成答案返回。&lt;/p&gt;&lt;p&gt;原答案：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (calculate f x y)
+  (let ((p1 (f (lower-bound x) (lower-bound y)))
+        (p2 (f (upper-bound x) (upper-bound y)))
+        (p3 (f (lower-bound x) (upper-bound y)))
+        (p4 (f (upper-bound x) (lower-bound y))))
+    (make-interval (min p1 p2 p3 p4)
+                   (max p1 p2 p3 p4))))&lt;/code&gt;&lt;p&gt;抛开 &lt;equation&gt;\Theta(2^n)&lt;/equation&gt; 的恐怖效率不谈，上述代码也是有缺点的。最明显的一个就是它只适用于n=2的情况。然而我们的算式可能有任意n个变量。&lt;/p&gt;&lt;p&gt;如果修改一下代码，用更复杂但更通用的方式实现的话可以对任意n个变量起作用，但是永远甩不开&lt;equation&gt;\Theta(2^n)&lt;/equation&gt; 的恐怖效率。&lt;/p&gt;&lt;h2&gt;解题方法3&lt;/h2&gt;&lt;p&gt;你看着那个&lt;equation&gt;\Theta(2^n)&lt;/equation&gt; 的恐怖算法，觉得一定有更好的解决方案&lt;/p&gt;&lt;p&gt;突然，树上一颗苹果落下砸中你脑袋一样，你想到了另一种方案&lt;/p&gt;&lt;p&gt;区间运算的本质是什么？&lt;/p&gt;&lt;p&gt;结果下界为所有可能运算结果的最小值，上界为所有可能运算结果的最大值&lt;/p&gt;&lt;p&gt;那么如果我给每个区间拉张表，表上随机列出区间内的取值，然后在两个表中间直接暴力算，最后暴力找出最大值和最小值，那不就得到结果区间了吗？比如 &lt;equation&gt;[2,3]\times[4,6] = [8,18]&lt;/equation&gt; ，就可以这样算： &lt;equation&gt;\left\{ 2,3,2,2,3 \right\}\times\left\{4,6,5,5,4\right\} = \left\{8,18,10,10,12\right\}&lt;/equation&gt; ，然后统计最大值和最小值得到 &lt;equation&gt;[8,18]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;如果遇到A/A这种情况，因为同一个变量的随机表都是相同的，随机表中每一项都会变成1，那不就得到 &lt;equation&gt;\left[1,1\right]&lt;/equation&gt; 了吗？&lt;/p&gt;&lt;p&gt;不是很好。如果表与表运算结果中没有&lt;b&gt;真正的&lt;/b&gt;最大值和最小值，那你得出来的就是宽度过小的错误结果。&lt;/p&gt;&lt;p&gt;很简单，强制在表里面随机插几个区间的最大值最小值不行吗？&lt;/p&gt;&lt;p&gt;不。如果数量太少的话两张表的最大值和最小值没法相遇，也得不到精确答案。&lt;/p&gt;&lt;p&gt;那我随机用最大值和最小值将表填满总行了吧。&lt;/p&gt;&lt;p&gt;不完美。这样子很容易撞表，得出过小的区间。&lt;/p&gt;&lt;p&gt;单个表项为实际最大值或最小值的概率为 &lt;equation&gt;\frac{1}{2}&lt;/equation&gt; ，所以设表中有n个项（ &lt;equation&gt;n\gt1&lt;/equation&gt; ），上下界都错误的概率是 &lt;equation&gt;\frac{1}{2^n}&lt;/equation&gt; ，错其中至少一个界的概率为 &lt;equation&gt;\frac{3^n}{4^n}&lt;/equation&gt; ，当n=50的时候，正确的概率为 &lt;equation&gt;99.99994336783435730623753348853\%&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;但是每次进行运算，表中就会出现n/2个无助于运算的“无用项”，但为了确保R1R2/R1=R2，那些无用项不能舍去，也不能重置成有用项。也就是说，长度为1024的表在运算一次过后就只剩512能用，运算大约10次后再继续运算就不可能得到正确结果了。&lt;/p&gt;&lt;p&gt;可以提供一个clear函数，重置表来继续运算。&lt;/p&gt;&lt;p&gt;这样子通过一个表就可以完美支持区间的各种运算了。若运算式中有n个变量且每个变量参与运算的次数为常数，则时间复杂度仅为 &lt;equation&gt;\Theta(n\times l)&lt;/equation&gt; ，其中l为表长。&lt;/p&gt;&lt;p&gt;优点是代码比较容易实现，速度较快，接口比较简单（对下游用户友好）&lt;/p&gt;&lt;p&gt;缺点是运算的正确率不是100%，并且在处理小规模问题的时候常数太大。&lt;/p&gt;&lt;h2&gt;代码-解题方法2&lt;/h2&gt;&lt;p&gt;（对Lisp不熟悉的人可以跳过此段）&lt;/p&gt;&lt;p&gt;对于解题方法2的一个扩展代码&lt;/p&gt;&lt;p&gt;我们希望像这样子计算&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(calculate ((r1 (make-interval 1 3)) (r2 (make-interval 2 4)))
+    (/ (+ r1 r2) (* r1 r2)))&lt;/code&gt;&lt;p&gt;（以下由于SICP里面已经没有涉及到了而且有一定复杂性所以我使用Common Lisp进行讲解，反正Common Lisp和Scheme很像）&lt;/p&gt;&lt;p&gt;这很简单。我们只需要一个宏，将算式展开到一个list中，然后取list的最大值和最小值就是结果。具体求值可以将r1、r2的取值展开到一个let中，在let里面对表达式进行求求值&lt;/p&gt;&lt;p&gt;（Common Lisp代码）&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;;;tool with-gensym
+(defmacro with-gensym (names &amp;amp;rest body)
+  `(let ,(mapcar #&#39;(lambda (n)
+		     `(,n (gensym)))
+		 names)
+     ,@body))
+
+;;tool enumerate
+(defun enumerate (symbol-1 symbol-2 num)
+  (if (= num 1)
+      `((,symbol-1) (,symbol-2))
+      (let ((last (enumerate symbol-1 symbol-2 (- num 1))))
+	(nconc (mapcar #&#39;(lambda (x) (cons symbol-1 x)) last)
+	       (mapcar #&#39;(lambda (x) (cons symbol-2 x)) last)))))
+
+(defmacro calculate (vars body)
+  (with-gensym (lst)
+    `(let (,lst ,(calc-expander vars body (length vars)))
+       (make-interval (min ,lst) (max ,lst)))))
+
+(defun calc-expander (vars body varnum)
+  (let ((values (enumerate &#39;lower-bound &#39;upper-bound varnum)))
+    `(list ,@(mapcar #&#39;(lambda (value)
+			 `(let ,value ,body))
+		     (mapcar #&#39;(lambda (enum)
+				 (mapcar #&#39;(lambda (f v)
+					     `(,(first v) (,f ,(second v))))
+					 enum
+					 vars))
+			     values)))))&lt;/code&gt;&lt;h2&gt;代码-解题方案三&lt;/h2&gt;&lt;p&gt;（Common Lisp，和Scheme相差不远）&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;;; tool rand-choice
+(defun rand-choice (term1 term2 num &amp;amp;optional res)
+  (if (zerop num)
+      res
+      (if (zerop (random 2))
+	  (rand-choice term1 term2 (- num 1) (cons term1 res))
+	  (rand-choice term1 term2 (- num 1) (cons term2 res)))))
+
+
+(defun make-interval (lower upper &amp;amp;optional (table-len 50))
+  ;;(define (make-interval lower upper)
+  (cons (cons lower upper) (rand-choice lower upper table-len)))
+
+(defun make-interval-by-table (lower upper table)
+  (cons (cons lower upper) table))
+
+(defun lower (interval)
+  (car (car interval)))
+
+(defun upper (interval)
+  (cdr (car interval)))
+
+(defun table (interval)
+  (cdr interval))
+
+(defun tabapply (func tab1 tab2)
+  (mapcar #&#39;(lambda (x y)
+	      (funcall func x y))
+	  tab1
+	  tab2))
+
+;;抽象壁垒
+
+(defun make-interval-only-by-table (table)
+  (make-interval-by-table (apply #&#39;min table)
+			  (apply #&#39;max table)
+			  table))
+
+(defun interval-func (func interval-1 interval-2)
+  (make-interval-only-by-table
+   (tabapply func (table interval-1) (table interval-2)))) &lt;/code&gt;&lt;p&gt;（定义出抽象级别更高的interval-func之后很快就能一般化出interval-add等一系列函数）&lt;/p&gt;</description>
+<author>木木</author>
+<guid isPermaLink="false">2018-10-03-45914836</guid>
+<pubDate>Wed, 03 Oct 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>Resolving Python Symbols</title>
@@ -265,100 +350,6 @@ for x, _ in zip(puzzle(), range(256)):
 print()&lt;/code&gt;&lt;p&gt;输出&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;@*@**@***@****@*****@******@*******@********@*********@**********@***********@************@*************@**************@***************@****************@*****************@******************@*******************@********************@*********************@***&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>HOOCCOOH</author>
 <guid isPermaLink="false">2018-08-29-43207643</guid>
-<pubDate>Wed, 29 Aug 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>一个现代的parser generator框架应该是什么样的</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-08-29-43206998.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43206998&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-04f502b196883798b6fcc7f8f94c59aa_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;8102年，在编译前端这个方面，原始的气息还没有远离我们。&lt;br&gt; 对于某种并非常用格式的字符串，我们想要解析它们，通常会确实地花费一些心思。 在&lt;a href=&quot;https://en.wikipedia.org/wiki/Comparison_of_parser_generators&quot;&gt;这方面的工具&lt;/a&gt;中，我们耳熟能详的东西有&lt;a href=&quot;http://www.antlr.org/&quot;&gt;Antlr4&lt;/a&gt;, &lt;a href=&quot;http://dinosaur.compilertools.net/&quot;&gt;Lex &amp;amp; Yacc&lt;/a&gt;, 各种&lt;a href=&quot;https://en.wikipedia.org/wiki/Parser_combinator&quot;&gt;ParserC&lt;/a&gt;的实现。在我开始敲码的这几年，也出现了&lt;a href=&quot;http://www.lihaoyi.com/fastparse/&quot;&gt;Fastparse&lt;/a&gt;这样的框架。&lt;/p&gt;&lt;p&gt;我们来看一些parse二元&lt;code class=&quot;inline&quot;&gt;+/-&lt;/code&gt;运算的例子:&lt;br&gt; &lt;code class=&quot;inline&quot;&gt;Antlr4&lt;/code&gt;(ruby片段), 来自&lt;a href=&quot;https://github.com/Antlr/grammars-v4/blob/master/ruby/Corundum.g4&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;dynamic_result : 
-               | &amp;lt;此处省略...&amp;gt;
-               | dynamic_result op=( PLUS | MINUS ) int_result
-               | int_result op=( PLUS | MINUS ) dynamic_result
-               | dynamic_result op=( PLUS | MINUS )  float_result
-               | float_result op=( PLUS | MINUS )  dynamic_result
-               | dynamic_result op=( PLUS | MINUS ) dynamic_result
-               | &amp;lt;此处省略...&amp;gt;
-               ;&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;cpython自己实现的pgen&lt;/code&gt;(cpython片段), 来自&lt;a href=&quot;https://github.com/python/cpython/blob/master/Grammar/Grammar&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;arith_expr: term ((&#39;+&#39;|&#39;-&#39;) term)*&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Lex &amp;amp;&amp;amp; Yacc&lt;/code&gt;, 来自&lt;a href=&quot;https://www.ibm.com/developerworks/aix/tutorials/au-lexyacc/index.html&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;antlr&quot;&gt;addexpr: NUMBER PLUSTOKEN NUMBER 
-         { 
-             printf(&quot;%f\n&quot;,($1+$3));
-         }
-         | NUMBER MINUSTOKEN NUMBER 
-         { 
-             printf(&quot;%f\n&quot;,($1-$3));
-         }
-         ;&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Fastparse&lt;/code&gt;, 来自&lt;a href=&quot;http://www.lihaoyi.com/fastparse&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;val addSub: P[Int] = P( divMul ~ (CharIn(&quot;+-&quot;).! ~/ divMul).rep ).map(eval)&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;nom(parserc for Rust)&lt;/code&gt;(片段), 来自&lt;a href=&quot;https://stevedonovan.github.io/rust-gentle-intro/nom-intro.html&quot;&gt;这里&lt;/a&gt;:&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;named!(expr&amp;lt;&amp;amp;str,f64&amp;gt;, do_parse!(
-        init: term &amp;gt;&amp;gt;
-        res: fold_many0!(
-            tuple!(
-                alt!(tag_s!(&quot;+&quot;) | tag_s!(&quot;-&quot;)),
-                term
-            ),
-            init,
-            |acc, v:(_,f64)| {
-                if v.0 == &quot;+&quot; {acc + v.1} else {acc - v.1}
-            }
-        )
-        &amp;gt;&amp;gt; (res)
-    ));&lt;/code&gt;&lt;p&gt;经过对上述代码的预览，以及简要地查看相关链接，我们能够了解一点它们的差异。&lt;/p&gt;&lt;p&gt;我不太清楚人们在看到它们之后会如何选择，什么是加分项，什么可能会被diss。这种时候，我总会怀着这样一种考虑进行选择: &lt;/p&gt;&lt;p&gt;&lt;b&gt;功能是否完备正交，约定是否简洁必要&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;但说实在的，在&lt;b&gt;功能完备&lt;/b&gt;这个方面，人们可能就会出现分歧，例如有人认为, parser就按照文法定义(如果有的话)生成s-expression好了，一个列表头部有一个tag, 用以唯一识别node的结构，其余的都是子结构; 有的人又会觉得, 我就是要从一堆字符串里面parse出来一个结构体又有什么问题。更多的，有些parser框架还不支持left recur(比如cpython那个pgen)，也有人写的框架需要&lt;a href=&quot;https://www.zhihu.com/question/266250146/answer/306132266&quot;&gt;把左递归explicitly标记出来&lt;/a&gt;, 有的框架则默认处理了。&lt;/p&gt;&lt;p&gt;这时总得有自己的判断，这也是文章的观点:&lt;/p&gt;&lt;h2&gt;功能完备正交&lt;/h2&gt;&lt;h2&gt;功能1: AST的重写&lt;/h2&gt;&lt;p&gt;比方说重写ast这件事，cpython自己实现那玩意儿是没有的，Antlr可以轻松实现同为ast结构的重写，但是形成特定的数据结构，Antlr和yacc能以极其扭曲复杂的方式给出相应的笨重实现(而且这在使用中是极其常见的)，而这一切对于&lt;code class=&quot;inline&quot;&gt;fastparse&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;nom&lt;/code&gt;这种parser combinator基本是算是稀松平常。&lt;/p&gt;&lt;p&gt;一些相关事件如下:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/Antlr/Antlr4/issues/1732&quot;&gt;Antlr4 issue1732&lt;/a&gt;&lt;br&gt; &lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.quora.com/What-are-the-steps-to-use-antlr-to-create-an-abstract-syntax-tree-of-Java-source-code-and-then-walk-the-tree&quot;&gt;Antlr: about ast rewriting&lt;/a&gt;&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;AST的重写有一些非常重大的意义，这个意义和我们需要结构体，而不是把其field数据存放到不同类型的数组中一样。请耐心看下面这个事情。&lt;/p&gt;&lt;p&gt;合格的文法书写者总会写出这样一种文法，使得parsing后一阶段需要处理的数据结构与这种文法保持着结构上的一致。&lt;/p&gt;&lt;p&gt;例如(因为非技术原因，我会尽量使用python写例子):&lt;/p&gt;&lt;p&gt;文法:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Add ::= Expr &#39;+&#39; Expr
-# 一个二元运算的ast表示
-class Add(Expr):
-    left: Expr
-    right: Expr&lt;/code&gt;&lt;p&gt;而仅仅是parse一段符合&lt;code class=&quot;inline&quot;&gt;Expr &#39;+&#39; Expr&lt;/code&gt;的文法，你的parse结果很可能是这样的:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;[Expr([Token(...)]), Token(+), Expr([Token(...)])]&lt;/code&gt;&lt;p&gt;拿到这样原始的ast，虽说确实可以进行下一步的工作，但说真的，操作这样的ast可读性太差了，&lt;b&gt;&quot;你在一段sexpr里取第三个位置，鬼知道你取的是什么&quot;&lt;/b&gt;，而且类型也没有，不安全，不可维护。&lt;/p&gt;&lt;p&gt;我经历过这样的时期，你可以观光一下，我是如何用这样的ast造出一门门语言的。。 &lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/Rem&quot;&gt;功能缺失的EBNFParser&lt;/a&gt; &lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/Rem&quot;&gt;Rem语言&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这个时候，我认为需要这样一种功能:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;Add ::= left=Expr &#39;+&#39; right=Expr 
-    -&amp;gt;  Add(left, right)&lt;/code&gt;&lt;p&gt;有一件非常有意思的事情是，如果你的文法中，除开辅助的语法结构，如果每一个都写了这样的重写规则，你会发现你似乎可以直接把你parse后的东西交给编译器的后端, 比如下面这样一段可能不严谨但比较形象的叙述:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;parse数字出来了一个叫Number的结构体，里面包了一个数字&lt;/li&gt;&lt;li&gt;parse加法出来了一个叫Add的结构体，里面左右分别是Number实例&lt;/li&gt;&lt;li&gt;parse lambda表达式出来了一个叫Lambda的结构体，里面的body属性正好是之前parse出来那个Add实例  &lt;/li&gt;&lt;li&gt;以此类推...&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;对于经常使用ADT的人，我觉得还有必要说一下，在这样的重写功能下，你直接得到了一棵&lt;code class=&quot;inline&quot;&gt;data/type&lt;/code&gt;定义的语法树，而你所做的不过是仅仅写了一段文法。&lt;/p&gt;&lt;p&gt;关于语法树重写有更多基于易用性的简化，如果有兴趣请与我直接讨论。&lt;/p&gt;&lt;h2&gt;功能2: 额外的Parsing约束条件&lt;/h2&gt;&lt;p&gt;就是说Parsing guard.&lt;/p&gt;&lt;p&gt;比如，我们都知道，一段xml或者其derivative总是以&lt;code class=&quot;inline&quot;&gt;&amp;lt;xxx&amp;gt;&lt;/code&gt;开头，然后以&lt;code class=&quot;inline&quot;&gt;&amp;lt;/xxx&amp;gt;&lt;/code&gt;结尾。这里是一个状态相关的要素，并非所有parser都能对xml的parsing是否成功做出判断。&lt;/p&gt;&lt;p&gt;我在昨年的某一天产生了这样一个想法，它重重地敲击着我的神经，呼唤着我的实现:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;xml = &#39;&amp;lt;&#39; tag1 = tagName &#39;&amp;gt;&#39; 
-       ...省略
-       &#39;&amp;lt;&#39; &#39;/&#39; tag2 = tagName &#39;&amp;gt;&#39;
-       with tag1 == tag2&lt;/code&gt;&lt;p&gt;我设计了&lt;code class=&quot;inline&quot;&gt;with&lt;/code&gt;子句，让一个&lt;b&gt;有名字的parser&lt;/b&gt;成功parse后，还需要对捕捉到的tag1和tag2进行相等比较，如果表达式为假，则parse失败。&lt;/p&gt;&lt;p&gt;同样的，还有一个&lt;code class=&quot;inline&quot;&gt;when&lt;/code&gt;子句，用于刚刚进入某个&lt;b&gt;有名字的parser&lt;/b&gt;时，进行的预先判断，如果判断为假，则该parser失败。&lt;/p&gt;&lt;p&gt;在我的方法下，这个&lt;b&gt;有名字的parser&lt;/b&gt;对于context sensitive的文法处理是一个比较重要的概念，但是这个是&lt;a href=&quot;https://github.com/thautwarm/RBNF&quot;&gt;私货&lt;/a&gt;，有兴趣请直接与我细聊。&lt;/p&gt;&lt;p&gt;通过这些额外的parsing约束条件，我们可以轻易实现很多复杂的功能。人们总喜欢通过构造context sensitive的tokenizers来实现缩进，可是这并不是唯一的方式，甚至不是好的方式，如果有兴趣不妨看一下&lt;a href=&quot;https://github.com/thautwarm/merlin/blob/master/rml/rml/rml.rbnf&quot;&gt;我是如何实现一个类ocaml语言的缩进的&lt;/a&gt;.&lt;/p&gt;&lt;h2&gt;功能3: 左递归的支持&lt;/h2&gt;&lt;p&gt;无论是显式表明左递归，还是不需要额外约定直接处理，我认为左递归的支持是必要的。上升到用户层面，且不说不是所有人都关心各种各样的左递归消除方式，即使了解且熟悉，让用户使用你的服务时需要为之付出精力，怎么想也是一种缺憾。&lt;br&gt; 当然从根本上讲，左递归所代表的左结合的关系，在数据结构中不可避免。  &lt;/p&gt;&lt;h2&gt;关于功能的完备正交 &amp;amp; 关于parser的抽象&lt;/h2&gt;&lt;p&gt;在parser本身的功能上, 我认为，如果拥有上述三种功能，那么几乎可以解决任何parsing问题，不仅仅是缩进这种小菜, 还可以&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/30279723&quot;&gt;各减平均各自乘相加除以项数开方&lt;/a&gt;, 根据用户自定义的词语，动态的生成新的parser，不再需要空格分隔关键字这些操作。&lt;br&gt; &lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/thautwarm/RBNF/blob/master/demos/calc-for-rbnf/calc-immediately.rbnf&quot;&gt;parser写完，解释器即写完&lt;/a&gt;&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;总之要什么有什么，确实就是这么为所欲为。&lt;/p&gt;&lt;p&gt;但关于正交的问题，则需要说得多一点了。&lt;/p&gt;&lt;p&gt;既然完备，既然正交，那么核心里就必然有一些基本的东西来生成所有可能的构造。&lt;/p&gt;&lt;p&gt;我们写后端都知道讲language constructs, 而写前端，如果是上下文无关语法，我们有前人们给好的BNF和EBNF，其语法结构对应了一套正交完备的、描述context free的语法功能，由于这些语法结构可以直接和不同的parser combinator一一对应，所以我们可以知道, 严格按照BNF/EBNF语法结构实现的parserc框架可以正交地表达出完备的、受限于context free情境下的parsing能力。&lt;/p&gt;&lt;p&gt;P.S : 有些版本的EBNF中可能存在一些不正交的功能(例如A ::= [B] C和 A ::= B C | C等价)，这是为了使用上的便利性。因为并没有带来超过一只手的新约定，学习曲线和遗忘曲线依然令人满意。&lt;/p&gt;&lt;p&gt;而给EBNF添加之前讲到的&lt;b&gt;语法树重写&lt;/b&gt;以及&lt;b&gt;额外的Parsing约束条件&lt;/b&gt;(parsing guard)之后，这个&lt;b&gt;扩展的扩展BNF&lt;/b&gt;就成为能轻松描述诸多context sensitive cases的强大范式，而它的language constructs，满打满算，好像也才是个位数。&lt;/p&gt;&lt;code lang=&quot;fsharp&quot;&gt;type Rewrite = ...
-type Guard   = ...
-
-type EEBNFParser = 
-(** &#39;&amp;lt;token&amp;gt;&#39; *)
-| Literal of string
-(** A ::= a b c d e*)
-| And     of EEBNFParser list
-(** A ::= a | b | c | d*)
-| Or      of EEBNFParser list
-(** A ::= a{1, 10} *)
-| Rep     of at_least: int * at_most: int * EEBNFParser
-(** A ::= b=B c=C D E *)
-| Bind    of name: string * EEBNFParser
-(** A ::= ... // 语法树重写、parsing guard
-          when ...
-          with ...
-          rewrite ...
- *)
-| Named   of name: string * EEBNFParser * Rwrite * Guard&lt;/code&gt;&lt;p&gt;看清楚了，&lt;b&gt;context sensitive的parser只要5种基本结构&lt;/b&gt;, 左递归的实现则涉及具体parser算法的问题。 更多的，这里的parser不再是一个type constructor，如果你脑子里仍然装有&lt;code class=&quot;inline&quot;&gt;&#39;t Parser&lt;/code&gt;把tokenizers转换成&lt;code class=&quot;inline&quot;&gt;&#39;t&lt;/code&gt;或是&lt;code class=&quot;inline&quot;&gt;&#39;t AST&lt;/code&gt;类型，不妨看一下我&lt;a href=&quot;https://github.com/thautwarm/Ruiko.fs/tree/master/RBNF/Core&quot;&gt;对parser的定义和其parse所得对象的一种解耦&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以上，是我对于一个现代parser generator框架的抽象核心的导出。&lt;/p&gt;&lt;h2&gt;约定简洁必要&lt;/h2&gt;&lt;p&gt;这个时候，往前翻一翻rust的&lt;code class=&quot;inline&quot;&gt;nom&lt;/code&gt;的示例代码，以及doc里&lt;a href=&quot;https://docs.rs/nom/4.0.0/nom/#modules&quot;&gt;这一大堆API&lt;/a&gt;, 是什么考虑让设计者们抛弃parserc的紧凑优美，达到这样一种神奇的现状?&lt;/p&gt;&lt;p&gt;个人看法 ———— 我觉得这exactly就是&lt;code class=&quot;inline&quot;&gt;overdeveloped&lt;/code&gt;。该rewrite就rewrite，不用自己搞一套。如无必要，勿增实体。&lt;/p&gt;&lt;p&gt;从之前我说的那个功能完备正交的核心走过来，我有理由认为绝大多数的parser框架都极度冗长，Antlr 和 lex&amp;amp;yacc要实现rewrite和parsing guard简直就像原始人在玩泥巴，需要手写一坨坨巨长的、需要遵守一堆conventions的嵌入代码，  &lt;/p&gt;&lt;p&gt;&lt;b&gt;没有快速实践想法的repl之类的东西&lt;/b&gt;(我知道Antlr有一个&lt;a href=&quot;https://stackoverflow.com/questions/24766006/getting-Antlr-to-generate-a-script-interpreter&quot;&gt;这个&lt;/a&gt;, 但是对着dsl/esdl的文件直接执行的，目前不存在的。 &lt;b&gt;私货&lt;/b&gt;: &lt;code class=&quot;inline&quot;&gt;rbnf run &amp;lt;script&amp;gt;&lt;/code&gt;了解一下),&lt;/p&gt;&lt;p&gt;&lt;b&gt;甚至lexer居然还不是自动生成的&lt;/b&gt; ———— 这样的直接结果是因为需要用户手写lexer又要引入一堆conventions。同时，由于&lt;a href=&quot;https://softwareengineering.stackexchange.com/questions/337676/what-is-the-procedure-that-is-followed-when-writing-a-lexer-based-upon-a-grammar&quot;&gt;一套文法的定义已然可以蕴含对应的lexer&lt;/a&gt;，你再让用户手写，令人窒息何如！&lt;/p&gt;&lt;p&gt;如此看来，除了fastparse简直没有一个能看。&lt;/p&gt;&lt;p&gt;fastparse的话, 基本上很符合之前那个5个基本constructs的核心，API比起核心也就是多搞了一些糖。&lt;/p&gt;&lt;p&gt;若真非要我挑好多刺，我觉得有点迫真。但并不是没有，&quot;鬼画桃符&quot;可以黑一个。&lt;/p&gt;&lt;code lang=&quot;scala&quot;&gt;val option = P( &quot;c&quot;.? ~ &quot;a&quot;.rep(sep=&quot;b&quot;).! ~ End)
-val captureRep = P( &quot;a&quot;.!.rep ~ &quot;b&quot; ~ End)&lt;/code&gt;&lt;p&gt;虽然这并不是大问题, 你稍微认真看还是相当可读的，况且向scala这种语言要求颜值是不是有点精分?&lt;/p&gt;&lt;p&gt;更多地，对于real world来说，Repeat有sep这个玩意儿真的蛮方便的，我觉得比较惊艳的一个特性还有&lt;a href=&quot;http://www.lihaoyi.com/fastparse/#Opaque&quot;&gt;Opaque&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以上并没有非常详细地说明&lt;b&gt;约定简洁必要&lt;/b&gt;这个主题，因为本身API的简洁必要已经是非常明确的概念:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;必要: 保证功能完整&lt;/li&gt;&lt;li&gt;简洁: 这个结构被使用起来轻量，可读性较高&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;在这个section的最后，我提一个事情。 一个半月前我基本实现了一个sql(这个就不能放链接了因为是工作相关)，照着&lt;a href=&quot;https://github.com/apache/spark/blob/master/sql/catalyst/src/main/Antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4&quot;&gt;Antlr 1094行ebnf的sparksql&lt;/a&gt;改，然后简化为350行，且直接生成极其high level的tagged union(python里我不好意思说这是ADT)。那几天看g4不知道恶心了多少次。&lt;/p&gt;&lt;h2&gt;其他重要的特性&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;模块化与代码复用&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;parser generator使用某种dsl刻画，那么应该使用模块的方式进行管理，并且这种模块的语法还应该对不同后端做出合理描述。&lt;/p&gt;&lt;p&gt;这里不上一下私货的话，实在没什么别的替代品。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;# bnf源码的模块，不同后端可以复用
-import std.common.[Number Space]
-
-# `[python] import` 引导python specific的模块，用以构造rewrite和parsing guard。
-# 不同后端不复用
-[python] import functools.[reduce]
-[python] import operator.[add sub mul truediv floordiv mod]&lt;/code&gt;&lt;ul&gt;&lt;li&gt;parser可持久化&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;也许由于巨量的编译前优化，构造某些parser相对缓慢，但应该容许构造完毕后能dump到存储单元，并以二进制方式进行快速的load。&lt;/p&gt;&lt;p&gt;可持久化并非总是为了性能，如果load持久化的parser对象不需要原parser generator库的依赖，也会是一个巨大的优势。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Automatically lexer&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;之前已经有提到，我认为这也是现代parser generator的一种标志。&lt;/p&gt;&lt;p&gt;当lexer可以被文法决定时，用户不应该再被要求书写它。&lt;/p&gt;&lt;h2&gt;最后&lt;/h2&gt;&lt;ul&gt;&lt;li&gt; 私货&lt;br&gt; 以上一切，在&lt;a href=&quot;https://github.com/thautwarm/RBNF&quot;&gt;RBNF&lt;/a&gt;中&lt;b&gt;高度完成&lt;/b&gt;。&lt;br&gt; 之前 &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hash=&quot;0251012c87c2d3f56ac34de7d71cdcbc&quot; data-hovercard=&quot;p$b$0251012c87c2d3f56ac34de7d71cdcbc&quot;&gt;@圆角骑士魔理沙&lt;/a&gt;  给我说了一个东西，从一个写好的AST自动生成一个Parser。&lt;br&gt; 然而我都有这个东西了，还要啥自行车...(雾:&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;text&quot;&gt;// 定义文法; 事实上还有embedded python的方式，和写AST差不多。
-A :: = B C as c D as d
-
-// 不仅生成了parser, 还帮我自动定义了AST =_=
-
-type AST = A | C | D | ...
-type A = {
-    c : C
-    d : D
-} 
-type C = ...
-...
-//然后parse一下符合文法的字符串，就是那套ADT了。&lt;/code&gt;&lt;ul&gt;&lt;li&gt; 错误定位怎么做&lt;br&gt; 首先，tokenizer里面要包含lineno(行号), colno(列号), filename(可选，如果你的语言没有source code inline的话是不需要的)。&lt;br&gt; 然后AST可以都增加lineno, colno, filename三个属性。 当然对于AST错误定位，更好的办法是下面这段代码所示。详见&lt;a href=&quot;https://github.com/thautwarm/LLAST/tree/master/LLAST/LLVM&quot;&gt;LLAST&lt;/a&gt;.&lt;br&gt; &lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;fsharp&quot;&gt;type location = {
-(**
-for location resolving in exception reporting.
-*)
-    filename: string
-    lineno  : int
-    colno   : int
-}
-type AST = 
-    | ...
-    | Locate of location * AST&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>头顶青天红美铃</author>
-<guid isPermaLink="false">2018-08-29-43206998</guid>
 <pubDate>Wed, 29 Aug 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>

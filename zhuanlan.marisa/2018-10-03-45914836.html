@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SICP习题2.16解题报告</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/45914836">原文</a></p>
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-2e00403771dbac27f351f472f5dbd324_r.jpg" alt=""></div><h2>前言</h2><p>SICP：一种数学书，虽然名字里带计算机三个字，但是看这本书的时候基本可以不用电脑</p><p>被誉为“只有在校学生才有时间阅读的书”和“抽象训练集中营”</p><p>曾用半页来介绍MIT第一任校长的生平（第二章2.2.4节脚注89）</p><p>其习题以消磨时间的高效率著称</p><p>其中习题2.16附有一句话“警告：这个问题非常难”</p><p>于是就有了这个解题报告</p><h2>背景</h2><p>题目的前半部分（习题2.7-习题2.15）都在描述一种“区间算法”。区间算法定义为对有一定误差的数值的运算，其中区间的运算结果定义为区间可能取值的结果的最大值和最小值。如：</p><p><equation>\left[a,b\right]+\left[c,d\right] = \left[a+c,b+d\right]\\ \frac{\left[a,b\right]}{\left[c,d\right]} = \left[\frac{a}{d},\frac{b}{c}\right]</equation> </p><p>*和-同理。</p><h2>题面</h2><p>清秋的早晨，阳光明媚，风和日丽，窗外鸟儿时不时轻鸣两声。突然，电话铃响了。你接起电话，电话那端传来了客户的怒吼，鸟儿吓得扑棱着翅膀飞走了。</p><p>众所周知，并联电路的电阻计算公式有两种代数等价的写法，可以写成这样子：</p><p><equation>R_总=\frac{1}{\frac{1}{R_1}+\frac{1}{R_2}}=\frac{R_1R_2}{R_1+R_2}\\</equation> </p><p>那位客户用你的系统对两个公式都分别写了一份代码。突然，诡异的背景音乐响起，两份代码计算出来的结果区间竟然不一样！</p><p>这就是为什么你在这个明媚的秋日不外出散步，而又坐在办公桌前打开代码编辑器的原因。</p><p>请给出一个一般性的解释：为什么等价的代数式会给出不同的结果？你能设计一个系统，使之没有这个缺陷吗？或者说这件事根本不可能做到？</p><h2>解题报告</h2><p>练习2.14要求计算A/A的结果，计算出来之后发现并不是1，而是 <equation>\left[\frac{a}{b},\frac{b}{a}\right]</equation> 。它离 <equation>\left[1,1\right]</equation> 很近，但是还差一点。</p><p>但是，从代数的角度来说A/A应该为1。</p><p>略作思考后就能明白，区间运算的含义是：</p><p><equation>\left[a,b\right]\oplus\left[c,d\right] = \left[e,f\right]，当且仅当对于任意x_1\in\left[a,b\right]，x_2\in\left[c,d\right]，x_1\oplus x_2\in\left[e,f\right]</equation> </p><p>也就是说，e为所有可能运算结果的最小值，f为所有可能运算结果的最大值</p><p>而我们调用过程的时候，过程并不知道区间 <equation>\left[a,b\right]</equation> 和区间 <equation>\left[a,b\right]</equation> 是不是同一个变量，他们可能是两个独立变量，只是区间恰好相同。于是过程就假设这是两个独立取值的变量，计算出了区间 <equation>\left[\frac{a}{b},\frac{b}{a}\right]</equation> </p><p>那么，如何让区间运算过程知道区间 <equation>\left[a,b\right]</equation> 和区间 <equation>\left[a,b\right]</equation> 是不是同一个变量呢？</p><h2>解题方法1</h2><p>我的第一个想法是给相同的区间附一个相同的符号，让区间运算过程在进行运算前先对符号进行一个符号运算，再根据符号运算结果生成结果区间</p><p>但是很显然，Scheme和Common Lisp并没有自带符号运算系统，如果自带了的话我也不知道。如果要自己写一个符号运算系统的话，虽然能做到，但是费时费力费人脑，不像是正解</p><p>以及，根据符号生成结果区间的过程可能有点慢，并且需要一张全局哈希表来记录符号和区间的映射（反正我是不想每次调用运算符都得传一个Env）。然而，SICP从第一章到习题2.15，从来没有用到过一句有副作用的语句（输出语句除外），显然这种做法太暴力了</p><p>【如果是Mathematica的话我或许会考虑一下</p><h2>解题方法2</h2><p>（<a href="https://www.xuebuyuan.com/1470405.html">来源</a>）（<a href="http://www.aichengxu.com/other/7368174.htm">另一个相似内容（更详细）</a>）</p><p>于是，抱着“反正SICP都警告过了我做不出来也情有可原”的想法去网上找了一下题解</p><p>然后看到了这篇</p><p>我的思路是在操作符和构造符这一抽象层面上进行构造来解决问题，而这一答案采取的是在操作层面进行构造</p><p>答案大致内容是对于一个算式，将n个区间所有 <equation>2^n</equation> 个取值都列举一遍，求出所有取值所产生的最大值和最小值打包成答案返回。</p><p>原答案：</p><code lang="scheme">(define (calculate f x y)
+  (let ((p1 (f (lower-bound x) (lower-bound y)))
+        (p2 (f (upper-bound x) (upper-bound y)))
+        (p3 (f (lower-bound x) (upper-bound y)))
+        (p4 (f (upper-bound x) (lower-bound y))))
+    (make-interval (min p1 p2 p3 p4)
+                   (max p1 p2 p3 p4))))</code><p>抛开 <equation>\Theta(2^n)</equation> 的恐怖效率不谈，上述代码也是有缺点的。最明显的一个就是它只适用于n=2的情况。然而我们的算式可能有任意n个变量。</p><p>如果修改一下代码，用更复杂但更通用的方式实现的话可以对任意n个变量起作用，但是永远甩不开<equation>\Theta(2^n)</equation> 的恐怖效率。</p><h2>解题方法3</h2><p>你看着那个<equation>\Theta(2^n)</equation> 的恐怖算法，觉得一定有更好的解决方案</p><p>突然，树上一颗苹果落下砸中你脑袋一样，你想到了另一种方案</p><p>区间运算的本质是什么？</p><p>结果下界为所有可能运算结果的最小值，上界为所有可能运算结果的最大值</p><p>那么如果我给每个区间拉张表，表上随机列出区间内的取值，然后在两个表中间直接暴力算，最后暴力找出最大值和最小值，那不就得到结果区间了吗？比如 <equation>[2,3]\times[4,6] = [8,18]</equation> ，就可以这样算： <equation>\left\{ 2,3,2,2,3 \right\}\times\left\{4,6,5,5,4\right\} = \left\{8,18,10,10,12\right\}</equation> ，然后统计最大值和最小值得到 <equation>[8,18]</equation> </p><p>如果遇到A/A这种情况，因为同一个变量的随机表都是相同的，随机表中每一项都会变成1，那不就得到 <equation>\left[1,1\right]</equation> 了吗？</p><p>不是很好。如果表与表运算结果中没有<b>真正的</b>最大值和最小值，那你得出来的就是宽度过小的错误结果。</p><p>很简单，强制在表里面随机插几个区间的最大值最小值不行吗？</p><p>不。如果数量太少的话两张表的最大值和最小值没法相遇，也得不到精确答案。</p><p>那我随机用最大值和最小值将表填满总行了吧。</p><p>不完美。这样子很容易撞表，得出过小的区间。</p><p>单个表项为实际最大值或最小值的概率为 <equation>\frac{1}{2}</equation> ，所以设表中有n个项（ <equation>n\gt1</equation> ），上下界都错误的概率是 <equation>\frac{1}{2^n}</equation> ，错其中至少一个界的概率为 <equation>\frac{3^n}{4^n}</equation> ，当n=50的时候，正确的概率为 <equation>99.99994336783435730623753348853\%</equation> </p><p>但是每次进行运算，表中就会出现n/2个无助于运算的“无用项”，但为了确保R1R2/R1=R2，那些无用项不能舍去，也不能重置成有用项。也就是说，长度为1024的表在运算一次过后就只剩512能用，运算大约10次后再继续运算就不可能得到正确结果了。</p><p>可以提供一个clear函数，重置表来继续运算。</p><p>这样子通过一个表就可以完美支持区间的各种运算了。若运算式中有n个变量且每个变量参与运算的次数为常数，则时间复杂度仅为 <equation>\Theta(n\times l)</equation> ，其中l为表长。</p><p>优点是代码比较容易实现，速度较快，接口比较简单（对下游用户友好）</p><p>缺点是运算的正确率不是100%，并且在处理小规模问题的时候常数太大。</p><h2>代码-解题方法2</h2><p>（对Lisp不熟悉的人可以跳过此段）</p><p>对于解题方法2的一个扩展代码</p><p>我们希望像这样子计算</p><code lang="scheme">(calculate ((r1 (make-interval 1 3)) (r2 (make-interval 2 4)))
+    (/ (+ r1 r2) (* r1 r2)))</code><p>（以下由于SICP里面已经没有涉及到了而且有一定复杂性所以我使用Common Lisp进行讲解，反正Common Lisp和Scheme很像）</p><p>这很简单。我们只需要一个宏，将算式展开到一个list中，然后取list的最大值和最小值就是结果。具体求值可以将r1、r2的取值展开到一个let中，在let里面对表达式进行求求值</p><p>（Common Lisp代码）</p><code lang="common-lisp">;;tool with-gensym
+(defmacro with-gensym (names &amp;rest body)
+  `(let ,(mapcar #'(lambda (n)
+		     `(,n (gensym)))
+		 names)
+     ,@body))
+
+;;tool enumerate
+(defun enumerate (symbol-1 symbol-2 num)
+  (if (= num 1)
+      `((,symbol-1) (,symbol-2))
+      (let ((last (enumerate symbol-1 symbol-2 (- num 1))))
+	(nconc (mapcar #'(lambda (x) (cons symbol-1 x)) last)
+	       (mapcar #'(lambda (x) (cons symbol-2 x)) last)))))
+
+(defmacro calculate (vars body)
+  (with-gensym (lst)
+    `(let (,lst ,(calc-expander vars body (length vars)))
+       (make-interval (min ,lst) (max ,lst)))))
+
+(defun calc-expander (vars body varnum)
+  (let ((values (enumerate 'lower-bound 'upper-bound varnum)))
+    `(list ,@(mapcar #'(lambda (value)
+			 `(let ,value ,body))
+		     (mapcar #'(lambda (enum)
+				 (mapcar #'(lambda (f v)
+					     `(,(first v) (,f ,(second v))))
+					 enum
+					 vars))
+			     values)))))</code><h2>代码-解题方案三</h2><p>（Common Lisp，和Scheme相差不远）</p><code lang="common-lisp">;; tool rand-choice
+(defun rand-choice (term1 term2 num &amp;optional res)
+  (if (zerop num)
+      res
+      (if (zerop (random 2))
+	  (rand-choice term1 term2 (- num 1) (cons term1 res))
+	  (rand-choice term1 term2 (- num 1) (cons term2 res)))))
+
+
+(defun make-interval (lower upper &amp;optional (table-len 50))
+  ;;(define (make-interval lower upper)
+  (cons (cons lower upper) (rand-choice lower upper table-len)))
+
+(defun make-interval-by-table (lower upper table)
+  (cons (cons lower upper) table))
+
+(defun lower (interval)
+  (car (car interval)))
+
+(defun upper (interval)
+  (cdr (car interval)))
+
+(defun table (interval)
+  (cdr interval))
+
+(defun tabapply (func tab1 tab2)
+  (mapcar #'(lambda (x y)
+	      (funcall func x y))
+	  tab1
+	  tab2))
+
+;;抽象壁垒
+
+(defun make-interval-only-by-table (table)
+  (make-interval-by-table (apply #'min table)
+			  (apply #'max table)
+			  table))
+
+(defun interval-func (func interval-1 interval-2)
+  (make-interval-only-by-table
+   (tabapply func (table interval-1) (table interval-2)))) </code><p>（定义出抽象级别更高的interval-func之后很快就能一般化出interval-add等一系列函数）</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
