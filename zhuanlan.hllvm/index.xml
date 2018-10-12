@@ -5,7 +5,56 @@
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/</link>
 <description>探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 01 Oct 2018 23:21:58 +0800</lastBuildDate>
+<lastBuildDate>Fri, 12 Oct 2018 17:30:51 +0800</lastBuildDate>
+<item>
+<title>考不上三本也能懂系列——处理声明（一）</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-10-04-45971898.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45971898&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;&lt;b&gt;你现在所阅读的并不是第一篇文章，你可能想看&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25959684&quot;&gt;目录和前言&lt;/a&gt;。&lt;/b&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;前言&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本来还想说一下怎么用正则表达式做C++词法分析的，因为raw string literal不能用正则表达式做。不过想来想去也没有什么好说的。总的来说，所有其他的token都可以被正则表达式表达，而raw string literal，我们只要把&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;R&quot;Fuck(&lt;/code&gt;&lt;p&gt;作为一个token，遇到这个token的时候写代码人肉扩展到&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;)Fuck&quot;&lt;/code&gt;&lt;p&gt;这里就好了。VLPP的词法分析和着色类支持这种做法，毫无压力。&lt;/p&gt;&lt;p&gt;C++的声明是很复杂，而且还很乱，相同的东西有无数种不同的写法，这不仅给使用者带来了困难，也给编译器作者带来了困难。Bjarne Stroustrup当初要兼容C语言当然是可以理解的，但是完全可以不需要兼容到这个份上的，很多语法完全可以在出现C++要素之后开始不兼容C语言。举个简单的例子，C语言是可以这么写的&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;typedef struct
+{
+  int bitch;
+} Fuck;&lt;/code&gt;&lt;p&gt;但是一旦你添加了C++要素，譬如说&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;typedef struct
+{
+  int bitch;
+  string shit;
+} Fuck;&lt;/code&gt;&lt;p&gt;马上报错（typedef和struct不要这么组合使用），没什么不好的。最后给语言加上一个不兼容的开关，好让大多数有洁癖的人使用。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;阅读C++声明（一）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;C++有别于其他所有语言，它的语法结构并不反映抽象语法树的结构。譬如说我们一般认为类里面有变量和函数和嵌套类型生命，但是当你写C++语法分析器的时候，不能这么想。变量和函数其实是一个东西，当你做完语法分析之后，看看到底这个狗东西是什么类型，才决定他是变量还是函数。MSDN给这个狗东西起了个名字叫Declarator。&lt;/p&gt;&lt;p&gt;一般来说，一个C++的变量或者函数，或者是typedef后面的那一段，或者是所有可以临时声名名字的东西（如函数参数，if、for、switch里面的“变量条件”等），都包含Declarator。当然它本身不是Declarator，它的结构是这样的：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Type Declarator1 [Initializer], Declarator2 [Initializer] ...&lt;/code&gt;&lt;p&gt;呵呵呵&lt;/p&gt;&lt;p&gt;这是什么意思呢？让我们来看下面的这行C++代码：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int const fuck {0}, *shit = nullptr;&lt;/code&gt;&lt;p&gt;那么对应到上面的结构就是&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Type = &quot;int const&quot;
+Declarator1 = &quot;fuck&quot;
+    Initializer = &quot;{0}&quot;
+Declarator2 = &quot;*shit&quot;
+    Initializer = &quot;= nullptr&quot;&lt;/code&gt;&lt;p&gt;简单易懂。如果是函数指针的话也一样：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int (__stdcall *fuck)(int);
+
+Type = &quot;int&quot;
+Declarator1 = &quot;(__stdcall *fuck)(int)&quot;&lt;/code&gt;&lt;p&gt;需要注意的是，根据Declarator出现的不同的地方，它是可以有名字或者没有名字，也可以有初始化结构或者没有。譬如说我们定义一个类型：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;using Fuck = int(*)(int);
+typedef int(*Fuck)(int);&lt;/code&gt;&lt;p&gt;这两行代码其实是一样的，他们拆开分别就是&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Type = &quot;int&quot;
+Declrator1 = &quot;(*)(int)&quot;&lt;/code&gt;&lt;p&gt;和&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;Type = &quot;int&quot;
+Declarator1 = &quot;(*Fuck)(int)&quot;&lt;/code&gt;&lt;p&gt;简单易懂。所以我们写C++语法分析器的时候，不要把声明和类型割裂地看，而是在当成这种结构一顿parse之后，再来看看这棵树是否符合要求。举个简单的例子，下面的代码就是错误的，因为函数和变量不能一起出现在同一个声明里：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int fuck, Shit(int x);&lt;/code&gt;&lt;p&gt;在语法分析的时候我们不管这个东西，分析完了再来看，发现一个是变量，一个是函数，果断糊用户一脸。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;阅读C++声明（二）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;弄明白了大概的做法之后，就可以看一下比较细节的东西。首先这个Declarator可以嵌套，而且括号可以随便加，也就是说下面的两行代码其实是一个意思：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int Fuck(int);
+int ((((((((((Fuck))))))))))(int);&lt;/code&gt;&lt;p&gt;但是函数和数组这两种Declarator不能嵌套，譬如说下面这行代码是不行的：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int (Fuck(int))[10];&lt;/code&gt;&lt;p&gt;当然道理很简单，因为函数类型不能是值，函数指针类型才可以。同理函数和函数也不能嵌套，但是数组和数组可以，也就是说下面的两行代码其实是一个意思：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int a[1][2];
+int (a[1])[2];&lt;/code&gt;&lt;p&gt;简单易懂。总的来说，只要用于修饰数组或者函数的Declarator不是一个名字而是更复杂的东西的话，括号就必须加上。这条规定是用来破除歧义的。举个简单的例子，我们可以写一个函数指针类型：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int (*fuck)(int);&lt;/code&gt;&lt;p&gt;因为*是用来修饰函数的，而且*fuck“不是一个名字而是更复杂的东西”，所以必须加括号。如果不这样的话，你就分辨不了到底&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int*fuck(int);&lt;/code&gt;&lt;p&gt;到底是一个函数还是一个变量了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;阅读C++声明（三）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;弄明白了这件事情之后，我们就可以轻松脑内解读各种超复杂C++声明了。关键是不要把类型和定义割裂开。类型只是一个没有名字的定义。就算是最简单的：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int&lt;/code&gt;&lt;p&gt;其实它真正要表达的事情是：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int &amp;lt;名字不知道哪里去了&amp;gt;&lt;/code&gt;&lt;p&gt;而控制名字该不该出现，该不该有很多个的，是这个代码放在哪里，而不是这个代码想要表达什么内容。举几个简单的例子：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;变量&lt;/b&gt;：名字就是必须的，而且可以有很多个。当然VC++允许你直接写“int;”，然后它会给你一个warning。&lt;/li&gt;&lt;li&gt;&lt;b&gt;函数参数&lt;/b&gt;：名字就不是必须的。特别是在函数声明（指的是没有函数体）而不是定义的时候，那个名字根本就没有用。&lt;/li&gt;&lt;li&gt;&lt;b&gt;需要类型的地方&lt;/b&gt;：名字是不能出现的，最简单的有一个类的父类，你不能写“struct Fuck : Shit s {};”你也不能写“Fuck&amp;lt;Shit s&amp;gt;”。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;看到这里，相信大家已经完全学会如何阅读C++声明了。完整的内容参见这里：&lt;a href=&quot;https://docs.microsoft.com/en-us/cpp/cpp/overview-of-declarators&quot;&gt;Overview of Declarators&lt;/a&gt; 。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;阅读C++声明（四）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;那上面Type和Declarator1的分界线到底在哪里呢？其实很简单，只要你分析Type一路下去，直到看到左括号、左方括号、左大括号、一个名字的时候，你就知道Type已经到头了。这个符号将作为Declarator1的第一个符号开始被分析。Type本身是不嵌套的，只是一个简单的左递归，写起来特别爽。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;动手写语法分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;了解到这个份上，剩下的事情也就是熟练运用你们学过的编译原理的内容。在我的项目里面，对这部分声明做语法分析的地方是在这里：&lt;a href=&quot;https://github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/Parser_Declarator.cpp#L816&quot;&gt;https://github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/Parser_Declarator.cpp#L816&lt;/a&gt; 。我们可以看到参数里面有很多东西，其中引用了两个枚举值：&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;enum class DeclaratorRestriction
+{
+	Zero,
+	Optional,
+	One,
+	Many,
+};
+
+enum class InitializerRestriction
+{
+	Zero,
+	Optional,
+};&lt;/code&gt;&lt;p&gt;这分别用来控制Declarator的名字数量，以及初始化部分的数量。在不同的地方需要分析一个声名的时候，会传进去不同的参数。这个参数会影响这部分语法分析对于同一个符号的理解。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;尾声&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;当然Declarator的部分到这里并没有结束，因为C++在处理这些东西的时候，需要同时做语义分析，也就是通过名字具体的意思来对同一个符号做不同的理解。举个简单的例子，当你看到这样一行代码的时候&lt;/p&gt;&lt;code lang=&quot;cpp&quot;&gt;int (Fuck::Shit /* 后面还有 ... */&lt;/code&gt;&lt;p&gt;到底Shit应该理解为Fuck的子类型呢，还是Declarator的名字呢？你只有确实地直到Fuck是个什么东西，你才能得到答案。这部分将在下一篇文章得到一半地解答。&lt;/p&gt;</description>
+<author>vczh</author>
+<guid isPermaLink="false">2018-10-04-45971898</guid>
+<pubDate>Thu, 04 Oct 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>考不上三本也能实现C++编译器——前言</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-10-03-45888762.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45888762&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;&lt;b&gt;你现在所阅读的并不是第一篇文章，你可能想看&lt;a href=&quot;https://zhuanlan.zhihu.com/p/25959684&quot;&gt;目录和前言&lt;/a&gt;。&lt;/b&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;前言&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在GacUI1.0的功能马上就要做完的时候，我曾经提出过要&lt;a href=&quot;https://zhuanlan.zhihu.com/p/44566477&quot;&gt;把以前的垃圾C++文档生成器（类似doxygen）重新做一遍&lt;/a&gt;。所以就开了&lt;a href=&quot;https://github.com/vczh-libraries/Document&quot;&gt;这个项目&lt;/a&gt;。按照设想的进度来看，目前完成了大约1/4。整个项目的内容，就是把我的C++代码都索引起来，生成正确的链接（含函数体，上个版本还不行），最后再生成出另一个像MSDN那样的页面，最后把两者组合起来，生成索引，做个假的搜索引擎。于是写一个C++前端就在所难免。&lt;/p&gt;&lt;p&gt;有人问过我为什么不用doxygen，因为doxygen不能满足我的所有要求，我也不想把我的代码和注释改成doxygen能懂的那样，而且doxygen处理模板效果也不好。最重要的是，我如果在注释里写了一些代码片段作为sample，doxygen也不会替我运行一下看看是不是对并正确索引和着色的。再加上这是个个人项目，我实在想不出什么理由非要放弃一些功能从而使用doxygen不可。&lt;/p&gt;&lt;p&gt;因此我又重新把MSDN的C++语法手册快速浏览了一遍，整理出需求之后，就开始做了。显然，Windows下的GacUI需要饮用大量的VC++提供的头文件，如果我的编译器只支持标准C++的话，明显parser就会直接失败，所以我还只能支持那些VC++特有的功能不可。但是实际上还行，因为VC++大部分特有的功能是通过#pragma来实现的，剩下一部分是通过简化C++对语法的要求来实现的。&lt;/p&gt;&lt;p&gt;在实现的时候我觉得，为了代码索引做的C++编译器难度要比真实的C++编译器要低得多，考不上三本完全也能自己搞出来，所以我决定一边开发一边写这个文章的系列。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;需求&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;代码索引跟真正的C++编译器差别相当大，这体现在四个方面：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;代码索引不需要支持宏运算和文件系统&lt;/b&gt;。几乎所有靠谱的C++编译器都有一个预处理的功能，因此我要求用户给我提供一个预处理完的文件，是完全没有问题的，而且也十分合理。因此我就省掉了那些复杂的宏运算，而只要专注于C++本身就可以了。#include之类的破事也没有了。VC++生成的预处理文件包含#line命令，所以我不用自己展开也能知道每一行到底在原来的文件的什么地方。最后宏如果要索引，那个比支持宏运算要简单多了，预处理前的文件从头到尾扫一遍就可以了。&lt;/li&gt;&lt;li&gt;&lt;b&gt;代码索引不需要处理所有的语法和语义错误&lt;/b&gt;。我完全可以要求用户必须喂给我一个能通过编译的预处理文件，因此有些事情就变得简化了。举个简单的例子，static和virtual是不能同时出现在一个函数上面的，但是我完全不用管，因为如果用户真的给了我一个正确的C++程序，那我就可以通过static来判断它是不是静态函数，忽略virtual是否也出现。虽然这其实都是些小事，但是积少成多，整个程序要操心的事情简直大幅缩短。&lt;/li&gt;&lt;li&gt;&lt;b&gt;代码索引处理模板的逻辑与真正的C++编译器是完全不同的&lt;/b&gt;。GacUI是一个库，库就意味着很多模板类和模板函数可能根本就没有在GacUI本身用过，因为他们是提供给下游用户的。但是作为一个代码索引程序，它必须要完整地分析整个模板函数的内容。举个简单的例子，一个带有template&amp;lt;typename T&amp;gt;的函数，声明了一个typename T::Fuck fuck;这样的变量，那Fuck的链接到底要怎么生成呢？C++编译器可能直接就没管，因为你的函数都没有被用到，不需要展开。而代码索引需要做的，则是找到所有叫Fuck的内部类型，然后根据后面的代码再来去掉那些明显不可能出现在这里的。&lt;/li&gt;&lt;li&gt;&lt;b&gt;代码索引处理各种重载的精确度不需要很高&lt;/b&gt;。C++的重载规则十分复杂，而代码索引其实可以取巧。因为它不需要真的resolve到一个确定的符号上。而且对于模板函数里面的重载引用你是根本没办法做这件事情的，因为模板函数根本还没展开你怎么可能知道重载的结果呢。所以代码索引的类型推导程序，从一开始就默认一个符号是可以有多重意思的。如果你根据上下文还是没办法确定到一个符号上，那没关系，我们就当它是多个符号。整条表达式后面的所有链接都有可能指向多个目标。虽然编译器不能这么写，但是代码索引恰恰就需要这样。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这里面有一些细节还需要考虑，譬如一个带有template&amp;lt;typename T&amp;gt;的函数，用Fuck&amp;lt;T&amp;amp;&amp;amp;&amp;gt;::xxx的方法来使用一个带有特化的模板类Fuck，你是不能简单地挑选template&amp;lt;template T&amp;gt; struct Fuck&amp;lt;T&amp;amp;&amp;amp;&amp;gt;的这个分支的，因为T&amp;amp;&amp;amp;也有可能是左值引用。在这种时候你就只能被迫同意Fuck&amp;lt;T&amp;amp;&amp;gt;和Fuck&amp;lt;T&amp;amp;&amp;amp;&amp;gt;的两个分支都是正确的。&lt;/p&gt;&lt;p&gt;种种的原因导致了使用clang作为前端的doxygen其实不适合做这种工作，因为clang根本就没有为这种事情考虑过，而GacUI大量使用模板，这个细节无法忽视。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;进度&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;现在我的项目实际上表达式、类型重命名和模板都还没有做，其他的事情做了，所以只完成了1/4。所以这个系列文章会花费较长的时间来更新。不过尽管如此，在这前面的1/4里面，我已经遇到了很多有意思的问题，够写几篇文章了。当然本系列文章不会讨论C++，而是讨论编译器本身，因此各种C++奇技淫巧将不会出现在系列文章里。&lt;/p&gt;&lt;p&gt;总的来说，如果你们想要自己玩成这样的项目的话，只要懂得手写递归向下的语法分析器，剩下的事情就是去扣C++语法规范里面的细节，堆苦力把他们堆出来。这个事情一点都不难，只是要时间而已，广大考不上三本的同学完全也能够做出来。唯一的区别可能是，如果我花了半年做出来，不熟练的人可能要好几年（逃&lt;/p&gt;</description>
+<author>vczh</author>
+<guid isPermaLink="false">2018-10-03-45888762</guid>
+<pubDate>Wed, 03 Oct 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Scala macro 2018 实用指南</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-07-12-39379432.html</link>
@@ -201,58 +250,6 @@ return n;
 <author>Old Driver</author>
 <guid isPermaLink="false">2018-03-16-34608787</guid>
 <pubDate>Fri, 16 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>外部函数接口 FFI —— 虚拟机中重要但不起眼的组件</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-12-19-32134367.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32134367&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2619f90ef86a0cb5119dd3d56869b921_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;——或许你没听说过它，但是，它为虚拟机的世界与二进制的世界搭起了一道桥梁。它就是FFI。&lt;/p&gt;&lt;h2&gt;一个看似简单的问题&lt;/h2&gt;&lt;p&gt;用过 Scheme, Python 等各种动态语言的人，可能会对里面的 apply 情有独钟。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Scheme 中，你可以这样写：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (add-int a b) (+ a b))
-(add-int 5 6)
-(apply add-int &#39;(5 6))&lt;/code&gt;&lt;p&gt;Python2 中，你可以这样写：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;def add_int(a, b):
-  return a + b
-
-add_int(5, 6)
-apply(add_int, (5, 6))&lt;/code&gt;&lt;p&gt;当然这在 Python3 中更改了，要写成这样：&lt;/p&gt;&lt;code lang=&quot;python&quot;&gt;add_int(*(5, 6))&lt;/code&gt;&lt;p&gt;Ruby 也是类似的写法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么问题来了，在 C语言 中，能不能实现类似于如上的效果呢？&lt;/p&gt;&lt;p&gt;比如这样：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int add_int(int a, int b)
-{
-    return a + b;
-}
-
-add_int(5, 6); // OK!
-
-int data[] = { 5, 6 };
-apply(add_int, data);  // ????&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;一个更加实用的问题&lt;/h2&gt;&lt;p&gt;在虚拟机中经常遇到这么一个问题，我在一个二进制库，里面有一组函数，但是我 &lt;b&gt;不能通过C语言来调用 &lt;/b&gt;它们，或者是，我能使用C语言来调用，却 &lt;b&gt;不能在调用的时候知道它们的函数声明&lt;/b&gt;。怎么办？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;什么是 FFI ？&lt;/h2&gt;&lt;p&gt;FFI 全名 Foreign Function Interface ，中文名 外部函数接口。&lt;/p&gt;&lt;p&gt;其实 FFI 很简单，就是一个接口。这个接口可以让你在不清楚参数的个数和类型的情况下调用一个函数。&lt;/p&gt;&lt;p&gt;它可以用在问题一的场景，作为一个apply使用。但它更常被用于问题二的场景，成为 &lt;b&gt;高级语言的虚拟机与底层二进制代码之间的交互 &lt;/b&gt;的桥梁。&lt;/p&gt;&lt;p&gt;FFI 的主流实现，libffi 在它的 &lt;a href=&quot;https://sourceware.org/libffi/&quot;&gt;官网&lt;/a&gt; 上列出了它被哪些项目所使用：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;CPython&lt;/li&gt;&lt;li&gt;OpenJDK&lt;/li&gt;&lt;li&gt;js-ctypes&lt;/li&gt;&lt;li&gt;Dalvik&lt;/li&gt;&lt;li&gt;Java Native Access (JNA)&lt;/li&gt;&lt;li&gt;Ruby-FFI&lt;/li&gt;&lt;li&gt;fsbv&lt;/li&gt;&lt;li&gt;JSCocoa&lt;/li&gt;&lt;li&gt;PyObjC&lt;/li&gt;&lt;li&gt;RubyCocoa&lt;/li&gt;&lt;li&gt;PLT Scheme&lt;/li&gt;&lt;li&gt;gcj&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;你一定用过其中某一款虚拟机/解释器，但是你未必知道 FFI。&lt;/p&gt;&lt;p&gt;没错，FFI 就是这么默默无闻，但它的贡献巨大。因为它实现了一种不通过 C语言 进行底层交互的功能，因为它，虚拟机解决问题的范围大大地扩展了。两个世界联系在了一起，世界变得更加宽广。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;对两个问题的分析&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;&lt;i&gt;第一个问题：如何实现apply？&lt;/i&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这个问题示例的写法非常方便，而且支持这种写法有着重要的意义。&lt;/p&gt;&lt;p&gt;因为与直接调用 add_int(5, 6) 相比， add_int(*(5, 6)) 表示，它传递的是某个列表/元组/数组的解引。这个列表/元组/数组可以是任意的长度，尽管 add_int 只支持传递2个参数。&lt;/p&gt;&lt;p&gt;在 Python 中，书写 add_int(a, b) 表示，传递给 add_int 两个参数，每个参数的类型和数据是未知的。而书写 add_int(*a) 则表示，传递给 add_int 一组参数，但是参数的个数、类型和数据都是未知的。&lt;/p&gt;&lt;p&gt;无疑， add_int(*a) 拥有着比 add_int(a, b) 更高的自由度。相对于 add_int(*a) 来说， add_int(a, b)  属于硬编码了参数的个数，而 add_int(*a) 则取消了对参数个数的硬编码。&lt;/p&gt;&lt;p&gt;既然是硬编码，那么可以认为，add_int(a, b) 参数个数的信息位于&lt;b&gt;代码&lt;/b&gt;中，add_int(*a) 参数个数的信息位于&lt;b&gt;数据&lt;/b&gt;中。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;之所以强调这点，是因为，在 C语言 中，大部分的东西都是 &lt;b&gt;硬编码 &lt;/b&gt;的。&lt;/p&gt;&lt;p&gt;在 C 语言中，使用 add_int ，必须确定 函数的地址（通常使用函数名或函数指针来指定），函数声明，传递的参数的个数、类型，参数的数据等。这几个东西，在调用函数时，都是&lt;b&gt;必须&lt;/b&gt;确定的。&lt;/p&gt;&lt;p&gt;也就是说，&lt;b&gt;一旦无法确定其中任意一个，那么就不能在 C 中调用函数&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;好了，我们来问一下， C 中的 apply ，到底能不能实现呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;apply(add_int, data);&lt;/code&gt;&lt;p&gt;问： 这一句中，有哪些是已知的，哪些是未知的？&lt;/p&gt;&lt;p&gt;答：函数的地址 已知，数据 已知，参数的个数未知，类型未知（如果想要那种单类型的apply，可以算作已知）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;因为至少有一点是未知的，那么就不能通过这种方式调用。&lt;/p&gt;&lt;p&gt;因此，在目前的C标准下， 仅仅使用标准C语言，apply 的实现是&lt;b&gt;不可能&lt;/b&gt;的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么真的是没有办法吗？&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.zhihu.com/question/54627596/answer/142304962&quot;&gt;gkmail：C 语言有没有办法实现类似 Scheme 里的 apply 函数？&lt;/a&gt;&lt;/p&gt;&lt;p&gt;这个回答提到了 libffi 。没错， libffi = lib + ffi，&lt;b&gt;libffi&lt;/b&gt; 就是我们这篇文章的主角 FFI 的主流实现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;&lt;i&gt;第二个问题：如何不通过C来调用C函数？&lt;/i&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;要解决这个问题，首先我们要知道如何调用一个函数。&lt;/p&gt;&lt;p&gt;大体上来说，从汇编层面来讲，调用一个函数，就是先将参数放置在函数所要求的寄存器、栈等位置，然后从该函数的最初的指令开始执行，执行后从特定的位置取出调用的结果来使用。（在后面的小节我会结合具体的平台详细地说明这一点。）&lt;/p&gt;&lt;p&gt;总的来说，调用函数经历了这样一个过程：&lt;b&gt;参数传递 -&amp;gt; 函数调用 -&amp;gt; 返回值传递&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;C语言所编译的调用函数，硬编码了 参数传递 和 返回值传递。传递方式 是代码指定，而不是数据指定。&lt;/p&gt;&lt;p&gt;也就是说，如果想要能够自由地调用函数，必须拥有 &lt;b&gt;指定传递方式&lt;/b&gt; 的能力。将数据放置在什么位置，将结果从哪里取出，只要解决了这个问题，就解决了动态调用函数的问题。&lt;/p&gt;&lt;p&gt;而传递方式，是由 ABI 来规定的。函数的传递方式，就是通过ABI根据该函数的 函数声明来指定的。&lt;/p&gt;&lt;p&gt;所以，理论上，只要知道了 &lt;b&gt;函数声明 和 ABI&lt;/b&gt;，就能过获取函数的 参数和返回值的传递方式，再加上 函数的地址以及数据，就可以&lt;b&gt;不通过 C语言 的编译，来调用这个函数&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;函数声明 + ABI --- 某种工具 --&amp;gt; 传递方式
-传递方式 + 函数地址 + 数据 ---调用--&amp;gt; 结果&lt;/code&gt;&lt;p&gt;这个过程，就是 主流的 FFI 库，libffi 的调用原理。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;FFI 的基本原理&lt;/h2&gt;&lt;p&gt;FFI 的本质其实是 &lt;b&gt;参数传递 + 函数调用 + 返回值传递&lt;/b&gt;，而参数传递和返回值传递的方式，都是由 &lt;b&gt;具体的 ABI 所规定 &lt;/b&gt;的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们从 x86-64 CPU 下 System V AMD64 ABI （Linux中一种主流的64位ABI） 来详细说明。&lt;/p&gt;&lt;p&gt;我们有函数 sub_int ：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int64_t sub_int(int64_t a, int64_t b)
-{
-    return a - b;
-}&lt;/code&gt;&lt;p&gt;使用 gcc -O0 编译，使用 objdump 分析可得：&lt;/p&gt;&lt;code lang=&quot;objdump&quot;&gt;0000000000000000 &amp;lt;sub_int&amp;gt;:
-   0:   55                      push   %rbp
-   1:   48 89 e5                mov    %rsp,%rbp
-   4:   48 89 7d f8             mov    %rdi,-0x8(%rbp)
-   8:   48 89 75 f0             mov    %rsi,-0x10(%rbp)
-   c:   48 8b 45 f8             mov    -0x8(%rbp),%rax
-  10:   48 2b 45 f0             sub    -0x10(%rbp),%rax
-  14:   5d                      pop    %rbp
-  15:   c3                      retq&lt;/code&gt;&lt;p&gt;稍微简化一下，大概就是：&lt;/p&gt;&lt;code lang=&quot;nasm&quot;&gt;sub_int:
-    mov    %rdi,%rax    ; rax = rdi
-    sub    %rsi,%rax    ; rax = rax - rsi
-    retq&lt;/code&gt;&lt;p&gt;在 SysV64 ABI 下，传递 int64_t，第一个参数使用 rdi，第二个参数使用 rsi，结果使用 rax。&lt;/p&gt;&lt;p&gt;也就是说，这个函数进行了这样的过程 ：  rax = rdi - rsi 。&lt;/p&gt;&lt;p&gt;在C语言中调用 sub_int(5, 6)，是进行了如下的过程：&lt;/p&gt;&lt;code lang=&quot;nasm&quot;&gt;caller:
-    mov    $0x6,%rsi    ; rsi = 6
-    mov    $0x5,%rdi    ; rdi = 5
-    call   sub_int      ; rax = rdi - rsi
-    ...                 ; Use the result in rax
-    retq&lt;/code&gt;&lt;p&gt;也就是说，只要将第一个参数放到 rdi 寄存器，将第二个参数放到 rsi 寄存器，然后使用 call 指令，就可以正确地调用函数了。&lt;/p&gt;&lt;p&gt;而这个 call 指令，也可以调用一个函数指针，如 call (%rax)。&lt;/p&gt;&lt;p&gt;因此，函数的地址不需要确定，需要确定的只是参数放置的位置而已。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;基于这种情况，我们可以把 参数传递、函数调用、返回值传递 这三个过程分开。&lt;/p&gt;&lt;p&gt;函数调用就是调用 call 指令，它上面就是 参数传递，下面就是返回值传递。&lt;/p&gt;&lt;p&gt;参数传递 + 函数调用 + 返回值传递，这三者组合就能构成一个调用函数。&lt;/p&gt;&lt;p&gt;FFI 的本质就是这些的组合，上面给出的 caller 函数其实就是 FFI 函数的雏形。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么参数放置位置以及返回值的位置如何确定？这个是 ABI 所规定的。&lt;/p&gt;&lt;p&gt;在 SysV64 ABI 下， (int64_t, int64_t) -&amp;gt; int64_t 这种声明，一定是按照 (rdi, rsi) -&amp;gt; rax 这种方式来传递的。&lt;/p&gt;&lt;p&gt;所以，只需要确定 函数声明 和 ABI ，就能够确定 参数和返回值的传递方式。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;传递方式&lt;/b&gt; 是 基于 函数声明 和 ABI 的固定不变的东西，再加上能够变化的 &lt;b&gt;函数地址&lt;/b&gt;、&lt;b&gt;数据&lt;/b&gt;，就可以调用这个函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;libffi 的调用过程如下：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-6ef5327e618a12eee546a243690602fa_r.jpg&quot; data-caption=&quot;libffi 调用过程&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;498&quot; data-rawheight=&quot;386&quot;&gt;&lt;p&gt;libffi 将 调用方式-&amp;gt;汇编调用过程 都写在了 ffi_call 中，ffi_call 的核心是使用汇编书写的。其本质就是如上的过程。&lt;/p&gt;&lt;p&gt;另外有一个使用 Jit 编译出定制 FFI 函数的 JitFFI，&lt;a href=&quot;https://zhuanlan.zhihu.com/p/32044108&quot;&gt;JitFFI —— 对于外部函数接口FFI的Jit编译器&lt;/a&gt;。这个项目与 libffi 本质并无不同，但处理方式上有所区别。JitFFI 直接编译出 专门的接口函数，调用函数时直接调用接口函数。目前项目还不完善，有兴趣的读者可以去看一下。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;后记&lt;/h2&gt;&lt;p&gt;之所以写这篇文章，是希望大家能够对 FFI 这个默默无闻的组件有着基本的认识。&lt;/p&gt;&lt;p&gt;FFI 看似可有可无，其实在虚拟机与二进制的交互中扮演着重要的角色。&lt;/p&gt;&lt;p&gt;有了FFI，虚拟机可以轻松地调用二进制程序。&lt;/p&gt;&lt;p&gt;那么如何在二进制程序中调用虚拟机，进而达到两个虚拟机之间的交互？&lt;/p&gt;&lt;p&gt;这就是另一个问题了。&lt;/p&gt;</description>
-<author>Chill Magic</author>
-<guid isPermaLink="false">2017-12-19-32134367</guid>
-<pubDate>Tue, 19 Dec 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>推荐部分学习寄存器分配的材料</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2017-11-25-31406621.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31406621&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;关注编译优化这个领域的学习和研究人员最近几年会发现，这个领域的研究已经非常的成熟，但是最近几年还是有一些新东西出现，寄存器分配问题进行建模的新方法，如：基于PBQP[1][2][3]，基于puzzling[4]，基于Multi-commodity network flow模型[5]的方法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在另一方面，自从2005年学界证明了SSA形式的寄存器干涉图满足弦图(chordal graph)的性质之后，学术界对寄存器分配问题的研究基本上都集中在如何更好的利用SSA形式提供的良好特性。当然在SSA形式的MIR (machine immediate representation)之上进行寄存器分配的时候，也有多种的算法思想，如：基于graph coloring[6]，基于linear scan[7][8][9]。当然还有一些融合多种思想的算法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;然后有研究团队发现[10]，既然SSA形式下的graph coloring这么简单。而且LSRA在处理live interval分割的时候非常困难，时间代价非常高。因为他们绝对也没要使用线性扫描算法了（当然这是就高性能的优化编译器而言，对于优先考虑编译速度的JIT来说，LSRA仍然是个不错的选择）。他们这个组产出了相当多的SSA形式下基于graph coloring的寄存器分配器的研究工作，他们组里面的Hack博士写了一篇重点关于SSA形式下的寄存器分配问题的书[11]&lt;/p&gt;&lt;p&gt;[1]. &lt;a href=&quot;http://www.complang.tuwien.ac.at/scholz/pbqp.html&quot;&gt;Partitioned Boolean Quadratic Programming (PBQP)&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[2.] &lt;a href=&quot;http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.131.4551&amp;amp;rep=rep1&amp;amp;type=pdf&quot;&gt;Nearly Optimal Register Allocation with PBQP&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[3]. &lt;a href=&quot;http://compilers.cs.uni-saarland.de/ssasem/talks/Jens.Palsberg.pdf&quot;&gt;http://compilers.cs.uni-saarland.de/ssasem/talks/Jens.Palsberg.pdf&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[4]. &lt;a href=&quot;http://compilers.cs.ucla.edu/fernando/publications/drafts/long_PereiraPalsberg07.pdf&quot;&gt;http://compilers.cs.ucla.edu/fernando/publications/drafts/long_PereiraPalsberg07.pdf&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[5]. &lt;a href=&quot;http://www.cs.cmu.edu/~dkoes/research/gpra.pdf&quot;&gt;http://www.cs.cmu.edu/~dkoes/research/gpra.pdf&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[6]. &lt;a href=&quot;http://www.cs.utexas.edu/users/mckinley/380C/lecs/briggs-thesis-1992.pdf&quot;&gt;register allocator via graph coloring&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[7]. &lt;a href=&quot;https://www.cs.purdue.edu/homes/suresh/502-Fall2008/papers/linear-scan.pdf&quot;&gt;Linear scan register allocation&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[8]. &lt;a href=&quot;http://cgo.org/cgo2010/talks/cgo10-ChristianWimmer.pdf&quot;&gt;http://cgo.org/cgo2010/talks/cgo10-ChristianWimmer.pdf&lt;/a&gt; (OpenJDK C1中寄存器分配器的作者之一)&lt;/p&gt;&lt;p&gt;[9]. &lt;a href=&quot;http://www.christianwimmer.at/Publications/Wimmer10a/Wimmer10a.pdf&quot;&gt;http://www.christianwimmer.at/Publications/Wimmer10a/Wimmer10a.pdf&lt;/a&gt;&lt;/p&gt;&lt;p&gt;[10]. &lt;a href=&quot;http://compilers.cs.uni-saarland.de/projects/ssara/&quot;&gt;SSA-based Register Allocation&lt;/a&gt; (saarland大学编译器组)&lt;/p&gt;&lt;p&gt;[11]. Register allocator for program in SSA form&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>「已注销」</author>
-<guid isPermaLink="false">2017-11-25-31406621</guid>
-<pubDate>Sat, 25 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

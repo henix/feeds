@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>考不上三本也能懂系列——处理声明（一）</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/45971898">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_r.jpg" alt=""></div><blockquote><b>你现在所阅读的并不是第一篇文章，你可能想看<a href="https://zhuanlan.zhihu.com/p/25959684">目录和前言</a>。</b></blockquote><h2><b>前言</b></h2><p>本来还想说一下怎么用正则表达式做C++词法分析的，因为raw string literal不能用正则表达式做。不过想来想去也没有什么好说的。总的来说，所有其他的token都可以被正则表达式表达，而raw string literal，我们只要把</p><code lang="text">R"Fuck(</code><p>作为一个token，遇到这个token的时候写代码人肉扩展到</p><code lang="text">)Fuck"</code><p>这里就好了。VLPP的词法分析和着色类支持这种做法，毫无压力。</p><p>C++的声明是很复杂，而且还很乱，相同的东西有无数种不同的写法，这不仅给使用者带来了困难，也给编译器作者带来了困难。Bjarne Stroustrup当初要兼容C语言当然是可以理解的，但是完全可以不需要兼容到这个份上的，很多语法完全可以在出现C++要素之后开始不兼容C语言。举个简单的例子，C语言是可以这么写的</p><code lang="cpp">typedef struct
+{
+  int bitch;
+} Fuck;</code><p>但是一旦你添加了C++要素，譬如说</p><code lang="cpp">typedef struct
+{
+  int bitch;
+  string shit;
+} Fuck;</code><p>马上报错（typedef和struct不要这么组合使用），没什么不好的。最后给语言加上一个不兼容的开关，好让大多数有洁癖的人使用。</p><h2><b>阅读C++声明（一）</b></h2><p>C++有别于其他所有语言，它的语法结构并不反映抽象语法树的结构。譬如说我们一般认为类里面有变量和函数和嵌套类型生命，但是当你写C++语法分析器的时候，不能这么想。变量和函数其实是一个东西，当你做完语法分析之后，看看到底这个狗东西是什么类型，才决定他是变量还是函数。MSDN给这个狗东西起了个名字叫Declarator。</p><p>一般来说，一个C++的变量或者函数，或者是typedef后面的那一段，或者是所有可以临时声名名字的东西（如函数参数，if、for、switch里面的“变量条件”等），都包含Declarator。当然它本身不是Declarator，它的结构是这样的：</p><code lang="cpp">Type Declarator1 [Initializer], Declarator2 [Initializer] ...</code><p>呵呵呵</p><p>这是什么意思呢？让我们来看下面的这行C++代码：</p><code lang="cpp">int const fuck {0}, *shit = nullptr;</code><p>那么对应到上面的结构就是</p><code lang="cpp">Type = "int const"
+Declarator1 = "fuck"
+    Initializer = "{0}"
+Declarator2 = "*shit"
+    Initializer = "= nullptr"</code><p>简单易懂。如果是函数指针的话也一样：</p><code lang="cpp">int (__stdcall *fuck)(int);
+
+Type = "int"
+Declarator1 = "(__stdcall *fuck)(int)"</code><p>需要注意的是，根据Declarator出现的不同的地方，它是可以有名字或者没有名字，也可以有初始化结构或者没有。譬如说我们定义一个类型：</p><code lang="cpp">using Fuck = int(*)(int);
+typedef int(*Fuck)(int);</code><p>这两行代码其实是一样的，他们拆开分别就是</p><code lang="cpp">Type = "int"
+Declrator1 = "(*)(int)"</code><p>和</p><code lang="cpp">Type = "int"
+Declarator1 = "(*Fuck)(int)"</code><p>简单易懂。所以我们写C++语法分析器的时候，不要把声明和类型割裂地看，而是在当成这种结构一顿parse之后，再来看看这棵树是否符合要求。举个简单的例子，下面的代码就是错误的，因为函数和变量不能一起出现在同一个声明里：</p><code lang="cpp">int fuck, Shit(int x);</code><p>在语法分析的时候我们不管这个东西，分析完了再来看，发现一个是变量，一个是函数，果断糊用户一脸。</p><h2><b>阅读C++声明（二）</b></h2><p>弄明白了大概的做法之后，就可以看一下比较细节的东西。首先这个Declarator可以嵌套，而且括号可以随便加，也就是说下面的两行代码其实是一个意思：</p><code lang="cpp">int Fuck(int);
+int ((((((((((Fuck))))))))))(int);</code><p>但是函数和数组这两种Declarator不能嵌套，譬如说下面这行代码是不行的：</p><code lang="cpp">int (Fuck(int))[10];</code><p>当然道理很简单，因为函数类型不能是值，函数指针类型才可以。同理函数和函数也不能嵌套，但是数组和数组可以，也就是说下面的两行代码其实是一个意思：</p><code lang="cpp">int a[1][2];
+int (a[1])[2];</code><p>简单易懂。总的来说，只要用于修饰数组或者函数的Declarator不是一个名字而是更复杂的东西的话，括号就必须加上。这条规定是用来破除歧义的。举个简单的例子，我们可以写一个函数指针类型：</p><code lang="cpp">int (*fuck)(int);</code><p>因为*是用来修饰函数的，而且*fuck“不是一个名字而是更复杂的东西”，所以必须加括号。如果不这样的话，你就分辨不了到底</p><code lang="cpp">int*fuck(int);</code><p>到底是一个函数还是一个变量了。</p><h2><b>阅读C++声明（三）</b></h2><p>弄明白了这件事情之后，我们就可以轻松脑内解读各种超复杂C++声明了。关键是不要把类型和定义割裂开。类型只是一个没有名字的定义。就算是最简单的：</p><code lang="cpp">int</code><p>其实它真正要表达的事情是：</p><code lang="cpp">int &lt;名字不知道哪里去了&gt;</code><p>而控制名字该不该出现，该不该有很多个的，是这个代码放在哪里，而不是这个代码想要表达什么内容。举几个简单的例子：</p><ul><li><b>变量</b>：名字就是必须的，而且可以有很多个。当然VC++允许你直接写“int;”，然后它会给你一个warning。</li><li><b>函数参数</b>：名字就不是必须的。特别是在函数声明（指的是没有函数体）而不是定义的时候，那个名字根本就没有用。</li><li><b>需要类型的地方</b>：名字是不能出现的，最简单的有一个类的父类，你不能写“struct Fuck : Shit s {};”你也不能写“Fuck&lt;Shit s&gt;”。</li></ul><p>看到这里，相信大家已经完全学会如何阅读C++声明了。完整的内容参见这里：<a href="https://docs.microsoft.com/en-us/cpp/cpp/overview-of-declarators">Overview of Declarators</a> 。</p><h2><b>阅读C++声明（四）</b></h2><p>那上面Type和Declarator1的分界线到底在哪里呢？其实很简单，只要你分析Type一路下去，直到看到左括号、左方括号、左大括号、一个名字的时候，你就知道Type已经到头了。这个符号将作为Declarator1的第一个符号开始被分析。Type本身是不嵌套的，只是一个简单的左递归，写起来特别爽。</p><h2><b>动手写语法分析</b></h2><p>了解到这个份上，剩下的事情也就是熟练运用你们学过的编译原理的内容。在我的项目里面，对这部分声明做语法分析的地方是在这里：<a href="https://github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/Parser_Declarator.cpp#L816">https://github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/Parser_Declarator.cpp#L816</a> 。我们可以看到参数里面有很多东西，其中引用了两个枚举值：</p><code lang="cpp">enum class DeclaratorRestriction
+{
+	Zero,
+	Optional,
+	One,
+	Many,
+};
+
+enum class InitializerRestriction
+{
+	Zero,
+	Optional,
+};</code><p>这分别用来控制Declarator的名字数量，以及初始化部分的数量。在不同的地方需要分析一个声名的时候，会传进去不同的参数。这个参数会影响这部分语法分析对于同一个符号的理解。</p><h2><b>尾声</b></h2><p>当然Declarator的部分到这里并没有结束，因为C++在处理这些东西的时候，需要同时做语义分析，也就是通过名字具体的意思来对同一个符号做不同的理解。举个简单的例子，当你看到这样一行代码的时候</p><code lang="cpp">int (Fuck::Shit /* 后面还有 ... */</code><p>到底Shit应该理解为Fuck的子类型呢，还是Declarator的名字呢？你只有确实地直到Fuck是个什么东西，你才能得到答案。这部分将在下一篇文章得到一半地解答。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
