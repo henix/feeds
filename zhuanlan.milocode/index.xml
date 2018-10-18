@@ -5,7 +5,26 @@
 <link>https://henix.github.io/feeds/zhuanlan.milocode/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 27 Jul 2018 10:26:14 +0800</lastBuildDate>
+<lastBuildDate>Thu, 18 Oct 2018 17:51:04 +0800</lastBuildDate>
+<item>
+<title>自然而然</title>
+<link>https://henix.github.io/feeds/zhuanlan.milocode/2018-10-14-46698082.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/46698082&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;code lang=&quot;c&quot;&gt;#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;stdlib.h&amp;gt;
+
+int main() {
+    unsigned i, j, k = 0, n = 1e8;
+    for (i = 0; i &amp;lt; n; i++)
+        for (j = 0; j &amp;lt; RAND_MAX; j += rand())
+            k++;
+    printf(&quot;%f\n&quot;, (double)k / n);
+}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;console&quot;&gt;$ gcc -O3 a.c &amp;amp;&amp;amp; ./a.out
+2.718219&lt;/code&gt;&lt;p&gt;&lt;a href=&quot;http://mathworld.wolfram.com/UniformSumDistribution.html&quot;&gt;Uniform Sum Distribution&lt;/a&gt;&lt;/p&gt;</description>
+<author>Milo Yip</author>
+<guid isPermaLink="false">2018-10-14-46698082</guid>
+<pubDate>Sun, 14 Oct 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>用C语言实现井字棋（上）</title>
 <link>https://henix.github.io/feeds/zhuanlan.milocode/2018-07-25-39581573.html</link>
@@ -805,50 +824,6 @@ Color sample(float x, float y) {
 <author>Milo Yip</author>
 <guid isPermaLink="false">2017-12-07-31534769</guid>
 <pubDate>Thu, 07 Dec 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>知乎「插入公式」诀窍</title>
-<link>https://henix.github.io/feeds/zhuanlan.milocode/2017-11-19-31188118.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31188118&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c768140fa061363905eda738504c20e5_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;知乎在问题、回答和专栏文章中都可使用「插入公式」功能，本文收集一些使用心得，也欢迎大家在评语中分享你的心得。&lt;/p&gt;&lt;p&gt;（Photo by &lt;a href=&quot;https://unsplash.com/photos/5mZ_M06Fc9g?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Roman Mager&lt;/a&gt; on &lt;a href=&quot;https://unsplash.com/?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Unsplash&lt;/a&gt;）&lt;/p&gt;&lt;h2&gt;1. 公式置中&lt;/h2&gt;&lt;p&gt;平常输入公式是内联的，例如：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;a^2 = b^2 + c^2&lt;/code&gt;&lt;p&gt;&lt;equation&gt;a^2 = b^2 + c^2&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;只要在行末加入 &lt;equation&gt;\texttt{\\\\}&lt;/equation&gt; 就可置中：&lt;/p&gt;&lt;code lang=&quot;tex&quot;&gt;a^2 = b^2 + c^2\\&lt;/code&gt;&lt;p&gt;&lt;equation&gt;a^2 = b^2 + c^2\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;虽然不是很准确地置中（似乎是知乎设置的宽度问题），但已经好看多了。&lt;/p&gt;&lt;p&gt;Update: 缺点是手机上看字体会变小&lt;/p&gt;&lt;p&gt;Credits: &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/9558cac1a967147f0318fe6b7b1a0f7b&quot; data-hash=&quot;9558cac1a967147f0318fe6b7b1a0f7b&quot; data-hovercard=&quot;p$b$9558cac1a967147f0318fe6b7b1a0f7b&quot;&gt;@白如冰&lt;/a&gt; &lt;/p&gt;&lt;h2&gt;2. 手工公式编号&lt;/h2&gt;&lt;p&gt;由于每个公式在文中是独立的， &lt;equation&gt;\texttt{equation}&lt;/equation&gt; 环境也不会加入编号，但我们可以用 &lt;equation&gt;\texttt{\tag{n}}&lt;/equation&gt; 手工加入编号：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;a^2 = b^2 + c^2 \tag{1}&lt;/code&gt;&lt;p&gt;&lt;equation&gt;a^2 = b^2 + c^2 \tag{1}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这样不用加上 &lt;equation&gt;\texttt{\\\\}&lt;/equation&gt; 也会置中。&lt;/p&gt;&lt;h2&gt;3. 常用数学环境&lt;/h2&gt;&lt;p&gt;这里列出一些可用的数学环境。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{align}&lt;/equation&gt; 对齐等号（或其他符号）：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\begin{align}
-a + b &amp;amp;= c + d\\
-a &amp;amp;= c + d -b
-\end{align}\\&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\begin{align} a + b &amp;amp;= c + d\\ a &amp;amp;= c + d -b \end{align}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{alignat}&lt;/equation&gt; 可在每行对齐多个公式，其第一参数设置每行公式数目：&lt;/p&gt;&lt;code lang=&quot;tex&quot;&gt;\begin{alignat}{2}
- \sigma_1 &amp;amp;= x + y  &amp;amp;\quad \sigma_2 &amp;amp;= \frac{x}{y}\\
- \sigma_1&#39; &amp;amp;= \frac{\partial x + y}{\partial x} &amp;amp; \sigma_2&#39; 
-    &amp;amp;= \frac{\partial \frac{x}{y}}{\partial x}\\
-\end{alignat}\\&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\begin{alignat}{2} \sigma_1 &amp;amp;= x + y &amp;amp;\quad \sigma_2 &amp;amp;= \frac{x}{y}\\ \sigma_1&#39; &amp;amp;= \frac{\partial x + y}{\partial x} &amp;amp; \sigma_2&#39; &amp;amp;= \frac{\partial \frac{x}{y}}{\partial x}\\ \end{alignat}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;equation&gt;\texttt{cases}&lt;/equation&gt; 条件：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;u(x) = 
-\begin{cases} 
-   \exp{x} &amp;amp; \text{if } x \geq 0 \\
-   1       &amp;amp; \text{if } x &amp;lt; 0
-\end{cases}\\&lt;/code&gt;&lt;p&gt;&lt;equation&gt; u(x) = \begin{cases} \exp{x} &amp;amp; \text{if } x \geq 0 \\ 1 &amp;amp; \text{if } x &amp;lt; 0 \end{cases}\\&lt;/equation&gt; &lt;/p&gt;&lt;h2&gt;4. 内联等宽字体&lt;/h2&gt;&lt;p&gt;知乎可输入代码，但想在文中表示程序的关键字，可用 &lt;equation&gt;\texttt{\\texttt{...}}&lt;/equation&gt; 显示等宽字体：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\texttt{main()}&lt;/code&gt;&lt;p&gt;C 语言的入口函数为 &lt;equation&gt;\texttt{main()}&lt;/equation&gt; 。&lt;/p&gt;&lt;h2&gt;5. 表格&lt;/h2&gt;&lt;p&gt;知乎没有表格编辑工具，但可以使用 &lt;equation&gt;\texttt{array}&lt;/equation&gt; 环境：&lt;/p&gt;&lt;code lang=&quot;tex&quot;&gt;\begin{array}{c|c}
-\text{年份} &amp;amp; \text{沙漠面积}(\text{km}^2) \\
-\hline
-2000 &amp;amp; 90.0\\
-2010 &amp;amp; 100.0\\
-\end{array}\\&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\begin{array}{c|c} \text{年份} &amp;amp; \text{沙漠面积}(\text{km}^2) \\ \hline 2000 &amp;amp; 90.0\\ 2010 &amp;amp; 100.0\\ \end{array}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;第一个参数是用于设置列的对齐， &lt;equation&gt;\texttt{l}&lt;/equation&gt; 表示向左对齐、 &lt;equation&gt;\texttt{c}&lt;/equation&gt; 表示置中对齐、 &lt;equation&gt;\texttt{r}&lt;/equation&gt; 表示向右对齐，中间可加入 &lt;equation&gt;\texttt{|}&lt;/equation&gt; 来插入垂直线。行与行之间可用 &lt;equation&gt;\texttt{\\hline}&lt;/equation&gt; 加入横线。&lt;/p&gt;&lt;h2&gt;6. 色彩&lt;/h2&gt;&lt;p&gt;可使用 &lt;a href=&quot;http://docs.mathjax.org/en/latest/tex.html#color&quot;&gt;MathJax 扩展的&lt;/a&gt; &lt;equation&gt;\texttt{\\color{颜色}{公式}}&lt;/equation&gt; 为公式添加色彩：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\color{black}{\text{黑色}}\,
-\color{gray}{\text{灰色}}\,
-\color{darkgray}{\text{深灰}}\,
-\color{lightgray}{\text{浅灰}}\,
-\color{white}{\text{白色}}\\
-\color{pink}{\text{粉红}}\,
-\color{red}{\text{红色}}\,
-\color{magenta}{\text{品红}}\,
-\color{violet}{\text{紫色}}\,
-\color{purple}{\text{深紫}}\,
-\color{blue}{\text{蓝色}}\,
-\color{teal}{\text{深青}}\,
-\color{green}{\text{绿色}}\,
-\color{cyan}{\text{青色}}\,
-\color{lime}{\text{青柠}}\,
-\color{olive}{\text{橄榄}}\,
-\color{yellow}{\text{黄色}}\,
-\color{orange}{\text{橙色}}\,
-\color{brown}{\text{棕色}}\\
-\color{#FF0000}{\texttt{#FF0000}}&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\color{black}{\text{黑色}}\, \color{gray}{\text{灰色}}\, \color{darkgray}{\text{深灰}}\, \color{lightgray}{\text{浅灰}}\, \color{white}{\text{白色}}\\ \color{pink}{\text{粉红}}\, \color{red}{\text{红色}}\, \color{magenta}{\text{品红}}\, \color{violet}{\text{紫色}}\, \color{purple}{\text{深紫}}\, \color{blue}{\text{蓝色}}\, \color{teal}{\text{深青}}\, \color{green}{\text{绿色}}\, \color{cyan}{\text{青色}}\, \color{lime}{\text{青柠}}\, \color{olive}{\text{橄榄}}\, \color{yellow}{\text{黄色}}\, \color{orange}{\text{橙色}}\, \color{brown}{\text{棕色}}\\ \color{#FF0000}{\texttt{#FF0000}}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;Update 2017/11/20: &lt;/p&gt;&lt;p&gt;背景需要用到 &lt;a href=&quot;http://docs.mathjax.org/en/latest/tex.html#bbox&quot;&gt;MathJax 的扩展&lt;/a&gt; &lt;equation&gt;\texttt{\\bbox[选项]\{公式\}}&lt;/equation&gt; ：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;\bbox[pink,2pt]{a^2} = \bbox[cyan,2pt]{b^2} + \bbox[yellow,2pt]{c^2}&lt;/code&gt;&lt;p&gt;&lt;equation&gt;\bbox[pink,2pt]{a^2} = \bbox[cyan,2pt]{b^2} + \bbox[yellow,2pt]{c^2}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Milo Yip</author>
-<guid isPermaLink="false">2017-11-19-31188118</guid>
-<pubDate>Sun, 19 Nov 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>自然而然</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/46698082">原文</a></p>
+<code lang="c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    unsigned i, j, k = 0, n = 1e8;
+    for (i = 0; i &lt; n; i++)
+        for (j = 0; j &lt; RAND_MAX; j += rand())
+            k++;
+    printf("%f\n", (double)k / n);
+}</code><p><br></p><code lang="console">$ gcc -O3 a.c &amp;&amp; ./a.out
+2.718219</code><p><a href="http://mathworld.wolfram.com/UniformSumDistribution.html">Uniform Sum Distribution</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

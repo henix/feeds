@@ -1,0 +1,11 @@
+<code lang="c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    unsigned i, j, k = 0, n = 1e8;
+    for (i = 0; i &lt; n; i++)
+        for (j = 0; j &lt; RAND_MAX; j += rand())
+            k++;
+    printf("%f\n", (double)k / n);
+}</code><p><br></p><code lang="console">$ gcc -O3 a.c &amp;&amp; ./a.out
+2.718219</code><p><a href="http://mathworld.wolfram.com/UniformSumDistribution.html">Uniform Sum Distribution</a></p>
