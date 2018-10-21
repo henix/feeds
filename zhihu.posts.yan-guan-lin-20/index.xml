@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhihu.posts.yan-guan-lin-20/</link>
 <description>Q是一条忍辱负重的路</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 16 Oct 2018 08:38:32 +0800</lastBuildDate>
+<lastBuildDate>Sun, 21 Oct 2018 10:11:49 +0800</lastBuildDate>
+<item>
+<title>闲谈：浅谈投资领域不喜欢随机过程的原因</title>
+<link>https://henix.github.io/feeds/zhihu.posts.yan-guan-lin-20/2018-10-19-47206747.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/47206747&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;因为是闲谈，所以不收入魔王专栏。&lt;/p&gt;&lt;p&gt;众所周知，随机过程（或者其低配版时间序列）在投资领域可以说是非常不受待见了。这之中除了一些认知偏差意外，还有一些原因是有些道理的.  猫虽然对这个现象表示十分无奈，但是还是凭借自己在买方实习半年的微薄经验谈一个中原因。&lt;/p&gt;&lt;p&gt;抛出一些本身带有认知偏差比如“这些参数化模型的假设都是虚假”（你tm倒是自己去选正确假设啊）和主观因素“太难，太虚假不想学”之外，机制上原因大致上有这两个：&lt;/p&gt;&lt;p&gt;1.投资领域相较于资产路径，更加关注资产终值分布&lt;/p&gt;&lt;p&gt;2.序列样本内精确拟合困难且容易有偏差&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;投资领域相较于资产路径，更加关注资产终值分布：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们经常听到交易员说的一句话就是“只要能赚钱，怎么都行”，这句话的一另一个意思是：我只关注能不能赚钱，而不关注怎么赚钱的。所以两个今天都是5快，下个月都是10块的资产，一个直线上涨一个九曲十八弯，在假设不爆仓的前提下对交易员的最终PnL是一样的。&lt;/p&gt;&lt;p&gt;可是他们在随机过程（或者其低配版时间序列）的观点下完全是两种生物，前者是一个除了时间均值以外其余项全部为零的简单过程，无论什么假设下拟合出来的东西都一样。后者你不知道他除了均值和波动率以外还有什么可怕的东西，而且不同假设拟合出来的结果都不一样。&lt;/p&gt;&lt;p&gt;以上这些对一个看这些都一样的交易员来说自然就是虚假理论，这并非毫无道理。&lt;/p&gt;&lt;p&gt;但是反过来，什么时候路径对投资领域看是有用了呢？自然是在做“路径依赖”的投资方向的时候（这是一句废话）。那么哪些具体方向是需要路径依赖的呢，猫用自己浅薄的经验列几个：&lt;/p&gt;&lt;p&gt;1.基于均值回归的投资（比如配对交易，和本身带有回归性质的资产如波动率衍生品）：&lt;/p&gt;&lt;p&gt;因为回归不仅要考虑或回归到的均值位置本身，还需要考虑回归的速率和回归时的波动率，因此路径（或者叫演化规律，dynamic）就变得比较重要&lt;/p&gt;&lt;p&gt;2.动量投资：&lt;/p&gt;&lt;p&gt;跟很多人想象的不一样，动量是一个非常依赖路径的方式，因为虽然其最终盈利本身只与均值有关，但是其盈利的实时PnL严重受波动率影响。 &lt;a class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/65c35f508b1bd677362f91e2313b5771&quot; data-hash=&quot;65c35f508b1bd677362f91e2313b5771&quot; data-hovercard=&quot;p$b$65c35f508b1bd677362f91e2313b5771&quot;&gt;@石川&lt;/a&gt; &lt;a href=&quot;https://www.zhihu.com/question/265859197/answer/421732728&quot; class=&quot;internal&quot;&gt;石川：量化择时到底有用吗？&lt;/a&gt; 引用了Roncalli的结果表示动量策略具有负vega&lt;/p&gt;&lt;p&gt;3.回报率干脆是资产dynamic本身的各种方式（主要依赖各种衍生品实现）&lt;/p&gt;&lt;p&gt;典型的有，straddle，risk-reversal， strangle和各类奇异衍生&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;序列样本内精确拟合困难且容易有偏差：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;和期权定价这种有明确拟合目标（市场期权价格）的方向不同，一般投资领域里没有一个明确的拟合目标（机器学习那些人管这个叫“损失函数”），只能在时间序列的样本内自己寻找拟合目标。这就造成了非常大的拟合上的困难：&lt;/p&gt;&lt;p&gt;1.如何把整个时间序列作为多个而不是一样本？需要做假设&lt;/p&gt;&lt;p&gt;2.两个时间戳之间能不能是iid？需要做假设&lt;/p&gt;&lt;p&gt;3.如果不能是iid，那么关于时间的分布变量应该是何种形式？ 需要做假设&lt;/p&gt;&lt;p&gt;4.找到了分布形式，用什么统计量去拟合？ 需要做假设&lt;/p&gt;&lt;p&gt;。。。。&lt;/p&gt;&lt;p&gt;可以看到每做一个假设，拟合的难度就提高一倍，而且一旦假设不小心，很容易就变成虚假的假设了。 这也不难理解为啥投资领域里那么多人青睐号称“完全没有任何假设的data based model”了。 &lt;/p&gt;&lt;p&gt;而且，时间序列的样本内拟合可以说的是一个又深又大又没人愿意碰的野鸡方向（做理论的不惜的搞这些，做实证的都去搞机器学习了），之前猫在试图做一个某个特性levy过程样本内校准时曾经遇到查了一个星期没找到相关论文的窘境。&lt;/p&gt;&lt;p&gt;但是反过来，一旦有不需要做过多假设的明确拟合的目标，时间序列的样本内的拟合就能派上用查。比如快速查看波动率”形状“这种需求，一般最虚假的Garch都能满足的很好。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;总之随机过程（或者其低配版时间序列）在投资领域实现起来总是有这样或那样的局限性，但是不代表他们是毫无用处的虚假模型，只是使用的时候需要格外小心&lt;/p&gt;&lt;p&gt;希望喜爱用”深度学习预测价格“的从业者们对自己喜爱的模型也有这样批判的态度，这样这个时代就能少诞生些想黑猫这样的极端反对者，黑猫期待你们的反思。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>黑猫Q形态</author>
+<guid isPermaLink="false">2018-10-19-47206747</guid>
+<pubDate>Fri, 19 Oct 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>再闲谈波动率2——波动曲面参数化</title>
 <link>https://henix.github.io/feeds/zhihu.posts.yan-guan-lin-20/2018-10-13-37509695.html</link>
@@ -86,15 +95,6 @@
 <author>黑猫Q形态</author>
 <guid isPermaLink="false">2018-02-27-34049043</guid>
 <pubDate>Tue, 27 Feb 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>地图炮</title>
-<link>https://henix.github.io/feeds/zhihu.posts.yan-guan-lin-20/2018-01-25-33269776.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/33269776&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;&quot;&gt;&lt;/div&gt;猫这么多年跟很多人撕过很多关于为什么“鄙视用机♂器♂学♂习做预♂测” 。为了避免以后跟人猿多费口舌，今天把思想浓缩了一下，画了这张图&lt;br&gt;&lt;br&gt;&lt;figure&gt;&lt;noscript&gt;&lt;img data-rawheight=&quot;1920&quot; src=&quot;https://pic1.zhimg.com/v2-680af2ee63ee1beaf6ac3df857734ed1_b.jpg&quot; data-rawwidth=&quot;1080&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-680af2ee63ee1beaf6ac3df857734ed1_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img data-rawheight=&quot;1920&quot; src=&quot;https://pic1.zhimg.com/v2-680af2ee63ee1beaf6ac3df857734ed1_b.jpg&quot; data-rawwidth=&quot;1080&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-680af2ee63ee1beaf6ac3df857734ed1_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-680af2ee63ee1beaf6ac3df857734ed1_b.jpg&quot;&gt;&lt;/figure&gt;&lt;br&gt;&lt;br&gt;这张图能解释90%猫的论点，看的懂的真诚欢迎友好讨论&lt;br&gt;&lt;br&gt;看不懂这张图的人可以肯定大置信度缺乏最基本的金融和统计素养。没有进一步讨论的必要</description>
-<author>黑猫Q形态</author>
-<guid isPermaLink="false">2018-01-25-33269776</guid>
-<pubDate>Thu, 25 Jan 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
