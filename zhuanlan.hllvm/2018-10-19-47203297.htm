@@ -1,0 +1,59 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_r.jpg" alt=""></div><blockquote><b>你现在所阅读的并不是第一篇文章，你可能想看<a href="https://zhuanlan.zhihu.com/p/25959684">目录和前言</a>。</b></blockquote><p>这个标题有点大。当然我根本就没打算要跟你们介绍C++的类型系统是怎么一回事，我只想简单介绍一下如何来用数据结构表达C++的类型系统，让计算进行地更高效。不过在这里先说一点题外话。我们都知道，int[1][2][3]是一个数组。C#的数组是没有尺寸的，所以它只能表达成int[][][]或者int[,,]。那么如果我们给C#的数组加上尺寸，那C++的int[1][2][3]在C#里面应该怎么写呢？</p><p>答案很简单：要么写成int[1,2,3]，要么写成int[3][2][1]。至于为什么，你们可以在拉尿的时候花10秒钟思考一下，没想出来的都不及格，赶紧改行（逃</p><p>本来我想写《<b>考不上三本也能懂系列——处理声明（二）</b>》的，但是我发现在模板还没做出来之前，剩下的内容太少了，写不成一篇文章，所以以后再写。</p><p>今天要讲的内容其实都在<a href="https://github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/TypeSystem.h">这里</a>。C++的程序从头跑到尾需要识别很多类型，我们需要用数据结构来表达他们。显而易见地，类型是一棵树。为了让编译的时间缩短，我们在创建、销毁、比较类型的时候，都要尽可能快。于是今天我介绍一种简单的做法。</p><p>在这里假设我们只有int、指针和数组三种类型。我的编译器会忽略数组的尺寸，因为为了code index搞constexpr的展开实在是划不来，干脆不做了，int[1]和int[2]我都看成是同一个类型。</p><p>为了让编程更愉快，我们定制接口的时候要遵循一种实用的态度，也就是这个接口使用起来必须容易，而且我们还不能为了容易使用而扭曲设计。因此最后我选择了下面的一种做法：</p><code lang="cpp">enum class TypeEnum
+{
+    Int,
+    Pointer,
+    Array,
+};
+
+struct IType
+{
+    virtual TypeEnum GetType() = 0;
+    virtual IType* GetElement() = 0; // Pointer和Array有用，Int调用它直接崩溃
+    virtual IType* PointerOf() = 0; // 创建这个类型的指针类型，下同
+    virtual IType* ArrayOf() = 0;
+};
+
+struct ITypeSystem
+{
+    static shared_ptr&lt;ITypeSystem&gt; Create();
+    virtual GetInt() = 0;
+};</code><p>使用的时候很简单。加入我们需要表达int*(*)[]，这是一个int的指针的数组的指针，我们只需要这么做：</p><code lang="cpp">IType* GetComplexType(shared_ptr&lt;ITypeSystem&gt; tsys)
+{
+    return tsys-&gt;GetInt()-&gt;PointerOf()-&gt;ArrayOf()-&gt;PointerOf();
+}
+
+// Assert(GetComplexType(fuck) == GetComplexType(fuck));
+// Assert(GetComplexType(fuck)-&gt;GetElement()-&gt;GetElement() == fuck-&gt;GetInt()-&gt;PointerOf());</code><p>在这里shared_ptr&lt;ITypeSystem&gt;是一个共享的对象，调用这个函数就可以得到int*(*)[]的数据结构的表达。为了满足上面所说的要求，调用两次GetComplexType必须返回的是同一个指针，因此比较两个类型是否相等就超级容易了，直接比较指针就好了，快的一笔。而且这还特别节省内存。那到底要怎么实现呢？其实非常简单，我们在每个类型里面都缓存下来它的指针和数组的类型就好了：</p><code lang="cpp">struct Base : IType
+{
+    IType* pointerOf = nullptr;
+    IType* arrayOf = nullptr;
+
+    IType* PointerOf() override
+    {
+        if (!pointerOf)
+        {
+            pointerOf = MakeType&lt;Pointer&gt;(this);
+        }
+        return pointerOf;
+    }
+
+    // ArrayOf 同上
+};
+
+struct Int : Base
+{
+    TypeEnum GetType()override { return TypeEnum::Int; }
+    IType* GetElement()override { throw "Fuck!"; }
+};
+
+struct Pointer : Base
+{
+    TypeEnum GetType()override { return TypeEnum::Pointer; }
+    IType* GetElement()override { return element; } // MakeType&lt;Pointer&gt;(传进来的)
+};
+
+struct Array : Base
+{
+    TypeEnum GetType()override { return TypeEnum::Array ; }
+    IType* GetElement()override { return element; }
+};</code><p>MakeType函数，就是跟ITypeSystem的实现要求从内存池里面构造一个那样的对象出来。剩下来的事情就很简单了。类型创建之后是不用释放的，编译器跑完了之后只要把ITypeSystem一删，全部东西都灰飞烟灭，内存绝对不可能泄露。这个事情做起来就很方便了。我们有Int、Pointer和Array三个类型，分别制作三个链表，每个链表有譬如说1024个节点。一开始只是一段内存，然后你就可以在需要的时候placement new一个出来，然后顺手counter++。如果满了就弄下一个节点接着来。释放的时候很容易，每个节点调用够placement delete之后直接干掉。这也是STL实现vector等容器的原理，是每一个C++程序员都应该熟练掌握的技巧。这部分的代码在<a href="https://github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/TypeSystem.cpp#L331">这里</a>。</p><p>今天的内容比较简单。接下来还有一些有趣的内容，譬如说如何确保我们的编译器在做一些类型运算的结果（譬如说a+b）的时候，跟VC++保持完全一致，并且test case写出来还要严格遵守Don't Repeat Yourself的原则。还有譬如说，定义二元运算表达式的语法都是左递归的，我们要怎样才能把这么多的左递归全部做在一个循环里。还有很多其他的细节都是很有意思的，接下来会给大家一一介绍。</p>
