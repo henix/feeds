@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>研报复现初探—华泰金工人工智能选股系列之随机森林模型</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/42032424">原文</a></p>
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-4962211b0c258920a1a387d14ae7732e_r.jpg" alt=""></div><p>1.数据采集 <br>选择了2018年6月的中证500成分股作为股票池（考虑到初次复现，故简化考虑，与原文不同。故本文所有策略仍存在未来信息，但考虑到这部分未来信息对于模型训练影响应该不大，故暂时忽略不考虑，后续会进行完善。）</p><p>共采集了计算56个因子所需的数据（研报中共69个因子，有部分因子由于计算极其困难故略去）。</p><p>2.数据处理 <br>2.1 数据对齐 <br>由于wind数据库的财务报表类（1季报，中报，3季报，年报）的数据都是更新在季度末的最后一个自然日，而实际的财报披露日通常为4月（1季报） 7-8月（中报） 10月（3季报） 次年2-3月（年报） 。<br>部分的TTM数据都是按照报表公布时间更新的，其余的大部分财报数据需要根据财报披露日对基础数据进行时间的调整（避免未来信息），将季度末的数据更新至财报公布日所在的月末。 <br>2.2因子的计算 <br>华泰研报共计算了69个因子，包括估值、成长、财务质量、杠杆、市值、动量反转、波动率、股价、beta、换手率、情绪、股东、技术指标等各大类因子（这些因子已经在华泰多因子系列研报中被证明是有效的因子）。本文策略省略部分因子。<br>2.3因子的预处理 <br>研报中在特种预处理 b）中对于确实的因子值使用中信一级行业均值代替，本文也简化处理为直接删除存在缺失值的样本。 <br></p><p>3.模型训练和模型评价 <br>3.1样本内训练集和交叉验证 <br>研报中选取了72个月的数据进行了10折交叉验证调参。</p><p>调参的模型训练结果在accuracy、precision和recall上较研报中都略差。</p><p>3.2样本外训练 <br>研报中选择的是年度的推进分析即用5年内的样本训练模型，测试集为下一年的观测值。个人认为这样的训练集时间周期过长，在面对市场风格转换时会有较大的滞后性，因此本文缩短了滚动训练集的长度和更新模型的时间。</p><p>4.回测 <br>利用推进训练的模型对测试集进行预测，每月选择模型对win投票率最高的若干只股票等权配置，月初调仓。 <br></p><img src="https://pic3.zhimg.com/v2-e459f022f1400700452fe6089f543b8c_r.jpg" data-caption="" data-size="normal" data-rawwidth="1920" data-rawheight="1080" data-watermark="watermark" data-original-src="v2-e459f022f1400700452fe6089f543b8c" data-watermark-src="v2-e9ff171a36e1d3d49d9c27e927d5e30f" data-private-watermark-src=""><img src="https://pic2.zhimg.com/v2-0c467792180b49c99d74c48c607e6954_r.jpg" data-caption="" data-size="normal" data-rawwidth="1920" data-rawheight="1080" data-watermark="watermark" data-original-src="v2-0c467792180b49c99d74c48c607e6954" data-watermark-src="v2-aca3b7cd8f660764263ed32559735f62" data-private-watermark-src=""><img src="https://pic1.zhimg.com/v2-c7d9674559724ac1f96eefafd6a0f115_r.jpg" data-caption="" data-size="normal" data-rawwidth="1920" data-rawheight="1080" data-watermark="watermark" data-original-src="v2-c7d9674559724ac1f96eefafd6a0f115" data-watermark-src="v2-5e812298135e753449406d3ff74b82eb" data-private-watermark-src=""><img src="https://pic1.zhimg.com/v2-07818fcc75cdca79e74f5eeb4a0dedfa_r.jpg" data-caption="" data-size="normal" data-rawwidth="1920" data-rawheight="1080" data-watermark="watermark" data-original-src="v2-07818fcc75cdca79e74f5eeb4a0dedfa" data-watermark-src="v2-cfaf82bfdded53f8b03a62ac1abb2aab" data-private-watermark-src=""><p>5.总结 <br>5.1问题 <br>目前仍存在的问题有： <br>1.研报选取全A作为股票池进行模型的训练，本文使用的是现期的中证500成分股（存在未来信息） <br>2.未考虑月初开盘涨停跌停不能买入卖出的情况。（由于回测的代码写的比较简单，这个后续会完善。）</p><p>5.2收获与总结 <br>本次研报的复现工作的全过程皆有本人个人在两周内完成，中途遇到了很多困难，也犯了一些比较低级且严重的错误。 <br>数据的对齐工作可谓极其繁琐，虽然使用代码完成的，但也耗费了相当的脑力和时间。在给样本打标签时我也犯了一些低级的错误，标签应该为截面时间的下月超额收益率，我在第一次的训练时把标签打成了当月的超额收益率。所以在训练模型时，发现准确率高达90%多，但回测结果很差，反复检查后才发现错误进行了改正。</p><p>在复现过程中越发觉得R语言在应用中存在很大的局限性，python的随机森林包可调参数非常多，而R中只有mrty可调。不过考虑到机器学习的特征才是决定模型的上限，调参只不过是让模型表现接近上限，也就暂且等到本次复现完善之后再来考虑转换编程语言的问题了。</p><p><br></p><p>6.致谢</p><p>复现的过程中遇到了各种各样的困难，感谢过程当中给予我无私帮助和细致指导的同学和同事们。</p><p><br></p><p><br></p><p>如有错误纰漏 请各位大佬斧正！</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
