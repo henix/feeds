@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Live : HTML5 ServiceWorker安全探索</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/47847424">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-3f7773f4a083acccd6afd43805c542dd_r.jpg" alt=""></div><p><b>关于serviceworker：</b><br></p><p>ServiceWorker的出现，为前端开发提供了更多的技术支持，使 Web APP 具有Native APP的离线使用、消息推送、默认更新等功能，并给前端安全增添了不少新玩法。</p><p>- HTTPS Only</p><p>- Events：fetch,sync,push</p><p>- 浏览器支持程度局限性</p><p>- 运行在浏览器后台的独立线程的脚本</p><p>- 可拦截及处理网络请求</p><p>- 不能直接参与Web交互，比如：DOM操作</p><p>- 推送通知、后台同步</p><p>作为一段独立于页面运行在浏览器后端的脚本。使用Service Worker来进行缓存，可以用javascript代码来拦截浏览器的请求，设置缓存文件，不经服务器直接返回。SW工作原理基于注册、安装、激活等步骤，我们需要了解它的生命周期以至于帮助我们学会在各个生命周期阶段进行有目的的回调。</p><p>从安全角度来看不难想到可能带来的一些问题，如：基于 SW的XSS+JSONP 相当于持久化XSS、DDos、流量盗用、基于SW构造僵尸网络结合CSRF扩大影响范围、新型Flash攻击、SW缓存劫持。</p><p>对于防御基于SW的XSS可采取 CSP、域内不存在XSS及用户可控的JS文件、JSONP接口应只允许特定字符or白名单。</p><p><b>Live 内容预告：</b></p><ul><li>功能简介</li><li>ServiceWorker 的出现原因</li><li>ServiceWorker 结构和特点</li><li>安全利用</li><li>水坑攻击</li><li>延长网页生命期</li><li>一些黑科技</li><li>流量盗用</li><li>防御探讨</li></ul><p><b>Live 主讲人：</b></p><p><b>EtherDream：</b></p><p> 阿里巴巴安全工程师，从事 Web 安全相关的研发。专注浏览器前端技术，爱好网络安全，以及探索各种黑科技。相比于攻击，在安全防御方面有着更大的兴趣，研发过多种基于 Web 前端的防御系统。本次分享在讲解攻击的同时，也会讲解一些新理念的防御思路。</p><p><b>开讲时间：</b></p><p>2018/11/03 晚上 8 点</p><p><b>报名方式：</b></p><p><a href="https://jinshuju.net/f/qqH48u">Live 报名表</a></p><p></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
