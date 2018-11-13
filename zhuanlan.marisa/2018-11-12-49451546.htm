@@ -1,0 +1,341 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-37fb5c99681f9c8f08d017ab823a0f5d_r.jpg" alt=""></div><blockquote>之前和几个 py 在做一个的 Python 编译器的前端项目 —— <a href="https://github.com/Xython/YAPyPy">XPython/YAPyPy</a>（目前还在施工之中，但是 codegen 都做好了，上次跑了一个 sklearn 的测试脚本也都能跑通了），在做的期间了解了很多和 py、cpy 相关实现方式的知识。感觉 CPython 作为一个大型 C 项目结构和功能还是非常清晰的，所以说打算索性就把 CPython 的代码都看一遍好了。<br><br>相关的资料中 《Python源码剖析》据说不错，但是书中的 py 版本有点老，不过读者也可以互为参考。还有就是这个系列里面的文字基本都是看的时候随手写的，可能写的也不像是系统的分析更像是阅读笔记，诸位聊为一笑。</blockquote><h2>C-Level PyObject</h2><h2>PyObject_*</h2><p>阅读 CPython 的源码可以先从 Python 其中相较重要的对象机制上进行分析，首先从 <code class="inline">Include</code> 部分的源码进行看起，其中 PyObject 的对象的 c-level 层的定义都在这个文件夹之中，先从 <code class="inline">object.h</code> 的源代码进行分析：</p><code lang="text">/* Nothing is actually declared to be a PyObject, but every pointer to
+ * a Python object can be cast to a PyObject*.  This is inheritance built
+ * by hand.  Similarly every pointer to a variable-size Python object can,
+ * in addition, be cast to PyVarObject*.
+ */
+typedef struct _object {
+    _PyObject_HEAD_EXTRA
+    Py_ssize_t ob_refcnt;
+    struct _typeobject *ob_type;
+} PyObject;
+​
+typedef struct {
+    PyObject ob_base;
+    Py_ssize_t ob_size; /* Number of items in variable part */
+} PyVarObject;</code><p>先来看上述的两个结构体的定义，CPython 在 C 源码之中实现了一套多态系统，PyObject 不存储 Py 对象之中的实际的数据，但是所有的 Object 在 C-Level 都能被转换为一个 PyObject。从这个结构体中可以看出其中主要包含两个 <code class="inline">field</code> ，<code class="inline">ob_refcnt</code> 保存着对象的引用计数，<code class="inline">ob_type</code>  存储着 PyObject 的类型对象，类型对象之中提供了更多的信息。</p><p>其中还包含一个 Marco <code class="inline">_PyObject_HEAD_EXTRA</code> 这个宏主要是在 Debug 模式会被用到，其中将所有 heap 中对象都连接到了一个链上，用于调试方便：</p><code lang="text">#define _PyObject_HEAD_EXTRA            \
+    struct _object *_ob_next;           \
+    struct _object *_ob_prev;
+​
+#define _PyObject_EXTRA_INIT 0, 0,</code><p>而在正常运行的模式之下，这两个宏全都是空的。除了 PyObject 之外，PyVarObject 代表了一类 Py 之中的变长对象的实现方式，其中除了包含一个 PyObject 作为 header 之外还包含了一个 ob_size 代表实际的存储空间大小。通过同样的 Header 能够让所有的 PyObject 的子类型有相似的内存布局，在获取一些公有的参数能获取很多便利，并且在 cast 的时候也很方便。</p><p>在看过这些类型的基类（说基类并不严谨，或者说泛化对象？）的实现之后，可以来看 py 支持的具体类型的实现方式了，2.x 和 3.x 在这方面有一部分区别，2.x 之中包含独立的 <code class="inline">intobject.h</code> 实现，在 3.x 之中全部是用来 <code class="inline">longobject.h</code> 来实现了。具体 integer 的数据范围则是由 sys.maxsize 来控制的。这里可以看 <code class="inline">longintrepr.h</code> 的具体实现：</p><code lang="text">/* Long integer representation.
+   The absolute value of a number is equal to
+        SUM(for i=0 through abs(ob_size)-1) ob_digit[i] * 2**(SHIFT*i)
+   Negative numbers are represented with ob_size &lt; 0;
+   zero is represented by ob_size == 0.
+   In a normalized number, ob_digit[abs(ob_size)-1] (the most significant
+   digit) is never zero.  Also, in all cases, for all valid i,
+        0 &lt;= ob_digit[i] &lt;= MASK.
+   The allocation function takes care of allocating extra memory
+   so that ob_digit[0] ... ob_digit[abs(ob_size)-1] are actually available.
+​
+   CAUTION:  Generic code manipulating subtypes of PyVarObject has to
+   aware that ints abuse  ob_size's sign bit.
+*/
+struct _longobject {
+    PyObject_VAR_HEAD
+    digit ob_digit[1];
+};</code><p>longobject 使用了 ob_digit[] 作为实际的数据的数组，用 ob_size 来表示数据的正负关系，这个实现得非常简单其中还包含一个 PyObject_VAR_HEAD 的宏，其实就是一个 PyVarObject 来作为 header 。<code class="inline">longobject.h</code> 和 <code class="inline">longinterpr.h</code> 的很多方法都是通过宏包装的，这样可以直接通过很多对 PyObject 的方法来提供子类型的分析。</p><blockquote>这里要感叹一下自己写大型 C 代码项目的功力之浅。一直没什么机会编写大型的 C 项目，看着 CPython 构建的类型系统和 redis 构建的很多精巧的数据结构有种望洋兴叹的构建。</blockquote><p>可以再来分析一个简单的 bool 实现在 <code class="inline">boolobject.h</code> 之中：</p><code lang="text">PyAPI_DATA(PyTypeObject) PyBool_Type;
+​
+#define PyBool_Check(x) (Py_TYPE(x) == &amp;PyBool_Type)
+​
+/* Py_False and Py_True are the only two bools in existence.
+Don't forget to apply Py_INCREF() when returning either!!! */
+​
+/* Don't use these directly */
+PyAPI_DATA(struct _longobject) _Py_FalseStruct, _Py_TrueStruct;
+​
+/* Use these macros */
+#define Py_False ((PyObject *) &amp;_Py_FalseStruct)
+#define Py_True ((PyObject *) &amp;_Py_TrueStruct)
+/* Macros for returning Py_True or Py_False, respectively */
+#define Py_RETURN_TRUE return Py_INCREF(Py_True), Py_True
+#define Py_RETURN_FALSE return Py_INCREF(Py_False), Py_False</code><p>这里直接使用了两个 longobject 来代表 True of False，每次返回的对象之前都要增加引用计数。</p><h2>PyTypeObject 类型对象</h2><p>在 Python 的 Doc 之中的 C-api 部分提到了其中的 api 有两种层次的支持：</p><ul><li>Abstract Objects Layer</li><ul><li><a href="https://docs.python.org/2/c-api/object.html">Object Protocol</a></li><li><a href="https://docs.python.org/2/c-api/number.html">Number Protocol</a></li><li><a href="https://docs.python.org/2/c-api/sequence.html">Sequence Protocol</a></li><li><a href="https://docs.python.org/2/c-api/mapping.html">Mapping Protocol</a></li><li><a href="https://docs.python.org/2/c-api/iter.html">Iterator Protocol</a></li><li><a href="https://docs.python.org/2/c-api/objbuffer.html">Old Buffer Protocol</a></li></ul></ul><p><br></p><ul><li>Concrete Objects Layer</li><ul><li><a href="https://docs.python.org/2/c-api/concrete.html#fundamental-objects">Fundamental Objects</a></li><li><a href="https://docs.python.org/2/c-api/concrete.html#numeric-objects">Numeric Objects</a></li><li><a href="https://docs.python.org/2/c-api/concrete.html#sequence-objects">Sequence Objects</a></li><li><a href="https://docs.python.org/2/c-api/concrete.html#mapping-objects">Mapping Objects</a></li><li><a href="https://docs.python.org/2/c-api/concrete.html#other-objects">Other Objects</a></li></ul></ul><p><br></p><p>可以看出 AOL 支持的层次是可以对某种具体特性的接口提供了一套 API ，具有这种特性的 Object 都口以使用这类方法。而 Concrete Objects Layer 所提供的方法就会更为细化，会细化到某个具体的内建类型上，要先 check type  才能使用。</p><p>而这些 PyObject 类型的实现都依赖于结构体中的 <code class="inline">_typeobject</code> PyTypeObject 对象的实现，在 <code class="inline">object.h</code> 下可以看到这样的定义：</p><code lang="text">#ifdef Py_LIMITED_API
+typedef struct _typeobject PyTypeObject; /* opaque */
+#else
+typedef struct _typeobject {
+    PyObject_VAR_HEAD
+    const char *tp_name; /* For printing, in format "&lt;module&gt;.&lt;name&gt;" */
+    Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */
+​
+    /* Methods to implement standard operations */
+​
+    destructor tp_dealloc;
+    printfunc tp_print;
+    getattrfunc tp_getattr;
+    setattrfunc tp_setattr;
+    ...</code><p>这里节选了部分的代码，可以看到其实 PyTypeObject 本身也是一个 PyVarObject 对象。其中 <code class="inline">tp_name</code> 保存 format 格式的定义，<code class="inline">tp_basicsize, tp_itemsize</code> 记录这个对象应该要使用多少的内存空间，在 <code class="inline">tp_new</code> 的流程之中会被用到，而下面的这几个函数指针则为 PyObject 提供了一些标准操作符的支持。值得留意的方法还有下面这些：</p><code lang="text">    /* Method suites for standard classes */
+    PyNumberMethods *tp_as_number;
+    PySequenceMethods *tp_as_sequence;
+    PyMappingMethods *tp_as_mapping;
+    ...
+    initproc tp_init;
+    allocfunc tp_alloc;
+    newfunc tp_new;
+    ...</code><p>这其中的 init alloc new 方法都和 PyObject 实际的创建有关系，而上面的 tp_as_number，<code class="inline">tp_as_squence</code>, <code class="inline">tp_as_mapping</code> 则代表了三种主要的方法族，这三个主要的方法族提供了一系列的方法，能够让一个 object 支持作为一个数字、序列和字典的功能。PyTypeObject 的基本实现对象都在 <code class="inline">typeobject.h</code> 文件之中：</p><code lang="text">PyTypeObject PyType_Type = {
+    PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
+    "type",                                     /* tp_name */
+    sizeof(PyHeapTypeObject),                   /* tp_basicsize */
+    sizeof(PyMemberDef),                        /* tp_itemsize */
+    (destructor)type_dealloc,                   /* tp_dealloc */
+    0,                                          /* tp_print */
+    0,                                          /* tp_getattr */
+    0,                                          /* tp_setattr */
+    0,                                          /* tp_reserved */
+    ...
+}
+​
+...
+​
+PyTypeObject PyBaseObject_Type = {
+    PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
+    "object",                                   /* tp_name */
+    sizeof(PyObject),                           /* tp_basicsize */
+    0,                                          /* tp_itemsize */
+    object_dealloc,                             /* tp_dealloc */
+    0,                                          /* tp_print */
+    0,                                          /* tp_getattr */
+    0,                                          /* tp_setattr */
+    0,                                          /* tp_reserved */
+    object_repr,                                /* tp_repr */
+    0,                                          /* tp_as_number */
+    0,                                          /* tp_as_sequence */
+    0,              
+    ...
+}</code><p>这里还是可以看到两个这样的定义，其中一个是 <code class="inline">PyType_Type</code> 另一个是 <code class="inline">PyBaseObject_Type</code> 仔细观察两者传入的第一个参数，可以看到两者都传入了 PyType_Type 作为 Header，其实这两者的关系比较类似 PyObject 和 PyVarObject 之间的关系。一个是作为 Header 的基类实现，另一个再次之上构建了一套对构建对象的实现。PyType_Type 本身就像 PyObject 一样作为了一层的 Header 来标识了此 PyObject 对象为一个类型对象。</p><p>在据此我们可以来看一下子类型的实现，在 <code class="inline">bool_object.c</code> 的文件之中包含 bool 类型的类型信息：</p><code lang="text">/* The type object for bool.  Note that this cannot be subclassed! */
+PyTypeObject PyBool_Type = {
+    PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
+    "bool",
+    sizeof(struct _longobject),
+    ...
+    bool_repr,                                  /* tp_repr */
+    &amp;bool_as_number,                            /* tp_as_number */
+    0,                                          /* tp_as_sequence */
+    0,                                          /* tp_as_mapping */
+    bool_repr,                                  /* tp_str */
+    Py_TPFLAGS_DEFAULT,                         /* tp_flags */
+    bool_doc,                                   /* tp_doc */
+    ...
+    &amp;PyLong_Type,                               /* tp_base */
+    ...
+    bool_new,                                   /* tp_new */
+};</code><p>可以看出具体的初始化 bool 类型的函数指针、bool 类型的标识字串，通过的 as_number 函数指针都在这种子类型之中进行了提供。</p><p>这里注意到很多 c 代码的之中都有类似如下的注释开头：</p><code lang="text">/*[clinic input]
+class bytearray "PyByteArrayObject *" "&amp;PyByteArray_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=5535b77c37a119e0]*/
+​
+char _PyByteArray_empty_string[] = "";</code><p>这里去了解了一下，这是一个叫 Clinic 的 DSL 语言工具，写在 C 的注释里用来生成和管理 C 与 Python 的接口函数的类型、签名、文档等信息。</p><blockquote>Clinic 的相关信息：</blockquote><ul><li><a href="https://docs.python.org/3/howto/clinic.html#argument-clinic-how-to">Argument Clinic How-To</a></li><li><a href="https://www.python.org/dev/peps/pep-0436/#abstract">PEP 436 -- The Argument Clinic DSL</a></li></ul><h2>PyLongObject</h2><p>实际到某种 PyObject 的具体实现方式之中还都有一些独特的优化手段。老版本有单独的 PyIntObject 的时候，是有独立的小整数缓存池和大整数链共享内存的，不过 3.x 把 int 归到了 PyLongObject 之中大整数的共享内存机制似乎已经被删除掉了，这里还能看得到小整数对象的共享逻辑：</p><code lang="text">#define NSMALLPOSINTS           257
+#endif
+#ifndef NSMALLNEGINTS
+#define NSMALLNEGINTS           5
+#endif
+​
+_Py_IDENTIFIER(little);
+_Py_IDENTIFIER(big);
+​
+/* convert a PyLong of size 1, 0 or -1 to an sdigit */
+#define MEDIUM_VALUE(x) (assert(-1 &lt;= Py_SIZE(x) &amp;&amp; Py_SIZE(x) &lt;= 1),   \
+         Py_SIZE(x) &lt; 0 ? -(sdigit)(x)-&gt;ob_digit[0] :   \
+             (Py_SIZE(x) == 0 ? (sdigit)0 :                             \
+              (sdigit)(x)-&gt;ob_digit[0]))
+​
+PyObject *_PyLong_Zero = NULL;
+PyObject *_PyLong_One = NULL;
+​
+#if NSMALLNEGINTS + NSMALLPOSINTS &gt; 0
+/* Small integers are preallocated in this array so that they
+   can be shared.
+   The integers that are preallocated are those in the range
+   -NSMALLNEGINTS (inclusive) to NSMALLPOSINTS (not inclusive).
+*/
+static PyLongObject small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
+#ifdef COUNT_ALLOCS
+Py_ssize_t _Py_quick_int_allocs, _Py_quick_neg_int_allocs;
+#endif
+​
+static PyObject *
+get_small_int(sdigit ival)
+{
+    PyObject *v;
+    assert(-NSMALLNEGINTS &lt;= ival &amp;&amp; ival &lt; NSMALLPOSINTS);
+    v = (PyObject *)&amp;small_ints[ival + NSMALLNEGINTS];
+    Py_INCREF(v);
+#ifdef COUNT_ALLOCS
+    if (ival &gt;= 0)
+        _Py_quick_int_allocs++;
+    else
+        _Py_quick_neg_int_allocs++;
+#endif
+    return v;</code><p>默认保存了 -5 ~ 257 之中的小整数，在模块 init 的时候初始化整个整数池，当数据范围在这个范围之内的时候就直接使用缓存池中的 PyObject 并增加引用计数就好了。大部分这种 PyObject 的内建类型都提供了多重方法去创建一个 obj，比如 PyLongObject 就包括 FromLong、FromString 等几种创建方法。还有就是 Long （包含 Int）类型的 PyObject 本质上是一种不可变的对象，可以注意到其他的加减乘除的方法返回的都是一个新的对象而不是之前的对象。</p><h2>PyBytesObject、PyUnicodeObject</h2><p>接着可以来分析 <code class="inline">PyStringObject</code> 的具体实现方式，在 <code class="inline">bytesobject.h</code> 文件之中：</p><code lang="text">/*
+Type PyBytesObject represents a character string.  An extra zero byte is
+reserved at the end to ensure it is zero-terminated, but a size is
+present so strings with null bytes in them can be represented.  This
+is an immutable object type.
+​
+There are functions to create new string objects, to test
+an object for string-ness, and to get the
+string value.  The latter function returns a null pointer
+if the object is not of the proper type.
+There is a variant that takes an explicit size as well as a
+variant that assumes a zero-terminated string.  Note that none of the
+functions should be applied to nil objects.
+*/
+​
+/* Caching the hash (ob_shash) saves recalculation of a string's hash value.
+   This significantly speeds up dict lookups. */
+​
+#ifndef Py_LIMITED_API
+typedef struct {
+    PyObject_VAR_HEAD
+    Py_hash_t ob_shash;
+    char ob_sval[1];
+​
+    /* Invariants:
+     *     ob_sval contains space for 'ob_size+1' elements.
+     *     ob_sval[ob_size] == 0.
+     *     ob_shash is the hash of the string or -1 if not computed yet.
+     */
+} PyBytesObject;
+#endif</code><p>在 3.x 之后取消了 <code class="inline">stringobject.h</code> 一系列相关的 api 和接口，重新修改了 bytes 和 str 的实现，其中 3.x 之中的 bytes 仅保存字符编码，而 str 则承担了之前 unicode 类型的功能。这里的 PyBytesObject 就对应之前的 PyStringObject 的实现。这个结构看起来非常的熟悉了，包含一个 PyObject 的 header ，其中主要存储字符串的位置是 <code class="inline">ob_sval</code> ，另外还包含一个 <code class="inline">ob_shash</code> 来存储 String 的 hash 信息。另外就正如之前介绍 PyVarObject 的结构之中的 <code class="inline">ob_size</code> 之中存储了字符串的所占空间。</p><blockquote>基本上在大型的 C 项目里要是想要使用动态的 string ，都要自己搞一套这样的实现。之前看 redis 的代码实现之中也包含这样的实现。否则不用 chars 来存储的话仍会受限于 c-style string 的 "\0" 的限制。</blockquote><p>这里来看一下 PyString 创建的一些逻辑，挑一个最简单的：</p><code lang="text">PyObject *
+PyBytes_FromString(const char *str) // 接受一个 c style 的字符串指针
+{
+    size_t size;
+    PyBytesObject *op;
+    assert(str != NULL);
+    size = strlen(str);
+    if (size &gt; PY_SSIZE_T_MAX - PyBytesObject_SIZE) {
+        PyErr_SetString(PyExc_OverflowError,
+            "byte string is too long");
+        return NULL;
+    }
+    if (size == 0 &amp;&amp; (op = nullstring) != NULL) {
+#ifdef COUNT_ALLOCS
+        _Py_null_strings++; // 增加引用计数
+#endif
+        Py_INCREF(op);
+        return (PyObject *)op; // null 的 PyBytesObject 的返回结果
+    }
+    if (size == 1 &amp;&amp; (op = characters[*str &amp; UCHAR_MAX]) != NULL) {
+#ifdef COUNT_ALLOCS
+        _Py_one_strings++;
+#endif
+        Py_INCREF(op);
+        return (PyObject *)op; // 
+    }
+    // 创建 PyBytesObject 对象 申请空间、增加引用计数。
+    /* Inline PyObject_NewVar */
+    op = (PyBytesObject *)PyObject_MALLOC(PyBytesObject_SIZE + size);
+    if (op == NULL)
+        return PyErr_NoMemory();
+    (void)PyObject_INIT_VAR((PyVarObject *)op, &amp;PyBytes_Type, size);
+    op-&gt;ob_shash = -1;
+    memcpy(op-&gt;ob_sval, str, size+1);
+    /* share short strings */
+    if (size == 0) {
+        nullstring = op;
+        Py_INCREF(op);
+    } else if (size == 1) {
+        characters[*str &amp; UCHAR_MAX] = op;
+        Py_INCREF(op);
+    }
+    return (PyObject *) op;
+}</code><p>PyBytesObject 之中也同样包括共享池的优化手段，这就是之前在生成对象时判断 size 0、1 的关系：</p><code lang="text">static PyBytesObject *characters[UCHAR_MAX + 1]; // 单字符的缓存池
+static PyBytesObject *nullstring;  // 空字串对象</code><p>在 <a href="https://www.python.org/dev/peps/pep-0393/#rationale">pep-393</a> 之后 <code class="inline">str</code> 接管了之前的 <code class="inline">unicode</code> 的相关内容，并且更新为了一种层级关系：</p><code lang="text">typedef struct {
+  PyObject_HEAD
+  Py_ssize_t length;
+  Py_hash_t hash;
+  struct {
+      unsigned int interned:2;
+      unsigned int kind:2;
+      unsigned int compact:1;
+      unsigned int ascii:1;
+      unsigned int ready:1;
+  } state;
+  wchar_t *wstr;
+} PyASCIIObject;
+​
+typedef struct {
+  PyASCIIObject _base;
+  Py_ssize_t utf8_length;
+  char *utf8;
+  Py_ssize_t wstr_length;
+} PyCompactUnicodeObject;
+​
+typedef struct {
+  PyCompactUnicodeObject _base;
+  union {
+      void *any;
+      Py_UCS1 *latin1;
+      Py_UCS2 *ucs2;
+      Py_UCS4 *ucs4;
+  } data;
+} PyUnicodeObject;</code><p>这种层级关系在我们使用不同范围的初始化字段的时候会被初始化。而之前 str 相关的有优化手段也在 unicode 之中实现了：</p><code lang="text">static PyObject *unicode_latin1[256] = {NULL};</code><p>看到了熟悉的东西在 str 这部分之中也包含一个字符池，在一定数据范围的字符都会进行复用。除此之外 str 还包含另一种 intern 的复用逻辑，其中包含了一个 internal state 状态，状态的有以下集中情况：</p><code lang="text">#define SSTATE_NOT_INTERNED 0             // 未共享
+#define SSTATE_INTERNED_MORTAL 1          // 共享 但是不增加引用计数
+#define SSTATE_INTERNED_IMMORTAL 2        // 永久 不会被销毁</code><p>对 interned-state 状态的修改和代用 PyUnicode_Interned<i>* 系列，通过 PyUnicode</i>* 的方法提供了优化的手段，在方法 <code class="inline">unicodeobject.c#PyUnicode_InternInPlace</code>：</p><code lang="text">    [unicodeobject.c]
+    PyObject *PyUnicode_InternFromString(const char *cp) {
+        PyObject *s = PyUnicode_FromString(cp);
+        if (s == NULL)
+            return NULL;
+        PyUnicode_InternInPlace(&amp;s);
+        return s;
+    }
+​
+    // PyUnicode_InternInPlace
+    ...
+    Py_ALLOW_RECURSION
+    t = PyDict_SetDefault(interned, s, s);
+    Py_END_ALLOW_RECURSION
+    if (t == NULL) {
+        PyErr_Clear();
+        return;
+    }
+    if (t != s) {
+        Py_INCREF(t);
+        Py_SETREF(*p, t);
+        return;
+    }
+    /* The two references in interned are not counted by refcnt.
+       The deallocator will take care of this */
+    Py_REFCNT(s) -= 2;
+    _PyUnicode_STATE(s).interned = SSTATE_INTERNED_MORTAL;</code><p>从 <code class="inline">PyUnicode_InternFromString</code> 方法之中可见，Py 并不会在创建 PyUnicodeObject 的时候之前检查是否已经创建这个 Object，而是会先创建出一个临时变量的 PyObject 。然后在 <code class="inline">PyUnicode_InternInPlace</code> 之中 check 从 <code class="inline">PyDict_SetDefault</code> 返回的函数指针（缓存在 interned 这个字典之中），如果相同表示已经进行 interned 存储过了，就会增加引用。</p><p>这个地方的逻辑有点复杂，这里对 interned 的讨论不过就是有两种情况，我们可以分开来讨论：</p><ol><li>插入新的 PyUnicodeObject 的时候：</li></ol><code lang="text">// s 进入 dict 之后 ref 会 + 2
+t = PyDict_SetDefault(interned, s, s);
+/* The two references in interned are not counted by refcnt.
+The deallocator will take care of this */
+// 第一次插入减少被 dict 持有的 ref 
+Py_REFCNT(s) -= 2;
+_PyUnicode_STATE(s).interned = SSTATE_INTERNED_MORTAL;</code><p>因为 interned string 被放进 dict 之后 key value 都会增加一次 ref ，因此在之后会调整状态为 <code class="inline">SSTATE_INTERNED_MORTAL</code> 之后并且补充 ref - 2。</p><ol><li>插入已有的 PyUnicodeObject 的时候：</li></ol><code lang="text">// 已有不会在内部 ref 增加 (里面查到了 value_attr )
+t = PyDict_SetDefault(interned, s, s);
+// 查到了已有的 PyObject 因此指针地址不同 
+if (t != s) {
+    Py_INCREF(t);
+    Py_SETREF(*p, t);
+    return;
+}</code><p>这里真的增加了 t 的 ref，因为是被复用有一个增加的引用计数，把指针 p 指向的临时变量销毁掉，然后把 t （cache 的引用）填充进去。str 的 concat 和 join 开销对比也可以在 <code class="inline">unicodeobject.c</code> 之中可以看出：</p><code lang="text">// PyUnicode_Join
+    items = PySequence_Fast_ITEMS(fseq);
+    seqlen = PySequence_Fast_GET_SIZE(fseq);
+    res = _PyUnicode_JoinArray(separator, items, seqlen);
+​
+// PyUnicode_Concat
+    /* Shortcuts */
+    if (left == unicode_empty)
+        return PyUnicode_FromObject(right);
+    if (right == unicode_empty)
+        return PyUnicode_FromObject(left);
+​
+    left_len = PyUnicode_GET_LENGTH(left);
+    right_len = PyUnicode_GET_LENGTH(right);
+    if (left_len &gt; PY_SSIZE_T_MAX - right_len) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "strings are too large to concat");
+        return NULL;
+    }
+    new_len = left_len + right_len;
+​
+    maxchar = PyUnicode_MAX_CHAR_VALUE(left);
+    maxchar2 = PyUnicode_MAX_CHAR_VALUE(right);
+    maxchar = Py_MAX(maxchar, maxchar2);
+​
+    /* Concat the two Unicode strings */
+    result = PyUnicode_New(new_len, maxchar);
+    if (result == NULL)
+        return NULL;
+    _PyUnicode_FastCopyCharacters(result, 0, left, 0, left_len);
+    _PyUnicode_FastCopyCharacters(result, left_len, right, 0, right_len);</code><p>从这里可以看出，在使用 join 功能的时候会算出 sequence 的长度一次申请内存进行一次拷贝，而 concat 每次连接都会进行一次内存申请、两次内存拷贝，因此当连接的次数多了的时候，性能就会有很大的下降。</p><h2>To be continue...</h2>
