@@ -67,14 +67,21 @@ const feeds = [
 		"zhidaoshe",
 	]],
 	["ACG", [
+		"acgn-cultural-studies",
 		"yumenaka",
-		"c_126395105",
 		"heibai",
 		"acgpiping",
 		"c_150242766",
 		"chenshuidongman",
-		"mowanglingyu",
 		"ACGerTalk",
+		"mowanglingyu",
+		"c_126395105",
+	]],
+	["商业", [
+		"jingyunxiaowu",
+		"caozsay",
+		"xingshu100",
+		"Professor-Li",
 	]],
 	["独立", [
 		"hiyeka",
@@ -96,12 +103,6 @@ const feeds = [
 		"programmer_life",
 		"milocode",
 		"newsql",
-	]],
-	["商业", [
-		"jingyunxiaowu",
-		"xingshu100",
-		"caozsay",
-		"Professor-Li",
 	]],
 	["Security", [
 		"chaitin-tech",
