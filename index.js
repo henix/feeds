@@ -76,6 +76,7 @@ const feeds = [
 		"ACGerTalk",
 		"mowanglingyu",
 		"c_126395105",
+		"c_1010472697662451712",
 	]],
 	["商业", [
 		"jingyunxiaowu",
