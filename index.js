@@ -67,6 +67,7 @@ const feeds = [
 		"zhidaoshe",
 	]],
 	["ACG", [
+		"c_1012395899472998400",
 		"acgn-cultural-studies",
 		"yumenaka",
 		"heibai",
