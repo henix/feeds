@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/</link>
 <description>与 Rust 语言相关的方方面面</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 19 Sep 2018 03:59:08 +0800</lastBuildDate>
+<lastBuildDate>Sun, 18 Nov 2018 14:21:26 +0800</lastBuildDate>
+<item>
+<title>Rust 在 Windows 下使用 CLion 进行调试</title>
+<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-11-13-49515204.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/49515204&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-62ca848fbf03afd0d8a31cf7edf3b1e9_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;前言：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;就性能或者其他各方面来说，在 Windows 上使用 MSVC 作为后端当然是最好的，也是官方默认的安装选项。&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c4c8739aaa85004fb659f27166c73130_r.jpg&quot; data-caption=&quot;滚动到页面下方展开即可看到&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1417&quot; data-rawheight=&quot;569&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c4c8739aaa85004fb659f27166c73130&quot; data-watermark-src=&quot;v2-417559ac788bbc55c7ac5b320d5ebd89&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a20851ee3191f905f912bb22a7c16f15_r.jpg&quot; data-caption=&quot;勾选 Visual C++ 生成工具&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1255&quot; data-rawheight=&quot;644&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-a20851ee3191f905f912bb22a7c16f15&quot; data-watermark-src=&quot;v2-4cea71ca847a77a19672dd81620759fa&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;只是需要下载大概 800M 左右的数据，占用 5G 左右的安装空间，对开发者来说倒是习以为常，对很多想尝试或者了解的人就有点不太友好了。&lt;/p&gt;&lt;p&gt;初学者可以选择 x86_64-pc-windows-gnu 版本的 msi 安装包（不到 200MB），图形化界面，安装即用（不涉及到需要编译 C/C++ 代码或者 ABI 兼容问题时都是完全 OK 的，出现需求了再配置即可），编译出来的 exe 在性能和大小上和 MSVC 版略有不同：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-df57a5f5d059465ef4ecb556a3149726_r.jpg&quot; data-caption=&quot;影响不大&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;575&quot; data-rawheight=&quot;44&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;其实使用 MSVC 后端更主要的问题是调试，参看 &lt;a href=&quot;https://areweideyet.com/&quot;&gt;https://areweideyet.com/&lt;/a&gt; 列出的各 IDE / Editer 的支持情况 。在 Windows 上比较好的解决办法是使用 VS Code ，安装 &lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools&quot;&gt;C/C++&lt;/a&gt; 插件再稍作配置即可调试，但是就目前的使用体验来说，调试问题是解决了，编码体验却真的不怎么样，&lt;a href=&quot;https://github.com/rust-lang-nursery/rls-vscode&quot;&gt;rls-vscode&lt;/a&gt; 只是勉强能用，而且 issue 提个不断，更新却接近停滞。&lt;/p&gt;&lt;p&gt;使用 CLion + &lt;a href=&quot;https://intellij-rust.github.io/&quot;&gt;intellij-rust&lt;/a&gt; 是比较好的选择，不过 CLion 不支持 MSVC 工具链的调试，所以我们需要使用 windows-gnu 工具链来生成目标代码，然后在 CLion 里使用 GDB 来调试。&lt;/p&gt;&lt;p&gt;推荐的做法是安装 MSYS2，再使用 MSYS2 安装 MinGW toolchains，但是目前 CLion 还不支持 MinGW-w64 的 GDB 8.2 版本：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0ed77109991906e0c969ed8476e6d8fb_r.jpg&quot; data-caption=&quot;踩坑了&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;615&quot; data-rawheight=&quot;341&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0ed77109991906e0c969ed8476e6d8fb&quot; data-watermark-src=&quot;v2-f8ad4bc1c3bb822c37022ec369453677&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;没关系，除了MSYS2，还有 &lt;a href=&quot;https://mingw-w64.org/doku.php&quot;&gt;GCC for Windows 64 &amp;amp; 32 bits [mingw-w64]&lt;/a&gt; 可选择，Cygwin 就算了。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;安装：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;安装很简单，步骤为：&lt;/p&gt;&lt;p&gt;下载 MinGW-w64 并解压 -&amp;gt; 配置环境变量 Path -&amp;gt; 配置 CLion -&amp;gt; 安装或者配置 Rust&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在 &lt;a href=&quot;https://sourceforge.net/projects/mingw-w64/files/&quot;&gt;MinGW-w64 - for 32 and 64 bit Windows&lt;/a&gt; 页面下方可以找到安装文件，可以选择 installer 按步骤安装，也可以直接下载 7z 压缩包，我选择了 GCC-8.1.0 x86_64-posix-seh  7z 包，&lt;a href=&quot;https://wiki.qt.io/MinGW-64-bit&quot;&gt;线程模型和异常处理&lt;/a&gt;和你的 Rust 工具链版本保持一致。解压缩到你喜欢的目录，我解压缩在 C:\Dev 下。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;添加 MinG-w64 的 bin 到环境变量 Path 中：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4d163869d991ebceafbc14c33287c7db_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;527&quot; data-rawheight=&quot;252&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4d163869d991ebceafbc14c33287c7db&quot; data-watermark-src=&quot;v2-dc2691ed45312a66e0ced8ebc32efca1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在 CLion 的 Settings &amp;gt; Build, Execution, Deployment &amp;gt; Toolchains 里配置 MinGW ：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-926786a060dbd6f448e3846e99d03e1a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;610&quot; data-rawheight=&quot;370&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-926786a060dbd6f448e3846e99d03e1a&quot; data-watermark-src=&quot;v2-6b76ae0e6956a2a7e26b08573f839c62&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;下载并运行 &lt;a href=&quot;https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-gnu/rustup-init.exe&quot;&gt;x86_64-pc-windows-gnu-rustup-init&lt;/a&gt; ，按提示完成安装即可。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;补充：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;如果你下载的是默认的 rustup-init.exe ，可以先跳过它的警告，Continue 继续到下一步，输入 2 （Customize installation）回车，在 Default host triple? 下输入 x86_64-pc-windows-gnu ，剩下两项直接回车保持默认，最后输入 1 回车开始安装，效果一样：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-13ddbd9d3cf00cd39693bea5ff4d532e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;591&quot; data-rawheight=&quot;452&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-13ddbd9d3cf00cd39693bea5ff4d532e&quot; data-watermark-src=&quot;v2-5473a6cb83cfe25c84e71e3a8f37ea06&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果你之前已经安装好了Rust，你还是可以方便地通过 rustup 来安装和切换工具链，这也是 Rust 的优点之一。运行 rustup toolchain install xxx 安装，rustup override xxx 和 rustup target xxx 切换，自行 Google。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;打开一个 Rust 项目测试下：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0a2348923ed538eacb2b46dce96b6a02_r.jpg&quot; data-caption=&quot;完美调试&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1078&quot; data-rawheight=&quot;466&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0a2348923ed538eacb2b46dce96b6a02&quot; data-watermark-src=&quot;v2-3b477faa599b0ece0e220bb6c5067a2e&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;后记：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;windows-gnu 版本的 Rust 是自带 gcc 和 ld 的：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-0ef634ab2094ed4b104d3aa99a34487b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;649&quot; data-rawheight=&quot;214&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-0ef634ab2094ed4b104d3aa99a34487b&quot; data-watermark-src=&quot;v2-cfd8f74863437a817f33d975a35e2e99&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;所以它可以不依赖 MSVC 生成 exe ，不过目录里的 GCC-WARNING.txt 有云：&lt;/p&gt;&lt;blockquote&gt;gcc.exe contained in this folder cannot be used for compiling C files - it is onlyused &lt;br&gt;as a linker. &lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;CLion 自带的 JRE 是基于 OpenJRE 的，对字体渲染上有点问题，可以把安装目录下的 jre64 删除或者重命名成其他，再在 Oracle 下载一个 .tar.gz 版本的 JRE ，解压缩后文件夹更名为 jre64 粘贴到 CLion 安装目录即可。&lt;/p&gt;</description>
+<author>6enmel</author>
+<guid isPermaLink="false">2018-11-13-49515204</guid>
+<pubDate>Tue, 13 Nov 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>新书发布</title>
 <link>https://henix.github.io/feeds/zhuanlan.rust-lang/2018-09-14-44576072.html</link>
@@ -526,182 +535,6 @@ impl CollectionFamily for ListFamily {
 <author>F001</author>
 <guid isPermaLink="false">2017-09-03-29021140</guid>
 <pubDate>Sun, 03 Sep 2017 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>协程 Coroutine</title>
-<link>https://henix.github.io/feeds/zhuanlan.rust-lang/2017-07-15-27900879.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/27900879&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;最近，Rust语言有一个大进展，即将实现在 nightly 版本中加入了实验性质的协程支持。RFC 参见 https://github.com/rust-lang/rfcs/blob/master/text/2033-experimental-coroutines.md ，与此相关的最重要的 PR 在此 https://github.com/rust-lang/rust/pull/43076 。这个功能一向能吸引大量的关注，相关讨论极其热烈，它受欢迎的程度可见一斑。&lt;/p&gt;&lt;p&gt;协程这个概念在许多编程语言中都已经有了大量实践，Rust在这方面也做过好几次尝试。早在 1.0 之前，就有一个 Green Thread 的实现，但是因为各种原因，在正式稳定版发布之前，还是删除掉了。最近新设计的版本与 Green Thread 不一样，它是一种 stackless coroutine 的实现，对 runtime 的要求更小，更适合Rust的定位。&lt;/p&gt;&lt;p&gt;为了讲清楚协程 Coroutine，就需要先讲 Generator，而讲 Generator 之前，我们先讲迭代器 Iterator。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Iterator&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在 Rust 中，迭代器指的是，实现了 std::iter::Iterator trait 的类型：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;pub trait Iterator {
-
-   type Item;
-
-   fn next(&amp;amp;mut self) -&amp;gt; Option&amp;lt;Self::Item&amp;gt;;
-
-   ...
-}&lt;/code&gt;&lt;p&gt;这个 trait 最主要的一个方法，就是这个 next 方法，每次调用，它就返回下一个元素，迭代完成，就返回 None。使用方法基本类似这样：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// 假设 it 是一个迭代器变量
-while let Some(item) = it.next() {
-   do_something(item);
-}&lt;/code&gt;&lt;p&gt;next 方法接受的参数是 &amp;amp;mut Self 类型，因为它每次调用的时候，一般都要修改内部的状态，如果内部是指针，就需要把指针指向容器的下一个元素；如果内部是索引，就需要更新索引的值。&lt;/p&gt;&lt;p&gt;迭代器也可以不指向任何容器，只要它满足 Iterator trait 这个接口即可，比如 std::ops::Range 这个类型，它代表一个前闭后开的区间，它也可以进行迭代，只是每次调用 next 后它代表的区间就变了，只有这样才能保证下次调用 next 的时候返回的不是同一个值。&lt;/p&gt;&lt;p&gt;现在我们写一个简单的迭代器示例，来源于rust by example，稍做修改，一个能生成 fibonacci 数列的迭代器。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// 方案一
-struct Fibonacci {
-   curr: u64,
-   next: u64,
-}
-
-impl Iterator for Fibonacci {
-   type Item = u64;
-
-   fn next(&amp;amp;mut self) -&amp;gt; Option&amp;lt;u64&amp;gt; {
-       // 判断是否会溢出
-       let new_next = self.curr.checked_add(self.next);
-
-       if let Some(new_next) = new_next {
-           // 先更新内部状态，再返回
-           self.curr = self.next;
-           self.next = new_next;
-           Some(self.curr)
-       } else {
-           // 加法溢出，停止迭代
-           None
-       }
-   }
-}
-
-fn fibonacci() -&amp;gt; Fibonacci {
-   Fibonacci { curr: 1, next: 1 }
-}
-
-fn main() {
-   let mut it = fibonacci();
-
-   while let Some(i) = it.next() {
-       println!(&quot;{}&quot;, i);
-   }
-}&lt;/code&gt;&lt;p&gt;请读者逐行逐字读一下 next 方法的逻辑，理解清楚它是如何记录状态的，为什么每次调用 next 方法都会返回不同的值。这个示例在后文中还会继续使用。&lt;/p&gt;&lt;p&gt;上面这个例子是个特殊情况，迭代器并没有指向某个容器，它本身就包含了所有生成数据所需要的所有信息。其它情况下，一个迭代器可以跟一个容器相关联，数据是从容器中取出来的，迭代器本身只记录和更新所指向的位置。&lt;/p&gt;&lt;p&gt;迭代器模式是一种典型的“拉”模式，它也经常被称为“惰性求值”(lazy evaluation)。如果你只是创建一个迭代器，这个开销是非常小的，只有在调用 next 方法时，才会真正去处理数据。除了 next 方法之外，迭代器还提供了许多其它有用的方法，这些方法可以分为两个类别：adapter 和 consumer。adapter 类别的方法是，从一个迭代器，生成一个新的迭代器，而不去真正的处理数据；而 consumer 类别的方法会直接或间接调用 next 方法，把数据拉出来消费掉。&lt;/p&gt;&lt;p&gt;比如，map 方法就是一个典型的 adapter：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let v1: Vec&amp;lt;i32&amp;gt; = vec![1, 2, 3];
-let it = v1.iter().map(|x| x + 1);&lt;/code&gt;&lt;p&gt;如果我们后面不写别的代码，it 这个变量实际上啥事没干，被构造出来之后就被扔掉了，它并没有去遍历容器 v1 的数据，并把每个元素加1。我们要让它起作用，就必须调用 next 方法或者 consumer 方法，比如典型的 collect 以及 for_each。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Generator&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;迭代器这种写法，需要自己管理状态，所以在写之前就要自己理清楚，哪些状态应该放到成员变量里面，哪些状态不需要；在实现 next 方法的时候，要如何读取上次的状态，如何更新状态，等等。而作为对比，生成器(generator)这种新的写法，通过引入一个新的关键字 yield，使得整个逻辑又变成了简洁顺序的执行流程。&lt;/p&gt;&lt;p&gt;下面还是用同样的示例，来演示一下，如何用生成器来写上文中这个 fibonacci 数列：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// 方案二
-#![feature(generators, generator_trait)]
-
-use std::ops::{Generator, State};
-
-fn main() {
-   let mut generator = || {
-       let mut curr : u64 = 1;
-       let mut next : u64 = 1;
-       loop {
-           let new_next = curr.checked_add(next);
-
-           if let Some(new_next) = new_next {
-               curr = next;
-               next = new_next;
-               yield curr; // &amp;lt;-- 新的关键字
-           } else {
-               return;
-           }
-       }
-   };
-
-   loop {
-       match generator.resume() {
-           State::Yielded(v) =&amp;gt; println!(&quot;{}&quot;, v),
-           State::Complete(_) =&amp;gt; return,
-       }
-   }
-}&lt;/code&gt;&lt;p&gt;这个 generator 变量不是一个普通的闭包，它是一个生成器，主要区别在于，它里面用了一个新的关键字 yield。跟closure类似的地方在于，编译器同样会为它生成一个匿名结构体，并实现一些 trait，添加一些成员方法。跟 closure 不同的地方在于，它的成员变量不一样，它实现的 trait 不一样。它的使用方式是，调用 resume 成员方法，这个方法的返回值有两种状态，一个是 Yielded 表示生成器内部 yield 关键字返回出来的东西，此时你还可以继续调用 resume，还有数据可以继续生成出来；另一个是 Complete 状态，表示这个生成器已经调用完了，它的值是内部的 return 关键字返回出来的东西，此时你不能再继续调用 resume，否则会触发 panic。&lt;/p&gt;&lt;p&gt;这个 generator 和上面方案一的迭代器效果是一模一样的，那为什么要专门设计这样的一个语法，还要引入一个新关键字呢？因为这种写法相比迭代器的写法更接近人的思维模型，代码流程是清晰的，中间状态的管理丢给了编译器，而不是人工管理。&lt;/p&gt;&lt;p&gt;实际上，迭代器模式，从代码组织逻辑上，已经是相对高阶一点的写法。对于一个刚刚接触过编程的初学者来说，用下面这种写法才是最常见的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// 方案三
-fn collector() -&amp;gt; Vec&amp;lt;u64&amp;gt; {
-   let mut res = vec![];
-   let mut curr : u64 = 1;
-   let mut next : u64 = 1;
-   loop {
-       let new_next = curr.checked_add(next);
-
-       if let Some(new_next) = new_next {
-           curr = next;
-           next = new_next;
-           res.push(curr);
-       } else {
-           break;
-       }
-   }
-   return res;
-}
-
-fn main() {
-   let collected = collector();
-   let mut it = collected.iter();
-   while let Some(i) = it.next() {
-       println!(&quot;{}&quot;, i);
-   }
-}&lt;/code&gt;&lt;p&gt;不考虑“惰性求值”带来的好处，相比迭代器写法，其实方案三这种流程控制方式是更符合普通人的“直觉”的。但它有性能上的缺点，方案三提前把数据收集起来了，缺少了灵活性。如果使用者 main 函数只需要使用前 10 个数据呢？如果是方案一迭代器那种写法，使用者可以选择遍历了 10 个元素后就提前 break；后面的数据既不需要生产，也不需要消费，这就是“惰性求值”的好处，还节省了一个临时的占用很大内存空间的容器。如果我们把方案三改成方案一迭代器的写法，性能和灵活性更佳，但是我们需要人工推理，有哪些数据是需要存储在迭代器成员中的，有哪些是不需要的，进入 next 方法时如何读取上一次的状态，退出 next 方法时如何保存这一次的状态，这些都是“心智负担”。业务逻辑越复杂，这个负担越严重。想象一下，如果我们的需求再增加一点，fibonacci 数列增长到溢出之时，继续让这个序列生成数字，规则变为对前一个数字不断除以2，最终数字降到1时，再按 fibonacci 规则涨上去，循环往复，永不停止。你再试试用上面不同的风格写写看看，哪个简单，哪个复杂。&lt;/p&gt;&lt;p&gt;而方案二生成器这种写法，就结合了方案一和方案三两者的优点。从源码的表现形式上，它的流程控制是简洁的，不需要程序员手工去管理状态的保存和恢复。同时它也具备“惰性求值”的优点，它依然需要用户主动调用 resume 方法往外“拉”数据。main 函数每次调用到 resume 方法，流程就进入到了 generator 内部，每执行到 yield 语句，流程就又跳回到了 main 函数里面。如果我们把 main 函数和 generator 做的事情视为两个“任务”，这两个任务就是在交替执行，yield 关键字和 resume 方法就是在执行任务切换。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Coroutine&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;终于讲到了 Coroutine。Coroutine 主要是设计用来写异步执行的代码的。首先还是看一下如果没有 coroutine，异步执行的代码是如何抽象的，然后再看看 coroutine 是如何简化代码的。&lt;/p&gt;&lt;p&gt;在这方面，目前Rust的准官方的一个库是 futures-rs，类似的东西在其它许多语言中都有，有的取名为 future，有的取名为 promise，都是差不多的东西。这个库里面最核心的部分是这个 trait：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;pub trait Future {
-   type Item;
-   type Error;
-   fn poll(&amp;amp;mut self) -&amp;gt; Poll&amp;lt;Self::Item, Self::Error&amp;gt;;
-   ......
-}&lt;/code&gt;&lt;p&gt;它里面最重要的一个方法是 poll，这个方法的返回类型是这样的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;type Poll&amp;lt;T, E&amp;gt; = Result&amp;lt;Async&amp;lt;T&amp;gt;, E&amp;gt;;
-
-pub enum Async&amp;lt;T&amp;gt; {
-   Ready(T),
-   NotReady,
-}&lt;/code&gt;&lt;p&gt;对于一个实现了 Future Trait 的类型，每次调用这个 poll 方法，其实就是查看一下这个对象当前的状态是什么，可以是错误／正在执行／已经执行完毕。Future trait 里面还有一些其它的方法，其实跟 Iterator / Generator 类似，也可以分为两组，adapter 和 consumer。Adapter(或者叫 combinator) 是从一个 Future 生成一个新的 Future，比如 map, and_then, join 等等都是，consumer 就是最终的结果的消费者，比如 wait 方法。&lt;/p&gt;&lt;p&gt;所以最后代码组织起来，其实是一层层的 Future 类型不断嵌套，外层的 Future 的 poll 方法被调用的时候，它就会调用内层 Future 的 poll 方法。一般来说，用 future 风格写的异步程序，会有一个主事件循环，这个循环就是最外层的 Future 的驱动力。每个新创建的 Future 都会进入到一个事件列表中，主循环不断调用每个 Future 的 poll 方法，就完成了整个程序的构建。&lt;/p&gt;&lt;p&gt;下面我们看一下，如果基于 coroutine 写程序，看起来会是什么样子（源于RFC中的示例）：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;/// 以后 async await 可能会变成关键字，目前还是宏实现，但是没什么大影响
-#[async]
-fn print_lines() -&amp;gt; io::Result&amp;lt;()&amp;gt; {
-   let addr = &quot;127.0.0.1:8080&quot;.parse().unwrap();
-   let tcp = await!(TcpStream::connect(&amp;amp;addr))?;
-   let io = BufReader::new(tcp);
-
-   #[async]
-   for line in io.lines() {
-       println!(&quot;{}&quot;, line);
-   }
-
-   Ok(())
-}&lt;/code&gt;&lt;p&gt;在 Rust 中，attribute 也是一种“宏”，它具备跟宏一样的生成代码的能力。#[async] 这个 attribute 的作用就是把函数签名统一用 Future 类型包起来。比如原先的签名是 fn() -&amp;gt; Result&amp;lt;String, ()&amp;gt;，加上 #[async] 后，函数签名实际上变成了 fn() -&amp;gt; impl Future&amp;lt;Item=String, Error=()&amp;gt;。注意C#的设计不同，async 关键字只有修饰作用，不改签名。而 await! 这个宏，它就是很简单的调用 Future 的 poll 方法，如果还没有执行完毕，就用 yield 关键字返回，让主线程继续尝试其它 Future，如果碰到一个 Future 刚好执行完毕，那么我们可以从上次返回的那个点，继续往下执行。上面这段代码展开后类似这样：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn print_lines() -&amp;gt; impl Future&amp;lt;Item = (), Error = io::Error&amp;gt; {
-   GeneratorToFuture(|| {
-       let addr = &quot;127.0.0.1:8080&quot;.parse().unwrap();
-       let tcp = {
-           let mut future = TcpStream::connect(&amp;amp;addr);
-           loop {
-               match future.poll() {
-                   Ok(Async::Ready(e)) =&amp;gt; break Ok(e),
-                   Ok(Async::NotReady) =&amp;gt; yield, // 中断当前代码
-                   Err(e) =&amp;gt; break Err(e),
-               }
-           }
-       }?;
-
-       let io = BufReader::new(tcp);
-
-       let mut stream = io.lines();
-       loop {
-           let line = {
-               match stream.poll()? {
-                   Async::Ready(Some(e)) =&amp;gt; e,
-                   Async::Ready(None) =&amp;gt; break,
-                   Async::NotReady =&amp;gt; {
-                       yield;                    // 中断当前代码
-                       continue
-                   }
-               }
-           };
-           println!(&quot;{}&quot;, line);
-       }
-
-       Ok(())
-   })
-}&lt;/code&gt;&lt;p&gt;上面这个 GeneratorToFuture 方法是把一个 Generator 转为一个 Future，这个方法可以很轻松的实现，此处就不详细展开了。&lt;/p&gt;&lt;p&gt;如果不用async/await语法糖，代码很可能像这样：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn print_lines() -&amp;gt; impl Future&amp;lt;Item = (), Error = io::Error&amp;gt; {
-   lazy(|| {
-       let addr = &quot;127.0.0.1:8080&quot;.parse().unwrap();
-       TcpStream::connect(&amp;amp;addr).and_then(|tcp| {
-           let io = BufReader::new(tcp);
-
-           io.lines().for_each(|line| {
-               println!(&quot;{}&quot;, line);
-               Ok(())
-           })
-       })
-   })
-}&lt;/code&gt;&lt;p&gt;Future 可以用各种 adapter 不断组合起来，一样可以实现同样的功能。但是跟上文中的对比一样，这么写跟 async/await 的区别，就跟手写 Iterator 和 Generator 之间的区别一样。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果顺利的话，这个 feature 可能在一两周之内就能在 nightly 版本上让大家试用了，这个功能应该可以大幅提高Rust异步编程的用户友好度，对于Rust在服务器端的推广有重大意义。我们非常期望能看到Rust编写的网络服务与其它竞争对手之间的详细的性能对比。再加上Rust与生俱来的接近C语言的高性能特点，这应该是工业界中无GC的编程语言的coroutine的最佳实现之一。相比之下，C++的 coroutine 早在几年前就有提案，但是进展嘛，一声叹息。另外，coroutine 还有一种 stackful 风格的实现方式(比如Go语言)，stackless vs stackful的对比也相当令人关注。&lt;/p&gt;&lt;p&gt;相信在半年之内就会有相当多的实践数据出现。Rust 设计组也非常希望能推动这个功能在 2018 年初的时候进入稳定版，这个功能为Rust在服务器领域的优质框架打下了坚实基础，对Rust在工业界的实际应用推广有重大意义。&lt;/p&gt;</description>
-<author>F001</author>
-<guid isPermaLink="false">2017-07-15-27900879</guid>
-<pubDate>Sat, 15 Jul 2017 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
