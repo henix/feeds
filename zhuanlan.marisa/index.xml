@@ -5,7 +5,128 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 15 Nov 2018 08:49:41 +0800</lastBuildDate>
+<lastBuildDate>Mon, 26 Nov 2018 02:22:28 +0800</lastBuildDate>
+<item>
+<title>形式验证、依赖类型与动态类型</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-25-50792280.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/50792280&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-22a53ae89319b99e314a4886dc6f882b_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;aka 依赖类型传教文&lt;/p&gt;&lt;p&gt;推荐阅读&lt;a href=&quot;https://ice1000.org/lagda/DependentFunctionsVersusDynamicTyping.html&quot;&gt;我的博客的版本&lt;/a&gt;，你可以点击网页的代码块里面的变量名，可以跳转到定义。&lt;/p&gt;&lt;p&gt;前排提醒：你或许&lt;b&gt;不&lt;/b&gt;需要一个&lt;a href=&quot;https://baike.baidu.com/item/%E6%B8%B8%E6%A0%87%E5%8D%A1%E5%B0%BA&quot;&gt;游标卡尺&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;本文面向一切有任何形式编程经验的读者，将会使用 Agda 和极少量其他语言展示代码例子。 读不懂的代码可以借助附近的文字描述理解它的含义，所以不用担心语言问题。&lt;/p&gt;&lt;p&gt;一切规矩照旧，这篇文章是一个 Agda 模块，我们导入一些基本库：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;{-# OPTIONS --no-unicode #-}
+{-# OPTIONS --without-K  #-}
+{-# OPTIONS --safe       #-}
+module DependentFunctionsVersusDynamicTyping where
+
+open import lib.Basics
+&lt;/code&gt;&lt;p&gt;这次，我们需要使用 &lt;a href=&quot;https://github.com/HoTT/HoTT-Agda/tree/master/core/lib&quot;&gt;HoTT-Agda&lt;/a&gt; 中的自然数类型的相关定义：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;open import lib.types.Nat
+&lt;/code&gt;&lt;p&gt;泛化阶：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;variable i : ULevel
+&lt;/code&gt;&lt;p&gt;本人承诺不会在这种面向非 Agda 专业人士的文章里使用 Unicode 。&lt;/p&gt;&lt;p&gt;在这个没有 &lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt; 的语言里，我们有时还是需要使用 &lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt; 的：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;data Nullable {i} (A : Type i) : Type i where
+  nullptr : Nullable A
+  new_    : A -&amp;gt; Nullable A
+&lt;/code&gt;&lt;p&gt;这样， &lt;code class=&quot;inline&quot;&gt;nullptr&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;new 1&lt;/code&gt; 都是 &lt;code class=&quot;inline&quot;&gt;Nullable Nat&lt;/code&gt; 类型的实例了（这些符号马上就介绍）：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = nullptr :&amp;gt; Nullable Nat
+_ = (new 1) :&amp;gt; Nullable Nat
+&lt;/code&gt;&lt;h2&gt;依赖类型的数组&lt;/h2&gt;&lt;p&gt;定义一个数组类型，数组长度是类型的一部分：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;infixr 5 _cat_
+data Vec {i} (A : Type i) : Nat -&amp;gt; Type i where
+  []    : Vec A O
+  _cat_ : forall {n} -&amp;gt; A -&amp;gt; Vec A n -&amp;gt; Vec A (S n)
+&lt;/code&gt;&lt;p&gt;这样，我们可以有空数组，以自然数类型为例：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = [] :&amp;gt; Vec Nat 0
+&lt;/code&gt;&lt;p&gt;其中， &lt;code class=&quot;inline&quot;&gt;:&amp;gt;&lt;/code&gt; 左边是一个表达式（在这里是 &lt;code class=&quot;inline&quot;&gt;[]&lt;/code&gt;），右边是它的类型。&lt;code class=&quot;inline&quot;&gt;_ =&lt;/code&gt; 表示把这个表达式赋值给一个无法被使用的变量，也就是丢掉这个表达式。 以这种形式写出来，我就可以在编译我的博客的时候让 Agda 编译器检查我的这些代码片段是否在类型上是正确的。&lt;/p&gt;&lt;p&gt;把代码编译成网页是 Agda 编译器的一个功能，我目前正在着手改善它的这个功能。 也就是说，如果我给我的博客写一个 &lt;code class=&quot;inline&quot;&gt;main&lt;/code&gt; 函数，我就可以运行我的博客了……&lt;/p&gt;&lt;p&gt;先不说这个，一个元素的数组，也就是一个元素和一个空数组连接的结果：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = (233 cat []) :&amp;gt; Vec Nat 1
+&lt;/code&gt;&lt;p&gt;两个元素：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = (666 cat 233 cat []) :&amp;gt; Vec Nat 2
+&lt;/code&gt;&lt;p&gt;观察发现，数组的类型 &lt;code class=&quot;inline&quot;&gt;Vec&lt;/code&gt; 有两个参数，第一个参数是元素的类型 &lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt; ，也就是自然数，第二个是长度，这两个参数都是编译期已知的。 这个数组的定义常常被 Idris 语言的粉丝用于布道——因为它很安全，可以在编译的时候防止越界的情况发生，就像 C++ 程序员会推荐 &lt;code class=&quot;inline&quot;&gt;std::array&lt;/code&gt; 一样。 而由于 Agda 语言人气不足，别人布道的时间 Agda 程序员都写论文去了。&lt;/p&gt;&lt;p&gt;我们来尝试一下 Agda 的『小于』类型。小于关系是一个类型，如果我们有一个类型为 &lt;code class=&quot;inline&quot;&gt;a &amp;lt; b&lt;/code&gt; 的变量，那么我们就『证明』了 &lt;code class=&quot;inline&quot;&gt;a &amp;lt; b&lt;/code&gt;。 也就是说，我们可以弄出一个类型为 &lt;code class=&quot;inline&quot;&gt;3 &amp;lt; 4&lt;/code&gt; 的变量：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = ltS :&amp;gt; (3 &amp;lt; 4)
+&lt;/code&gt;&lt;p&gt;也可以有 &lt;code class=&quot;inline&quot;&gt;114514 &amp;lt; 114516&lt;/code&gt; 类型的变量：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = ltSR ltS :&amp;gt; (114514 &amp;lt; 114516)
+&lt;/code&gt;&lt;p&gt;但是我们无论如何也弄不出 &lt;code class=&quot;inline&quot;&gt;1 &amp;lt; 1&lt;/code&gt; 类型的对象——这是由 &lt;code class=&quot;inline&quot;&gt;&amp;lt;&lt;/code&gt; 的定义决定的，这里就不展开说了（涉及的东西有点多）。&lt;/p&gt;&lt;p&gt;因此，我们可以写出这样一个函数：它『从长度为 &lt;code class=&quot;inline&quot;&gt;m&lt;/code&gt; 数组中获取第 &lt;code class=&quot;inline&quot;&gt;n&lt;/code&gt; 个元素』，并要求调用这个函数的人额外传入一个 类型为 &lt;code class=&quot;inline&quot;&gt;n &amp;lt; m&lt;/code&gt; 的变量。&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;module GetAtIndex where
+  _!!_&amp;lt;[_]&amp;gt; : {A : Type i} -&amp;gt; forall {l} -&amp;gt; Vec A l
+          -&amp;gt; (n : Nat) -&amp;gt; n &amp;lt; l -&amp;gt; A
+  (x cat _) !! O &amp;lt;[ _ ]&amp;gt; = x
+  (_ cat a) !! S n &amp;lt;[ p ]&amp;gt; = a !! n &amp;lt;[ &amp;lt;-cancel-S p ]&amp;gt;
+&lt;/code&gt;&lt;p&gt;这样，有了 &lt;code class=&quot;inline&quot;&gt;n &amp;lt; m&lt;/code&gt; 的证明，我们无论如何都能安全地从数组里拿出一个元素了。 举一个简单的调用的例子。这是一个测试用的数组：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;sampleList : Vec Nat 4
+  sampleList = 0 cat 1 cat 2 cat 3 cat []
+&lt;/code&gt;&lt;p&gt;我们试图取它的第 2 项，没有问题（下面的代码是让编译器试图验证『从刚才那个数组中取第 2 项得到的是 2』）：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = idp :&amp;gt; ((sampleList !! 2 &amp;lt;[ ltSR ltS ]&amp;gt;) == 2)
+&lt;/code&gt;&lt;p&gt;试试第一项？&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = idp :&amp;gt; ((sampleList !! 1 &amp;lt;[ ltSR (ltSR ltS) ]&amp;gt;) == 1)
+&lt;/code&gt;&lt;h2&gt;运行时错误&lt;/h2&gt;&lt;code lang=&quot;agda&quot;&gt;module RuntimeErrors where
+  open GetAtIndex
+&lt;/code&gt;&lt;p&gt;一个老生常谈（我在两个群里被问过了）的问题：如果下标和数组都是运行时获取的，编译器的验证不就凉了吗？&lt;/p&gt;&lt;p&gt;解决方法：在运行时进行判断——如果下标小于数组长度，那么在这样的条件下可以得到一个小于关系的证明， 就可以安全地进行函数调用。否则，你将不能调用这个函数，请自行处理非法输入。&lt;/p&gt;&lt;p&gt;给出一个简单的实现（库里面其实有一个 &lt;code class=&quot;inline&quot;&gt;Decidable&lt;/code&gt; 的版本，但是它里面用了 Unicode ，我不想用，所以就自己写了一个）。 首先，我们需要判断两个自然数的大小，并在小于的时候返回小于的证明，其他时候返回 &lt;code class=&quot;inline&quot;&gt;nullptr&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;lessThan : forall a b -&amp;gt; Nullable (a &amp;lt; b)
+  lessThan O O = nullptr
+  lessThan O (S b) = new O&amp;lt;S b 
+  lessThan (S a) O = nullptr
+  lessThan (S a) (S b) with lessThan a b
+  ... | nullptr = nullptr
+  ... | new x   = new &amp;lt;-ap-S x
+&lt;/code&gt;&lt;p&gt;然后，我们就可以在不模式匹配、直接把参数拿来用的情况下，对 &lt;code class=&quot;inline&quot;&gt;_!!_&amp;lt;[_]&amp;gt;&lt;/code&gt; 进行调用了。 这个函数通过接收任意的自然数和任意的数组来模拟运行时无法保证的输入，并返回可能不存在的输出：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;runtimeInput : forall {m} -&amp;gt; Vec Nat m -&amp;gt; Nat -&amp;gt; Nullable Nat
+  runtimeInput [] _ = nullptr
+  runtimeInput{m}vn with lessThan n m
+  ... | nullptr = nullptr
+  ... | new x   = new (v !! n &amp;lt;[ x ]&amp;gt;)
+&lt;/code&gt;&lt;p&gt;这个函数和 Java、JavaScript 函数就没什么可见的区别了，这也体现出了形式验证的一个小小的局限性。&lt;/p&gt;&lt;p&gt;但在运行时的情况下，我们还是能看出形式验证的好处的——类型签名里函数对参数需要满足的关系以非常清晰的形式呈现了（比如， &lt;code class=&quot;inline&quot;&gt;a &amp;gt; b&lt;/code&gt; 这种表达式），表达的也很简洁， 函数的调用者无需阅读文档即可安全地进行 API 调用，运行时不需要任何错误处理——编译的时候就能保证所有的错误得到处理，运行时当然是把这些东西全部都擦除掉了。&lt;/p&gt;&lt;h2&gt;稍微弱一点的类型系统&lt;/h2&gt;&lt;p&gt;看到这里，我们会想起，像 Java 和 JavaScript 里类似的函数都会在参数不合法的时候抛出一个异常。 因此，如果我们的程序要足够健壮，我们会选择：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;处理这个异常&lt;/li&gt;&lt;li&gt;判断下标是否小于长度，提前避免错误&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;具有证明命题能力的编程语言一般会强制程序员进行后者的操作，具有责任心的程序员会主动进行后者的操作， 绝大多数时间我们是忽略了这件事的——编译器、程序员、用户都没有去证明输入数据对程序来说一定合法。 当输入不合法时（尽管这很少发生），我们的程序会崩溃掉（&lt;b&gt;运行时错误&lt;/b&gt;），否则将正常运行。&lt;/p&gt;&lt;p&gt;运行时错误，从动态类型到静态类型的过程中已经大幅减少了。但这里可以看出，它还是存在的。&lt;/p&gt;&lt;p&gt;不知道 C++ 程序员有没有想到 SFINAE 呢？（笑）&lt;/p&gt;&lt;p&gt;但总而言之，把证明传来传去是一件很麻烦的事情，光是阅读命题本来就是额外工作，证明就更麻烦了。 像 C++ 的 SFINAE，在参数不合法的时候，如果不手动让编译器抛出一些可读的异常，编译器会产生大量的错误信息， 印在厕纸上都能用一年。&lt;/p&gt;&lt;p&gt;但是呢，会把程序写成这样的形式验证研究员都是垃圾（凭空制造复杂度），他们的思维都被限制了。&lt;/p&gt;&lt;p&gt;我们首先来看看大家觉得虽然邪恶但是写起来爽的『动态类型』。&lt;/p&gt;&lt;h2&gt;更浅显的话题&lt;/h2&gt;&lt;p&gt;程序员们常常对『动态类型和静态类型哪个更好』这一话题产生激烈的讨论。 这其实是一个完全没有意义的讨论，因为这首先是一个罗卜白菜的问题——两者都有能称得上是『优点』的地方； 其次不同的人对程序有不同的追求，有人想写出健壮可扩展的程序，有人只是想快速交付收钱； 再其次同一个人也有不同的需求，有时只是想批量处理一些文件，有时需要构建长期维护的大型项目。&lt;/p&gt;&lt;p&gt;对于简单的批处理需求，我们甚至会完全不考虑任何的可读性、可维护性、可扩展性、安全性、鲁棒性， 写出类似这样的代码（已经整理过了，再看不懂就是语言的问题）：&lt;/p&gt;&lt;code lang=&quot;perl&quot;&gt;while (my $line = &amp;lt;$imguiHeader&amp;gt;) {
+  chomp $line;
+  $_ = $line;
+  if (m!^// dear imgui, (.*)$!) {
+    my $commandPrefix = &#39;cd ../imgui &amp;amp;&amp;amp; git rev-parse&#39;;
+    print &quot;--- Generating for dear-imgui version $1\n&quot;, &quot;--- Revision &quot;, `$commandPrefix --verify HEAD`;
+    print &quot;--- Branch &quot;, `$commandPrefix --abbrev-ref HEAD`, &quot;---\n\n&quot;, &quot;local $moduleName = { _version = &#39;@{[ $1 =~ s/[^∙↓]//gr ]}&#39; }\n&quot;;
+  }
+  elsif (/^\s*enum\s(\w+)_/) {
+    $currentEnum = $1;
+    $currentEnumMangled = $currentEnum =~ s/^Im(Gui)?(.)([^\s]*)$/@{[ lc $2 ]}$3/r =~ s/Flags$//gr;
+    # =~ s/([a-z])([A-Z])/$1.@{[ lc $2 ]}/gr;
+    print &quot;\n&quot;, &#39;--{&#39;, &#39;{&#39;, &quot;{ $currentEnumMangled\n&quot;, &quot;---\@type _$currentEnumMangled\n&quot;, &quot;local $currentEnumMangled = {}\n&quot;
+  }
+  elsif (length $currentEnum) {
+    if (/\}/) {
+      print &quot;$moduleName.$currentEnumMangled = $currentEnumMangled\n&quot;;
+      print &quot;$currentEnumMangled = nil\n&quot;, &#39;--}&#39;, &#39;}&#39; &quot;} $currentEnumMangled\n&quot;;
+      $currentEnum = &#39;&#39;; $previousDefault = 0;
+    }
+    elsif (m!^\s*${currentEnum}_(\w+)((\s*=\s*([^,/]+))?),?\s*(//\s*(.*))?!) {
+      print &quot;\n--- $6\n&quot; if $5 and length $6;
+      $mangledName = length $1 == 1 ? &quot;_$1&quot; : $1;
+      $value = $2 ? calculate $4 : $previousDefault++;
+      print &quot;$currentEnumMangled.$mangledName = &quot;, $value, &quot;\n&quot;;
+    }
+    elsif (m!^\s*//(.*)!) { print &quot;---$1\n&quot; }
+  }
+}&lt;/code&gt;&lt;p&gt;这样的代码完全是一个精雕细琢的艺术品——它的每一个字符都是我（没错这是我写的……用来提取一段 C++ 代码中的一部分定义并翻译成 Lua） 小心翼翼写出来的，稍微改一点就会出错，输入数据有一点点变化也可能出错，静态分析工具对这个代码的正确性完全没有保障（Perl 的解释器在运行你的代码的时候也不知道你的程序的目的，只是一行一行地运行而已）。&lt;/p&gt;&lt;p&gt;动态类型往往因为其灵活性被一些程序员（不是我）喜欢。比如我们可以写出这样的 JavaScript 程序：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;const Error = {}
+const getAtIndex = (a, n) =&amp;gt; n &amp;lt; a.length ? a[n] : Error;&lt;/code&gt;&lt;p&gt;简单地运行：&lt;/p&gt;&lt;code lang=&quot;js&quot;&gt;&amp;gt; getAtIndex([1, 2, 3], 2)
+&amp;lt; 3
+&amp;gt; GetAtIndex([], 1)
+&amp;lt; {}&lt;/code&gt;&lt;p&gt;这个 &lt;code class=&quot;inline&quot;&gt;getAtIndex&lt;/code&gt; 接收一个数组和一个整数，返回『有时是一个数组元素，有时是 &lt;code class=&quot;inline&quot;&gt;Error&lt;/code&gt;』。 用 TypeScript 描述一下它的类型，就是：&lt;/p&gt;&lt;code lang=&quot;ts&quot;&gt;&amp;lt;a&amp;gt;(a[], number): a|Error&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而我们调用这个函数，它到底会返回什么类型，我们也必须看它的实现才能知道。 返回 &lt;code class=&quot;inline&quot;&gt;Error&lt;/code&gt; 只是方便起见，我们大可使用异常来代替返回一个表达异常的对象。 但它做到了一点——在我们不想处理错误的时候，我们可以不处理错误，让运行时炸。 在我们想处理错误的时候，我们可以处理错误。&lt;/p&gt;&lt;p&gt;但这给了我们一个启发。或许我们可以实现这样的函数：在很明显没有错误的时候，我们可以不处理错误。 在有可能错误的时候，我们需要处理错误。&lt;/p&gt;&lt;p&gt;或许有人会说，我们不还有异常吗？但首先异常这一概念首先本身就足够『运行时』， 我们对什么样的函数会抛出什么样的异常都一无所知。Java 的 Checked Exception 作为一个例外，是静态的异常， &lt;b&gt;但是这种语法结构和返回带有错误信息的类型&lt;/b&gt; （可以理解为 Haskell 的 &lt;code class=&quot;inline&quot;&gt;Either&lt;/code&gt;， Rust 的 &lt;code class=&quot;inline&quot;&gt;Result&lt;/code&gt;） &lt;b&gt;是&lt;a href=&quot;http://www.yinwang.org/blog-cn/2017/05/23/kotlin&quot;&gt;同构&lt;/a&gt;的&lt;/b&gt;（这篇文章本身说的很有道理，但请不要看它所引用的《给 Java 说句公道话》）。&lt;/p&gt;&lt;blockquote&gt;首先，写 C# 代码时最让我头痛的事情之一，就是 C# 没有 CE。每调用一个函数（不管是标准库函数，第三方库函数，还是队友写的函数，甚至我自己写的函数），我都会疑惑这个函数是否会抛出异常。由于 C# 的函数类型上不需要标记它可能抛出的异常，为了确保一个函数不会抛出异常，你就需要检查这个函数的源代码，以及它调用的那些函数的源代码……&lt;br&gt;也就是说，你必须检查这个函数的整个“调用树”的代码，才能确信这个函数不会抛出异常。这样的调用树可以是非常大的。说白了，这就是在用人工对代码进行“全局静态分析”，遍历整个调用树。这不但费时费力，看得你眼花缭乱，还容易漏掉出错。显然让人做这种事情是不现实的，所以绝大部分时候，程序员都不能确信这个函数调用不会出现异常。&lt;/blockquote&gt;&lt;p&gt;在静态类型中，我们要么使用静态的带错误信息的返回类型（强制检查错误，即使很明显的正确的代码也必须处理错误）、要么使用异常（静态变动态，你干啥不去用 Python）。&lt;/p&gt;&lt;p&gt;而且，刚才那段 JavaScript 根本不可能在静态类型语言里实现（当然，这里没有考虑支持和类型的语言。但是要考虑到 支持和类型的编程语言大部分都是渐进类型或者以动态类型编程语言为目标语言的编程语言）——我们写不出一个同时有两种可能的返回类型的语言。&lt;/p&gt;&lt;p&gt;也就是说，动态类型能做（即使做的不完美，比如那个 &lt;code class=&quot;inline&quot;&gt;getAtIndex&lt;/code&gt; 并不会强制你处理异常，即使可能异常）的事静态类型做不到； 静态类型能做动态类型做不到的事就多了去了，在绝大多数情况下使用静态类型还是能带来远高于动态类型的编程体验的（ 包括 IDE 补全重构跳转、尽可能减少了类型错误等），这里就略过不提了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;难道鱼和熊掌真的不可兼得吗？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不，小孩才做选择。&lt;/p&gt;&lt;h2&gt;我全都要&lt;/h2&gt;&lt;code lang=&quot;agda&quot;&gt;module IQuanDouWant where
+  open RuntimeErrors&lt;/code&gt;&lt;p&gt;这时我们就需要用到依赖类型了。&lt;/p&gt;&lt;p&gt;我们除了传入证明作为参数之外，还可以使用依赖函数！&lt;/p&gt;&lt;p&gt;我们的 &lt;code class=&quot;inline&quot;&gt;getAtIndex&lt;/code&gt; 函数，在下标越界的时候返回 &lt;code class=&quot;inline&quot;&gt;Error&lt;/code&gt;，其他时候返回正常的值。 我们先定义一个表达错误的类型：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;data ???? : Type0 where ??? : ????
+&lt;/code&gt;&lt;p&gt;我们的函数 &lt;code class=&quot;inline&quot;&gt;getAtIndex&lt;/code&gt;，返回的类型，是根据两个参数决定的。 所以，我们需要先写一个函数，接收两个自然数，返回『我们的 &lt;code class=&quot;inline&quot;&gt;getAtIndex&lt;/code&gt; 的返回类型』， 也就是说如果左边大于右边，就返回『自然数』这个类型，否则返回表达错误的类型。 请注意，只有带有较好的依赖类型支持的类型系统才能做到这种事。如果一个语言声称自己支持依赖类型， 你可以问问他能不能写出这样的代码。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;returnType : (_ _ : Nat) -&amp;gt; Type0
+  returnType O _ = ????
+  returnType (S _) O = Nat
+  returnType (S n) (S m) = returnType n m
+&lt;/code&gt;&lt;p&gt;然后，我们的 &lt;code class=&quot;inline&quot;&gt;getAtIndex&lt;/code&gt; 需要返回的，就是这个类型。&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;getAtIndex : forall {m} -&amp;gt; (v : Vec Nat m) -&amp;gt; (n : Nat) -&amp;gt; returnType m n
+  getAtIndex [] _ = ???
+  getAtIndex (x cat _) O = x
+  getAtIndex (_ cat v) (S n) = getAtIndex v n
+&lt;/code&gt;&lt;p&gt;看看看！这个函数的实现真的好简单啊！&lt;/p&gt;&lt;p&gt;我们试试证明它的性质？我们先传入合法的参数，看看是不是就直接返回了数组的元素：&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;open GetAtIndex using (sampleList)
+  _ = idp :&amp;gt; (getAtIndex sampleList 2 == 2)
+  _ = idp :&amp;gt; (getAtIndex sampleList 1 == 1)
+&lt;/code&gt;&lt;p&gt;真的耶！那如果是超过长度上限的下标，是不是就会返回那个错误类型呢？&lt;/p&gt;&lt;code lang=&quot;agda&quot;&gt;_ = idp :&amp;gt; (getAtIndex sampleList 233 == ???)
+&lt;/code&gt;&lt;p&gt;是的！&lt;/p&gt;&lt;p&gt;这个函数的返回类型真的在变耶！而且这是非常非常纯正的静态类型编程哦！&lt;/p&gt;&lt;p&gt;你看，静态类型做不到的事，依赖类型做到了。动态类型没法编译期进行类型检查，依赖类型可以。&lt;/p&gt;&lt;h2&gt;实际应用&lt;/h2&gt;&lt;code lang=&quot;text&quot;&gt;module FSharpLang where
+
+  -- ...
+&lt;/code&gt;&lt;p&gt;就懒得写了，毕竟本来就是我的另一篇博客。这是一个依赖函数的经典应用—— &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://ice1000.org/2018/08/04/TypeSafePrintf/&quot;&gt;printf&lt;/a&gt;&lt;/code&gt;。 它的类型是：&lt;code class=&quot;inline&quot;&gt;String -&amp;gt; ??&lt;/code&gt;，其中 &lt;code class=&quot;inline&quot;&gt;??&lt;/code&gt; 具体的值，取决于 &lt;code class=&quot;inline&quot;&gt;String&lt;/code&gt; 参数中有多少个 &lt;code class=&quot;inline&quot;&gt;%d&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;%c&lt;/code&gt; 等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;啊，今泉影狼真可爱啊。&lt;/p&gt;</description>
+<author>兴趣使然千里冰封</author>
+<guid isPermaLink="false">2018-11-25-50792280</guid>
+<pubDate>Sun, 25 Nov 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>我的 Linux 再也滚不挂了—— NixOS 桌面试用</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-22-50623869.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/50623869&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-152bfce18c290103b65114d7e273ce1e_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;之前在虚拟机里用了一段时间的 NixOS。昨天终于在笔记本上抛弃了“正常”发行版的带镜像下载速度，安装了 NixOS。那个 Fastly 的 CDN 稍微 slowly 点就 slowly 点吧……&lt;/p&gt;&lt;h2&gt;安装&lt;/h2&gt;&lt;p&gt;（本文不是 NixOS 安装和配置教程。安装教程请参考文档。）&lt;/p&gt;&lt;p&gt;NixOS 没有像 Ubuntu 或者 Fedora 那样的完全一站式的安装程序，所以一开始和 Arch 有点像，需要自己分区然后 mount 上。这一步参照 manual 就可以了。&lt;/p&gt;&lt;p&gt;之后 nixos-generate-config 命令会从当前挂载的分区和存在的硬件生成一个 /etc/nixos/hardware-configuration.nix 和一个基础系统的 /etc/nixos/configuration.nix。&lt;/p&gt;&lt;p&gt;默认的 configuration.nix 里面注释写的是举例形式的，比较简洁但是不难懂。先把网络和图形界面配置上：&lt;/p&gt;&lt;code lang=&quot;nixos&quot;&gt;networking.hostName = &quot;&amp;lt;It&#39;s important to pick a good name&amp;gt;&quot;; # https://www.xkcd.com/910/
+networking.networkmanager.enable = true;
+services.xserver.displayManager.sddm.enable = true;
+services.xserver.desktopManager.plasma5.enable = true;&lt;/code&gt;&lt;p&gt;（Bootloader 默认是 systemd-boot，保留即可，换 GRUB 也行。）（题图是我的 Bootloader 和内核相关配置）&lt;/p&gt;&lt;p&gt;然后 nixos-install 就可以了，各种乱七八糟的自动按照 configuration.nix 配置好，最后让你设一个 root 密码，之后重启进系统就可以了。这一步比 Arch 简单多了。&lt;/p&gt;&lt;p&gt;在这里我们已经在体验 NixOS 系统配置的“一条龙服务”。在写下一行配置的时候，里面就包括了软件依赖、配置文件、Systemd 的 unit 文件等内容。&lt;/p&gt;&lt;p&gt;像这种声明式的系统配置，一大好处就是更加紧凑，更容易复现。日常使用上最明显的一点就是，我们再也不用担心忘了系统配置都改了什么了。&lt;/p&gt;&lt;h2&gt;使用&lt;/h2&gt;&lt;p&gt;和预料中的没有太大的差别。用户账户用什么东西直接 nix-env 安装就好，使用上和一般的包管理器比较接近，只是不需要 sudo 就可以装东西。实现上是在系统全局安装好后 symlink 到 ~/.nix-profile 下，成为一个“prefix”的样子，还是比较科学的。&lt;/p&gt;&lt;p&gt;我加了个 alias：&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;alias nixpkgs=&quot;nix-env -f &#39;&amp;lt;nixpkgs&amp;gt;&#39;&quot;&lt;/code&gt;&lt;p&gt;系统配置的话，用 /etc/nixos/configuration.nix 真是简直不能再爽。我的笔记本是 SSD 的，所以配置了一个 fstrim。&lt;/p&gt;&lt;code lang=&quot;nixos&quot;&gt;services.fstrim = {
+  enable = true;
+  interval = &quot;tuesday&quot;;  
+};&lt;/code&gt;&lt;p&gt;SDDM 的 HiDPI 支持默认确实是打开的，不过貌似没有检测出我的机器需要 1.5x，所以加点配置：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;services.xserver.displayManager.sddm.extraConfig = &#39;&#39;
+  [X11]
+  ServerArguments=-dpi 144
+&#39;&#39;;&lt;/code&gt;&lt;p&gt;（KDE 里面 Scale Display 到 1.5x，然后底栏高度拉高点就好了，不需要系统配置）&lt;/p&gt;&lt;p&gt;文本编辑器 Vim Emacs Nano 啥的默认统统没有，随手开个默认 EDITOR。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;programs.vim.defaultEditor = true;&lt;/code&gt;&lt;p&gt;ucode 啥的，我才不记得什么 initrd 呢，直接：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;hardware.cpu.intel.updateMicrocode = true;&lt;/code&gt;&lt;h2&gt;发行版&lt;/h2&gt;&lt;p&gt;Nixpkgs 里面的包少……吗？&lt;/p&gt;&lt;p&gt;有一些标记为非自由软件的包默认不会显示，安装也会失败。（nix-env 直接什么都不做……这应该是个 bug）如果需要用的话必须手动允许：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;nixpkgs.config.allowUnfree = true;&lt;/code&gt;&lt;p&gt;Nixpkgs 包总体来说应该还算可以吧……除了有大量常见自由软件以外（KDE 算不算……），许多小众的包和非自由软件 patched binary 的包在 Nixpkgs 里都能找到：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;首先就是整个 Haskell 的 Hackage 都在 Nixpkgs 里面，贡献了很大的包的总数……&lt;/li&gt;&lt;li&gt;Sarasa Gothic 字体都有&lt;a href=&quot;https://github.com/NixOS/nixpkgs/blob/master/pkgs/data/fonts/sarasa-gothic/default.nix&quot;&gt;打包&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;连 Mathematica 都有&lt;a href=&quot;https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/science/math/mathematica/default.nix&quot;&gt;打包&lt;/a&gt;。从 binary 开始 PatchELF……&lt;/li&gt;&lt;li&gt;VSCode 确实有，但是只有 binary 的没有 OSS 的。&lt;/li&gt;&lt;li&gt;Chrome 和 Chromium 倒是都有。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;为什么 binary 要 PatchELF 呢？如果尝试运行一下就会发现有很多 so 找不到。&lt;/p&gt;&lt;p&gt;容易发现，NixOS 是缺少很多 FHS 目录的。比如 /bin 下只有一个 /bin/sh，/usr 下只有一个 /usr/bin/env，其余真正的软件都分开存放在不同的目录下，然后系统配置是 symlink 出来的，放在 /run/current-system。既然 /usr/lib 啥的都没有，能找到库就怪了。&lt;/p&gt;&lt;p&gt;这种隔离式的设计事实上帮助实现了原子更新和快速回滚。从启动界面上列出的不同版本的系统 profile 就可以看出，NixOS 是一个可以字面意义上“恢复上一次正确的配置”的发行版（趴）。而且配置 profile 之间的切换不需要复制好多文件之类的，所以非常迅速。&lt;/p&gt;&lt;p&gt;所以是不是左传可以在此立下 NixOS 滚不挂 Flag 一枚 23333&lt;/p&gt;&lt;p&gt;（实在不行，进启动盘重新 nixos-install 一遍，反正也是按照 configuration.nix 安装的）&lt;/p&gt;&lt;h2&gt;总结&lt;/h2&gt;&lt;p&gt;所以你们可能关心的问题是：到底要不要用 NixOS。&lt;/p&gt;&lt;p&gt;如果你不需要 Ubuntu 那种的开箱即用的，觉得 Arch 那样的自己动手可以接受，喜欢 Gentoo 的可配置性，又不想自己完全编译整个世界，并且觉得所有系统配置全都由统一格式写出来的可复现性确实很棒，并且觉得那帮人为了 portable 和轻量级，自己做了个 Nix 语言可以接受的话，NixOS 可能就是专门为你设计的。&lt;/p&gt;&lt;p&gt;哦对，如果你特别想用 Lisp 或者特别想坚持用自由软件的话出门左转 GuixSD……&lt;/p&gt;&lt;h2&gt;参考资料&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://nixos.org/nixos/manual&quot;&gt;NixOS manual&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;我的 /etc/nixos/configuration.nix&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/dramforever/config/blob/master/nixos/configuration.nix&quot;&gt;https://github.com/dramforever/config/blob/master/nixos/configuration.nix&lt;/a&gt;&lt;/p&gt;</description>
+<author>dram</author>
+<guid isPermaLink="false">2018-11-22-50623869</guid>
+<pubDate>Thu, 22 Nov 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Recursion Schemes（五）自未来而来</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-14-49814311.html</link>
@@ -681,43 +802,6 @@ The input is LINE_1 and LINE_2&lt;/code&gt;&lt;h2&gt;&lt;b&gt;结论&lt;/b&gt;&l
 <author>木木</author>
 <guid isPermaLink="false">2018-10-03-45914836</guid>
 <pubDate>Wed, 03 Oct 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Resolving Python Symbols</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-02-45835774.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45835774&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;该文对Python作用域相关知识进行彻底剖析。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Python中的变量符号&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Python的一个变量符号在一个作用域下只有以下中一种形式: &lt;/p&gt;&lt;ul&gt;&lt;li&gt;Local&lt;/li&gt;&lt;li&gt;Free&lt;/li&gt;&lt;li&gt;Cell&lt;/li&gt;&lt;li&gt;Global&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;注: Python解释器允许实现多重作用域&lt;/p&gt;&lt;p&gt;不同形式的符号对数据的存取方式不同。local, cell, free变量被存放在可随机访问的序列结构中，而global变量存于可变的哈希表中。&lt;/p&gt;&lt;p&gt;有一个基本概念 &lt;a href=&quot;https://en.wikipedia.org/wiki/Name_binding&quot;&gt;bound&lt;/a&gt; 用来形容来自非外部的符号, 对于Python我们有&lt;/p&gt;&lt;ul&gt;&lt;li&gt;bound vars = cell vars+ local vars&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;按照概念, global vars应当属于free vars, 但python为了实现可变的全局符号表, 两者被分离开来。可以这样理解: free vars的符号在作用域被定义时即可确定, 而全局符号表可在任意时刻被增减修改。&lt;/p&gt;&lt;h2&gt;free vars可以用如下方式描述:&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;当一个符号无法在当前作用域内被找到，且能够在其上的某一层作用域被找到，以及找到符号的作用域不是全局的, 那么它在当前作用域内表示一个free vars。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;2. 在某个作用域中符号被标记为nonlocal的变量，如果这个作用域不是顶层或者顶层之下一个。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;cell vars可以被如下方式描述:&lt;/h2&gt;&lt;p&gt;当一个变量可以在当前作用域被找到，且在其下的作用域是自由变量。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;则&lt;/p&gt;&lt;h2&gt;local vars可以被如下方式描述&lt;/h2&gt;&lt;p&gt;在当前作用域进入(enter), 不是cell vars, 没有被nonlocal标记的变量。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;例子:&lt;/p&gt;&lt;code lang=&quot;python3&quot;&gt;x = 1     # x : global
-def f(a): # a : local
-   b = 1  # b : local
-   def g(y):  # g在f中, local;  y在g中, local
-      c + y   # c在g中, free
-   c = 2      # c在f中, cell
-   d = 2      # d在f中, cell
-   def h():   
-       # d在不h中,但位于h存放free vars的位置
-       def i():
-          nonlocal d # d在i中, free 
-          d = 3
-   &lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;求出一个程序中的所有符号及其作用域&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;运算被加载的符号的函数为(&lt;equation&gt;R&lt;/equation&gt; = requires), 被存储的符号(&lt;equation&gt;E &lt;/equation&gt; = entered), 被显式标记为nonlocal的符号(&lt;equation&gt;N &lt;/equation&gt; = explicit_nonlocals)，被显式标记为global的符号( &lt;equation&gt;G&lt;/equation&gt;  = explicit globals)。&lt;/p&gt;&lt;p&gt;记取作用域 &lt;equation&gt;C&lt;/equation&gt; 的多个下层为 &lt;equation&gt;Children\; C&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;取作用域的上层为 &lt;equation&gt;Parent\; C&lt;/equation&gt; .&lt;/p&gt;&lt;p&gt;则&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\begin{align}  Local\; C  &amp;amp;=  \{ v \in Bound\; C  \;| \; v \not \in Cell\;C\}  \\  Cell\;C     &amp;amp;= \{ v   \in Bound \; C \; | v \in \cup_{C&#39; \in Children\; C} \;  Free \; C&#39; \} \\ Free\; C &amp;amp;=  N\; C \cup (\cup_{i \in Z^+} \{ v \in R \;C\cap Bound\;Parent^i  \;C \}) \\ Bound \; C &amp;amp;= \{ v \in E \; C \;|\; v  \not \in Global\; C, \; v \not \in N\; C \} \\ \end{align}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;计算时，先bound，再free, 后cell, 再local。&lt;/p&gt;&lt;p&gt;实现: &lt;a href=&quot;https://github.com/thautwarm/kizmi/blob/master/kizmi/extended_python/symbol_analyzer.py&quot;&gt;Yet Another Python Python&lt;/a&gt;&lt;/p&gt;&lt;p&gt;效果: (如下图)&lt;/p&gt;&lt;p&gt;用处: 实现原汁原味的Python时，可以预先计算好作用域符号表，将&lt;a href=&quot;https://github.com/python/cpython/blob/master/Python/symtable.c&quot;&gt;https://github.com/python/cpython/blob/master/Python/symtable.c&lt;/a&gt; 大幅简化。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6f74cd2c911b5cd4ee29df4234b7d55c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;933&quot; data-rawheight=&quot;776&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-6f74cd2c911b5cd4ee29df4234b7d55c&quot; data-watermark-src=&quot;v2-d45f5dbf97b19fa9a8180a005528987c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;注: 使用pending/future的策略可以不预先计算作用域表，但书写较为麻烦。实现如下:&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thautwarm/reley/blob/master/reley/impl/compiler.py&quot;&gt;Haskell like language in Python&lt;/a&gt;&lt;/p&gt;&lt;p&gt;思路:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;async def emit_stmt(...):
-    # 加载名字
-    await declared(...)
-    # 对内部结构进行编译
-    await compiled(...)
-    # 对作用域符号表进行修正
-    await resolved(...)
-    # 后续编译&lt;/code&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>头顶青天红美铃</author>
-<guid isPermaLink="false">2018-10-02-45835774</guid>
-<pubDate>Tue, 02 Oct 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>7天7paper</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-01-45815032.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45815032&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;各位国庆快乐！&lt;/p&gt;&lt;p&gt;好久都没写东西了，就随便找个借口写点东西吧。&lt;/p&gt;&lt;p&gt;既然国庆放七天，我就随手推荐七篇paper吧，在脑袋里面找出来的，以前可能推荐过，不要见怪。&lt;/p&gt;&lt;p&gt;Generic Deriving of Generic Traversals - 好中规中矩的paper，就是说‘我用generics搞出了scrap your boilerplate without runtime type checking’，没有任何novelty。不过数字好漂亮啊！&lt;/p&gt;&lt;p&gt;Generic Programming of All Kinds - 靠De Bruijn Index跟各种扩展把True Sum of Product搞上gadt/constrainted/rankn等等等等。几天前当 &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/2d8f51b6523e01a8529606f466d98198&quot; data-hash=&quot;2d8f51b6523e01a8529606f466d98198&quot; data-hovercard=&quot;p$b$2d8f51b6523e01a8529606f466d98198&quot;&gt;@Felis sapiens&lt;/a&gt; 到西雅图来玩的时候曾经问他‘True Sum of Product跟Scrap Your Boilerplate你选那个’，结果他竟然给我说GHC.Generic！原因是TSOP/SYB等难以搞上复杂一点的类型（GADT/RankN）。现在看到这篇paper，越来越觉得有道理 - 这搞是搞上去了，不过好复杂，说不定反而比Generic用起来更麻烦呢。&lt;/p&gt;&lt;p&gt;Demystifying Differentiable Programming: Shift/Reset the Penultimate Backpropagator - 这是The paper on AD。曾经想过，其实只有两种AD算法，forward跟reverse，其他的一切ad算法都只是这两的变种（numerical ad是forward，但是不用infinitesmall，改某个足够小的值，symbolic也是forward，但是没有cse，同理，把wengert list变成runtime datastructure就是higher order reverse mode），然后写个blog。结果发现，这不就是这篇paper吗。结果竟然被ICFP拒了，什么鬼。&lt;/p&gt;&lt;p&gt;Beautiful differentiation - 这篇paper提出了differentiation tower，一次求出无数个导，挺漂亮的。另外也是conal照常的猫论时间。&lt;/p&gt;&lt;p&gt;Lightweight Static Capabilities - 教你怎么在不玩type level programming的情况下实现某种意义上的dependent type。&lt;/p&gt;&lt;p&gt;Ghosts of Departed Proofs - 上面内篇paper的扩展，变得更general了&lt;/p&gt;&lt;p&gt;Haskell is not not ML - Wadler老爷子说过‘一个idea会被逻辑学家发明一遍，再被计算机科学家发明一遍’。这篇paper给我的感觉是SPJ挥舞着大锤子，在intuitionistic paraconsistent logic上敲了敲，然后duang的一声发现能用来unify strict&amp;amp;lazy language。以前看过para logic的时候，发现这是intuition的dual，但是在PL中完全没找到用途。。。现在竟然被找出来了，v587&lt;/p&gt;</description>
-<author>圆角骑士魔理沙</author>
-<guid isPermaLink="false">2018-10-01-45815032</guid>
-<pubDate>Mon, 01 Oct 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
