@@ -44,6 +44,7 @@ const feeds = [
 		"zju-lambda",
 		"impress-your-cat",
 		"yangbo",
+		"time-and-spirit-hut",
 		"rust-lang",
 	]],
 	["心理", [
