@@ -1,0 +1,26 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-7b12de27dd8aea4934d135fe2b74a52c_r.jpg" alt=""></div><blockquote>作者最近在一个精心设计的Rust crate中发现了0Day漏洞，在文章里他介绍了整个发现过程，以及为此工作创建了新的工具libdiffuzz。<br><br>原文  <a href="https://medium.com/@shnatsel/how-ive-found-vulnerability-in-a-popular-rust-crate-and-you-can-too-3db081a67fb">https://medium.com/@shnatsel/how-ive-found-vulnerability-in-a-popular-rust-crate-and-you-can-too-3db081a67fb</a> <br><br>本文不是翻译，只是对内容的基本总结，详细内容可以查看原文</blockquote><hr><p>作者主要是通过模糊测试来检测crate中的漏洞。有一个业界比较出名的工具叫 Address Sanitizer，它可以检测到各种错误，该工具也是cargo-fuzz默认使用的Sanitizer。但是Address Sanitizer无法接测到「读取未初始化内存」这种错误。这种错误有时候会导致很危险的漏洞，比如：通过浏览器里显示特定图像来获取用户cookie和密码，利用gif解码器的这种错误，读取浏览器内存中的数据。</p><p>有一种工具可以检测来自未初始化内存的读取，称为Memory Sanitizer，但它目前不适用于Rust标准库。所以作者实现了这样的工具：libdiffuzz（非Rust实现）。</p><p>作者只对内存泄漏的漏洞感兴趣，所以他只是实现了「从未初始化内存中读取，运行两次，比较结果」的简单测试。</p><code lang="rust">
+use std::vec;
+
+// Use the system allocator so we can substitute it with a custom one via LD_PRELOAD
+use std::alloc::System;
+#[global_allocator]
+static GLOBAL: System = System;
+
+/// Returns the sum of all values in a vector of uninitialized memory
+fn sum_uninitialized() -&gt; u64 {
+    let mut my_vec: Vec&lt;u64&gt; = Vec::with_capacity(2048);
+    unsafe {my_vec.set_len(2048);}
+    let mut sum = 0;
+    for element in my_vec {
+        sum += element;
+    }
+    sum
+}
+
+// The program will panic if the use of uninitialized memory is noticed.
+fn main() {
+    let first_run_result = sum_uninitialized();
+    let second_run_result = sum_uninitialized();
+    println!("Sum is {}", first_run_result);
+    assert!(first_run_result == second_run_result);
+}</code><p>作者制造了一个读取未初始化内存的案例，但是要让这个程序崩溃并不容易，因为未初始化的内存实际上包含的内容因所使用的内存分配器而异。作者通过一些额外的工具帮助下，才让该程序崩溃。</p><p>通过该测试来验证libdiffuzz的有效性之后，作者开始测试现实世界的crate。他选定的目标是Rust编写的FLAC解码器claxon，选择它的理由有几点：</p><ul><li>因为这种二进制解析一般是内存管理安全漏洞的典型代表。</li><li>每两千行代码包含8个unsafe</li><li>该库作者声称已经对其进行了广泛的模糊测试，这方便了进一步模糊测试</li><li>因为claxon使用了Rust标准库，所以没有人会在该库中寻找这种特殊的漏洞，因为唯一可以检测到它的就是Memory Sanitizer，它在Rust标准库下无法工作。</li></ul><p>作者用libdiffuzz进行检测，发现崩溃发生在断言语句上面。作者对此给claxon提交了[报告](<a href="https://github.com/ruuda/claxon/issues/10">Contents of uninitialized memory are leaked into the output on malformed inputs · Issue #10 · ruuda/claxon</a>)，并得到了修复。感兴趣的话可以进一步看看该issues，里面具体描述了Bug产生的原因。</p><p>所以，<b>如果你是一名安全人员，想以你自己的名字来发布一些零日漏洞</b>，那么就可以选择包含unsafe的crate，使用<code class="inline">mem::uninitialized</code> 或<code class="inline">vec.set_len</code>之类的方法，配合[libdiffuzz](<a href="https://github.com/Shnatsel/libdiffuzz">Shnatsel/libdiffuzz</a>)进行检测。应该会发现很多漏洞，因为还没有人去测试他们。</p><p><br></p><p><b>话说回来，为什么Rust没有阻止这种漏洞？</b></p><p><br></p><p>简单的回答是：因为这些开发者故意选择退出安全保障（使用了unsafe）。</p><p>但他们为什么选择退出？Claxon的作者是为了优化。</p><p>但实际上，Rust提供了一个安全初始化的手段，也能保证性能，比如 初始化MAX_LEN 大小的Vec，则可 <code class="inline"> vec![0; MAX_LEN]</code> ，使用0来初始化Vec，是安全初始化Vec的最快的方法，这和Claxon使用unsafe初始化Vec性能也没有太大差异，但是在标准库文档里其实没有提及此安全初始化的操作。当然作者也给Rust提交了[issues](<a href="https://github.com/rust-lang/rust/issues/54628">Fastest way to initialize a vector is not documented · Issue #54628 · rust-lang/rust</a>)来说明此问题。</p><p><br></p><p><b>结论：</b></p><p>写Rust crate，尤其是使用了unsafe，那么应该多学一项模糊测试的技能，来检测你代码中的漏洞。</p><p></p>

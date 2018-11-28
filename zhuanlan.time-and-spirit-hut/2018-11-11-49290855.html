@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NLL之后：移动借用数据和Sentinel模式</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/49290855">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-673ae4a4423497daf2c1a7722ebb76b1_r.jpg" alt=""></div><blockquote>Rust官方团队核心成员Niko，在思考Rust所有权未来进展，首先打算列出了当前所有权和借用系统的各种限制。<br>本文着重于阐述第二个限制：移动借用数据和Sentinel模式</blockquote><h2><b>问题：</b></h2><p>有的时候，对结构体进行&amp;mut访问时，需要获取其某些字段的所有权。通常的情况是，需要从某些字段中移出所有权，使用旧值构造一些东西，然后替换它。例如，这里有个简单链表：</p><code lang="rust">enum Chain {
+  Empty,
+  Link(Box&lt;Chain&gt;),
+}
+
+impl Chain {
+  fn with(next: Chain) -&gt; Chain {
+    Chain::Link(Box::new(next))
+  }
+}</code><p>假设现在还有一个结构体MyStruct，并且为Chain增加一个link。</p><code lang="rust">struct MyStruct {
+  counter: u32,
+  chain: Chain,
+}
+
+impl MyStruct {
+  fn add_link(&amp;mut self) {
+    self.chain = Chain::with(self.chain);
+  }
+}</code><p>当运行上面代码时，会出现错误：</p><code lang="rust">error[E0507]: cannot move out of borrowed content
+ --&gt; ex1.rs:7:30
+  |
+7 |     self.chain = Chain::with(self.chain);
+  |                              ^^^^ cannot move out of borrowed content</code><p>这里的问题是，我们需要拥有self.chain的所有权，但不行。此时我们只借用了self，因为add_link被声明为＆mut self。</p><p>作一个类比，就好像你从朋友那借了一套非常漂亮的乐高积木，你可以欣赏它。然后，当你构建自己的乐高积木时，你可能想从你朋友的积木里中取出一些零件将它们放入您的积木中。但你不能这样做 - 那些零件属于你的朋友，而不是你，这会使得他们的积木不完整。</p><p>回到代码里，如果这里获取到self.chain的所有权，就会存在恐慌的风险。实际上：</p><code lang="rust">self.chain = Chain::with(self.chain);</code><p>这行代码有三个步骤：</p><code lang="rust">let tmp0 = self.chain;        // 1. move `self.chain` out
+let tmp1 = Chain::with(tmp0); // 2. build new link
+self.chain = tmp1;            // 3. replace with `tmp2`</code><p>看得出来，如果上面第2步Chain::with函数发生了恐慌，将永远不会进入到第3步。这将会暴露未初始化内存（因为chain已经move了），并且如果发生在多线程环境中，其他线程也会看见这个漏洞。</p><p>用乐高继续类比：你从你朋友积木套装里取出一些零件之后，他的父母来了，让你们睡觉起来再玩，结果你们的父母在晚上就把乐高收走了，这就造成了漏洞。</p><p><b>这个问题有一个解决办法：Sentinel模式</b></p><p>这个解决办法就是利用std::mem::replace将一个临时值替换给要移动的字段。这个临时值叫做“哨兵”（Sentinel Value）。这样的话，即便Chain::with发生恐慌，也不会有未初始化内存暴露出来。</p><code lang="rust">let chain = std::mem::replace(&amp;mut self.chain, Chain::Empty);
+self.chain = Chain::with(chain);</code><p><b>一个鲁棒性更强的“哨兵”</b></p><p>现在编译器是高兴了，但是我们不高兴。</p><code lang="rust">impl MyStruct {
+  fn add_link(&amp;mut self) {
+    let chain = std::mem::replace(&amp;mut self.chain, Chain::Empty);
+    let new_chain = self.extend_chain(chain);
+    self.chain = new_chain;
+  }
+  
+  fn extend_chain(&amp;mut self, chain: Chain) -&gt; Chain {
+    for _ in 0 .. self.counter {
+      chain = Chain::with(chain);
+    }
+    chain
+  }
+}</code><p>这个Chain::Empty会引起协作者的心智负担，上述代码可以修改为：</p><code lang="rust">struct MyStruct {
+  counter: u32,
+  chain: Option&lt;Chain&gt;, // &lt;-- new
+}
+
+impl MyStruct {
+  fn add_link(&amp;mut self) {
+    // Equivalent to:
+    // let link = std::mem::replace(&amp;mut self.chain, None).unwrap();
+    let link = self.chain.take().unwrap();
+    self.chain = Some(Chain::with(self.chain));
+  }
+}</code><p><b>"哨兵"的替代方案：</b></p><p>使用第三方包<a href="https://github.com/Sgeo/take_mut">take_mut</a>。</p><code lang="rust">fn add_link(&amp;mut self) {
+  take_mut::take(&amp;mut self.chain, |chain| {
+      Chain::with(chain)
+  });
+}</code><p>take函数的工作机制如下：</p><ul><li>使用unsafe代码从self.chain中移出值，将未初始化的内存留在原地</li><li>将此值赋值给闭包，并执行Chain::with函数，返回一个新的Chain</li><li>将新的chain填补之前的未初始化内存</li></ul><p>但是，当Chain::with发生恐慌怎办呢？take_mut的解决办法是：中止整个进程。但Niko似乎并不推荐这个。</p><p><a href="http://smallcultfollowing.com/babysteps/blog/2018/11/10/after-nll-moving-from-borrowed-data-and-the-sentinel-pattern/">原文还有更多讨论</a>。 </p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

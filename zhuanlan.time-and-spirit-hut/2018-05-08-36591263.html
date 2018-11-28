@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>聊聊Rust的Affine Type</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/36591263">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-6fb34bcf5623bd55135871701a77caab_r.jpg" alt=""></div><blockquote>该文是对知乎相关问题的一个回答：[Rust 里的 Box 指针被称作 affine type，请问 affine type 是什么？](<a href="https://www.zhihu.com/question/28702292/answer/386468443">知乎用户：Rust 里的 Box 指针被称作 affine type，请问 affine type 是什么？</a>)</blockquote><hr><p>提出问题的人看的是Rust Book第一版，客观来说，这本书内容组织上比较混乱。</p><p><br></p><p>就拿这个问题来说，这里提到Box是一种affine type，其实它应该在讲所有权的时候就应该先解释一下，但它并没有。</p><p><br></p><p>然后放到Box章节突然多了一个affine type，让人云里雾里。其实他想说的意思是：</p><p><br></p><p><b>「Box&lt;T&gt;是独占所有权的」 </b></p><hr><p><br></p><p>话说回来，affine type属于类型理论中子结构类型系统（Substructural Type Systems）的概念。子结构类型系统又是子结构逻辑（Substructural Logic）在类型系统的应用。而子结构逻辑是属于证明理论里的推理规则，其规则包含：</p><ul><li> 线性逻辑（Linear Logic）</li><li> 仿射逻辑（Affine Logic）</li><li> 其他</li></ul><p>子结构逻辑规则，用于推理。它的特点是不需要具体的逻辑符号，光靠结构来推理相关逻辑（大白话解释）。</p><blockquote>（感谢 <a class="member_mention" href="https://www.zhihu.com/people/0251012c87c2d3f56ac34de7d71cdcbc" data-hash="0251012c87c2d3f56ac34de7d71cdcbc" data-hovercard="p$b$0251012c87c2d3f56ac34de7d71cdcbc">@圆角骑士魔理沙</a> 的补充： 还是要符号的，substructural type system的特点是掉了一些structural rule，换句话说这些符号跟natrual deduction的不同，不能任意复制swap掉下之类的）</blockquote><p>怎么理解？</p><ul><li>线性逻辑表示，如果某个变量符合某种特定的“结构”，它就内含一种规则：必须且只能使用一次。</li><li>仿射逻辑和线性逻辑是类似的，但它的规则是，最多使用一次，也就是说，可以使用0次或1次。看上去线性逻辑更严格一些。</li></ul><p>所以，对应类型系统那就是：</p><ul><li>线性类型（Linear Type）</li><li>仿射类型（Affine Type）</li></ul><p>而Rust作为现代编程语言，主打内存安全，众所周知的就是它的所有权机制。它利用类型系统来完成这一目标。</p><p>来看一个示例：</p><p><br></p><code lang="rust">fn main(){
+    let a = Box::new("hello");
+    let b = a;
+    //    println!("{:?}", a);  // a 已经被move，这里无法再次使用
+}</code><p><br></p><p>以上例子，变量a独占所有权，所以在<code class="inline">let b = a</code>执行完以后，a的所有权就会转移给b，再次使用变量a的话，就会报错。 </p><p>利用仿射类型，Rust实现了所有权机制，在需要move的时候自动move，维护了内存安全。</p><p><br></p><p>参考资料：</p><p><br></p><p>如果想研究子结构逻辑可以看这个（不知道你能不能看懂，我反正是看不懂）：[子结构逻辑pdf](<a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.183.9741&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.183.9741&amp;rep=rep1&amp;type=pdf</a>)</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

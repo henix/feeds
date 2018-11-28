@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>「杂谈」异常处理 vs 错误处理</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/48200804">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-6882d268ba1347151f5d01dcc7bb7f2d_r.jpg" alt=""></div><blockquote>搬运一个今天写的答案：<a href="https://www.zhihu.com/question/300635800/answer/522618349">知乎用户：Try/catch Vs 返回错误类型 这俩种异常处理的方式各有什么优缺点？</a> </blockquote><p><b>返回错误类型</b>，这种错误处理机制其实最早是<b>C语言</b>就有了。</p><p>因为C语言缺乏高级语言的异常处理机制，所以只能用返回值、goto、setjump、assert等方式来处理程序中的错误。这种方式的优点就是非常灵活。</p><p>但缺点更多。在C语言里，使用返回值等方式来处理错误，实际上很容易变成Bug的温床，因为没有强制性的检查，很容易被开发者疏忽。另外，可读性非常差，处理错误的代码和正常代码交织在一起，陷入「错误地狱」。</p><p>随着<b>C++、java</b>等语言发展，才引入了<b>异常处理机制</b>，我们才看到Try/Catch这种用法。利用stack unwind机制来自动处理异常，解放了开发者。优点是，它是全局且独立的，不需要所有函数都考虑捕获异常。并且用专门的异常处理语法将正常逻辑和异常处理隔离开来。但异常处理其实并不完美。</p><p>异常处理的开销是很大的，尤其是throw的时候。另外异常处理包含的信息太多，对于开发者来说，如何优雅地处理异常，是另外一个难题了。</p><p><b>其实在实际开发中，错误是可以分为以下三类的：</b></p><ul><li>失败</li><li>错误</li><li>异常</li></ul><p><b>失败</b>，是指违反契约的情况。比如函数参数需要的是字符串，你传入了数字类型，这是一种违反契约的情况。</p><p><b>错误</b>，一般是在意料中可能出现问题的地方出现了问题。比如http链接超时，访问了不存在的文件等。这些错误其实是开发者可以处理的。</p><p>但是在那些异常处理语言中，把失败和错误，都归到了异常中，粒度非常粗。</p><p><b>真正的异常</b>，是指完全不可预料的问题。比如NullError，访问了越界的数组等等，基本是开发者无法处理的情况。</p><p><b>Go语言</b>诞生以后，把错误和异常做了区分。错误用返回值的方式进行处理，并且加了err检查，这带来一定的安全性。异常，叫做恐慌（panic）。但它的错误处理方式其实并不优雅。</p><p>其实最优雅的返回值错误处理是函数式语言<b>Haskell</b>。Haskell中的Maybe是一种和类型，将失败和成功复合为一种类型来处理，可以处理失败的情况。而Either这种和类型，可以处理错误和成功的情况。然而haskell在处理I/O的时候，也是传统的异常处理机制，这一块分离的不太干净。</p><p><b>Rust语言在这方面则做的非常精致。</b></p><ul><li>处理失败：Option&lt;T&gt;，丰富的断言宏，显式类型的函数签名，编译器内置的各种检查</li><li>处理错误： Result&lt;T, E&gt;, Error trait，各种组合子方法方便传播错误。最关键的是，即便是IO处理，也是这种纯错误处理方式，而非异常。</li><li>恐慌：发生恐慌线程即崩溃。比如内存用尽这种情况。也提供了catch_unwind的方法来捕获恐慌，恢复线程，但是为了内存安全，只有实现了UnwindSafe的类型才能安全catch。在Safe Rust中基本可以保证异常安全，但是unsafe rust中则需要开发者来保证。即便如此，unsafe rust中也有种种限制不会随便暴露内存。</li></ul><p>可以说，Rust语言在考虑性能的同时，在健壮性的支持上也做的非常到位。即便现在Rust也引入了try语法，那也是建立在错误处理层面上的try，也许是为了消除来自「异常处理语言」初学者的心智负担吧。</p><p>以上，如若不足或有误，欢迎指正，共同进步。</p><p></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

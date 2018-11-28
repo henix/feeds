@@ -1,0 +1,101 @@
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-64fb214a8dc8e0cc95419f6bbe4105e0_r.jpg" alt=""></div><blockquote>原文：<a href="http://smallcultfollowing.com/babysteps/blog/2018/11/01/after-nll-interprocedural-conflicts/">After NLL: Interprocedural conflicts</a> <br>本文为摘要 </blockquote><hr><p>Rust官方团队核心成员Niko，在思考Rust所有权未来进展，首先打算列出了当前所有权和借用系统的各种限制。</p><p>本文着重于阐述第一个限制：<b>函数间冲突</b>。</p><h2><b>问题：</b></h2><p>经常会有一个包含很多字段的大结构体，并非所有字段都被所有方法使用到。</p><code lang="rust">use std::sync::mpsc::Sender;
+
+struct MyStruct {
+  widgets: Vec&lt;MyWidget&gt;,
+  counter: usize,
+  listener: Sender&lt;()&gt;,
+}
+
+struct MyWidget { .. }</code><p>假如有一个increment方法，用来在每次发生事件的时候计数，并且给listener发送消息。</p><code lang="rust">impl MyStruct {
+  fn signal_event(&amp;mut self) {
+    self.counter += 1;
+    self.listener.send(()).unwrap();
+  }
+}</code><p>当我们同时使用MyStruct的某些其他字段时，尝试调用此方法就会出现问题。</p><code lang="rust">impl MyStruct {
+  fn check_widgets(&amp;mut self) {
+    for widget in &amp;self.widgets {
+      if widget.check() {
+        self.signal_event();
+      }
+    }
+  }
+}</code><p>假设我们现在要检查widget，这个过程可能会产生计数事件。可惜，这段代码会产生编译错误：</p><code lang="rust">error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable
+  --&gt; src/main.rs:26:17
+     |
+  24 |         for widget in &amp;self.widgets {
+     |                       -------------
+     |                       |
+     |                       immutable borrow occurs here
+     |                       immutable borrow used here, in later iteration of loop
+  25 |             if widget.check() {
+  26 |                 self.signal_event();
+     |                 ^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here</code><p>错误消息试图在告诉你：</p><ul><li>循环中正在借用self.widgets</li><li>然后，访问self.signal_event，而signal_event有可能改变当前正在迭代的widget。</li></ul><p>虽然开发者知道这里不会修改到widget的widget字段，但是编译器不知道。</p><h2><b>如何解决？</b></h2><code lang="rust">impl MyStruct {
+  fn check_widgets(&amp;mut self) {
+    for widget in &amp;self.widgets {
+      if widget.check() {
+        // Inline `self.signal_event()`:
+        self.counter += 1;
+        self.listener.send(()).unwrap();
+      }
+    }
+  }
+}</code><p>就是把signal_event方法再搬过来。但是现在已经违反了DRY（Don't repeat yourself）原则。</p><h2><b>如何改进？</b></h2><code lang="rust">struct EventSignal {
+  counter: usize,
+  listener: Sender&lt;()&gt;,
+}
+
+impl EventSignal {
+  fn signal_event(&amp;mut self) {
+    self.counter += 1;
+    self.listener.send(()).unwrap();
+  }
+}</code><p>提取一个独立的结构体EventSignal，并为其实现signal_event方法。然后修改MyStruct：</p><code lang="rust">struct MyStruct {
+  widgets: Vec&lt;MyWidget&gt;,
+  signal: EventSignal,
+}
+
+impl MyStruct {
+  fn check_widgets(&amp;mut self) {
+    for widget in &amp;mut self.widgets {
+      if widget.update() {
+        self.signal.signal_event(); // &lt;-- Changed
+      }
+    }
+  }
+}</code><p><b><a href="https://play.rust-lang.org/?version=beta&amp;mode=debug&amp;edition=2018&amp;gist=6512551bf58cd66917895a588f3643dc">完整代码</a></b></p><p>将大的结构体分解为小结构体，有时候可能会使代码更加清晰。但也有问题。比如会使代码变得冗长，以及这种方法有时候也不那么凑效。比如MyStruct中有可能出现一个方法，既使用count又使用widget。</p><h2><b>另外一种解决方案是使用自由函数。</b></h2><code lang="text">fn signal_event（counter：＆mut usize，listener：＆Sender &lt;（）&gt;）{
+  * counter + = 1;
+  listener.send(()).unwrap();
+}</code><p>比如将signal_event函数变为独立函数，而不是方法，就可以避免使用&amp;mut self。但这种方法有点极端。</p><h2><b>也可以定义一种视图结构来解决问题，但同样是比较极端的方案：</b></h2><code lang="text">struct CheckWidgetsView&lt;'me&gt; {
+  widgets: &amp;'me Vec&lt;MyWidget&gt;,
+  counter: &amp;'me mut usize,
+  listener: &amp;'me mut Sender&lt;()&gt;,
+}
+
+impl&lt;'me&gt; CheckWidgetsView&lt;'me&gt;  {
+  fn signal_event(&amp;mut self) {
+    *self.counter += 1;
+    self.listener.send(()).unwrap();
+  }
+
+  fn check_widgets(&amp;mut self) {
+    for widget in &amp;self.widgets {
+      if widget.check() {
+        self.signal_event();
+      }
+    }
+  }
+}</code><p>这里的魔法是，CheckWidgetsView已经把调用所需要的借用包含了。所以在check_widgets的时候，不会相互影响。</p><h2><b>实际上，经常出现此类问题的地方是闭包。因为闭包是要捕获变量。</b></h2><code lang="text">fn check_widgets(&amp;mut self) {
+  // Make a closure that uses `self.counter`
+  // and `self.listener`; but it will actually
+  // capture all of `self`.
+  let signal_event = || {
+    self.counter += 1;
+    self.listener.send(()).unwrap();
+  };
+
+  for widget in &amp;self.widgets {
+    if widget.check() {
+      signal_event();
+    }
+  }
+}</code><p>上面的闭包signal_event虽然指定了具体的字段，但依旧会捕获整个self。现在Rust已经接受了<a href="https://github.com/rust-lang/rfcs/pull/2229">RFC 2229</a>来解决这个问题。</p><p>需要扩展语言本身来解决此问题，但当前还在讨论中。可以关注这个讨论贴：<a href="https://users.rust-lang.org/t/blog-post-series-after-nll-whats-next-for-borrowing-and-lifetimes/21864">After NLL – what’s next for borrowing and lifetimes?</a></p><p></p>

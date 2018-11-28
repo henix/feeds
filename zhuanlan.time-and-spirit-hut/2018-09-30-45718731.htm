@@ -1,0 +1,68 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-10c6913d0bc44f08fed6d57e31af7e30_r.jpg" alt=""></div><blockquote>前言：<br>从2018年开始，我每天会花1个小时关注Rust社区动态，并且在<a href="https://link.zhihu.com/?target=http%3A//rust.cc">http://rust.cc</a>论坛、<a href="https://link.zhihu.com/?target=https%3A//t.me/rust_daily_news">tg channel</a>、<a href="https://link.zhihu.com/?target=https%3A//steemit.com/%40blackanger">Steemit</a>、GitHub都开通了Rust每日新闻，分享我每天的见闻，偶尔也夹杂了一些个人的观点。半年过去了，Rust每日新闻已经成为了Rust社区群大家每天必看的内容。今天突然想到，在这个知乎专栏里，每周精选几篇Rust社区中的动态，和大家分享。分享的内容就不按时间排序了。<br><i>2018-09-30</i></blockquote><h2><b>官方新闻</b></h2><p><b>Rust 1.29.1 发布</b></p><code lang="text">$ rustup update stable</code><p>修复了<code class="inline">str::repeat</code>那个安全问题</p><p><a href="https://blog.rust-lang.org/2018/09/25/Rust-1.29.1.html">原文</a></p><p><b>rustwasm项目组js-sys 绑定全局JS接口的工作已经完成了</b></p><p><a href="https://github.com/rustwasm/wasm-bindgen/issues/275#issuecomment-422993593">issues done</a></p><p><b>wasm-pack 大版本发布</b></p><p>wasm-pack 0.5版本发布，这是迄今为止发布的最大的一个版本。截止今天，终于有了一套Rust和WebAssembly梦寐以求的工作流程。</p><p>简要：</p><ul><li>拥有了<a href="https://rustwasm.github.io/wasm-pack/">独立网站</a>，包含了在线的文档</li><li>支持js模块</li><li>0.5版本已经将wasm-pack打造成一个集成构建工具，引入了新的命令<code class="inline">wasm-pack init</code> 、<code class="inline">wasm-pack test</code>和<code class="inline">wasm-pack publish</code></li></ul><p>还有其他很多新的功能，详细请看<a href="https://github.com/rustwasm/wasm-pack/blob/master/CHANGELOG.md">Changelog </a></p><p><a href="https://rustwasm.github.io/2018/09/24/the-biggest-wasm-pack-release-yet.html">原文</a></p><p><b>官方通告：web-sys crate发布</b></p><p>web-sys是对所有Web API的绑定，包括：</p><ul><li>dom操作</li><li>WebGL</li><li>Web Audio</li><li>定时器</li><li>fetch</li><li>等等</li></ul><p>未来还会支持WebAssembly的Host Binding，解锁dom操作的性能</p><p>另外js-sys功能也100%完成了，它是对所有ECMAScript API的原生绑定，与web-sys不同的是，js-sys是手工编写，而非WebIDL。</p><p>原文里还包含了两个demo</p><p><a href="https://rustwasm.github.io/2018/09/26/announcing-web-sys.html">原文</a></p><p><b>Niko办公时间：循环服务</b></p><p>讨论了一个经典的问题：Rust如何处理循环数据？ 答案是，不需要循环。</p><p>当使用带有GC的语言，比如js，可以这么写：</p><code lang="rust">function setup() {
+  var directory = {};
+  var service1 = new Service1(directory);
+  var service2 = new Service2(directory);
+  return directory;
+}
+
+function Service1(directory) {
+  self.directory = directory;
+  directory.service1 = self;
+  ...
+}
+
+function Service2(directory) {
+  self.directory = directory;
+  directory.service2 = self;
+  ...
+}</code><p>希望有多个服务，并且可以彼此通信，通过创建directory来存储这些服务对象。directory里存储的对象都可以互相访问。</p><p>但是将此代码修改为Rust时，就会陷入困惑：</p><code lang="rust">struct Directory {
+    service1: Option&lt;Service1&gt;,
+    service2: Option&lt;Service2&gt;,
+}</code><p>创建Directory时，Service还不存在，所以使用Option。但是初始化directory之后，Service就永远不可能为None。最大的问题是，该如何管理内存？因为Service1有可能会引用到Service2。</p><p>使用Arc或原子类型和锁，可以改善，但还不是最好的办法。</p><code lang="rust">#[derive(Clone)]
+struct Directory {
+  service1: Sender&lt;Message1&gt;,
+  service2: Sender&lt;Message2&gt;,
+}
+
+/// Whatever kind of message service1 expects.
+struct Message1 { .. }
+
+/// Whatever kind of message service2 expects.
+struct Message2 { .. }</code><p>可以使用<code class="inline">Sender&lt;Message&gt;</code>类型来解耦，不要通过共享内存来通信，要通过通信来共享内存。</p><p>Sender是指Channel中的Sender，利用Channel来实现一个Actor模型，每个service就是一个Actor，Actor之间通过发送消息来相互调用。</p><p>Niko使用std::sync::channel来演示这种思想，然后使用Arc、Mutex和ConVar实现了一个简单的自定义Channel。</p><p><a href="https://play.rust-lang.org/?gist=9fc3d90b50e8af1470a0d488fb3993b9&amp;version=stable&amp;mode=debug&amp;edition=2015">完整代码</a></p><p><a href="http://smallcultfollowing.com/babysteps/blog/2018/09/24/office-hours-1-cyclic-services/">原文</a></p><p><b>嵌入式工作组报告 12</b></p><p>简要：</p><ul><li>users.rust-lang.org 论坛现在加入了Embedded 分类</li><li>可以使用Rust的1.30-beta版本在stable上构建嵌入式二进制文件</li><li>eeprom24x crate发布，用于EEPROM存储芯片的嵌入式兼容驱动器</li><li>Trangar 基于 他自己用<a href="https://github.com/Trangar/artnet_protocol">Rust实现的ArtNet协议</a>，控制了56个照明设备</li><li>还有很多基于embedded-hal实现的驱动发布</li></ul><p><a href="https://rust-embedded.github.io/blog/2018-09-25-newsletter-12/">原文</a></p><hr><h2><b>社区新闻</b></h2><p><b>「长文预警」Solana 、Zcash 和Parity 三家会面讨论为什么Rust适合区块链开发</b></p><ul><li><a href="https://github.com/solana-labs">Solana</a>是一种高性能区块链</li><li><a href="https://github.com/zcash/">Zcash</a>是一种加密货币</li><li><a href="https://github.com/paritytech/">Parity</a>是一个核心的区块链基础公司，以太坊相关</li></ul><p>文章里包含了视频，以及视频的文字实录。</p><p>有空我把它翻译出来。</p><p><a href="https://medium.com/solana-labs/solana-at-portland-dev-meetup-72e4dc7ad32c">原文</a></p><p><b>使用Runner来运行小的Rust代码片段</b></p><code lang="rust">$ cat print.rs
+println!("Hello, World!");
+$ runner print.rs
+Hello, World!</code><p>runner对代码片段默认会有main函数包装：</p><code lang="rust">// file.rs
+let mut f = File::open("file.rs")?;
+let mut buf = String::new();
+f.read_to_string(&amp;mut buf)?;
+println!("{}",buf);</code><p>还可以直接运行代码：</p><code lang="text">$ runner -i "(0..4).map(|n| 2*n)"
+0
+2
+4
+6</code><p>总之，就像是一个方便的终端版的playground</p><p><a href="https://github.com/stevedonovan/runner">runner</a></p><p><a href="https://stevedonovan.github.io/rustifications/2018/09/23/runner.html">原文</a></p><p><b>Newsboat准备用Rust重写</b></p><p>Newsboat是一个C++实现的RSS/Atom feed 阅读器，目前作者有用Rust重写的计划</p><p>感兴趣的可以关注下，应该有学习价值</p><p><a href="https://github.com/newsboat/newsboat/issues/286">原文</a></p><p><b>Rust实现的eBPF工具包发布</b></p><p>BPF 的全称是 Berkeley Packet Filter，顾名思义，这是一个用于过滤(filter)网络报文(packet)的架构。</p><p>extended BPF(eBPF)，源于 BPF 的全新设计。一方面，它已经为内核追踪(Kernel Tracing)、应用性能调优/监控、流控(Traffic Control)等领域带来了激动人心的变革；另一方面，在接口的设计以及易用性上，eBPF 也有了较大的改进。</p><p><a href="https://github.com/redsift/redbpf">redbpf</a></p><p><a href="https://github.com/redsift/ingraind">ingraind</a></p><p><b>用Rust解决加密挑战</b></p><p><a href="https://cryptopals.com/">加密挑战 </a></p><p><a href="https://github.com/aopicier/cryptopals-rust">cryptopals-rust</a></p><p><b>Tower Web 0.3 发布</b></p><p>支持async/await和 Handlebars模板渲染</p><code lang="rust">struct MyResource;
+
+impl_web! {
+    impl MyResource {
+        #[get("/")]
+        async fn index(&amp;self) -&gt; String {
+            let data = await!(load_data());
+            format!("Data = {}", data)
+        }
+    }
+}</code><p>Tower Web当然还要准备和Warp合并，但在合并之前，作者希望达到一个完成度比较高的抽象。</p><p><a href="https://medium.com/@carllerche/tower-web-0-3-async-await-and-template-support-e0bb8ed47941">原文</a></p><p><b>「专业提示」在使用cargo fmt/rustfmt的时候请使用rustfmt.toml 文件</b></p><p>这样方便与别人协作，直接使用你的配置。即便你使用的是rustfmt默认的配置，也需要放一个空的rustfmt.toml文件，它表示你是希望跟你协作的人也使用rustfmt。</p><p>大家怎么看？ 我觉得有道理。</p><p><a href="https://www.reddit.com/r/rust/comments/9jl6a9/pro_tip_if_you_use_cargo_fmtrustfmt_use_a/">原文</a></p><hr><h2><b>博文与库</b></h2><p><b>如何在流行的Rust Crate中发现漏洞</b></p><p><a href="https://zhuanlan.zhihu.com/p/45647326">知乎专栏</a></p><p><b>C和Rust的相对性能</b></p><p>「谎话跑得飞快，真相在后面蹒跚而行（falsehood flies, and the truth comes limping after it）」</p><p>作者用这句话来描述基准测试，原因有二：</p><ul><li>难以量化系统的性能</li><li>即使获得了正确的结果，实际上也是在系统上下文是正确的</li></ul><p>所以作者此文并不是另一个基准测试。</p><p>测试结果简要概括：</p><blockquote>CPU L1 缓存命中率 ： Rust 96.9％， C 77.9％， L2缓存Rust表现也比较稳定，但C就不行了</blockquote><p>作者又进一步探索了，到底是Rust语言的优势，还是数据结构的优势？</p><p>结论：</p><ul><li>Rust的基础数据结构表现非常好，测试结果的差异大部分是数据结构的差异。</li><li>但因为Rust的所有权机制，迫使开发者不得不仔细优化这些数据结构的实现</li></ul><p>Rust是强大的抽象又不损失性能，这并不意味着Rust总是能胜过C，但是你可以通过这篇文章，对Rust有一个正确的看待了。</p><p><a href="http://dtrace.org/blogs/bmc/2018/09/28/the-relative-performance-of-c-and-rust/">原文 </a></p><p>[延伸阅读 ](Rust中BTreeMap实现机制 <a href="http://cglab.ca/~abeinges/blah/rust-btree-case/">http://cglab.ca/~abeinges/blah/rust-btree-case/</a>)</p><p><b>ABA问题和并发回收</b></p><p>编写无锁数据结构就会出现ABA问题。比如在编写无锁栈的时候：</p><ol><li>栈里包含A和B</li><li>线程M开始pop操作</li><li>线程M 加载 A = top.load()</li><li>线程M 检查 A ==Null</li><li>线程M 测试为false，解引用 B = (* A).next</li><li>线程M被暂停</li><li>线程M弹出堆栈</li><li>线程M释放A</li><li>线程M分配指针C</li><li>线程N push C</li><li>线程N分配指针，并且分配器重用A指针</li><li>线程N push A</li><li>堆栈现在是A/ C/ B</li><li>线程N被挂起并且线程M恢复</li><li>使top.compare_and_swap(A, B)成功</li><li>现在堆栈B和C被泄漏</li></ol><p>前 1 - 13步，实际上在栈顶的A值已经发生过了变化。但是到第15步进行CAS操作的时候，将A值换为B，CAS操作没有分辨出A值实际上已经不是之前的A。所以就发生了ABA问题。</p><p>ABA问题的本质是内存回收。对于上面的问题，A被弹出以后，就不应该被释放，因为还有B在用着它，也不能被线程N 重用。</p><p>所以一般使用 险象指针（hazard pointers，HP）来阻止释放还被其他线程使用的指针。 将来crossbeam-epoch也打算支持险象指针。</p><p>所以作者基于这种思想实现了一个crate： <a href="https://docs.rs/lockfree/0.2.0/lockfree/">lockfree</a></p><p>该库提供了一些无锁数据结构，以及提供API为每个线程都增加一个删除队列，解决ABA问题</p><p><a href="https://bzim.gitlab.io/blog/posts/incinerator-the-aba-problem-and-concurrent-reclamation.html">原文</a></p><p><b>Rust 移动开发</b></p><p>该教程是在iOS上面使用Rust构建应用教程，这个系列应该还会包含安卓，可以关注一下</p><p><a href="https://github.com/mtak-/rust-on-mobile/blob/master/examples/ios/example01.md">原文</a></p><p><b>nalgebra-glm发布</b></p><p>GLM（OpenGL Math）是一个流行的线性代数库，主要聚焦于计算机图形。nalgebra-glm从GLM中汲取灵感，为简单的图形应用定义了一个简单易用的API。</p><p><a href="https://www.patreon.com/posts/21589538">原文</a></p><p><b>一个Rust REPL实现</b></p><p>还包含了一个jupyter 的内核来支持Rust</p><p>在Google的仓库里，但不知道算不算Google的项目</p><p><a href="https://github.com/google/evcxr">evcxr</a></p><p><a href="https://github.com/google/evcxr/blob/master/evcxr_jupyter/samples/evcxr_jupyter_tour.ipynb">指南</a></p><p><a href="https://github.com/SerialDev/evcxr-mode">emacs支持</a></p><p><b>理解编译器「入门向」</b></p><p>主要是对Rust编译器工作机制的概要介绍</p><p><a href="https://towardsdatascience.com/understanding-compilers-for-humans-version-2-157f0edb02dd">原文</a></p><p><b>Concepts: C++下一个重大变化</b></p><p>感觉有点像Rust的 trait</p><p>预计C++20里可用</p><p><a href="https://www.inversepalindrome.com/blog/2018/9/26/concepts">原文</a></p><p><b>新库：debug-here</b></p><p>是一个rust-gdb的hook，提供了一个宏，可以帮助开发者快速使用GDB进行调试。所以只支持Linux</p><code lang="rust">#[macro_use] extern crate debug_here;
+
+fn factorial(n: usize) -&gt; usize {
+    let mut res = 1;
+    debug_here!();
+    for i in 0..n {
+        res *= i;
+    }
+    res
+}
+
+fn main() {
+    println!("The factorial of 5 is {}!", factorial(5));
+}
+debug_me::factorial (n=5) at debug-me/src/main.rs:6
+6           for i in 0..n {
+(gdb)</code><p><a href="https://github.com/ethanpailes/debug-here">debug-here</a></p><p><b>「油管」 某线下meetup 视频 ： Python和Rust在生产环境的集成</b></p><p><a href="https://www.youtube.com/watch?v=IJBmqPzE6qY">视频</a></p><p><b>Rust实现的进程查看器</b></p><p>基于gtk-rs，跨平台</p><p><a href="https://github.com/GuillaumeGomez/process-viewer">process-viewer</a></p><p><b>提供格式化表格打印的库</b></p><p><a href="https://github.com/phsym/prettytable-rs">prettytable-rs</a></p><p><b>GitHub趋势榜本周新上榜项目</b></p><ul><li><a href="https://github.com/Cigna/TAP-Rust">TAP-Rust</a>， Test Anything Protocol (TAP) 的Rust实现</li><li><a href="https://github.com/rust-lang-nursery/packed_simd">packed_simd</a>，是对此<a href="https://github.com/rust-lang/rfcs/pull/2366">RFC</a>的实现，可移植的打包SIMD矢量类型</li></ul><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p>

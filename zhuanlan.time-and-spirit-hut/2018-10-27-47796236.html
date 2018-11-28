@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>一个使用Rust节约成本的小故事</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/47796236">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-8c0ac61534efdc427886819da30f95f7_r.jpg" alt=""></div><blockquote>—— 使用Rust将解析日志的速度提高了230倍</blockquote><p>该文章是《The Ruby Way》的作者[André Arko](<a href="https://github.com/indirect"> · GitHub</a>)写的，同时他也是Ruby包管理器Bunlder的No.1贡献者，以及Rubygems.org的维护者。</p><p>所以，他在维护Rubygems.org的过程中，遇到最让他头疼的事情就是对日志的处理。Rubygems每秒有4000到25000个请求，磁盘每天可以产生500GiB的日志。他们尝试了一些日志的托管产品，但是这些产品也只能为他们保留1个小时以内的日志数据。</p><p>大概一年前，他把完整的日志进行了压缩，放到了s3上面，存储成本大概是每个月3.5美刀。但是有很多他感兴趣的统计数据被「埋葬」在了S3上面。因为S3的gzipped JSON流很难查询数据。这些统计数据有利于提供Ruby生态系统状态的重要信息。</p><p>后来利用aws的Glue功能，可以运行基于spark脚本的hadoop集群，他写了一个统计脚本，但是费用上升到了每月1000刀。</p><p>后来，也不知道是什么原因，让他想到了Rust。</p><p>事实证明，Rust满足了他的需求。 Serde Json库，让他可以在2秒内将1GB的JSON反序列化为Rust数据类型。并且使用nom来解析日志，可以在3分钟内解析1GB的日志文件，作者说，用Python和Glue在30分钟内解析完日志，他就觉得了不起了。</p><p>但是作者又仔细阅读了nom的文档，发现了一句「有时候，nom几乎和regex一样快」，这句话给了他灵感，他又用regex重写了解析代码，性能又提高了3倍。至少比spark中使用python解析快30倍。但是他把这个Rust程序的性能又多牛逼的事情告诉 @ReinH （他的朋友，Rust的贡献者之一，比他更了解Rust）的时候，ReinH说，怎么这么慢？你这个程序必须得优化。</p><p>他不清楚他的朋友是不是跟他开玩笑，但是他继续对Rust进行研究，然后他发现了`—release`模式，在使用release模式编译代码之后，突然发现：他可以在8秒内把1GB的文件解析完。以下是处理速度的一个对比记录：</p><code lang="text"> ~525 records/second/cpu in Python on AWS Glue
+ 50,534 records/second/cpu in Rust with nom
+121,153 records/second/cpu in Rust with regex + release</code><p>但他没满足，继续使用rayon对程序并行化处理日志，最终的程序，在8核机器上快了100倍，在单核上跑，快230倍。现在的1GB的日志文件处理需要6.4s。</p><code lang="text">151,441 records/second/cpu in Rust with regex + release+ rayon</code><p>最后如何部署是个问题</p><p>他尝试了一些方案之后，最后发现了aws Lambda，它有一个免费策略：每个月400,000s。而作者处理500GB日志，只需要3000多s。于是他就快乐地使用了aws Lambda功能。</p><p>源码 : [kirby](<a href="https://github.com/rubytogether/kirby">rubytogether/kirby</a>)</p><p>[Read More](<a href="https://andre.arko.net/2018/10/25/parsing-logs-230x-faster-with-rust/">Parsing logs 230x faster with Rust</a>)</p><hr><p>Rust每日新闻订阅地址：</p><p>- [Telgram Channel](<a href="https://t.me/rust_daily_news">https://t.me/rust_daily_news</a> )</p><p>- [阿里云语雀订阅](<a href="https://www.yuque.com/chaosbot/rustnews">Rust每日新闻 · 语雀</a>)</p><p>- [Stemmit](<a href="https://steemit.com/@blackanger">Steemit</a>)</p><p>- [Rust.cc论坛](<a href="https://rust.cc/">Rust语言中文社区-首页</a>)</p><p>- [GitHub](<a href="https://github.com/RustStudy/rust_daily_news">RustStudy/rust_daily_news</a>)</p><p>欢迎通过GitHub issues投稿。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

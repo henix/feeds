@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust: 安全守护者</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/32406786">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-872dd4bd3ad748d54aba0d23bca31e96_r.jpg" alt=""></div><blockquote>旧文首发</blockquote><p><br></p><p>当今互联网大部分安全漏洞都是和C/C++语言的缓冲区溢出相关，相关数据，翻阅一下CIA黑客工具集就可知晓。C/C++语言发展了这么多年，为什么很难解决这个问题？究其本质，还是因为C/C++是内存不安全的语言。其实抱怨语言是很无聊的事情，语言是无辜的，有人的地方就有Bug。直到Rust语言的出现，这类安全问题也许会被从根源上彻底扼杀。Rust一大特色就是其编译器，在编译阶段就可以发现很多问题，比如数组越界、内存未初始化、使用和类型来避免空指针等。而这一切都是基于Rust中提供的所有权机制。Rust的一大目标就是要保证内存安全，而这个目标，正是C/C++语言的缺陷。其实Rust本无意和其他语言竞争，只不过它的特性正好挠到了C/C++的痛处。</p><p>此时的我，脑中不免想起这样一个问题：“假如上世纪70年代，是Rust语言而不是C语言被发明出来，那这个世界上的漏洞会不会减少几个数量级？”</p><p>这个问题的答案也许不难回答。上个世纪70年代，CPU比现在慢了好几个数量级，如果那个时候是Rust语言，想必那个时候的程序员会想尽一切办法来阻止Rust提供的安全检查，因为他们更需要的是性能。时代不同，需求不同。所以，就算Rust始于70年代，也不会对漏洞的数量造成任何影响。其实人们开始关注系统漏洞是从上世纪90年代才开始的，因为此时才有了网络，随着网络的高度发展，安全性也越来越受重视。C/C++的缺陷也随着时代的变迁被逐渐的放大，是时候出现一门新语言了。所以，并不需要Rust穿越回70年代去拯救世界，现在就是对的时间。</p><p>那么Rust到底如何能够守护这个世界的安全？ 让我们回到2014年4月7号，这是一个黑暗的日子，因为从那一天开始，互联网开始“滴血”了。这一天，来自谷歌的安全人员声称，发现OpenSSL的源代码中存在一个漏洞，可以让攻击者获得服务器上64K内存中的数据内容，其破坏性之大和影响的范围之广，堪称网络安全里程碑事件。</p><p>OpenSSL心脏出血漏洞的大概原理是OpenSSL在2年前引入了心跳(heartbeat)机制来维持TLS链接的长期存在，心跳机制是作为TLS的扩展实现，但在代码中包括TLS(TCP)和DTLS(UDP)都没有做边界的检测，所以导致攻击者可以利用这个漏洞来获得TLS链接对端（可以是服务器，也可以是客户端）内存中的一些数据，至少可以获得16KB每次，理论上讲最大可以获取64KB。</p><p>在OpenSSL中引入Heartbleed漏洞的代码的作者是Seggelmann博士，他是在博士研究期间从事OpenSSL项目的程序员。 卫报在事件后采访他说：“我对错误负责，因为我写了代码，错过了必要的验证。 不幸的是，这个错误也在审查过程中不幸被通过，因此进入了发布的版本。”  看得出来，纵然是水平再高的人，都有失手的时候。如果有一个强大的编译器帮助你来检查代码中潜在的风险，那绝不会失手。因为在这方面，程序要比人靠谱。</p><p>让我们来看看OpenSSL心脏滴血漏洞是如何发生的。下面是OpenSSL中发生漏洞的C源码片段：</p><p><br></p><code lang="c">if (hbtype == TLS1_HB_REQUEST)
+       {
+       unsigned char *buffer, *bp;
+       int r;
+
+       buffer = OPENSSL_malloc(1 + 2 + payload + padding); 
+       bp = buffer;
+
+       *bp++ = TLS1_HB_RESPONSE;    
+       s2n(payload, bp);            
+       memcpy(bp, pl, payload);     
+
+       r = ssl3_write_bytes(s, TLS1_RT_HEARTBEAT, buffer,
+                               3 + payload + padding);  </code><p>该段代码会从TLS请求中读取字节类型、有效荷载（payload）长度字段之后，为TLS响应分配内存，并将字节类型插入到分配的响应缓冲区中，然后再将有效荷载也序列化到其中。序列化的过程是从请求缓冲区复制所有的有效荷载到响应缓冲区，而这里，就是“心脏滴血漏洞”发生的地方。</p><code lang="c">memcpy(bp, pl, payload);     </code><p>该行代码没有做任何的边界检查。那么最后是如何解决的呢？</p><code lang="c">/*  如果TLS请求太短，则丢弃*/
+if (1 + 2 + 16 &gt; s-&gt;s3-&gt;rrec.length)            
+       return 0;   
+hbtype = *p++;
+n2s(p, payload);
+/*  TLS请求负载字符串是否和有效负载的长度字段一样长，如果不是则丢弃*/
+if (1 + 2 + payload + 16 &gt; s-&gt;s3-&gt;rrec.length)  
+       return 0;   
+pl = p;</code><p>补丁其实很简单，只需要加上长度判断即可，但是造成的影响却是空前的，也是无法挽回的。</p><p><br></p><p><b>那么用Rust该怎么写？</b></p><p><br></p><code lang="rust">fn tls1_process_heartbeat (s: Ssl) -&gt; Result&lt;(), isize&gt; {
+   const PADDING: usize = 16;
+
+   let p = s.s3.rrec;
+   let hbtype:u8 = p[0];
+   /* 从TLS请求包里以大端序获取payload的长度信息*/
+   let payload:usize = ((p[1] as usize) &lt;&lt; 8) + p[2] as usize; 
+   let mut buffer: Vec&lt;u8&gt; = Vec::with_capacity(1+2+payload+PADDING);
+   buffer.push(TLS1_HB_RESPONSE);
+   /* 将payload序列化到响应缓冲区*/
+   buffer.extend(p[1..1+2].iter().cloned());         
+   /*  复制payload字符串到响应缓冲区*/          
+   buffer.extend(p[3..3+payload].iter().cloned());             
+
+   let mut rng = rand::thread_rng();                           
+   buffer.extend( (0..PADDING).map(|_|rng.gen::&lt;u8&gt;())
+                       .collect::&lt;Vec&lt;u8&gt;&gt;() );
+
+   if hbtype == TLS1_HB_REQUEST {
+       let r = ssl3_write_bytes(s, TLS1_RT_HEARTBEAT, &amp;*buffer);
+       return r
+   }
+   Ok(())
+}</code><p>这段代码看不懂没有关系，只需要知道它体现了Rust的几大特色：</p><p><br></p><p><b>一、fn函数的返回值属于Result类型。Result类型属于类型系统中的和类型，它是一种复合类型。</b></p><code lang="rust">  enum Result&lt;T&gt;{
+          Ok&lt;T&gt;,
+          Err&lt;T&gt;
+    }</code><p>该类型在Rust中被用于错误处理。如果是正确的结果，则返回Ok&lt;T&gt;，如果是错误，则返回Err&lt;T&gt;，这样来强制开发者对Err的类型做出相应的处理。</p><p><b>二、将payload字符串复制到响应缓冲区那行代码是心脏滴血漏洞爆发之地，但是注意上面代码中并没有对payload长度做任何判断。然而，这段代码是安全的，心脏并不会滴血。这是为什么呢？</b></p><code lang="rust">buffer.extend(p[3..3+payload].iter().cloned());   </code><p>注意看这行代码，它使用了迭代器模式，这是Rust的另一大特色。Rust中迭代器是惰性的，同时它也是安全的。Rust中字符串不可以通过索引直接访问，而迭代器本身是有长度检测的。所以，当这里发生攻击时，payload长度过长，则会被[3..3+payload]自动截断。 但不幸的是，此时Rust线程会崩溃，如下面错误所示。</p><code lang="rust">thread '&lt;main&gt;' panicked at 'assertion failed: index.end &lt;= self.len()',
+Process didn't exit successfully: `target/release/heartbeat` (exit code: 101)</code><p>可以将上面代码做如下改进，则可避免线程崩溃。</p><code lang="rust">fn tls1_process_heartbeat (s: Ssl) -&gt; Result&lt;(), isize&gt; {
+   const PADDING: usize = 16;
+
+  /* 如果TLS 请求消息太短则忽略本次请求 */
+   if 1 + 2 + 16  &gt;  s.s3.rrec.len() {return Ok(()) }           
+
+   let p = s.s3.rrec;
+   let hbtype:u8 = p[0];
+   let payload:usize = ((p[1] as usize) &lt;&lt; 8) + p[2] as usize;
+  /*  判断TLS 请求payload长度必须和payload长度字段一致，否则忽略本次请求*/
+   if 1 + 2 + payload + 16  &gt;  s.s3.rrec.len() {return Ok(()) } 
+
+   let mut buffer: Vec&lt;u8&gt; = Vec::with_capacity(1+2+payload+PADDING);
+   buffer.push(TLS1_HB_RESPONSE);
+   buffer.extend(p[1..1+2].iter().cloned());
+   buffer.extend(p[3..3+payload].iter().cloned());
+
+   let mut rng = rand::thread_rng();
+   buffer.extend( (0..PADDING).map(|_|rng.gen::&lt;u8&gt;())
+                       .collect::&lt;Vec&lt;u8&gt;&gt;() );
+
+   if hbtype == TLS1_HB_REQUEST {
+       let r = ssl3_write_bytes(s, TLS1_RT_HEARTBEAT, &amp;*buffer);
+       return r
+   }
+   Ok(())
+}</code><p>看得出来，如果用Rust实现OpenSSL，心脏滴血漏洞将不复存在。使用Rust，不会发生灾难性的数据泄漏，因为不可能读取任何数据结构。尽管如此，默认情况下还是很容易造成线程崩溃，但只要稍加修改，对错误做出正确的处理，就可以解决这个问题。Rust之所以可以为安全保驾护航，是因为它的设计目的：内存安全。</p><p>以上讨论的只是Rust的一小部分特性，Rust还拥有安全并发，可以保证并发程序中没有数据竞争，最小的运行时以及高效的C绑定等特性。总之，Rust是一门安全的语言，在这不安全的网络世界中，它完全可以成为你应用系统的安全守护者。</p><p><br></p><p>参考资料：</p><p><a href="https://tonyarcieri.com/would-rust-have-prevented-heartbleed-another-look">Would Rust have prevented Heartbleed?</a></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

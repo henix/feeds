@@ -1,0 +1,78 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-48dfbe948e09e9a7e03283caa563dd3b_r.jpg" alt=""></div><blockquote>(Haskell主义亡我Rust之心不死啊！)这篇文章也许可以帮助你理解Monad。<br><br>作者在<a href="https://varkor.github.io/blog/2018/08/28/feasible-functors-in-rust.html">前文: Rust中Functor的可行性</a>中分析了Rust中实现Functor的可行性。<br><br>起因是Rust官方团队的withoutboats在实现异步的过程中，发了<a href="https://twitter.com/withoutboats/status/1027702535707090944">一系列的推文</a>说了Rust中并不能像Haskell的do-notation来实现异步，而是用async/await来代替的原因。<br><br>该文作者写文章分析了Rust中实现functor的可行性，阐述了一个重要的观点：<br><br><b>Rust将性能作为最高优先级，所以就不可能像Haskell那样过多地倾向于类型的抽象，而是更倾向于使用trait作为抽象。所以在以性能优先的考虑下，就没有提供haskell那样的HKT，所以不能使用monad来实现Future。</b><br><br>原文：<a href="https://varkor.github.io/blog/2018/11/10/monadic-do-notation-in-rust-part-i.html">Read More</a> </blockquote><p><br>理论上，future/promise也可以看作是monad是一个实例：</p><code lang="haskell">
+-- Monad is just a fancy name for the Wrapper interface above
+class Monad m where
+  return :: a -&gt; m a                 -- wrap
+  (&gt;&gt;=)  :: m a -&gt; (a -&gt; m b) -&gt; m b -- chain
+ 
+-- Promises are monads, so we can make an instance for it
+instance Monad Promise where
+  return value       = Promise.resolve value
+  value &gt;&gt;= callback = Promise.then value callback
+
+-- Then the do-syntax becomes equivalent to async/await
+getBalances :: Promise (Map String String)
+getBalances = do
+  accounts &lt;- getAccounts
+  balances &lt;- getBalance accounts
+  return (Map.fromList (zip accounts balances))</code><p><br>上面是使用monad实现promise的一个示例（<a href="https://gist.github.com/MaiaVictor/bc0c02b6d1fbc7e3dbae838fb1376c80">来源</a>）。<br><br>所以，作者在前文中提供了一个基于trait的Functor和Monad实现（高阶trait），纯粹是作为学术上的探索。<br><br><b>在今天这篇文章中，作者进一步探索了do-notation在Rust中的实现。</b><br><br>do-notation是Haskell中的语法，用于操作Monad，而不再需要很长的嵌套函数。但目前在Rust中实现do-notation的问题在于：Rust的闭包并不遵循TCP（Tennent一致性原则，Tennent’s Correspondence Principle）。</p><code lang="rust">// This function returns `5`.
+fn early_return() -&gt; u8 {
+ return 5;
+ 0
+}</code><p>该函数会返回5，但是在换成闭包，就得到另外的结果:</p><code lang="rust">
+// This function returns `0`.
+fn abstracted_early_return() -&gt; u8 {
+    (|| return 5)();
+ 0
+}
+</code><p>这里 <code class="inline"> (|| return 5)(); </code> 返回的是<code class="inline">() </code>。 <code class="inline">return</code>在这里没有作用。这就是withoutboat在推文中所说的：</p><blockquote><i>Rust’s imperative control flow statements like</i><code class="inline">return</code><i>and</i><code class="inline">break</code><i>inside of do notation also doesn’t make sense, because we do not have TCP preserving closures.</i></blockquote><p><br>所以，作者尝试在给出一种解决方案，实现一个宏：</p><code lang="rust">do! {
+    expr1;
+    let! a = expr2;
+    expr3;
+    let! b = expr4;
+    expr5;
+    expr6(a, b);
+    return! expr7;
+}</code><p>等价于：</p><code lang="rust">
+surface! {
+    expr1;
+    bubble! expr2.bind(|a| {
+        expr3;
+        bubble! expr4.bind(|b| {
+            expr5;
+            expr6(a, b);
+            Monad::unit(expr7)
+        })
+    })
+}
+</code><p>其中bubble!等价于：</p><code lang="rust">
+match expr {
+    ControlFlow::Return(_) =&gt; return expr,
+    ControlFlow::Break(Some(_)) =&gt; break expr,
+    ControlFlow::Break(None) =&gt; break,
+    ControlFlow::Continue =&gt; continue,
+    ControlFlow::Value(_) =&gt; expr,
+ // We'd also want `Yield` here eventually,
+ // but that comes with its own problems,
+ // which is a story for another time.
+}
+</code><p><code class="inline">surface! block</code> 等价于：</p><code lang="rust">
+enum ControlFlow&lt;T&gt; {
+ Return(T),
+ Break(Option&lt;T&gt;),
+    Continue,
+ // `Value` simply means we're forwarding
+ // the value without effecting any control
+ // flow.
+ Value(T),
+}
+
+match (|| block)() {
+    ControlFlow::Return(t) =&gt; return t,
+    ControlFlow::Break(Some(t)) =&gt; break t,
+    ControlFlow::Break(None) =&gt; break,
+    ControlFlow::Continue =&gt; continue,
+    ControlFlow::Value(t) =&gt; t,
+}</code><p>通过自定义的ControlFlow，捕获闭包的控制流，并且在其外对其进行转发，假装从闭包控制流中逃脱，这就是一种do-notation。</p><p>但这种实现方式性能上还有问题。也有人在论坛里提出<a href="https://internals.rust-lang.org/t/pre-rfc-allow-return-continue-and-break-to-affect-the-captured-environment/4791">pre-RFC</a>让Rust实现TCP式闭包，比如：</p><code lang="rust">fn main(){
+    // `return` would be a divergent expression and return from `main`
+    let id: i32 ="321".parse().or_else(||return);
+}</code><p>允许从闭包中返回。但是官方并不同意这样做，主要理由有两点：</p><ul><li>首先，这样肯定会破坏现有的Rust生态</li><li>其次，如果允许闭包在堆栈之间跳转则会放大「异常安全」的问题。</li></ul><p>所以，官方应该是不会支持TCP闭包的。</p><p>另外，在Redox项目里实现了一个crate，来达成这种效果：<a href="https://github.com/redox-os/tfs/blob/master/control-flow/src/lib.rs">control_flow</a> ，但该包也有说明：除非你真的需要它的时候，你再用它。</p><p></p>

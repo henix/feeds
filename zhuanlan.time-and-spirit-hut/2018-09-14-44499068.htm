@@ -1,0 +1,105 @@
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-0472443e6a5246c56108009167ff14e0_r.jpg" alt=""></div><blockquote>本文是对Rust语言最新的<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=%20CVE-2018-1000657">CVE-2018-1000657</a> 漏洞成因分析</blockquote><h2><b>起因</b></h2><p>这两天有一个朋友跟我咨询CVE-2018-1000657漏洞的成因，这个段错误产生的背景正是CVE-2018-1000657漏洞造成的。</p><p>相关issues：<a href="https://github.com/rust-lang/rust/issues/44800">seg fault pushing on either side of a VecDeque · Issue #44800 · rust-lang/rust</a> </p><h2><b>长话短说</b></h2><ol><li>该漏洞是因为混用了VecDeque&lt;T&gt;容器中“逻辑”容量和“物理”容量引发的UB。</li><li>Rust产生segfault的条件，正是因为产生了UB。</li><li>Rust里产生UB，只可能是Unsafe Rust之下。</li><li>这个UB，是因为逻辑漏洞导致指针错乱，然后导致std::ptr::write指针覆盖了合法数据。但这个不是段错误的原因。</li><li>Rust在函数执行完之后，自动执行析构函数，也就是VecDeque的析构函数，里面也用到了unsafe，因为指针是错乱的，那么析构也错乱了。析构错乱导致合法的内存数据被释放，发生Segfault。</li></ol><h2><b>具体分析</b></h2><p>首先需要弄清楚漏洞的成因。好在这个漏洞已经被官方修复了，所以从issues中找到相关的PR链接进去查看修复相关的代码，发现其实只改了关键的一行，这就省事多了。</p><code lang="text">// 产生漏洞的VecDeque&lt;T&gt;源码
+pub fn reserve(&amp;mut self, additional: usize) {
+        let old_cap = self.cap();
+        let used_cap = self.len() + 1;
+        let new_cap = used_cap.checked_add(additional)
+            .and_then(|needed_cap| needed_cap.checked_next_power_of_two())
+            .expect("capacity overflow");
+
+        if new_cap &gt; self.capacity() { // 产生漏洞的代码
+            self.buf.reserve_exact(used_cap, new_cap - used_cap);
+            unsafe {
+                self.handle_cap_increase(old_cap);
+            }
+        }
+    }</code><p>修复漏洞的代码是这样的：</p><code lang="text">if new_cap &gt; old_cap {// 修复漏洞的代码</code><p>只改了这一个地方，说明产生漏洞的代码主要是由<code class="inline">self.capacity()</code>方法引起的。那么就看看capacity方法到底是干啥的，和old_cap有什么区别呢？</p><code lang="text">// capacity源码
+pub fn capacity(&amp;self) -&gt; usize {
+    self.cap() - 1
+}
+
+// cap方法源码
+fn cap(&amp;self) -&gt; usize {
+    if mem::size_of::&lt;T&gt;() == 0 {
+        // For zero sized types, we are always at maximum capacity
+        MAXIMUM_ZST_CAPACITY
+    } else {
+        self.buf.cap()
+    }
+}</code><p>查看源码发现，capcacity比cap方法少一位。而cap方法，也就是old_cap调用的，才是真正的容量。为什么会差一位呢？</p><p>其实，VecDeque是基于Ring Buffer实现的双端队列。想象一个圆环，头尾相连。在VecDeque中，实现Ring Buffer的算法是基于两个指针，头指针和尾指针，头指针负责写入，尾指针负责读取。头指针永远指向应该写入数据的地址，尾指针永远指向读取数据的第一位。</p><p>想象一下，如果有8个空位，初始状态头尾指针都指向地址0，随着数据的插入，当插入到第7个位置的时候，头指针和尾指针都指向0，就会重合。这个时候，如何继续插入数据，在位置0的数据将被覆盖。这就提供了一个缓冲区溢出攻击的可能。所以，一般在实现Ring Buffer的时候，都会留出一个空位。这就是capacity和cap差一位的原因所在。</p><p>也就是说，capacity属于「逻辑」容量，而cap属于真实的「物理」容量。回到产生问题的那一行中，resever函数的作用相当于是给VecDeque预留内存，如果把逻辑容量和物理容量搞混了，而VecDeque的操作方法还是按Ring Buffer预留一位来操作指针，那么恰恰就相当于把Ring Buffer中预留的那一个空位给占用了。从而造成了缓冲区溢出漏洞，存在执行任意代码的可能。</p><p><b>这个漏洞成因找到了，但是issues里的段错误是怎么发生的呢？让我们回到那个issues里。</b></p><p>相关的代码是这样的：</p><code lang="text">use std::fmt;
+use std::collections::VecDeque;
+
+pub struct Packet
+{
+	pub payload: VecDeque&lt;u8&gt;,
+}
+
+pub struct Header
+{
+	pub data: Vec&lt;u8&gt;,
+}
+// 省略
+
+impl Header
+{
+	pub fn new() -&gt; Self
+	{
+		let data = Vec::with_capacity(20);
+		Header{data}
+	}
+
+	// 省略
+}
+
+fn push_ipv4(packet: &amp;mut Packet)
+{
+	 // 省略
+}
+
+fn push_mac(packet: &amp;mut Packet)
+{
+	let mut header = Header::with_capacity(30);
+
+	// 省略
+
+	println!("new packet = {:?}", packet);
+}
+
+fn main()
+{
+	let mut packet = Packet::new();
+	push_ipv4(&amp;mut packet);
+	push_mac(&amp;mut packet);
+}</code><p>上面省略了很多代码，可以去issues里找原始代码示例。该代码在有问题的Rust版本（1.3-1.21）之下，会输出下面结果：</p><blockquote>old packet = 00 88 01 02 03 04 05 06 01 02 03 04 05 06 01 02 03 04 05 06 00 37 03 80 45 14 00 14 00 15 00 17<br><br>pushing <b>D9</b> 58 FB A8<br><br>new packet = 00 88 01 02 03 04 05 06 01 02 03 04 05 06 01 02 03 04 05 06 00 37 03 80 45 14 00 14 00 15 00 17 <b>00</b> 58 FB A8<br><br>Segmentation fault: 11</blockquote><p>注意，本来push的数据是D9，但是在new packet里变成了00。然后抛出了段错误。</p><p><b>首先，来解决为什么数据变了的问题。</b></p><p>继续翻VecDeque的源码，按漏洞的成因去分析。在Ring Buffer被创建之后，应该是push_front方法插入数据，指针错乱覆盖了合法的数据。</p><code lang="text">// push_front 方法源码
+pub fn push_front(&amp;mut self, value: T) {
+    self.grow_if_necessary();
+
+    self.tail = self.wrap_sub(self.tail, 1);
+    let tail = self.tail;
+    unsafe {
+        self.buffer_write(tail, value);
+    }
+}
+// buffer_write 方法源码
+unsafe fn buffer_write(&amp;mut self, off: usize, value: T) {
+    ptr::write(self.ptr().offset(off as isize), value);
+}</code><p>通过相关方法的源码看得出来，在底层插入数据是直接使用了std::ptr::write方法，直接通过指针写入到相应的地址中。该方法属于unsafe方法，是有安全风险，容易产生未定义行为。也就是说，全靠开发者自己保证插入数据的对齐性。但是在本例中，指针本身因为混乱使用了物理容量和逻辑容量，指针被打乱，就导致数据被覆盖。这就是D9变成了00的原因。</p><p><b>但是，既然程序可以完整输出数据，那说明main函数已经执行完毕。段错误是怎么产生的呢？还必须找到这个原因。</b></p><p>其实想来也简单，在main函数执行完毕之后，VecDeque的析构函数会被自动调用。那么段错误多半就是在析构函数中产生的。继续翻源码。</p><code lang="text">// VecDeque&lt;T&gt;析构函数
+unsafe impl&lt;#[may_dangle] T&gt; Drop for VecDeque&lt;T&gt; {
+    fn drop(&amp;mut self) {
+        let (front, back) = self.as_mut_slices();
+        unsafe {
+            // use drop for [T]
+            ptr::drop_in_place(front);
+            ptr::drop_in_place(back);
+        }
+        // RawVec handles deallocation
+    }
+}
+// as_mut_slices 源码
+pub fn as_mut_slices(&amp;mut self) -&gt; (&amp;mut [T], &amp;mut [T]) {
+    unsafe {
+        let head = self.head;
+        let tail = self.tail;
+        let buf = self.buffer_as_mut_slice();
+        RingSlices::ring_slices(buf, head, tail)
+    }
+}</code><p>源码中看得出来，VecDeque在析构的时候，会通过as_mut_slices来划出两部分front和back分别drop相应的内存。在tail和head指针正确的情况下，这样不会出问题。但现在偏偏因为容量搞错了，导致指针错乱，那么这完全是有可能出现划分错误的情况。比如把合法的内存给划进去了，然后给释放掉了，必然会引起Segfault错误。</p><p>到这里基本就定位了。一句话总结就是：<b>因为错误混用了物理容量和逻辑容量，引发了逻辑漏洞，从而导致了段错误</b>。</p><h2>接下来就需要用GDB去验证一下了。</h2><h2><b>结论：</b></h2><p>通过这个案例，得出以下几个结论：</p><ol><li>Rust能保证内存安全，但不能阻止逻辑漏洞。</li><li>Rust自身也是软件，由人类编写的开源软件，只要有人的地方就有Bug。Rust出现这种漏洞其实也属于正常，不要大惊小怪。</li><li>在使用Unsafe的时候，真的是需要开发者有相当的功底，才能避免UB。</li><li>理解容量的概念，分清物理容量和逻辑容量。这取决于不同的数据结构自身的特性。</li></ol><p>&lt;全文完&gt;</p>

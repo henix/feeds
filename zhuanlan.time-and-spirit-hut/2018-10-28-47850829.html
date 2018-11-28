@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>「Rust WASM小组」多线程Rust和WASM</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/47850829">原文</a></p>
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-212b81cff6e72f7c8c80dc499630eb62_r.jpg" alt=""></div><blockquote>本文为简要梳理，[ 原文 ](<a href="https://rustwasm.github.io/2018/10/24/multithreading-rust-and-wasm.html">Multithreading Rust and Wasm</a>)</blockquote><p>本文介绍了WebAssembly线程提案：</p><ul><li>WebAssembly的线程提案不是准备好一个线程库让你调用，而是指定了基本的线程构建块。</li><li>线程提案中首先添加了原子指令。同时提供了i32.atomic.wait和atomic.wake指令来阻塞和唤醒线程，这就形成了一种底层的原语，比如可以用它来实现互斥锁。</li><li>通过web worker实现并行。但是目前web worker共享资源的能力比较弱，只能通过发送消息。但是在Rust看来，js里的对象很少有可以直接Send的对象，在线程间发送对象总是需要clone。现在通过在线程间传递WebAssembly.Module，则可以极大降低clone的成本。</li><li>利用SharedArrayBuffer 共享内存。</li><li>一次性初始化内存。当前的wasm自动初始化内存在多线程情况下会导致不安全。所以必须使用一次批量申请内存的策略。多线程下，只能有一个线程负责初始化。将自动改为手动，模块必须通过memory.init指令手动初始化内存。</li></ul><p>以上是线程提案中的重点。</p><p><b>线程和wasm-bindgen</b>：</p><ul><li>wasm-bindgen工具由两部分组成：派生宏#[wasm_bindgen]和cli。 wasm-bindgen cli工具现在使用parity-wasm库来解析Wasm，该库极大地增强了cli的功能，并摆脱了LLVM的束缚，可以访问Wasm的完整功能集。</li><li>wasm-bindgen可以在线程本地存储中注入全局变量，这个是LLVM/LLD当前无法做到的，但是wasm-bindgen做到了。 可以方便地将此变量添加到wasm模块中。</li><li>通过定义ID为0的全局线程变量，来判断是不是主线程。如果是0则是主线程，则调用wasm的memory.init来批量分配内存，解决多线程下wasm自动内存分配带来的不安全问题。</li><li>管理 WebAssembly.Memory。在多线程情况下，希望所有的模块都使用相同的内存实例。目前wasm-bindgen给出了一个临时方案。使用—no-modules参数，将模块的路径实例化，在创建内存的时候再进行实例化，然后将其实例化的模块分发给每个worker。 等线程提案稳定之后，会完善更多细节。</li><li>演示实例：并行化光线跟踪 [raytrace-parallel](<a href="https://github.com/rustwasm/wasm-bindgen/tree/master/examples/raytrace-parallel">rustwasm/wasm-bindgen</a>)</li></ul><p>虽然wasm-bindgen现在已经可以制作演示实例，但实际上离真正可用还有一段距离，还有很多问题需要解决。</p><p>[ WebAssembly线程提案 ](<a href="https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md#atomic-memory-accesses">WebAssembly/threads</a>)</p><p></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

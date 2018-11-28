@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>官方：我们对Rust和WebAssembly的愿景</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/38810923">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-c09428f6654a51913e72a4a61d52b8ce_r.jpg" alt=""></div><blockquote>欢迎关注「Rust每日新闻」tg channel：<a href="https://t.me/rust_daily_news">https://t.me/rust_daily_news</a></blockquote><p>原文： <a href="https://rustwasm.github.io/2018/06/25/vision-for-rust-and-wasm.html">Our Vision for Rust and WebAssembly</a></p><p><br></p><p>以下是对原文内容的一些总结：</p><p><b>工作组愿景： </b></p><p>       如外科手术般插入由Rust编译的wasm来加速JavaScript性能敏感的代码，而不需要扔掉或重写现有的代码库，也不需要更改现有的开发流程，做到无缝集成。</p><p><b>几点原因：</b></p><ul><li><b> 关注性能敏感的代码</b></li></ul><p>       因为js的优化并没有那么简单，而使用Rust你根本不需要成为js优化专家，不需要熟悉JIT内部实现，不需要魔法也能加速。</p><ul><li><b>方便集成</b></li></ul><p>     直接编译为.wasm，使得现有的js代码库可以增量式部分采用Rust。而且还可以保持你现有代码库，不需要重写。</p><ul><li><b>不需要更改你现有开发流程</b></li></ul><p>      对于js开发者，可以将.wasm发布到npm，然后在package.json中依赖它。可以导入为ECMAScript模块，遵循CommonJS风格的require，或者作为新的对象添加到JS全局。而对于Rust开发者来说，可以将.wasm发布到npm，甚至都不需要安装nmp、nodejs等js环境。wasm-pack会编译，优化并生成js绑定，然后发布到npm中。</p><p><b>当前状态和工具集：</b></p><ul><li>正在写的书：The Rust and WebAssembly Book</li><li>wasm-bindgen，帮助Rust和js通信。甚至通过它可以在js和rust之间发送string和struct这样的类型，而不仅仅是wasm标准里的整数和浮点数。</li><li>wasm-pack，一站式构建、发布Rust编译的wasm。</li><li>Twiggy ，检查.wasm代码尺寸的工具</li><li> wee_alloc，为wasm设计的小型内存分配器</li><li>wasm-snip，可以用一条unreachable指令强制替换函数的主体。用于在运行时永远不会使用的函数的情况。配合wasm-gc。</li><li>console_error_panic_hook，将Rust内部编译错误在浏览器端显式，方便调试</li></ul><p><b>当然，未来还需要更多的新伙伴加入Wasm工作组，共谋大业。</b></p><p></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

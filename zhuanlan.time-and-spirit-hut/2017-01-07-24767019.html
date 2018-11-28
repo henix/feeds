@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>代数数据类型中的代数 Part 1</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/24767019">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-c82f1cbae55423118dc15550b9ba0df2_r.jpg" alt=""></div><blockquote><a href="http://chris-taylor.github.io/blog/2013/02/10/the-algebra-of-algebraic-data-types/">原文地址</a></blockquote><h2>正文</h2><p>在这一系列文章中，我将解释为什么Haskell的数据类型被称为代数——我不会提及类型理论和高等数学。</p><p>你在学校中最先学到的代数是数字（例如1， 2， 3）和运算符（例如加减乘除）。运算符能够让你组合数字并且从中创造新数字的方法。例如，将1和2相加，得到另一个数字3，我们通常将此事实表示为：</p><code lang="text">1+2 = 3</code><p>随着你年龄的增长，你会学习到可以代表数字的变量（比如，x，y，z），进一步还会学到代数所遵循的定理。比如：<br></p><code lang="text">0+x=x
+
+1⋅x=x</code><p>x代表的所有值都遵循此定理。还有其他定理，定义了数字和操作符的属性。<br></p><p>数学家口中的代数，是比这些定理更加通用的东西。数学代数分为三部分：</p><ul><li>对象：是代数要研究的东西。对象的集合决定我们要研究什么。<br></li><li>操作：让我们可以结合旧的东西，创造新的东西。<br></li><li>定理：是对象和操作之间的关系。<br></li></ul><p><br></p><p>对于学校里首次学到的代数而言，数字是对象，加减乘除等是操作。</p><h2>Haskell类型的代数</h2><p>在Haskell类型的代数中，类型是对象，比如Bool和Int。运算符接受新的类型，并从中产生新的类型。其中一个例子是类型构造函数`Maybe`，它本身不是类型，但是你可以用它创建类型，比如`Maybe Bool`和`Maybe Int`，它俩是类型。另一个例子是Either，它根据两个旧类型创建新的类型，比如 `Either Bool Int`。</p><p><br></p><h2>计数</h2><p>通过计算类型的可能值可以连接两个相似数字代数。用`Bool`定义：</p><code lang="text">data Bool = False | True</code><p>Bool类型的对象有两个值：False或True。暂且把Bool类型与数字代数中的2对应起来。</p><p>如果Bool是2，那么什么是1？它应该是仅有一个值的类型。在计算机科学中，这种类型通常被称为Unit，并做如下定义：</p><code lang="text">data Unit = Unit</code><p>在Haskell中已经有了一个只有一个值的类型叫`()`（发音为Unit），你不能自己定义，但你可以这么用：</p><code lang="text">data ()=()</code><p>就按这样计数类比下去的话，Int对应的数字应该是232232，因为Int类型的值是有这么多数量的（至少在我的电脑上是这样）。</p><p><br></p><h2>加法</h2><p>原则上我们可以把类型与3、4、5等数字作对应。有时候这是必须的，比如，对应于7的类型对于计算一周的天数是有帮助的。但是如果我们可以根据已有类型去建立新的类型岂不是更好吗？这样一来代数运算符就有用武之地了。</p><p>对应于加法的类型是：<br></p><code lang="text">data Add a b = AddL a | AddR b</code><p>也就是说，`a + b`是一个和类型（tagged union），同时拥有a或者b。想知道为什么这对应于加法，我们可以重新回顾计数部分。让我们假设a是`Bool`，b是`()`，因此a有两个值，b有1个值，`Add Bool ()`类型有多少值？我们可以列出：</p><code lang="text">addValues = [AddL False, AddL True, AddR ()]</code><p>有三个值。3 = 2 + 1。这通常被称为和类型（sum type）。在Haskell中，`和类型`通常称为`Either`， 定义为：</p><code lang="text">data Either a b = Left a | Right b</code><p>但文中我会一直用`Add`。<br></p><h2>乘法</h2><p>对应于乘法的类型是：</p><code lang="text">data Mul a b = Mul a b</code><p>也就是说， `a · b `类型是同时持有a和b的容器。使用计数的方法来验证，假如我们固定a和b的类型都为Bool，则`Mul Bool Bool`类型的可能值为：</p><code lang="text">mulValues = [Mul False False, Mul False True, Mul True False, Mul True True]</code><p>有四个值，4 = 2*2， 这经常被称为积类型（product type）。在Haskell中，积是一对类型：</p><code lang="text">data (,) a b = (a, b)</code><p>但文中我会一直用`Mul`。<br></p><h2>零</h2><p>使用加法和乘法，我们可以生成对应于1以上所有数字的类型，但什么是0呢？这将是一个没有值的类型。听上去奇怪，但是你可以这样来定义类型：</p><code lang="text">data Void</code><p>注意，在数据定义中没有构造函数，所以你不能构造一个Void类型的值——所以它具有0值，正是我们想要的！<br></p><p><br></p><h2>Haskell类型中代数的定理</h2><p>我们刚刚对类型定义了什么定理？就像数字代数那样，定理将断言两个对象相等，在我们的示例中，对象就是指类型。<br></p><p>然而，当我谈论相等时，我不是指Haskell中函数（==）意义上的相等。我的意思是指，两种类型是一一对应的。也就是说，当我说两种类型a和b是相等的，我的意思是你可以写两个函数：</p><code lang="text">from :: a -&gt; b
+to   :: b -&gt; a
+</code><p>将a和b的值配对，使得以下等式总是成立（这里是Haskell风格的==）：<br></p><code lang="text">to (from a) == a
+from (to b) == b</code><p>例如，我认为类型`Bool`和`Add () ()`是等价的，我可以用以下函数证明此等价性：<br></p><code lang="text">to :: Bool -&gt; Add () ()
+to False = AddL ()
+to True  = AddR ()
+
+from :: Add () () -&gt; Bool
+from (AddL _) = False
+from (AddR _) = True</code><p>我将使用===来表示这种类型之间的等价。</p><h2>和类型定理</h2><p>这有两个对于加法的定理：<br></p><code lang="text">Add Void a === a</code><p>这说明类型`Void a`的值和类型`a`的值一样多。</p><code lang="text">Add a b === Add b a</code><p>这说明对于加法来说，顺序并不重要。这些定理对于数字代数来说更为熟悉：</p><h2>0+x=x<br>x+y=y+x</h2><code lang="text">积类型定理</code><p>这有三个对于乘法来说有用的定理：</p><code lang="text">Mul Void a === Void</code><p>这意味着，用Void乘以任何类型，结果都是Void。</p><code lang="text">Mul () a === a</code><p>这意味着，你用`()`相乘将不会改变任何类型。</p><code lang="text">Mul a b === Mul b a</code><p>这意味着对于乘法来说，顺序也不重要。你可能对下面的定理更加熟悉：</p><code lang="text">0⋅x=0
+1⋅x=x
+x⋅y=y⋅x</code><p>这还有个规则，同时涉及到了加法和乘法运算：</p><code lang="text">Mul a (Add b c) === Add (Mul a b) (Mul a c)</code><p>该定理的算术版本是：</p><code lang="text">a⋅(b+c)=a⋅b+a⋅c</code><p>叫做分配（distributive）律。</p><p><br></p><h2>函数类型</h2><p>除了像Int和Boot这样的具体类型，Haskell中还有一些函数类型，比如`Int -&gt; Bool `或 `Double -&gt; String`。它们是如何被纳入代数系统中的呢？</p><p>为了弄清这一点，我们可以继续计数。 `a → b`类型的函数有多少呢？</p><p>假设a和b都是Bool类型。值False可以映射为False或True，值True也是类似。因此存在2⋅2=2^2=4种可能的函数`Bool -&gt; Bool`。我们将它们枚举出来就显而易见了：</p><code lang="text">f1 :: Bool -&gt; Bool -- equivalent to 'id'
+f1 True  = True
+f1 False = False
+
+f2 :: Bool -&gt; Bool -- equivalent to 'const False'
+f2 _     = False
+
+f3 :: Bool -&gt; Bool -- equivalent to 'const True'
+f3 _     = True
+
+f4 :: Bool -&gt; Bool -- equivalent to 'not'
+f4 True  = False
+f4 False = True</code><p>如果a是三个值的类型，而b依然是Bool，则：</p><code lang="text">data Trio = First | Second | Third</code><p>然后，First，Second，Third每个可以映射两个可能存在的值，并且`Trio -&gt; Bool`类型总共具有`2⋅2⋅2=2^3=8`个函数。</p><p>推广的一般情况，如果存在类型a的值A，类型b的值B，则a-&gt;b类型的值的数量为</p><code lang="text">B^A</code><p>这证明了函数类型和指数类型的等价性。</p><h2>函数定理</h2><p>这有两个涉及单元类型的函数类型定理。</p><code lang="text">() -&gt; a === a</code><p>这是说`() -&gt; a`类型的函数数量和`a`的一样多。</p><code lang="text">a -&gt; () === ()</code><p>这意味着尽有一个函数` a -&gt; ()  `，特别是`const  ()`。</p><p>该定理的算术版本是：</p><code lang="text">a^1=a
+1^a=1</code><p>还有一个定理，允许共享同一个参数：<br></p><code lang="text">(a -&gt; b, a -&gt; c) === a -&gt; (b,c)</code><p>对应的算术定理是：</p><code lang="text">b^a⋅c^a=(bc)^a</code><p>另外一个定理，函数返回另一个函数：</p><code lang="text">a -&gt; (b -&gt; c) === (b,a) -&gt; c</code><p>对应的算术定理是：</p><code lang="text">(c^b)^a=c^(b⋅a)</code><p>最后一个定理：</p><code lang="text">a -&gt; b -&gt; c === (a,b) -&gt; c</code><p><b>下一篇</b> </p><p>在下一篇文章中，我将介绍递归类型，比如列表和二叉树等。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
