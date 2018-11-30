@@ -5,7 +5,102 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 26 Nov 2018 02:22:28 +0800</lastBuildDate>
+<lastBuildDate>Fri, 30 Nov 2018 23:48:01 +0800</lastBuildDate>
+<item>
+<title>Recursion Schemes（六）基本函子革命</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-30-51286145.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51286145&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e5a2a9858bfa0c0e317c6943a84edb5b_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;前言&lt;/h2&gt;&lt;p&gt;为了能够不拖更，我决定讨论一些小一点的话题，本章中我们将讨论基本函子（base functor）这一概念，以及 &lt;a href=&quot;https://hackage.haskell.org/package/recursion-schemes&quot;&gt;recursion-schemes&lt;/a&gt; 库函数中如何使用基本函子来使 recursion scheme 在实践中更为优雅高效。&lt;/p&gt;&lt;h2&gt;前情回顾&lt;/h2&gt;&lt;p&gt;在之前数篇文章中，我们已经看到了某种定义参数化数据类型的模式，我们从这样的数据类型定义：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Expr
+  = Index Expr Expr
+  | Call Expr [Expr]
+  | Unary String Expr
+  | Binary Expr String Expr
+  | Paren Expr
+  | Literal Int
+  deriving (Show, Eq)&lt;/code&gt;&lt;p&gt;变为了这样：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data ExprF a
+  = Index a a
+  | Call a [a]
+  | Unary String a
+  | Binary a String a
+  | Paren a
+  | Literal Int
+  deriving (Show, Eq, Functor)&lt;/code&gt;&lt;p&gt;一样的数据类型，但是 kind [1] 变为了 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt;，所有的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 都用 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 做了替换。接着我们使用了 Y-组合子的技巧来定义 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt;，这样的定义与之前的 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 等价，但是可以使用 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;，以及 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;newtype Term f = In { out :: f (Term f) }
+
+type Expr = ExprF (Term ExprF)&lt;/code&gt;&lt;p&gt;类似地，在第四章中，我们定义了自然数，它的 kind 也是 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt; 的：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Nat a
+    = Zero
+    | Next a
+    deriving Functor&lt;/code&gt;&lt;p&gt;我们也定义了 &lt;code class=&quot;inline&quot;&gt;Plant&lt;/code&gt;，也是类似的定义：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Plant a
+  = Root a
+  | Stalk a
+  | Fork a a a
+  | Bloom&lt;/code&gt;&lt;p&gt;这个表达数据的办法确实清晰明了，但是也有相应的问题。&lt;/p&gt;&lt;p&gt;假设我们考虑一个最简单地链表类型：&lt;code class=&quot;inline&quot;&gt;a:[a]&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;infixr 5 :
+data [] a = a : [a]
+          | []&lt;/code&gt;&lt;p&gt;显然 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt;，我们最基本的右折叠操作，应该可以支持这一结构。毕竟它的 kind 也是 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt;。但如果我在这一结构上使用 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt;，我们马上就遇到了麻烦：我们无法在了链表里存储元素了。 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt; 只能表示嵌套的 &lt;code class=&quot;inline&quot;&gt;Term a&lt;/code&gt; 这一结构。没有地方来存储链表本身的元素。可以想见，这样的链表并不十分有用。&lt;/p&gt;&lt;p&gt;当然我们也可以将 &lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt; 转换为之前我们常见的那种模式，新加入一个参数来表达递归的部分。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data ListF a b
+  = Cons a b
+  | Nil
+    deriving (Show, Eq, Functor)&lt;/code&gt;&lt;p&gt;在这样的结构上我们就可以完成递归了：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;listSum :: Num a =&amp;gt; Algebra (ListF a) a
+listSum (Cons a b) = a + b
+listSum Nil = 0&lt;/code&gt;&lt;p&gt;但是这一办法非常丑陋，如果对于 &lt;code class=&quot;inline&quot;&gt;[]&lt;/code&gt;，这样的类型全部进行手动替换的话，我们完全丧失了使用 recursion scheme 的初衷。幸好并不是我一个人这么觉得，实际上有非常多种做法来绕开这个问题，我们会着重描述 &lt;a href=&quot;https://hackage.haskell.org/package/recursion-schemes&quot;&gt;recursion-schemes&lt;/a&gt; 中解决该问题的办法。&lt;/p&gt;&lt;h2&gt;救星基本函子&lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 库文档中有如下定义：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type family Base t :: * -&amp;gt; *&lt;/code&gt;&lt;p&gt;这个定义明显会吓到不少人，但实际上并没有那么难以理解，而正是这一定义使得 &lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 在易用性上远远超越了它的竞争对手们。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 类型类的目的就是将 Haskell 中的原生类型定义，或者我们自己的类型定义与相对应的参数化类型定义绑定起来。对 type family 的详尽用法进行介绍显然超出了本文的范畴（感兴趣的读者可参阅 &lt;a href=&quot;https://wiki.haskell.org/GHC/Type_families&quot;&gt;GHC wiki&lt;/a&gt;），我们可以简单认为 type family 是一个在类型上定义函数的方式。如果我们定义了一个 type family，以及一个它的实例（这与 typeclass 以及它的实例实际上是类似的）：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type family Something t
+
+type instance Something Foo = Bar&lt;/code&gt;&lt;p&gt;那么之后我们无论在哪里遇到调用 &lt;code class=&quot;inline&quot;&gt;Something Foo&lt;/code&gt;，GHC 类型系统都会将它代换为 &lt;code class=&quot;inline&quot;&gt;Bar&lt;/code&gt;，为什么不直接写 &lt;code class=&quot;inline&quot;&gt;Bar&lt;/code&gt; 呢？—— 这初看起来无关紧要，但这为我们建立两种类型间的联系提供了便利。&lt;/p&gt;&lt;p&gt;我们观察一下 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 的定义，当你传入 &lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt; 时，你得到了一个 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt; 的类型，回想一下不难发现，我们也把 &lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 变成 &lt;code class=&quot;inline&quot;&gt;ExprF&lt;/code&gt; 的过程也是一个 &lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt; 到 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt; 的过程。同理，&lt;code class=&quot;inline&quot;&gt;list&lt;/code&gt; 就是一个 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt; 到 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; * -&amp;gt; *&lt;/code&gt; 的过程。&lt;/p&gt;&lt;p&gt;一个 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 类型的实例或许更能说明问题：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type instance Base [a] = ListF a&lt;/code&gt;&lt;p&gt;简单来说，这样的写法使得 &lt;code class=&quot;inline&quot;&gt;ListF a&lt;/code&gt; 可以用 &lt;code class=&quot;inline&quot;&gt;Base [a]&lt;/code&gt; 来表达。对应于每种类型，它的参数化递归类型（&lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt; 变换为 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt;）只有一种合法实现，对应来看，对于任意 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;Base a&lt;/code&gt; 也只有一种合法实现。&lt;/p&gt;&lt;p&gt;当我们把这一定义与 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 类型类相结合以后，事情变得有趣起来。（为了阐述方便，这里的定义进行了适当简化）。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;class (Functor (Base t)) =&amp;gt; Recursive t where
+  project :: t -&amp;gt; Base t t
+  cata    :: (Base t a -&amp;gt; a) -&amp;gt; t -&amp;gt; a&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 类型类与 &lt;code class=&quot;inline&quot;&gt;Foldable&lt;/code&gt; 类型类实际上是同构的[2]。无论我们定义了怎样的 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 实例，&lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 或是 &lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt;，我们都可以在上面做折叠操作。实际上这里我们定义了两种方法，&lt;code class=&quot;inline&quot;&gt;project&lt;/code&gt; 参数为一个 &lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt; 类型变量，得到变化后的 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 形式。以及 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 函数，给定一个 &lt;code class=&quot;inline&quot;&gt;Base t a -&amp;gt; a&lt;/code&gt; 函数，一个初始化的 &lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;，最后得到一个 &lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;这里的 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 和我们之前的定义初看上去似乎有所不同。我们定义的 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 只有 &lt;code class=&quot;inline&quot;&gt;Founctor&lt;/code&gt; 的约束：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;cata :: (Functor f) =&amp;gt; Algebra f a -&amp;gt; Term f -&amp;gt; a
+cata f = out &amp;gt;&amp;gt;&amp;gt; fmap (cata f) &amp;gt;&amp;gt;&amp;gt; f&lt;/code&gt;&lt;p&gt;但我们的 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 必须使用 &lt;code class=&quot;inline&quot;&gt;Term List&lt;/code&gt; 而不是简单的 &lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt;，而使用 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 类型类允许我们向 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 传入一般的数据类型 &lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt; 而不是 &lt;code class=&quot;inline&quot;&gt;Term t&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 的实例使用 &lt;code class=&quot;inline&quot;&gt;project&lt;/code&gt; 函数来将提供的类型转换为带参数的类型，并将它传递给 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 函数，省去了我们包装 &lt;code class=&quot;inline&quot;&gt;Term&lt;/code&gt; 和拼接 &lt;code class=&quot;inline&quot;&gt;Cons&lt;/code&gt; 的工作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;sumList :: Num a =&amp;gt; [a] -&amp;gt; a
+sumList = cata go where
+  go Nil = 0
+  go (Cons a acc) = a + acc&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 的魔法不止于此，根据它的最小编译指示，我们实现 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 类时，最低限度只需要实现 &lt;code class=&quot;inline&quot;&gt;project&lt;/code&gt; 函数即可。&lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 等函数可以沿用默认定义。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;class Functor (Base t) =&amp;gt; Recursive t where
+  project :: t -&amp;gt; Base t t
+
+  cata :: (Base t a -&amp;gt; a) -- ^ a (Base t)-algebra
+       -&amp;gt; t               -- ^ fixed point
+       -&amp;gt; a               -- ^ result
+  cata f = c where c = f . fmap c . project&lt;/code&gt;&lt;p&gt;这只是 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 的默认实现而已，如果在你特定的数据结构上，&lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 存在更好的实现，当然你可以重写这一定&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 类型类中还定义了其他方法，例如我们曾在之前的文章中讨论过的 &lt;code class=&quot;inline&quot;&gt;para&lt;/code&gt;，还包括一些我们没涉及的比如泛化的 paramorphism &lt;code class=&quot;inline&quot;&gt;gpara&lt;/code&gt;，以及 Fokkinga 提出的 prepromorphism &lt;code class=&quot;inline&quot;&gt;prepro&lt;/code&gt;，或许我们会在之后的文章中讨论它们（译者注：作者在之后的文章中并未讨论它们，或许我会在之后的文章中讨论它们？）。&lt;/p&gt;&lt;p&gt;注意 Base 类型受限于 Recursive 实例：&lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt; 必须有一个 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 的实例，而且 &lt;code class=&quot;inline&quot;&gt;Base t&lt;/code&gt; 必须是一个 &lt;code class=&quot;inline&quot;&gt;Functor&lt;/code&gt; 类型，这是因为 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 依赖于使用 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt; 在进行递归操作。&lt;/p&gt;&lt;p&gt;正是因为有了 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 类型类，我们可以操作 &lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt; 而非 &lt;code class=&quot;inline&quot;&gt;ListF&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 而非 &lt;code class=&quot;inline&quot;&gt;ExprF&lt;/code&gt;，我们可以在简单数据类型上使用 Recursion Scheme。这一技巧在其它的库中也有采用，比如 José Pedro Magalhães 的 &lt;a href=&quot;https://hackage.haskell.org/package/regular/docs/Generics-Regular-Base.html#t:PF&quot;&gt;regular&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;下面我们看一下定义 &lt;code class=&quot;inline&quot;&gt;[a]&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 的实例。&lt;code class=&quot;inline&quot;&gt;[]&lt;/code&gt; 变为了 &lt;code class=&quot;inline&quot;&gt;Nil&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;:&lt;/code&gt; 变为了 &lt;code class=&quot;inline&quot;&gt;Cons&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;instance Recursive [a] where
+  project (x:xs) = Cons x xs
+  project [] = Nil&lt;/code&gt;&lt;p&gt;另外一个重要的例子是 &lt;code class=&quot;inline&quot;&gt;Natural&lt;/code&gt; —— 我们在之前也讨论过。我们自己定义了自然数类型 &lt;code class=&quot;inline&quot;&gt;Nat&lt;/code&gt;，这一类型与 &lt;code class=&quot;inline&quot;&gt;Maybe&lt;/code&gt; 等同的。所以在 &lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 中就使用了 &lt;code class=&quot;inline&quot;&gt;Maybe&lt;/code&gt; 来实现 &lt;code class=&quot;inline&quot;&gt;Natural&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;type instance Base Natural = Maybe
+
+instance Recursive Natural where
+  project 0 = Nothing
+  project n = Just (n - 1)&lt;/code&gt;&lt;h2&gt;更进一步&lt;/h2&gt;&lt;p&gt;正如我们之前所看到的，给定一个 &lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;，构造 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 的示例是非常直观的：为原来的类型定义加入一个新的类型变量，接着改造每一个构造函数使其可以加入递归的新的类型变量。而借助 Haskell 的模板能力，&lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 可以生成如下的代码：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;import Data.Functor.Foldable.TH
+
+data Expr
+  = Index Expr Expr
+  | Call Expr [Expr]
+  | Unary String Expr
+  | Binary Expr String Expr
+  | Paren Expr
+  | Literal Lit
+  deriving (Show, Eq)
+
+makeBaseFunctor &#39;&#39;Expr&lt;/code&gt;&lt;p&gt;其中 &lt;code class=&quot;inline&quot;&gt;makeBaseFunctor&lt;/code&gt; 生成的代码实际上等价于：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data ExprF a
+  = IndexF a a
+  | CallF a [a]
+  | UnaryF String a
+  | BinaryF a String a
+  | ParenF a
+  | LiteralF Lit
+  deriving (Show, Eq, Functor)
+
+type instance Base Expr = ExprF
+
+instance Recursive Expr where
+  project (Index a b) = IndexF a b
+  project (Call a b)  = CallF a b
+  -- and so on and so forth&lt;/code&gt;&lt;p&gt;这实际上就是讲上述描述应用而生成的代码，为了避免命名冲突，新的类型构造函数带一个后缀 ‘F’（中缀表达式后缀为‘$’）。&lt;/p&gt;&lt;p&gt;应用了 Haskell 模板以后，意味着对于我们这些库使用者，使用 &lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 的代价非常之小。而这些处理嵌套结构的能力，在我编写 Haskell 生产级别代码时带来了非常大的益处。你可以非常优雅地处理嵌套结构，不需要引入任何额外代码。&lt;/p&gt;&lt;h2&gt;再次翻转箭头&lt;/h2&gt;&lt;p&gt;在之前的文章中，我们多次使用翻转箭头的操作来生成展开操作。所以想必读者们对于我们要进行的操作也不会陌生，我们会同样对 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 进行类似操作。从而得到 &lt;code class=&quot;inline&quot;&gt;Corecursive&lt;/code&gt; 类型类，对应相应的展开操作。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;class Functor (Base t) =&amp;gt; Corecursive t where
+  embed :: Base t t -&amp;gt; t
+  ana :: (a -&amp;gt; Base t a) -&amp;gt; a -&amp;gt; t&lt;/code&gt;&lt;p&gt;我们已经展示过，从 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 生成 &lt;code class=&quot;inline&quot;&gt;ana&lt;/code&gt; 的过程，所以只剩下通过翻转箭头从 &lt;code class=&quot;inline&quot;&gt;project&lt;/code&gt; 生成 &lt;code class=&quot;inline&quot;&gt;embed&lt;/code&gt; 的过程，我们从 &lt;code class=&quot;inline&quot;&gt;Base&lt;/code&gt; 函子生成 &lt;code class=&quot;inline&quot;&gt;t&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;也对应于 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;ana&lt;/code&gt; 使用 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;embed&lt;/code&gt; 生成：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;class Functor (Base t) =&amp;gt; Corecursive t where
+  embed :: Base t t -&amp;gt; t
+  ana
+    :: (a -&amp;gt; Base t a) -- ^ a (Base t)-coalgebra
+    -&amp;gt; a               -- ^ seed
+    -&amp;gt; t               -- ^ resulting fixed point
+  ana g = a where a = embed . fmap a . g&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;embed&lt;/code&gt; 实例的定义也是非常直观的对称：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;instance Corecursive [a] where
+  embed (Cons x xs) = x:xs
+  embed Nil = []&lt;/code&gt;&lt;p&gt;更棒的是，实际上你不必真的自己写 &lt;code class=&quot;inline&quot;&gt;Corecursive&lt;/code&gt; 的实例，&lt;code class=&quot;inline&quot;&gt;makeBaseFunctor&lt;/code&gt; 会同时自动生成 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;Corecursive&lt;/code&gt; 的实例。&lt;/p&gt;&lt;h2&gt;餐后甜点&lt;/h2&gt;&lt;p&gt;敏锐的读者可能已经注意到了，&lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 库中的 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 实现与我们之前的形式有一些微妙的不同。我们的定义中，包括 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 的柯里化—— &lt;code class=&quot;inline&quot;&gt;cata f&lt;/code&gt;，将它传给了 &lt;code class=&quot;inline&quot;&gt;fmap&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;cata :: (Functor f) =&amp;gt; Algebra f a -&amp;gt; Term f -&amp;gt; a
+cata f = out &amp;gt;&amp;gt;&amp;gt; fmap (cata f) &amp;gt;&amp;gt;&amp;gt; f&lt;/code&gt;&lt;p&gt;而 &lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 则实现了 where 语句定义了变量 &lt;code class=&quot;inline&quot;&gt;c&lt;/code&gt; 来代换 &lt;code class=&quot;inline&quot;&gt;cata f&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;两种 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 定义都是 point-free 的，但是 &lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 的实现曾令笔者十分困惑，&lt;code class=&quot;inline&quot;&gt;c&lt;/code&gt; 的出现似乎毫无意义。直到若干年以后，我才大致理解了其中的含义。如果你避免了这样的柯里化，GHC 会生成更加高效的代码。柯里化函数必须携带它们的参数，在调用过程中必须追溯这些参数。而对于一个裸函数，调用的过程会简单得多（你可以访问 GHC 的 wiki 页面 &lt;a href=&quot;https://ghc.haskell.org/trac/ghc/wiki/Commentary/Rts/Storage/HeapObjects&quot;&gt;heap objects&lt;/a&gt; 来获得更多恶心的细节）。&lt;/p&gt;&lt;p&gt;当得知这一知识以后，我们就可以发现 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 的实现十分优雅，通过 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 的命名，我们可以像一个普通函数一样对待它，从而生成更加高效的代码。一般来说这样的优化，效果是微乎其微的，但是由于 &lt;code class=&quot;inline&quot;&gt;cata&lt;/code&gt; 在每层折叠操作中都会被调用，累积导致的效率损失对于一个库函数来说也是不可忽视的。&lt;/p&gt;&lt;h2&gt;结语&lt;/h2&gt;&lt;p&gt;我必须向 Edward Kmett 表示感谢，他的 &lt;code class=&quot;inline&quot;&gt;recursion-schemes&lt;/code&gt; 库优雅且富有启发性。同时我还要感谢 Austin Seipp，帮我检查了文章关于 GHC 代码生成部分的描述。&lt;/p&gt;&lt;p&gt;我希望能在下一篇文章中介绍 hylomorphisms and chronomorphisms，从而可以结束这一系列文章。感谢大家的耐心阅读！&lt;/p&gt;&lt;p&gt;[1]: 如果你对 kind 这一定义并不熟悉，你可以大致地认为，kind 描述了数据类型需要的参数个数，&lt;code class=&quot;inline&quot;&gt;Expr&lt;/code&gt; 中不需要参数，所以 kind 为 &lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt;，需要一个参数的则为 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; *&lt;/code&gt;。需要更多参数的比如 &lt;code class=&quot;inline&quot;&gt;Either&lt;/code&gt;，kind 为 &lt;code class=&quot;inline&quot;&gt;* -&amp;gt; * -&amp;gt; *&lt;/code&gt;，对于 kind 更精准的描述是类型的类型，但是我们可以简单地将其理解为参数的个数表示。对于任意类型，在 GHCi 中可以使用 &lt;code class=&quot;inline&quot;&gt;:k&lt;/code&gt; 来查看它所属的类型。&lt;/p&gt;&lt;p&gt;[2]: 你可以从它所属的模块名 &lt;code class=&quot;inline&quot;&gt;Data.Functor.Foldable&lt;/code&gt; 中看到这样的暗示。这个类原本就叫 &lt;code class=&quot;inline&quot;&gt;Foldable&lt;/code&gt;，由于与标准库中的 &lt;code class=&quot;inline&quot;&gt;Foldable&lt;/code&gt; 重名，才改为 &lt;code class=&quot;inline&quot;&gt;Recursive&lt;/code&gt;。&lt;/p&gt;</description>
+<author>禾木旁</author>
+<guid isPermaLink="false">2018-11-30-51286145</guid>
+<pubDate>Fri, 30 Nov 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>形式验证、依赖类型与动态类型</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-25-50792280.html</link>
@@ -717,91 +812,6 @@ The input is LINE_1 and LINE_2&lt;/code&gt;&lt;h2&gt;&lt;b&gt;结论&lt;/b&gt;&l
 <author>杨博</author>
 <guid isPermaLink="false">2018-10-05-46014989</guid>
 <pubDate>Fri, 05 Oct 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>SICP习题2.16解题报告</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-03-45914836.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45914836&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-2e00403771dbac27f351f472f5dbd324_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;前言&lt;/h2&gt;&lt;p&gt;SICP：一种数学书，虽然名字里带计算机三个字，但是看这本书的时候基本可以不用电脑&lt;/p&gt;&lt;p&gt;被誉为“只有在校学生才有时间阅读的书”和“抽象训练集中营”&lt;/p&gt;&lt;p&gt;曾用半页来介绍MIT第一任校长的生平（第二章2.2.4节脚注89）&lt;/p&gt;&lt;p&gt;其习题以消磨时间的高效率著称&lt;/p&gt;&lt;p&gt;其中习题2.16附有一句话“警告：这个问题非常难”&lt;/p&gt;&lt;p&gt;于是就有了这个解题报告&lt;/p&gt;&lt;h2&gt;背景&lt;/h2&gt;&lt;p&gt;题目的前半部分（习题2.7-习题2.15）都在描述一种“区间算法”。区间算法定义为对有一定误差的数值的运算，其中区间的运算结果定义为区间可能取值的结果的最大值和最小值。如：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\left[a,b\right]+\left[c,d\right] = \left[a+c,b+d\right]\\ \frac{\left[a,b\right]}{\left[c,d\right]} = \left[\frac{a}{d},\frac{b}{c}\right]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;*和-同理。&lt;/p&gt;&lt;h2&gt;题面&lt;/h2&gt;&lt;p&gt;清秋的早晨，阳光明媚，风和日丽，窗外鸟儿时不时轻鸣两声。突然，电话铃响了。你接起电话，电话那端传来了客户的怒吼，鸟儿吓得扑棱着翅膀飞走了。&lt;/p&gt;&lt;p&gt;众所周知，并联电路的电阻计算公式有两种代数等价的写法，可以写成这样子：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;R_总=\frac{1}{\frac{1}{R_1}+\frac{1}{R_2}}=\frac{R_1R_2}{R_1+R_2}\\&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;那位客户用你的系统对两个公式都分别写了一份代码。突然，诡异的背景音乐响起，两份代码计算出来的结果区间竟然不一样！&lt;/p&gt;&lt;p&gt;这就是为什么你在这个明媚的秋日不外出散步，而又坐在办公桌前打开代码编辑器的原因。&lt;/p&gt;&lt;p&gt;请给出一个一般性的解释：为什么等价的代数式会给出不同的结果？你能设计一个系统，使之没有这个缺陷吗？或者说这件事根本不可能做到？&lt;/p&gt;&lt;h2&gt;解题报告&lt;/h2&gt;&lt;p&gt;练习2.14要求计算A/A的结果，计算出来之后发现并不是1，而是 &lt;equation&gt;\left[\frac{a}{b},\frac{b}{a}\right]&lt;/equation&gt; 。它离 &lt;equation&gt;\left[1,1\right]&lt;/equation&gt; 很近，但是还差一点。&lt;/p&gt;&lt;p&gt;但是，从代数的角度来说A/A应该为1。&lt;/p&gt;&lt;p&gt;略作思考后就能明白，区间运算的含义是：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\left[a,b\right]\oplus\left[c,d\right] = \left[e,f\right]，当且仅当对于任意x_1\in\left[a,b\right]，x_2\in\left[c,d\right]，x_1\oplus x_2\in\left[e,f\right]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;也就是说，e为所有可能运算结果的最小值，f为所有可能运算结果的最大值&lt;/p&gt;&lt;p&gt;而我们调用过程的时候，过程并不知道区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 和区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 是不是同一个变量，他们可能是两个独立变量，只是区间恰好相同。于是过程就假设这是两个独立取值的变量，计算出了区间 &lt;equation&gt;\left[\frac{a}{b},\frac{b}{a}\right]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;那么，如何让区间运算过程知道区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 和区间 &lt;equation&gt;\left[a,b\right]&lt;/equation&gt; 是不是同一个变量呢？&lt;/p&gt;&lt;h2&gt;解题方法1&lt;/h2&gt;&lt;p&gt;我的第一个想法是给相同的区间附一个相同的符号，让区间运算过程在进行运算前先对符号进行一个符号运算，再根据符号运算结果生成结果区间&lt;/p&gt;&lt;p&gt;但是很显然，Scheme和Common Lisp并没有自带符号运算系统，如果自带了的话我也不知道。如果要自己写一个符号运算系统的话，虽然能做到，但是费时费力费人脑，不像是正解&lt;/p&gt;&lt;p&gt;以及，根据符号生成结果区间的过程可能有点慢，并且需要一张全局哈希表来记录符号和区间的映射（反正我是不想每次调用运算符都得传一个Env）。然而，SICP从第一章到习题2.15，从来没有用到过一句有副作用的语句（输出语句除外），显然这种做法太暴力了&lt;/p&gt;&lt;p&gt;【如果是Mathematica的话我或许会考虑一下&lt;/p&gt;&lt;h2&gt;解题方法2&lt;/h2&gt;&lt;p&gt;（&lt;a href=&quot;https://www.xuebuyuan.com/1470405.html&quot;&gt;来源&lt;/a&gt;）（&lt;a href=&quot;http://www.aichengxu.com/other/7368174.htm&quot;&gt;另一个相似内容（更详细）&lt;/a&gt;）&lt;/p&gt;&lt;p&gt;于是，抱着“反正SICP都警告过了我做不出来也情有可原”的想法去网上找了一下题解&lt;/p&gt;&lt;p&gt;然后看到了这篇&lt;/p&gt;&lt;p&gt;我的思路是在操作符和构造符这一抽象层面上进行构造来解决问题，而这一答案采取的是在操作层面进行构造&lt;/p&gt;&lt;p&gt;答案大致内容是对于一个算式，将n个区间所有 &lt;equation&gt;2^n&lt;/equation&gt; 个取值都列举一遍，求出所有取值所产生的最大值和最小值打包成答案返回。&lt;/p&gt;&lt;p&gt;原答案：&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(define (calculate f x y)
-  (let ((p1 (f (lower-bound x) (lower-bound y)))
-        (p2 (f (upper-bound x) (upper-bound y)))
-        (p3 (f (lower-bound x) (upper-bound y)))
-        (p4 (f (upper-bound x) (lower-bound y))))
-    (make-interval (min p1 p2 p3 p4)
-                   (max p1 p2 p3 p4))))&lt;/code&gt;&lt;p&gt;抛开 &lt;equation&gt;\Theta(2^n)&lt;/equation&gt; 的恐怖效率不谈，上述代码也是有缺点的。最明显的一个就是它只适用于n=2的情况。然而我们的算式可能有任意n个变量。&lt;/p&gt;&lt;p&gt;如果修改一下代码，用更复杂但更通用的方式实现的话可以对任意n个变量起作用，但是永远甩不开&lt;equation&gt;\Theta(2^n)&lt;/equation&gt; 的恐怖效率。&lt;/p&gt;&lt;h2&gt;解题方法3&lt;/h2&gt;&lt;p&gt;你看着那个&lt;equation&gt;\Theta(2^n)&lt;/equation&gt; 的恐怖算法，觉得一定有更好的解决方案&lt;/p&gt;&lt;p&gt;突然，树上一颗苹果落下砸中你脑袋一样，你想到了另一种方案&lt;/p&gt;&lt;p&gt;区间运算的本质是什么？&lt;/p&gt;&lt;p&gt;结果下界为所有可能运算结果的最小值，上界为所有可能运算结果的最大值&lt;/p&gt;&lt;p&gt;那么如果我给每个区间拉张表，表上随机列出区间内的取值，然后在两个表中间直接暴力算，最后暴力找出最大值和最小值，那不就得到结果区间了吗？比如 &lt;equation&gt;[2,3]\times[4,6] = [8,18]&lt;/equation&gt; ，就可以这样算： &lt;equation&gt;\left\{ 2,3,2,2,3 \right\}\times\left\{4,6,5,5,4\right\} = \left\{8,18,10,10,12\right\}&lt;/equation&gt; ，然后统计最大值和最小值得到 &lt;equation&gt;[8,18]&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;如果遇到A/A这种情况，因为同一个变量的随机表都是相同的，随机表中每一项都会变成1，那不就得到 &lt;equation&gt;\left[1,1\right]&lt;/equation&gt; 了吗？&lt;/p&gt;&lt;p&gt;不是很好。如果表与表运算结果中没有&lt;b&gt;真正的&lt;/b&gt;最大值和最小值，那你得出来的就是宽度过小的错误结果。&lt;/p&gt;&lt;p&gt;很简单，强制在表里面随机插几个区间的最大值最小值不行吗？&lt;/p&gt;&lt;p&gt;不。如果数量太少的话两张表的最大值和最小值没法相遇，也得不到精确答案。&lt;/p&gt;&lt;p&gt;那我随机用最大值和最小值将表填满总行了吧。&lt;/p&gt;&lt;p&gt;不完美。这样子很容易撞表，得出过小的区间。&lt;/p&gt;&lt;p&gt;单个表项为实际最大值或最小值的概率为 &lt;equation&gt;\frac{1}{2}&lt;/equation&gt; ，所以设表中有n个项（ &lt;equation&gt;n\gt1&lt;/equation&gt; ），上下界都错误的概率是 &lt;equation&gt;\frac{1}{2^n}&lt;/equation&gt; ，错其中至少一个界的概率为 &lt;equation&gt;\frac{3^n}{4^n}&lt;/equation&gt; ，当n=50的时候，正确的概率为 &lt;equation&gt;99.99994336783435730623753348853\%&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;但是每次进行运算，表中就会出现n/2个无助于运算的“无用项”，但为了确保R1R2/R1=R2，那些无用项不能舍去，也不能重置成有用项。也就是说，长度为1024的表在运算一次过后就只剩512能用，运算大约10次后再继续运算就不可能得到正确结果了。&lt;/p&gt;&lt;p&gt;可以提供一个clear函数，重置表来继续运算。&lt;/p&gt;&lt;p&gt;这样子通过一个表就可以完美支持区间的各种运算了。若运算式中有n个变量且每个变量参与运算的次数为常数，则时间复杂度仅为 &lt;equation&gt;\Theta(n\times l)&lt;/equation&gt; ，其中l为表长。&lt;/p&gt;&lt;p&gt;优点是代码比较容易实现，速度较快，接口比较简单（对下游用户友好）&lt;/p&gt;&lt;p&gt;缺点是运算的正确率不是100%，并且在处理小规模问题的时候常数太大。&lt;/p&gt;&lt;h2&gt;代码-解题方法2&lt;/h2&gt;&lt;p&gt;（对Lisp不熟悉的人可以跳过此段）&lt;/p&gt;&lt;p&gt;对于解题方法2的一个扩展代码&lt;/p&gt;&lt;p&gt;我们希望像这样子计算&lt;/p&gt;&lt;code lang=&quot;scheme&quot;&gt;(calculate ((r1 (make-interval 1 3)) (r2 (make-interval 2 4)))
-    (/ (+ r1 r2) (* r1 r2)))&lt;/code&gt;&lt;p&gt;（以下由于SICP里面已经没有涉及到了而且有一定复杂性所以我使用Common Lisp进行讲解，反正Common Lisp和Scheme很像）&lt;/p&gt;&lt;p&gt;这很简单。我们只需要一个宏，将算式展开到一个list中，然后取list的最大值和最小值就是结果。具体求值可以将r1、r2的取值展开到一个let中，在let里面对表达式进行求求值&lt;/p&gt;&lt;p&gt;（Common Lisp代码）&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;;;tool with-gensym
-(defmacro with-gensym (names &amp;amp;rest body)
-  `(let ,(mapcar #&#39;(lambda (n)
-		     `(,n (gensym)))
-		 names)
-     ,@body))
-
-;;tool enumerate
-(defun enumerate (symbol-1 symbol-2 num)
-  (if (= num 1)
-      `((,symbol-1) (,symbol-2))
-      (let ((last (enumerate symbol-1 symbol-2 (- num 1))))
-	(nconc (mapcar #&#39;(lambda (x) (cons symbol-1 x)) last)
-	       (mapcar #&#39;(lambda (x) (cons symbol-2 x)) last)))))
-
-(defmacro calculate (vars body)
-  (with-gensym (lst)
-    `(let (,lst ,(calc-expander vars body (length vars)))
-       (make-interval (min ,lst) (max ,lst)))))
-
-(defun calc-expander (vars body varnum)
-  (let ((values (enumerate &#39;lower-bound &#39;upper-bound varnum)))
-    `(list ,@(mapcar #&#39;(lambda (value)
-			 `(let ,value ,body))
-		     (mapcar #&#39;(lambda (enum)
-				 (mapcar #&#39;(lambda (f v)
-					     `(,(first v) (,f ,(second v))))
-					 enum
-					 vars))
-			     values)))))&lt;/code&gt;&lt;h2&gt;代码-解题方案三&lt;/h2&gt;&lt;p&gt;（Common Lisp，和Scheme相差不远）&lt;/p&gt;&lt;code lang=&quot;common-lisp&quot;&gt;;; tool rand-choice
-(defun rand-choice (term1 term2 num &amp;amp;optional res)
-  (if (zerop num)
-      res
-      (if (zerop (random 2))
-	  (rand-choice term1 term2 (- num 1) (cons term1 res))
-	  (rand-choice term1 term2 (- num 1) (cons term2 res)))))
-
-
-(defun make-interval (lower upper &amp;amp;optional (table-len 50))
-  ;;(define (make-interval lower upper)
-  (cons (cons lower upper) (rand-choice lower upper table-len)))
-
-(defun make-interval-by-table (lower upper table)
-  (cons (cons lower upper) table))
-
-(defun lower (interval)
-  (car (car interval)))
-
-(defun upper (interval)
-  (cdr (car interval)))
-
-(defun table (interval)
-  (cdr interval))
-
-(defun tabapply (func tab1 tab2)
-  (mapcar #&#39;(lambda (x y)
-	      (funcall func x y))
-	  tab1
-	  tab2))
-
-;;抽象壁垒
-
-(defun make-interval-only-by-table (table)
-  (make-interval-by-table (apply #&#39;min table)
-			  (apply #&#39;max table)
-			  table))
-
-(defun interval-func (func interval-1 interval-2)
-  (make-interval-only-by-table
-   (tabapply func (table interval-1) (table interval-2)))) &lt;/code&gt;&lt;p&gt;（定义出抽象级别更高的interval-func之后很快就能一般化出interval-add等一系列函数）&lt;/p&gt;</description>
-<author>木木</author>
-<guid isPermaLink="false">2018-10-03-45914836</guid>
-<pubDate>Wed, 03 Oct 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

@@ -1,0 +1,87 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-e5a2a9858bfa0c0e317c6943a84edb5b_r.jpg" alt=""></div><h2>前言</h2><p>为了能够不拖更，我决定讨论一些小一点的话题，本章中我们将讨论基本函子（base functor）这一概念，以及 <a href="https://hackage.haskell.org/package/recursion-schemes">recursion-schemes</a> 库函数中如何使用基本函子来使 recursion scheme 在实践中更为优雅高效。</p><h2>前情回顾</h2><p>在之前数篇文章中，我们已经看到了某种定义参数化数据类型的模式，我们从这样的数据类型定义：</p><code lang="haskell">data Expr
+  = Index Expr Expr
+  | Call Expr [Expr]
+  | Unary String Expr
+  | Binary Expr String Expr
+  | Paren Expr
+  | Literal Int
+  deriving (Show, Eq)</code><p>变为了这样：</p><code lang="haskell">data ExprF a
+  = Index a a
+  | Call a [a]
+  | Unary String a
+  | Binary a String a
+  | Paren a
+  | Literal Int
+  deriving (Show, Eq, Functor)</code><p>一样的数据类型，但是 kind [1] 变为了 <code class="inline">* -&gt; *</code>，所有的 <code class="inline">Expr</code> 都用 <code class="inline">a</code> 做了替换。接着我们使用了 Y-组合子的技巧来定义 <code class="inline">Term</code>，这样的定义与之前的 <code class="inline">Expr</code> 等价，但是可以使用 <code class="inline">fmap</code>，以及 <code class="inline">cata</code>：</p><code lang="haskell">newtype Term f = In { out :: f (Term f) }
+
+type Expr = ExprF (Term ExprF)</code><p>类似地，在第四章中，我们定义了自然数，它的 kind 也是 <code class="inline">* -&gt; *</code> 的：</p><code lang="haskell">data Nat a
+    = Zero
+    | Next a
+    deriving Functor</code><p>我们也定义了 <code class="inline">Plant</code>，也是类似的定义：</p><code lang="haskell">data Plant a
+  = Root a
+  | Stalk a
+  | Fork a a a
+  | Bloom</code><p>这个表达数据的办法确实清晰明了，但是也有相应的问题。</p><p>假设我们考虑一个最简单地链表类型：<code class="inline">a:[a]</code>。</p><code lang="haskell">infixr 5 :
+data [] a = a : [a]
+          | []</code><p>显然 <code class="inline">cata</code>，我们最基本的右折叠操作，应该可以支持这一结构。毕竟它的 kind 也是 <code class="inline">* -&gt; *</code>。但如果我在这一结构上使用 <code class="inline">Term</code>，我们马上就遇到了麻烦：我们无法在了链表里存储元素了。 <code class="inline">a</code> 只能表示嵌套的 <code class="inline">Term a</code> 这一结构。没有地方来存储链表本身的元素。可以想见，这样的链表并不十分有用。</p><p>当然我们也可以将 <code class="inline">[a]</code> 转换为之前我们常见的那种模式，新加入一个参数来表达递归的部分。</p><code lang="haskell">data ListF a b
+  = Cons a b
+  | Nil
+    deriving (Show, Eq, Functor)</code><p>在这样的结构上我们就可以完成递归了：</p><code lang="haskell">listSum :: Num a =&gt; Algebra (ListF a) a
+listSum (Cons a b) = a + b
+listSum Nil = 0</code><p>但是这一办法非常丑陋，如果对于 <code class="inline">[]</code>，这样的类型全部进行手动替换的话，我们完全丧失了使用 recursion scheme 的初衷。幸好并不是我一个人这么觉得，实际上有非常多种做法来绕开这个问题，我们会着重描述 <a href="https://hackage.haskell.org/package/recursion-schemes">recursion-schemes</a> 中解决该问题的办法。</p><h2>救星基本函子</h2><p><code class="inline">recursion-schemes</code> 库文档中有如下定义：</p><code lang="haskell">type family Base t :: * -&gt; *</code><p>这个定义明显会吓到不少人，但实际上并没有那么难以理解，而正是这一定义使得 <code class="inline">recursion-schemes</code> 在易用性上远远超越了它的竞争对手们。</p><p><code class="inline">Base</code> 类型类的目的就是将 Haskell 中的原生类型定义，或者我们自己的类型定义与相对应的参数化类型定义绑定起来。对 type family 的详尽用法进行介绍显然超出了本文的范畴（感兴趣的读者可参阅 <a href="https://wiki.haskell.org/GHC/Type_families">GHC wiki</a>），我们可以简单认为 type family 是一个在类型上定义函数的方式。如果我们定义了一个 type family，以及一个它的实例（这与 typeclass 以及它的实例实际上是类似的）：</p><code lang="haskell">type family Something t
+
+type instance Something Foo = Bar</code><p>那么之后我们无论在哪里遇到调用 <code class="inline">Something Foo</code>，GHC 类型系统都会将它代换为 <code class="inline">Bar</code>，为什么不直接写 <code class="inline">Bar</code> 呢？—— 这初看起来无关紧要，但这为我们建立两种类型间的联系提供了便利。</p><p>我们观察一下 <code class="inline">Base</code> 的定义，当你传入 <code class="inline">t</code> 时，你得到了一个 <code class="inline">* -&gt; *</code> 的类型，回想一下不难发现，我们也把 <code class="inline">Expr</code> 变成 <code class="inline">ExprF</code> 的过程也是一个 <code class="inline">*</code> 到 <code class="inline">* -&gt; *</code> 的过程。同理，<code class="inline">list</code> 就是一个 <code class="inline">* -&gt; *</code> 到 <code class="inline">* -&gt; * -&gt; *</code> 的过程。</p><p>一个 <code class="inline">Base</code> 类型的实例或许更能说明问题：</p><code lang="haskell">type instance Base [a] = ListF a</code><p>简单来说，这样的写法使得 <code class="inline">ListF a</code> 可以用 <code class="inline">Base [a]</code> 来表达。对应于每种类型，它的参数化递归类型（<code class="inline">*</code> 变换为 <code class="inline">* -&gt; *</code>）只有一种合法实现，对应来看，对于任意 <code class="inline">a</code>，<code class="inline">Base a</code> 也只有一种合法实现。</p><p>当我们把这一定义与 <code class="inline">Recursive</code> 类型类相结合以后，事情变得有趣起来。（为了阐述方便，这里的定义进行了适当简化）。</p><code lang="haskell">class (Functor (Base t)) =&gt; Recursive t where
+  project :: t -&gt; Base t t
+  cata    :: (Base t a -&gt; a) -&gt; t -&gt; a</code><p><code class="inline">Recursive</code> 类型类与 <code class="inline">Foldable</code> 类型类实际上是同构的[2]。无论我们定义了怎样的 <code class="inline">Recursive</code> 实例，<code class="inline">Expr</code> 或是 <code class="inline">[a]</code>，我们都可以在上面做折叠操作。实际上这里我们定义了两种方法，<code class="inline">project</code> 参数为一个 <code class="inline">t</code> 类型变量，得到变化后的 <code class="inline">Base</code> 形式。以及 <code class="inline">cata</code> 函数，给定一个 <code class="inline">Base t a -&gt; a</code> 函数，一个初始化的 <code class="inline">t</code>，最后得到一个 <code class="inline">a</code>。</p><p>这里的 <code class="inline">cata</code> 和我们之前的定义初看上去似乎有所不同。我们定义的 <code class="inline">cata</code> 只有 <code class="inline">Founctor</code> 的约束：</p><code lang="haskell">cata :: (Functor f) =&gt; Algebra f a -&gt; Term f -&gt; a
+cata f = out &gt;&gt;&gt; fmap (cata f) &gt;&gt;&gt; f</code><p>但我们的 <code class="inline">cata</code> 必须使用 <code class="inline">Term List</code> 而不是简单的 <code class="inline">[a]</code>，而使用 <code class="inline">Recursive</code> 类型类允许我们向 <code class="inline">cata</code> 传入一般的数据类型 <code class="inline">t</code> 而不是 <code class="inline">Term t</code>，<code class="inline">Recursive</code> 的实例使用 <code class="inline">project</code> 函数来将提供的类型转换为带参数的类型，并将它传递给 <code class="inline">cata</code> 函数，省去了我们包装 <code class="inline">Term</code> 和拼接 <code class="inline">Cons</code> 的工作。</p><code lang="haskell">sumList :: Num a =&gt; [a] -&gt; a
+sumList = cata go where
+  go Nil = 0
+  go (Cons a acc) = a + acc</code><p><code class="inline">Recursive</code> 的魔法不止于此，根据它的最小编译指示，我们实现 <code class="inline">Recursive</code> 类时，最低限度只需要实现 <code class="inline">project</code> 函数即可。<code class="inline">cata</code> 等函数可以沿用默认定义。</p><code lang="haskell">class Functor (Base t) =&gt; Recursive t where
+  project :: t -&gt; Base t t
+
+  cata :: (Base t a -&gt; a) -- ^ a (Base t)-algebra
+       -&gt; t               -- ^ fixed point
+       -&gt; a               -- ^ result
+  cata f = c where c = f . fmap c . project</code><p>这只是 <code class="inline">cata</code> 的默认实现而已，如果在你特定的数据结构上，<code class="inline">cata</code> 存在更好的实现，当然你可以重写这一定</p><p><code class="inline">Recursive</code> 类型类中还定义了其他方法，例如我们曾在之前的文章中讨论过的 <code class="inline">para</code>，还包括一些我们没涉及的比如泛化的 paramorphism <code class="inline">gpara</code>，以及 Fokkinga 提出的 prepromorphism <code class="inline">prepro</code>，或许我们会在之后的文章中讨论它们（译者注：作者在之后的文章中并未讨论它们，或许我会在之后的文章中讨论它们？）。</p><p>注意 Base 类型受限于 Recursive 实例：<code class="inline">t</code> 必须有一个 <code class="inline">Base</code> 的实例，而且 <code class="inline">Base t</code> 必须是一个 <code class="inline">Functor</code> 类型，这是因为 <code class="inline">cata</code> 依赖于使用 <code class="inline">fmap</code> 在进行递归操作。</p><p>正是因为有了 <code class="inline">Recursive</code> 类型类，我们可以操作 <code class="inline">[a]</code> 而非 <code class="inline">ListF</code>，<code class="inline">Expr</code> 而非 <code class="inline">ExprF</code>，我们可以在简单数据类型上使用 Recursion Scheme。这一技巧在其它的库中也有采用，比如 José Pedro Magalhães 的 <a href="https://hackage.haskell.org/package/regular/docs/Generics-Regular-Base.html#t:PF">regular</a>。</p><p>下面我们看一下定义 <code class="inline">[a]</code> 为 <code class="inline">Recursive</code> 的实例。<code class="inline">[]</code> 变为了 <code class="inline">Nil</code>，<code class="inline">:</code> 变为了 <code class="inline">Cons</code>。</p><code lang="haskell">instance Recursive [a] where
+  project (x:xs) = Cons x xs
+  project [] = Nil</code><p>另外一个重要的例子是 <code class="inline">Natural</code> —— 我们在之前也讨论过。我们自己定义了自然数类型 <code class="inline">Nat</code>，这一类型与 <code class="inline">Maybe</code> 等同的。所以在 <code class="inline">recursion-schemes</code> 中就使用了 <code class="inline">Maybe</code> 来实现 <code class="inline">Natural</code> 的 <code class="inline">Recursive</code> 和 <code class="inline">Base</code>。</p><code lang="haskell">type instance Base Natural = Maybe
+
+instance Recursive Natural where
+  project 0 = Nothing
+  project n = Just (n - 1)</code><h2>更进一步</h2><p>正如我们之前所看到的，给定一个 <code class="inline">t</code>，构造 <code class="inline">Base</code> 的示例是非常直观的：为原来的类型定义加入一个新的类型变量，接着改造每一个构造函数使其可以加入递归的新的类型变量。而借助 Haskell 的模板能力，<code class="inline">recursion-schemes</code> 可以生成如下的代码：</p><code lang="haskell">import Data.Functor.Foldable.TH
+
+data Expr
+  = Index Expr Expr
+  | Call Expr [Expr]
+  | Unary String Expr
+  | Binary Expr String Expr
+  | Paren Expr
+  | Literal Lit
+  deriving (Show, Eq)
+
+makeBaseFunctor ''Expr</code><p>其中 <code class="inline">makeBaseFunctor</code> 生成的代码实际上等价于：</p><code lang="haskell">data ExprF a
+  = IndexF a a
+  | CallF a [a]
+  | UnaryF String a
+  | BinaryF a String a
+  | ParenF a
+  | LiteralF Lit
+  deriving (Show, Eq, Functor)
+
+type instance Base Expr = ExprF
+
+instance Recursive Expr where
+  project (Index a b) = IndexF a b
+  project (Call a b)  = CallF a b
+  -- and so on and so forth</code><p>这实际上就是讲上述描述应用而生成的代码，为了避免命名冲突，新的类型构造函数带一个后缀 ‘F’（中缀表达式后缀为‘$’）。</p><p>应用了 Haskell 模板以后，意味着对于我们这些库使用者，使用 <code class="inline">recursion-schemes</code> 的代价非常之小。而这些处理嵌套结构的能力，在我编写 Haskell 生产级别代码时带来了非常大的益处。你可以非常优雅地处理嵌套结构，不需要引入任何额外代码。</p><h2>再次翻转箭头</h2><p>在之前的文章中，我们多次使用翻转箭头的操作来生成展开操作。所以想必读者们对于我们要进行的操作也不会陌生，我们会同样对 <code class="inline">Recursive</code> 进行类似操作。从而得到 <code class="inline">Corecursive</code> 类型类，对应相应的展开操作。</p><code lang="haskell">class Functor (Base t) =&gt; Corecursive t where
+  embed :: Base t t -&gt; t
+  ana :: (a -&gt; Base t a) -&gt; a -&gt; t</code><p>我们已经展示过，从 <code class="inline">cata</code> 生成 <code class="inline">ana</code> 的过程，所以只剩下通过翻转箭头从 <code class="inline">project</code> 生成 <code class="inline">embed</code> 的过程，我们从 <code class="inline">Base</code> 函子生成 <code class="inline">t</code>。</p><p>也对应于 <code class="inline">cata</code>，<code class="inline">ana</code> 使用 <code class="inline">fmap</code> 和 <code class="inline">embed</code> 生成：</p><code lang="haskell">class Functor (Base t) =&gt; Corecursive t where
+  embed :: Base t t -&gt; t
+  ana
+    :: (a -&gt; Base t a) -- ^ a (Base t)-coalgebra
+    -&gt; a               -- ^ seed
+    -&gt; t               -- ^ resulting fixed point
+  ana g = a where a = embed . fmap a . g</code><p><code class="inline">embed</code> 实例的定义也是非常直观的对称：</p><code lang="haskell">instance Corecursive [a] where
+  embed (Cons x xs) = x:xs
+  embed Nil = []</code><p>更棒的是，实际上你不必真的自己写 <code class="inline">Corecursive</code> 的实例，<code class="inline">makeBaseFunctor</code> 会同时自动生成 <code class="inline">Recursive</code> 和 <code class="inline">Corecursive</code> 的实例。</p><h2>餐后甜点</h2><p>敏锐的读者可能已经注意到了，<code class="inline">recursion-schemes</code> 库中的 <code class="inline">cata</code> 实现与我们之前的形式有一些微妙的不同。我们的定义中，包括 <code class="inline">cata</code> 的柯里化—— <code class="inline">cata f</code>，将它传给了 <code class="inline">fmap</code>：</p><code lang="haskell">cata :: (Functor f) =&gt; Algebra f a -&gt; Term f -&gt; a
+cata f = out &gt;&gt;&gt; fmap (cata f) &gt;&gt;&gt; f</code><p>而 <code class="inline">recursion-schemes</code> 则实现了 where 语句定义了变量 <code class="inline">c</code> 来代换 <code class="inline">cata f</code>。</p><p>两种 <code class="inline">cata</code> 定义都是 point-free 的，但是 <code class="inline">recursion-schemes</code> 的实现曾令笔者十分困惑，<code class="inline">c</code> 的出现似乎毫无意义。直到若干年以后，我才大致理解了其中的含义。如果你避免了这样的柯里化，GHC 会生成更加高效的代码。柯里化函数必须携带它们的参数，在调用过程中必须追溯这些参数。而对于一个裸函数，调用的过程会简单得多（你可以访问 GHC 的 wiki 页面 <a href="https://ghc.haskell.org/trac/ghc/wiki/Commentary/Rts/Storage/HeapObjects">heap objects</a> 来获得更多恶心的细节）。</p><p>当得知这一知识以后，我们就可以发现 <code class="inline">cata</code> 的实现十分优雅，通过 <code class="inline">cata</code> 的命名，我们可以像一个普通函数一样对待它，从而生成更加高效的代码。一般来说这样的优化，效果是微乎其微的，但是由于 <code class="inline">cata</code> 在每层折叠操作中都会被调用，累积导致的效率损失对于一个库函数来说也是不可忽视的。</p><h2>结语</h2><p>我必须向 Edward Kmett 表示感谢，他的 <code class="inline">recursion-schemes</code> 库优雅且富有启发性。同时我还要感谢 Austin Seipp，帮我检查了文章关于 GHC 代码生成部分的描述。</p><p>我希望能在下一篇文章中介绍 hylomorphisms and chronomorphisms，从而可以结束这一系列文章。感谢大家的耐心阅读！</p><p>[1]: 如果你对 kind 这一定义并不熟悉，你可以大致地认为，kind 描述了数据类型需要的参数个数，<code class="inline">Expr</code> 中不需要参数，所以 kind 为 <code class="inline">*</code>，需要一个参数的则为 <code class="inline">* -&gt; *</code>。需要更多参数的比如 <code class="inline">Either</code>，kind 为 <code class="inline">* -&gt; * -&gt; *</code>，对于 kind 更精准的描述是类型的类型，但是我们可以简单地将其理解为参数的个数表示。对于任意类型，在 GHCi 中可以使用 <code class="inline">:k</code> 来查看它所属的类型。</p><p>[2]: 你可以从它所属的模块名 <code class="inline">Data.Functor.Foldable</code> 中看到这样的暗示。这个类原本就叫 <code class="inline">Foldable</code>，由于与标准库中的 <code class="inline">Foldable</code> 重名，才改为 <code class="inline">Recursive</code>。</p>
