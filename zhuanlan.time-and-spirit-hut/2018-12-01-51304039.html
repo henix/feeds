@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust Quiz 解读： Quiz 1</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/51304039">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz<br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a><br>-  <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a><br>-  <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a></blockquote><p>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。</p><h2>Quiz 1:</h2><p>下面这段代码输出什么？</p><code lang="text">macro_rules! m {
+    ($($s:stmt)*) =&gt; {
+        $(
+            { stringify!($s); 1 }
+        )&lt;&lt;*
+    };
+}
+
+fn main() {
+    print!(
+        "{}{}{}",
+        m! { return || true },
+        m! { (return) || true },
+        m! { {return} || true },
+    );
+}</code><p><b>输出结果： 112</b></p><h2><b>解读：</b></h2><p><b>考察要点： </b></p><ol><li>声明宏的语法</li><li>Rust中语句（statements）的区分</li><li>操作符优先级</li><li>return作为表达式产生的值是Never Type类型(!)</li></ol><p>上面代码中，宏声明代码中火箭符（=&gt;）左边的是匹配表达式，其中<code class="inline">$s:stmt</code>  代表匹配语句（statements），而<code class="inline">$( )*</code>这样的语法，类似于正则表达式，代表匹配零个或多个。那么<code class="inline">$($S: stmt)*</code>就代表匹配零个或多个语句tokens。</p><p>在火箭符的右侧，<code class="inline">{stringify!($s); 1}</code>  其中的stringily!宏是将匹配的语句$s转换为字符串，  <code class="inline">$( )&lt;&lt;*</code>  对应于左边匹配表达式，生成零个或多个形如<code class="inline">... &lt;&lt; ... &lt;&lt;</code>这样的语句。</p><p><b>再来看main函数中：</b></p><p><code class="inline">m!{ return || true}</code>  ，等价于<code class="inline">return (|| true )</code> ，返回一个闭包。这属于一条独立语句。所以 最终宏生成的代码是 <code class="inline">{"return || true"; 1}</code>，最终在print!语句中执行结果是返回块代码中最后一个表达式的值：1.</p><p><code class="inline">m!{(return) || true}</code>，这里面return被括号隔离，那么整个语句是或操作。这里return 是一个表达式，它产生的值是NeverType（!）。右边表达式是true，所以是一个独立的语句。最终宏生成的代码是 <code class="inline">{"(return) || true"; 1}</code>，最终的值是：1。</p><p><code class="inline">m!{ {return} || true }</code>，这里rutrn用花括号隔开，代表它是一个独立的语句，后面的<code class="inline">|| true</code>就会被看做一个独立的闭包。那么这里存在两条语句，最终宏生成的代码是<code class="inline">{"{true}"; 1} &lt;&lt; {"|| true"; 1}</code>，那么最终的值就是<code class="inline">1&lt;&lt;1</code>，也就是：2。</p><p>所以代码的执行结果就是112。</p><p>点此查看原题，及更多解释：<a href="https://dtolnay.github.io/rust-quiz/1">Rust Quiz 1 </a> </p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
