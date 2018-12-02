@@ -5,7 +5,7 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 30 Nov 2018 23:48:01 +0800</lastBuildDate>
+<lastBuildDate>Sun, 02 Dec 2018 10:54:05 +0800</lastBuildDate>
 <item>
 <title>Recursion Schemes（六）基本函子革命</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-30-51286145.html</link>
@@ -100,6 +100,47 @@ cata f = out &amp;gt;&amp;gt;&amp;gt; fmap (cata f) &amp;gt;&amp;gt;&amp;gt; f&l
 <author>禾木旁</author>
 <guid isPermaLink="false">2018-11-30-51286145</guid>
 <pubDate>Fri, 30 Nov 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>随机游走法解 Possion 方程！</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-28-51047940.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51047940&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-160d55f74cacc560575f32f2f18b17bd_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;Possion 方程是指形如 &lt;equation&gt;\Delta \varphi = f&lt;/equation&gt; 的方程，在三维欧几里得空间中 &lt;equation&gt;\Delta=\nabla^2=\frac{\partial^2}{\partial x^2}+\frac{\partial^2}{\partial y^2}+\frac{\partial^2}{\partial z^2}&lt;/equation&gt; ，这类方程在物理上有很多应用，如在静电学中给定电荷分布求解电势的方程 &lt;equation&gt;\nabla^2\Phi=-\rho/\epsilon_0&lt;/equation&gt; ，牛顿力学中的引力场方程 &lt;equation&gt;\nabla^2\phi=4\pi G\rho&lt;/equation&gt;，达到定态时的热传导方程 &lt;equation&gt;k\nabla^2u=0&lt;/equation&gt; 。本文介绍一种解 Possion 方程的数值方法，随机游走法。&lt;/p&gt;&lt;p&gt;作为一种数值解法，我们首先考虑将 Possion 方程离散化，只求解离散的格点上的函数值。&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\varphi(x,y) \mapsto \varphi_{ij},f(x,y) \mapsto f_{ij}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;然后是 &lt;equation&gt;\nabla^2&lt;/equation&gt; 的离散化：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\frac{\partial \varphi}{\partial x}\mapsto \frac{\varphi(x+h/2,y)-\varphi(x-h/2,y)}{h}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;考虑格点间距 &lt;equation&gt;h=1&lt;/equation&gt; ，有&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\frac{\partial^2 \varphi}{\partial x^2}\mapsto\varphi(x+1,y)+\varphi(x-1,y)-2\varphi(x,y)&lt;/equation&gt; &lt;equation&gt;\nabla^2 \varphi=\frac{\partial^2 \varphi}{\partial x^2}+\frac{\partial^2 \varphi}{\partial y^2}=f\mapsto \varphi_{i,j+1}+\varphi_{i,j-1}+\varphi_{i+1,j}+\varphi_{i-1,j}-4\varphi_{ij}=f_{ij}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;上式即为 Possion 方程的离散形式，可以看到，这是一个极其稀疏的线性方程组 &lt;equation&gt;A\varphi=f&lt;/equation&gt; ，如果我们求解的区间内有 &lt;equation&gt;100\times100&lt;/equation&gt; 个格点， &lt;equation&gt;A&lt;/equation&gt; 即为一个 &lt;equation&gt;100\times100&lt;/equation&gt; 的矩阵，而其每一行只有 5 个系数不为 0。我们可以通过直接求解这个线性方程组来解出 Possion 方程，但本文要介绍另外一种算法：随机游走法。&lt;/p&gt;&lt;p&gt;将离散化的 Possion 方程稍微改变一下形式：&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\varphi_{ij}=\frac{1}{4}(\varphi_{i,j+1}+\varphi_{i,j-1}+\varphi_{i+1,j}+\varphi_{i-1,j})+f&#39;_{ij}&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;等式右边的第一项可以看作是一次对 &lt;equation&gt;\varphi_{i,j+1},\varphi_{i,j-1},\varphi_{i+1,j},\varphi_{i-1,j}&lt;/equation&gt; 这四个值的等概率随机抽样的均值，记单次抽样结果为 &lt;equation&gt;\varphi_{\{\varphi_{i,j+1},\varphi_{i,j-1},\varphi_{i+1,j},\varphi_{i-1,j}\}}&lt;/equation&gt; 。将单次随机抽样计算得到的 &lt;equation&gt;\varphi_{ij}&lt;/equation&gt; 记为 &lt;equation&gt;\phi_{ij}&lt;/equation&gt; ，上式可以改写为&lt;/p&gt;&lt;p&gt;&lt;equation&gt;\varphi_{ij}=E(\phi_{ij})=E(\varphi_{\{\varphi_{i,j+1},\varphi_{i,j-1},\varphi_{i+1,j},\varphi_{i-1,j}\}}+f&#39;_{ij})=E(\varphi_{\{\phi_{i,j+1},\phi_{i,j-1},\phi_{i+1,j},\phi_{i-1,j}\}}+f&#39;_{ij})&lt;/equation&gt; &lt;/p&gt;&lt;p&gt;这个式子就是随机游走法的原理。&lt;/p&gt;&lt;p&gt;我们将 &lt;equation&gt;E&lt;/equation&gt; 移到最外层，即将求均值的计算放到最后一步，这样计算单个格点的值的抽样就变成了单次抽样，这等价于一个朝上下左右四个方向的随机游走。&lt;/p&gt;&lt;p&gt;我们从区间中的任意一个格点出发随机游走到区间的边界，该格点的抽样值即为边界条件所确定的边界值加上路径上的 &lt;equation&gt;f&#39;_{ij}&lt;/equation&gt; 的求和，最后多次抽样取平均即可得到 Possion 方程的近似解。&lt;/p&gt;&lt;p&gt;我用 Julia 实现了这个算法，求解了几个方程并画出了函数图像：&lt;/p&gt;&lt;p&gt;边界为正弦函数的 Laplace 方程：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-f0dbe5f0a05873e353418f6c23bf49f5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-bbad1c1cf759e161b40a6b854f38028a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;边界为阶跃函数的 Laplace 方程：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-83023a109ee1cfd13587c5715606a84f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9730f508f7846f2d83b2f98496253509_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;边界为 0 但非其次项在中心不为 0 的 Possion 方程：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-524aa8ef5f2b3c0e66ccd2a564bcdaba_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c8320d0981f9fc0230e97fee028fabd0_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;附上代码：&lt;/p&gt;&lt;code lang=&quot;julia&quot;&gt;isEdge(x::Int, y::Int) =  x == 1 || y == 1 || x == 50 || y == 50
+
+function walk(x::Int, y::Int, m::Array{Float64, 2}, c::Array{Float64, 2},
+              getEdgeVal::Function,f::Function)::Float64
+    randv = rand()
+    res = f(x, y) + if isEdge(x, y)
+        getEdgeVal(x, y)
+    elseif randv &amp;lt; 1/4
+        walk(x-1, y, m, c, getEdgeVal, f)
+    elseif randv &amp;lt; 1/2
+        walk(x+1, y, m, c, getEdgeVal, f)
+    elseif randv &amp;lt; 3/4
+        walk(x, y+1, m, c, getEdgeVal, f)
+    else
+        walk(x, y-1, m, c, getEdgeVal, f)
+    end
+    m[x, y] += res
+    c[x, y] += 1
+    res
+end
+
+function solve(n::Int, getEdgeVal::Function, f::Function)
+    accum = zeros(50, 50)
+    counter = zeros(50,50)
+    for _ in 1:n
+        for i in 1:50
+            for j in 1:50
+                walk(i, j, accum, counter, getEdgeVal, f)
+            end
+        end
+    end
+    accum ./ counter
+end&lt;/code&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Narc</author>
+<guid isPermaLink="false">2018-11-28-51047940</guid>
+<pubDate>Wed, 28 Nov 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>形式验证、依赖类型与动态类型</title>
@@ -742,76 +783,6 @@ _ = idp :&amp;gt; (O == O)&lt;/code&gt;&lt;h2&gt;实例参数&lt;/h2&gt;&lt;code
 <author>兴趣使然千里冰封</author>
 <guid isPermaLink="false">2018-10-13-46693881</guid>
 <pubDate>Sat, 13 Oct 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>用Control.Dsl代替Monad</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-05-46014989.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/46014989&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Control.Dsl&lt;/code&gt;为Haskell提供了一套工具集来创建“可扩展”的领域特定语言，定制DSL&lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块。&lt;/p&gt;&lt;p&gt;DSL &lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块可以包含来自不同作者提供的各种操作。每个操作可以定义为一个GADT，由&lt;code class=&quot;inline&quot;&gt;Dsl&lt;/code&gt;类型类来解释执行，既可以有副作用，也可以是纯函数。&lt;/p&gt;&lt;p&gt;DSL &lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块是个抽象的“脚本”，其依赖的类型类可以自动推断。因此，只要提供不同的类型类实例，数据结构和解释器实现都可以随之改变。&lt;/p&gt;&lt;p&gt;本文剩下部分将会介绍如何用&lt;code class=&quot;inline&quot;&gt;Control.Dsl&lt;/code&gt;创建一门可扩展DSL，以及可以切换的两个解释器。 文中所有代码都基于&lt;code class=&quot;inline&quot;&gt;control-dsl&lt;/code&gt;包，可以在&lt;code class=&quot;inline&quot;&gt;ghci&lt;/code&gt;中运行。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Getting started&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Dsl&lt;/code&gt;类型类提供了&lt;code class=&quot;inline&quot;&gt;&amp;gt;&amp;gt;&lt;/code&gt;、 &lt;code class=&quot;inline&quot;&gt;&amp;gt;&amp;gt;=&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;return&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;fail&lt;/code&gt;等操作，用来代替&lt;code class=&quot;inline&quot;&gt;Monad&lt;/code&gt;中的对应操作。 你可以使用&lt;code class=&quot;inline&quot;&gt;RebindableSyntax&lt;/code&gt;扩展来启用&lt;code class=&quot;inline&quot;&gt;Dsl&lt;/code&gt;版的定制&lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块。 &lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :set -XRebindableSyntax
-&amp;gt;&amp;gt;&amp;gt; import Prelude hiding ((&amp;gt;&amp;gt;), (&amp;gt;&amp;gt;=), return, fail)
-&amp;gt;&amp;gt;&amp;gt; import Control.Dsl&lt;/code&gt;&lt;h2&gt;&lt;b&gt;DSL model&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;如果你要创建一门DSL来执行控制台的IO操作，你可以以GADT方式定义一些DSL中的基本操作：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; data MaxLengthConfig r a where MaxLengthConfig :: MaxLengthConfig r Int
-&amp;gt;&amp;gt;&amp;gt; data GetLine r a where GetLine :: GetLine r String
-&amp;gt;&amp;gt;&amp;gt; data PutStrLn r a where PutStrLn :: String -&amp;gt; PutStrLn r ()&lt;/code&gt;&lt;h2&gt;&lt;b&gt;DSL&lt;/b&gt; &lt;b&gt;&lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;&lt;/b&gt;语句块&lt;/h2&gt;&lt;p&gt;以上操作可以用于&lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-dslBlock = do
-  maxLength &amp;lt;- MaxLengthConfig
-  line1 &amp;lt;- GetLine
-  line2 &amp;lt;- GetLine
-  when (length line1 + length line2 &amp;gt; maxLength) $ do
-    PutStrLn &quot;The input is too long&quot;
-    fail &quot;Illegal input&quot;
-  PutStrLn (&quot;The input is &quot; ++ line1 ++ &quot; and &quot; ++ line2)
-  return ()
-:}&lt;/code&gt;&lt;p&gt;以上&lt;code class=&quot;inline&quot;&gt;dslBlock&lt;/code&gt;函数利用刚定义的操作和Control.Dsl内置操作创建了一段DSL抽象脚本。&lt;/p&gt;&lt;p&gt;GADT操作和结果语句（&lt;code class=&quot;inline&quot;&gt;return&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;fail&lt;/code&gt;）都是特设多态的限界continuation（ad-hoc polymorphic delimited continuations），由类型类&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;解释执行。GHC可以把所需的&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;类型自动推断出来：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :type dslBlock
-dslBlock
-  :: (PolyCont (Return IOError) r Void, PolyCont (Return ()) r Void,
-      PolyCont MaxLengthConfig r Int, PolyCont GetLine r [Char],
-      PolyCont PutStrLn r ()) =&amp;gt;
-     r&lt;/code&gt;&lt;h2&gt;&lt;b&gt;创建无副作用解释器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;只要提供了适用的&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt; 实例，&lt;code class=&quot;inline&quot;&gt;r&lt;/code&gt;可以是任意类型。比如：以下代码定义了无副作用的解释器&lt;code class=&quot;inline&quot;&gt;PureInterpreter&lt;/code&gt;以及对应的&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;实例：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; type PureInterpreter = Int -&amp;gt; [String] -&amp;gt; Cont [String] IOError&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont MaxLengthConfig PureInterpreter Int where
-  runPolyCont MaxLengthConfig = runPolyCont Get
-:}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont PutStrLn PureInterpreter () where
-  runPolyCont (PutStrLn s) = runPolyCont (Yield s)
-:}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont (Return ()) PureInterpreter Void where
-  runPolyCont (Return ()) = runPolyCont Empty
-:}&lt;/code&gt;&lt;p&gt;以上三个&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;实例简单的转发到Control.Dsl的内置操作上。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont GetLine PureInterpreter String where
-  runPolyCont k = runCont $ do
-    x : xs &amp;lt;- Get @[String]
-    Put xs
-    return x
-:}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;GetLine&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;实例要稍微复杂一些，实现为一个&lt;code class=&quot;inline&quot;&gt;Cont&lt;/code&gt; ，由若干个内置操作组合而成。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;无副作用地运行DSL&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; runPurely = dslBlock :: PureInterpreter
-&amp;gt;&amp;gt;&amp;gt; errorHandler e = [&quot;(handled) &quot; ++ show e]&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; runCont (runPurely 80 [&quot;LINE_1&quot;, &quot;LINE_2&quot;]) errorHandler
-[&quot;The input is LINE_1 and LINE_2&quot;]&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; longInput = [replicate 40 &#39;*&#39;, replicate 41 &#39;*&#39;]
-&amp;gt;&amp;gt;&amp;gt; runCont (runPurely 80 longInput) errorHandler
-[&quot;The input is too long&quot;,&quot;(handled) user error (Illegal input)&quot;]&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; runCont (runPurely 80 [&quot;ONE_LINE&quot;]) errorHandler
-[&quot;(handled) user error (Pattern match failure in do expression at &amp;lt;interactive&amp;gt;...&quot;]&lt;/code&gt;&lt;h2&gt;&lt;b&gt;创建有副作用的解释器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;此外，只要提供了有副作用的&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;实例，&lt;code class=&quot;inline&quot;&gt;dslBlock&lt;/code&gt;还能以带副作用的方式运行。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; type EffectfulInterpreter = Handle -&amp;gt; IO ()&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont GetLine EffectfulInterpreter String where
-  runPolyCont GetLine = runCont $ do
-    h &amp;lt;- Get
-    line &amp;lt;- Monadic (hGetLine h)
-    return line
-:}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Monadic&lt;/code&gt;是个内置操作，可以在DSL &lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块执行monad操作，比如IO。其他操作（比如&lt;code class=&quot;inline&quot;&gt;Get&lt;/code&gt;）可以和&lt;code class=&quot;inline&quot;&gt;Monadic&lt;/code&gt;出现在同一个&lt;code class=&quot;inline&quot;&gt;do&lt;/code&gt;语句块，而不需要任何monad transformer。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont MaxLengthConfig (IO ()) Int where
-  runPolyCont MaxLengthConfig f = f 80
-:}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont PutStrLn (IO ()) () where
-  runPolyCont (PutStrLn s) = (Prelude.&amp;gt;&amp;gt;=) (putStrLn s)
-:}&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-instance PolyCont (Return IOError) (IO ()) Void where
-  runPolyCont (Return e) _ = hPutStrLn stderr (show e)
-:}&lt;/code&gt;&lt;h2&gt;&lt;b&gt;以副作用方式运行DSL&lt;/b&gt;&lt;/h2&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; runEffectfully = dslBlock :: EffectfulInterpreter&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;&amp;gt;&amp;gt;&amp;gt; :{
-withSystemTempFile &quot;tmp-input-file&quot; $ \_ -&amp;gt; \h -&amp;gt; do
-  Monadic $ hPutStrLn h &quot;LINE_1&quot;
-  Monadic $ hPutStrLn h &quot;LINE_2&quot;
-  Monadic $ hSeek h AbsoluteSeek 0
-  runEffectfully h
-:}
-The input is LINE_1 and LINE_2&lt;/code&gt;&lt;h2&gt;&lt;b&gt;结论&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本文介绍了如何用&lt;code class=&quot;inline&quot;&gt;Control.Dsl&lt;/code&gt;创建自己的DSL。不同于&lt;code class=&quot;inline&quot;&gt;Monad&lt;/code&gt;，用&lt;code class=&quot;inline&quot;&gt;Control.Dsl&lt;/code&gt;创建的DSL可以扩展。只要创建GADT和对应的&lt;code class=&quot;inline&quot;&gt;PolyCont&lt;/code&gt;，就可以为现有的解释器添加新操作。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;相关链接&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/Atry/Control.Dsl&quot;&gt;Control.Dsl on Github&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://hackage.haskell.org/package/control-dsl&quot;&gt;control-dsl on Hackage&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</description>
-<author>杨博</author>
-<guid isPermaLink="false">2018-10-05-46014989</guid>
-<pubDate>Fri, 05 Oct 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

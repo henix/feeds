@@ -1,0 +1,33 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-160d55f74cacc560575f32f2f18b17bd_r.jpg" alt=""></div><p>Possion 方程是指形如 <equation>\Delta \varphi = f</equation> 的方程，在三维欧几里得空间中 <equation>\Delta=\nabla^2=\frac{\partial^2}{\partial x^2}+\frac{\partial^2}{\partial y^2}+\frac{\partial^2}{\partial z^2}</equation> ，这类方程在物理上有很多应用，如在静电学中给定电荷分布求解电势的方程 <equation>\nabla^2\Phi=-\rho/\epsilon_0</equation> ，牛顿力学中的引力场方程 <equation>\nabla^2\phi=4\pi G\rho</equation>，达到定态时的热传导方程 <equation>k\nabla^2u=0</equation> 。本文介绍一种解 Possion 方程的数值方法，随机游走法。</p><p>作为一种数值解法，我们首先考虑将 Possion 方程离散化，只求解离散的格点上的函数值。</p><p><equation>\varphi(x,y) \mapsto \varphi_{ij},f(x,y) \mapsto f_{ij}</equation> </p><p>然后是 <equation>\nabla^2</equation> 的离散化：</p><p><equation>\frac{\partial \varphi}{\partial x}\mapsto \frac{\varphi(x+h/2,y)-\varphi(x-h/2,y)}{h}</equation> </p><p>考虑格点间距 <equation>h=1</equation> ，有</p><p><equation>\frac{\partial^2 \varphi}{\partial x^2}\mapsto\varphi(x+1,y)+\varphi(x-1,y)-2\varphi(x,y)</equation> <equation>\nabla^2 \varphi=\frac{\partial^2 \varphi}{\partial x^2}+\frac{\partial^2 \varphi}{\partial y^2}=f\mapsto \varphi_{i,j+1}+\varphi_{i,j-1}+\varphi_{i+1,j}+\varphi_{i-1,j}-4\varphi_{ij}=f_{ij}</equation> </p><p>上式即为 Possion 方程的离散形式，可以看到，这是一个极其稀疏的线性方程组 <equation>A\varphi=f</equation> ，如果我们求解的区间内有 <equation>100\times100</equation> 个格点， <equation>A</equation> 即为一个 <equation>100\times100</equation> 的矩阵，而其每一行只有 5 个系数不为 0。我们可以通过直接求解这个线性方程组来解出 Possion 方程，但本文要介绍另外一种算法：随机游走法。</p><p>将离散化的 Possion 方程稍微改变一下形式：</p><p><equation>\varphi_{ij}=\frac{1}{4}(\varphi_{i,j+1}+\varphi_{i,j-1}+\varphi_{i+1,j}+\varphi_{i-1,j})+f'_{ij}</equation> </p><p>等式右边的第一项可以看作是一次对 <equation>\varphi_{i,j+1},\varphi_{i,j-1},\varphi_{i+1,j},\varphi_{i-1,j}</equation> 这四个值的等概率随机抽样的均值，记单次抽样结果为 <equation>\varphi_{\{\varphi_{i,j+1},\varphi_{i,j-1},\varphi_{i+1,j},\varphi_{i-1,j}\}}</equation> 。将单次随机抽样计算得到的 <equation>\varphi_{ij}</equation> 记为 <equation>\phi_{ij}</equation> ，上式可以改写为</p><p><equation>\varphi_{ij}=E(\phi_{ij})=E(\varphi_{\{\varphi_{i,j+1},\varphi_{i,j-1},\varphi_{i+1,j},\varphi_{i-1,j}\}}+f'_{ij})=E(\varphi_{\{\phi_{i,j+1},\phi_{i,j-1},\phi_{i+1,j},\phi_{i-1,j}\}}+f'_{ij})</equation> </p><p>这个式子就是随机游走法的原理。</p><p>我们将 <equation>E</equation> 移到最外层，即将求均值的计算放到最后一步，这样计算单个格点的值的抽样就变成了单次抽样，这等价于一个朝上下左右四个方向的随机游走。</p><p>我们从区间中的任意一个格点出发随机游走到区间的边界，该格点的抽样值即为边界条件所确定的边界值加上路径上的 <equation>f'_{ij}</equation> 的求和，最后多次抽样取平均即可得到 Possion 方程的近似解。</p><p>我用 Julia 实现了这个算法，求解了几个方程并画出了函数图像：</p><p>边界为正弦函数的 Laplace 方程：</p><img src="https://pic4.zhimg.com/v2-f0dbe5f0a05873e353418f6c23bf49f5_r.jpg" data-caption="" data-size="normal" data-rawwidth="600" data-rawheight="400" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src=""><img src="https://pic2.zhimg.com/v2-bbad1c1cf759e161b40a6b854f38028a_r.jpg" data-caption="" data-size="normal" data-rawwidth="600" data-rawheight="400" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src=""><p>边界为阶跃函数的 Laplace 方程：</p><img src="https://pic2.zhimg.com/v2-83023a109ee1cfd13587c5715606a84f_r.jpg" data-caption="" data-size="normal" data-rawwidth="600" data-rawheight="400" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src=""><img src="https://pic1.zhimg.com/v2-9730f508f7846f2d83b2f98496253509_r.jpg" data-caption="" data-size="normal" data-rawwidth="600" data-rawheight="400" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src=""><p>边界为 0 但非其次项在中心不为 0 的 Possion 方程：</p><img src="https://pic3.zhimg.com/v2-524aa8ef5f2b3c0e66ccd2a564bcdaba_r.jpg" data-caption="" data-size="normal" data-rawwidth="600" data-rawheight="400" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src=""><img src="https://pic1.zhimg.com/v2-c8320d0981f9fc0230e97fee028fabd0_r.jpg" data-caption="" data-size="normal" data-rawwidth="600" data-rawheight="400" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src=""><p>附上代码：</p><code lang="julia">isEdge(x::Int, y::Int) =  x == 1 || y == 1 || x == 50 || y == 50
+
+function walk(x::Int, y::Int, m::Array{Float64, 2}, c::Array{Float64, 2},
+              getEdgeVal::Function,f::Function)::Float64
+    randv = rand()
+    res = f(x, y) + if isEdge(x, y)
+        getEdgeVal(x, y)
+    elseif randv &lt; 1/4
+        walk(x-1, y, m, c, getEdgeVal, f)
+    elseif randv &lt; 1/2
+        walk(x+1, y, m, c, getEdgeVal, f)
+    elseif randv &lt; 3/4
+        walk(x, y+1, m, c, getEdgeVal, f)
+    else
+        walk(x, y-1, m, c, getEdgeVal, f)
+    end
+    m[x, y] += res
+    c[x, y] += 1
+    res
+end
+
+function solve(n::Int, getEdgeVal::Function, f::Function)
+    accum = zeros(50, 50)
+    counter = zeros(50,50)
+    for _ in 1:n
+        for i in 1:50
+            for j in 1:50
+                walk(i, j, accum, counter, getEdgeVal, f)
+            end
+        end
+    end
+    accum ./ counter
+end</code><p></p>
