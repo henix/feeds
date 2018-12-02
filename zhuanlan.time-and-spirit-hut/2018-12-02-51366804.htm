@@ -1,0 +1,20 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz<br><a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br><a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br><a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。</blockquote><h2><b>Quiz 2:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">struct S(i32);
+
+impl std::ops::BitAnd&lt;S&gt; for () {
+    type Output = ();
+
+    fn bitand(self, rhs: S) {
+        print!("{}", rhs.0);
+    }
+}
+
+fn main() {
+    let f = || ( () &amp; S(1) );
+    let g = || { () &amp; S(2) };
+    let h = || ( {} &amp; S(3) );
+    let i = || { {} &amp; S(4) };
+    f();
+    g();
+    h();
+    i();
+}</code><p><b>输出结果：123</b></p><h2><b>解读：</b></h2><p>考察要点： </p><ol><li>trait：操作符重载</li><li>trait：关联类型</li><li>单元类型 ()</li><li>元组结构体</li><li>闭包使用圆括号和块的差异</li></ol><p>代码中定义了元组结构体S(i32)，又为其实现了<code class="inline">std::ops::BitAdd&lt;s&gt;</code> trait，意味着，该元组结构体就有了位运算<code class="inline">&amp;</code>的能力。</p><p>在实现BitAdd的代码中，指定了关联类型为单元类型<code class="inline">()</code>，在bitand方法中，省略了返回类型。等价于下面代码。</p><code lang="text">fn bitand(self, rhs: S) -&gt; () { ... }</code><p>那么在main函数中：</p><p><code class="inline">let f = || ( () &amp; S(1) );</code>  ， 这行代码中，f绑定的是一个闭包。闭包中<code class="inline">() &amp; S(1)</code>是一个位操作<code class="inline">&amp;</code>表达式。最终结果当然是输出<code class="inline">rhs.0</code>，也就是：1。元组结构体和元组的用法是一样的。</p><p><code class="inline">let g = || { () &amp; S(2) };</code>， 这行代码中，g绑定的依然是一个闭包。闭包可以用圆括号，也可以用花括号。闭包内，<code class="inline">() &amp; S(2)</code>依然是一个完整的表达式，求值结果是：2。</p><p><code class="inline">let h = || ( {} &amp; S(3) );</code>，这行代码中，h同样是一个闭包，但注意这里闭包是用圆括号来表示，这代表，<code class="inline">{} &amp; S(3)</code>按一个完整独立的表达式来处理。其中<code class="inline">{}</code>表达式求值结果是<code class="inline">()</code>，再和<code class="inline">S(3)</code>进行与操作，得到最终值： 3。</p><p><code class="inline">let i = || { {} &amp; S(4) };</code>，这行代码中， i同样是一个闭包，然而，它是以花括号构成。花括号和圆括号的区别在于，花括号代表一个块（block），它默认按多条表达式语句进行解析。所以，<code class="inline">{} &amp; S(4)</code>，实际上被看作两条语句<code class="inline">{}</code>和<code class="inline">&amp;S(4)</code>，最终闭包执行结果是返回一个<code class="inline">S(4)</code>的引用。和位操作没有啥关系，最终也没有任何输出结果。</p><p><code class="inline">()</code>和<code class="inline">{}</code>的区别，不仅仅在于闭包，在写声明宏或者其他地方都是一致的。</p><p><a href="https://dtolnay.github.io/rust-quiz/2">点此查看 Rust Quiz 2 </a> </p>
