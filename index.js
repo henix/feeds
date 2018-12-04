@@ -10,7 +10,7 @@ const feeds = [
 		"shenyantao-60",
 		"FICCGeek",
 		"bwdo",
-		"gh_5d86493a0d6b"
+		"gh_5d86493a0d6b",
 		"factor-investing",
 		"DreamyTalks",
 		"TokyoTradingFloor",
