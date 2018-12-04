@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>20181201 Carry, Duration and Convexity</title>
+</head>
+<body>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1543962358&amp;src=3&amp;ver=1&amp;signature=jZtIDmwMCq*QGh8hdThvLVymmAidAq46c--L1RCb70fdNvHkEr3jsf4jSDP03G-zDNmw1RLFisA37M9e0WOYGP8tkJB*UfcEv1YuVEj8Sn4UAC*qIVZHcBEzSLxdhAFAj1IXxkZHV0zzNXrr8WrXd95dsaRaiuz4fQ-RzvmbKXc=">原文</a></p>
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    20181201 Carry, Duration and Convexity
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                                                <span class="rich_media_meta rich_media_meta_text">
+                                                斯坦尼熊猫夫斯基
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        湖畔公寓28号                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">湖畔公寓28号</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">FICCGeek</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">包括但不限于Global Macro、FICC、Quantitative、Trading的研究、段子以及书评</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFYiaW763sicEUcqS5x7qdp9NFNoqSmib3gw4gjBBUk9YibKnJVU6pPfCahg/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFqVWRelJyXsFicloaZPoxOkgXJxEYKIB7Le6GDNlp5QKrzfg4Kj43WSg/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFQFj8kAibr89BqRqFexiclYn3aleLkIgnJwK58kCJibaFftC9alNN9ywCA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFXibcxrcw97RcZu5iczU1tiaY8ZrFHLrj2KOs8xaiakmVLTticSzmIXgmAyg/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFcRE7SQLWP5oiazwmhREzjORZJ7Wib7saNFGibnReicUPnGrjvBiabjBUkmw/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFaabnejJGn1ibVUBia0jqia624QP31q3fKZTUe2v7X2tRic13YnlOwqXNjA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFdK1OVnNdEHgwibN5x5Uv3PH4Xic30VJc5Gqkib3RSAibIaUyTicEicDdiakVg/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFycB2oQ1NpHyaoP8JUGst4gIbPJjQBpxC5SqcZ9HQayd4B8sqS1cVicA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFsgt4p4UniaMevXvbrqt7gCfNyHH9vibMVgqaI7HAhLj6ym1NgKGREicSA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFfwQnWpvwspGgicqCQnIC8RNsAOOEZYzsun5bLnwN2A4ibvojoeicKRRNQ/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFzhj3J3ziatEibPoiciaZSAQRg1DibRwjpE8scL4ENPMS1488aX0qk8l1aQQ/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHF7BIbmsaV26ZicmQjVFZrD6OzqvTRbREMkLKhVWarRkSJyuDnzbGl03A/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFdibp7zeWndSHmuBouGadKdrZVDrQtNrqZUSS3DaevTdCXpEYaVEV7Hg/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFWOdsyrnnJZgLzDsh2boUhPs7oOY5UdicfZZhbkMf8oK3BPTTq9wax7A/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFmqHmTCRuenIPuicE2JRGt5B5JMrnicQWdqjDgxSMIRoXAqO7XsmKmiakA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFGpvnK24rfiap5GALfRYFibnMrP29f66mWNjtt6OvIpsgkolZNcbaddibw/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHF3nc23p0732dA4DKB3eyaKY6EPBv7ibE2Kof5FnBT8EtDckjozRFTaLQ/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFLloghQCMDKuKbTMk4FQzDHCU63zHQOqppcVIrHIMZWG0SuAicz44zicA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFibDv5dElg2ic4LtWFbDcGPpyOOOl4mNhJeD9sfPA6uU9iafSzcCibuXoKg/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHF3QUmTyh9FmWXRLx0PqMqnLFiaAsOAEgGfyMHV6d4WCNrGfnbwicd1W6w/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFjgNm2yG7Efm6dsJrusNkKBIlcXHTvDFgQ9ktAx7FlDSyuHBtRb3ZicA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFecNsPJERSlaZT7IgQIJLRe83icJSqdKH8GoibJic2vbsbb8SXg7QRLj1Q/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHF6GicQDt9Mjiac46h1tDXuj08Qbx1gugscKTDxQeYhAbbDkGdr31Uf6XA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFpJMNmOzdN2Iia4fZhUOFZGGIYjHq7keqm7BTIDhLm5jAPOFb33qsuiaA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFibHgpAUiaLia0mAseWL7qkffxibJaa4CE6kJPiceb5fdgNI2TfiamnhFQTwQ/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFc09lOUVhs1yQXvzEZZZpvjZXetPKaL6IkV7Xs2R8pv29KVSN1W4wrQ/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFntmicf812ko01yibtONyj6SBwHl3LOvvX8x2lZeibHSkKQoTSbWhtDuZA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFzEgliczIEn7ImSNyFSkEtYpicTrdBPkzSNowOd4grxXOptfeNqX3wIag/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFuiap3b0bIvT0MiawNjsZT2sFibqibp6TSMIZv8xI9iaI8ZMgDdF3uDYU79w/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFhibd23VXziblL0lsa6saC5uxoyRicjNT51OP93m2HBuz4aNs60TxWptIQ/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHF7NQEiaYUeXHPSkYG3iaicjdnSOtCiaXgw0vO1sBr8ayEf2dIjJCEyw0lgA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p><img class="" data-copyright="0" data-ratio="0.75" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/vfQ4rrWP2friaLkMHstNXCyXuIq3rxpHFDk8Ne5SlGc3rEO2TZ0HoAbyFrjIncbW9GdJUnz7iciaibcsrYqP5M4CoA/640?wx_fmt=jpeg" data-type="jpeg" data-w="960" style=""></p><p>你喜欢就好咯</p><p><br></p>
+                </div>
+                <script nonce="1002312261" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx3ec991.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">斯坦尼熊猫夫斯基</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+                        <div class="rich_media_tool" id="js_toobar3">
+
+                                            <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+                <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like3">
+                    <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum3"></span>
+                </span>
+
+                
+
+            </div>
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
