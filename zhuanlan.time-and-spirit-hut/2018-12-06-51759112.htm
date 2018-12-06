@@ -1,0 +1,99 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz    <br><br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br><br> 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。  </blockquote><h2><b>Quiz 7:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">#[repr(u8)]
+enum Enum {
+    First,
+    Second,
+}
+
+impl Enum {
+    fn p(self) {
+        match self {
+            First =&gt; print!("1"),
+            Second =&gt; print!("2"),
+        }
+    }
+}
+
+fn main() {
+    Enum::p(unsafe {
+        std::mem::transmute(1u8)
+    });
+}</code><p><b>输出结果： 1</b></p><h2><b>解读</b></h2><p>考察要点：</p><ol><li>Enum内存布局</li><li>std::mem::transmute函数</li><li>类型推断</li><li>match匹配</li></ol><p>在上面代码中定义了Enum枚举体，使用<code class="inline">#[repr(u8)]</code>来指定其内存布局，是按8位对齐。</p><p>然后为Enum实现了方法p，其方法体使用match匹配。这里是最让人迷惑的地方了。注意match的两个匹配模式，<code class="inline">First</code>和<code class="inline">Second</code>与Enum枚举体包含值同名。正常情况下，如果要在方法p内使用枚举值，应该是<code class="inline">Enum::First</code>和<code class="inline">Enum::Second</code>，或者使用<code class="inline">use Enum::*;</code>导入。这里没有导入，也没有加<code class="inline">Enum::</code>前缀，那么实际上，Rust将<code class="inline">First</code>和<code class="inline">Second</code>当作通配符_来看待。</p><p>所以，在main函数中，不管给p方法传入什么类型，只能匹配到第一个，所以输出结果是： 1。</p><p><br></p><p><b>怎么理解呢？</b>把上面的代码放到Playground执行一遍，会看到编译器有警告输出：</p><code lang="rust">warning[E0170]: pattern binding `First` is named the same as one of the variants of the type `Enum`
+  --&gt; src/main.rs:10:13
+   |
+10 |             First =&gt; print!("1"),
+   |             ^^^^^ help: to match on the variant, qualify the path: `Enum::First`
+
+warning[E0170]: pattern binding `Second` is named the same as one of the variants of the type `Enum`
+  --&gt; src/main.rs:11:13
+   |
+11 |             Second =&gt; print!("2"),
+   |             ^^^^^^ help: to match on the variant, qualify the path: `Enum::Second`</code><p>首先是这两个警告，这是提示开发者，First和Second和Enum定义的枚举值同名了，提示加上Enum::前缀。</p><code lang="rust">warning: unreachable pattern
+  --&gt; src/main.rs:11:13
+   |
+10 |             First =&gt; print!("1"),
+   |             ----- matches any value
+11 |             Second =&gt; print!("2"),
+   |             ^^^^^^ unreachable pattern
+   |
+   = note: #[warn(unreachable_patterns)] on by default</code><p>然后是上面这个警告，提示这里触发了<code class="inline">unreachable pattern</code>模式，因为Rust编译器默认是开启<code class="inline">#[warn(unreachable_patterns)]</code>警告的。</p><p>什么是Unreachable Pattern呢？p方法等价于下面代码：</p><code lang="rust">impl Enum {
+    fn p(self) {
+        match self {
+            _ =&gt; print!("1"),
+            _ =&gt; print!("2"),
+        }
+    }
+}</code><p>当函数被调用的时候，Rust会遍历self所有可能的值，但是现在这里并没有把所有可能匹配的值给列出来。所以就是Unreachable。在这种情况下，将会匹配任意值。这也是上面代码输出1的原因。</p><p><br></p><p><b>如果把p方法里的匹配模式加上Enum::前缀会怎么样？</b></p><code lang="rust">#[repr(u8)]
+enum Enum {
+    First,
+    Second,
+}
+
+impl Enum {
+    fn p(self) {
+        match self {
+            Enum::First =&gt; print!("1"),
+            Enum::Second =&gt; print!("2"),
+        }
+    }
+}
+
+fn main() {
+    Enum::p(unsafe {
+        std::mem::transmute(1u8)
+    });
+}</code><p>这次，输出结果变成了： 2。</p><p>这又是为什么呢?</p><p>事实上，Enum等价于下面代码：</p><code lang="rust">enum Enum {
+  First = 0u8,
+  Second = 1u8,
+}</code><p>其实，你在Playground里输出MIR代码也能看得出来：</p><code lang="rust">#[repr(u8)]
+enum Enum {
+    First,
+    Second,
+}
+fn main() {
+    let a = Enum::First;
+    let b = Enum::Second;
+}</code><p>输出的MIR：</p><code lang="rust">fn main() -&gt; (){
+    let mut _0: ();                      // return place
+    scope 1 {
+        scope 3 {
+        }
+        scope 4 {
+            let _2: Enum;                // "b" in scope 4 at src/main.rs:10:9: 10:10
+        }
+    }
+    scope 2 {
+        let _1: Enum;                    // "a" in scope 2 at src/main.rs:9:9: 9:10
+    }
+
+    bb0: {                              
+       // 省略其他
+        discriminant(_1) = 0;            // bb0[1]: scope 0 at src/main.rs:9:13: 9:24
+        discriminant(_2) = 1;            // bb0[3]: scope 1 at src/main.rs:10:13: 10:25
+       // 省略其他
+    }
+}</code><p>那么main函数，其实等价于下面代码：</p><code lang="rust">fn main() {
+    let a = unsafe {
+        std::mem::transmute(1u8)
+    };
+    Enum::p(a);
+}</code><p><code class="inline">std::mem::transmute()</code>函数本身是一个unsafe函数，它相当于直接在栈上进行拷贝，将一种类型的值，解释为另一种类型。语义上，相当于一种「按位移动」。说白了，就是一种类型转换。但不能随便使用它，必须在源值和目标值，都有效的情况下才可以转换。</p><p>但是上面代码里的<code class="inline">a</code>，是什么类型呢？<code class="inline">std::mem::transmute(1u8)</code>会把<code class="inline">1u8</code>转换为Enum类型。这是Rust编译器根据上下文进行类型推断得出的。你可以把<code class="inline">1u8</code>修改为<code class="inline">1u16</code>看看编译器的提示。</p><p>那么现在a实际上是被转换成Enum::Second。所以Enum::p(a);输出的结果是：2。</p><p>注意上面Enum::First对应的判别式是0，而Enum::Second对应的判别式才是1。</p><p><br></p><p><a href="https://dtolnay.github.io/rust-quiz/7">点此查看 Rust Quiz 7</a></p>

@@ -5,7 +5,114 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 06 Dec 2018 12:28:32 +0800</lastBuildDate>
+<lastBuildDate>Fri, 07 Dec 2018 03:26:59 +0800</lastBuildDate>
+<item>
+<title>Rust Quiz 解读：Quiz 7</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-06-51759112.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51759112&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz    &lt;br&gt;&lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。  &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 7:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[repr(u8)]
+enum Enum {
+    First,
+    Second,
+}
+
+impl Enum {
+    fn p(self) {
+        match self {
+            First =&amp;gt; print!(&quot;1&quot;),
+            Second =&amp;gt; print!(&quot;2&quot;),
+        }
+    }
+}
+
+fn main() {
+    Enum::p(unsafe {
+        std::mem::transmute(1u8)
+    });
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 1&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Enum内存布局&lt;/li&gt;&lt;li&gt;std::mem::transmute函数&lt;/li&gt;&lt;li&gt;类型推断&lt;/li&gt;&lt;li&gt;match匹配&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;在上面代码中定义了Enum枚举体，使用&lt;code class=&quot;inline&quot;&gt;#[repr(u8)]&lt;/code&gt;来指定其内存布局，是按8位对齐。&lt;/p&gt;&lt;p&gt;然后为Enum实现了方法p，其方法体使用match匹配。这里是最让人迷惑的地方了。注意match的两个匹配模式，&lt;code class=&quot;inline&quot;&gt;First&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Second&lt;/code&gt;与Enum枚举体包含值同名。正常情况下，如果要在方法p内使用枚举值，应该是&lt;code class=&quot;inline&quot;&gt;Enum::First&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Enum::Second&lt;/code&gt;，或者使用&lt;code class=&quot;inline&quot;&gt;use Enum::*;&lt;/code&gt;导入。这里没有导入，也没有加&lt;code class=&quot;inline&quot;&gt;Enum::&lt;/code&gt;前缀，那么实际上，Rust将&lt;code class=&quot;inline&quot;&gt;First&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Second&lt;/code&gt;当作通配符_来看待。&lt;/p&gt;&lt;p&gt;所以，在main函数中，不管给p方法传入什么类型，只能匹配到第一个，所以输出结果是： 1。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;怎么理解呢？&lt;/b&gt;把上面的代码放到Playground执行一遍，会看到编译器有警告输出：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;warning[E0170]: pattern binding `First` is named the same as one of the variants of the type `Enum`
+  --&amp;gt; src/main.rs:10:13
+   |
+10 |             First =&amp;gt; print!(&quot;1&quot;),
+   |             ^^^^^ help: to match on the variant, qualify the path: `Enum::First`
+
+warning[E0170]: pattern binding `Second` is named the same as one of the variants of the type `Enum`
+  --&amp;gt; src/main.rs:11:13
+   |
+11 |             Second =&amp;gt; print!(&quot;2&quot;),
+   |             ^^^^^^ help: to match on the variant, qualify the path: `Enum::Second`&lt;/code&gt;&lt;p&gt;首先是这两个警告，这是提示开发者，First和Second和Enum定义的枚举值同名了，提示加上Enum::前缀。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;warning: unreachable pattern
+  --&amp;gt; src/main.rs:11:13
+   |
+10 |             First =&amp;gt; print!(&quot;1&quot;),
+   |             ----- matches any value
+11 |             Second =&amp;gt; print!(&quot;2&quot;),
+   |             ^^^^^^ unreachable pattern
+   |
+   = note: #[warn(unreachable_patterns)] on by default&lt;/code&gt;&lt;p&gt;然后是上面这个警告，提示这里触发了&lt;code class=&quot;inline&quot;&gt;unreachable pattern&lt;/code&gt;模式，因为Rust编译器默认是开启&lt;code class=&quot;inline&quot;&gt;#[warn(unreachable_patterns)]&lt;/code&gt;警告的。&lt;/p&gt;&lt;p&gt;什么是Unreachable Pattern呢？p方法等价于下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;impl Enum {
+    fn p(self) {
+        match self {
+            _ =&amp;gt; print!(&quot;1&quot;),
+            _ =&amp;gt; print!(&quot;2&quot;),
+        }
+    }
+}&lt;/code&gt;&lt;p&gt;当函数被调用的时候，Rust会遍历self所有可能的值，但是现在这里并没有把所有可能匹配的值给列出来。所以就是Unreachable。在这种情况下，将会匹配任意值。这也是上面代码输出1的原因。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;如果把p方法里的匹配模式加上Enum::前缀会怎么样？&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[repr(u8)]
+enum Enum {
+    First,
+    Second,
+}
+
+impl Enum {
+    fn p(self) {
+        match self {
+            Enum::First =&amp;gt; print!(&quot;1&quot;),
+            Enum::Second =&amp;gt; print!(&quot;2&quot;),
+        }
+    }
+}
+
+fn main() {
+    Enum::p(unsafe {
+        std::mem::transmute(1u8)
+    });
+}&lt;/code&gt;&lt;p&gt;这次，输出结果变成了： 2。&lt;/p&gt;&lt;p&gt;这又是为什么呢?&lt;/p&gt;&lt;p&gt;事实上，Enum等价于下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Enum {
+  First = 0u8,
+  Second = 1u8,
+}&lt;/code&gt;&lt;p&gt;其实，你在Playground里输出MIR代码也能看得出来：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[repr(u8)]
+enum Enum {
+    First,
+    Second,
+}
+fn main() {
+    let a = Enum::First;
+    let b = Enum::Second;
+}&lt;/code&gt;&lt;p&gt;输出的MIR：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn main() -&amp;gt; (){
+    let mut _0: ();                      // return place
+    scope 1 {
+        scope 3 {
+        }
+        scope 4 {
+            let _2: Enum;                // &quot;b&quot; in scope 4 at src/main.rs:10:9: 10:10
+        }
+    }
+    scope 2 {
+        let _1: Enum;                    // &quot;a&quot; in scope 2 at src/main.rs:9:9: 9:10
+    }
+
+    bb0: {                              
+       // 省略其他
+        discriminant(_1) = 0;            // bb0[1]: scope 0 at src/main.rs:9:13: 9:24
+        discriminant(_2) = 1;            // bb0[3]: scope 1 at src/main.rs:10:13: 10:25
+       // 省略其他
+    }
+}&lt;/code&gt;&lt;p&gt;那么main函数，其实等价于下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn main() {
+    let a = unsafe {
+        std::mem::transmute(1u8)
+    };
+    Enum::p(a);
+}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;std::mem::transmute()&lt;/code&gt;函数本身是一个unsafe函数，它相当于直接在栈上进行拷贝，将一种类型的值，解释为另一种类型。语义上，相当于一种「按位移动」。说白了，就是一种类型转换。但不能随便使用它，必须在源值和目标值，都有效的情况下才可以转换。&lt;/p&gt;&lt;p&gt;但是上面代码里的&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，是什么类型呢？&lt;code class=&quot;inline&quot;&gt;std::mem::transmute(1u8)&lt;/code&gt;会把&lt;code class=&quot;inline&quot;&gt;1u8&lt;/code&gt;转换为Enum类型。这是Rust编译器根据上下文进行类型推断得出的。你可以把&lt;code class=&quot;inline&quot;&gt;1u8&lt;/code&gt;修改为&lt;code class=&quot;inline&quot;&gt;1u16&lt;/code&gt;看看编译器的提示。&lt;/p&gt;&lt;p&gt;那么现在a实际上是被转换成Enum::Second。所以Enum::p(a);输出的结果是：2。&lt;/p&gt;&lt;p&gt;注意上面Enum::First对应的判别式是0，而Enum::Second对应的判别式才是1。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/7&quot;&gt;点此查看 Rust Quiz 7&lt;/a&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-06-51759112</guid>
+<pubDate>Thu, 06 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust Quiz 解读：Quiz 6</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-06-51683754.html</link>
@@ -210,15 +317,6 @@ app.serve(address);&lt;/code&gt;&lt;p&gt;nest方法实现：&lt;/p&gt;&lt;code l
 }&lt;/code&gt;&lt;p&gt;另外还增加了一个使用计算值的示例：&lt;a href=&quot;https://github.com/rust-net-web/tide/blob/master/examples/computed_values.rs&quot;&gt;computed_values&lt;/a&gt;&lt;/p&gt;&lt;p&gt;原文中列出了还待解决的一些问题列表，你也可以来参与。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://rust-lang-nursery.github.io/wg-net/2018/11/27/tide-middleware-evolution.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;</description>
 <author>张汉东</author>
 <guid isPermaLink="false">2018-11-28-51048926</guid>
-<pubDate>Wed, 28 Nov 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>「官方」Rust 2018年度调查报告</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-11-28-51018048.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51018048&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-938be19e928e7da9e957e2223c134d5f_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;原文：&lt;a href=&quot;https://blog.rust-lang.org/2018/11/27/Rust-survey-2018.html&quot;&gt;The Rust Programming Language Blog&lt;/a&gt;  &lt;/blockquote&gt;&lt;p&gt;一年一度的Rust调查报告，今年已经是第三次了。今年这份调查报告首次以多种语言推出，除英语外，一共有14种语言。非英语语言的结果占所有回复的25%。此次报告一共产生&lt;b&gt;5991个回复记录。&lt;/b&gt;在展现最终报告分析结果之前，我们想给所有花时间回应并将你的想法告诉我们的人一个大大的感谢。因为有你们的帮助，Rust才将年复一年地持续完善。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rust Users &lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2f3176b25e759da6616cf7d02b7b47a3_r.jpg&quot; data-rawwidth=&quot;662&quot; data-rawheight=&quot;358&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;尽管回复的总数有所增加，但今年Rust用户的比例也同样有所增加。Rust用户占比，与去年的66.9%相比，今年占到了将近3/4。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Time with Rust&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8ad4b0c8522da223ef37ee11d5ee3653_r.jpg&quot; data-rawwidth=&quot;581&quot; data-rawheight=&quot;364&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;可以看到，Rust新用户源源不断。在调查时，约有23%的用户使用它3个月或更短的时间。同样，近1/4用户使用Rust至少两年。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0965735bcc5220f9bab6b82b1f96cfe1_r.jpg&quot; data-rawwidth=&quot;583&quot; data-rawheight=&quot;356&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;超过40%的用户在使用Rust不到一个月的时间内感受到了Rust的开发效率，超过70%的人在第一年感到高效。然而，用户之间存在明显差异，超过22%的人尚未对Rust感到富有成效。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-458ce501853b8e7dab39bde1027f8aaf_r.jpg&quot; data-rawwidth=&quot;592&quot; data-rawheight=&quot;359&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;仔细观察那些使用Rust没有产生效果的用户，只有大约25％的用户只使用Rust不到一个月。 这里面临的挑战是找到帮助用户实现生产力的方法，以免他们陷入困境。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;How much do you use Rust?&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-833a6ad8bc02247a404f3c97def4130c_r.jpg&quot; data-rawwidth=&quot;773&quot; data-rawheight=&quot;484&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;随着整体投入的增加，Rust项目将继续趋向更大规模。 Rust的中到大投入（分别超过10k和10万行代码）。从2016年的8.9％增长到2017年的16％，今年增长到23％。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-349c4c0c97c2a5d9ff1bfddb4b2069b6_r.jpg&quot; data-rawwidth=&quot;592&quot; data-rawheight=&quot;354&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们也看到了Rust常规使用量的增长。 从去年的17.5％上升到现在Rust每日使用量现已接近用户的四分之一。 总的来说，Rust每周的总使用量从60.8％上升到66.4％。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rust expertise&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-580920510a3233043cbe5e6562ced8f7_r.jpg&quot; data-rawwidth=&quot;584&quot; data-rawheight=&quot;358&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust专业知识，不仅仅是一条简单的曲线，还有两个高峰：一个围绕「3」，另一个围绕「7」，这表明用户倾向于认为自己只是初学者或经验丰富，而不是专家。&lt;/p&gt;&lt;p&gt;（原问题已经关闭，忘记3和7指代的是什么了，多半是所有权相关的吧）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6edc8762e09f21e13473b212a60866c1_r.jpg&quot; data-rawwidth=&quot;676&quot; data-rawheight=&quot;422&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust用户普遍认为Enums和Cargo在很大程度上是简单的概念; 其次是迭代器，模块和trait。 接下来是更具挑战性的Trait Bounds和Unsafe概念。 最后，最具挑战性的概念是Macros，Ownership＆Borrowing和Lifetimes。 这些挑战与我们过去几年听到的反馈密切相关，并继续成为持续提高生产力的重点，如NLL和持续的宏观系统改进。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0e2a29bd4ac4069f9edcb2ec191a1e25_r.jpg&quot; data-rawwidth=&quot;581&quot; data-rawheight=&quot;353&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;幽默地说，我们发现Rust实际上并不是用户熟悉的顶级编程语言。 相反，它落后于Python，位落第二。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rust toolchain&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-ba0faf9866b979fff72213f6e2d24b8f_r.jpg&quot; data-rawwidth=&quot;592&quot; data-rawheight=&quot;347&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们看到当前稳定版本的用户数量和去年相似。 也许令人惊讶的是，我们仍然看到在其工作流程中使用Nightly编译器的用户数量有所增加。 连续第二年，Nightly使用量持续上升，现在超过56％（高于去年的51.6％）。当被问到为什么他们使用Nightly时，人们回应的原因很多，包括：访问2018版，asm，async / await，clippy，嵌入式开发，Rocket，NLL，proc宏和wasm。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b62e84db6514c0d89f93bb2242908a1e_r.jpg&quot; data-rawwidth=&quot;963&quot; data-rawheight=&quot;584&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;在常规编译器更新期间看到breakage的人的百分比自去年以来保持不变，7.4％的人表示他们经历过breakage。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-12e6593fb098964fdf10c99a92456513_r.jpg&quot; data-rawwidth=&quot;585&quot; data-rawheight=&quot;361&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;breakage通常倾向于需要一些小的修复，尽管有些人报告说有一些中等或主要的修复程序可以升级到下一个稳定的编译器。&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-57454f1484b2df14ec92519b31855957_r.jpg&quot; data-rawwidth=&quot;579&quot; data-rawheight=&quot;318&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;我们再次看到rustup的遥遥领先，它继续保持在Rust安装工具的90％。 Linux发行版以17％的速度遥遥领先。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-61fd8dcfdece8d66555ecaca55a6c529_r.jpg&quot; data-rawwidth=&quot;635&quot; data-rawheight=&quot;393&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;像rustfmt和rustdoc这样的工具有很强的表现力，有很多积极的支持。 接下来是clippy工具 - 尽管用户较少，但其用户喜欢这个工具。 IDE支持工具Rust Language Server和racer得到了积极的支持，但不幸的是，在调查的工具中，产生了一些不喜欢的投票和评论。 bindgen工具具有相对较小的用户群。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rust workflow&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5e3b82e9e816ce75b60bfc0527347fa1_r.jpg&quot; data-rawwidth=&quot;589&quot; data-rawheight=&quot;349&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;Linux仍然是Rust开发人员的强大动力，占据了大约80％的Rust开发人员。 Windows的使用量从去年的31％略微增长到今年的34％，这是其连续第二年增长。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-905ace7fb667df117d890671400c64e3_r.jpg&quot; data-rawwidth=&quot;808&quot; data-rawheight=&quot;492&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;Linux和Windows继续作为Rust应用程序的目标而遥遥领先。 其他平台与去年大致相同，但有一个例外：WebAssembly。 这项新技术取得了令人瞩目的增长，从去年的13％增长到今年的24％，几乎翻了一番。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3bb61de3903d1b05cbf199cf0f0e475a_r.jpg&quot; data-rawwidth=&quot;757&quot; data-rawheight=&quot;351&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;领跑两年的Vim现在终于被VSCode击败了，VSCode从33.8％Rust开发者增长到今年的44.4％。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rust at work&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fbf36f828e1bf592d3278d888c6546a7_r.jpg&quot; data-rawwidth=&quot;896&quot; data-rawheight=&quot;555&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;Rust继续在商业生产领域缓慢而稳定地增长。 我们现在看到全职和兼职Rust的同比增长，从去年4.4％的全职和16.6％的兼职增长到今年的8.9％的全职和21.2％的兼职 ，全职Rust商业用途增加一倍。 Rust的商业使用总量从Rust用户的21％增长到略高于30％。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-5a92aef27ce4f5f2e6f7265bca1e92ee_r.jpg&quot; data-rawwidth=&quot;588&quot; data-rawheight=&quot;352&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust有更多的空间发展到更多的公司中，超过三分之一的用户报告目前还没有考虑在未来一年中评估Rust。 将近一半的非Rust用户需要公司支持，这表明需要进一步的公司拓展或更多关于Rust的公司信息。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Feeling welcome&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3de641b0bb462331d250d2e70c00e18c_r.jpg&quot; data-rawwidth=&quot;584&quot; data-rawheight=&quot;360&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust社区工作的一个重要部分是确保Rust项目对其用户来说是一个温馨的地方。 新用户应该感到鼓励去探索，分享想法，并且做他们自己。当被问到时，目前Rust用户和非Rust用户都受到欢迎，尽管超过四分之一的回复并不确定。 这些答复中也存在一些区域差异。 例如，对俄罗斯版本调查的回复显示，不受欢迎的感觉比例为4％。 中国大陆的增幅更高，为8％。这里有一个挑战是帮助全球的Rust社区感觉他们是Rust独特的一部分，因为Rust继续在世界更多地区发展壮大。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0625940f2b31368453116034d7abe796_r.jpg&quot; data-rawwidth=&quot;1049&quot; data-rawheight=&quot;377&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Rust自称为技术人员不足的人数逐年增长缓慢。 该调查还强调了一些挑战，因为女性人数仍然低于编程领域女性的行业平均水平。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Rust Non-Users&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-542d0c174b5bd46a97313d4c7fda4a01_r.jpg&quot; data-rawwidth=&quot;588&quot; data-rawheight=&quot;357&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;只有不到50％的人在不到一个月的时间内停止使用Rust。 同样地，大约50％离开Rust的人在停止之前设法使用它超过一个月。&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-cb651a46dd35f4841b508098a755afee_r.jpg&quot; data-rawwidth=&quot;994&quot; data-rawheight=&quot;607&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot;&gt;&lt;p&gt;许多非Rust用户表示他们确实想学习Rust，但有些因素会减慢他们的速度。 其中首先是他们工作的公司本身不使用Rust。 近一半的非Rust用户因缺乏公司支持而受阻。此外，由于Rust的感觉过于可怕或复杂，四分之一的非Rust用户因此而放慢了学习的速度。 改进Rust IDE支持的工作有所帮助（从25％降至16％），尽管我们仍然看到强烈推动非Rust用户提供更好的IDE支持。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;挑战&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;正如我们在过去几年所做的那样，我们询问您对Rust可以有哪方面改进。今年，我们在这个反馈中看到了一些熟悉的主题以及一些新的主题。今年十大主题是：&lt;/b&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;需要更好的库支持&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;更好的IDE体验&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;需要更广泛地采用Rust&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;更丰富的工具和生态系统支持&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;改善学习曲线&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;需要重要的语言功能和板条箱才能稳定和支持&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;支持异步编程&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;支持GUI开发&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;更好的文档&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;改进编译时间&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;今年，GUI开发支持是不断增长的新需求，表明Rust不仅在服务器上继续增长，而且人们感觉需要延伸到应用程序开发。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;“加强Rust的推广，很多人还不知道它”&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;此回复提醒我们虽然Rust在某些圈子中可能是众所周知的，但它仍有成长空间，在许多科技界，Rust可能还不为人所熟知。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;“专注于采纳教程/书籍/新手经验，将在未来几年带来好处。”&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;除了延伸内容之外，更广泛的文档将帮助更广泛的受众。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;“开发人员工具的稳定性和成熟度，使得更容易获得工作设置和调试应用程序”&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;许多人对IDE支持发表了评论，不仅指出了RLS中的不稳定性或不准确性，而且还需要更强大的IDE支持，涵盖更多领域，比如更容易调试。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;“生态系统和库的成熟。拥有一个良好的“标准”库生态系统是该语言未来的关键”&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;一个共同的主题仍然是需要推动库完成并增加用户可以使用的“标准”库集。一些评论指出，这不是维护者的错，他们已经在努力编写和发布crate，但通常更多的公司需要参与并提供商业支持。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;“开发体验和可发现性” ”&lt;/b&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;有些人指出，开发体验与更丰富的文档齐头并进，认为这些不是单独的概念，而是应该以统一的方法解决。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;期待&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;今年是最强的调查。它不仅是最大的社区调查，也是第一个涵盖英语以外语言的调查。 Rust继续稳步增长，并且随之而来的是，它的优势和挑战都被引入更广泛的受众。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;我们期待在2019年的规划中使用您的反馈，并且很期望看到接下来我们能把Rust带向何方。&lt;/b&gt;&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-11-28-51018048</guid>
 <pubDate>Wed, 28 Nov 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
