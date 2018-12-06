@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust Quiz 解读：Quiz 5</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/51616607">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote> 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  <br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br> <br>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   </blockquote><h2><b>Quiz 5:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">trait Trait {
+    fn f(self);
+}
+
+impl&lt;T&gt; Trait for fn(T) {
+    fn f(self) {
+        print!("1");
+    }
+}
+
+impl&lt;T&gt; Trait for fn(&amp;T) {
+    fn f(self) {
+        print!("2");
+    }
+}
+
+fn main() {
+    let a: fn(_) = |_: u8| {};
+    let b: fn(_) = |_: &amp;u8| {};
+    let c: fn(&amp;_) = |_: &amp;u8| {};
+    a.f();
+    b.f();
+    c.f();
+}</code><p><b>输出结果：112</b></p><h2><b>解读：</b></h2><p><b>考察要点：</b> </p><ol><li>fn(T)与fn(&amp;T)的区别</li><li>类型推断</li><li>trait 实现</li></ol><p>代码中定义了一个名为<code class="inline">Trait</code>的trait，其中包含了方法签名<code class="inline">f</code>。然后分别为<code class="inline">fn(T)</code>和<code class="inline">fn(&amp;T)</code>这两种函数指针类型实现了Trait。</p><p>那<code class="inline">T</code> 和<code class="inline">&amp;T</code>有啥区别呢？</p><ul><li> T， 是一个泛型参数，代表任何一个具体的类型。那么<code class="inline">fn(T)</code>就是指一个拥有具体类型的函数指针。</li><li>&amp;T，实际上等价于<code class="inline">&amp;'a T</code>，代表某个引用类型。则<code class="inline">fn(&amp;T)</code>，就是<code class="inline">fn(&amp;'a T)</code>。注意这里的<code class="inline">'a</code>也是一个泛型参数，并不是指具体的类型。</li></ul><p>在main函数中，分别定义了三个变量绑定，a、b、c，分别将三个闭包指定为特定的函数指针类型。最后再分别调用它们的<code class="inline">f</code>方法。</p><p><code class="inline">let a: fn(_) = |_: u8| {};</code>，对于<code class="inline">a</code>来说，<code class="inline">_</code>会被推断为<code class="inline">u8</code>类型。那么对应于<code class="inline">fn(T)</code>类型，最终调用其f方法输出结果就是：1。</p><p><code class="inline">let b: fn(_) = |_: &amp;u8| {};</code>，对于<code class="inline">b</code>来说，<code class="inline">_</code>会被推断为<code class="inline">&amp;u8</code>类型。这就是一个令人迷惑的点了，到底是对应<code class="inline">fn(T)</code>还是<code class="inline">fn(&amp;T)</code>。这里的<code class="inline">&amp;u8</code>实际上是一个具体的值。它实际上等价于<code class="inline">f(&amp;'x u8)</code>，这里的<code class="inline">'x</code>是一个具体的可确定的生命周期值。因为Rust生命周期参数，只有在具体使用的地方，才是具体实例化的。最终调用其f方法输出结果依然是：1。</p><p>let c: fn(&amp;<i>) = |</i>: &amp;u8| {};<code class="inline">`，对于c来说，</code>_<code class="inline">会被推断为</code>u8<code class="inline">。此时显然，对应于</code>fn(&amp;T)<code class="inline">。</code>&amp;u8<code class="inline">的生命周期固然是已经具体实例化，但它的函数指针类型，依然是</code>fn(&amp;T)`。最终调用其方法输出结果就是： 2。</p><p><a href="https://dtolnay.github.io/rust-quiz/5">点此查看 Rust Quiz 5</a> </p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
