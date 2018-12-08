@@ -1,0 +1,41 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote> 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  <br> <br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br><br> 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   </blockquote><h2><b>Quiz 9:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">macro_rules! m {
+    (1) =&gt; { print!("1") };
+    ($tt:tt) =&gt; { print!("2") };
+}
+
+macro_rules! e {
+    ($e:expr) =&gt; { m!($e) };
+}
+
+macro_rules! t {
+    ($tt:tt) =&gt; { e!($tt); m!($tt); };
+}
+
+fn main() {
+    t!(1);
+}</code><p><b>输出结果： 21</b></p><h2><b>解读</b></h2><p>考察要点：</p><ol><li>声明宏基本匹配规则</li><li>声明宏元变量匹配的可传导性</li></ol><p>Quiz代码中依次定义了三个声明宏，<code class="inline">m!</code>、<code class="inline">e!</code>和<code class="inline">t!</code>，并且依次是包含关系。</p><p>在main函数中，调用<code class="inline">t!(1)</code>时，根据宏定义，其参数<code class="inline">1</code>经过词法分析得到词条树，也就是宏元变量<code class="inline">$tt:tt</code>的类型<code class="inline">tt</code>所指示。然后由<code class="inline">e!($tt);</code>和<code class="inline">m!($tt);</code>继续匹配。</p><p><code class="inline">e!($tt)</code>在匹配过程中，因为<code class="inline">e!</code>定义左边元变量<code class="inline">$e:expr</code>，表明是一个表达式类型。对于Rust编译器来说，经过<code class="inline">e!</code>宏处理的词条，将会变成一个不透明的词条（opaque token tree）。也就是说，后续的宏都会认为它是一个表达式token，而不是其他。所以，在<code class="inline">e!</code>宏内匹配右侧<code class="inline">m!($e);</code>的时候，只能匹配<code class="inline">m!</code>宏的第二条分支<code class="inline">($tt:tt)</code>，所以输出： 2。</p><p>如果试着在<code class="inline">m!</code>中加一条匹配分支：</p><code lang="rust">macro_rules! m {
+    (1) =&gt; { print!("1") };
+    ($ee;expr) =&gt; { print!("3")};
+    ($tt:tt) =&gt; { print!("2") };
+}</code><p>输出结果就会变成： <code class="inline">31</code>。</p><p>对于<code class="inline">m!(1)</code>来说，它一直以<code class="inline">tt</code>词条树类型来传播，到最后会尝试匹配到<code class="inline">(1)</code>这个token字面量，然后匹配成功，最后输出： <code class="inline">1</code>。</p><p>这就是为什么输出结果是<code class="inline">21</code>的原因。</p><p>同理，如果把<code class="inline">e!</code>的匹配模式修改为：</p><code lang="rust">macro_rules! e {
+    ($e:tt) =&gt; { m!($e) };
+}</code><p>则输出结果会是：<code class="inline">11</code>。</p><p><b>不透明词条树（Opaque Token Tree）</b></p><p>所谓不透明词条树（Opaque Token Tree），就是指，不能和token字面量相匹配的词条树。</p><p>尝试把Quiz代码中<code class="inline">m!</code>定义中的匹配分支修改如下：</p><code lang="rust">macro_rules! m {
+    (1) =&gt; { print!("1") };
+}</code><p>再去执行Quiz代码，编译器会报错：</p><code lang="rust">error: no rules expected the token `1`
+  --&gt; src/main.rs:6:23
+   |
+6  |     ($e:expr) =&gt; { m!($e) };
+   |                       ^^
+...
+14 |     t!(1);
+   |     ------ in this macro invocation</code><p>编译器提示：no rules expected the token <code class="inline">1</code>。这意味着，<code class="inline">expr</code>不能与<code class="inline">1</code>这个token字面量相匹配。这就是所谓的「不透明词条」。</p><p>在Rust中，不透明词条类型除了<code class="inline">expr</code>，还有其他类型，罗列如下：</p><code lang="rust">$:block
+$:expr
+$:item
+$:literal
+$:meta
+$:pat
+$:path
+$:stmt
+$:ty</code><p>而透明的词条如下：</p><code lang="rust">$:ident
+$:lifetime
+$:tt</code><p><br></p><p><a href="https://dtolnay.github.io/rust-quiz/9">点此查看 Rust Quiz 9</a></p><p></p>

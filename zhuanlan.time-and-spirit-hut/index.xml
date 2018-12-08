@@ -5,7 +5,56 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 07 Dec 2018 15:56:12 +0800</lastBuildDate>
+<lastBuildDate>Sun, 09 Dec 2018 00:21:47 +0800</lastBuildDate>
+<item>
+<title>Rust Quiz 解读：Quiz 9</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-08-51891075.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51891075&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt; 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 9:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! m {
+    (1) =&amp;gt; { print!(&quot;1&quot;) };
+    ($tt:tt) =&amp;gt; { print!(&quot;2&quot;) };
+}
+
+macro_rules! e {
+    ($e:expr) =&amp;gt; { m!($e) };
+}
+
+macro_rules! t {
+    ($tt:tt) =&amp;gt; { e!($tt); m!($tt); };
+}
+
+fn main() {
+    t!(1);
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 21&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;声明宏基本匹配规则&lt;/li&gt;&lt;li&gt;声明宏元变量匹配的可传导性&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Quiz代码中依次定义了三个声明宏，&lt;code class=&quot;inline&quot;&gt;m!&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;e!&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;t!&lt;/code&gt;，并且依次是包含关系。&lt;/p&gt;&lt;p&gt;在main函数中，调用&lt;code class=&quot;inline&quot;&gt;t!(1)&lt;/code&gt;时，根据宏定义，其参数&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;经过词法分析得到词条树，也就是宏元变量&lt;code class=&quot;inline&quot;&gt;$tt:tt&lt;/code&gt;的类型&lt;code class=&quot;inline&quot;&gt;tt&lt;/code&gt;所指示。然后由&lt;code class=&quot;inline&quot;&gt;e!($tt);&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;m!($tt);&lt;/code&gt;继续匹配。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;e!($tt)&lt;/code&gt;在匹配过程中，因为&lt;code class=&quot;inline&quot;&gt;e!&lt;/code&gt;定义左边元变量&lt;code class=&quot;inline&quot;&gt;$e:expr&lt;/code&gt;，表明是一个表达式类型。对于Rust编译器来说，经过&lt;code class=&quot;inline&quot;&gt;e!&lt;/code&gt;宏处理的词条，将会变成一个不透明的词条（opaque token tree）。也就是说，后续的宏都会认为它是一个表达式token，而不是其他。所以，在&lt;code class=&quot;inline&quot;&gt;e!&lt;/code&gt;宏内匹配右侧&lt;code class=&quot;inline&quot;&gt;m!($e);&lt;/code&gt;的时候，只能匹配&lt;code class=&quot;inline&quot;&gt;m!&lt;/code&gt;宏的第二条分支&lt;code class=&quot;inline&quot;&gt;($tt:tt)&lt;/code&gt;，所以输出： 2。&lt;/p&gt;&lt;p&gt;如果试着在&lt;code class=&quot;inline&quot;&gt;m!&lt;/code&gt;中加一条匹配分支：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! m {
+    (1) =&amp;gt; { print!(&quot;1&quot;) };
+    ($ee;expr) =&amp;gt; { print!(&quot;3&quot;)};
+    ($tt:tt) =&amp;gt; { print!(&quot;2&quot;) };
+}&lt;/code&gt;&lt;p&gt;输出结果就会变成： &lt;code class=&quot;inline&quot;&gt;31&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;m!(1)&lt;/code&gt;来说，它一直以&lt;code class=&quot;inline&quot;&gt;tt&lt;/code&gt;词条树类型来传播，到最后会尝试匹配到&lt;code class=&quot;inline&quot;&gt;(1)&lt;/code&gt;这个token字面量，然后匹配成功，最后输出： &lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;这就是为什么输出结果是&lt;code class=&quot;inline&quot;&gt;21&lt;/code&gt;的原因。&lt;/p&gt;&lt;p&gt;同理，如果把&lt;code class=&quot;inline&quot;&gt;e!&lt;/code&gt;的匹配模式修改为：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! e {
+    ($e:tt) =&amp;gt; { m!($e) };
+}&lt;/code&gt;&lt;p&gt;则输出结果会是：&lt;code class=&quot;inline&quot;&gt;11&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;不透明词条树（Opaque Token Tree）&lt;/b&gt;&lt;/p&gt;&lt;p&gt;所谓不透明词条树（Opaque Token Tree），就是指，不能和token字面量相匹配的词条树。&lt;/p&gt;&lt;p&gt;尝试把Quiz代码中&lt;code class=&quot;inline&quot;&gt;m!&lt;/code&gt;定义中的匹配分支修改如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! m {
+    (1) =&amp;gt; { print!(&quot;1&quot;) };
+}&lt;/code&gt;&lt;p&gt;再去执行Quiz代码，编译器会报错：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;error: no rules expected the token `1`
+  --&amp;gt; src/main.rs:6:23
+   |
+6  |     ($e:expr) =&amp;gt; { m!($e) };
+   |                       ^^
+...
+14 |     t!(1);
+   |     ------ in this macro invocation&lt;/code&gt;&lt;p&gt;编译器提示：no rules expected the token &lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。这意味着，&lt;code class=&quot;inline&quot;&gt;expr&lt;/code&gt;不能与&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;这个token字面量相匹配。这就是所谓的「不透明词条」。&lt;/p&gt;&lt;p&gt;在Rust中，不透明词条类型除了&lt;code class=&quot;inline&quot;&gt;expr&lt;/code&gt;，还有其他类型，罗列如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$:block
+$:expr
+$:item
+$:literal
+$:meta
+$:pat
+$:path
+$:stmt
+$:ty&lt;/code&gt;&lt;p&gt;而透明的词条如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$:ident
+$:lifetime
+$:tt&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/9&quot;&gt;点此查看 Rust Quiz 9&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-08-51891075</guid>
+<pubDate>Sat, 08 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust Quiz 解读：Quiz 8</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-07-51809530.html</link>
@@ -305,30 +354,6 @@ fn main() {
 <author>张汉东</author>
 <guid isPermaLink="false">2018-12-02-51361684</guid>
 <pubDate>Sun, 02 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读： Quiz 1</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-01-51304039.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51304039&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz&lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。&lt;/p&gt;&lt;h2&gt;Quiz 1:&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;macro_rules! m {
-    ($($s:stmt)*) =&amp;gt; {
-        $(
-            { stringify!($s); 1 }
-        )&amp;lt;&amp;lt;*
-    };
-}
-
-fn main() {
-    print!(
-        &quot;{}{}{}&quot;,
-        m! { return || true },
-        m! { (return) || true },
-        m! { {return} || true },
-    );
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 112&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;考察要点： &lt;/b&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;声明宏的语法&lt;/li&gt;&lt;li&gt;Rust中语句（statements）的区分&lt;/li&gt;&lt;li&gt;操作符优先级&lt;/li&gt;&lt;li&gt;return作为表达式产生的值是Never Type类型(!)&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;上面代码中，宏声明代码中火箭符（=&amp;gt;）左边的是匹配表达式，其中&lt;code class=&quot;inline&quot;&gt;$s:stmt&lt;/code&gt;  代表匹配语句（statements），而&lt;code class=&quot;inline&quot;&gt;$( )*&lt;/code&gt;这样的语法，类似于正则表达式，代表匹配零个或多个。那么&lt;code class=&quot;inline&quot;&gt;$($S: stmt)*&lt;/code&gt;就代表匹配零个或多个语句tokens。&lt;/p&gt;&lt;p&gt;在火箭符的右侧，&lt;code class=&quot;inline&quot;&gt;{stringify!($s); 1}&lt;/code&gt;  其中的stringily!宏是将匹配的语句$s转换为字符串，  &lt;code class=&quot;inline&quot;&gt;$( )&amp;lt;&amp;lt;*&lt;/code&gt;  对应于左边匹配表达式，生成零个或多个形如&lt;code class=&quot;inline&quot;&gt;... &amp;lt;&amp;lt; ... &amp;lt;&amp;lt;&lt;/code&gt;这样的语句。&lt;/p&gt;&lt;p&gt;&lt;b&gt;再来看main函数中：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;m!{ return || true}&lt;/code&gt;  ，等价于&lt;code class=&quot;inline&quot;&gt;return (|| true )&lt;/code&gt; ，返回一个闭包。这属于一条独立语句。所以 最终宏生成的代码是 &lt;code class=&quot;inline&quot;&gt;{&quot;return || true&quot;; 1}&lt;/code&gt;，最终在print!语句中执行结果是返回块代码中最后一个表达式的值：1.&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;m!{(return) || true}&lt;/code&gt;，这里面return被括号隔离，那么整个语句是或操作。这里return 是一个表达式，它产生的值是NeverType（!）。右边表达式是true，所以是一个独立的语句。最终宏生成的代码是 &lt;code class=&quot;inline&quot;&gt;{&quot;(return) || true&quot;; 1}&lt;/code&gt;，最终的值是：1。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;m!{ {return} || true }&lt;/code&gt;，这里rutrn用花括号隔开，代表它是一个独立的语句，后面的&lt;code class=&quot;inline&quot;&gt;|| true&lt;/code&gt;就会被看做一个独立的闭包。那么这里存在两条语句，最终宏生成的代码是&lt;code class=&quot;inline&quot;&gt;{&quot;{true}&quot;; 1} &amp;lt;&amp;lt; {&quot;|| true&quot;; 1}&lt;/code&gt;，那么最终的值就是&lt;code class=&quot;inline&quot;&gt;1&amp;lt;&amp;lt;1&lt;/code&gt;，也就是：2。&lt;/p&gt;&lt;p&gt;所以代码的执行结果就是112。&lt;/p&gt;&lt;p&gt;点此查看原题，及更多解释：&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/1&quot;&gt;Rust Quiz 1 &lt;/a&gt; &lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-01-51304039</guid>
-<pubDate>Sat, 01 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
