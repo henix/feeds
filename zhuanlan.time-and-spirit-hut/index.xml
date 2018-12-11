@@ -5,7 +5,70 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 10 Dec 2018 01:23:30 +0800</lastBuildDate>
+<lastBuildDate>Tue, 11 Dec 2018 17:24:28 +0800</lastBuildDate>
+<item>
+<title>Rust Quiz 解读：Quiz 12</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-11-52098828.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52098828&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 12:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct D(u8);
+
+impl Drop for D {
+    fn drop(&amp;amp;mut self) {
+        print!(&quot;{}&quot;, self.0);
+    }
+}
+
+struct S {
+    d: D,
+    x: u8,
+}
+
+fn main() {
+    let S { x, .. } = S {
+        d: D(1),
+        x: 2,
+    };
+    print!(&quot;{}&quot;, x);
+
+    let S { ref x, .. } = S {
+        d: D(3),
+        x: 4,
+    };
+    print!(&quot;{}&quot;, x);
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 1243&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;考察要点&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;let绑定时，结构体模式匹配&lt;/li&gt;&lt;li&gt;ref 模式匹配&lt;/li&gt;&lt;li&gt;析构顺序&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Quiz代码中定义了单元结构体&lt;code class=&quot;inline&quot;&gt;D(u8)&lt;/code&gt;，并且为其实现了Drop。这意味着，在&lt;code class=&quot;inline&quot;&gt;D(u8)&lt;/code&gt;出了作用域会自动调用其实现的&lt;code class=&quot;inline&quot;&gt;drop&lt;/code&gt;方法。&lt;/p&gt;&lt;p&gt;然后定义了结构体S，两个字段其中一个类似是&lt;code class=&quot;inline&quot;&gt;D&lt;/code&gt;。这就意味着，该结构体实例被销毁时，会调用字段&lt;code class=&quot;inline&quot;&gt;d&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;drop&lt;/code&gt;方法。&lt;/p&gt;&lt;p&gt;在main函数中，使用let绑定模式匹配解构一个结构体实例。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let S { x, .. } = S {
+    d: D(1),
+    x: 2,
+};&lt;/code&gt;&lt;p&gt;上面代码相当于定义了&lt;code class=&quot;inline&quot;&gt;let x = 2;&lt;/code&gt; ，而结构体实例中&lt;code class=&quot;inline&quot;&gt;d: D(1)&lt;/code&gt;字段将会被抛弃，因为它没有绑定任何变量。 所以，此时输出&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;的值为： 2。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let S { ref x, .. } = S {
+    d: D(3),
+    x: 4,
+};&lt;/code&gt;&lt;p&gt;同理，上面代码的&lt;code class=&quot;inline&quot;&gt;d: D(3)&lt;/code&gt;同样会被抛弃。相当于&lt;code class=&quot;inline&quot;&gt;let ref x = 4;&lt;/code&gt;，等价于&lt;code class=&quot;inline&quot;&gt;let x = &amp;amp;4;&lt;/code&gt;。所以，此时输出&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;的值为： &lt;code class=&quot;inline&quot;&gt;4&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;但为什么输出结果顺序是：&lt;code class=&quot;inline&quot;&gt;1 -&amp;gt; 2 -&amp;gt; 4 -&amp;gt; 3&lt;/code&gt;呢？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们为Quiz代码中的结构体&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;实现一个Drop。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;impl Drop for S {
+    fn drop(&amp;amp;mut self) {
+        print!(&quot;S&quot;);
+    }
+}&lt;/code&gt;&lt;p&gt;然后再执行Quiz代码，输出结果是： &lt;code class=&quot;inline&quot;&gt;S124S3&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;从这个结果中发现：&lt;/p&gt;&lt;p&gt;最先析构的是结构体S的第一个实例，其次是&lt;code class=&quot;inline&quot;&gt;d: D(1)&lt;/code&gt;，第三个是结构体S的另一个实例，最后是&lt;code class=&quot;inline&quot;&gt;d: D(3)&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;两个结构体实例先于&lt;code class=&quot;inline&quot;&gt;D(1)&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;D(3)&lt;/code&gt;析构，是因为它们是先声明的。但是为什么输出结果不是&lt;code class=&quot;inline&quot;&gt;S12S34&lt;/code&gt;呢？&lt;/p&gt;&lt;p&gt;继续修改Quiz代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let S {  x, .. } = S {
+        d: D(3),
+        x: 4,
+    };&lt;/code&gt;&lt;p&gt;把main函数中第二个结构体实例的let绑定中的&lt;code class=&quot;inline&quot;&gt;ref&lt;/code&gt;去掉了。输出结果是：&lt;code class=&quot;inline&quot;&gt;S12S34&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;看来，是这个&lt;code class=&quot;inline&quot;&gt;ref&lt;/code&gt;影响了析构的顺序。回到原始的Quiz代码中，来分析这个过程：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;第一个结构体实例最先被声明，但该实例本身也没有被绑定任何变量。所以它第一个被弃用。调用其drop方法输出：&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;第二个被析构的是&lt;code class=&quot;inline&quot;&gt;D(1)&lt;/code&gt;，同理，因为它没有绑定任何变量，此时已无用。调用其drop方法输出：&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;此时结构体中x字段已经绑定给了x变量，打印输出它的值： &lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;第三个被析构的是第二个结构体S的实例。理论上，它没有绑定任何变量。所以应该调用其drop方法输出：&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;。但是，此时let绑定解构语句中使用了&lt;code class=&quot;inline&quot;&gt;ref&lt;/code&gt;，它是一种模式匹配操作，将该结构体实例的字段&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;的引用匹配了出来，相当于&lt;code class=&quot;inline&quot;&gt;let x = &amp;amp;S{x: 4}.x&lt;/code&gt;。也就是说，此时的绑定&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;，是对结构体实例中字段的引用，如果此时抛弃了该结构体实例，势必会造成悬垂指针。所以，这里直接输出打印x的值：&lt;code class=&quot;inline&quot;&gt;4&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;在使用完&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;之后，结构体实例可以被析构了，调用drop，然后输出：&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;最后在对&lt;code class=&quot;inline&quot;&gt;D(3)&lt;/code&gt;析构，输出：&lt;code class=&quot;inline&quot;&gt;3&lt;/code&gt;。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;那么最终结果就是： &lt;code class=&quot;inline&quot;&gt;S124S3&lt;/code&gt;。对于原始Quiz代码来说，输出结果就是：&lt;code class=&quot;inline&quot;&gt;1243&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/12&quot;&gt;点此查看 Rust Quiz 12&lt;/a&gt; &lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-11-52098828</guid>
+<pubDate>Tue, 11 Dec 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>「付费阅读」 Rust Quiz 解读：Quiz 11</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-10-52032027.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52032027&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;&lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。  &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 11:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn f&amp;lt;&#39;a&amp;gt;() {}
+fn g&amp;lt;&#39;a: &#39;a&amp;gt;() {}
+
+fn main() {
+    let pf = f::&amp;lt;&#39;static&amp;gt; as fn();
+    let pg = g::&amp;lt;&#39;static&amp;gt; as fn();
+    print!(&quot;{}&quot;, pf == pg);
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 编译错误&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;解读&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;生命周期参数概念&lt;/li&gt;&lt;li&gt;生命周期参数限定：&lt;code class=&quot;inline&quot;&gt;Early bound&lt;/code&gt; vs &lt;code class=&quot;inline&quot;&gt;Late bound&lt;/code&gt;&lt;/li&gt;&lt;li&gt;生命周期子类型与协变&lt;/li&gt;&lt;li&gt;函数指针及其比较&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;不得不说，此Quiz代码中涉及一个隐晦的概念：生命周期参数&lt;code class=&quot;inline&quot;&gt;Early bound&lt;/code&gt; vs &lt;code class=&quot;inline&quot;&gt;Late bound&lt;/code&gt;。这两个概念是官方提供的书里没有过的，也是我做这个题首次遇到的概念。通过调查Rust源码，大概得出了它们的定义：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-4e50141ca4080ef17a7c90a2f87bbaa3_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;2512&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-4e50141ca4080ef17a7c90a2f87bbaa3&quot; data-watermark-src=&quot;v2-5ca74df78769f1be27cde7a30683f1d3&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-10-52032027</guid>
+<pubDate>Mon, 10 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>「Rust每日新闻」本周精选 • 第二十三期</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-09-51950580.html</link>
@@ -385,36 +448,6 @@ let range_full = ..;&lt;/code&gt;&lt;p&gt;这两行代码是等价的。&lt;/p&g
 <author>张汉东</author>
 <guid isPermaLink="false">2018-12-04-51560682</guid>
 <pubDate>Tue, 04 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>「付费阅读」如何为Rust语言做贡献</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-03-51479889.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51479889&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5d4a713aff10d99bf7e2d48b68018ce4_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;本文基于macOSX平台，通过对Rust 1.32 Nightly版本中rustdoc的一个ICE问题进行复盘，分析并记录整个Bug修复的过程。主要目的是，通过这个过程，来学习如何给Rust做贡献。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;（阅读时间：17m）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1. 缘起&lt;/p&gt;&lt;p&gt;2. Rust本地调试环境准备&lt;/p&gt;&lt;p&gt;3. ICE问题分析&lt;/p&gt;&lt;p&gt;4. 调试代码&lt;/p&gt;&lt;p&gt;5. 提交PR说明&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;---&lt;/p&gt;&lt;h2&gt;&lt;b&gt;缘起：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在两周前，我发现了一个rustdoc的[ICE(issue 55723)](&lt;a href=&quot;https://github.com/rust-lang/rust/issues/55723&quot;&gt;https://github.com/rust-lang/rust/issues/55723&lt;/a&gt;)，提交给了官方。但是官方指派修复此Bug的开发者QuietMisdreavus 难以复现该Bug。我本来以为Bug是因为多字节字符（比如全角符号之类）引起的，然而经过我仔细的测试，发现问题的根源在于尾随的「空格」。&lt;/p&gt;&lt;h2&gt;更多内容请花&lt;b&gt;一元查看&lt;/b&gt;：&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-233a6d659a6944c30a4d23a1cf8054aa_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;659&quot; data-rawheight=&quot;1920&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-233a6d659a6944c30a4d23a1cf8054aa&quot; data-watermark-src=&quot;v2-0a81c5365a61d19ca3a2bc04d60b2416&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-03-51479889</guid>
-<pubDate>Mon, 03 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读：Quiz 3</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-03-51433417.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51433417&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz&lt;br&gt;-  &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt;&lt;br&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 3:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct S {
-    x: i32,
-}
-
-const S: S = S { x: 2 };
-
-fn main() {
-    let v = &amp;amp;mut S;
-    v.x += 1;
-    S.x += 1;
-    print!(&quot;{}{}&quot;, v.x, S.x);
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 32&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读：&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;考察要点： &lt;/b&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;可变引用&lt;/li&gt;&lt;li&gt;结构体实例化不需要构造函数&lt;/li&gt;&lt;li&gt;const语义&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;代码中定义了一个具名结构体&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;，包含了一个字段&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;。接下来又定义了一个&lt;code class=&quot;inline&quot;&gt;const&lt;/code&gt;常量，同样命名为&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;，并且将一个结构体&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;的实例赋值给它。&lt;/p&gt;&lt;p&gt;要注意区分这两个&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;。常量&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;，是代表值，而结构体&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;，则代表类型。在Rust中，分别将这两个S，存储在&lt;code class=&quot;inline&quot;&gt;值命名空间(Value NameSpace)&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;类型命名空间(Type NameSpace)&lt;/code&gt;中，所以可以同时存在两个相同的S。&lt;/p&gt;&lt;p&gt;常量S，会内联到用它的具体使用的地方。在语义层面，就是表示它的值会替换到使用它的每个地方。&lt;/p&gt;&lt;p&gt;&lt;b&gt;在main函数中， 常量S会被内联到两个地方：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;第一个地方&lt;/b&gt;是： &lt;code class=&quot;inline&quot;&gt;let v = &amp;amp;mut S;&lt;/code&gt;， 这里的S，是一个值，要被const S替换掉。等价于:&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let mut _tmp = S {x: 2} ; 
-let v = &amp;amp;mut tmp_;&lt;/code&gt;&lt;p&gt;所以，当执行 &lt;code class=&quot;inline&quot;&gt;v.x += 1&lt;/code&gt; 之后，&lt;code class=&quot;inline&quot;&gt;v.x&lt;/code&gt;的值就是：3。&lt;/p&gt;&lt;p&gt;&lt;b&gt;第二个地方&lt;/b&gt;是：&lt;code class=&quot;inline&quot;&gt;S.x += 1;&lt;/code&gt;，这里的S同样会被替换为const S的值。等价于:&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;S {x: 2}.x += 1;&lt;/code&gt;&lt;p&gt;而此时，这个S {: 2}是一个新的结构体实例，和上面的S已经无关，所以改变它的值，并不影响到&lt;code class=&quot;inline&quot;&gt;S.x&lt;/code&gt;的值，所以结果是: 2。&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-03-51433417</guid>
-<pubDate>Mon, 03 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

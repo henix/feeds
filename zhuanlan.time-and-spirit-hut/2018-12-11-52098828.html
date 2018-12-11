@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust Quiz 解读：Quiz 12</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/52098828">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  <br> <br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br><br> 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   </blockquote><h2><b>Quiz 12:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">struct D(u8);
+
+impl Drop for D {
+    fn drop(&amp;mut self) {
+        print!("{}", self.0);
+    }
+}
+
+struct S {
+    d: D,
+    x: u8,
+}
+
+fn main() {
+    let S { x, .. } = S {
+        d: D(1),
+        x: 2,
+    };
+    print!("{}", x);
+
+    let S { ref x, .. } = S {
+        d: D(3),
+        x: 4,
+    };
+    print!("{}", x);
+}</code><p><b>输出结果： 1243</b></p><h2>考察要点</h2><ol><li>let绑定时，结构体模式匹配</li><li>ref 模式匹配</li><li>析构顺序</li></ol><p>Quiz代码中定义了单元结构体<code class="inline">D(u8)</code>，并且为其实现了Drop。这意味着，在<code class="inline">D(u8)</code>出了作用域会自动调用其实现的<code class="inline">drop</code>方法。</p><p>然后定义了结构体S，两个字段其中一个类似是<code class="inline">D</code>。这就意味着，该结构体实例被销毁时，会调用字段<code class="inline">d</code>的<code class="inline">drop</code>方法。</p><p>在main函数中，使用let绑定模式匹配解构一个结构体实例。</p><code lang="rust">let S { x, .. } = S {
+    d: D(1),
+    x: 2,
+};</code><p>上面代码相当于定义了<code class="inline">let x = 2;</code> ，而结构体实例中<code class="inline">d: D(1)</code>字段将会被抛弃，因为它没有绑定任何变量。 所以，此时输出<code class="inline">x</code>的值为： 2。</p><code lang="rust">let S { ref x, .. } = S {
+    d: D(3),
+    x: 4,
+};</code><p>同理，上面代码的<code class="inline">d: D(3)</code>同样会被抛弃。相当于<code class="inline">let ref x = 4;</code>，等价于<code class="inline">let x = &amp;4;</code>。所以，此时输出<code class="inline">x</code>的值为： <code class="inline">4</code>。</p><p><b>但为什么输出结果顺序是：<code class="inline">1 -&gt; 2 -&gt; 4 -&gt; 3</code>呢？</b></p><p>我们为Quiz代码中的结构体<code class="inline">S</code>实现一个Drop。</p><code lang="rust">impl Drop for S {
+    fn drop(&amp;mut self) {
+        print!("S");
+    }
+}</code><p>然后再执行Quiz代码，输出结果是： <code class="inline">S124S3</code>。</p><p>从这个结果中发现：</p><p>最先析构的是结构体S的第一个实例，其次是<code class="inline">d: D(1)</code>，第三个是结构体S的另一个实例，最后是<code class="inline">d: D(3)</code>。</p><p>两个结构体实例先于<code class="inline">D(1)</code>和<code class="inline">D(3)</code>析构，是因为它们是先声明的。但是为什么输出结果不是<code class="inline">S12S34</code>呢？</p><p>继续修改Quiz代码：</p><code lang="rust">let S {  x, .. } = S {
+        d: D(3),
+        x: 4,
+    };</code><p>把main函数中第二个结构体实例的let绑定中的<code class="inline">ref</code>去掉了。输出结果是：<code class="inline">S12S34</code>。</p><p>看来，是这个<code class="inline">ref</code>影响了析构的顺序。回到原始的Quiz代码中，来分析这个过程：</p><ol><li>第一个结构体实例最先被声明，但该实例本身也没有被绑定任何变量。所以它第一个被弃用。调用其drop方法输出：<code class="inline">S</code>。</li><li>第二个被析构的是<code class="inline">D(1)</code>，同理，因为它没有绑定任何变量，此时已无用。调用其drop方法输出：<code class="inline">1</code>。</li><li>此时结构体中x字段已经绑定给了x变量，打印输出它的值： <code class="inline">2</code>。</li><li>第三个被析构的是第二个结构体S的实例。理论上，它没有绑定任何变量。所以应该调用其drop方法输出：<code class="inline">S</code>。但是，此时let绑定解构语句中使用了<code class="inline">ref</code>，它是一种模式匹配操作，将该结构体实例的字段<code class="inline">x</code>的引用匹配了出来，相当于<code class="inline">let x = &amp;S{x: 4}.x</code>。也就是说，此时的绑定<code class="inline">x</code>，是对结构体实例中字段的引用，如果此时抛弃了该结构体实例，势必会造成悬垂指针。所以，这里直接输出打印x的值：<code class="inline">4</code>。</li><li>在使用完<code class="inline">x</code>之后，结构体实例可以被析构了，调用drop，然后输出：<code class="inline">S</code>。</li><li>最后在对<code class="inline">D(3)</code>析构，输出：<code class="inline">3</code>。</li></ol><p>那么最终结果就是： <code class="inline">S124S3</code>。对于原始Quiz代码来说，输出结果就是：<code class="inline">1243</code>。</p><p><br></p><p><a href="https://dtolnay.github.io/rust-quiz/12">点此查看 Rust Quiz 12</a> </p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

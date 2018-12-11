@@ -1,0 +1,40 @@
+<p>之前描述了使用三种不同原理的三种不同的振荡器：网格周期振荡器、重心振荡器、相对活力指数振荡器。只需要有一个是好用的就可以了，你的技术交易库中可能并不需要多个振荡器。根据经验，许多交易员都遭受“分析瘫痪”的困扰，而不是缺乏理想的工具组合 - 或者更糟糕的是，为每种情况改变工具组合 。 最好选择几种工具平均为你工作最好，三个振荡器可供考虑。知道三者中哪一个最好的唯一方法是使用相同的数据在同一图表上进行比较。该比较如图7.1所示。</p><p>坦率地说，在这个特定的例子中，没有看到三个振荡器之间的价值差异。所有三个都表示相对周期振幅，并在发生时正确识别每个主要转折点。如果有的话，相对活力指数（RVI）稍微不易受到洗盘指标的影响。网络周期只包含构成振荡器的理论周期成分。</p><p>当将这些振荡器作为自动交易策略的一部分插入时，差异将变得更加明显。在这些应用中，一个振荡器可以在策略的关键时刻比其他振荡器提前一个信号。同样正确的是，一个振荡器可能具有更少的短期交叉，从而导致洗盘交易。无论如何，现在有三种出色的工具可用于技术分析，在应用中可能是其中一个振荡器的性能优于其他振荡器。</p><img src="https://pic2.zhimg.com/v2-685d0d9d98dd9b842c24a2f086a43de1_r.jpg" data-caption="" data-size="normal" data-rawwidth="1220" data-rawheight="850" data-watermark="watermark" data-original-src="v2-685d0d9d98dd9b842c24a2f086a43de1" data-watermark-src="v2-25855c8fe2daad84e308fe4537f13ae1" data-private-watermark-src=""><p>将这几个振荡器中与使用与以前相同的数据在图表上常用的其他几个振荡器进行比较可能是有建设性的。这种标准化比较有助于评估交易信号的相对滞后程度以及产生洗盘信号的程度。两种较受欢迎的振荡器是相对强弱指数RSI和随机指标KDJ。这些与图7.2中的网络周期进行了比较，其中八个周期用于可比较的缩放。显然，RSI和随机指标比网络周期更不稳定。等待确认指示器穿过信号线是最小化指示器的不稳定行为的传统方式。等待确认意味着RSI和随机交易信号总是迟到或信号完全丢失。</p><img src="https://pic4.zhimg.com/v2-da99abf935c9d3c1dd30d37b42618ca3_r.jpg" data-caption="" data-size="normal" data-rawwidth="1570" data-rawheight="1008" data-watermark="watermark" data-original-src="v2-da99abf935c9d3c1dd30d37b42618ca3" data-watermark-src="v2-6f75c7e81a045ac45b1ddfa011a8cc2e" data-private-watermark-src=""><p>•Cyber Cycle，CG和RVI振荡器都带有相对周期幅度信息。</p><p>•Cyber Cycle，CG和RVI都表明主要转折点具有最小滞后。</p><p>•Cyber Cycle，CG和RVI远远优于传统震荡指标(相对强弱指数RSI,随机指标KDJ)。</p><code lang="python3">def cyber_cycle(series,bar):
+    x = np.array(series)
+    assert len(x)&gt;=4
+    smooth = [x[0],x[1],x[2]]
+    for t in range(3,len(x)):
+        smooth.append((x[t]+2*x[t-1]+2*x[t-2]+x[t-3])/6)
+    cycle = HP2(smooth,bar)
+    return cycle
+
+def CG(series,n):
+    x = np.array(series)
+    assert len(x)&gt;=n
+    cg0 = (n-1)*[np.nan]
+    cg1 = []
+    w = 1+np.array(range(n))
+    cg1 = [np.dot(w,x[i:i+n])/np.sum(x[i:i+n]) for i in range(0,len(x)-n+1)]
+    cg = np.array(cg0+cg1)
+    return cg
+
+def RVI(Open,High,Low,Close):
+    Open,High,Low,Close = np.array(Open),np.array(High),np.array(Low),np.array(Close)
+    assert len(Open)==len(High)==len(Low)==len(Close)
+    N = len(Open)
+    assert N&gt;=4
+    value1 = [Close[0]-Open[0],Close[1]-Open[1],Close[2]-Open[2]]
+    value2 = [High[0]-Low[0],High[1]-Low[1],High[2]-Low[2]]
+    for t in range(3,N):
+        value1.append(((Close[t]-Open[t])+2*(Close[t-1]-Open[t-1])
+                       +2*(Close[t-2]-Open[t-2])+(Close[t-3]-Open[t-3]))/6)
+        value2.append(((High[t]-Low[t])+2*(High[t-1]-Low[t-1])
+                       +2*(High[t-2]-Low[t-2])+(High[t-3]-Low[t-3]))/6)
+    rvi = np.array(value1)/np.array(value2)
+    return rvi
+
+def sumRVI(Open,High,Low,Close,bar=8):
+    rvi = RVI(Open,High,Low,Close)
+    rvi = pd.Series(rvi)
+    sum_RVI = rvi.rolling(bar).sum()
+    return np.array(sum_RVI)
+</code><img src="https://pic2.zhimg.com/v2-d9e299dac25ffaa817ff6a6e99d92341_r.jpg" data-caption="CG与sumRVI" data-size="normal" data-rawwidth="1516" data-rawheight="1018" data-watermark="watermark" data-original-src="v2-d9e299dac25ffaa817ff6a6e99d92341" data-watermark-src="v2-5d63f49a595f1c65ca9badf93d6d2a70" data-private-watermark-src=""><img src="https://pic4.zhimg.com/v2-78bcc27c5f6fdfb2499099613636d127_r.jpg" data-caption="CG与cyber cycle" data-size="normal" data-rawwidth="1590" data-rawheight="996" data-watermark="watermark" data-original-src="v2-78bcc27c5f6fdfb2499099613636d127" data-watermark-src="v2-13b07189851e4f8e1b928d9f17fc0a01" data-private-watermark-src=""><img src="https://pic1.zhimg.com/v2-671f664a9c93a78316272f012ba282b0_r.jpg" data-caption="cyber cycle与sumRVI" data-size="normal" data-rawwidth="1530" data-rawheight="992" data-watermark="watermark" data-original-src="v2-671f664a9c93a78316272f012ba282b0" data-watermark-src="v2-4cd341698d1a56ad86f06410e488147d" data-private-watermark-src=""><p></p>
