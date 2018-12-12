@@ -1,0 +1,42 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  <br> <br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br><br> 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   </blockquote><h2>Quiz 13:</h2><p>下面这段代码输出什么？</p><code lang="rust">struct S;
+
+fn main() {
+    let [x, y] = &amp;mut [S, S];
+    let eq = x as *mut S == y as *mut S;
+    print!("{}", eq as u8);
+}</code><p><b>输出结果：1</b></p><h2>解读</h2><p>考察要点：</p><ol><li>单元结构体</li><li>let绑定模式匹配</li><li>数组布局</li><li>操作符优先级</li><li>引用和原生指针的转换</li><li>bool类型转换为数字</li></ol><p>Quiz代码中定义了单元结构体<code class="inline">S</code>。在main函数中，使用let绑定模式匹解构<code class="inline">&amp;mut [S, S]</code>数组，定义了<code class="inline">x</code>和<code class="inline">y</code>两个变量。</p><p>此时<code class="inline">x</code>和<code class="inline">y</code>的值分别是<code class="inline">&amp;mut S</code>和<code class="inline">&amp;mut S</code>。 数组本身是可变借用，那么其元素自然也是借用，不可能是拥有其所有权。</p><p>这里可能有人要怀疑<code class="inline">x</code>和<code class="inline">y</code>同时对<code class="inline">S</code>进行可变借用，合法吗？答案是肯定的。因为此时<code class="inline">x</code>和<code class="inline">y</code>借用的单元结构体<code class="inline">S</code>可看作是两个独立的结构体实例。</p><p><code class="inline">let eq = x as *mut S == y as *mut S;</code>这行代码等价于<code class="inline">let eq = ( (x as *mut S) == (y as *mut S) );</code>。优先级<code class="inline">as</code> &gt; <code class="inline">==</code> &gt; <code class="inline">=</code>。</p><p><code class="inline">x</code>和<code class="inline">y</code>本身是可变借用，然后通过<code class="inline">as</code>转换为原生可变指针类型（*mut S），然后对它们进行比较，是看它们的地址是否相同。然后将最后的bool类型结果赋值给<code class="inline">eq</code>。最后通过<code class="inline">as</code>将<code class="inline">bool</code>类型的值转换为<code class="inline">u8</code>。可以预测结果，不是<code class="inline">0</code>就是<code class="inline">1</code>，其中<code class="inline">0</code>对应于<code class="inline">false</code>， <code class="inline">1</code>对应于<code class="inline">true</code>。</p><p>虽然分析出了整个过程，但是我无法确定这里到底是输出1还是0。因为我无法确定这里Rust的行为，这两个原生指针地址是否相同。</p><p>想知道我为啥有这个疑问吗？可以看看下面的代码：</p><code lang="rust">struct Empty;
+fn main() {
+    let x = &amp;mut Empty;
+    println!("x {:p}", x);
+    let y = &amp;mut Empty;
+    println!("y {:p}", y);
+}</code><p>此代码在Debug模式下编译的结果是：</p><code lang="text">x 0x7fff5b8c2058
+y 0x7fff5b8c20c0</code><p>在Release模式下编译的结果是：</p><code lang="text">x 0x7ffe9ae101d8
+y 0x7ffe9ae101d8</code><p>所以，你明白了吗？ 在Debug模式下编译，不同的单元结构体实例，地址是不同的，但是在Release模式下，不同的单元结构体实例会被优化成同一个地址。</p><p>这就是我为什么不敢确定Quiz代码输出结果的原因。没办法，只能把Quiz代码实际执行一下看看输出结果了。然后发现，不管是Debug模式还是Release模式，Quiz代码的输出结果都是<code class="inline">1</code>。也就是说，<code class="inline">x</code>和<code class="inline">y</code>的地址是一样的。</p><p>这是怎么回事呢？</p><p>我注意到Quiz代码和我上面编写代码中定义变量的区别：</p><code lang="rust">// Quiz 代码中
+let [x, y] = &amp;mut [S, S];
+
+// 我自定义代码中
+let x = &amp;mut Empty;
+let y = &amp;mut Empty;</code><p>我有所悟： 在Quiz代码中的两个单元结构体实例是放到一个<code class="inline">[S; 2]</code>类型的数组中的，同一个数组的起始地址肯定是一样的。难道Rust把数组的起始地址作为<code class="inline">x</code>和<code class="inline">y</code>这两个实例的地址？</p><p>来看下面代码：</p><code lang="rust">struct S;
+struct E;
+
+struct A {
+    s: S,
+    e: E,
+}
+
+fn main() {
+    let (x, y) = &amp;mut (S, E);
+    println!("{:p}", x as *mut S);
+    println!("{:p}", y as *mut E);
+
+    let A{s, e} = &amp;mut A{s: S, e: E};
+    println!("{:p}", s as *mut S);
+    println!("{:p}", e as *mut E);
+}</code><p>在Debug模式下编译：</p><code lang="text">0x7ffe370bd7b8
+0x7ffe370bd7b8
+0x7ffe370bd890
+0x7ffe370bd890</code><p>在Release模式下编译：</p><code lang="text">0x7ffcde64f608
+0x7ffcde64f608
+0x7ffcde64f608
+0x7ffcde64f608</code><p>所以，你明白了吗？</p><h2><a href="https://dtolnay.github.io/rust-quiz/13">点此查看 Rust Quiz 13</a> </h2>
