@@ -1,0 +1,31 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote> 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  <br> <br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br> <br>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   </blockquote><h2><b>Quiz 14:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">trait Trait: Sized {
+    fn is_reference(self) -&gt; bool;
+}
+
+impl&lt;'a, T&gt; Trait for &amp;'a T {
+    fn is_reference(self) -&gt; bool {
+        true
+    }
+}
+
+fn main() {
+    match 0.is_reference() {
+        true =&gt; print!("1"),
+        false =&gt; print!("0"),
+    }
+
+    match '?'.is_reference() {
+        true =&gt; print!("1"),
+        false =&gt; {
+            impl Trait for char {
+                fn is_reference(self) -&gt; bool {
+                    false
+                }
+            }
+            print!("0")
+        }
+    }
+}</code><p><b>输出结果：10</b></p><h2><b>解读</b></h2><p>考察要点：</p><ol><li>自动引用（autoref）</li><li>impl trait 的可见性</li></ol><p>Quiz代码中定义了Trait，并限定了Sized trait。这意味着该Trait无法当作trait对象来使用。但是对于Quiz代码来说没有啥特殊意义。</p><p>然后为<code class="inline">&amp;'a T</code>实现了Trait：<code class="inline">impl&lt;'a, T&gt; Trait for &amp;'a T { ... }</code>。<code class="inline">&amp;'a T</code>和<code class="inline">T</code>有什么区别呢？在之前的Quiz解读中已经讲过了。</p><p>在main函数中， <code class="inline">match 0.is_reference(){ ... }</code>，当调用数字<code class="inline">0</code>的<code class="inline">is_reference</code>方法时，你可能会想，数字类型有没有被实现<code class="inline">Trait</code>呢？在为<code class="inline">&amp;'a T</code>的实现中，<code class="inline">is_reference</code>的参数是<code class="inline">self</code>。到底编译会不会成功呢？</p><p>事实上，这里涉及一个规则：自动引用。</p><p>当调用<code class="inline">0.is_reference()</code>的时候，会为<code class="inline">0</code>自动添加引用，等价于<code class="inline">(&amp;0).is_reference()</code>。 这是因为上下文中只有为<code class="inline">&amp;'a T</code>实现了<code class="inline">Trait</code>。此时<code class="inline">is_reference</code>方法中的<code class="inline">self</code>等价于<code class="inline">&amp;'a i32</code>。</p><p>如果为<code class="inline">T</code>实现<code class="inline">Trait</code>，就不会存在自动引用了。</p><p>注意：在Rust中与自动引用对应的规则，还有一个<code class="inline">自动解引用(auto deref)</code>。</p><p>所以，这里<code class="inline">0.is_reference()</code>调用，会返回true。输出结果当然是： <code class="inline">1</code>。</p><p>而<code class="inline">match '?'.is_reference()</code>，是调用字符<code class="inline">?</code>的<code class="inline">is_reference()</code>方法。这里迷惑人的地方就是<code class="inline">impl Trait for char { ... }</code>实现是放到了<code class="inline">false</code>匹配分支中。但实际上<code class="inline">impl Trait for char {...}</code>是对整个Quiz代码可见的。所以，在<code class="inline">'?'.is_reference()</code>调用的时候，它会输出<code class="inline">false</code>，最终match匹配结果自然是： <code class="inline">0</code>。</p><p>如果你将<code class="inline">impl Trait for char {...}</code>实现代码去掉的话：</p><code lang="rust">match '?'.is_reference() {
+    true =&gt; print!("1"),
+    false =&gt; print!("0")
+}</code><p>输出结果将会是：<code class="inline">11</code>。</p><p><br></p><p><a href="https://dtolnay.github.io/rust-quiz/14">点此查看 Rust Quiz 14</a></p>

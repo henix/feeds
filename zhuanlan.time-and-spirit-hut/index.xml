@@ -5,7 +5,46 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 12 Dec 2018 15:52:29 +0800</lastBuildDate>
+<lastBuildDate>Fri, 14 Dec 2018 22:54:21 +0800</lastBuildDate>
+<item>
+<title>Rust Quiz 解读：Quiz 14</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-14-52418867.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52418867&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt; 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt; &lt;br&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 14:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Trait: Sized {
+    fn is_reference(self) -&amp;gt; bool;
+}
+
+impl&amp;lt;&#39;a, T&amp;gt; Trait for &amp;amp;&#39;a T {
+    fn is_reference(self) -&amp;gt; bool {
+        true
+    }
+}
+
+fn main() {
+    match 0.is_reference() {
+        true =&amp;gt; print!(&quot;1&quot;),
+        false =&amp;gt; print!(&quot;0&quot;),
+    }
+
+    match &#39;?&#39;.is_reference() {
+        true =&amp;gt; print!(&quot;1&quot;),
+        false =&amp;gt; {
+            impl Trait for char {
+                fn is_reference(self) -&amp;gt; bool {
+                    false
+                }
+            }
+            print!(&quot;0&quot;)
+        }
+    }
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果：10&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;自动引用（autoref）&lt;/li&gt;&lt;li&gt;impl trait 的可见性&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Quiz代码中定义了Trait，并限定了Sized trait。这意味着该Trait无法当作trait对象来使用。但是对于Quiz代码来说没有啥特殊意义。&lt;/p&gt;&lt;p&gt;然后为&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;实现了Trait：&lt;code class=&quot;inline&quot;&gt;impl&amp;lt;&#39;a, T&amp;gt; Trait for &amp;amp;&#39;a T { ... }&lt;/code&gt;。&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt;有什么区别呢？在之前的Quiz解读中已经讲过了。&lt;/p&gt;&lt;p&gt;在main函数中， &lt;code class=&quot;inline&quot;&gt;match 0.is_reference(){ ... }&lt;/code&gt;，当调用数字&lt;code class=&quot;inline&quot;&gt;0&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;is_reference&lt;/code&gt;方法时，你可能会想，数字类型有没有被实现&lt;code class=&quot;inline&quot;&gt;Trait&lt;/code&gt;呢？在为&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;的实现中，&lt;code class=&quot;inline&quot;&gt;is_reference&lt;/code&gt;的参数是&lt;code class=&quot;inline&quot;&gt;self&lt;/code&gt;。到底编译会不会成功呢？&lt;/p&gt;&lt;p&gt;事实上，这里涉及一个规则：自动引用。&lt;/p&gt;&lt;p&gt;当调用&lt;code class=&quot;inline&quot;&gt;0.is_reference()&lt;/code&gt;的时候，会为&lt;code class=&quot;inline&quot;&gt;0&lt;/code&gt;自动添加引用，等价于&lt;code class=&quot;inline&quot;&gt;(&amp;amp;0).is_reference()&lt;/code&gt;。 这是因为上下文中只有为&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;实现了&lt;code class=&quot;inline&quot;&gt;Trait&lt;/code&gt;。此时&lt;code class=&quot;inline&quot;&gt;is_reference&lt;/code&gt;方法中的&lt;code class=&quot;inline&quot;&gt;self&lt;/code&gt;等价于&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a i32&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;如果为&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt;实现&lt;code class=&quot;inline&quot;&gt;Trait&lt;/code&gt;，就不会存在自动引用了。&lt;/p&gt;&lt;p&gt;注意：在Rust中与自动引用对应的规则，还有一个&lt;code class=&quot;inline&quot;&gt;自动解引用(auto deref)&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;所以，这里&lt;code class=&quot;inline&quot;&gt;0.is_reference()&lt;/code&gt;调用，会返回true。输出结果当然是： &lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;而&lt;code class=&quot;inline&quot;&gt;match &#39;?&#39;.is_reference()&lt;/code&gt;，是调用字符&lt;code class=&quot;inline&quot;&gt;?&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;is_reference()&lt;/code&gt;方法。这里迷惑人的地方就是&lt;code class=&quot;inline&quot;&gt;impl Trait for char { ... }&lt;/code&gt;实现是放到了&lt;code class=&quot;inline&quot;&gt;false&lt;/code&gt;匹配分支中。但实际上&lt;code class=&quot;inline&quot;&gt;impl Trait for char {...}&lt;/code&gt;是对整个Quiz代码可见的。所以，在&lt;code class=&quot;inline&quot;&gt;&#39;?&#39;.is_reference()&lt;/code&gt;调用的时候，它会输出&lt;code class=&quot;inline&quot;&gt;false&lt;/code&gt;，最终match匹配结果自然是： &lt;code class=&quot;inline&quot;&gt;0&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;如果你将&lt;code class=&quot;inline&quot;&gt;impl Trait for char {...}&lt;/code&gt;实现代码去掉的话：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;match &#39;?&#39;.is_reference() {
+    true =&amp;gt; print!(&quot;1&quot;),
+    false =&amp;gt; print!(&quot;0&quot;)
+}&lt;/code&gt;&lt;p&gt;输出结果将会是：&lt;code class=&quot;inline&quot;&gt;11&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/14&quot;&gt;点此查看 Rust Quiz 14&lt;/a&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-14-52418867</guid>
+<pubDate>Fri, 14 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust Quiz 解读：Quiz 13</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-12-52189029.html</link>
@@ -432,34 +471,6 @@ fn main() {
 }&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;std::mem::transmute()&lt;/code&gt;函数本身是一个unsafe函数，它相当于直接在栈上进行拷贝，将一种类型的值，解释为另一种类型。语义上，相当于一种「按位移动」。说白了，就是一种类型转换。但不能随便使用它，必须在源值和目标值，都有效的情况下才可以转换。&lt;/p&gt;&lt;p&gt;但是上面代码里的&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，是什么类型呢？&lt;code class=&quot;inline&quot;&gt;std::mem::transmute(1u8)&lt;/code&gt;会把&lt;code class=&quot;inline&quot;&gt;1u8&lt;/code&gt;转换为Enum类型。这是Rust编译器根据上下文进行类型推断得出的。你可以把&lt;code class=&quot;inline&quot;&gt;1u8&lt;/code&gt;修改为&lt;code class=&quot;inline&quot;&gt;1u16&lt;/code&gt;看看编译器的提示。&lt;/p&gt;&lt;p&gt;那么现在a实际上是被转换成Enum::Second。所以Enum::p(a);输出的结果是：2。&lt;/p&gt;&lt;p&gt;注意上面Enum::First对应的判别式是0，而Enum::Second对应的判别式才是1。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/7&quot;&gt;点此查看 Rust Quiz 7&lt;/a&gt;&lt;/p&gt;</description>
 <author>张汉东</author>
 <guid isPermaLink="false">2018-12-06-51759112</guid>
-<pubDate>Thu, 06 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读：Quiz 6</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-06-51683754.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51683754&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt; 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 6:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;use std::mem;
-
-fn main() {
-    let a;
-    let a =  a = true;
-    print!(&quot;{}&quot;, mem::size_of_val(&amp;amp;a));
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果：0&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;std::mem::size_of_val()&lt;/code&gt;函数的用法&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;let&lt;/code&gt;变量屏蔽&lt;/li&gt;&lt;li&gt;变量声明和赋值&lt;/li&gt;&lt;li&gt;ZST（零大小类型）&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;main函数中，首先声明了&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，但并未赋值，也没有指定具体的类型。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;let a = a = true;&lt;/code&gt;，等价于&lt;code class=&quot;inline&quot;&gt;let a = (a = true);&lt;/code&gt;，Rust中可以说是「一切皆表达式」。对于&lt;code class=&quot;inline&quot;&gt;(a=true)&lt;/code&gt;来说，是一个赋值表达式，该表达式的值永远返回单元类型&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;，同时它的值也是&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;。那么&lt;code class=&quot;inline&quot;&gt;let a = (a = true)&lt;/code&gt;;最终等价于&lt;code class=&quot;inline&quot;&gt;let a = ();&lt;/code&gt;。 &lt;/p&gt;&lt;p&gt;所以，在最后的print!打印语句里，使用&lt;code class=&quot;inline&quot;&gt;mem::size_of_val(&amp;amp;a)&lt;/code&gt;函数来计算&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的内存大小，此时等价于&lt;code class=&quot;inline&quot;&gt;mem::size_of_val(&amp;amp;())&lt;/code&gt;，对于单元类型来说，它并不占任何内存空间。在Rust中，这种类型叫做ZST（Zero Size Type）。它们不占空间，最终会被LLVM优化掉。所以输出当然是：0。&lt;/p&gt;&lt;p&gt;那么，上面代码发散一下，能否这么写呢?&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn main() {
-    let a;
-    let a =  a =  a = true;
-    print!(&quot;{}&quot;, std::mem::size_of_val(&amp;amp;a));
-}&lt;/code&gt;&lt;p&gt;注意这里的代码变化，&lt;code class=&quot;inline&quot;&gt;let a =  a =  a = true;&lt;/code&gt;，等价于&lt;code class=&quot;inline&quot;&gt;let a =  ( a =  (a = true) );&lt;/code&gt;。但仔细想想，这样成立吗？&lt;/p&gt;&lt;p&gt;执行以后会报错：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;error[E0308]: mismatched types
- --&amp;gt; src/main.rs:3:17
-  |
-3 |     let a = a = (a = true);
-  |                 ^^^^^^^^^^ expected bool, found ()
-  |
-  = note: expected type `bool`
-             found type `()`
-
-error: aborting due to previous error&lt;/code&gt;&lt;p&gt;这是为什么呢？&lt;/p&gt;&lt;p&gt;首先，&lt;code class=&quot;inline&quot;&gt;(a = true)&lt;/code&gt;，已经让Rust编译器推断&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;的类型为&lt;code class=&quot;inline&quot;&gt;bool&lt;/code&gt;了。然后，&lt;code class=&quot;inline&quot;&gt;(a = (a = true))&lt;/code&gt;，等价于，&lt;code class=&quot;inline&quot;&gt;(a = ());&lt;/code&gt;，类型不匹配，自然会报错。&lt;/p&gt;&lt;p&gt;但是为什么&lt;code class=&quot;inline&quot;&gt;let a = (a = true)&lt;/code&gt;，没有报相似的错呢？ 这是因为，当前执行的是&lt;code class=&quot;inline&quot;&gt;let a = ();&lt;/code&gt;，和&lt;code class=&quot;inline&quot;&gt;a = ();&lt;/code&gt;比较一下，区别在哪里？ &lt;/p&gt;&lt;p&gt;区别正是因为那个&lt;code class=&quot;inline&quot;&gt;let&lt;/code&gt;，因为有&lt;code class=&quot;inline&quot;&gt;let&lt;/code&gt;，所以这里是一个&lt;code class=&quot;inline&quot;&gt;变量屏蔽&lt;/code&gt;，也就是重新定义了一个&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，它的类型自然不受之前类型推断结果的影响。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/6&quot;&gt;点此查看 Rust Quiz 6&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-06-51683754</guid>
 <pubDate>Thu, 06 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
