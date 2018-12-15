@@ -5,7 +5,166 @@
 <link>https://henix.github.io/feeds/zhuanlan.marisa/</link>
 <description>http://zhuanlan.zhihu.com/marisa/20419321</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 02 Dec 2018 10:54:05 +0800</lastBuildDate>
+<lastBuildDate>Sat, 15 Dec 2018 13:57:26 +0800</lastBuildDate>
+<item>
+<title>愿你走出半生，归来仍是Java Parser</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-12-15-51811022.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51811022&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;几天前，我的一个朋友给了我一个Haskell问题&lt;/p&gt;&lt;blockquote&gt;Hey, MK，假设我有个BNF，并且我在Haskell中有个这个BNF的parser。&lt;br&gt;现在，我想给这个BNF改一行，有没有办法不用动这个BNF parser的代码（因为是其他人写的），而是对这parser进行扩展呢？&lt;/blockquote&gt;&lt;p&gt;这问题挺有趣的，也不算难。&lt;/p&gt;&lt;p&gt;这问题说是extensibility problem，其实有两个地方需要扩展。&lt;/p&gt;&lt;p&gt;0：Parser需要用open recursion之类的方法扩展&lt;/p&gt;&lt;p&gt;1：Parse出来的ADT也需要可扩展性&lt;/p&gt;&lt;p&gt;后半个需求见多了，Final Tagless，DTALC，Tree that grow，Recursion scheme style fix。。。于是放下不表，我们来处理前一个。&lt;/p&gt;&lt;p&gt;前半个。。Haskell&#39;s Overlooked Object System就搞过，当然他们有点heavy weight，打算随手弄一个&lt;b&gt;超级轻量级的&lt;/b&gt;：5行就够了，多一行是小莎莎。&lt;/p&gt;&lt;p&gt;Ready？&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;data Object x = MkObject (x -&amp;gt; x)&lt;/code&gt;&lt;p&gt;1。Inheritance is not subtyping式的Object=recursive type。为了简易性（反正也不需要多高的扩展性）就不model真。recursive type，而只有recursive dependency。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;use :: Object x -&amp;gt; x
+use (MkObject x) = let res = x res in res&lt;/code&gt;&lt;p&gt;2。3。最典型的tying the knot。其实就是fix了。&lt;/p&gt;&lt;p&gt;我们想想，这个x是什么variant的呢？covariant还是contravariant？&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;inherit :: (a -&amp;gt; b) -&amp;gt; (b -&amp;gt; a) -&amp;gt; Object a -&amp;gt; Object b
+inherit ab ba (MkObject aa) = MkObject (ab . aa . ba)&lt;/code&gt;&lt;p&gt;既然是invariant，那fmap contramap都用不上，但invariant依然能有map：两边一起传进来就行了。4。5。&lt;/p&gt;&lt;p&gt;这就是一个prototype based oo system了。&lt;/p&gt;&lt;p&gt;接下来讲怎么用哈：&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;test :: Object (Int, Int)
+test = MkObject $ \self -&amp;gt; (2, fst self + fst self)&lt;/code&gt;&lt;p&gt;这弄了个两个field的object，第零个field初始值为2（可能因为继承被override），第一个field为第零个field的值*2（不一定是3，如果任何field被override这个值都能改）。use test应该是(2, 4)。&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;inheritTest :: Object ((Int, Int), Int)
+inheritTest = inherit (\(l, r) -&amp;gt; ((l + 1, r + 2), r + 1)) fst test&lt;/code&gt;&lt;p&gt;这里继承了上面的Object，override了l(l + 1是super + 1），r被override到super + 2，加了个新的field，值是r+1。use inheritTest应该是((3, 8), 7)。记着传进来的参数不是self而是super就很好理解了。&lt;/p&gt;&lt;p&gt;好，open recursion搞好了，剩下的就是标准的final tagless了，体力活，没啥意思&lt;/p&gt;&lt;code lang=&quot;haskell&quot;&gt;class AST repr where
+  lit :: Int -&amp;gt; repr
+  plus :: repr -&amp;gt; repr -&amp;gt; repr
+
+class Var repr where
+  var :: String -&amp;gt; repr
+
+type WholeParser repr = Parser repr
+type LitParser repr = Parser repr
+type PlusParser repr = Parser repr
+
+intP :: Parser Int
+intP = read &amp;lt;$&amp;gt; many1 digit
+
+stringP :: Parser String
+stringP = many1 letter
+
+type OriginalParser repr = ((LitParser repr, PlusParser repr), WholeParser repr)
+originalParser :: AST repr =&amp;gt; Object (OriginalParser repr)
+originalParser = MkObject $ \(~(_, p)) -&amp;gt; let
+  litP = lit &amp;lt;$&amp;gt; intP
+  plusP = between (char &#39;(&#39;) (char &#39;)&#39;) (do {l &amp;lt;- p; spaces; char &#39;+&#39;; spaces; r &amp;lt;- p; return $ plus l r})
+  wholeP = litP &amp;lt;|&amp;gt; plusP in
+  ((litP, plusP), wholeP)
+
+type VarParser repr = Parser repr
+extendedParser :: (AST repr, Var repr) =&amp;gt; Object (VarParser repr, OriginalParser repr)
+extendedParser = inherit extend snd originalParser
+  where
+    extend ~((litP, plusP), wholeP) = let
+      varP = var &amp;lt;$&amp;gt; stringP in
+      (varP, ((litP, plusP), varP &amp;lt;|&amp;gt; wholeP))
+
+instance AST String where
+  lit = show
+  plus x y = &quot;(&quot; ++ x ++ &quot; &quot; ++ &quot;+&quot; ++ &quot; &quot; ++ y ++ &quot;)&quot;
+
+instance Var String where
+  var x = x&lt;/code&gt;&lt;p&gt;大功告成。&lt;/p&gt;&lt;p&gt;代码在&lt;a href=&quot;https://github.com/MarisaKirisame/extensible-parser/blob/master/src/Lib.hs&quot;&gt;https://github.com/MarisaKirisame/extensible-parser/blob/master/src/Lib.hs&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Q：封装呢？&lt;/p&gt;&lt;p&gt;A：Abstract Type is Existential Type&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Q：这是prototype based的，class怎么办？&lt;/p&gt;&lt;p&gt;A：A Theory Of Object里面讲过怎么用prototype来做class&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Q：多继承呢？&lt;/p&gt;&lt;p&gt;A：给定Object a，Object b，可以组合出Object (a, b)，要菱形继承自己手动再inherit一下就好&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Q：Subtyping?&lt;/p&gt;&lt;p&gt;A：Typeclass。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果大家感兴趣，请评论下，我可以再写个blog把这些功能补完。&lt;/p&gt;</description>
+<author>圆角骑士魔理沙</author>
+<guid isPermaLink="false">2018-12-15-51811022</guid>
+<pubDate>Sat, 15 Dec 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Rust 阴阳谜题，及纯基于代码的分析与化简</title>
+<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-12-13-52249705.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52249705&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;听 &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/c3a3b37f42ed38a9783c00cea5156e55&quot; data-hash=&quot;c3a3b37f42ed38a9783c00cea5156e55&quot; data-hovercard=&quot;p$b$c3a3b37f42ed38a9783c00cea5156e55&quot;&gt;@头顶青天红美铃&lt;/a&gt; 说&lt;/p&gt;&lt;blockquote&gt;看了一圈，大家都说的是怎么拿一个动态语言跑yin yang。无论是编译，解释，最底的层次基本是某个动态语言。&lt;/blockquote&gt;&lt;a href=&quot;https://www.zhihu.com/question/27683900/answer/541141000&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot;&gt;如何实现 Call / CC 或者阴阳谜题（Yin Yang Puzzle）？&lt;/a&gt;&lt;h2&gt;0. 前（请务必跳过）&lt;/h2&gt;&lt;p&gt;之前用 Haskell 通过 Cont Monad 模拟过 &lt;code class=&quot;inline&quot;&gt;call/cc&lt;/code&gt; （实际上在阴阳谜题中用作 get-current-continuation，这里我们只讨论 &lt;code class=&quot;inline&quot;&gt;get/cc&lt;/code&gt;），但似乎确实是搞个 DSL 再模拟。&lt;/p&gt;&lt;p&gt;但我是觉得这&lt;b&gt;和动态类型其实关系不大&lt;/b&gt;，只是通常语言是栈机模型，而 call/cc 的“栈”是一棵树，还可能到处跳。唯一和类型有关的是 &lt;code class=&quot;inline&quot;&gt;get/cc&lt;/code&gt; 类型是递归类型 &lt;code class=&quot;inline&quot;&gt;a where a ~ (a -&amp;gt; _|_)&lt;/code&gt;，但我们可以用类似 &lt;code class=&quot;inline&quot;&gt;data Out a = In (Out a) (Out a)&lt;/code&gt; 的实现，在需要的时候把&lt;code class=&quot;inline&quot;&gt;Cont&lt;/code&gt;翻成&lt;code class=&quot;inline&quot;&gt;Cont -&amp;gt; Cont&lt;/code&gt;，或者反过来即可。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;1. Rust 代码实现&lt;/h2&gt;&lt;p&gt;因为&lt;b&gt;不想搞得那么学术派&lt;/b&gt;，我们不用 Haskell 那种数学语言，用&lt;b&gt;很工程很靠谱的 Rust &lt;/b&gt;实现以下这个 阴阳谜题/YinYang Puzzle。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先，我们直译一下 ：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;yin = getcc();
+print!(&quot;@&quot;);
+yin = getcc();
+print!(&quot;*&quot;);
+yin(yang);&lt;/code&gt;&lt;p&gt;但这当然是搞不了的。&lt;/p&gt;&lt;p&gt;我们 &lt;code class=&quot;inline&quot;&gt;getcc&lt;/code&gt; 拿来的 &lt;code class=&quot;inline&quot;&gt;yin&lt;/code&gt;不可能在全局都能用（主程序还是栈机啊喂，超级 goto 过分了），我们限定它在一个闭包里面才能用（这里我们要手动 CPS 一下），具体多大范围按需即可。&lt;/p&gt;&lt;p&gt;此外，由于函数调用的重载还没 stable，用了怕一下有 stable 癖的人觉得这不 Rust，所以这里用成员函数实现。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以我们的代码应该是这样，然后一跑发现&lt;b&gt;已经是预期行为了&lt;/b&gt;：(&lt;a href=&quot;https://play.rust-lang.org/?version=stable&amp;amp;mode=debug&amp;amp;edition=2018&amp;amp;gist=e1885dbdd463f9015072178981e3d5db&quot;&gt;Rust Playground&lt;/a&gt;)&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;/// Continuation.
+/// Cont ~ (Cont -&amp;gt; !)    We use `()` instead of `!` here since `!` not stable
+struct Cont&amp;lt;&#39;a&amp;gt;(&amp;amp;&#39;a dyn Fn(&amp;amp;Cont));
+
+impl Cont&amp;lt;&#39;_&amp;gt; {
+    fn call(&amp;amp;self, value: &amp;amp;Cont) {
+        (self.0)(value); // Simple proxy. Note that it is dynamic dispatch.
+    }
+}
+
+/// Equal to `{ let cc_ = getcc(); cc(cc_); }`
+/// Apparently, `cc_` and `cc` is the same continuation.
+fn with_cc(cc: impl Fn(&amp;amp;Cont)) {
+    cc(&amp;amp;Cont(&amp;amp;cc)); // Call `cc` with `cc` itself (current continuation)
+}
+
+fn puzzle() {
+    with_cc(|yin| {
+        print!(&quot;@&quot;);
+        with_cc(|yang| {
+            print!(&quot;*&quot;);
+            yin.call(yang);
+        });
+    });
+}&lt;/code&gt;&lt;p&gt;输出：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;@*@**@***@****@*****@******@*******@********@**** .....stack overflow&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;PS：惊奇地发现这份代码在 Release 下跑可以避免栈溢出，一直输出下去，看来是 TCO 了，果然优化还是很强劲的。当然记得本地编译跑，在线会被杀掉而看不到输出。&lt;/p&gt;&lt;p&gt;PSS：因为这里闭包引用结构的嵌套无法消去（我觉得 Rust 应该做不了 Idris 的 &lt;code class=&quot;inline&quot;&gt;Nat &amp;lt;=&amp;gt; Int&lt;/code&gt; 优化），所以内存应该还是会缓慢（ &lt;equation&gt;O(\sqrt {\text{Len}})&lt;/equation&gt; ）增长的。&lt;br&gt;&lt;/p&gt;&lt;h2&gt;2. 分析与化简&lt;/h2&gt;&lt;p&gt;现在我们试着&lt;b&gt;只从代码上分析，尽量避免数学推导，证明为何是这样的输出&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;（才不是因为看不懂 pi-calculus / 不会分析平行宇宙呢）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先，我们这里有两个闭包，&lt;code class=&quot;inline&quot;&gt;|yin| { .. }&lt;/code&gt;没有捕获东西，&lt;code class=&quot;inline&quot;&gt;|yang| { .. }&lt;/code&gt;捕获了上一层的&lt;code class=&quot;inline&quot;&gt;yin&lt;/code&gt; 的引用，我们要手动展开闭包语法糖。&lt;/p&gt;&lt;p&gt;然后考虑到&lt;code class=&quot;inline&quot;&gt;&amp;amp;dyn Fn(&amp;amp;Cont)&lt;/code&gt; 是动态分发，但只可能是两个闭包之一，直接用 &lt;code class=&quot;inline&quot;&gt;enum&lt;/code&gt;实现这个 Trait Object 引用，也是展开语法糖。&lt;/p&gt;&lt;p&gt;因为闭包代码都很少，这里我们直接把函数体代码 inline 进动态分发的&lt;code class=&quot;inline&quot;&gt;call&lt;/code&gt;里去了。 &lt;/p&gt;&lt;p&gt;(&lt;a href=&quot;https://play.rust-lang.org/?version=stable&amp;amp;mode=debug&amp;amp;edition=2018&amp;amp;gist=1574dc2f845671fda44ae124b06be4e8&quot;&gt;Rust Playground&lt;/a&gt;)&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Cont&amp;lt;&#39;a&amp;gt; { // Desugar of `&amp;amp;dyn Fn(&amp;amp;Cont)`
+    ClosureA,
+    ClosureB { yin: &amp;amp;&#39;a Cont&amp;lt;&#39;a&amp;gt; },
+}
+
+impl Cont&amp;lt;&#39;_&amp;gt; {
+    fn call(&amp;amp;self, value: &amp;amp;Cont) {
+        match self { // Manually dynamic dispatch
+            Cont::ClosureA =&amp;gt; {
+                let yin = value;
+                print!(&quot;@&quot;);
+                with_cc(Cont::ClosureB { yin });
+            }
+            Cont::ClosureB { yin } =&amp;gt; {
+                let yang = value;
+                print!(&quot;*&quot;);
+                yin.call(yang);
+            }
+        }
+    }
+}
+
+fn with_cc(cc: Cont) {
+    cc.call(&amp;amp;cc);
+}
+
+fn puzzle() {
+    with_cc(Cont::ClosureA);
+}&lt;/code&gt;&lt;p&gt;可能还看不出来调用顺序如何，但&lt;code class=&quot;inline&quot;&gt;call&lt;/code&gt;经过或不经过&lt;code class=&quot;inline&quot;&gt;with_cc&lt;/code&gt;，最终递归调用自己，至少可以知道它是个死循环，而且似乎还是尾递归的。&lt;/p&gt;&lt;p&gt;然后我们可以发现，这个 &lt;code class=&quot;inline&quot;&gt;enum Cont&lt;/code&gt;实际上就是一个&lt;b&gt;不带值的链表结构&lt;/b&gt;（ &lt;code class=&quot;inline&quot;&gt;Cont::ClosureA&lt;/code&gt; &amp;lt;=&amp;gt; Null，&lt;code class=&quot;inline&quot;&gt;Cont::ClosureB&lt;/code&gt; &amp;lt;=&amp;gt; Next），它&lt;b&gt;只包含长度信息。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;所以我们&lt;b&gt;只用一个自然数即可和它一一对应。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;（对，这就是皮亚诺自然数定义的 Nat，但因为不要学术，不展开）&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0 &amp;lt;=&amp;gt; Cont::ClosureA
+1 &amp;lt;=&amp;gt; Cont::ClosureB { yin: &amp;amp;Cont::ClosureA }
+2 &amp;lt;=&amp;gt; Cont::ClosureB { yin: &amp;amp;Cont::ClosureB { yin: &amp;amp;Cont::ClosureA }  }
+...&lt;/code&gt;&lt;p&gt;我们直接定义 &lt;code class=&quot;inline&quot;&gt;type Cont = usize&lt;/code&gt;来重写简化一下&lt;code class=&quot;inline&quot;&gt;call&lt;/code&gt;函数。&lt;/p&gt;&lt;p&gt;多套一层就是加一，模式匹配就是判零/减一。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;type Cont = usize;
+
+fn call(this: Cont, value: Cont) {
+    if this == 0 {
+        let yin = value;
+        print!(&quot;@&quot;);
+        let cc = yin + 1;
+        call(cc, cc);
+    } else {
+        let yin = this - 1;
+        let yang = value;
+        print!(&quot;*&quot;);
+        call(yin, yang);
+    }
+}
+
+fn puzzle() {
+    call(0, 0);
+}&lt;/code&gt;&lt;p&gt;哇，尾递归！就是循环！&lt;/p&gt;&lt;p&gt;然后我们把两个函数 inline 到一起：&lt;/p&gt;&lt;p&gt;（&lt;a href=&quot;https://play.rust-lang.org/?version=stable&amp;amp;mode=debug&amp;amp;edition=2018&amp;amp;gist=9d0d28a2a7ea56fa65b54d790212568c&quot;&gt;Rust Playground&lt;/a&gt; 上把死循环改成 &lt;code class=&quot;inline&quot;&gt;for&lt;/code&gt;了，不然卡死看不到输出）&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn puzzle() {
+    let (mut this, mut value) = (0, 0);
+    loop {
+    // for _ in 0..1024 { // For test running online
+        if this == 0 {
+            print!(&quot;@&quot;);
+            this = value + 1;
+            value = value + 1;
+        } else {
+            print!(&quot;*&quot;);
+            this = this - 1;
+            // value = value; // Unchanged
+        }
+    }
+}&lt;/code&gt;&lt;p&gt;这下可以清楚看到这个&lt;b&gt;拍扁的二重循环&lt;/b&gt;结构了：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;this == 0&lt;/code&gt; 时，&lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt;自增 1，并设&lt;code class=&quot;inline&quot;&gt;this = value&lt;/code&gt;， 输出一个&lt;code class=&quot;inline&quot;&gt;@&lt;/code&gt;；&lt;/li&gt;&lt;li&gt;否则一次&lt;code class=&quot;inline&quot;&gt;this&lt;/code&gt;自减 1，输出一个&lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt;；&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;最后重写成更语义化的二重循环就好啦：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;3. 最终化简代码&lt;/h2&gt;&lt;p&gt;(&lt;a href=&quot;https://play.rust-lang.org/?version=stable&amp;amp;mode=debug&amp;amp;edition=2018&amp;amp;gist=a3c2e5b8845ec62ddcf669f22043f161&quot;&gt;Rust Playground&lt;/a&gt; 限制了第一个&lt;code class=&quot;inline&quot;&gt;for&lt;/code&gt;范围以防止死循环)&lt;/p&gt;&lt;p&gt;子循环是&lt;code class=&quot;inline&quot;&gt;this&lt;/code&gt;从&lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt;自减到 1,（0 不输出了 &lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt;，直接返回上一层了） 。当然显然这个循环顺序其实没啥关系，为了和上面对应还是反过来了。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn puzzle() {
+    for value in 1.. { // The value after `print`, starting from 1
+    // for value in 1..64 { // For test running online
+        print!(&quot;@&quot;);
+        for _this in (1..=value).rev() {
+            print!(&quot;*&quot;);
+        }
+    }
+}&lt;/code&gt;&lt;p&gt;大循环一次一个&lt;code class=&quot;inline&quot;&gt;@&lt;/code&gt;，然后小循环输出 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt;个&lt;code class=&quot;inline&quot;&gt;*&lt;/code&gt;，自增&lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt;，重复。&lt;/p&gt;&lt;p&gt;输出结果当然就是 &lt;code class=&quot;inline&quot;&gt;@*@**@***@****@*****@******@*******@********@....&lt;/code&gt;啦 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;4. 以上&lt;/h2&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>HOOCCOOH</author>
+<guid isPermaLink="false">2018-12-13-52249705</guid>
+<pubDate>Thu, 13 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Recursion Schemes（六）基本函子革命</title>
 <link>https://henix.github.io/feeds/zhuanlan.marisa/2018-11-30-51286145.html</link>
@@ -765,24 +924,6 @@ _ = idp :&amp;gt; (O == O)&lt;/code&gt;&lt;h2&gt;实例参数&lt;/h2&gt;&lt;code
 <author>Guanghao Ye</author>
 <guid isPermaLink="false">2018-11-08-48553348</guid>
 <pubDate>Thu, 08 Nov 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Some Pattern on Programming</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-28-47852685.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/47852685&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;我想说一些旧闻。更准确的说，我收集了很多旧闻，想整理一下，变成一个没那么旧的旧闻。&lt;/p&gt;&lt;p&gt;&lt;b&gt;0：对于很多编程语言，我们真能做到‘给出编程语言X跟Y，给X一步步加功能，修改下原本的功能，最后成为Y’。我们姑且叫这做计算力吧。这方面的Work数不胜数。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于Effect，我们有：&lt;/p&gt;&lt;p&gt;C is a purely functional language&lt;/p&gt;&lt;p&gt;Dijkstra Monad（被EK吐槽就是hoare monad on continuation）&lt;/p&gt;&lt;p&gt;Lazy Functional State Thread&lt;/p&gt;&lt;p&gt;Lambda The Ultimate Imperative&lt;/p&gt;&lt;p&gt;Gedanken&lt;/p&gt;&lt;p&gt;对于Subtyping，我们有：&lt;/p&gt;&lt;p&gt;The Essence of Algol（这也应该算Effect的，但那边挤满了）&lt;/p&gt;&lt;p&gt;A Semantics of Multiple Inheritance&lt;/p&gt;&lt;p&gt;至于Type？那就更多了&lt;/p&gt;&lt;p&gt;Untyped Program is unityped program&lt;/p&gt;&lt;p&gt;Gradual Typing上的work，不太清楚&lt;/p&gt;&lt;p&gt;Well typed program cant be blamed&lt;/p&gt;&lt;p&gt;Type System as Macro&lt;/p&gt;&lt;p&gt;Semantic上面有Unified Theory of Programming&lt;/p&gt;&lt;p&gt;编译器上面某种意义上也符合这个样子，如Lambda The Ultimate Goto，Compiling With Continuation，就是在给你说‘你看，函数，高阶函数，其实还是goto那一套。’&lt;/p&gt;&lt;p&gt;当然，LTU Goto严格来说不算Compiler，各种东西都算一点，但不放这一个Compiling With Continuation好孤单（&lt;/p&gt;&lt;p&gt;最后，Prolog也能&lt;a href=&quot;https://vanemden.wordpress.com/2016/11/12/the-essence-of-algol/&quot;&gt;这样搞&lt;/a&gt;，Dijkstra老爷子厉害啊，一个小改动（GCL）竟然能影响到这&lt;/p&gt;&lt;p&gt;&lt;b&gt;1：在PL以外，我们也能做到这点，有的时候还能直接unify出以前还没发现的东西&lt;/b&gt;&lt;/p&gt;&lt;p&gt;A Unifying theory of Garbage Collection - 你看看，各种GC算法都是一个路子的&lt;/p&gt;&lt;p&gt;The Periodic Table of Data Structures - 我给你把各种数据结构一家人排得齐齐整整，还给你说你还差啥家人&lt;/p&gt;&lt;p&gt;Demystifying Differentiable Programming - Symbolic Diff = ANF on forward mode, ho reverse mode = CPS fo reverse mode，dual on dual，好漂亮啊&lt;/p&gt;&lt;p&gt;The simple essence of Automatic Differentiation - 跟上面一个样子，Unify各种AD，但是更categorically theoretic&lt;/p&gt;&lt;p&gt;A Discipline of Programming, The Craft of Programming, A Principled Approach to OS，都是教你Stepwise Refinement怎么玩（推算法/写OS），ADOP附加到分布式的伏笔。&lt;/p&gt;&lt;p&gt;A Duality of Sorts，The algebra of programming就是Program Calculation的例子。顺带一提，Program Calculation，Stepwise Refinement，也是刚好对一起啊&lt;/p&gt;&lt;p&gt;Liquid Type，看完给我的感觉就是，I have a Subtyping，I have an Algol W，Uh! Liquid-Type！ &lt;/p&gt;&lt;p&gt;Stackless Scala With Free Monads，从Free搞TCO&lt;/p&gt;&lt;p&gt;最后不得不提Lambda the ultimate opcode，直接从某个Lisp Interpreter给你推出CPU wire！如果你问我我最喜欢那篇paper，以我的性格，估计我会看着这篇跟The essence of Algol，最后说出你们都是我的翅膀这种话吧。&lt;/p&gt;&lt;p&gt;另外一提，&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43163820&quot;&gt;如何制造SCP018&lt;/a&gt; 就是我看完Lambda The Ultimate Opcode，Compiling With Continuation，Stackless Scala With Free Monads，然后想，LTU Opcode能从代码推出wire，我为啥不能反其道而行之，CWC说cont = PC，我就从PC推出cont，再弄出TCO。这操作秀得我自己都好开心，觉得这是最有难度的一篇（其他的收集收集资料谁都能写，就这篇有点original work的样子），然而人民群众不喜欢，正所谓知识越多越反动，orz&lt;/p&gt;&lt;p&gt;差点忘了，CH-XXXXX同构。在这下面我们甚至开始Unify Lazy/Strict了，见Haskell is not not ML。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2：很多时候，我们能发现些Pattern，但我们不知道怎么从一边算到另一边。有的时候甚至不知道怎么用。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;CPU其实就是个Interpreter&lt;/p&gt;&lt;p&gt;SuperScalar那就对应Program Analysis&lt;/p&gt;&lt;p&gt;Binary Translation不就是jit吗，我建议大家把x86 cpu加进list of transpiler里面troll JavaScript weenie（（（&lt;/p&gt;&lt;p&gt;Types As Abstract Interpretations - 字面意义&lt;/p&gt;&lt;p&gt;Your computer is already a distributed system - 字面意义&lt;/p&gt;&lt;p&gt;Algebra, Algebra, Algebra。。。Algebraic Data Type, The Derivative of Regular Type, Partially-Static Data As Free Extension Of Algebras，还有各种算法里面都会有Algebra&lt;/p&gt;&lt;p&gt;DSL, DSL, DSL everywhere - SQL, ASM, BPF，各个都有安全隐患，需要设计防止（SQL injection, page protection, BPF的整个BPF instruction就是安全措施，不然直接ring0跑用户输入asm就行了啊，还要啥BPF instruction自行车）但是转念一想，这不就是在argue for effect system吗？&lt;br&gt; &lt;b&gt;3：还有些。。。insight？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.zhihu.com/question/34819931/answer/482024102&quot;&gt;同时，这些例子都是Abstraction的极优例子&lt;/a&gt;，SQL/ASM抽象得原本领域是啥都不知道。&lt;/p&gt;&lt;p&gt;最后，差点忘了Machine Learning。以前就吐槽过，&lt;a href=&quot;https://www.zhihu.com/question/24975949/answer/370015097&quot;&gt;branch prediction就是mini classifier&lt;/a&gt;，想不到真有人用NN去做branch prediction了，maya。这不说，ML对各种连续的任务最近大发神威啊，Learned Index Structure, Auto TVM, Peloton, Data Calculator，Deep Coder，乃至AlphaGo，最近很流行的做法就是用ML去学概率/Cost，剩下的接着上传统方法（读作爆搜）。&lt;/p&gt;&lt;p&gt;一个Recurrent problem是concurrency - Distributed System，Database，Algorithm， OS，Cache Coherent，甚至钻牛角尖点，我们还可以说metastable态也是concurrency issue - tyranny of the clock。然而我们还是没有解决concurrency的方案&lt;/p&gt;&lt;p&gt;&lt;b&gt;4：有时候还发现更多的fundamental incoherency&lt;/b&gt;&lt;/p&gt;&lt;p&gt;比如说另一篇我很喜欢的paper就是Miscomputation in software: Learning to live with errors，尽管我早读过了，去看那句‘Pupil Omega: Yo, I tell you, errors are fun! ’还是会被吓一跳。。也许Programming is interface能用stepwise refinement说几句，但是live programming。。。Hazel？圆不过去啊&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实我写这么多，我还是不知道我的中心思想是啥。本文没有中心思想，我也不知道有啥用，我猜我只是想说‘看，我能从一个东西算出另一个，多有趣啊’。也许CHI跟periodic table of datastructure有用，但是剩下的其实都是hindsight。&lt;/p&gt;&lt;p&gt;希望有一天我们能把4/3/2/1都往上移，到最后只剩下0，然后有一天任何一个计算机本科毕业生都能做到‘从继电器开始给你推导出现在的本科CS课程’，那多美妙啊。&lt;/p&gt;&lt;p&gt;Calculemus。如果我漏了啥例子求补充。&lt;/p&gt;</description>
-<author>圆角骑士魔理沙</author>
-<guid isPermaLink="false">2018-10-28-47852685</guid>
-<pubDate>Sun, 28 Oct 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>代码编辑器系列 #3 文本的存储 进化篇</title>
-<link>https://henix.github.io/feeds/zhuanlan.marisa/2018-10-13-46693881.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/46693881&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-d695aa142b6fe04d3f6579a57771fa31_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;a href=&quot;http://ice1000.org/2018/09/24/CodeEditor4/&quot;&gt;ice1000.org&lt;/a&gt; 这是原文，发表在我的博客。&lt;/p&gt;&lt;p&gt;在&lt;a href=&quot;http://ice1000.org/2018/04/29/CodeEditor2/&quot;&gt;上上篇文章&lt;/a&gt;中我说过，&lt;/p&gt;&lt;blockquote&gt;以后的方向主要是讲 JB 式编辑器的实现&lt;/blockquote&gt;&lt;p&gt;在&lt;a href=&quot;http://ice1000.org/2018/06/05/CodeEditor3/&quot;&gt;上一篇文章&lt;/a&gt;中我又说，&lt;/p&gt;&lt;blockquote&gt;那么这篇文章先说点别的吧&lt;/blockquote&gt;&lt;p&gt;简直是王镜泽定理的完美演绎啊。 为什么我要在半个月来第一篇博客开头说这个呢？因为这次讲的依然不是 JB 式编辑器的实现，真香。&lt;/p&gt;&lt;p&gt;关于上一篇博客在说 gap buffer 的时候提到的数据结构论文 Flexichain，我当时说读下来没学到什么东西。 实际上论文有两篇，内容应该基本上都在另一篇讲实现的里面。这是某活跃于 freenode #lisp 的 CL 厨告诉我的。&lt;/p&gt;&lt;p&gt;在我最近的新项目里，我使用了 Flexichain 论文里提到的 Hemlock 编辑器使用的数据结构 （我的那个使用C++实现，改自一个单独的 Java 项目 &lt;a href=&quot;https://github.com/ice1000/text-sequence&quot;&gt;text-sequence&lt;/a&gt;，前文提到的实验项目也换成了这个项目里的 &lt;code class=&quot;inline&quot;&gt;GapBuffer&lt;/code&gt;）， 这个数据结构在 &lt;a href=&quot;http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.48.1265&amp;amp;rep=rep1&amp;amp;type=pdf&quot;&gt;piece table 的论文&lt;/a&gt;里有一个类似物叫 Line Span，于是我就直接叫它 &lt;code class=&quot;inline&quot;&gt;LineSpan&lt;/code&gt; 了。&lt;/p&gt;&lt;p&gt;本文包含这篇论文中的大部分知识。&lt;/p&gt;&lt;p&gt;前文说，&lt;/p&gt;&lt;blockquote&gt;由于 Swing 的 API 看起来更低效&lt;/blockquote&gt;&lt;p&gt;其实不是的， Swing 文本编辑器内部实现是一个 &lt;code class=&quot;inline&quot;&gt;&lt;a href=&quot;https://docs.oracle.com/javase/7/docs/api/javax/swing/text/GapContent.html&quot;&gt;GapContent&lt;/a&gt;&lt;/code&gt;， 也就是一个过度 OO 设计的 &lt;code class=&quot;inline&quot;&gt;GapBuffer&lt;/code&gt;（可见写 Swing 的人并不是文盲，而且文化程度不低），这比我那时候用的更高效，所以我那时的想法还是太幼稚了。&lt;/p&gt;&lt;p&gt;既然本文是现代篇（对应上一篇的远古篇），那么讲的肯定是现代编辑器使用的数据结构啦。&lt;/p&gt;&lt;p&gt;介绍一个概念 end of line ，通常是 &lt;code class=&quot;inline&quot;&gt;\n&lt;/code&gt; 但考虑到有些情况下还有别的行分隔符就使用了 end of line 代表这个东西。&lt;/p&gt;&lt;h2&gt;Code 早期使用的数据结构&lt;/h2&gt;&lt;p&gt;应该很少有人使用可执行文件的名字来称呼这个全名叫 Visual Studio Code 的编辑器吧，正好可以显得很装逼（逃。 根据黑历史考据，我看到 Code 团队在 &lt;a href=&quot;https://code.visualstudio.com/blogs/2018/03/23/text-buffer-reimplementation&quot;&gt;blog&lt;/a&gt; 里自述曾经使用按行存储的策略， 然后他们获得的好处是可以按行运行 Tokenizer ，可以提高代码高亮的性能（意思就是直接不考虑包含 end of line 的 Token ，很符合前端人员的编程思想）。&lt;/p&gt;&lt;p&gt;这历史应该是黑成碳了。根据上面那个链接里的博客来看，他们也没有使用优化 active line 的策略（比如我使用 GapBuffer ）。 不过呢，按行存储可以进行渲染上的优化（因为行可以被视为一个渲染单位，而且在屏幕移动时每行渲染出来的样子是不变的）， 这在某种意义上也是一种好处了（根据一个研究超算的软粉的说法，Visual Studio 会缓存每行的代码渲染后得到的 texture）。&lt;/p&gt;&lt;p&gt;LineSpan 的实现相对 GapBuffer 较为繁琐，它在插入的时候需要检查是否有插入 end of line 来考虑是否要拆掉当前的 active line 、 需要在删除的时候检查是否删除了一个 end of line 来考虑是否要合并当前行和下一行。 好处是，可以对行进行批量操作。&lt;/p&gt;&lt;p&gt;目前我的编辑器也是临时使用的这种数据结构，而且比起他们这个还提高了当前行的编辑效率和获取行的效率。 我原本计划使用一个线段树维护每行的长度的前缀和（之所以没有选择我最喜欢的树状数组，是因为我还需要删点），这样可以获得 &lt;code class=&quot;inline&quot;&gt;O(log(n))&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;getLineInfoAt&lt;/code&gt; 等函数。 但是在后来发现要获取对应行的迭代器还需要对链表进行高效的随机访问（或者存储迭代器到线段树里，但这意义已经没有那么大了，因为要换 Piece Table 实现），我就放弃了。 不过鄙视人家的黑历史也没什么意思，毕竟 Code 除了代码编辑的其他地方做的还是很不错的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;我做了一个 LineSpan 的数据结构可视化（非常妙），上传到了 &lt;a href=&quot;https://www.bilibili.com/video/av32595178/&quot;&gt;bilibili&lt;/a&gt; 和 &lt;a href=&quot;https://youtu.be/GOsf8OdeS08&quot;&gt;YouTube&lt;/a&gt;。&lt;/p&gt;&lt;h2&gt;其他杂七杂八的数据结构&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;Split-Merge Tree ，保证 Rope 的最小单位 Sequence 在一个长度范围内，超过就拆，小于就合并两个相邻的，是比平衡树更平衡的平衡树&lt;/li&gt;&lt;li&gt;Fixed-Size-Buffer ，扁平版 Split-Merge Tree，你也可以叫它 Split-Merge LinkedList&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;文本序列数据结构的通用性质&lt;/h2&gt;&lt;p&gt;看到这里，我们脑中应该已经有了一个文本序列数据结构的一个通用模型了。 在前文讲 Rope 的时候我曾经提到，它是将最小的文本表示作为了一种抽象结构并使用平衡树组合他们，然后举例了几种可能的实现—— 一个获取文本的函数、字符数组（C 风格字符串）、惰性读取的文件、另一颗平衡树等。 GapBuffer 其实也是一种实现。&lt;/p&gt;&lt;p&gt;我们可以尝试把这种思想套到 LineSpan 上，然后发现也完全适用——它其实只是提出了一种新的最小文本表示的实现—— &lt;code class=&quot;inline&quot;&gt;Line&lt;/code&gt;，并使用链表或者平衡树去组合他们而已。 我们来给这个抽象里的概念起个名字吧。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;一个 item 指文本序列的最小单位，通常是 &lt;code class=&quot;inline&quot;&gt;char&lt;/code&gt; 或者 &lt;code class=&quot;inline&quot;&gt;wchar_t&lt;/code&gt;&lt;/li&gt;&lt;li&gt;一个 sequence 指一系列以各种方式组合并在逻辑上是连续的 item ，即刚才提到的抽象结构，比如 &lt;code class=&quot;inline&quot;&gt;LinkedList&amp;lt;Character&amp;gt;&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;std::list&amp;lt;char&amp;gt;&lt;/code&gt;&lt;/li&gt;&lt;li&gt;一个 buffer 指一段在物理上连续的 item ，一般只在实现中涉及&lt;/li&gt;&lt;ul&gt;&lt;li&gt;比如 &lt;code class=&quot;inline&quot;&gt;std::vector&amp;lt;char&amp;gt;::data&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;java.util.ArrayList&amp;lt;Character&amp;gt;&lt;/code&gt; 里面的那个数组&lt;/li&gt;&lt;li&gt;比如 mmap&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;一个 item 序列如果同时是 sequence 和 buffer 那么它是一个 span&lt;/li&gt;&lt;ul&gt;&lt;li&gt;比如 &lt;code class=&quot;inline&quot;&gt;java.lang.String&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;std::string&lt;/code&gt;&lt;/li&gt;&lt;li&gt;buffer 中的逻辑连续的一部分可以算作一个 span ，比如 GapBuffer&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;一个 descriptor 指描述一段 sequence 的数据结构，比如 LineSpan 中通常需要一个 &lt;code class=&quot;inline&quot;&gt;LineInfo&lt;/code&gt; 来保存 span 的位置、长度，那么这个 &lt;code class=&quot;inline&quot;&gt;LineInfo&lt;/code&gt; 就是一个 descriptor&lt;/li&gt;&lt;ul&gt;&lt;li&gt;descriptor 通常持有一个 sequence 的指针&lt;/li&gt;&lt;li&gt;这个定义和&lt;a href=&quot;http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.48.1265&amp;amp;rep=rep1&amp;amp;type=pdf&quot;&gt;论文&lt;/a&gt;里说的不太一样，是我觉得更好的定义&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;然后我们来总结一下我们见过的各种东西吧：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;java.lang.Character&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;char&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;wchar_t&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;ImWchar&lt;/code&gt; 是 item&lt;/li&gt;&lt;li&gt;Ruby/Lua/JavaScript/Dart/Perl 等语言中的 &lt;code class=&quot;inline&quot;&gt;string&lt;/code&gt; 是 span&lt;/li&gt;&lt;li&gt;Rope 是一个递归的 sequence （&lt;code class=&quot;inline&quot;&gt;type Rope = BalancedTree (Either Span Rope)&lt;/code&gt;）&lt;/li&gt;&lt;ul&gt;&lt;li&gt;平衡树的 &lt;code class=&quot;inline&quot;&gt;Node&lt;/code&gt; 类可以看作 span 的 descriptor&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;java.lang.StringBuilder&lt;/code&gt; 是一个大 buffer ，最左边那部分是一个 span， descriptor 持有这个 &lt;code class=&quot;inline&quot;&gt;StringBuilder&lt;/code&gt; 要 build 的 &lt;code class=&quot;inline&quot;&gt;String&lt;/code&gt; 的长度&lt;/li&gt;&lt;li&gt;GapBuffer 内部有一个大 buffer ，它由两个中间有一个 gap 的不断变化的 span 组成&lt;/li&gt;&lt;ul&gt;&lt;li&gt;第一个 span 的 descriptor 存储这个 span 的长度，第二个 span 的 descriptor 存储这个 span 在大 buffer 里的的起始点&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;LineSpan 可以看作一个 &lt;code class=&quot;inline&quot;&gt;java.util.LinkedList&amp;lt;java.lang.CharSequence&amp;gt;&lt;/code&gt; 或者 &lt;code class=&quot;inline&quot;&gt;std::list&amp;lt;std::string&amp;gt;&lt;/code&gt; 的封装，属于 sequence&lt;/li&gt;&lt;ul&gt;&lt;li&gt;链表的迭代器就是 descriptor ，里面存的是 sequence ， Code 早期的这些 sequence 全是 span ，我的实现里 active line 是 sequence ，其他行是 span&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;是不是一下子就搞懂这些名词的含义了？下面我们将使用这套名词介绍一个新数据结构。&lt;/p&gt;&lt;h2&gt;Piece Table&lt;/h2&gt;&lt;p&gt;这是我目前觉得最好的文本编辑器存储数据所使用的数据结构。&lt;/p&gt;&lt;p&gt;Piece Table 由一个巨大的、 immutable 的、最好是 lazy 的 buffer （mmap 很适合作为这个 buffer）和一系列指向 span 的 descriptor 组成。 Descriptor 保存两个信息，头指针和长度。这一系列 descriptor 可以由链表保存（实现简单），也可以使用平衡树保存（更高效）。 由于我们不需要修改或者删除这些 descriptor 指向的 span ，我们可以把他们持有的 span 放进一个 buffer ，我们称之为 add buffer ，可以理解为一个 &lt;code class=&quot;inline&quot;&gt;ArrayList&amp;lt;Item&amp;gt;&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;在创建一个 Piece Table 的时候，我们需要初始化这个巨大的 buffer ，比如文本编辑器打开一个文件的时候就可以使用文件的 mmap 。 此时我们也初始化第一个 descriptor ，头指针指向大 buffer 的开头，长度就是整个 buffer 。&lt;/p&gt;&lt;h2&gt;查询&lt;/h2&gt;&lt;p&gt;如果给定 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 要取一个 Item ，就涉及存储 descriptor 的数据结构了—— 链表的话从头开始遍历 descriptor ，找到这个 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 所在的 descriptor 然后就可以从 buffer 里取值了，复杂度 &lt;code class=&quot;inline&quot;&gt;O(n)&lt;/code&gt;。 如果是平衡树就可以直接从 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 去找，复杂度 &lt;code class=&quot;inline&quot;&gt;O(log(n))&lt;/code&gt;。&lt;/p&gt;&lt;h2&gt;插入&lt;/h2&gt;&lt;p&gt;插入任意内容时（假设输入了 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt;（即&lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt;）和 &lt;code class=&quot;inline&quot;&gt;sequence&lt;/code&gt;），类似 LineSpan 插入 end of line 的情况，需要把这个 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 所在的那个 descriptor 拆掉，变成两个分别描述原本的 descriptor 在 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 前的那一半和后的那一半，然后把 &lt;code class=&quot;inline&quot;&gt;sequence&lt;/code&gt; 添加到 add buffer 的尾部， 然后在刚才这两个 descriptor 的中间插入一个指向这个 &lt;code class=&quot;inline&quot;&gt;sequence&lt;/code&gt; 在 add buffer 中位置的 descriptor 。&lt;/p&gt;&lt;p&gt;举个例子，假设我们有一个文件，里面有 &lt;code class=&quot;inline&quot;&gt;Piece&lt;/code&gt; 这几个字符。我们用它创建一个 Piece Table 后，大 buffer 里就是 &lt;code class=&quot;inline&quot;&gt;Piece&lt;/code&gt; ，长度为 5。 Descriptor 序列是这样的：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-aff8738ffefa9bc905cc7170c57aab5e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;305&quot; data-rawheight=&quot;80&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-aff8738ffefa9bc905cc7170c57aab5e&quot; data-watermark-src=&quot;v2-581d89340a84dabbbc456a3306380204&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;我们对他进行 &lt;code class=&quot;inline&quot;&gt;insert(1, &quot;Tb&quot;)&lt;/code&gt; ，那么先把 1 这个 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 所在的 0 号（查找 descriptor 的方法同查询） descriptor 拆开，原本长度为 5 的变成一个长度为 1 的和一个长度为 4 的：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7ee1f223b5c8a3abd3976c4d41f0ec9a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;307&quot; data-rawheight=&quot;107&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-7ee1f223b5c8a3abd3976c4d41f0ec9a&quot; data-watermark-src=&quot;v2-2785f3696d94ccfb3e4b4d72d30c5bb3&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;然后向 add buffer 添加 &lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;b&lt;/code&gt; 这两个 Item ，然后在刚才两个 descriptor 中间插入一个新的 descriptor ：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e27847c18603aa4f1e62ccd12d8cc238_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;311&quot; data-rawheight=&quot;151&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-e27847c18603aa4f1e62ccd12d8cc238&quot; data-watermark-src=&quot;v2-a505be4ef946b61cc3c4af3114f8b31f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;删除&lt;/h2&gt;&lt;p&gt;查找到 &lt;code class=&quot;inline&quot;&gt;offset&lt;/code&gt; 所在的 descriptor ，拆成两个并让左边那个的长度减一即可。&lt;/p&gt;&lt;h2&gt;Piece Table 的优良性质&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;可持久化数据结构&lt;/li&gt;&lt;li&gt;背后的大 buffer 可以完全 lazy 化，内存中的数据量将会巨小&lt;/li&gt;&lt;li&gt;descriptor 数量少&lt;/li&gt;&lt;li&gt;可以方便地使用平衡树优化&lt;/li&gt;&lt;li&gt;可以被翻译成『坨坨桌子』，很可爱&lt;/li&gt;&lt;li&gt;它可是 Code 使用的数据结构啊，搞懂了之后拿来吹的时候逼格挺高的&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;Benchmark&lt;/h2&gt;&lt;p&gt;看论文去。&lt;/p&gt;&lt;p&gt;&amp;lt;end of blog&amp;gt;&lt;/p&gt;</description>
-<author>兴趣使然千里冰封</author>
-<guid isPermaLink="false">2018-10-13-46693881</guid>
-<pubDate>Sat, 13 Oct 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
