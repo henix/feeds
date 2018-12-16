@@ -5,7 +5,67 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 14 Dec 2018 22:54:21 +0800</lastBuildDate>
+<lastBuildDate>Mon, 17 Dec 2018 00:59:37 +0800</lastBuildDate>
+<item>
+<title>「Rust每日新闻」本周精选 • 第二十四期</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-16-52509923.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52509923&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-23599072636a1820bba7b49b9d586092_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;前言：&lt;br&gt;&lt;br&gt;从2018年开始，我每天会花1个小时关注Rust社区动态，并且在&lt;a href=&quot;http://rust.cc/&quot;&gt;Rust.CC论坛&lt;/a&gt;、&lt;a href=&quot;https://t.me/rust_daily_news&quot;&gt;tg channel&lt;/a&gt;、&lt;a href=&quot;https://steemit.com/@blackanger&quot;&gt;Steemit&lt;/a&gt;、&lt;a href=&quot;https://github.com/RustStudy/rust_daily_news&quot;&gt;GitHub&lt;/a&gt;、&lt;a href=&quot;https://www.yuque.com/chaosbot/rustnews&quot;&gt;语雀订阅&lt;/a&gt;都开通了Rust每日新闻，分享我每天的见闻，偶尔也夹杂了一些个人的观点。大半年过去了，Rust每日新闻已经成为了Rust社区群大家每天必看的内容。在这个知乎专栏里，每周会精选几篇Rust社区中的动态，和大家分享。分享的内容就不按时间排序了。&lt;br&gt;&lt;br&gt;2018-12-16&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;「付费阅读」系列&lt;/b&gt;&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51479889&quot;&gt;如何为Rust语言做贡献&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52032027&quot;&gt;Rust Quiz 11&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;官方新闻&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;官方核心成员nrc对Rust 2021 Edition的思考：&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52181046&quot;&gt;Rust 2022&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「官方网络工作组」异步进展&lt;/h2&gt;&lt;h2&gt;async&lt;/h2&gt;&lt;p&gt;虽然Rust 2018发布的时候没有稳定异步编程，但在今年，异步编程也取得了很大进展。网络工作组发文，介绍了几个促进Nightly生态中使用async/await的crate。&lt;/p&gt;&lt;p&gt;async/await对Rust的重要性：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;async/await在其他语言中已经证明了其可用性&lt;/li&gt;&lt;li&gt;在Rust中引入async/await中需要多考虑一个元素：借用。所以，之前在编写异步代码的时候，必须使用&lt;code class=&quot;inline&quot;&gt;&#39;static&lt;/code&gt;限定，并且还经常要用到Arc和Mutex。&lt;/li&gt;&lt;li&gt;async/await语法稳定之后，将不会有「借用」相关的问题。但是在这之前，还有很多工作要做，比如稳定await语法。现在google的Fuchsia项目已经在大规模使用async/await语法了。&lt;/li&gt;&lt;li&gt;标准库中支持Future等trait的工作也即将完成。&lt;/li&gt;&lt;li&gt;确定了各种API，包括Waker、Pin、与tokio兼容的futures-rs 0.1等。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;发布了一些新的crate：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/withoutboats/romio&quot;&gt;romio&lt;/a&gt;，之前介绍过，是对tokio最小化包装，为了支持async/await。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://docs.rs/http-service&quot;&gt;http-service&lt;/a&gt;， 一个基于字节的、http和新的futures API的crate，提供HTTP通用接口。是从Tide库中提取出来的API。&lt;/li&gt;&lt;li&gt;Tyger，即将推出的这个库是在Hyper上面构建的一个小的crate。提供直接的HTTP服务接口，因此可以直接使用async/await。Tyger也会对Hyper增加一些补充，提供一些更高级的抽象。也是从Tide中提取出来的包。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;官方希望在2019年上半年稳定async/await。官方所考虑的不仅仅是支持这个语法，而且还在为打造async/await生态做足了准备。这也是异步编程支持如此缓慢的原因。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://rust-lang-nursery.github.io/wg-net/2018/12/13/async-update.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;社区新闻&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;OS2ATC2018(第六届开源操作系统年度会议)会议现场直播链接&lt;/h2&gt;&lt;p&gt;现在的topic： 《Design &amp;amp; Implementation of uCore Plus OS in Rust Lang》（清华大学ucore操作系统课程升级Rust教学）&lt;/p&gt;&lt;p&gt;https://flypage.chinamcloud.com/h5/tpl/index.html?id=6469&amp;amp;tid=810&lt;/p&gt;&lt;p&gt;日程： http://soft.cs.tsinghua.edu.cn/os2atc2018/rc.html&lt;/p&gt;&lt;h2&gt;「安全」Crossbeam发现double-free Bug&lt;/h2&gt;&lt;blockquote&gt; MsQueue和SegQueue会发生此Bug。 即使从队列中弹出一个元素，crossbeam也会运行它，此问题来自于crossbeam-epoch的垃圾收集器内的析构函数。 &lt;br&gt; &lt;/blockquote&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/RustSec/advisory-db/blob/master/crates/crossbeam/RUSTSEC-2018-0009.toml&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;crev: 代码审查工具箱&lt;/h2&gt;&lt;p&gt;提供了一个cargo工具：&lt;a href=&quot;https://github.com/dpc/crev/tree/master/cargo-crev&quot;&gt;cargo-crev&lt;/a&gt;&lt;/p&gt;&lt;p&gt;该工具可以判断你项目中依赖crate的安全性、质量和发现的问题。可以在公共的git仓库里发布可验证的review信息。通过这种方式期望在Rust生态系统中构建可信任的网络。将不会有人再受到未经审查和不受信任代码的困扰。&lt;/p&gt;&lt;p&gt;想想npm因为依赖包出了多少次安全事故。这个工具ms不错，但是否真的可以解决问题？&lt;/p&gt;&lt;p&gt;使用方法：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;cd &amp;lt;your-project&amp;gt;
+cargo crev id gen # generate your id
+cargo crev verify # verify your depedencies
+cargo crev review &amp;lt;crate&amp;gt; # review a dependency
+cargo crev db git status # check git status of your proof database
+cargo crev db git -- ci -a # commit everything
+cargo crev db git push # push it to your github repository
+cargo crev trust &amp;lt;id&amp;gt; # trust someone with a given CrevId
+cargo crev db fetch # fetch updates from all people you trust
+cargo crev verify # verify again
+cargo crev help # see what other things you can do&lt;/code&gt;&lt;p&gt;其中id是可以通过&lt;a href=&quot;https://gitter.im/dpc/crev&quot;&gt;crev gitter channel&lt;/a&gt;来共享给大家的，形成信任网络。然后可以通过 &lt;code class=&quot;inline&quot;&gt;cargo crev trust &amp;lt;id&amp;gt;&lt;/code&gt;命令从你信任的人那里获取依赖crate。&lt;/p&gt;&lt;p&gt;当然，这世界上没有绝对的安全，但也无法阻碍人们追求它的脚步。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/dpc/crev&quot;&gt;crev&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust非常适合高性能科学计算&lt;/h2&gt;&lt;p&gt;来自某粒子物理实验室的软件性能工程师Hadrien坦言，相比于Cpp，Rust更适合高性能科学计算。并且对Rust能进入这个领域之前需要完善的工作提出了他自己的建议，同时也希望Rust 2019的目标之一可以是「高性能科学计算」。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://gist.github.com/HadrienG2/e9a875bdf98b528594f4e20f8176bb68&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;杭州Rust线下Meetup回放视频&lt;/h2&gt;&lt;p&gt;一共两场分享，视频地址是第二场分享，在列表里也能找到另外一场分享的视频。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.bilibili.com/video/av38044021/?share_source=qq&amp;amp;ts=1544706808&amp;amp;share_medium=iphone&amp;amp;bbid=dd199f5b7049675783521db5317f49ba&quot;&gt;Bilibili&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;使用Rust和WebAssembly进行edge计算&lt;/h2&gt;&lt;p&gt;什么是边缘计算？ 边缘计算将数据的处理、应用程序的运行甚至一些功能服务的实现，由网络中心下放到网络边缘的节点上。属于一种分布式计算。一直以来，公共和企业设施的监测和维护消耗着大量的人力、物力成本；电力、制造等行业数字化转型中对海量数据的实时、智能处理也有着强烈需求。如果用常规模式构建物联网，所有数据都交给云端，那么会带来一系列的问题。边缘计算就是为了解决这个问题。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.fastlylabs.com/&quot;&gt;fastlylabs&lt;/a&gt;公司，推出了一个产品Terrarium（看着像是用webassembly.studio改造的），是一个基于浏览器的多语言编辑和部署平台。据该公司描述，此产品是为了推进边缘计算。Terrarium是基于WebAssembly沙箱而构建。Terrarium可以将几种不同的编程语言编译为WebAssembly，然后将其编译为快速，安全的本地代码，并用于为Web服务提供动力。&lt;/p&gt;&lt;p&gt;本文介绍了如何用Rust和Terrarium进行编写边缘计算服务。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.fastly.com/blog/edge-programming-rust-web-assembly&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「趣味」Rust Raps: Rust 2018 Edition首张单曲发布&lt;/h2&gt;&lt;p&gt;由Rusta Rhymes推出的热门新单曲“Ferris Crab（Rust Raps 2018 Edition）”即将推出首张专辑“Drop for Mic”。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://fitzgeraldnick.com/media/rust-raps.mp3&quot;&gt;在线听&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://fitzgeraldnick.com/2018/12/13/rust-raps.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust开发的一款编程教学游戏预览&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-63e41a23be7999267843b7c023bebf14_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;389&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-63e41a23be7999267843b7c023bebf14&quot; data-watermark-src=&quot;v2-6f63f7f5f828c1dfd9ec0712aef949fb&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://blog.roboinstruct.us/2018/12/07/looking-good.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;学习资源&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;Rust Quiz解读已更新到Quiz 15&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/time-and-spirit-hut&quot;&gt;去专栏 Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust 异步函数内部转换流程&lt;/h2&gt;&lt;p&gt;本文介绍了Rust内部async/await的内部转换机制，包括generator、状态转换过程等。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://blag.nemo157.com/2018/12/09/inside-rusts-async-transform.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;使用Cargo Test来Debug代码&lt;/h2&gt;&lt;p&gt;本文介绍了使用cargo test命令，结合单元测试来调试代码中的问题。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.wihlidal.com/blog/general/2018-12-07-debugging-cargo-test/&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「系列博文」在浏览器中使用WASM Part 1&lt;/h2&gt;&lt;p&gt;本文介绍了如何使用Rust编译wasm，并在浏览器中使用它。同时也包括了wasm的工作机制，值得一看。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://ljcode.org/blog/wasm-part1/&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;在AWS Lambda上面运行Rust&lt;/h2&gt;&lt;p&gt;本文以编写一个独立的crate为例，从代码编写到部署，介绍如何在AWS Lambda上面运行Rust库。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://kellenfujimoto.com/posts/dicers-rust-on-lambda/&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「嵌入式Rust」Cortex-M3 入门指南（一）：体系概述&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52235675&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「视频」如何在Rust/C/C++/.Net中使用SIMD&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=4Gs_CA_vm3o&quot;&gt;youtube&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;用Rust为Kubernetes动态生成Dockerfiles&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://medium.com/docql/dynamically-generating-dockerfiles-for-k8s-d2baf7bfef5a&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「Slides」在Rust中使用C的va_list&lt;/h2&gt;&lt;p&gt;以及，你为什么不应该用它。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://dlrobertson.com/slides/va-list-12-13-2018.html#/&quot;&gt;PPT&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/rust/comments/a6j4hu/using_cs_va_list_in_rust_and_why_you_never_should/&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;项目&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;libui-rs: libui的Rust绑定&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/LeoTindall/libui-rs&quot;&gt;libui-rs&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;gba: 帮助你创建GBA游戏&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/rust-console/gba&quot;&gt;gba&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://rust-console.github.io/gba/&quot;&gt;gba book&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;NASA开源的静态分析工具: ikos&lt;/h2&gt;&lt;p&gt;虽然是为C/C++静态分析实现的工具，但据说也适用于LLVM IR，因此有助于检测Unsafe Rust的代码。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/NASA-SW-VnV/ikos&quot;&gt;ikos&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/rust/comments/a5kyz9/ikos_21_an_open_source_static_analyzer_from_nasa/&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;seed: Rust+WebAssembly 前端框架&lt;/h2&gt;&lt;p&gt;基于wasm-bindgen和js-sys创建。创建应用时需要依赖web-sys。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/David-OConnor/seed&quot;&gt;seed&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「区块链」comit-rs：Comit协议的Rust实现&lt;/h2&gt;&lt;p&gt;COMIT是一个协议，以链接不同的区块链。以便将区块链生态系统打造地更大，更具有包容性。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/comit-network/comit-rs&quot;&gt;comit-network/comit-rs&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;[WIP] Rust实现的Lua解释器&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/kyren/luster&quot;&gt;luster&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust开发安全应用程序指南&lt;/h2&gt;&lt;p&gt;该指南不是Rust语言教程，只是记录Rust开发应用程序过程中可能出现的「坑」，特别是开发一些对安全性要求较高的程序需要注意的地方。该指南还在持续更新中。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/ANSSI-FR/rust-guide&quot;&gt;rust-guide&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/ANSSI-FR/rust-guide/blob/master/src/SUMMARY.md&quot;&gt;Online Read&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;使用Rust配置管理kubernetes&lt;/h2&gt;&lt;p&gt;本文作者使用Rust构建了一个用于管理k8s上运行的微服务声明格式和生命周期的标准化工具shipcat。它封装了k8s的API，目的是为了更加标准化、版本化、权限化、自动化管理k8s。本文阐述了k8s管理中的问题，以及shipcat的解决思路。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/Babylonpartners/shipcat&quot;&gt;shipcat&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://clux.github.io/probes/post/2018-12-15-config-management-in-rust/&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;工具与库&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;spirit教程&lt;/h2&gt;&lt;p&gt;spirit可以帮助开发者更容易地构建Unix守护进程。 文章里介绍了它的使用方法。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/vorner/spirit&quot;&gt;spirit&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://vorner.github.io/2018/12/09/Spirit-Tutorial.html&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;parstream： 基于线程池以流方式计算迭代函数&lt;/h2&gt;&lt;p&gt;并且不会打乱迭代器中元素的顺序。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/newpavlov/parstream&quot;&gt;parstream&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;命令行使用频率跟踪工具fe&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/ccheek21/fe&quot;&gt;fe&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;pom：又一个peg解析器&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/J-F-Liu/pom&quot;&gt;pom&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;支持no_std的Curve25519加密库&lt;/h2&gt;&lt;p&gt;椭圆曲线加密/签名/密钥交换算法Curve25519的 &lt;code class=&quot;inline&quot;&gt;#[no_std]&lt;/code&gt; 版本&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/shekohex/curve25519-rs&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-16-52509923</guid>
+<pubDate>Sun, 16 Dec 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>Rust Quiz 解读：Quiz 15</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-16-52508991.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52508991&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz&lt;br&gt;-  &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt;&lt;br&gt;&lt;br&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 15:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Trait {
+    fn f(&amp;amp;self);
+}
+
+impl Trait for u32 {
+    fn f(&amp;amp;self) {
+        print!(&quot;1&quot;);
+    }
+}
+
+impl&amp;lt;&#39;a&amp;gt; Trait for &amp;amp;&#39;a i32 {
+    fn f(&amp;amp;self) {
+        print!(&quot;2&quot;);
+    }
+}
+
+fn main() {
+    let x = &amp;amp;0;
+    x.f();
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 1&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;trait实现&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;的区别&lt;/li&gt;&lt;li&gt;类型推断&lt;/li&gt;&lt;li&gt;自动加引用&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;其实Quiz 15和Quiz 5的考察点是相似的。主要是考察&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt; 和&lt;code class=&quot;inline&quot;&gt;&amp;amp;T&lt;/code&gt;有啥区别呢？虽然这里是&lt;code class=&quot;inline&quot;&gt;u32&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;amp;’a i32&lt;/code&gt;。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;T， 是一个泛型参数，代表任何一个具体的类型。&lt;/li&gt;&lt;li&gt;&amp;amp;T，实际上等价于&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;，代表某个引用类型。注意这里的&lt;code class=&quot;inline&quot;&gt;&#39;a&lt;/code&gt;也是一个泛型参数，并不是指具体的类型。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;main函数中直接使用了&lt;code class=&quot;inline&quot;&gt;let x = &amp;amp;0;&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;&amp;amp;0&lt;/code&gt;实际上是一个包含了具体生命周期参数实例的具体类型&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a 0&lt;/code&gt;。所以，&lt;code class=&quot;inline&quot;&gt;&amp;amp;0&lt;/code&gt;实际上会被推断为一个具体的&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt;类型的实例&lt;code class=&quot;inline&quot;&gt;u32&lt;/code&gt;。 &lt;/p&gt;&lt;p&gt;这和&lt;code class=&quot;inline&quot;&gt;impl Trait for ...&lt;/code&gt;的定义顺序无关。不妨把&lt;code class=&quot;inline&quot;&gt;impl&amp;lt;&#39;a&amp;gt; Trait for &amp;amp;&#39;a i32 { ... }&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;impl Trait for u32 { ... }&lt;/code&gt;的顺序交换，输出结果照样不变。&lt;/p&gt;&lt;p&gt;此时在&lt;code class=&quot;inline&quot;&gt;u32&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;方法实现中&lt;code class=&quot;inline&quot;&gt;self&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;&amp;amp;u32&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;所以，&lt;code class=&quot;inline&quot;&gt;x.f()&lt;/code&gt;会输出&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;如果把&lt;code class=&quot;inline&quot;&gt;impl Trait for u32 {}&lt;/code&gt;实现注释掉。则 &lt;code class=&quot;inline&quot;&gt;x.f()&lt;/code&gt;会输出&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Trait {
+    fn f(&amp;amp;self);
+}
+
+impl&amp;lt;&#39;a&amp;gt; Trait for &amp;amp;&#39;a i32 {
+    fn f(&amp;amp;self) {
+        print!(&quot;2&quot;);
+    }
+}
+
+fn main() {
+    let x = &amp;amp;0;
+    x.f();
+}&lt;/code&gt;&lt;p&gt;在这个代码中，&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;方法中的&lt;code class=&quot;inline&quot;&gt;self&lt;/code&gt;会被自动加引用为&lt;code class=&quot;inline&quot;&gt;&amp;amp;&amp;amp;0&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/15&quot;&gt;点此查看 Rust Quiz 15&lt;/a&gt; &lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-16-52508991</guid>
+<pubDate>Sun, 16 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust Quiz 解读：Quiz 14</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-14-52418867.html</link>
@@ -313,165 +373,6 @@ $:tt&lt;/code&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://
 <author>张汉东</author>
 <guid isPermaLink="false">2018-12-08-51891075</guid>
 <pubDate>Sat, 08 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读：Quiz 8</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-07-51809530.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51809530&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt; 来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt; &lt;br&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。  &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 8:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! m {
-    (==&amp;gt;) =&amp;gt; { print!(&quot;1&quot;); };
-    (= = &amp;gt;) =&amp;gt; { print!(&quot;2&quot;); };
-    (== &amp;gt;) =&amp;gt; { print!(&quot;3&quot;); };
-    (= =&amp;gt;) =&amp;gt; { print!(&quot;4&quot;); };
-}
-
-fn main() {
-    m!(==&amp;gt;);
-    m!(= = &amp;gt;);
-    m!(== &amp;gt;);
-    m!(= =&amp;gt;);
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果: 1214&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;考察要点：&lt;/b&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;macro_rules!&lt;/code&gt;定义宏匹配规则&lt;/li&gt;&lt;li&gt;理解词法分析中的token&lt;/li&gt;&lt;li&gt;操作符优先级&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Rust中使用&lt;code class=&quot;inline&quot;&gt;macro_rules!&lt;/code&gt;来定义声明宏，将来也会稳定&lt;code class=&quot;inline&quot;&gt;macro&lt;/code&gt;关键字。但基本的核心是不变的。Rust语言因为还在发展期，所以无法像其他很多语言一样，把AST（抽象语法树）暴露出来给开发者使用。导致现在Rust的宏，都是基于分词解析后形成的词条流（TokenStream）来编写宏。&lt;/p&gt;&lt;p&gt;所以，你可以把声明宏理解为是TokenStream模板。其实声明宏也有另外一个名字：「macro by example」&lt;/p&gt;&lt;p&gt;声明宏的语法规则是这样的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! $name {
-    $rule0 ;
-    $rule1 ;
-    // …
-    $ruleN ;
-}&lt;/code&gt;&lt;p&gt;一个声明宏里可以包含多个规则（$rule）。一般来说，声明宏的时候，规则模式经常使用下面的标识符来匹配对应的项：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;item: 条目，比如函数、结构体、模组等。
-block: 区块(即由花括号包起的一些语句加上/或是一项表达式)。
-stmt: 语句
-pat: 模式
-expr: 表达式
-ty: 类型
-ident: 标识符
-path: 路径 (例如 foo, ::std::mem::replace, transmute::&amp;lt;_, int&amp;gt;, …)
-meta: 元条目，即被包含在 #[...]及#![...]属性内的东西。
-tt: 标记树&lt;/code&gt;&lt;p&gt;比如在Quiz 1中见到的：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! m {
-    ($($s:stmt)*) =&amp;gt; {
-        $(
-            { stringify!($s); 1 }
-        )&amp;lt;&amp;lt;*
-    };
-}&lt;/code&gt;&lt;p&gt;其中&lt;code class=&quot;inline&quot;&gt;$s:stmt&lt;/code&gt;表示匹配一个语句。而Quiz 8中声明的这个宏，其匹配规则并没有使用任何标识符。而是直接使用了&lt;code class=&quot;inline&quot;&gt;==&amp;gt;&lt;/code&gt;或&lt;code class=&quot;inline&quot;&gt;= = &amp;gt;&lt;/code&gt;这样的值，这叫做&lt;code class=&quot;inline&quot;&gt;token字面量&lt;/code&gt;。它表示，Rust编译器中的宏解释器会把它作为token进行匹配。&lt;/p&gt;&lt;p&gt;所以，在上面Quiz 8的代码中，定义声明宏&lt;code class=&quot;inline&quot;&gt;m!&lt;/code&gt;，包含了四个匹配模式。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(==&amp;gt;)&lt;/code&gt;，表示要直接和分词得到的token流进行匹配，那么它能匹配的是两个token：&lt;code class=&quot;inline&quot;&gt;==&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;gt;&lt;/code&gt;。因为是从左往右进行匹配。在Rust中，&lt;code class=&quot;inline&quot;&gt;==&lt;/code&gt;是一个完整的token。但是有的人可能会想，为什么不是匹配成&lt;code class=&quot;inline&quot;&gt;=&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;=&amp;gt;&lt;/code&gt;呢？这是因为在Rust里&lt;code class=&quot;inline&quot;&gt;==&lt;/code&gt;（ 比较操作符）的优先级要高于&lt;code class=&quot;inline&quot;&gt;=&lt;/code&gt;（赋值操作符）。所以，在执行&lt;code class=&quot;inline&quot;&gt;m!(==&amp;gt;);&lt;/code&gt;的时候，输出：1。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(= = &amp;gt;)&lt;/code&gt;，那么同理，匹配&lt;code class=&quot;inline&quot;&gt;=&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;=&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;gt;&lt;/code&gt;。注意匹配模式中包含的空格是忽略不计的，空格的作用，其实就是为了帮助编译器识别如何「断句」。所以，在执行&lt;code class=&quot;inline&quot;&gt;m!(= = &amp;gt;)&lt;/code&gt;的时候，当然输出： 2。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(== &amp;gt;)&lt;/code&gt;，其实和&lt;code class=&quot;inline&quot;&gt;(==&amp;gt;)&lt;/code&gt;是一样的。不一样的是它们在宏定义中出现的位置。这里执行&lt;code class=&quot;inline&quot;&gt;m!(== &amp;gt;);&lt;/code&gt;输出是：1。这个差别待会再解释。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;(= =&amp;gt;);&lt;/code&gt;，同理，匹配&lt;code class=&quot;inline&quot;&gt;=&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;=&amp;gt;&lt;/code&gt;，所以在执行&lt;code class=&quot;inline&quot;&gt;m!(= =&amp;gt;);&lt;/code&gt;的时候，输出：4。&lt;/p&gt;&lt;p&gt;最终结果是：&lt;code class=&quot;inline&quot;&gt;1214&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;那么，为什么&lt;code class=&quot;inline&quot;&gt;m!(== &amp;gt;);&lt;/code&gt;无法输出 3 呢？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们把代码修改一下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;macro_rules! m {
-    (== &amp;gt;) =&amp;gt; { print!(&quot;3&quot;); };
-    (= = &amp;gt;) =&amp;gt; { print!(&quot;2&quot;); };
-    (==&amp;gt;) =&amp;gt; { print!(&quot;1&quot;); };
-    (= =&amp;gt;) =&amp;gt; { print!(&quot;4&quot;); };
-}
-fn main() {
-    m!(==&amp;gt;);
-    m!(= = &amp;gt;);
-    m!(== &amp;gt;);
-    m!(= =&amp;gt;);
-}&lt;/code&gt;&lt;p&gt;修改后的输出结果： &lt;code class=&quot;inline&quot;&gt;3234&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;注意，我只是把&lt;code class=&quot;inline&quot;&gt;(== &amp;gt;)&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;(==&amp;gt;)&lt;/code&gt;的匹配分支顺序换了一下。这段代码中，说明了声明宏的另一个特性：优先匹配最前面的匹配分支。&lt;/p&gt;&lt;p&gt;因为&lt;code class=&quot;inline&quot;&gt;m!(==&amp;gt;);&lt;/code&gt;的默认分词匹配就是&lt;code class=&quot;inline&quot;&gt;==&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;gt;&lt;/code&gt;，所以，当碰到第一个匹配分支&lt;code class=&quot;inline&quot;&gt;(== &amp;gt;)&lt;/code&gt;的时候，就匹配到了，所以，不会继续寻找后面的匹配分支，所以，不可能输出： &lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。同理，回到修改前的代码中，&lt;code class=&quot;inline&quot;&gt;m!(== &amp;gt;);&lt;/code&gt;最先匹配的是&lt;code class=&quot;inline&quot;&gt;(==&amp;gt;)&lt;/code&gt;，所以不可能再去寻找后面的匹配分支了，所以不可能输出: &lt;code class=&quot;inline&quot;&gt;3&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/8&quot;&gt;点此查看 Rust Quiz 8&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-07-51809530</guid>
-<pubDate>Fri, 07 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读：Quiz 7</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-06-51759112.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51759112&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz    &lt;br&gt;&lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。  &lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 7:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[repr(u8)]
-enum Enum {
-    First,
-    Second,
-}
-
-impl Enum {
-    fn p(self) {
-        match self {
-            First =&amp;gt; print!(&quot;1&quot;),
-            Second =&amp;gt; print!(&quot;2&quot;),
-        }
-    }
-}
-
-fn main() {
-    Enum::p(unsafe {
-        std::mem::transmute(1u8)
-    });
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 1&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Enum内存布局&lt;/li&gt;&lt;li&gt;std::mem::transmute函数&lt;/li&gt;&lt;li&gt;类型推断&lt;/li&gt;&lt;li&gt;match匹配&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;在上面代码中定义了Enum枚举体，使用&lt;code class=&quot;inline&quot;&gt;#[repr(u8)]&lt;/code&gt;来指定其内存布局，是按8位对齐。&lt;/p&gt;&lt;p&gt;然后为Enum实现了方法p，其方法体使用match匹配。这里是最让人迷惑的地方了。注意match的两个匹配模式，&lt;code class=&quot;inline&quot;&gt;First&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Second&lt;/code&gt;与Enum枚举体包含值同名。正常情况下，如果要在方法p内使用枚举值，应该是&lt;code class=&quot;inline&quot;&gt;Enum::First&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Enum::Second&lt;/code&gt;，或者使用&lt;code class=&quot;inline&quot;&gt;use Enum::*;&lt;/code&gt;导入。这里没有导入，也没有加&lt;code class=&quot;inline&quot;&gt;Enum::&lt;/code&gt;前缀，那么实际上，Rust将&lt;code class=&quot;inline&quot;&gt;First&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;Second&lt;/code&gt;当作通配符_来看待。&lt;/p&gt;&lt;p&gt;所以，在main函数中，不管给p方法传入什么类型，只能匹配到第一个，所以输出结果是： 1。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;怎么理解呢？&lt;/b&gt;把上面的代码放到Playground执行一遍，会看到编译器有警告输出：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;warning[E0170]: pattern binding `First` is named the same as one of the variants of the type `Enum`
-  --&amp;gt; src/main.rs:10:13
-   |
-10 |             First =&amp;gt; print!(&quot;1&quot;),
-   |             ^^^^^ help: to match on the variant, qualify the path: `Enum::First`
-
-warning[E0170]: pattern binding `Second` is named the same as one of the variants of the type `Enum`
-  --&amp;gt; src/main.rs:11:13
-   |
-11 |             Second =&amp;gt; print!(&quot;2&quot;),
-   |             ^^^^^^ help: to match on the variant, qualify the path: `Enum::Second`&lt;/code&gt;&lt;p&gt;首先是这两个警告，这是提示开发者，First和Second和Enum定义的枚举值同名了，提示加上Enum::前缀。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;warning: unreachable pattern
-  --&amp;gt; src/main.rs:11:13
-   |
-10 |             First =&amp;gt; print!(&quot;1&quot;),
-   |             ----- matches any value
-11 |             Second =&amp;gt; print!(&quot;2&quot;),
-   |             ^^^^^^ unreachable pattern
-   |
-   = note: #[warn(unreachable_patterns)] on by default&lt;/code&gt;&lt;p&gt;然后是上面这个警告，提示这里触发了&lt;code class=&quot;inline&quot;&gt;unreachable pattern&lt;/code&gt;模式，因为Rust编译器默认是开启&lt;code class=&quot;inline&quot;&gt;#[warn(unreachable_patterns)]&lt;/code&gt;警告的。&lt;/p&gt;&lt;p&gt;什么是Unreachable Pattern呢？p方法等价于下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;impl Enum {
-    fn p(self) {
-        match self {
-            _ =&amp;gt; print!(&quot;1&quot;),
-            _ =&amp;gt; print!(&quot;2&quot;),
-        }
-    }
-}&lt;/code&gt;&lt;p&gt;当函数被调用的时候，Rust会遍历self所有可能的值，但是现在这里并没有把所有可能匹配的值给列出来。所以就是Unreachable。在这种情况下，将会匹配任意值。这也是上面代码输出1的原因。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;如果把p方法里的匹配模式加上Enum::前缀会怎么样？&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[repr(u8)]
-enum Enum {
-    First,
-    Second,
-}
-
-impl Enum {
-    fn p(self) {
-        match self {
-            Enum::First =&amp;gt; print!(&quot;1&quot;),
-            Enum::Second =&amp;gt; print!(&quot;2&quot;),
-        }
-    }
-}
-
-fn main() {
-    Enum::p(unsafe {
-        std::mem::transmute(1u8)
-    });
-}&lt;/code&gt;&lt;p&gt;这次，输出结果变成了： 2。&lt;/p&gt;&lt;p&gt;这又是为什么呢?&lt;/p&gt;&lt;p&gt;事实上，Enum等价于下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;enum Enum {
-  First = 0u8,
-  Second = 1u8,
-}&lt;/code&gt;&lt;p&gt;其实，你在Playground里输出MIR代码也能看得出来：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;#[repr(u8)]
-enum Enum {
-    First,
-    Second,
-}
-fn main() {
-    let a = Enum::First;
-    let b = Enum::Second;
-}&lt;/code&gt;&lt;p&gt;输出的MIR：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn main() -&amp;gt; (){
-    let mut _0: ();                      // return place
-    scope 1 {
-        scope 3 {
-        }
-        scope 4 {
-            let _2: Enum;                // &quot;b&quot; in scope 4 at src/main.rs:10:9: 10:10
-        }
-    }
-    scope 2 {
-        let _1: Enum;                    // &quot;a&quot; in scope 2 at src/main.rs:9:9: 9:10
-    }
-
-    bb0: {                              
-       // 省略其他
-        discriminant(_1) = 0;            // bb0[1]: scope 0 at src/main.rs:9:13: 9:24
-        discriminant(_2) = 1;            // bb0[3]: scope 1 at src/main.rs:10:13: 10:25
-       // 省略其他
-    }
-}&lt;/code&gt;&lt;p&gt;那么main函数，其实等价于下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn main() {
-    let a = unsafe {
-        std::mem::transmute(1u8)
-    };
-    Enum::p(a);
-}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;std::mem::transmute()&lt;/code&gt;函数本身是一个unsafe函数，它相当于直接在栈上进行拷贝，将一种类型的值，解释为另一种类型。语义上，相当于一种「按位移动」。说白了，就是一种类型转换。但不能随便使用它，必须在源值和目标值，都有效的情况下才可以转换。&lt;/p&gt;&lt;p&gt;但是上面代码里的&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，是什么类型呢？&lt;code class=&quot;inline&quot;&gt;std::mem::transmute(1u8)&lt;/code&gt;会把&lt;code class=&quot;inline&quot;&gt;1u8&lt;/code&gt;转换为Enum类型。这是Rust编译器根据上下文进行类型推断得出的。你可以把&lt;code class=&quot;inline&quot;&gt;1u8&lt;/code&gt;修改为&lt;code class=&quot;inline&quot;&gt;1u16&lt;/code&gt;看看编译器的提示。&lt;/p&gt;&lt;p&gt;那么现在a实际上是被转换成Enum::Second。所以Enum::p(a);输出的结果是：2。&lt;/p&gt;&lt;p&gt;注意上面Enum::First对应的判别式是0，而Enum::Second对应的判别式才是1。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/7&quot;&gt;点此查看 Rust Quiz 7&lt;/a&gt;&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-06-51759112</guid>
-<pubDate>Thu, 06 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

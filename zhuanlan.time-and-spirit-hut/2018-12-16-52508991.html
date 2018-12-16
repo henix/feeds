@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust Quiz 解读：Quiz 15</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/52508991">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz<br>-  <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a><br>-  <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a><br>-  <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a><br><br>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。</blockquote><h2><b>Quiz 15:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">trait Trait {
+    fn f(&amp;self);
+}
+
+impl Trait for u32 {
+    fn f(&amp;self) {
+        print!("1");
+    }
+}
+
+impl&lt;'a&gt; Trait for &amp;'a i32 {
+    fn f(&amp;self) {
+        print!("2");
+    }
+}
+
+fn main() {
+    let x = &amp;0;
+    x.f();
+}</code><p><b>输出结果： 1</b></p><h2><b>解读</b></h2><p>考察要点：</p><ol><li>trait实现</li><li><code class="inline">T</code>和<code class="inline">&amp;'a T</code>的区别</li><li>类型推断</li><li>自动加引用</li></ol><p>其实Quiz 15和Quiz 5的考察点是相似的。主要是考察<code class="inline">T</code> 和<code class="inline">&amp;T</code>有啥区别呢？虽然这里是<code class="inline">u32</code>和<code class="inline">&amp;’a i32</code>。</p><ul><li>T， 是一个泛型参数，代表任何一个具体的类型。</li><li>&amp;T，实际上等价于<code class="inline">&amp;'a T</code>，代表某个引用类型。注意这里的<code class="inline">'a</code>也是一个泛型参数，并不是指具体的类型。</li></ul><p>main函数中直接使用了<code class="inline">let x = &amp;0;</code>，<code class="inline">&amp;0</code>实际上是一个包含了具体生命周期参数实例的具体类型<code class="inline">&amp;'a 0</code>。所以，<code class="inline">&amp;0</code>实际上会被推断为一个具体的<code class="inline">T</code>类型的实例<code class="inline">u32</code>。 </p><p>这和<code class="inline">impl Trait for ...</code>的定义顺序无关。不妨把<code class="inline">impl&lt;'a&gt; Trait for &amp;'a i32 { ... }</code>和<code class="inline">impl Trait for u32 { ... }</code>的顺序交换，输出结果照样不变。</p><p>此时在<code class="inline">u32</code>的<code class="inline">f</code>方法实现中<code class="inline">self</code>是<code class="inline">&amp;u32</code>。</p><p>所以，<code class="inline">x.f()</code>会输出<code class="inline">1</code>。</p><p>如果把<code class="inline">impl Trait for u32 {}</code>实现注释掉。则 <code class="inline">x.f()</code>会输出<code class="inline">2</code>。</p><code lang="rust">trait Trait {
+    fn f(&amp;self);
+}
+
+impl&lt;'a&gt; Trait for &amp;'a i32 {
+    fn f(&amp;self) {
+        print!("2");
+    }
+}
+
+fn main() {
+    let x = &amp;0;
+    x.f();
+}</code><p>在这个代码中，<code class="inline">f</code>方法中的<code class="inline">self</code>会被自动加引用为<code class="inline">&amp;&amp;0</code>。</p><p><a href="https://dtolnay.github.io/rust-quiz/15">点此查看 Rust Quiz 15</a> </p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
