@@ -61,6 +61,7 @@ const feeds = [
 		"knowledgewealth",
 		"mzmojo",
 		"gushibuduo",
+		"weimustudy",
 		"dushu_magazine",
 		"hulianzatan9",
 		"commando",
@@ -81,12 +82,6 @@ const feeds = [
 		"c_126395105",
 		"c_1010472697662451712",
 	]],
-	["商业", [
-		"jingyunxiaowu",
-		"caozsay",
-		"xingshu100",
-		"Professor-Li",
-	]],
 	["独立", [
 		"hiyeka",
 		"wxieshuo",
@@ -96,6 +91,12 @@ const feeds = [
 		"FlyTheCode",
 		"zhoudaobiji",
 		"iamawguo",
+	]],
+	["商业", [
+		"jingyunxiaowu",
+		"caozsay",
+		"xingshu100",
+		"Professor-Li",
 	]],
 	["科学", [
 		"conformalgeometry",
