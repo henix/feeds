@@ -1,0 +1,88 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote><b>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz</b><br><br><b>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a></b> <br><b>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a></b> <br><b>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a></b> <br><br><b>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。</b></blockquote><h2><b>Quiz 19:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">struct S;
+
+impl Drop for S {
+    fn drop(&amp;mut self) {
+        print!("1");
+    }
+}
+
+fn main() {
+    let s = S;
+    let _ = s;
+    print!("2");
+}</code><p><b>输出结果：21</b></p><h2><b>解读</b></h2><ol><li>所有权和drop</li><li><code class="inline">_</code>并没有所有权</li></ol><p>我想把这个例子重新修改一下：</p><code lang="rust">#[derive(Debug)]
+struct S;
+
+impl Drop for S {
+    fn drop(&amp;mut self) {
+        print!("1");
+    }
+}
+
+fn main() {
+    let s = S;
+    let _ = s;
+    print!("{:?}", s)
+}</code><p>执行该代码输出结果为<code class="inline">S1</code>。重点在main函数最后一行打印语句中，在执行了<code class="inline">let _ = s;</code>之后，还可以使用<code class="inline">s</code>。这说明，<code class="inline">s</code>的所有权并未被转移。</p><p>所以，先打印的是<code class="inline">S</code>。等main函数执行完，<code class="inline">S</code>的drop方法会被自动调用，然后打印<code class="inline">1</code>。</p><p>现在可以回顾一下Quiz代码，想想为什么输出`21`。</p><p><b>继续改一下代码：</b></p><code lang="rust">fn main() {
+    let s = S;
+    let _a = s;
+    print!("{:?}", s)
+}</code><p>这一次只改main函数，将<code class="inline">_</code>变成<code class="inline">_a</code>，执行代码的时候出错了：<code class="inline">error[E0382]: use of moved value:</code>s<code class="inline">`。说明</code>s<code class="inline">的所有权已经被转移了。 看来</code>_<code class="inline">和</code>_a`的行为是不一样的。</p><p><b>继续简化代码来查看生成的mir：</b></p><code lang="rust">// mir示例1
+struct S;
+fn main() {
+    let s = S;
+    let _ = s;
+}
+
+// mir示例2
+struct S;
+fn main() {
+    let s = S;
+    let _a = s;
+}</code><p><code class="inline">mir示例1</code>会生成下面的mir代码：</p><code lang="rust">fn main() -&gt; (){
+    let mut _0: ();                      // return place
+    scope 1 {
+    }
+    scope 2 {
+        let _1: S;                       // "s" in scope 2 at src/main.rs:4:9: 4:10
+    }
+
+    bb0: {                              
+        StorageLive(_1);                 // bb0[0]: scope 0 at src/main.rs:4:9: 4:10
+        StorageDead(_1);                 // bb0[1]: scope 0 at src/main.rs:6:1: 6:2
+        return;                          // bb0[2]: scope 0 at src/main.rs:6:2: 6:2
+    }
+}</code><p><code class="inline">mir示例2</code>则生成下面的mir代码：</p><code lang="rust">fn main() -&gt; (){
+    let mut _0: ();                      // return place
+    scope 1 {
+        scope 3 {
+        }
+        scope 4 {
+            let _2: S;                   // "_a" in scope 4 at src/main.rs:5:9: 5:11
+        }
+    }
+    scope 2 {
+        let _1: S;                       // "s" in scope 2 at src/main.rs:4:9: 4:10
+    }
+
+    bb0: {                              
+        StorageLive(_1);                 // bb0[0]: scope 0 at src/main.rs:4:9: 4:10
+        StorageLive(_2);                 // bb0[1]: scope 1 at src/main.rs:5:9: 5:11
+        _2 = move _1;                    // bb0[2]: scope 1 at src/main.rs:5:14: 5:15
+        StorageDead(_2);                 // bb0[3]: scope 1 at src/main.rs:6:1: 6:2
+        StorageDead(_1);                 // bb0[4]: scope 0 at src/main.rs:6:1: 6:2
+        return;                          // bb0[5]: scope 0 at src/main.rs:6:2: 6:2
+    }
+}</code><p><code class="inline">示例1</code>和<code class="inline">示例2</code>的区别，正是<code class="inline">_</code>和<code class="inline">_a</code>的区别。<code class="inline">_a</code>多了一次move操作：<code class="inline">_2 = move _1;</code>。</p><p><b>最后再改一下Quiz代码：</b></p><code lang="rust">struct S;
+
+impl Drop for S {
+    fn drop(&amp;mut self) {
+        print!("1");
+    }
+}
+
+fn main() {
+    let s = S;
+    drop(s);
+    print!("2");
+}</code><p>输出结果是： <code class="inline">12</code>。</p><p>这里使用了<code class="inline">drop(s)</code>，未转移所有权，也未绑定任何变量，直接drop。所以，会在打印语句之前调用drop方法，先输出<code class="inline">1</code>。</p><p><br></p><p><a href="https://dtolnay.github.io/rust-quiz/19">点此查看 Rust Quiz 19</a> </p>
