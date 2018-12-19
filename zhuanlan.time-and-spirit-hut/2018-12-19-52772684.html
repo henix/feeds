@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust Quiz 解读：Quiz 20</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/52772684">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg" alt=""></div><blockquote>来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz<br><br>- <a href="https://github.com/dtolnay/rust-quiz">rust-quiz源码</a> <br>- <a href="https://dtolnay.github.io/rust-quiz/18">在线练习和解答</a> <br>- <a href="https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;index=6&amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;t=0s">视频</a> <br><br>不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。</blockquote><h2><b>Quiz  20:</b></h2><p>下面这段代码输出什么？</p><code lang="rust">fn return1() {
+    if (return { print!("1") }) {
+    }
+}
+
+fn return2() {
+    if return { print!("2") } {
+    }
+}
+
+fn break1() {
+    loop {
+        if (break { print!("1") }) {
+        }
+    }
+}
+
+fn break2() {
+    loop {
+        if break { print!("2") } {
+        }
+    }
+}
+
+fn main() {
+    return1();
+    return2();
+    break1();
+    break2();
+}</code><p><b>输出结果： 121</b></p><h2><b>解读</b></h2><p>考察要点：</p><ol><li>return和break的一点区别</li></ol><p>其实在Rust 1.19版本之前，上面代码的输出结果是<code class="inline">1212</code>。但是在1.19之后，加入了<code class="inline">break value in loop</code>的功能，也就是说，可以从loop循环中使用break返回一个值。</p><p>对于<code class="inline">break1</code>函数来说：</p><p><code class="inline">loop {  if (break { print!("1") }) {}}</code>，会先计算<code class="inline">break {print!("1")}</code>的值。</p><p>而<code class="inline">break2</code>函数，因为没有使用括号来表达优先级，所以会解析为以下等价的代码：</p><code lang="rust">fn break2() {
+    loop {
+        if (break) { 
+            print!("2") 
+        }
+        { }
+    }
+}</code><p>所以，在打印之前就已经<code class="inline">break</code>出了循环体，所以什么都没打印。</p><p>而return就不会产生这种解释歧义，等以后Rust可能会统一break和return的行为。</p><p><a href="https://dtolnay.github.io/rust-quiz/20">点此查看 Rust Quiz 20</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
