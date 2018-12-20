@@ -1,0 +1,142 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-761b4fe9feb76b36d597aa45ff9e1ad7_r.jpg" alt=""></div><h2><b>背景知识</b></h2><p>SQL 语句发送到 TiDB 后首先会经过 parser，从文本 parse 成为 AST（抽象语法树），AST 节点与 SQL 文本结构是一一对应的，我们通过遍历整个 AST 树就可以拼接出一个与 AST 语义相同的 SQL 文本。</p><p>对 parser 不熟悉的小伙伴们可以看 <a href="https://www.pingcap.com/blog-cn/tidb-source-code-reading-5/">TiDB 源码阅读系列文章（五）TiDB SQL Parser 的实现</a>。</p><p>为了控制 SQL 文本的输出格式，并且为方便未来新功能的加入（例如在 SQL 文本中用 “*” 替代密码），我们引入了 <code class="inline">RestoreFlags</code> 并封装了 <code class="inline">RestoreCtx</code> 结构（<a href="https://github.com/pingcap/parser/blob/9339d225378fa9b50e1bf8373c2040524b96c6af/ast/util.go#L78">相关源码</a>）：</p><code lang="text">// `RestoreFlags` 中的互斥组:
+// [RestoreStringSingleQuotes, RestoreStringDoubleQuotes]
+// [RestoreKeyWordUppercase, RestoreKeyWordLowercase]
+// [RestoreNameUppercase, RestoreNameLowercase]
+// [RestoreNameDoubleQuotes, RestoreNameBackQuotes]
+// 靠前的 flag 拥有更高的优先级。
+const (
+	RestoreStringSingleQuotes RestoreFlags = 1 &lt;&lt; iota
+	
+	...
+)
+
+// RestoreCtx is `Restore` context to hold flags and writer.
+type RestoreCtx struct {
+	Flags RestoreFlags
+	In    io.Writer
+}
+
+// WriteKeyWord 用于向 `ctx` 中写入关键字（例如：SELECT）。
+// 它的大小写受 `RestoreKeyWordUppercase`，`RestoreKeyWordLowercase` 控制
+func (ctx *RestoreCtx) WriteKeyWord(keyWord string) {
+	...
+}
+
+// WriteString 用于向 `ctx` 中写入字符串。
+// 它是否被引号包裹及转义规则受 `RestoreStringSingleQuotes`，`RestoreStringDoubleQuotes`，`RestoreStringEscapeBackslash` 控制。
+func (ctx *RestoreCtx) WriteString(str string) {
+	...
+}
+
+// WriteName 用于向 `ctx` 中写入名称（库名，表名，列名等）。
+// 它是否被引号包裹及转义规则受 `RestoreNameUppercase`，`RestoreNameLowercase`，`RestoreNameDoubleQuotes`，`RestoreNameBackQuotes` 控制。
+func (ctx *RestoreCtx) WriteName(name string) {
+	...
+}
+
+// WriteName 用于向 `ctx` 中写入普通文本。
+// 它将被直接写入不受 flag 影响。
+func (ctx *RestoreCtx) WritePlain(plainText string) {
+	...
+}
+
+// WriteName 用于向 `ctx` 中写入普通文本。
+// 它将被直接写入不受 flag 影响。
+func (ctx *RestoreCtx) WritePlainf(format string, a ...interface{}) {
+	...
+}</code><p>我们在 <code class="inline">ast.Node</code> 接口中添加了一个 <code class="inline">Restore(ctx *RestoreCtx) error</code> 函数，这个函数将当前节点对应的 SQL 文本追加至参数 <code class="inline">ctx</code> 中，如果节点无效则返回 <code class="inline">error</code>。</p><code lang="text">type Node interface {
+    // Restore AST to SQL text and append them to `ctx`.
+    // return error when the AST is invalid.
+	Restore(ctx *RestoreCtx) error
+    
+    ...
+}</code><p>以 SQL 语句 <code class="inline">SELECT column0 FROM table0 UNION SELECT column1 FROM table1 WHERE a = 1</code> 为例，如下图所示，我们通过遍历整个 AST 树，递归调用每个节点的 <code class="inline">Restore()</code> 方法，即可拼接成一个完整的 SQL 文本。</p><img src="https://pic3.zhimg.com/v2-581ef8a061bce7e7caec3fd7ec15f20c_r.jpg" data-caption="" data-size="normal" data-rawwidth="1612" data-rawheight="894" data-watermark="watermark" data-original-src="v2-581ef8a061bce7e7caec3fd7ec15f20c" data-watermark-src="v2-318bd8674743fbf503978e526a34acb4" data-private-watermark-src=""><p>值得注意的是，SQL 文本与 AST 是一个多对一的关系，我们不可能从 AST 结构中还原出与原 SQL 完全一致的文本， 因此我们只要保证还原出的 SQL 文本与原 SQL <b>语义相同</b> 即可。所谓语义相同，指的是由 AST 还原出的 SQL 文本再被解析为 AST 后，两个 AST 是相等的。</p><p>我们已经完成了接口设计和测试框架，具体的<code class="inline">Restore()</code> 函数留空。因此<b>只需要选择一个留空的</b> <code class="inline"><b>Restore()</b></code> <b>函数实现，并添加相应的测试数据，就可以提交一个 PR 了！</b></p><h2><b>实现</b> <b><code class="inline">Restore()</code></b> <b>函数的整体流程</b></h2><ol><li>请先阅读 <a href="https://github.com/pingcap/tidb/tree/master/docs/design/2018-11-29-ast-to-sql-text.md">Proposal</a>、<a href="https://github.com/pingcap/tidb/issues/8532">Issue</a></li><li>在 <a href="https://github.com/pingcap/tidb/issues/8532">Issue</a> 中找到未实现的函数</li></ol><ul><li>在 <a href="https://github.com/pingcap/tidb/issues/8532">Issue-pingcap/tidb#8532</a> 中找到一个没有被其他贡献者认领的任务，例如 <code class="inline">ast/expressions.go: BetweenExpr</code>。</li><li>在 <a href="https://github.com/pingcap/parser">pingcap/parser</a> 中找到任务对应文件 <code class="inline">ast/expressions.go</code>。</li><li>在文件中找到 <code class="inline">BetweenExpr</code> 结构的 <code class="inline">Restore</code> 函数：</li></ul><code lang="text">// Restore implements Node interface. 
+func (n *BetweenExpr) Restore(ctx *RestoreCtx) error {
+     return errors.New("Not implemented") 
+}</code><p>3. 实现 <code class="inline">Restore()</code> 函数<br>根据 Node 节点结构和 SQL 语法实现函数功能。</p><blockquote>参考 <a href="https://dev.mysql.com/doc/refman/5.7/en/sql-syntax.html">MySQL 5.7 SQL Statement Syntax</a></blockquote><p>4. 写单元测试<br>参考示例在相关文件下添加单元测试。</p><p>5. 运行 <code class="inline">make test</code>，确保所有的 test case 都能跑过。</p><p>6. 提交 PR<br>PR 标题统一为：<code class="inline">parser: implement Restore for XXX</code><br>请在 PR 中关联 Issue: <code class="inline">pingcap/tidb#8532</code> </p><h2><b>示例</b></h2><p>这里以<a href="https://github.com/pingcap/parser/pull/71/files">实现 BetweenExpr 的 Restore 函数 PR</a> 为例，进行详细说明：</p><p>1. 首先看 <code class="inline">ast/expressions.go</code>：</p><ul><li>我们要实现一个 <code class="inline">ast.Node</code> 结构的 <code class="inline">Restore</code> 函数，首先清楚该结构代表什么短语，例如 <code class="inline">BetweenExpr</code> 代表 <code class="inline">expr [NOT] BETWEEN expr AND expr</code> （参见：<a href="https://dev.mysql.com/doc/refman/5.7/en/comparison-operators.html#operator_between">MySQL 语法 - 比较函数和运算符</a>）。</li><li>观察 <code class="inline">BetweenExpr</code> 结构：</li></ul><code lang="text">// BetweenExpr is for "between and" or "not between and" expression.
+type BetweenExpr struct {
+    exprNode
+    // 被检查的表达式
+    Expr ExprNode
+    // AND 左侧的表达式
+    Left ExprNode
+    // AND 右侧的表达式
+    Right ExprNode
+    // 是否有 NOT 关键字
+    Not bool
+}</code><ul><li>实现 <code class="inline">BetweenExpr</code> 的 <code class="inline">Restore</code> 函数：</li></ul><code lang="text">// Restore implements Node interface.
+func (n *BetweenExpr) Restore(ctx *RestoreCtx) error {
+    // 调用 Expr 的 Restore，向 ctx 写入 Expr
+    if err := n.Expr.Restore(ctx); err != nil {
+        return errors.Annotate(err, "An error occurred while restore BetweenExpr.Expr")
+    }
+    // 判断是否有 NOT，并写入相应关键字
+    if n.Not {
+        ctx.WriteKeyWord(" NOT BETWEEN ")
+    } else {
+        ctx.WriteKeyWord(" BETWEEN ")
+    }
+    // 调用 Left 的 Restore
+    if err := n.Left.Restore(ctx); err != nil {
+        return errors.Annotate(err, "An error occurred while restore BetweenExpr.Left")
+    }
+    // 写入 AND 关键字
+    ctx.WriteKeyWord(" AND ")
+    // 调用 Right 的 Restore
+    if err := n.Right.Restore(ctx); err != nil {
+        return errors.Annotate(err, "An error occurred while restore BetweenExpr.Right ")
+    }
+    return nil
+}</code><p>2. 接下来给函数实现添加单元测试, <code class="inline">ast/expressions_test.go</code>：</p><code lang="text">// 添加测试函数
+func (tc *testExpressionsSuite) TestBetweenExprRestore(c *C) {
+    // 测试用例
+    testCases := []NodeRestoreTestCase{
+        {"b between 1 and 2", "`b` BETWEEN 1 AND 2"},
+        {"b not between 1 and 2", "`b` NOT BETWEEN 1 AND 2"},
+        {"b between a and b", "`b` BETWEEN `a` AND `b`"},
+        {"b between '' and 'b'", "`b` BETWEEN '' AND 'b'"},
+        {"b between '2018-11-01' and '2018-11-02'", "`b` BETWEEN '2018-11-01' AND '2018-11-02'"},
+    }
+    // 为了不依赖父节点实现，通过 extractNodeFunc 抽取待测节点
+    extractNodeFunc := func(node Node) Node {
+        return node.(*SelectStmt).Fields.Fields[0].Expr
+    }
+    // Run Test
+    RunNodeRestoreTest(c, testCases, "select %s", extractNodeFunc)
+}</code><p><b>至此 <code class="inline">BetweenExpr</code> 的 <code class="inline">Restore</code> 函数实现完成，可以提交 PR 了。为了更好的理解测试逻辑，下面我们看 <code class="inline">RunNodeRestoreTest</code>：</b></p><code lang="text">// 下面是测试逻辑，已经实现好了，不需要 contributor 实现
+func RunNodeRestoreTest(c *C, nodeTestCases []NodeRestoreTestCase, template string, extractNodeFunc func(node Node) Node) {
+    parser := parser.New()
+    for _, testCase := range nodeTestCases {
+        // 通过 template 将测试用例拼接为完整的 SQL
+        sourceSQL := fmt.Sprintf(template, testCase.sourceSQL)
+        expectSQL := fmt.Sprintf(template, testCase.expectSQL)
+        stmt, err := parser.ParseOneStmt(sourceSQL, "", "")
+        comment := Commentf("source %#v", testCase)
+        c.Assert(err, IsNil, comment)
+        var sb strings.Builder
+        // 抽取指定节点并调用其 Restore 函数
+        err = extractNodeFunc(stmt).Restore(NewRestoreCtx(DefaultRestoreFlags, &amp;sb))
+        c.Assert(err, IsNil, comment)
+        // 通过 template 将 restore 结果拼接为完整的 SQL
+        restoreSql := fmt.Sprintf(template, sb.String())
+        comment = Commentf("source %#v; restore %v", testCase, restoreSql)
+        // 测试 restore 结果与预期一致
+        c.Assert(restoreSql, Equals, expectSQL, comment)
+        stmt2, err := parser.ParseOneStmt(restoreSql, "", "")
+        c.Assert(err, IsNil, comment)
+        CleanNodeText(stmt)
+        CleanNodeText(stmt2)
+        // 测试解析的 stmt 与原 stmt 一致
+        c.Assert(stmt2, DeepEquals, stmt, comment)
+    }
+}</code><p><b>不过对于 <code class="inline">ast.StmtNode</code>（例如：<code class="inline">ast.SelectStmt</code>）测试方法有些不一样， 由于这类节点可以还原为一个完整的 SQL，因此直接在 <code class="inline">parser_test.go</code> 中测试。</b></p><p>下面以<a href="https://github.com/pingcap/parser/pull/62/files">实现 UseStmt 的 Restore 函数 PR</a> 为例，对测试进行说明：</p><p>1. <code class="inline">Restore</code> 函数实现过程略。</p><p>2. 给函数实现添加单元测试，参见 <code class="inline">parser_test.go</code>：</p><p>在这个示例中，只添加了几行测试数据就完成了测试：</p><code lang="text">// 添加 testCase 结构的测试数据
+{"use `select`", true, "USE `select`"},
+{"use `sel``ect`", true, "USE `sel``ect`"},
+{"use select", false, "USE `select`"},</code><p>我们看 <code class="inline">testCase</code> 结构声明：</p><code lang="text">type testCase struct {
+    // 原 SQL
+    src     string
+    // 是否能被正确 parse
+    ok      bool
+    // 预期的 restore SQL
+    restore string
+}</code><p>测试代码会判断原 SQL parse 出 AST 后再还原的 SQL 是否与预期的 restore SQL 相等，具体的测试逻辑在 <code class="inline">parser_test.go</code> 中 <code class="inline">RunTest()</code>、<code class="inline">RunRestoreTest()</code> 函数，逻辑与前例类似，此处不再赘述。</p><p><b>加入 TiDB Contributor Club，无门槛参与开源项目，改变世界从这里开始吧！😎</b></p><blockquote><b><i>社区大事件 </i></b><br>年度最高规格的 TiDB 技术大会——TiDB DevCon 2019 将于 2019 年 1 月 19 日在北京举办。欢迎大家报名参加！活动详情👇<a href="http://mp.weixin.qq.com/s?__biz=MzI3NDIxNTQyOQ==&amp;mid=2247487497&amp;idx=1&amp;sn=9e00bd4cb4ace5c39c266e38338a77ef&amp;chksm=eb163763dc61be753518db2154b9ef36379acedbb30e2789fd6d5f37f538bf906905aac00f83&amp;scene=21#wechat_redirect">br/&gt;TiDB DevCon 2019 报名开启</a><br>* TiDB Committers &amp; Contributors 可以享受【社区贡献者注册】<b>免费</b>权益。<br>* TiDB 社区贡献者即 GitHub 上以下 15 个 Repositories  的代码贡献者：<br>docs-cn | docs | grpc-rs | jepsen | parser | pd | tidb-ansible | tidb-bench | tidb-docker-compose | tidb-operator | tidb | tidb-tools | tikv | tipb | tispark</blockquote><p></p>

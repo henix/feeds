@@ -5,7 +5,157 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 19 Dec 2018 18:02:23 +0800</lastBuildDate>
+<lastBuildDate>Thu, 20 Dec 2018 19:00:32 +0800</lastBuildDate>
+<item>
+<title>十分钟成为 Contributor 系列 | 支持 AST 还原为 SQL</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2018-12-20-52838362.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52838362&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-761b4fe9feb76b36d597aa45ff9e1ad7_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;背景知识&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;SQL 语句发送到 TiDB 后首先会经过 parser，从文本 parse 成为 AST（抽象语法树），AST 节点与 SQL 文本结构是一一对应的，我们通过遍历整个 AST 树就可以拼接出一个与 AST 语义相同的 SQL 文本。&lt;/p&gt;&lt;p&gt;对 parser 不熟悉的小伙伴们可以看 &lt;a href=&quot;https://www.pingcap.com/blog-cn/tidb-source-code-reading-5/&quot;&gt;TiDB 源码阅读系列文章（五）TiDB SQL Parser 的实现&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;为了控制 SQL 文本的输出格式，并且为方便未来新功能的加入（例如在 SQL 文本中用 “*” 替代密码），我们引入了 &lt;code class=&quot;inline&quot;&gt;RestoreFlags&lt;/code&gt; 并封装了 &lt;code class=&quot;inline&quot;&gt;RestoreCtx&lt;/code&gt; 结构（&lt;a href=&quot;https://github.com/pingcap/parser/blob/9339d225378fa9b50e1bf8373c2040524b96c6af/ast/util.go#L78&quot;&gt;相关源码&lt;/a&gt;）：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// `RestoreFlags` 中的互斥组:
+// [RestoreStringSingleQuotes, RestoreStringDoubleQuotes]
+// [RestoreKeyWordUppercase, RestoreKeyWordLowercase]
+// [RestoreNameUppercase, RestoreNameLowercase]
+// [RestoreNameDoubleQuotes, RestoreNameBackQuotes]
+// 靠前的 flag 拥有更高的优先级。
+const (
+	RestoreStringSingleQuotes RestoreFlags = 1 &amp;lt;&amp;lt; iota
+	
+	...
+)
+
+// RestoreCtx is `Restore` context to hold flags and writer.
+type RestoreCtx struct {
+	Flags RestoreFlags
+	In    io.Writer
+}
+
+// WriteKeyWord 用于向 `ctx` 中写入关键字（例如：SELECT）。
+// 它的大小写受 `RestoreKeyWordUppercase`，`RestoreKeyWordLowercase` 控制
+func (ctx *RestoreCtx) WriteKeyWord(keyWord string) {
+	...
+}
+
+// WriteString 用于向 `ctx` 中写入字符串。
+// 它是否被引号包裹及转义规则受 `RestoreStringSingleQuotes`，`RestoreStringDoubleQuotes`，`RestoreStringEscapeBackslash` 控制。
+func (ctx *RestoreCtx) WriteString(str string) {
+	...
+}
+
+// WriteName 用于向 `ctx` 中写入名称（库名，表名，列名等）。
+// 它是否被引号包裹及转义规则受 `RestoreNameUppercase`，`RestoreNameLowercase`，`RestoreNameDoubleQuotes`，`RestoreNameBackQuotes` 控制。
+func (ctx *RestoreCtx) WriteName(name string) {
+	...
+}
+
+// WriteName 用于向 `ctx` 中写入普通文本。
+// 它将被直接写入不受 flag 影响。
+func (ctx *RestoreCtx) WritePlain(plainText string) {
+	...
+}
+
+// WriteName 用于向 `ctx` 中写入普通文本。
+// 它将被直接写入不受 flag 影响。
+func (ctx *RestoreCtx) WritePlainf(format string, a ...interface{}) {
+	...
+}&lt;/code&gt;&lt;p&gt;我们在 &lt;code class=&quot;inline&quot;&gt;ast.Node&lt;/code&gt; 接口中添加了一个 &lt;code class=&quot;inline&quot;&gt;Restore(ctx *RestoreCtx) error&lt;/code&gt; 函数，这个函数将当前节点对应的 SQL 文本追加至参数 &lt;code class=&quot;inline&quot;&gt;ctx&lt;/code&gt; 中，如果节点无效则返回 &lt;code class=&quot;inline&quot;&gt;error&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;type Node interface {
+    // Restore AST to SQL text and append them to `ctx`.
+    // return error when the AST is invalid.
+	Restore(ctx *RestoreCtx) error
+    
+    ...
+}&lt;/code&gt;&lt;p&gt;以 SQL 语句 &lt;code class=&quot;inline&quot;&gt;SELECT column0 FROM table0 UNION SELECT column1 FROM table1 WHERE a = 1&lt;/code&gt; 为例，如下图所示，我们通过遍历整个 AST 树，递归调用每个节点的 &lt;code class=&quot;inline&quot;&gt;Restore()&lt;/code&gt; 方法，即可拼接成一个完整的 SQL 文本。&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-581ef8a061bce7e7caec3fd7ec15f20c_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1612&quot; data-rawheight=&quot;894&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-581ef8a061bce7e7caec3fd7ec15f20c&quot; data-watermark-src=&quot;v2-318bd8674743fbf503978e526a34acb4&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;值得注意的是，SQL 文本与 AST 是一个多对一的关系，我们不可能从 AST 结构中还原出与原 SQL 完全一致的文本， 因此我们只要保证还原出的 SQL 文本与原 SQL &lt;b&gt;语义相同&lt;/b&gt; 即可。所谓语义相同，指的是由 AST 还原出的 SQL 文本再被解析为 AST 后，两个 AST 是相等的。&lt;/p&gt;&lt;p&gt;我们已经完成了接口设计和测试框架，具体的&lt;code class=&quot;inline&quot;&gt;Restore()&lt;/code&gt; 函数留空。因此&lt;b&gt;只需要选择一个留空的&lt;/b&gt; &lt;code class=&quot;inline&quot;&gt;&lt;b&gt;Restore()&lt;/b&gt;&lt;/code&gt; &lt;b&gt;函数实现，并添加相应的测试数据，就可以提交一个 PR 了！&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;实现&lt;/b&gt; &lt;b&gt;&lt;code class=&quot;inline&quot;&gt;Restore()&lt;/code&gt;&lt;/b&gt; &lt;b&gt;函数的整体流程&lt;/b&gt;&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;请先阅读 &lt;a href=&quot;https://github.com/pingcap/tidb/tree/master/docs/design/2018-11-29-ast-to-sql-text.md&quot;&gt;Proposal&lt;/a&gt;、&lt;a href=&quot;https://github.com/pingcap/tidb/issues/8532&quot;&gt;Issue&lt;/a&gt;&lt;/li&gt;&lt;li&gt;在 &lt;a href=&quot;https://github.com/pingcap/tidb/issues/8532&quot;&gt;Issue&lt;/a&gt; 中找到未实现的函数&lt;/li&gt;&lt;/ol&gt;&lt;ul&gt;&lt;li&gt;在 &lt;a href=&quot;https://github.com/pingcap/tidb/issues/8532&quot;&gt;Issue-pingcap/tidb#8532&lt;/a&gt; 中找到一个没有被其他贡献者认领的任务，例如 &lt;code class=&quot;inline&quot;&gt;ast/expressions.go: BetweenExpr&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;在 &lt;a href=&quot;https://github.com/pingcap/parser&quot;&gt;pingcap/parser&lt;/a&gt; 中找到任务对应文件 &lt;code class=&quot;inline&quot;&gt;ast/expressions.go&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;在文件中找到 &lt;code class=&quot;inline&quot;&gt;BetweenExpr&lt;/code&gt; 结构的 &lt;code class=&quot;inline&quot;&gt;Restore&lt;/code&gt; 函数：&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;text&quot;&gt;// Restore implements Node interface. 
+func (n *BetweenExpr) Restore(ctx *RestoreCtx) error {
+     return errors.New(&quot;Not implemented&quot;) 
+}&lt;/code&gt;&lt;p&gt;3. 实现 &lt;code class=&quot;inline&quot;&gt;Restore()&lt;/code&gt; 函数&lt;br&gt;根据 Node 节点结构和 SQL 语法实现函数功能。&lt;/p&gt;&lt;blockquote&gt;参考 &lt;a href=&quot;https://dev.mysql.com/doc/refman/5.7/en/sql-syntax.html&quot;&gt;MySQL 5.7 SQL Statement Syntax&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;4. 写单元测试&lt;br&gt;参考示例在相关文件下添加单元测试。&lt;/p&gt;&lt;p&gt;5. 运行 &lt;code class=&quot;inline&quot;&gt;make test&lt;/code&gt;，确保所有的 test case 都能跑过。&lt;/p&gt;&lt;p&gt;6. 提交 PR&lt;br&gt;PR 标题统一为：&lt;code class=&quot;inline&quot;&gt;parser: implement Restore for XXX&lt;/code&gt;&lt;br&gt;请在 PR 中关联 Issue: &lt;code class=&quot;inline&quot;&gt;pingcap/tidb#8532&lt;/code&gt; &lt;/p&gt;&lt;h2&gt;&lt;b&gt;示例&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;这里以&lt;a href=&quot;https://github.com/pingcap/parser/pull/71/files&quot;&gt;实现 BetweenExpr 的 Restore 函数 PR&lt;/a&gt; 为例，进行详细说明：&lt;/p&gt;&lt;p&gt;1. 首先看 &lt;code class=&quot;inline&quot;&gt;ast/expressions.go&lt;/code&gt;：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;我们要实现一个 &lt;code class=&quot;inline&quot;&gt;ast.Node&lt;/code&gt; 结构的 &lt;code class=&quot;inline&quot;&gt;Restore&lt;/code&gt; 函数，首先清楚该结构代表什么短语，例如 &lt;code class=&quot;inline&quot;&gt;BetweenExpr&lt;/code&gt; 代表 &lt;code class=&quot;inline&quot;&gt;expr [NOT] BETWEEN expr AND expr&lt;/code&gt; （参见：&lt;a href=&quot;https://dev.mysql.com/doc/refman/5.7/en/comparison-operators.html#operator_between&quot;&gt;MySQL 语法 - 比较函数和运算符&lt;/a&gt;）。&lt;/li&gt;&lt;li&gt;观察 &lt;code class=&quot;inline&quot;&gt;BetweenExpr&lt;/code&gt; 结构：&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;text&quot;&gt;// BetweenExpr is for &quot;between and&quot; or &quot;not between and&quot; expression.
+type BetweenExpr struct {
+    exprNode
+    // 被检查的表达式
+    Expr ExprNode
+    // AND 左侧的表达式
+    Left ExprNode
+    // AND 右侧的表达式
+    Right ExprNode
+    // 是否有 NOT 关键字
+    Not bool
+}&lt;/code&gt;&lt;ul&gt;&lt;li&gt;实现 &lt;code class=&quot;inline&quot;&gt;BetweenExpr&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Restore&lt;/code&gt; 函数：&lt;/li&gt;&lt;/ul&gt;&lt;code lang=&quot;text&quot;&gt;// Restore implements Node interface.
+func (n *BetweenExpr) Restore(ctx *RestoreCtx) error {
+    // 调用 Expr 的 Restore，向 ctx 写入 Expr
+    if err := n.Expr.Restore(ctx); err != nil {
+        return errors.Annotate(err, &quot;An error occurred while restore BetweenExpr.Expr&quot;)
+    }
+    // 判断是否有 NOT，并写入相应关键字
+    if n.Not {
+        ctx.WriteKeyWord(&quot; NOT BETWEEN &quot;)
+    } else {
+        ctx.WriteKeyWord(&quot; BETWEEN &quot;)
+    }
+    // 调用 Left 的 Restore
+    if err := n.Left.Restore(ctx); err != nil {
+        return errors.Annotate(err, &quot;An error occurred while restore BetweenExpr.Left&quot;)
+    }
+    // 写入 AND 关键字
+    ctx.WriteKeyWord(&quot; AND &quot;)
+    // 调用 Right 的 Restore
+    if err := n.Right.Restore(ctx); err != nil {
+        return errors.Annotate(err, &quot;An error occurred while restore BetweenExpr.Right &quot;)
+    }
+    return nil
+}&lt;/code&gt;&lt;p&gt;2. 接下来给函数实现添加单元测试, &lt;code class=&quot;inline&quot;&gt;ast/expressions_test.go&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// 添加测试函数
+func (tc *testExpressionsSuite) TestBetweenExprRestore(c *C) {
+    // 测试用例
+    testCases := []NodeRestoreTestCase{
+        {&quot;b between 1 and 2&quot;, &quot;`b` BETWEEN 1 AND 2&quot;},
+        {&quot;b not between 1 and 2&quot;, &quot;`b` NOT BETWEEN 1 AND 2&quot;},
+        {&quot;b between a and b&quot;, &quot;`b` BETWEEN `a` AND `b`&quot;},
+        {&quot;b between &#39;&#39; and &#39;b&#39;&quot;, &quot;`b` BETWEEN &#39;&#39; AND &#39;b&#39;&quot;},
+        {&quot;b between &#39;2018-11-01&#39; and &#39;2018-11-02&#39;&quot;, &quot;`b` BETWEEN &#39;2018-11-01&#39; AND &#39;2018-11-02&#39;&quot;},
+    }
+    // 为了不依赖父节点实现，通过 extractNodeFunc 抽取待测节点
+    extractNodeFunc := func(node Node) Node {
+        return node.(*SelectStmt).Fields.Fields[0].Expr
+    }
+    // Run Test
+    RunNodeRestoreTest(c, testCases, &quot;select %s&quot;, extractNodeFunc)
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;至此 &lt;code class=&quot;inline&quot;&gt;BetweenExpr&lt;/code&gt; 的 &lt;code class=&quot;inline&quot;&gt;Restore&lt;/code&gt; 函数实现完成，可以提交 PR 了。为了更好的理解测试逻辑，下面我们看 &lt;code class=&quot;inline&quot;&gt;RunNodeRestoreTest&lt;/code&gt;：&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// 下面是测试逻辑，已经实现好了，不需要 contributor 实现
+func RunNodeRestoreTest(c *C, nodeTestCases []NodeRestoreTestCase, template string, extractNodeFunc func(node Node) Node) {
+    parser := parser.New()
+    for _, testCase := range nodeTestCases {
+        // 通过 template 将测试用例拼接为完整的 SQL
+        sourceSQL := fmt.Sprintf(template, testCase.sourceSQL)
+        expectSQL := fmt.Sprintf(template, testCase.expectSQL)
+        stmt, err := parser.ParseOneStmt(sourceSQL, &quot;&quot;, &quot;&quot;)
+        comment := Commentf(&quot;source %#v&quot;, testCase)
+        c.Assert(err, IsNil, comment)
+        var sb strings.Builder
+        // 抽取指定节点并调用其 Restore 函数
+        err = extractNodeFunc(stmt).Restore(NewRestoreCtx(DefaultRestoreFlags, &amp;amp;sb))
+        c.Assert(err, IsNil, comment)
+        // 通过 template 将 restore 结果拼接为完整的 SQL
+        restoreSql := fmt.Sprintf(template, sb.String())
+        comment = Commentf(&quot;source %#v; restore %v&quot;, testCase, restoreSql)
+        // 测试 restore 结果与预期一致
+        c.Assert(restoreSql, Equals, expectSQL, comment)
+        stmt2, err := parser.ParseOneStmt(restoreSql, &quot;&quot;, &quot;&quot;)
+        c.Assert(err, IsNil, comment)
+        CleanNodeText(stmt)
+        CleanNodeText(stmt2)
+        // 测试解析的 stmt 与原 stmt 一致
+        c.Assert(stmt2, DeepEquals, stmt, comment)
+    }
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;不过对于 &lt;code class=&quot;inline&quot;&gt;ast.StmtNode&lt;/code&gt;（例如：&lt;code class=&quot;inline&quot;&gt;ast.SelectStmt&lt;/code&gt;）测试方法有些不一样， 由于这类节点可以还原为一个完整的 SQL，因此直接在 &lt;code class=&quot;inline&quot;&gt;parser_test.go&lt;/code&gt; 中测试。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;下面以&lt;a href=&quot;https://github.com/pingcap/parser/pull/62/files&quot;&gt;实现 UseStmt 的 Restore 函数 PR&lt;/a&gt; 为例，对测试进行说明：&lt;/p&gt;&lt;p&gt;1. &lt;code class=&quot;inline&quot;&gt;Restore&lt;/code&gt; 函数实现过程略。&lt;/p&gt;&lt;p&gt;2. 给函数实现添加单元测试，参见 &lt;code class=&quot;inline&quot;&gt;parser_test.go&lt;/code&gt;：&lt;/p&gt;&lt;p&gt;在这个示例中，只添加了几行测试数据就完成了测试：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// 添加 testCase 结构的测试数据
+{&quot;use `select`&quot;, true, &quot;USE `select`&quot;},
+{&quot;use `sel``ect`&quot;, true, &quot;USE `sel``ect`&quot;},
+{&quot;use select&quot;, false, &quot;USE `select`&quot;},&lt;/code&gt;&lt;p&gt;我们看 &lt;code class=&quot;inline&quot;&gt;testCase&lt;/code&gt; 结构声明：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;type testCase struct {
+    // 原 SQL
+    src     string
+    // 是否能被正确 parse
+    ok      bool
+    // 预期的 restore SQL
+    restore string
+}&lt;/code&gt;&lt;p&gt;测试代码会判断原 SQL parse 出 AST 后再还原的 SQL 是否与预期的 restore SQL 相等，具体的测试逻辑在 &lt;code class=&quot;inline&quot;&gt;parser_test.go&lt;/code&gt; 中 &lt;code class=&quot;inline&quot;&gt;RunTest()&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;RunRestoreTest()&lt;/code&gt; 函数，逻辑与前例类似，此处不再赘述。&lt;/p&gt;&lt;p&gt;&lt;b&gt;加入 TiDB Contributor Club，无门槛参与开源项目，改变世界从这里开始吧！😎&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;&lt;i&gt;社区大事件 &lt;/i&gt;&lt;/b&gt;&lt;br&gt;年度最高规格的 TiDB 技术大会——TiDB DevCon 2019 将于 2019 年 1 月 19 日在北京举办。欢迎大家报名参加！活动详情👇&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI3NDIxNTQyOQ==&amp;amp;mid=2247487497&amp;amp;idx=1&amp;amp;sn=9e00bd4cb4ace5c39c266e38338a77ef&amp;amp;chksm=eb163763dc61be753518db2154b9ef36379acedbb30e2789fd6d5f37f538bf906905aac00f83&amp;amp;scene=21#wechat_redirect&quot;&gt;br/&amp;gt;TiDB DevCon 2019 报名开启&lt;/a&gt;&lt;br&gt;* TiDB Committers &amp;amp; Contributors 可以享受【社区贡献者注册】&lt;b&gt;免费&lt;/b&gt;权益。&lt;br&gt;* TiDB 社区贡献者即 GitHub 上以下 15 个 Repositories  的代码贡献者：&lt;br&gt;docs-cn | docs | grpc-rs | jepsen | parser | pd | tidb-ansible | tidb-bench | tidb-docker-compose | tidb-operator | tidb | tidb-tools | tikv | tipb | tispark&lt;/blockquote&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2018-12-20-52838362</guid>
+<pubDate>Thu, 20 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>TiDB Ecosystem Tools 原理解读之 TiDB-Lightning Toolset</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2018-12-18-52699499.html</link>
@@ -335,15 +485,6 @@ SQL3：delete from itest where id = 3;                                key: 3&lt;
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2018-12-10-51990591</guid>
 <pubDate>Mon, 10 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>TiDB 在小米的应用实践</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2018-12-03-51472404.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/51472404&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-286ddf5e402ba98f9de8bfa95ce5eb57_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;作者介绍&lt;/b&gt;&lt;br&gt;张良，小米 DBA 负责人&lt;br&gt;潘友飞，小米 DBA&lt;br&gt;王必文，小米开发工程师&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;应用场景介绍&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;MIUI 是小米公司旗下基于 Android 系统深度优化、定制、开发的第三方手机操作系统，也是小米的第一个产品。MIUI 在 Android 系统基础上，针对中国用户进行了深度定制，在此之上孕育出了一系列的应用，比如主题商店、小米音乐、应用商店、小米阅读等。     &lt;br&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-c4428dc7c80aea208ba650abba0f8079_r.jpg&quot; data-caption=&quot;图 1  MIUI Android 系统界面图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;595&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c4428dc7c80aea208ba650abba0f8079&quot; data-watermark-src=&quot;v2-acb05a51e9c3630558f4a6880d1ca2c1&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;目前 TiDB 主要应用在：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;小米手机桌面负一屏的快递业务&lt;/li&gt;&lt;li&gt;商业广告交易平台素材抽审平台&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;这两个业务场景每天读写量均达到上亿级，上线之后，整个服务稳定运行；接下来我们计划逐步上线更多的业务场景，小米阅读目前正在积极的针对订单系统做迁移测试。&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;TiDB 特点&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;TiDB 结合了传统的 RDBMS 和 NoSQL 的最佳特性，兼容 MySQL 协议，支持无限的水平扩展，具备强一致性和高可用性。&lt;/p&gt;&lt;p&gt;具有如下的特性：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;高度兼容 MySQL，大多数情况下无需修改代码即可从 MySQL 轻松迁移至 TiDB，即使已经分库分表的 MySQL 集群亦可通过 TiDB 提供的迁移工具进行实时迁移。&lt;/li&gt;&lt;li&gt;水平弹性扩展，通过简单地增加新节点即可实现 TiDB 的水平扩展，按需扩展吞吐或存储，轻松应对高并发、海量数据场景。&lt;/li&gt;&lt;li&gt;分布式事务，TiDB 100% 支持标准的 ACID 事务。&lt;/li&gt;&lt;li&gt;真正金融级高可用，相比于传统主从（M-S）复制方案，基于 Raft 的多数派选举协议可以提供金融级的 100% 数据强一致性保证，且在不丢失大多数副本的前提下，可以实现故障的自动恢复（auto-failover），无需人工介入。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;TiDB 的架构及原理官网有详细介绍（&lt;a href=&quot;https://pingcap.com/&quot;&gt;https://pingcap.com/&lt;/a&gt;），这里不再赘述。&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-2a500e631bf3062d721ce5cd2cd2c817_r.jpg&quot; data-caption=&quot;图 2  TiDB 基础架构图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;743&quot; data-rawheight=&quot;381&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-2a500e631bf3062d721ce5cd2cd2c817&quot; data-watermark-src=&quot;v2-8169cc4855b1c15dc1d79afdb93854a4&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;br&gt;&lt;b&gt;背景&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;跟绝大数互联网公司一样，小米关系型存储数据库首选 MySQL，单机 2.6T 磁盘。由于小米手机销量的快速上升和 MIUI 负一屏用户量的快速增加，导致负一屏快递业务数据的数据量增长非常快，&lt;b&gt;每天的读写量级均分别达到上亿级别，数据快速增长导致单机出现瓶颈，比如性能明显下降、可用存储空间不断降低、大表 DDL 无法执行等，不得不面临数据库扩展的问题。&lt;/b&gt;比如，我们有一个业务场景（智能终端），需要定时从几千万级的智能终端高频的向数据库写入各种监控及采集数据，MySQL 基于 Binlog 的单线程复制模式，很容易造成从库延迟，并且堆积越来越严重。&lt;/p&gt;&lt;p&gt;&lt;b&gt;对于 MySQL 来讲，最直接的方案就是采用分库分表的水平扩展方式，综合来看并不是最优的方案，比如对于业务来讲，对业务代码的侵入性较大；对于 DBA 来讲提升管理成本，后续需要不断的拆分扩容，即使有中间件也有一定的局限性。&lt;/b&gt;同样是上面的智能终端业务场景，从业务需求看，需要从多个业务维度进行查询，并且业务维度可能随时进行扩展，分表的方案基本不能满足业务的需求。&lt;/p&gt;&lt;p&gt;了解到 TiDB 特点之后，DBA 与业务开发沟通确认当前 MySQL 的使用方式，并与 TiDB 的兼容性做了详细对比，经过业务压测之后，根据压测的结果，决定尝试将数据存储从 MySQL 迁移到 TiDB。经过几个月的线上考验，TiDB 的表现达到预期。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;兼容性对比&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;TiDB 支持包括跨行事务、JOIN、子查询在内的绝大多数 MySQL 的语法，可以直接使用 MySQL 客户端连接；对于已用 MySQL 的业务来讲，基本可以无缝切换到 TiDB。&lt;/b&gt;&lt;br&gt;二者简单对比如下几方面：&lt;/p&gt;&lt;p&gt;1. 功能支持&lt;/p&gt;&lt;p&gt;TiDB 尚不支持如下几项：&lt;/p&gt;&lt;ul&gt;&lt;ul&gt;&lt;li&gt;增加、删除主键&lt;/li&gt;&lt;li&gt;非 UTF8 字符集&lt;/li&gt;&lt;li&gt;视图（即将支持）、存储过程、触发器、部分内置函数&lt;/li&gt;&lt;li&gt;Event&lt;/li&gt;&lt;li&gt;全文索引、空间索引&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;2. 默认设置&lt;/p&gt;&lt;p&gt;字符集、排序规则、sql_mode、lower_case_table_names 几项默认值不同。&lt;/p&gt;&lt;p&gt;3. 事务&lt;/p&gt;&lt;ul&gt;&lt;ul&gt;&lt;li&gt;TiDB 使用乐观事务模型，提交后注意检查返回值。&lt;/li&gt;&lt;li&gt;TiDB 限制单个事务大小，保持事务尽可能的小。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;4. TiDB 支持绝大多数的 Online DDL。&lt;/p&gt;&lt;p&gt;5. 另，一些 MySQL 语法在 TiDB 中可以解析通过，不会产生任何作用，例如： create table 语句中 engine、partition 选项都是在解析后忽略。&lt;/p&gt;&lt;p&gt;6. 详细信息可以访问官网：https://pingcap.com/docs-cn/sql/mysql-compatibility/ 。&lt;/p&gt;&lt;h2&gt;&lt;br&gt;&lt;b&gt;压测&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;1. 目的&lt;/b&gt;&lt;/p&gt;&lt;p&gt;通过压测 TiDB 了解一下其 OLTP 性能，看是否满足业务要求。&lt;br&gt;&lt;br&gt;&lt;b&gt;2. 机器配置&lt;/b&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-5d7d319c1480a57e186b79e7bf2cd6ce_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;394&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-5d7d319c1480a57e186b79e7bf2cd6ce&quot; data-watermark-src=&quot;v2-dbdd0864ecae8948d5ef342c9e5d6c78&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;b&gt;3. 压测内容以及结果&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt; 标准 Select 压测&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3919bf10c952092538e4df79ee90caa2_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;322&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-3919bf10c952092538e4df79ee90caa2&quot; data-watermark-src=&quot;v2-1ab2200f75c089f9a9f3cade76c787b4&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8d9269cdf30ac3f6bb7c846d4473a248_r.jpg&quot; data-caption=&quot;图 3  标准 Select 压测图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;864&quot; data-rawheight=&quot;539&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-8d9269cdf30ac3f6bb7c846d4473a248&quot; data-watermark-src=&quot;v2-da683c683c19267c31a5e7fc3f07a732&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;标准 OLTP 压测&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c163a21feec655e19ab64dcb1b07f70a_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;357&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-c163a21feec655e19ab64dcb1b07f70a&quot; data-watermark-src=&quot;v2-a755b0a83bd7ddba182ba80a6ed66877&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-fddec2f978f81acfee3a2d75b2d5ebcb_r.jpg&quot; data-caption=&quot;图 4  标准 OLTP  压测图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;864&quot; data-rawheight=&quot;541&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-fddec2f978f81acfee3a2d75b2d5ebcb&quot; data-watermark-src=&quot;v2-847e24943021fd8f04ec9a6c907ff6a8&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt; 标准 Insert 压测&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-28457ad3a1997ddf3c1f2abb33d16fc4_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;333&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-28457ad3a1997ddf3c1f2abb33d16fc4&quot; data-watermark-src=&quot;v2-36a16a1feb93e863164d2d83eb3c472a&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-686f7602ce614f8e15fdb0ef388a009a_r.jpg&quot; data-caption=&quot;图 5  标准 Insert 压测图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;864&quot; data-rawheight=&quot;539&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-686f7602ce614f8e15fdb0ef388a009a&quot; data-watermark-src=&quot;v2-c687905215da14e1e3976f9a4196762f&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;通过压测发现 TiDB 稳定性上与预期稍有差别，不过压测的 Load 会明显高于生产中的业务 Load，参考低 Threads 时 TiDB 的表现，基本可以满足业务对 DB 的性能要求，决定灰度一部分 MySQL 从库读流量体验一下实际效果。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;迁移过程&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;整个迁移分为 2 大块：数据迁移、流量迁移。&lt;/p&gt;&lt;p&gt;&lt;b&gt;1. 数据迁移&lt;/b&gt;&lt;/p&gt;&lt;p&gt;数据迁移分为增量数据、存量数据两部分。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;对于存量数据，可以使用逻辑备份、导入的方式，除了传统的逻辑导入外，官方还提供一款物理导入的工具 TiDB Lightning。&lt;/li&gt;&lt;li&gt;对于增量备份可以使用 TiDB 提供的 Syncer （新版已经更名为 DM - Data Migration）来保证数据同步。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Syncer 结构如图 6，主要依靠各种 Rule 来实现不同的过滤、合并效果，一个同步源对应一个 Syncer 进程，同步 Sharding 数据时则要多个 Syncer 进程。&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-facfec2bcf6879a829017e0de8b94a38_r.jpg&quot; data-caption=&quot;图 6  Syncer 结构图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;852&quot; data-rawheight=&quot;391&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-facfec2bcf6879a829017e0de8b94a38&quot; data-watermark-src=&quot;v2-fa999818be6d9fcd875987dfa5d194a8&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;使用 Syncer 需要注意：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;做好同步前检查，包含 server-id、log_bin、binlog_format 是否为 ROW、binlog_row_image 是否为 FULL、同步相关用户权限、Binlog 信息等。&lt;/li&gt;&lt;li&gt;使用严格数据检查模式，数据不合法则会停止。数据迁移之前最好针对数据、表结构做检查。&lt;/li&gt;&lt;li&gt;做好监控，TiDB 提供现成的监控方案。&lt;/li&gt;&lt;li&gt;对于已经分片的表同步到同一个 TiDB 集群，要做好预先检查。确认同步场景是否可以用 route-rules 表达，检查分表的唯一键、主键在数据合并后是否冲突等。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;2. 流量迁移&lt;/b&gt;&lt;/p&gt;&lt;p&gt;流量切换到 TiDB 分为两部分：读、写流量迁移。每次切换保证灰度过程，观察周期为 1~2 周，做好回滚措施。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;读流量切换到 TiDB，这个过程中回滚比较简单，灰度无问题，则全量切换。&lt;/li&gt;&lt;li&gt;再将写入切换到 TiDB，需要考虑好数据回滚方案或者采用双写的方式（需要断掉 Syncer） 。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;集群状况&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;1. 配置&lt;/b&gt;&lt;/p&gt;&lt;p&gt;集群配置采用官方推荐的 7 节点配置，3 个 TiDB 节点，3 个 PD 节点，4 个 TiKV 节点，其中每个 TiDB 与 PD 为一组，共用一台物理机。后续随着业务增长或者新业务接入，再按需添加 TiKV 节点。&lt;br&gt;&lt;br&gt;&lt;b&gt;2. 监控&lt;/b&gt;&lt;/p&gt;&lt;p&gt;监控采用了 TiDB 的提供的监控方案，并且也接入了公司开源的 Falcon，目前整个集群运行比较稳定，监控如图 7。      &lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6288a303380a452fb7c0f8716e97d135_r.jpg&quot; data-caption=&quot;图 7  监控图&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;864&quot; data-rawheight=&quot;314&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-6288a303380a452fb7c0f8716e97d135&quot; data-watermark-src=&quot;v2-729e081c26da54cb02349deb61f1c839&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;b&gt;遇到的问题、原因及解决办法&lt;/b&gt;&lt;/h2&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-504342f9d0b3e7799d8dc657180e2083_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;928&quot; data-rawheight=&quot;1638&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-504342f9d0b3e7799d8dc657180e2083&quot; data-watermark-src=&quot;v2-041e4d6ecb39bebe13289f22f6f275b9&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;h2&gt;&lt;br&gt;&lt;b&gt;后续和展望&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;目前 TiDB 在小米主要提供 OLTP 服务，小米手机负一屏快递业务为使用 TiDB 做了一个良好的开端，而后商业广告也有接入，2 个业务均已上线数月，TiDB 的稳定性经受住了考验，带来了很棒的体验，对于后续大体的规划如下：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;MIUI 生态业务中存在大量的类似场景的业务，后续将会与业务开发积极沟通，从 MySQL 迁移到 TiDB。&lt;/li&gt;&lt;li&gt;针对某些业务场景，以资源合理利用为目标，推出归档集群，利用 Syncer 实现数据归档的功能。&lt;/li&gt;&lt;li&gt;数据分析，结合 TiDB 提供的工具，将支持离线、实时数据分析支持。&lt;/li&gt;&lt;li&gt;将 TiDB 的监控融合到小米公司开源的监控系统 Falcon 中。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;致谢&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;非常感谢 TiDB 官方在迁移及业务上线期间给予我们的支持，为每一个 TiDB 人专业的精神、及时负责的响应点赞。&lt;br&gt;&lt;br&gt;&lt;br&gt;更多 TiDB 用户实践：&lt;/p&gt;&lt;a href=&quot;https://www.pingcap.com/cases-cn/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;v2-60ab5bd867c2434d70c957a02a2169e1&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; data-image-size=&quot;ipico&quot;&gt;案例&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2018-12-03-51472404</guid>
-<pubDate>Mon, 03 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
