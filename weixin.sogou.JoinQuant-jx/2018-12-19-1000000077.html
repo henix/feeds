@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>趋势交易能赚钱吗？商品期货动量效应挖掘初探</title>
+</head>
+<body>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1545364125&amp;src=3&amp;ver=1&amp;signature=75muXQD9bN1p*hIb7pgZi1u9rx1qgEZny5KfaDxP0aKhBUU5MV5AjJAbTHUEMFC-bOFj9WER3wlpNiPySVg541zkOFZtNMFGjse1wtnuTMiqF2Y1QjTaMO-1qAyc-dhDqHPM2A0f5K93-*BWk13eRk1JbcexJORUe9KQ*yX2ufE=">原文</a></p>
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    趋势交易能赚钱吗？商品期货动量效应挖掘初探
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                谢政航
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        聚宽量化实验室                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">聚宽量化实验室</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">JoinQuant-jx</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p><img class="" data-backh="124" data-backw="558" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640" data-copyright="0" data-ratio="0.2222222222222222" data-type="gif" data-w="900" src="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640" style="white-space: normal;text-align: center;width: 542.188px;"></p><p><br></p><p>在聚宽社区，有人分享了一套商品期货动量模型，今天借聚宽量化实验室分享该策略给各位读者们：</p><p><br></p><p>作者开发的策略很简单，主要目标在于验证动量策略在商品市场的有效性，为了验证结果可靠，作者测试了很多期货品种（4个金属、6个化工、9个农产品、7个工业品，几乎要把期货全品种都验证了），把资金曲线整合到一起输出成今天的模型。</p><p><br></p><p>因为很多人都怀疑，<strong>期货使用很简单的趋势交易方法，就可以赚钱吗？</strong>也担心我们在模型里放置了很多复杂条件，或者说拟合调优了参数，才能有较好的绩效。</p><p><br></p><p>你们真是股票做太多了，没有去放眼看看其他资产。</p><p><br></p><p>本文收集了一些资料，也做了一个最简单的模型，来证明商品期货市场，确实存在最简单原始的动量（可以理解为惯性）效应，无论是股票还是期货甚至数字货币市场，价格延续上一段时间的方向继续波动，是非常值得探索的一种价格运行方式，也是最容易被数量化的分析方式所捕捉的。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);"><strong><span style="color: rgb(51, 51, 51);"><strong style="white-space: normal;">什么是动量效应</strong></span></strong></h2><p><br></p><p><br></p><p>这种类似惯性方向运动的价格变化现象被称作动量效应。比较专业地说：动量效应是由Jegadeesh和Titman（1993）提出的，是指股票的收益率有延续原来的运动方向的趋势，即过去一段时间收益率较高的股票在未来获得的收益率仍会高于过去收益率较低的股票。</p><p><br></p><p><img class="" data-ratio="0.5114893617021277" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgvz15PsNU2bxzrK7L484nwDXGl0OibPGKKX4t6yfuJLe1ibUtxJo7WvGQ/640?wx_fmt=png" data-type="png" data-w="1175"></p><p style="text-align: center;">美股市场，热门股票和市场指数都呈现很强的动量效应</p><p><br></p><p>我们尝试过通过均线、高低点突破、通道等方式捕捉动量，让模型在动量产生时候入场，在动量衰竭或已经呈现反向运行（反转）时候出场。其中均线表达了最近的平均波动，高低点突破表达了一个价格区间被突破后，交易者是否会一致认为价格继续运行，通道突破更大的含义在乎过滤噪音，在通道内部的动量我们确认为不被信任的动量，必须突破通道的上下轨，我们才开仓交易。</p><p><br></p><p><img class="" data-ratio="0.7422680412371134" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAg8qy8ciapZIMscuPRJ5LMj20sbNpOo2ibTOb8riaicW7gaADMLBicZiaSibTtA/640?wx_fmt=png" data-type="png" data-w="679"></p><p><br></p><p>动量是可以分析观测，并且把握的，而反转虽然也有办法捕捉，并转化成收益，但是它更倾向于随机。随机波动非常可怕，这是我们大部分利润被消耗的核心原因，所以做模型，选品种，选周期一定要尽可能避免随机波动，且建模数据量尽可能大，这样才能准确观测把握动量波动。</p><p><br></p><p>商品期货或者股票等市场上的动量，又主要分为两种，其实是两个不同的观察维度导致的。进一步展开刚才说的动量效应，多位学者研究发现，动量效应主要以两种形式存在。</p><p><br></p><p><img class="" data-ratio="0.5319548872180451" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAghZUs8ic9oUs3d5j6SR9ib7Skkrqa1z4Tv70M4ppQ0l2u6BLG7L99BswQ/640?wx_fmt=png" data-type="png" data-w="1596"></p><p><br></p><p>第一种是时间序列动量效应，指的是前期上涨的品种在未来一段时间有可能继续上涨，前期下跌的品种在未来一段时间有可能继续下跌。</p><p><br></p><p>另一种是横截面动量效应，指的是在同一个时间点上，做多相同时间区间内涨幅较高的品种，做空涨幅较低的品种，可以获得持续稳定的收益。比如每日涨幅前5名，下一日我们继续做多，每日跌幅前5名，下一日继续做空。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);"><strong><span style="color: rgb(51, 51, 51);"><strong style="white-space: normal;">为什么会产生动量</strong></span></strong></h2><p><br></p><p><br></p><p>今天我们主要介绍时间序列动量的最原始验证和捕捉方法。但是在此之前，我想再说一点题外话，为什么会存在动量效应。股票市场上的这些动量效应和反转效应，来源于投资者的心理认知偏差，比如：</p><p><br></p><p><img class="" data-ratio="0.5855472901168969" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgoYtYIVCtoM5Sicy4Cpv2clxE0u4egY3w0bCJuV4Xz8Hx21UtbHicCMcg/640?wx_fmt=png" data-type="png" data-w="941"></p><p><br></p><p><strong>（1）过度自信</strong></p><p>人们在决策中总是倾向于过高估计自己的判断力和决策力，进而容易忽视情况变化造成决策失误。通常人们认为对某事抱有90%的把握时，事实证明成功的概率大约只有70%。</p><p><br></p><p><strong>（2）后悔厌恶</strong></p><p>后悔厌恶指当人们做出错误的决策时，对自己的行为感到痛苦。为了避免痛苦，人们常常做出许多看起来是非理性的行为。</p><p><br></p><p><strong>（3）损失厌恶</strong></p><p>损失厌恶是指人们面对同样数量的收益和损失时，感到损失比收益更加令他们难以忍受。</p><p><br></p><p><strong>（4）锚定效应</strong></p><p>锚定效应是指人们在对某人某事做出决策时，易受第一印象或者第一信息支配，人们在接受决策时，会不自觉地给予最初信息过多的关注。</p><p><br></p><p><strong>（5）从众心理</strong></p><p>当人们发现自己与多数人的判断不一致时，感受到一定的压力，从而改变原来自己正确的判断。</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="1.16" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAggaSiatNg4ugCe84lkkRooxrSvAV5IIgicX8wqGPDTWJR2X09JRxrOR9g/640?wx_fmt=png" data-type="png" data-w="600"></p><p style="text-align: center;">图片来自《大数投资》</p><p><br></p><p>这些心理的认知偏差影响了投资者的决策行为，从而使股票市场对某种趋势反应过度或者反应不足，并最终导致动量效应和反转效应。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);"><strong><span style="color: rgb(51, 51, 51);"><strong style="white-space: normal;">时间序列动量模型原理</strong></span></strong></h2><p><br></p><p><br></p><p>股票或期货价格上涨和下跌，也就是价格运行的幅度，就是动量。动量可以使用百分比度量，也可以使用ATR度量，前者没有价格量纲，后者有价格量纲，可以再除以时间段内均价去量纲。</p><p><br></p><p>根据海通证券研报，Moskowitz, Ooi 和 Pedersen（2012）使用 1985 年至 2009 年间 58 个商品期货品种的数据研究发现，商品期货具有明显的时间序列动量效应，做多前期上涨的品种，做空前期下跌的品种构建的多品种投资组合可以取得持续稳定的超额收益。我们使用我国商品期货品种来验证该策略的有效性。</p><p><br></p><p>策略逻辑：</p><p>做多前 R 个交易日上涨的品种，</p><p>做空前 R 个交易日下跌的品种，</p><p>每隔 H 个交易日调整一次；</p><p><br></p><p>回测时间：2005/01/04 – 2017/01/26；</p><p>品种选取：调仓日选取上市满半年，同时主力合约前 20 个交易日日均成交量大于1 万手的期货品种作为可选标的；</p><p><br></p><p>参数：</p><p>排序期 R 和持有期 H：10 个交易日；</p><p>仓位：50%；</p><p>保证金：20%；</p><p>交易成本：单边万分之三；</p><p>备注：避免起点日期的影响，将初始资金等权分配到 10 个账户中，每个账户初始</p><p>日期相差一个交易日，将 10 个账户里的资金汇总计算每日的净值。</p><p><br></p><p><img class="" data-ratio="0.47030878859857483" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgLdguYQYCdZcn2Iz0u1Hoib6edFviaqw6eKey7lQTgxSXGSpicKfbqKOPw/640?wx_fmt=png" data-type="png" data-w="1263"></p><p><br></p><p>如此简单的策略，可以取得23.58%的年化收益率，收益风险比和calmar 比率分别为1.15和0.96。而同期等权做多策略年化收益率仅为-1.76%，最大回撤高达88%。这说明了静态持有大宗商品肯定是不行的，这不是一种投资思路，大宗商品的价格具有极大的不确定性。</p><p><br></p><p>阅读更多资料我们可知：动量效应打破了有效市场假说，曾被认为是一种市场“异常”，但随后，越来越多的股票市场和其他类型的交易市场（如期货市场）都被证明存在动量效应。且动量因子作为 CTA 量化策略追踪趋势的主要因子之一。</p><p><br></p><p>不知大家是否留意到，该策略是包含参数的，时间序列动量策略涉及的参数主要有回溯期和持有期。回溯期指计算动量因子的时间长度，用R表示，代表建仓日前一天开始向前推R天，计算这R天的平均收益率；持有期指建仓后持有组合的时间长度，用H表示，代表每隔H天建仓，持有组合至下个建仓日。</p><p><br></p><p><img class="" data-ratio="0.8516405135520685" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAg9qtibhd8G7GiaLDUEfnFlOlg0aeFSaISgBQypIF7TlBMaDOI5IJvXgIA/640?wx_fmt=png" data-type="png" data-w="701"></p><p><br></p><p>根据华泰期货研究所的数据，当参数组合在10-5情况下收益最高，也就是说用过去10日衡量动量，再持有5天。这样不断循环向前回测，如果一个品种的动量为正，就做多，为负，就做空。策略不设计任何止损止盈逻辑，因为如果动量发生反转，我们更倾向于考核模型本省的动量分析能力，来发出出场指令。</p><p><br></p><p>在聚宽平台做期货策略相对轻松，因为有一些可用模板和函数，并且保证了模型的可移植性，关键问题还是，用指数回测，然后在当时的真实主力合约上交易，这件事显得非常靠谱，比一些本地化的PC软件全部交易在指数合约上完成要真实很多。</p><p><br></p><p>首先设计模型第一部分，做回测的环境设置，需要注意我们在这里使用了定时运行函数run_weekly，大致来完成每5个交易日的调仓效果，为什么不用计数器每过5天定期调仓呢，之后为大家解读。</p><p><br></p><p>通过market_open函数，我们完成了价格数据的获取，计算了ATR值，计算了动量值g.Momentum，发出了动量大于0还是小于0的信号值g.Signal。</p><p><br></p><p>Trade函数负责下单，因为我们是一次完成多品种下单，所以要用for循环完成，这里的ins是每个期货品种，g.instruments我们最初定义的本次模型所覆盖的品种。这种下单模式，可以理解为，使用TB、MC等软件，讲模型挂载在很多期货合约上，一起运行。</p><p><br></p><p>get_future_code函数是我们自己写出来各品种的合约完整代码，如A8888.XDCE，它可以帮助我们在模型里更便捷调用商品期货品种属性，其实也可以通过聚宽的API完成，但是我已经习惯了直接写成一个dict数据类型。</p><p><br></p><p>在获取交易手数的函数方面，涉及到分配资金这个重要工作，我们撰写了两个版本的函数，分别是ATR倒数头寸，和无ATR等资金版本。</p><p><br></p><p>前者也是ATR波动率倒数头寸（每次使用10%的资金去承担风险），可以理解为是等波动率配置资金：</p><p>cash*0.10/(g.ATR[IndexFuture]future_coef_list[symbol])</p><p>后者完全没有考虑波动率，是等权配置头寸</p><p>合约保证金的表达式是：open_pricefuture_Contract_Size[symbol]g.MarginRate，实际上对于cash，也不应该全部使用，而是应该一个仓位比率，比如cash*0.33，以不超过1/3的仓位去开仓，这里测试阶段，我没有乘以这个比率：</p><p>cash/(open_pricefuture_Contract_Size[symbol]g.MarginRate)</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);"><strong><span style="color: rgb(51, 51, 51);">时间序列动量测试效果</span></strong></h2><p><br></p><p><br></p><p>之前说过，我们使用了定时函数完成回测工作，而没有采用日期计数器模式。因为在测试中我们发现，时间序列动量模型会存在较为严重的路径依赖。</p><p><br></p><p><img class="" data-ratio="0.7164179104477612" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgC9FAegvnD92cfbnzhUGZpnW25I0sqNfGCFyuUibicQN2TYcbfVR3byxQ/640?wx_fmt=png" data-type="png" data-w="1072"></p><p><br></p><p><strong>何为路径依赖？</strong></p><p><br></p><p>比如我们从2017年1月2日和1月16日，两个不同的回测周期运行模型，会得到不一样的结果，在某些品种上差异还挺大。实际上我们发现，上图中下半部分回测只不过是错过了关键的一两次开仓，导致整体收益大幅度落后上图。这属于测试中的重要误差。</p><p><br></p><p>所以解决此问题方法有两种：</p><p><br></p><p>1、将调仓分散：比如T日开始，每隔5天调仓，则在T日，T 1日，T 2日，T 3日，T 4日，每天都运行模型，分配20%资金交易。这样基本上避免了路径依赖问题，但是较为消耗资金，股票类模型尤其如此。</p><p><br></p><p>2、使用定时函数：5日的调仓变为run_weekly驱动的每周调仓，这样还能避免因为3天、7天的节假日造成的某些周日期较少，但是依然间隔周末的问题。因为每隔一个周末，交易者心态都会发生较大变化，市场资金面也是一样，所以理论上的每5日调仓，应该等同于每周调仓。在资金非常充裕的情况下，要分配到周1~周5，资金不足可以不分配。</p><p><br></p><p><img class="" data-ratio="0.288476411446249" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgDbIs8crLfD7Lp1Qiaah0g7syerA2LswwT93Tk2XvWtNPzrVWf7ibMWTA/640?wx_fmt=png" data-type="png" data-w="1293"></p><p><br></p><p>按照研报上推荐的周期，10日计算动量，5日调仓，我们获得此绩效如上图。看起来资金曲线很棒，说明期货动量效应确实显著，但是如果变化调仓期，到半个月（等效10日）效果就不行了（下图），看来还是需要以较快的频度调仓。</p><p><br></p><p>需要注意的是，下图的多组资金曲线的回测，是通过【研究】调用【回测】得到的，具体过程在这里讲过：</p><p><br></p><p>https://www.joinquant.com/post/4351?tag=algorithm</p><p><br></p><p><img class="" data-ratio="0.39963503649635035" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgrWnV0UhF1oZaue1nDOd44Per7icTicJpOq7EM503C8oLzcDEFyVIibgCQ/640?wx_fmt=png" data-type="png" data-w="1096"></p><p>上图为持有期半个月，无ATR的资金曲线</p><p><br></p><p>切换回到5日调仓，以等资金模式测试，变化动量计算周期参数，得到下图。直观感受是，盈利更高了，回撤更小了，在2016年之后模型的盈利保持情况较好：</p><p><br></p><p><img class="" data-ratio="0.3927710843373494" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgys4uCNH42AnXGyZ6JCcRrFuUnc84TQAajgsiceCamlSCIWbRa7YVeOg/640?wx_fmt=png" data-type="png" data-w="1245"></p><p>上图为等资金仓位，5日调仓的效果</p><p><br></p><p>然后我们注释掉等资金模块，打开ATR倒数头寸模块，得到多组测试绩效如下：</p><p><br></p><p><img class="" data-ratio="0.39371980676328505" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgJ08p6usRXxMd85MPRdYzfP5dxAgyt0ia29LYadKJ3I95uYOjtHyq65w/640?wx_fmt=png" data-type="png" data-w="1242"></p><p>上图为ATR倒数仓位，5日调仓的效果</p><p><br></p><p>两组看上去差异不大，实际上，我们通过导出绩效到Excel仔细观察后发现显然ATR组的收益风险比或者说Calmar比率(Calmar Ratio，收益和最大回撤之间的关系)要更好：</p><p><br></p><p><img class="" data-ratio="0.5402504472271914" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAg0SVKPdEEQdibJra8BUdR4bvxn2QpiaIgxI9KOHHmLnbibJnrIetbtNd0A/640?wx_fmt=png" data-type="png" data-w="559"></p><p><br></p><p>以研报和我们实测最佳参数来看，的确是ATR的回撤要更小，在商品期货这种杠杆市场，更小的回撤，意味着我们可以以更大的杠杆比率去交易，所以一定要多关注最大回撤这个绩效指标。在这个很小范围内（5组）的参数变化测试中，等资金组的Calmar比率是3.99，ATR倒数（等波动率）组的Calmar比率是2.66，提升比率达到50%左右。</p><p><br></p><p><img class="" data-ratio="0.2816358024691358" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQSJke8lagYXG1XTCotUrAAgibOFdmLdVddzbIMVva5ORdMv5HNDasGF0C12NWxDIHZQCjQn2eHtcKw/640?wx_fmt=png" data-type="png" data-w="1296"></p><p><br></p><p>今天的对于期货市场时间序列动量策略的分析基本结束，也许你会认为计算规则过于简单，缺乏了很多非线性约束或者过滤条件，但实际上，我们保持了系统的鲁棒性，验证了基本的时间序列动量存在性，通过ATR倒数头寸保持了系统的收益风险比提升。<strong>我们想告诉各位读者，商品期货上，做序列动量交易，来实现中长期的盈利，忍受略长时间（半年左右）的回撤，是绝对没错的。</strong></p><p><br></p><p>接下来一段时间，我们可能将研究重点放在截面动量上，以做多“上涨前N名的期货品种”，做空“下跌前N名的期货品种”，依然是构建一个相当清晰简单的策略，来寻找在日频截面上，全市场是否可以通过做多做空的对冲方式得到较为稳健的收益。时间序列动量也依然有大量可供挖掘的模型，我们会逐步在聚宽平台实现。</p><p><br></p><p>点击“<strong><span style="color: rgb(255, 41, 65);">原文链接</span></strong>”，在这里可以找到本策略对应的完整源码。动量效应真的如此有效？快来试试吧，它可不像小市值因子那样脆弱。</p>
+                </div>
+                <script nonce="432125581" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx427fda.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">谢政航</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        <div class="article_modify_area tips_global_primary article_modify_area_primary">
+              文章已于<span id="js_modify_time"></span>修改            </div>
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          好看<span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title">已推荐到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan427eca.png">
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        </div>
+        <div class="weui-dialog__ft">
+            <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">知道了</a>
+        </div>
+        </div>
+    </div>
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>
+        已推荐到看一看        <a href="javascript:;" id="js_a_like_comment_share">和朋友分享想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看可见        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          分享你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 分享想法到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="写下你的想法" id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://www.joinquant.com/post/15757" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
