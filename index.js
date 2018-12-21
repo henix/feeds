@@ -14,6 +14,7 @@ const feeds = [
 		"factor-investing",
 		"DreamyTalks",
 		"TokyoTradingFloor",
+		"JoinQuant-jx",
 		"worldofboss",
 		"yan-guan-lin-20",
 		"Gaosweco",
