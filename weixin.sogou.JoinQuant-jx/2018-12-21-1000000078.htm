@@ -1,0 +1,296 @@
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    量化知识：何为非线性规模因子？一文解答你的小疑惑
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                刘建涛
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        聚宽量化实验室                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">聚宽量化实验室</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">JoinQuant-jx</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p><img class="" data-backh="124" data-backw="558" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640" data-copyright="0" data-ratio="0.2222222222222222" data-type="gif" data-w="900" src="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640" style="text-align: center;white-space: normal;width: 542.188px;"></p><p><br></p><p>　　Barra风控模型名气很大，其中很多风控因子都非常容易理解，比如规模、账面市值比、Beta等，通过观察这些因子的暴露，我们能够找到影响盈利或产生风险的关键因素。但是唯独一个因子字面意思上显得很容易看懂，<strong>但不理解其含义——非线性规模</strong>。今天通过这篇小文，向大家描述该因子的含义。<br></p><p><br></p><p>　　在著名的资产管理研究机构MSCI明晟发布Barra 第三代中国模型(CNE5)的时候，我们看到其与前两代相比进行了一些创新和改进，基于中国市场的独特性，在模型中加入了<strong>非线性规模因子，即中等规模因子</strong>。</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.5316239316239316" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTQkyTjttBqs3fjVDWYNnzmB78eBJsrI21nldOPPZE8bkQrIL4flTayTyibS7I9RNlr7Jzpk2VkcYg/640?wx_fmt=png" data-type="png" data-w="1170" style=""></p><p><br></p><p>　　“规模”（可以理解为总市值）是区分股票的重要因子，但中国市场传统上来说只分大盘和小盘，对于中盘的定位很模糊，而随着市场丰富程度增加，中盘作为一个群体的表现也日益受到关注。所以为了提高模型的适应能力，新Barra才做出了这样的调整。那么今天我们就了解一下什么是非线性市值因子，以至于大型投资公司对它抱有如此高的关注。</p><p><br></p><p><span style="white-space:pre;">	</span>在介绍非线性市值因子之前，我们要先对<strong>Barra模型有一个简单的了解</strong>。</p><p><br></p><p><span style="white-space:pre;">	</span>对投资相关知识有一定入门了解的读者，一定对马科维茨经典均值-方差模型不陌生，如果是没有了解的新读者，聚宽量化课堂在之前的文章里有相关介绍。马科维茨模型构造了均值方差模型，通过构造协方差矩阵来展示不同资产组合之间的组合风险，以此作为资产配置的参考。</p><p><br></p><p><span style="white-space: pre;">	</span>但事实上我们需要考虑的问题是，作为对每个标的资产构造的协方差矩阵，对截面数据的数据量要求很大，N×N规模的矩阵，至少需要(N^2-N)/2个元素，并且一次估计只是一段时间内各个资产的表现，随着市场风格转换企业内部资产重组等事件发生，至少需要大量时间序列内部界面重复抽样估计，然后通过多个样本去估计实际情况，运算量过于巨大。<br></p><p> </p><p style="text-align: center;"><img class="" data-ratio="0.6181102362204725" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQR3mduRk8iaZgL4aWdBpGN2GzibMBu1uLoHzPJgQCZyCnkG3uia9A73sR4FqVUNJt1ibEMibvLu3s0f1SA/640?wx_fmt=png" data-type="png" data-w="508" style=""></p><p style="text-align: center;">CAPM模型</p><p><br></p><p><span style="white-space:pre;">	</span>而后面出现的CAPM模型（资本资产定价模型：有关这个模型在量化课堂里也有介绍，感兴趣的朋友参详），虽然以市场指数收益率作为基准，估计风险敏感系数beta，但事实上这个模型也是建立在以历史数据估计未来的假设下。其次，模型一个重要假设是全市场参与者都是风险中性，仅仅效用只和收益率直接相关，一定程度上忽略了其他风险。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);"><strong><span style="color: rgb(51, 51, 51);">一、<strong style="white-space: normal;">Barra风险模型</strong></span></strong></h2><p><strong><span style="color: rgb(51, 51, 51);"><strong style="white-space: normal;"><br></strong></span></strong></p><p><strong><span style="color: rgb(51, 51, 51);"><strong style="white-space: normal;"><br></strong></span></strong></p><p>　　所以Barra创作了结构化多因子风险模型。在这个模型里每个自变量都是因子在截面上的风险暴露，也就是风险程度其中x_j是j资产间可观测共同特性，u_j是j资产内部特异风险，r_i是j资产收益率，f_j是风险系数，可以用来衡量不同银子对收益率的贡献程度。</p><p><br></p><p>　　Barra风险模型用<strong>多个因素</strong>来解释风险资产收益，根据无套利原则，得到风险资产均衡收益与多个因素之间存在线性关系。如果用Barra来表述多因子模型投资组合的收益率，是如下形式：</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.27415730337078653" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQR3mduRk8iaZgL4aWdBpGN2GunUImslXjbiaL9ltss0deRKZxnGia4icgKuDKLhI6KF2z9dwXQFuop0Sg/640?wx_fmt=png" data-type="png" data-w="445" style=""></p><p><br></p><p>　　把所有股票（N维）按照持仓权重，在每个因子（K维）上的投资收益（因子暴露 * 因子收益）加起来，然后再加上所有股票（N维）无法被归因的扰动项ui。使用因子作为风险分析工具的原因是：利用多因子模型可以将对N只股票的收益风险分析，转换为对K个因子的收益风险分析。</p><p><br></p><p>　　可观测共同特性也就是市场全部资产所具有的共同特性，比如市值，市盈率，市净率，行业属性等；资产内部特异风险特性，也就是资产内部因素引起，和其他项目与其他资产之间完全无关的风险暴露。当然为了同一量纲并且让某些非数值特性能够被运算，在构建模型的时候要引入哑变量（虚拟变量）并且对连续变量进行标准化。而市值就是传统Barra模型里的一个重要因子，用一个公司的市场价值来衡量风险的一个指标。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);"><strong><span style="color: rgb(51, 51, 51);">二、<strong style="white-space: normal;">非线性规模因子解读</strong></span></strong></h2><p><br></p><p><br></p><p><span style="white-space:pre;">	</span>通过前文，终于我们完成铺垫，可以介绍非线性市值这个新增加的因子了。规模（也称市值）因子大家耳熟能详，只要是基于基本面信息的模型，几乎都会引入规模因子。而非线性规模因子的计算方法是：</p><p><br></p><p>　　<strong>市值因子数据进行3次方，然后正交化处理，</strong>得到的数据就是非线性规模（市值）因子。为什么需要这样做呢？</p><p><br></p><p> </p><p style="text-align: center;"><img class="" data-ratio="1.0114285714285713" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQR3mduRk8iaZgL4aWdBpGN2GMuZ1dMic7YvIqgBibakscjXhv9KEEGngxJze7uc1hcOEevEPlTEzcZLQ/640?wx_fmt=png" data-type="png" data-w="350" style=""></p><p style="text-align: center;">沪深300成分股 <strong>规模</strong><strong>因子 </strong>回归（已按市值排序）<br></p><p><br></p><p><span style="white-space:pre;">	</span>从图中我们可以看出，虽然因为数据密度比较大数据粘粘着，但是图像还是可以清晰得反映出，无论是在以沪深300成分股为样本，规模因子回归直线都有明显的极值偏误，会极大的低估高市值，但在尾部低市值资产反而会被高估，导致直线的估计值始终只能在中部徘徊。</p><p><br></p><p><span style="white-space:pre;">	</span>因而我们引入了非线性规模，对市值进行调整，同时进行正交化降低原规模因子对非线性市值数据得线性相关，防止相关性影响造成因子偏误，由于正交化不会改变因子原有的向量内部序列关系（关于正交，聚宽量化课堂文章也有专题介绍）。从而达到对规模因子由于回归偏误而导致对收益率估计产生的误差的修正目的。</p><p><br></p><p> </p><p style="text-align: center;"><img class="" data-ratio="0.6574585635359116" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQR3mduRk8iaZgL4aWdBpGN2GS8CCckwlgnNFaogSt5ozahcxVNITZ2OkeCHmXMXrxdR80Sz8HWAk3A/640?wx_fmt=png" data-type="png" data-w="362" style=""></p><p style="text-align: center;">沪深300成分股 <strong>非线性<strong style="text-align: center;white-space: normal;">规模</strong>因子 </strong>处理后回归图，回归直线更加真实</p><p><br></p><p>　　对比以上图例很明显得看出，在经过非线性规模方法处理后，新的市值相关因子<strong>不仅尾部偏离直线的成分数量显著减少，并且回归直线的拟合能力也得到了明显的提升，赘尾和扬升都得到了控制</strong>，可以说，在风险因子结构模型中加入非线性规模因子的解释变量对整个模型的解释能力是有提高的。</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.628482972136223" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQR3mduRk8iaZgL4aWdBpGN2GUNfoBrG9IZ3pz71jkhQJ0hGNtLKmeyyPTMQXLdWdbXH48oBwYs84bw/640?wx_fmt=png" data-type="png" data-w="646" style=""></p><p style="text-align: center;">图片来自某股票模型，聚宽绩效归因模块截图</p><p><br></p><p>　　所以该因子的引入，就是为了体现中盘股对于整体组合的风险暴露或者说风险贡献。<strong>如果你的模型在该项因子上暴露显著，一般不用过多担心</strong>，说明你持有的中盘股较多，这总比持有小盘股较多，或者高beta股较多要安全。</p><p><br></p><p>　　点击<span style="color: rgb(255, 41, 65);"><strong>原文链接</strong></span>，进入量化课堂，我们一起补补基础知识。</p>
+                </div>
+                <script nonce="1675319889" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx42a817.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">刘建涛</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          好看<span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已推荐到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42a817.png">
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">推荐</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    <div id="js_unlike_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+        
+        <div class="weui-dialog__bd">
+            已取消，“好看”想法已同步删除        </div>
+        <div class="weui-dialog__ft">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_unlike_know">知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>已推荐到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">和朋友分享想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          分享你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 分享想法到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="分享你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://www.joinquant.com/study" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
