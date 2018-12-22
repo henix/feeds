@@ -5,7 +5,66 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 20 Dec 2018 04:01:46 +0800</lastBuildDate>
+<lastBuildDate>Sat, 22 Dec 2018 13:40:44 +0800</lastBuildDate>
+<item>
+<title>Rust Quiz 解读：Quiz 21</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-21-52986963.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52986963&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz&lt;br&gt;&lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt;&lt;br&gt; - &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt;&lt;br&gt;&lt;br&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz  21:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Trait {
+    fn f(&amp;amp;self);
+}
+
+impl&amp;lt;F: FnOnce() -&amp;gt; bool&amp;gt; Trait for F {
+    fn f(&amp;amp;self) {
+        print!(&quot;1&quot;);
+    }
+}
+
+impl Trait for () {
+    fn f(&amp;amp;self) {
+        print!(&quot;2&quot;);
+    }
+}
+
+fn main() {
+    let x = || { (return) || true; };
+    x().f();
+
+    let x = loop { (break) || true; };
+    x.f();
+
+    let x = || { return (|| true); };
+    x().f();
+
+    let x = loop { break (|| true); };
+    x.f();
+
+    let x = || { return || true; };
+    x().f();
+
+    let x = loop { break || true; };
+    x.f();
+}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 221111&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;return和break的区别&lt;/li&gt;&lt;li&gt;闭包实现和闭包调用&lt;/li&gt;&lt;li&gt;优先级&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Quiz 代码中定义了Trait和一个泛型实现，该泛型实现中包含了限定 &lt;code class=&quot;inline&quot;&gt;&amp;lt;F: FnOnce() -&amp;gt; bool&amp;gt;&lt;/code&gt;，其意义是，只有&lt;code class=&quot;inline&quot;&gt;FnOnce() -&amp;gt; bool&lt;/code&gt;闭包才可以调用&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;函数。&lt;/p&gt;&lt;p&gt;同样为单元类型&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;也实现了Trait。&lt;/p&gt;&lt;p&gt;接下来依次看main函数中的代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let x = || { (return) || true; };
+x().f(&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;绑定右侧，整体是一个闭包，当该闭包调用的时候，其闭包体内部的&lt;code class=&quot;inline&quot;&gt;{(return) || true; }&lt;/code&gt;是一个完整的或操作表达式。不过，&lt;code class=&quot;inline&quot;&gt;(return)&lt;/code&gt;首先会返回&lt;code class=&quot;inline&quot;&gt;（）&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;所以，当调用&lt;code class=&quot;inline&quot;&gt;x()&lt;/code&gt;的时候，会返回&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;。这里需要注意的是，闭包调用语法。由闭包的名称紧跟括号来调用闭包。所以，&lt;code class=&quot;inline&quot;&gt;x().f()&lt;/code&gt;，实际上就是调用闭包的返回值&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;f()&lt;/code&gt;方法，输出结果是&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;let x = loop { (break) || true; };
+ x.f();&lt;/code&gt;&lt;p&gt;这两行代码中的x，是绑定了，从loop循环中通过&lt;code class=&quot;inline&quot;&gt;break&lt;/code&gt;关键字返回的单元值&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;。因为这里是&lt;code class=&quot;inline&quot;&gt;(break)&lt;/code&gt;，通过括号将&lt;code class=&quot;inline&quot;&gt;break&lt;/code&gt;做为了一个独立的表达式，和上面的&lt;code class=&quot;inline&quot;&gt;(return)&lt;/code&gt;类似。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let x = || { return (|| true); };
+x().f();&lt;/code&gt;&lt;p&gt;这里很明显，当闭包x被调用之后，返回的是&lt;code class=&quot;inline&quot;&gt;|| true&lt;/code&gt;这个闭包。这个闭包是实现了&lt;code class=&quot;inline&quot;&gt;FnOnce()-&amp;gt;bool&lt;/code&gt;的闭包，所以&lt;code class=&quot;inline&quot;&gt;x().f()&lt;/code&gt;这里是调用有&lt;code class=&quot;inline&quot;&gt;&amp;lt;F: FnOnce()-&amp;gt;bool&amp;gt;&lt;/code&gt;限定的泛型实现中的&lt;code class=&quot;inline&quot;&gt;f()&lt;/code&gt;方法，所以输出&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let x = loop { break (|| true); };
+x.f();&lt;/code&gt;&lt;p&gt;这里的break和上面的return相似，返回的依然是闭包。同理，输出&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let x = || { return || true; };
+x().f();&lt;/code&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;return&lt;/code&gt;关键字来说，这里不加括号和加括号的效果是一样的，所以，还是返回闭包。输出依然是&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;let x = loop { break || true; };
+ x.f();&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;break&lt;/code&gt;在这里和&lt;code class=&quot;inline&quot;&gt;return&lt;/code&gt;相同，返回闭包，输出为&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;回想Quiz 20中&lt;code class=&quot;inline&quot;&gt;break&lt;/code&gt;的用法，可以把最后这两行代码改一下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;// 修改1
+let x = loop { break { || true }; };
+x.f();
+
+// 修改2
+let x = loop { break { || true } };
+x.f();
+
+// 修改3
+let x = loop { break { || true; } };
+x.f();&lt;/code&gt;&lt;p&gt;对于&lt;code class=&quot;inline&quot;&gt;修改1&lt;/code&gt;来说，&lt;code class=&quot;inline&quot;&gt;break&lt;/code&gt;后面加了&lt;code class=&quot;inline&quot;&gt;{ ... }&lt;/code&gt;块。其实在Rust中，块（block）也是一个表达式。所以，&lt;code class=&quot;inline&quot;&gt;修改1&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;修改2&lt;/code&gt;其实是等价的，在块后面加不加分号类似。最终break会将闭包&lt;code class=&quot;inline&quot;&gt;|| true&lt;/code&gt;返回。&lt;/p&gt;&lt;p&gt;所以，&lt;code class=&quot;inline&quot;&gt;修改1&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;修改2&lt;/code&gt;都是输出&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。但是&lt;code class=&quot;inline&quot;&gt;修改3&lt;/code&gt;的结果就不一样了。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;修改3&lt;/code&gt;中，&lt;code class=&quot;inline&quot;&gt;|| true&lt;/code&gt;后面加了分号&lt;code class=&quot;inline&quot;&gt;;&lt;/code&gt;，对于块表达式来说，它的求值结果必然是&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;。因为在Rust中，加分号的表达式，都会返回&lt;code class=&quot;inline&quot;&gt;()&lt;/code&gt;。所以，&lt;code class=&quot;inline&quot;&gt;修改3&lt;/code&gt;会输出&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/21&quot;&gt;点此查看 Rust Quiz 21&lt;/a&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-21-52986963</guid>
+<pubDate>Fri, 21 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Rust Quiz 解读：Quiz 20</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-19-52772684.html</link>
@@ -322,56 +381,6 @@ fn main() {
 <author>张汉东</author>
 <guid isPermaLink="false">2018-12-14-52418867</guid>
 <pubDate>Fri, 14 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读：Quiz 13</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-12-52189029.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52189029&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz  &lt;br&gt; &lt;br&gt;- &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt; &lt;br&gt;- &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt; &lt;br&gt;&lt;br&gt; 不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。   &lt;/blockquote&gt;&lt;h2&gt;Quiz 13:&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct S;
-
-fn main() {
-    let [x, y] = &amp;amp;mut [S, S];
-    let eq = x as *mut S == y as *mut S;
-    print!(&quot;{}&quot;, eq as u8);
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果：1&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;解读&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;单元结构体&lt;/li&gt;&lt;li&gt;let绑定模式匹配&lt;/li&gt;&lt;li&gt;数组布局&lt;/li&gt;&lt;li&gt;操作符优先级&lt;/li&gt;&lt;li&gt;引用和原生指针的转换&lt;/li&gt;&lt;li&gt;bool类型转换为数字&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Quiz代码中定义了单元结构体&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;。在main函数中，使用let绑定模式匹解构&lt;code class=&quot;inline&quot;&gt;&amp;amp;mut [S, S]&lt;/code&gt;数组，定义了&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;两个变量。&lt;/p&gt;&lt;p&gt;此时&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;的值分别是&lt;code class=&quot;inline&quot;&gt;&amp;amp;mut S&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;amp;mut S&lt;/code&gt;。 数组本身是可变借用，那么其元素自然也是借用，不可能是拥有其所有权。&lt;/p&gt;&lt;p&gt;这里可能有人要怀疑&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;同时对&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;进行可变借用，合法吗？答案是肯定的。因为此时&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;借用的单元结构体&lt;code class=&quot;inline&quot;&gt;S&lt;/code&gt;可看作是两个独立的结构体实例。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;let eq = x as *mut S == y as *mut S;&lt;/code&gt;这行代码等价于&lt;code class=&quot;inline&quot;&gt;let eq = ( (x as *mut S) == (y as *mut S) );&lt;/code&gt;。优先级&lt;code class=&quot;inline&quot;&gt;as&lt;/code&gt; &amp;gt; &lt;code class=&quot;inline&quot;&gt;==&lt;/code&gt; &amp;gt; &lt;code class=&quot;inline&quot;&gt;=&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;本身是可变借用，然后通过&lt;code class=&quot;inline&quot;&gt;as&lt;/code&gt;转换为原生可变指针类型（*mut S），然后对它们进行比较，是看它们的地址是否相同。然后将最后的bool类型结果赋值给&lt;code class=&quot;inline&quot;&gt;eq&lt;/code&gt;。最后通过&lt;code class=&quot;inline&quot;&gt;as&lt;/code&gt;将&lt;code class=&quot;inline&quot;&gt;bool&lt;/code&gt;类型的值转换为&lt;code class=&quot;inline&quot;&gt;u8&lt;/code&gt;。可以预测结果，不是&lt;code class=&quot;inline&quot;&gt;0&lt;/code&gt;就是&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;，其中&lt;code class=&quot;inline&quot;&gt;0&lt;/code&gt;对应于&lt;code class=&quot;inline&quot;&gt;false&lt;/code&gt;， &lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;对应于&lt;code class=&quot;inline&quot;&gt;true&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;虽然分析出了整个过程，但是我无法确定这里到底是输出1还是0。因为我无法确定这里Rust的行为，这两个原生指针地址是否相同。&lt;/p&gt;&lt;p&gt;想知道我为啥有这个疑问吗？可以看看下面的代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct Empty;
-fn main() {
-    let x = &amp;amp;mut Empty;
-    println!(&quot;x {:p}&quot;, x);
-    let y = &amp;amp;mut Empty;
-    println!(&quot;y {:p}&quot;, y);
-}&lt;/code&gt;&lt;p&gt;此代码在Debug模式下编译的结果是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;x 0x7fff5b8c2058
-y 0x7fff5b8c20c0&lt;/code&gt;&lt;p&gt;在Release模式下编译的结果是：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;x 0x7ffe9ae101d8
-y 0x7ffe9ae101d8&lt;/code&gt;&lt;p&gt;所以，你明白了吗？ 在Debug模式下编译，不同的单元结构体实例，地址是不同的，但是在Release模式下，不同的单元结构体实例会被优化成同一个地址。&lt;/p&gt;&lt;p&gt;这就是我为什么不敢确定Quiz代码输出结果的原因。没办法，只能把Quiz代码实际执行一下看看输出结果了。然后发现，不管是Debug模式还是Release模式，Quiz代码的输出结果都是&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。也就是说，&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;的地址是一样的。&lt;/p&gt;&lt;p&gt;这是怎么回事呢？&lt;/p&gt;&lt;p&gt;我注意到Quiz代码和我上面编写代码中定义变量的区别：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// Quiz 代码中
-let [x, y] = &amp;amp;mut [S, S];
-
-// 我自定义代码中
-let x = &amp;amp;mut Empty;
-let y = &amp;amp;mut Empty;&lt;/code&gt;&lt;p&gt;我有所悟： 在Quiz代码中的两个单元结构体实例是放到一个&lt;code class=&quot;inline&quot;&gt;[S; 2]&lt;/code&gt;类型的数组中的，同一个数组的起始地址肯定是一样的。难道Rust把数组的起始地址作为&lt;code class=&quot;inline&quot;&gt;x&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;y&lt;/code&gt;这两个实例的地址？&lt;/p&gt;&lt;p&gt;来看下面代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;struct S;
-struct E;
-
-struct A {
-    s: S,
-    e: E,
-}
-
-fn main() {
-    let (x, y) = &amp;amp;mut (S, E);
-    println!(&quot;{:p}&quot;, x as *mut S);
-    println!(&quot;{:p}&quot;, y as *mut E);
-
-    let A{s, e} = &amp;amp;mut A{s: S, e: E};
-    println!(&quot;{:p}&quot;, s as *mut S);
-    println!(&quot;{:p}&quot;, e as *mut E);
-}&lt;/code&gt;&lt;p&gt;在Debug模式下编译：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0x7ffe370bd7b8
-0x7ffe370bd7b8
-0x7ffe370bd890
-0x7ffe370bd890&lt;/code&gt;&lt;p&gt;在Release模式下编译：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;0x7ffcde64f608
-0x7ffcde64f608
-0x7ffcde64f608
-0x7ffcde64f608&lt;/code&gt;&lt;p&gt;所以，你明白了吗？&lt;/p&gt;&lt;h2&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/13&quot;&gt;点此查看 Rust Quiz 13&lt;/a&gt; &lt;/h2&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-12-52189029</guid>
-<pubDate>Wed, 12 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
