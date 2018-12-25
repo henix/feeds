@@ -5,7 +5,138 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 23 Dec 2018 12:10:39 +0800</lastBuildDate>
+<lastBuildDate>Tue, 25 Dec 2018 21:44:19 +0800</lastBuildDate>
+<item>
+<title>如何为Rust语言做贡献</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-25-53247517.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/53247517&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-818d6382f325e4c72dd189c455c57d0c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;本文为之前我撰写的付费阅读文章之一，今天公开，祝读者们圣诞快乐！&lt;/blockquote&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本文基于macOSX平台，通过对Rust 1.32 Nightly版本中rustdoc的一个ICE问题进行复盘，分析并记录整个Bug修复的过程。主要目的是，通过这个过程，来学习如何给Rust做贡献。&lt;/p&gt;&lt;p&gt;（阅读时间：17m）&lt;/p&gt;&lt;ol&gt;&lt;li&gt;缘起&lt;/li&gt;&lt;li&gt;Rust本地调试环境准备&lt;/li&gt;&lt;li&gt;ICE问题分析&lt;/li&gt;&lt;li&gt;调试代码&lt;/li&gt;&lt;li&gt;提交PR说明&lt;/li&gt;&lt;/ol&gt;&lt;hr&gt;&lt;h2&gt;缘起：&lt;/h2&gt;&lt;p&gt;在几周前，我发现了一个rustdoc的&lt;a href=&quot;https://github.com/rust-lang/rust/issues/55723&quot;&gt;ICE(issue 55723)&lt;/a&gt;，提交给了官方。但是官方指派修复此Bug的开发者QuietMisdreavus 难以复现该Bug。我本来以为Bug是因为多字节字符（比如全角符号之类）引起的，然而经过我仔细的测试，发现问题的根源在于尾随的「空格」。 &lt;/p&gt;&lt;p&gt;引起ICE错误的代码示例：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;/// ## For example:
+///  
+///  （arr[i]）
+pub fn test_ice() {
+    unimplemented!();
+}&lt;/code&gt;&lt;p&gt;&lt;i&gt;注意：问题出自于上面代码中文档注释第二行，在&lt;code class=&quot;inline&quot;&gt;///&lt;/code&gt;后面实际上还有两个尾随空格。&lt;/i&gt; &lt;/p&gt;&lt;p&gt;也可以通过&lt;a href=&quot;https://github.com/ZhangHanDong/test_ice&quot;&gt;GitHub - ZhangHanDong/test_ice: reproduce ice:   issues-55723(https://github.com/rust-lang/rust/issues/55723)&lt;/a&gt;来查看此ICE复现的代码。&lt;/p&gt;&lt;p&gt;起初，QuietMisdreavus 看了test_ice，依旧没有发现问题。过了两天，他顿悟了，原来是因为他用的代码编辑器是Vim。当他往Vim里复制粘贴我的测试代码时，Vim可能会对代码中尾随空格做了某种处理，以至于他还是难以复现该Bug。（我终于找到一个黑Vim的理由了吗？）&lt;/p&gt;&lt;p&gt;在他纳闷的同时，我也开始对这个Bug进行了调查。最初，根据错误提示，我定位了到 &lt;a href=&quot;https://github.com/rust-lang/rust/blob/master/src/libsyntax/source_map.rs#L827&quot;&gt;libsyntax/source_map.rs#L827&lt;/a&gt;的&lt;code class=&quot;inline&quot;&gt;bytepos_to_file_charpos&lt;/code&gt;方法。具体报错的代码是该方法中第842行代码，如下所示：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;// We should never see a byte position in the middle of a
+// character
+assert!(bpos.to_u32() &amp;gt;= mbc.pos.to_u32() + mbc.bytes as u32);&lt;/code&gt;&lt;p&gt;Libsyntax/source_map，是Rust用来跟踪（track）单个crate中所有文件的源码位置（字节位置），并将其存储在&lt;code class=&quot;inline&quot;&gt;Span&lt;/code&gt;中，可以在需要的时候转换为代码的行和列。比如在出错的时候，展示出错代码的行和列。&lt;/p&gt;&lt;p&gt;而这行代码，不管它的上下文，只看注释就应该明白：字节的位置，不可能跑到字符内部。比如，一个字母&lt;code class=&quot;inline&quot;&gt;a&lt;/code&gt;，它就一个字节，位置不可能是半个字节。再比如，一个多字节字符&lt;code class=&quot;inline&quot;&gt;（&lt;/code&gt;，占3个字节，假如它的起始位置是0，那么，source_map在计算源码位置的时候，只能是，&lt;code class=&quot;inline&quot;&gt;0, 1-2-3, 4&lt;/code&gt;，如果位置在&lt;code class=&quot;inline&quot;&gt;[1,2,3]&lt;/code&gt;范围内，则会出错。&lt;/p&gt;&lt;p&gt;而我现在碰到的错，显然就是这个问题：&lt;b&gt;sorce_map在计算源码位置的时候，错误地把位置算到了多字节字符内部。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;知道了错误的原因，但如何修复呢？虽然是这行出错了，但Bug的根源不一定是这里。&lt;/p&gt;&lt;p&gt;于是我下载了Rust源码，准备开始调试。但是在本地编译Rust的时候，遇到了很多编译错误。一一搞定了，但是最后一个编译错误我怎么也搞不定，就这样过了三天，然后发现QuietMisdreavus 已经提交了修复该问题的PR。于是就完美的错过了这次成为Rust贡献者的机会。&lt;/p&gt;&lt;p&gt;但是，我依然没有停下我的步伐。终于，让我发现本地编译Rust失败的原因，恰好那天机器上安装了python，环境变量设置有点问题，也许是覆盖了cc连接器的查找路径。具体修复可以参考此issues：&lt;a href=&quot;https://github.com/rust-lang/rust/issues/55875&quot;&gt;build rust from source fail on macos 10.13.6 · Issue #55875 · rust-lang/rust · GitHub&lt;/a&gt;&lt;/p&gt;&lt;p&gt;终于，Rust编译搞定了。接下来，就让我复盘一下该ICE问题出现的整个过程，与此同时，记录并模拟一个修复Bug的过程（虽然不是我修复的）。主要目的是，通过这个过程，来学习如何给Rust做贡献。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;Rust本地调试环境准备&lt;/h2&gt;&lt;p&gt;首先，在本地创建一个文件夹，并下载Rust源码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ git clone https://github.com/rust-lang/rust.git&lt;/code&gt;&lt;p&gt;下载完以后，进入到Rust源码目录，执行下面命令：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ ./configuration&lt;/code&gt;&lt;p&gt;该命令会执行&lt;code class=&quot;inline&quot;&gt;src/bootstrap/configure.py&lt;/code&gt;脚本，在项目根目录下生成&lt;code class=&quot;inline&quot;&gt;config.toml&lt;/code&gt;文件。所以，在你的本地，也需要安装Python2.7 。&lt;/p&gt;&lt;p&gt;然后需要修改此&lt;code class=&quot;inline&quot;&gt;config.toml&lt;/code&gt;文件。下面给出修改参考：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;compiler-docs = false
+submodules = false
+configure-args = []
+debug = true
+codegen-units = 0
+debug-assertions = true
+debuginfo = true
+debuginfo-lines = true
+default-linker = &quot;cc&quot;
+channel = &quot;nightly&quot;&lt;/code&gt;&lt;p&gt;具体什么意思，可以参考&lt;code class=&quot;inline&quot;&gt;config.toml&lt;/code&gt;文件中的注释。&lt;/p&gt;&lt;p&gt;接下来就可以开始构建Rust了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;使用x.py&lt;/b&gt;&lt;/p&gt;&lt;p&gt;构建Rust使用&lt;code class=&quot;inline&quot;&gt;x.py&lt;/code&gt;是最方便的。它是内置的编排工具，可以用来构建文档、运行测试和编译rustc。这些工作之前是makefile，现在不需要了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;构建Rust的三个阶段&lt;/b&gt;&lt;/p&gt;&lt;p&gt;因为Rust是一个自举的编译器，所以，可以通过旧的编译器来构建最新的版本。所以一般是分阶段来完成：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;Stage0&lt;/b&gt;，下载最新beta版的编译器，这些x.py会自动完成。你也可以通过修改配置文件来使用其他版本的Rust。&lt;/li&gt;&lt;li&gt;&lt;b&gt;Stage1&lt;/b&gt;，使用Stage0阶段下载的beta版编译器来编译从Git仓库里下载的代码。最终生成Stage1版编译器。但是为了对其优化，还需要进行下一阶段。理论上，Stage1和Stage2编译器在功能上是相同的，但实际上还有些细微的差别。&lt;/li&gt;&lt;li&gt;&lt;b&gt;Stage2&lt;/b&gt;，用Stage1版编译器继续对源码进行编译，以便生成Stage2版编译器。&lt;/li&gt;&lt;li&gt;&lt;b&gt;Stage3&lt;/b&gt;，这个阶段是可选的。这是为了对编译器进行健全性检查。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;官方推荐的构建流程如下：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;./x.py check&lt;/code&gt; ，先执行此命令，检查编译器是否可以构建。&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;./x.py build -i --stage 1&lt;/code&gt;，进行Stage 0和Stage 1阶段的构建，最终构建完成Stage1的编译器。&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;./x.py build -i --stage 2  --keep-stage 1&lt;/code&gt;，使用 &lt;code class=&quot;inline&quot;&gt;--keep-stage 1&lt;/code&gt;参数，在Stage1基础上进行增量式构建，最终编译出Stage2的编译器。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;得到这个编译器，在本地就可以使用了。然后将其加到Rustup工具链中。&lt;/p&gt;&lt;p&gt;&lt;b&gt;加入本地Rustup工具链&lt;/b&gt;&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ rustup toolchain link local build/x86_64-apple-darwin/stage2&lt;/code&gt;&lt;p&gt;语法为：&lt;code class=&quot;inline&quot;&gt;rustup toolchain link &amp;lt;name&amp;gt; build/&amp;lt;host-triple&amp;gt;/stage2&lt;/code&gt;，其中，&lt;code class=&quot;inline&quot;&gt;&amp;lt;host-triple&amp;gt;&lt;/code&gt;就是上面示例中的&lt;code class=&quot;inline&quot;&gt;x86_64-apple-darwin&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;到此为止，准备工作就已经做好了。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;ICE问题分析&lt;/h2&gt;&lt;p&gt;前面已经分析得出，问题的缘由是：&lt;b&gt;sorce_map在计算源码位置的时候，错误地把位置算到了多字节字符内部。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;但应该不是这个libsyntax库计算出的问题。官方开发者QuietMisdreavus在我发布的issues中指出，他猜测原因出在「计算Markdown中内部链接」时出现了错误。因为Rust的文档注释支持Markdown功能。为了更好地提升Rust项目中模块之间的相关性，官方提出了&lt;a href=&quot;https://github.com/rust-lang/rfcs/blob/master/text/1946-intra-rustdoc-links.md&quot;&gt;rfcs/1946-intra-rustdoc-links.md at master · rust-lang/rfcs · GitHub&lt;/a&gt;，在Markdown中支持识别内部文件模块之间链接的功能。如果识别正确，则正常生成文档。如果识别错误，则提示一个警告。&lt;/p&gt;&lt;p&gt;比如，上面test_ice的文档注释代码：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;/// ## For example:
+///  
+///  （arr[i]）
+pub fn test_ice() {
+    unimplemented!();
+}&lt;/code&gt;&lt;p&gt;应该生成下面的警告：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;warning: `[i]` cannot be resolved, ignoring it...
+ --&amp;gt; src/test/rustdoc-ui/intra-link-span-ice-55723.rs:3:12
+  |
+3 | /// （array[i]）
+  |             ^ cannot be resolved, ignoring
+  |
+  = note: #[warn(intra_doc_link_resolution_failure)] on by default
+  = help: to escape `[` and `]` characters, just add &#39;\&#39; before them like `\[` or `\]`&lt;/code&gt;&lt;p&gt;因为这里&lt;code class=&quot;inline&quot;&gt;[i]&lt;/code&gt;并不是一个合法的Markdown链接。&lt;/p&gt;&lt;p&gt;但是现在，出现了ICE：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;note: Run with `RUST_BACKTRACE=1` for a backtrace.
+
+error: internal compiler error: unexpected panic
+
+note: the compiler unexpectedly panicked. this is a bug.
+
+note: we would appreciate a bug report: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md#bug-reports&lt;/code&gt;&lt;p&gt;那么现在，问题大概是发生在：&lt;i&gt;Rust识别出文档注释中&lt;code class=&quot;inline&quot;&gt;[i]&lt;/code&gt;不是Markdown链接，然后要抛出警告的时候，计算错了源码位置。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;来看看相关源码：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;在&lt;code class=&quot;inline&quot;&gt;src/librustdoc/passes/collect_intra_doc_links.rs&lt;/code&gt;文件中的&lt;code class=&quot;inline&quot;&gt;resolution_failure&lt;/code&gt;方法，就是用来处理文档注释中链接识别失败后的情况。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;fn resolution_failure( ... ) {
+  // ...
+    if dox.lines().count() == code_dox.lines().count() {
+        let line_offset = dox[..link_range.start].lines().count();
+        // The span starts in the `///`, so we don&#39;t have to account for the leading whitespace
+        let code_dox_len = if line_offset &amp;lt;= 1 {
+                doc_comment_padding
+            } else {
+                // The first `///`
+                doc_comment_padding +
+                    // Each subsequent leading whitespace and `///`
+                    code_dox.lines().skip(1).take(line_offset - 1).fold(0, |sum, line| {
+                   sum + doc_comment_padding + line.len() - line.trim().len()
+             })
+        };
+        // Extract the specific span
+        let sp = sp.from_inner_byte_pos(
+                link_range.start + code_dox_len,
+                link_range.end + code_dox_len,
+        );
+  // ...  
+}&lt;/code&gt;&lt;p&gt;Rust处理文档注释，大致分成两部分来处理：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;文档注释符号&lt;code class=&quot;inline&quot;&gt;///&lt;/code&gt;，独立出来处理，代码里叫做&lt;code class=&quot;inline&quot;&gt;code_dox&lt;/code&gt;&lt;/li&gt;&lt;li&gt;注释的内容，独立处理，代码里叫做&lt;code class=&quot;inline&quot;&gt;dox&lt;/code&gt;。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;如下图所示：&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-9a6bdf4c17e62020f536cb11025c4c7e_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1992&quot; data-rawheight=&quot;1026&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9a6bdf4c17e62020f536cb11025c4c7e&quot; data-watermark-src=&quot;v2-eb554a8a6e6c4a1cb60dad49d2b64179&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这样分开处理是理所当然的，因为&lt;code class=&quot;inline&quot;&gt;///&lt;/code&gt;并不是Markdown内容。&lt;/p&gt;&lt;p&gt;在&lt;code class=&quot;inline&quot;&gt;resolution_failure&lt;/code&gt;方法中，需要计算非法链接出现的位置。那怎么计算呢？就是把code_dox的总长度计算出来，也就是行数乘以3。但为什么上面代码要写那么长呢？因为有可能在&lt;code class=&quot;inline&quot;&gt;///&lt;/code&gt;前面还会有空格。&lt;/p&gt;&lt;p&gt;其中每一行&lt;code class=&quot;inline&quot;&gt;///&lt;/code&gt;就会生成一个&lt;code class=&quot;inline&quot;&gt;span&lt;/code&gt;,最终，在计算位置的时候，通过&lt;code class=&quot;inline&quot;&gt;link_range.start + code_dox_len&lt;/code&gt;来定位非法链接的位置。&lt;/p&gt;&lt;p&gt;那么ICE的问题，极有可能是这个位置，计算到了多字节字符&lt;code class=&quot;inline&quot;&gt;（&lt;/code&gt;或&lt;code class=&quot;inline&quot;&gt;）&lt;/code&gt;的内部。&lt;/p&gt;&lt;p&gt;那么接下来，调试一下代码就能确定是不是这里的问题。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;调试代码&lt;/h2&gt;&lt;p&gt;Rust中提供了&lt;code class=&quot;inline&quot;&gt;debug!&lt;/code&gt;宏来输出Debug信息。所以，修改&lt;code class=&quot;inline&quot;&gt;resolution_failure&lt;/code&gt;方法中的代码，并加上Debug信息：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;if dox.lines().count() == code_dox.lines().count() {
+            let line_offset = dox[..link_range.start].lines().count();
+            debug!(&quot;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;line_offset&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! {:?} &quot;, line_offset);
+            // The span starts in the `///`, so we don&#39;t have to account for the leading whitespace
+            let code_dox_len = if line_offset &amp;lt;= 1 {
+                doc_comment_padding
+            } else {
+                // The first `///`
+                doc_comment_padding +
+                    // Each subsequent leading whitespace and `///`
+                    code_dox.lines().skip(1).take(line_offset - 1).fold(0, |sum, line| {
+                        debug!(&quot;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! {:?}, {:?}, {:?}, {:?}, {:?} &quot;, sum, line, doc_comment_padding, line.len(), line.trim().len());
+                        sum + doc_comment_padding + line.len() - line.trim().len()
+                    })
+            };
+            debug!(&quot;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! code_dox_len: {:?} &quot;, code_dox_len);
+            debug!(&quot;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! link_range.start: {:?} &quot;, link_range.start);
+            debug!(&quot;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! link_range.end: {:?} &quot;, link_range.end);
+            // Extract the specific span
+            let sp = sp.from_inner_byte_pos(
+                link_range.start + code_dox_len,
+                link_range.end + code_dox_len,
+            );&lt;/code&gt;&lt;p&gt;修改完以后，需要重新编译。执行下面的命令：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ ./x.py build -i --stage 2  --keep-stage 1&lt;/code&gt;&lt;p&gt;直接进行第二阶段编译即可。&lt;/p&gt;&lt;p&gt;编译完毕以后，在&lt;code class=&quot;inline&quot;&gt;src/test/rustdoc-ui/&lt;/code&gt;目录（这下面有很多intra-link相关的测试）下加入&lt;code class=&quot;inline&quot;&gt;intra-link-span-ice-55732.rs&lt;/code&gt;文件，并把测试代码加进去：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;/// ## For example:
+///  
+///  （arr[i]）
+pub fn test_ice() {
+    unimplemented!();
+}&lt;/code&gt;&lt;p&gt;然后执行下面命令：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ RUST_LOG=debug rustdoc +local src/test/rustdoc-ui/intra-link-span-ice-55723.rs&lt;/code&gt;&lt;p&gt;该命令会打印出Rustc编译过程中所有的Debug信息，一开始我没想到会有那么多的Debug信息，导致我的终端都无响应了。后来，我又看编译器文档，发现可以指定输出特定模块的Debug信息，就是使用下面命令：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ RUST_LOG=rustdoc::passes rustdoc +local src/test/rustdoc-ui/intra-link-span-ice-55723.rs&lt;/code&gt;&lt;p&gt;因为修改的源码位置是&lt;code class=&quot;inline&quot;&gt;librustdoc/passes/&lt;/code&gt;目录下，所以给&lt;code class=&quot;inline&quot;&gt;RUST_LOG&lt;/code&gt;赋予&lt;code class=&quot;inline&quot;&gt;rustdoc::passes&lt;/code&gt;。注意，使用的是&lt;code class=&quot;inline&quot;&gt;rustdoc&lt;/code&gt;命令，加上&lt;code class=&quot;inline&quot;&gt;local&lt;/code&gt;。local是Rustup配置的本地工具链，也就是Stage2版本的编译器。&lt;/p&gt;&lt;p&gt;然后就可以看到输出的Debug信息，如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links:  dox : ======= &quot; ## For example:\n  \n  （arr[i]）&quot;
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;line_offset&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! 3 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! 0, &quot;///  &quot;, 3, 5, 3 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! 5, &quot;///  （arr[i]）&quot;, 3, 17, 17 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! code_dox_len: 11 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! link_range.start: 29 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! link_range.end: 30 
+thread &#39;&amp;lt;unnamed&amp;gt;&#39; panicked at &#39;assertion failed: bpos.to_u32() &amp;gt;= mbc.pos.to_u32() + mbc.bytes as u32&#39;, libsyntax/source_map.rs:842:17
+note: Run with `RUST_BACKTRACE=1` for a backtrace.
+error: internal compiler error: unexpected panic
+note: the compiler unexpectedly panicked. this is a bug.
+note: we would appreciate a bug report: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md#bug-reports&lt;/code&gt;&lt;p&gt;看得出来，根据上面输出的信息，最终判断出错链接的位置是：&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;11 + 29 = 40&lt;/code&gt;&lt;/p&gt;&lt;p&gt;这个位置是字节的位置，大家可以数一下测试文件中文档字节位置40是在哪里。注意，换行在Rust中会被按一个空白符来计算。注意，这里面的多字节字符是3位。&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-849df13f913622d1d73a88f2bbd56984_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1738&quot; data-rawheight=&quot;700&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-849df13f913622d1d73a88f2bbd56984&quot; data-watermark-src=&quot;v2-f771424c054178bfb338134b333c8c47&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如图，第40个字符正好是&lt;code class=&quot;inline&quot;&gt;]&lt;/code&gt;，那么最终位置恰好识别为&lt;code class=&quot;inline&quot;&gt;41&lt;/code&gt;，就正好落在了多字节字符&lt;code class=&quot;inline&quot;&gt;）&lt;/code&gt;的内部，从而引起错误。&lt;/p&gt;&lt;p&gt;那么这个计算失误是怎么引起来的呢。再回到代码中：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;sum + doc_comment_padding + line.len() - line.trim().len()&lt;/code&gt;&lt;p&gt;关键是这行代码。最后的&lt;code class=&quot;inline&quot;&gt;line.trim()&lt;/code&gt;方法，会将整行字符串头和尾两边的空格或制表符、换行符都去掉。这就导致文档注释第二行后面的空格，被trim给剪掉了。&lt;/p&gt;&lt;p&gt;前面说了，Rust计算位置分为两个部分。第一个部分是code_doc，也就是前面&lt;code class=&quot;inline&quot;&gt;///&lt;/code&gt;的总长度，这个是没问题的。但是把后面的空格个剪掉了，就导致计算markdown文档内容（Dox）的位置，少了两格。&lt;/p&gt;&lt;p&gt;这就是问题的原因了。&lt;/p&gt;&lt;p&gt;所以修复起来也比较简单，就是把trim方法，改成trim_start，只剪掉前面的空格，这样操作，不会影响Dox的计算，也不会影响到code_dox的计算。但官方开发者QuietMisdreavus说可能会有其他问题，这个就等他发新的issues吧。&lt;/p&gt;&lt;p&gt;现在把trim方法改成trim_start方法，然后重新编译Stage2版编译器，并执行rustdoc命令&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ ./x.py build -i --stage 2  --keep-stage 1 
+$  RUST_LOG=rustdoc::passes rustdoc +local src/test/rustdoc-ui/intra-link-span-ice-55723.rs&lt;/code&gt;&lt;p&gt;输出结果如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links:  dox : ======= &quot; ## For example:\n  \n  （arr[i]）&quot;
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;line_offset&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! 3 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! 0, &quot;///  &quot;, 3, 5, 5 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! 3, &quot;///  （arr[i]）&quot;, 3, 17, 17 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! code_dox_len: 9 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! link_range.start: 29 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;handong!!! link_range.end: 30 
+*warning: `[i]` cannot be resolved, ignoring it...*
+ *--&amp;gt;*src/test/rustdoc-ui/intra-link-span-ice-55723.rs:3:11
+  *|*
+*3* *|*///  （arr[i]）
+  *|*           *^* *cannot be resolved, ignoring*
+  *|*
+  *= note*: #[warn(intra_doc_link_resolution_failure)] on by default
+  *= help*: to escape `[` and `]` characters, just add &#39;\&#39; before them like `\[` or `\]`&lt;/code&gt;&lt;p&gt;这个结果就很正常了。当然你也可以使用&lt;code class=&quot;inline&quot;&gt;#![deny(intra_doc_link_resolution_failure)]&lt;/code&gt;属性来消除上面的Warning。&lt;/p&gt;&lt;p&gt;最后，创建&lt;code class=&quot;inline&quot;&gt;src/test/rustdoc-ui/intra-link-span-ice-55723.stderr&lt;/code&gt;文件，将上面的warning信息加进去。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;提交PR说明&lt;/h2&gt;&lt;p&gt;在修改完Bug之后，就可以提交PR了。但是在提交PR之前，还需要运行一遍整个项目的测试，避免引入新的问题。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;$ python x.py test --stage 1&lt;/code&gt;&lt;p&gt;通过运行此测试，发现代码违反了一些代码风格：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;./x.py test --stage 1
+*Finished* dev [unoptimized] target(s) in 0.29s                                                                                  
+Building stage0 tool tidy (x86_64-apple-darwin)                                                                                    
+*Compiling* syn v0.14.9                                                                                                           
+*Compiling* serde_derive v1.0.75                                                                                                  
+*Compiling* tidy v0.1.0 (/Users/songxinxin/work/projects/rust/rust/src/tools/tidy)                                                
+*Finished* release [optimized] target(s) in 31.45s                                                                               
+tidy check
+tidy error: /Users/Name/work/projects/rust/rust/src/librustdoc/passes/collect_intra_doc_links.rs:584: line longer than 100 chars
+tidy error: /Users/Name/work/projects/rust/rust/src/test/rustdoc-ui/intra-link-span-ice-55723.rs:2: trailing whitespace
+some tidy checks failed
+
+
+command did not execute successfully: &quot;/Users/Name/work/projects/rust/rust/build/x86_64-apple-darwin/stage0-tools-bin/tidy&quot; &quot;/Users/Name/work/projects/rust/rust/src&quot; &quot;/Users/Name/work/projects/rust/rust/build/x86_64-apple-darwin/stage0/bin/cargo&quot; &quot;--no-vendor&quot; &quot;--quiet&quot;
+expected success, got: exit code: 1&lt;/code&gt;&lt;p&gt;这个错误告诉我，&lt;code class=&quot;inline&quot;&gt;librustdoc/passes/collect_intra_doc_links.rs&lt;/code&gt;代码中第584行超过了100个字符。这个是通过&lt;code class=&quot;inline&quot;&gt;tidy&lt;/code&gt;这个工具发现的。除此之外，测试代码里还有两个尾随空格检测失败了。&lt;/p&gt;&lt;p&gt;584行是我加的测试代码，现在将其删除。而测试文件中的尾随空格，是故意加的，删掉就起不到测试效果了，所以将其保留。&lt;/p&gt;&lt;p&gt;使用GitHub标准&lt;code class=&quot;inline&quot;&gt;fork+pull&lt;/code&gt;的方式来提交PR，在PR提交之后，使用下面格式的回复来调用机器人。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;r? @steveklabnik&lt;/code&gt;&lt;p&gt;这样一来，@rust-highfive机器人就会将此PR指派给@steveklabnik来进行review。&lt;/p&gt;&lt;p&gt;在Review之后，就会继续使用机器人来对PR进行下一步审核。格式如下：&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;@bors: r+ 38fe8d2&lt;/code&gt;&lt;p&gt;@bors机器人就会来处理此PR，将此PR放到&lt;a href=&quot;https://buildbot2.rust-lang.org/homu/queue/rust&quot;&gt;Merge队列 - rust&lt;/a&gt;，然后运行一遍所有的测试。如果工作正常，@bors就会merge你的代码并关闭该PR。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;小结&lt;/h2&gt;&lt;p&gt;通过梳理ICE问题分析和Bug修复的整个过程，明白了如何在本地搭建Rust调试环境，以及如何通过Debug信息来定位问题、分析问题，最终提交PR的整个流程。如果你想为Rust做点贡献，完全可以参考这个流程。&lt;/p&gt;&lt;hr&gt;&lt;p&gt;更多的细节内容，请参考以下资料：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://rust-lang.github.io/rustc-guide/how-to-build-and-run.html&quot;&gt;How to build the compiler and run what you built - Guide to Rustc Development&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md&quot;&gt;https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md&lt;/a&gt; &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2018-12-25-53247517</guid>
+<pubDate>Tue, 25 Dec 2018 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>「Rust每日新闻」本周精选 • 第二十五期</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-23-53059897.html</link>
@@ -309,47 +440,6 @@ cargo crev verify # verify again
 cargo crev help # see what other things you can do&lt;/code&gt;&lt;p&gt;其中id是可以通过&lt;a href=&quot;https://gitter.im/dpc/crev&quot;&gt;crev gitter channel&lt;/a&gt;来共享给大家的，形成信任网络。然后可以通过 &lt;code class=&quot;inline&quot;&gt;cargo crev trust &amp;lt;id&amp;gt;&lt;/code&gt;命令从你信任的人那里获取依赖crate。&lt;/p&gt;&lt;p&gt;当然，这世界上没有绝对的安全，但也无法阻碍人们追求它的脚步。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/dpc/crev&quot;&gt;crev&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust非常适合高性能科学计算&lt;/h2&gt;&lt;p&gt;来自某粒子物理实验室的软件性能工程师Hadrien坦言，相比于Cpp，Rust更适合高性能科学计算。并且对Rust能进入这个领域之前需要完善的工作提出了他自己的建议，同时也希望Rust 2019的目标之一可以是「高性能科学计算」。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://gist.github.com/HadrienG2/e9a875bdf98b528594f4e20f8176bb68&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;杭州Rust线下Meetup回放视频&lt;/h2&gt;&lt;p&gt;一共两场分享，视频地址是第二场分享，在列表里也能找到另外一场分享的视频。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.bilibili.com/video/av38044021/?share_source=qq&amp;amp;ts=1544706808&amp;amp;share_medium=iphone&amp;amp;bbid=dd199f5b7049675783521db5317f49ba&quot;&gt;Bilibili&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;使用Rust和WebAssembly进行edge计算&lt;/h2&gt;&lt;p&gt;什么是边缘计算？ 边缘计算将数据的处理、应用程序的运行甚至一些功能服务的实现，由网络中心下放到网络边缘的节点上。属于一种分布式计算。一直以来，公共和企业设施的监测和维护消耗着大量的人力、物力成本；电力、制造等行业数字化转型中对海量数据的实时、智能处理也有着强烈需求。如果用常规模式构建物联网，所有数据都交给云端，那么会带来一系列的问题。边缘计算就是为了解决这个问题。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.fastlylabs.com/&quot;&gt;fastlylabs&lt;/a&gt;公司，推出了一个产品Terrarium（看着像是用webassembly.studio改造的），是一个基于浏览器的多语言编辑和部署平台。据该公司描述，此产品是为了推进边缘计算。Terrarium是基于WebAssembly沙箱而构建。Terrarium可以将几种不同的编程语言编译为WebAssembly，然后将其编译为快速，安全的本地代码，并用于为Web服务提供动力。&lt;/p&gt;&lt;p&gt;本文介绍了如何用Rust和Terrarium进行编写边缘计算服务。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.fastly.com/blog/edge-programming-rust-web-assembly&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「趣味」Rust Raps: Rust 2018 Edition首张单曲发布&lt;/h2&gt;&lt;p&gt;由Rusta Rhymes推出的热门新单曲“Ferris Crab（Rust Raps 2018 Edition）”即将推出首张专辑“Drop for Mic”。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://fitzgeraldnick.com/media/rust-raps.mp3&quot;&gt;在线听&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://fitzgeraldnick.com/2018/12/13/rust-raps.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust开发的一款编程教学游戏预览&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-63e41a23be7999267843b7c023bebf14_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;690&quot; data-rawheight=&quot;389&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-63e41a23be7999267843b7c023bebf14&quot; data-watermark-src=&quot;v2-6f63f7f5f828c1dfd9ec0712aef949fb&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://blog.roboinstruct.us/2018/12/07/looking-good.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;学习资源&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;Rust Quiz解读已更新到Quiz 15&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/time-and-spirit-hut&quot;&gt;去专栏 Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust 异步函数内部转换流程&lt;/h2&gt;&lt;p&gt;本文介绍了Rust内部async/await的内部转换机制，包括generator、状态转换过程等。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://blag.nemo157.com/2018/12/09/inside-rusts-async-transform.html&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;使用Cargo Test来Debug代码&lt;/h2&gt;&lt;p&gt;本文介绍了使用cargo test命令，结合单元测试来调试代码中的问题。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.wihlidal.com/blog/general/2018-12-07-debugging-cargo-test/&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「系列博文」在浏览器中使用WASM Part 1&lt;/h2&gt;&lt;p&gt;本文介绍了如何使用Rust编译wasm，并在浏览器中使用它。同时也包括了wasm的工作机制，值得一看。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://ljcode.org/blog/wasm-part1/&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;在AWS Lambda上面运行Rust&lt;/h2&gt;&lt;p&gt;本文以编写一个独立的crate为例，从代码编写到部署，介绍如何在AWS Lambda上面运行Rust库。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://kellenfujimoto.com/posts/dicers-rust-on-lambda/&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「嵌入式Rust」Cortex-M3 入门指南（一）：体系概述&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52235675&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「视频」如何在Rust/C/C++/.Net中使用SIMD&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=4Gs_CA_vm3o&quot;&gt;youtube&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;用Rust为Kubernetes动态生成Dockerfiles&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://medium.com/docql/dynamically-generating-dockerfiles-for-k8s-d2baf7bfef5a&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「Slides」在Rust中使用C的va_list&lt;/h2&gt;&lt;p&gt;以及，你为什么不应该用它。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://dlrobertson.com/slides/va-list-12-13-2018.html#/&quot;&gt;PPT&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/rust/comments/a6j4hu/using_cs_va_list_in_rust_and_why_you_never_should/&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;项目&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;libui-rs: libui的Rust绑定&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/LeoTindall/libui-rs&quot;&gt;libui-rs&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;gba: 帮助你创建GBA游戏&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/rust-console/gba&quot;&gt;gba&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://rust-console.github.io/gba/&quot;&gt;gba book&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;NASA开源的静态分析工具: ikos&lt;/h2&gt;&lt;p&gt;虽然是为C/C++静态分析实现的工具，但据说也适用于LLVM IR，因此有助于检测Unsafe Rust的代码。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/NASA-SW-VnV/ikos&quot;&gt;ikos&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/rust/comments/a5kyz9/ikos_21_an_open_source_static_analyzer_from_nasa/&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;seed: Rust+WebAssembly 前端框架&lt;/h2&gt;&lt;p&gt;基于wasm-bindgen和js-sys创建。创建应用时需要依赖web-sys。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/David-OConnor/seed&quot;&gt;seed&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;「区块链」comit-rs：Comit协议的Rust实现&lt;/h2&gt;&lt;p&gt;COMIT是一个协议，以链接不同的区块链。以便将区块链生态系统打造地更大，更具有包容性。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/comit-network/comit-rs&quot;&gt;comit-network/comit-rs&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;[WIP] Rust实现的Lua解释器&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/kyren/luster&quot;&gt;luster&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Rust开发安全应用程序指南&lt;/h2&gt;&lt;p&gt;该指南不是Rust语言教程，只是记录Rust开发应用程序过程中可能出现的「坑」，特别是开发一些对安全性要求较高的程序需要注意的地方。该指南还在持续更新中。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/ANSSI-FR/rust-guide&quot;&gt;rust-guide&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/ANSSI-FR/rust-guide/blob/master/src/SUMMARY.md&quot;&gt;Online Read&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;使用Rust配置管理kubernetes&lt;/h2&gt;&lt;p&gt;本文作者使用Rust构建了一个用于管理k8s上运行的微服务声明格式和生命周期的标准化工具shipcat。它封装了k8s的API，目的是为了更加标准化、版本化、权限化、自动化管理k8s。本文阐述了k8s管理中的问题，以及shipcat的解决思路。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/Babylonpartners/shipcat&quot;&gt;shipcat&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://clux.github.io/probes/post/2018-12-15-config-management-in-rust/&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr&gt;&lt;h2&gt;&lt;b&gt;工具与库&lt;/b&gt;&lt;/h2&gt;&lt;h2&gt;spirit教程&lt;/h2&gt;&lt;p&gt;spirit可以帮助开发者更容易地构建Unix守护进程。 文章里介绍了它的使用方法。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://github.com/vorner/spirit&quot;&gt;spirit&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://vorner.github.io/2018/12/09/Spirit-Tutorial.html&quot;&gt;Read More&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;parstream： 基于线程池以流方式计算迭代函数&lt;/h2&gt;&lt;p&gt;并且不会打乱迭代器中元素的顺序。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/newpavlov/parstream&quot;&gt;parstream&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;命令行使用频率跟踪工具fe&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/ccheek21/fe&quot;&gt;fe&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;pom：又一个peg解析器&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/J-F-Liu/pom&quot;&gt;pom&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;支持no_std的Curve25519加密库&lt;/h2&gt;&lt;p&gt;椭圆曲线加密/签名/密钥交换算法Curve25519的 &lt;code class=&quot;inline&quot;&gt;#[no_std]&lt;/code&gt; 版本&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/shekohex/curve25519-rs&quot;&gt;Read More&lt;/a&gt;&lt;/p&gt;</description>
 <author>张汉东</author>
 <guid isPermaLink="false">2018-12-16-52509923</guid>
-<pubDate>Sun, 16 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Rust Quiz 解读：Quiz 15</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2018-12-16-52508991.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52508991&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-27785f4d62d62024a054a78b168015d1_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;来自于RustFest 2018 大会上Alex Crichton 和 David Tolnay两位大佬的轻演讲主题：Rust Quiz&lt;br&gt;-  &lt;a href=&quot;https://github.com/dtolnay/rust-quiz&quot;&gt;rust-quiz源码&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://dtolnay.github.io/rust-quiz/18&quot;&gt;在线练习和解答&lt;/a&gt;&lt;br&gt;-  &lt;a href=&quot;https://www.youtube.com/watch?v=QtDj9R6vtA8&amp;amp;index=6&amp;amp;list=PLgC1L0fKd7UlpVTHVfLYVtudVx8CzbSxW&amp;amp;t=0s&quot;&gt;视频&lt;/a&gt;&lt;br&gt;&lt;br&gt;不得不说，两位大佬出的题非常具有迷惑性，一不留神就落入了陷阱。&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;Quiz 15:&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面这段代码输出什么？&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Trait {
-    fn f(&amp;amp;self);
-}
-
-impl Trait for u32 {
-    fn f(&amp;amp;self) {
-        print!(&quot;1&quot;);
-    }
-}
-
-impl&amp;lt;&#39;a&amp;gt; Trait for &amp;amp;&#39;a i32 {
-    fn f(&amp;amp;self) {
-        print!(&quot;2&quot;);
-    }
-}
-
-fn main() {
-    let x = &amp;amp;0;
-    x.f();
-}&lt;/code&gt;&lt;p&gt;&lt;b&gt;输出结果： 1&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;解读&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;考察要点：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;trait实现&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;的区别&lt;/li&gt;&lt;li&gt;类型推断&lt;/li&gt;&lt;li&gt;自动加引用&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;其实Quiz 15和Quiz 5的考察点是相似的。主要是考察&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt; 和&lt;code class=&quot;inline&quot;&gt;&amp;amp;T&lt;/code&gt;有啥区别呢？虽然这里是&lt;code class=&quot;inline&quot;&gt;u32&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;&amp;amp;’a i32&lt;/code&gt;。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;T， 是一个泛型参数，代表任何一个具体的类型。&lt;/li&gt;&lt;li&gt;&amp;amp;T，实际上等价于&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a T&lt;/code&gt;，代表某个引用类型。注意这里的&lt;code class=&quot;inline&quot;&gt;&#39;a&lt;/code&gt;也是一个泛型参数，并不是指具体的类型。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;main函数中直接使用了&lt;code class=&quot;inline&quot;&gt;let x = &amp;amp;0;&lt;/code&gt;，&lt;code class=&quot;inline&quot;&gt;&amp;amp;0&lt;/code&gt;实际上是一个包含了具体生命周期参数实例的具体类型&lt;code class=&quot;inline&quot;&gt;&amp;amp;&#39;a 0&lt;/code&gt;。所以，&lt;code class=&quot;inline&quot;&gt;&amp;amp;0&lt;/code&gt;实际上会被推断为一个具体的&lt;code class=&quot;inline&quot;&gt;T&lt;/code&gt;类型的实例&lt;code class=&quot;inline&quot;&gt;u32&lt;/code&gt;。 &lt;/p&gt;&lt;p&gt;这和&lt;code class=&quot;inline&quot;&gt;impl Trait for ...&lt;/code&gt;的定义顺序无关。不妨把&lt;code class=&quot;inline&quot;&gt;impl&amp;lt;&#39;a&amp;gt; Trait for &amp;amp;&#39;a i32 { ... }&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;impl Trait for u32 { ... }&lt;/code&gt;的顺序交换，输出结果照样不变。&lt;/p&gt;&lt;p&gt;此时在&lt;code class=&quot;inline&quot;&gt;u32&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;方法实现中&lt;code class=&quot;inline&quot;&gt;self&lt;/code&gt;是&lt;code class=&quot;inline&quot;&gt;&amp;amp;u32&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;所以，&lt;code class=&quot;inline&quot;&gt;x.f()&lt;/code&gt;会输出&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;如果把&lt;code class=&quot;inline&quot;&gt;impl Trait for u32 {}&lt;/code&gt;实现注释掉。则 &lt;code class=&quot;inline&quot;&gt;x.f()&lt;/code&gt;会输出&lt;code class=&quot;inline&quot;&gt;2&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;rust&quot;&gt;trait Trait {
-    fn f(&amp;amp;self);
-}
-
-impl&amp;lt;&#39;a&amp;gt; Trait for &amp;amp;&#39;a i32 {
-    fn f(&amp;amp;self) {
-        print!(&quot;2&quot;);
-    }
-}
-
-fn main() {
-    let x = &amp;amp;0;
-    x.f();
-}&lt;/code&gt;&lt;p&gt;在这个代码中，&lt;code class=&quot;inline&quot;&gt;f&lt;/code&gt;方法中的&lt;code class=&quot;inline&quot;&gt;self&lt;/code&gt;会被自动加引用为&lt;code class=&quot;inline&quot;&gt;&amp;amp;&amp;amp;0&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://dtolnay.github.io/rust-quiz/15&quot;&gt;点此查看 Rust Quiz 15&lt;/a&gt; &lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2018-12-16-52508991</guid>
 <pubDate>Sun, 16 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>

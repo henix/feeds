@@ -1,0 +1,123 @@
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-818d6382f325e4c72dd189c455c57d0c_r.jpg" alt=""></div><blockquote>本文为之前我撰写的付费阅读文章之一，今天公开，祝读者们圣诞快乐！</blockquote><p><br></p><p>本文基于macOSX平台，通过对Rust 1.32 Nightly版本中rustdoc的一个ICE问题进行复盘，分析并记录整个Bug修复的过程。主要目的是，通过这个过程，来学习如何给Rust做贡献。</p><p>（阅读时间：17m）</p><ol><li>缘起</li><li>Rust本地调试环境准备</li><li>ICE问题分析</li><li>调试代码</li><li>提交PR说明</li></ol><hr><h2>缘起：</h2><p>在几周前，我发现了一个rustdoc的<a href="https://github.com/rust-lang/rust/issues/55723">ICE(issue 55723)</a>，提交给了官方。但是官方指派修复此Bug的开发者QuietMisdreavus 难以复现该Bug。我本来以为Bug是因为多字节字符（比如全角符号之类）引起的，然而经过我仔细的测试，发现问题的根源在于尾随的「空格」。 </p><p>引起ICE错误的代码示例：</p><code lang="rust">/// ## For example:
+///  
+///  （arr[i]）
+pub fn test_ice() {
+    unimplemented!();
+}</code><p><i>注意：问题出自于上面代码中文档注释第二行，在<code class="inline">///</code>后面实际上还有两个尾随空格。</i> </p><p>也可以通过<a href="https://github.com/ZhangHanDong/test_ice">GitHub - ZhangHanDong/test_ice: reproduce ice:   issues-55723(https://github.com/rust-lang/rust/issues/55723)</a>来查看此ICE复现的代码。</p><p>起初，QuietMisdreavus 看了test_ice，依旧没有发现问题。过了两天，他顿悟了，原来是因为他用的代码编辑器是Vim。当他往Vim里复制粘贴我的测试代码时，Vim可能会对代码中尾随空格做了某种处理，以至于他还是难以复现该Bug。（我终于找到一个黑Vim的理由了吗？）</p><p>在他纳闷的同时，我也开始对这个Bug进行了调查。最初，根据错误提示，我定位了到 <a href="https://github.com/rust-lang/rust/blob/master/src/libsyntax/source_map.rs#L827">libsyntax/source_map.rs#L827</a>的<code class="inline">bytepos_to_file_charpos</code>方法。具体报错的代码是该方法中第842行代码，如下所示：</p><code lang="rust">// We should never see a byte position in the middle of a
+// character
+assert!(bpos.to_u32() &gt;= mbc.pos.to_u32() + mbc.bytes as u32);</code><p>Libsyntax/source_map，是Rust用来跟踪（track）单个crate中所有文件的源码位置（字节位置），并将其存储在<code class="inline">Span</code>中，可以在需要的时候转换为代码的行和列。比如在出错的时候，展示出错代码的行和列。</p><p>而这行代码，不管它的上下文，只看注释就应该明白：字节的位置，不可能跑到字符内部。比如，一个字母<code class="inline">a</code>，它就一个字节，位置不可能是半个字节。再比如，一个多字节字符<code class="inline">（</code>，占3个字节，假如它的起始位置是0，那么，source_map在计算源码位置的时候，只能是，<code class="inline">0, 1-2-3, 4</code>，如果位置在<code class="inline">[1,2,3]</code>范围内，则会出错。</p><p>而我现在碰到的错，显然就是这个问题：<b>sorce_map在计算源码位置的时候，错误地把位置算到了多字节字符内部。</b></p><p>知道了错误的原因，但如何修复呢？虽然是这行出错了，但Bug的根源不一定是这里。</p><p>于是我下载了Rust源码，准备开始调试。但是在本地编译Rust的时候，遇到了很多编译错误。一一搞定了，但是最后一个编译错误我怎么也搞不定，就这样过了三天，然后发现QuietMisdreavus 已经提交了修复该问题的PR。于是就完美的错过了这次成为Rust贡献者的机会。</p><p>但是，我依然没有停下我的步伐。终于，让我发现本地编译Rust失败的原因，恰好那天机器上安装了python，环境变量设置有点问题，也许是覆盖了cc连接器的查找路径。具体修复可以参考此issues：<a href="https://github.com/rust-lang/rust/issues/55875">build rust from source fail on macos 10.13.6 · Issue #55875 · rust-lang/rust · GitHub</a></p><p>终于，Rust编译搞定了。接下来，就让我复盘一下该ICE问题出现的整个过程，与此同时，记录并模拟一个修复Bug的过程（虽然不是我修复的）。主要目的是，通过这个过程，来学习如何给Rust做贡献。</p><hr><h2>Rust本地调试环境准备</h2><p>首先，在本地创建一个文件夹，并下载Rust源码：</p><code lang="rust">$ git clone https://github.com/rust-lang/rust.git</code><p>下载完以后，进入到Rust源码目录，执行下面命令：</p><code lang="text">$ ./configuration</code><p>该命令会执行<code class="inline">src/bootstrap/configure.py</code>脚本，在项目根目录下生成<code class="inline">config.toml</code>文件。所以，在你的本地，也需要安装Python2.7 。</p><p>然后需要修改此<code class="inline">config.toml</code>文件。下面给出修改参考：</p><code lang="rust">compiler-docs = false
+submodules = false
+configure-args = []
+debug = true
+codegen-units = 0
+debug-assertions = true
+debuginfo = true
+debuginfo-lines = true
+default-linker = "cc"
+channel = "nightly"</code><p>具体什么意思，可以参考<code class="inline">config.toml</code>文件中的注释。</p><p>接下来就可以开始构建Rust了。</p><p><b>使用x.py</b></p><p>构建Rust使用<code class="inline">x.py</code>是最方便的。它是内置的编排工具，可以用来构建文档、运行测试和编译rustc。这些工作之前是makefile，现在不需要了。</p><p><b>构建Rust的三个阶段</b></p><p>因为Rust是一个自举的编译器，所以，可以通过旧的编译器来构建最新的版本。所以一般是分阶段来完成：</p><ol><li><b>Stage0</b>，下载最新beta版的编译器，这些x.py会自动完成。你也可以通过修改配置文件来使用其他版本的Rust。</li><li><b>Stage1</b>，使用Stage0阶段下载的beta版编译器来编译从Git仓库里下载的代码。最终生成Stage1版编译器。但是为了对其优化，还需要进行下一阶段。理论上，Stage1和Stage2编译器在功能上是相同的，但实际上还有些细微的差别。</li><li><b>Stage2</b>，用Stage1版编译器继续对源码进行编译，以便生成Stage2版编译器。</li><li><b>Stage3</b>，这个阶段是可选的。这是为了对编译器进行健全性检查。</li></ol><p>官方推荐的构建流程如下：</p><ol><li><code class="inline">./x.py check</code> ，先执行此命令，检查编译器是否可以构建。</li><li><code class="inline">./x.py build -i --stage 1</code>，进行Stage 0和Stage 1阶段的构建，最终构建完成Stage1的编译器。</li><li><code class="inline">./x.py build -i --stage 2  --keep-stage 1</code>，使用 <code class="inline">--keep-stage 1</code>参数，在Stage1基础上进行增量式构建，最终编译出Stage2的编译器。</li></ol><p>得到这个编译器，在本地就可以使用了。然后将其加到Rustup工具链中。</p><p><b>加入本地Rustup工具链</b></p><code lang="rust">$ rustup toolchain link local build/x86_64-apple-darwin/stage2</code><p>语法为：<code class="inline">rustup toolchain link &lt;name&gt; build/&lt;host-triple&gt;/stage2</code>，其中，<code class="inline">&lt;host-triple&gt;</code>就是上面示例中的<code class="inline">x86_64-apple-darwin</code>。</p><p>到此为止，准备工作就已经做好了。</p><hr><h2>ICE问题分析</h2><p>前面已经分析得出，问题的缘由是：<b>sorce_map在计算源码位置的时候，错误地把位置算到了多字节字符内部。</b></p><p>但应该不是这个libsyntax库计算出的问题。官方开发者QuietMisdreavus在我发布的issues中指出，他猜测原因出在「计算Markdown中内部链接」时出现了错误。因为Rust的文档注释支持Markdown功能。为了更好地提升Rust项目中模块之间的相关性，官方提出了<a href="https://github.com/rust-lang/rfcs/blob/master/text/1946-intra-rustdoc-links.md">rfcs/1946-intra-rustdoc-links.md at master · rust-lang/rfcs · GitHub</a>，在Markdown中支持识别内部文件模块之间链接的功能。如果识别正确，则正常生成文档。如果识别错误，则提示一个警告。</p><p>比如，上面test_ice的文档注释代码：</p><code lang="rust">/// ## For example:
+///  
+///  （arr[i]）
+pub fn test_ice() {
+    unimplemented!();
+}</code><p>应该生成下面的警告：</p><code lang="rust">warning: `[i]` cannot be resolved, ignoring it...
+ --&gt; src/test/rustdoc-ui/intra-link-span-ice-55723.rs:3:12
+  |
+3 | /// （array[i]）
+  |             ^ cannot be resolved, ignoring
+  |
+  = note: #[warn(intra_doc_link_resolution_failure)] on by default
+  = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`</code><p>因为这里<code class="inline">[i]</code>并不是一个合法的Markdown链接。</p><p>但是现在，出现了ICE：</p><code lang="rust">note: Run with `RUST_BACKTRACE=1` for a backtrace.
+
+error: internal compiler error: unexpected panic
+
+note: the compiler unexpectedly panicked. this is a bug.
+
+note: we would appreciate a bug report: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md#bug-reports</code><p>那么现在，问题大概是发生在：<i>Rust识别出文档注释中<code class="inline">[i]</code>不是Markdown链接，然后要抛出警告的时候，计算错了源码位置。</i></p><p><b>来看看相关源码：</b></p><p>在<code class="inline">src/librustdoc/passes/collect_intra_doc_links.rs</code>文件中的<code class="inline">resolution_failure</code>方法，就是用来处理文档注释中链接识别失败后的情况。</p><code lang="rust">fn resolution_failure( ... ) {
+  // ...
+    if dox.lines().count() == code_dox.lines().count() {
+        let line_offset = dox[..link_range.start].lines().count();
+        // The span starts in the `///`, so we don't have to account for the leading whitespace
+        let code_dox_len = if line_offset &lt;= 1 {
+                doc_comment_padding
+            } else {
+                // The first `///`
+                doc_comment_padding +
+                    // Each subsequent leading whitespace and `///`
+                    code_dox.lines().skip(1).take(line_offset - 1).fold(0, |sum, line| {
+                   sum + doc_comment_padding + line.len() - line.trim().len()
+             })
+        };
+        // Extract the specific span
+        let sp = sp.from_inner_byte_pos(
+                link_range.start + code_dox_len,
+                link_range.end + code_dox_len,
+        );
+  // ...  
+}</code><p>Rust处理文档注释，大致分成两部分来处理：</p><ol><li>文档注释符号<code class="inline">///</code>，独立出来处理，代码里叫做<code class="inline">code_dox</code></li><li>注释的内容，独立处理，代码里叫做<code class="inline">dox</code>。</li></ol><p>如下图所示：</p><img src="https://pic1.zhimg.com/v2-9a6bdf4c17e62020f536cb11025c4c7e_r.jpg" data-caption="" data-size="normal" data-rawwidth="1992" data-rawheight="1026" data-watermark="watermark" data-original-src="v2-9a6bdf4c17e62020f536cb11025c4c7e" data-watermark-src="v2-eb554a8a6e6c4a1cb60dad49d2b64179" data-private-watermark-src=""><p><br></p><p>这样分开处理是理所当然的，因为<code class="inline">///</code>并不是Markdown内容。</p><p>在<code class="inline">resolution_failure</code>方法中，需要计算非法链接出现的位置。那怎么计算呢？就是把code_dox的总长度计算出来，也就是行数乘以3。但为什么上面代码要写那么长呢？因为有可能在<code class="inline">///</code>前面还会有空格。</p><p>其中每一行<code class="inline">///</code>就会生成一个<code class="inline">span</code>,最终，在计算位置的时候，通过<code class="inline">link_range.start + code_dox_len</code>来定位非法链接的位置。</p><p>那么ICE的问题，极有可能是这个位置，计算到了多字节字符<code class="inline">（</code>或<code class="inline">）</code>的内部。</p><p>那么接下来，调试一下代码就能确定是不是这里的问题。</p><hr><h2>调试代码</h2><p>Rust中提供了<code class="inline">debug!</code>宏来输出Debug信息。所以，修改<code class="inline">resolution_failure</code>方法中的代码，并加上Debug信息：</p><code lang="rust">if dox.lines().count() == code_dox.lines().count() {
+            let line_offset = dox[..link_range.start].lines().count();
+            debug!("&gt;&gt;&gt;&gt;&gt;line_offset&gt;&gt;&gt;&gt;&gt;handong!!! {:?} ", line_offset);
+            // The span starts in the `///`, so we don't have to account for the leading whitespace
+            let code_dox_len = if line_offset &lt;= 1 {
+                doc_comment_padding
+            } else {
+                // The first `///`
+                doc_comment_padding +
+                    // Each subsequent leading whitespace and `///`
+                    code_dox.lines().skip(1).take(line_offset - 1).fold(0, |sum, line| {
+                        debug!("&gt;&gt;&gt;&gt;&gt;handong!!! {:?}, {:?}, {:?}, {:?}, {:?} ", sum, line, doc_comment_padding, line.len(), line.trim().len());
+                        sum + doc_comment_padding + line.len() - line.trim().len()
+                    })
+            };
+            debug!("&gt;&gt;&gt;&gt;&gt;handong!!! code_dox_len: {:?} ", code_dox_len);
+            debug!("&gt;&gt;&gt;&gt;&gt;handong!!! link_range.start: {:?} ", link_range.start);
+            debug!("&gt;&gt;&gt;&gt;&gt;handong!!! link_range.end: {:?} ", link_range.end);
+            // Extract the specific span
+            let sp = sp.from_inner_byte_pos(
+                link_range.start + code_dox_len,
+                link_range.end + code_dox_len,
+            );</code><p>修改完以后，需要重新编译。执行下面的命令：</p><code lang="rust">$ ./x.py build -i --stage 2  --keep-stage 1</code><p>直接进行第二阶段编译即可。</p><p>编译完毕以后，在<code class="inline">src/test/rustdoc-ui/</code>目录（这下面有很多intra-link相关的测试）下加入<code class="inline">intra-link-span-ice-55732.rs</code>文件，并把测试代码加进去：</p><code lang="rust">/// ## For example:
+///  
+///  （arr[i]）
+pub fn test_ice() {
+    unimplemented!();
+}</code><p>然后执行下面命令：</p><code lang="rust">$ RUST_LOG=debug rustdoc +local src/test/rustdoc-ui/intra-link-span-ice-55723.rs</code><p>该命令会打印出Rustc编译过程中所有的Debug信息，一开始我没想到会有那么多的Debug信息，导致我的终端都无响应了。后来，我又看编译器文档，发现可以指定输出特定模块的Debug信息，就是使用下面命令：</p><code lang="rust">$ RUST_LOG=rustdoc::passes rustdoc +local src/test/rustdoc-ui/intra-link-span-ice-55723.rs</code><p>因为修改的源码位置是<code class="inline">librustdoc/passes/</code>目录下，所以给<code class="inline">RUST_LOG</code>赋予<code class="inline">rustdoc::passes</code>。注意，使用的是<code class="inline">rustdoc</code>命令，加上<code class="inline">local</code>。local是Rustup配置的本地工具链，也就是Stage2版本的编译器。</p><p>然后就可以看到输出的Debug信息，如下：</p><code lang="rust">DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links:  dox : ======= " ## For example:\n  \n  （arr[i]）"
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;line_offset&gt;&gt;&gt;&gt;&gt;handong!!! 3 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! 0, "///  ", 3, 5, 3 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! 5, "///  （arr[i]）", 3, 17, 17 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! code_dox_len: 11 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! link_range.start: 29 
+DEBUG 2018-12-03T11:25:17Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! link_range.end: 30 
+thread '&lt;unnamed&gt;' panicked at 'assertion failed: bpos.to_u32() &gt;= mbc.pos.to_u32() + mbc.bytes as u32', libsyntax/source_map.rs:842:17
+note: Run with `RUST_BACKTRACE=1` for a backtrace.
+error: internal compiler error: unexpected panic
+note: the compiler unexpectedly panicked. this is a bug.
+note: we would appreciate a bug report: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md#bug-reports</code><p>看得出来，根据上面输出的信息，最终判断出错链接的位置是：</p><p><code class="inline">11 + 29 = 40</code></p><p>这个位置是字节的位置，大家可以数一下测试文件中文档字节位置40是在哪里。注意，换行在Rust中会被按一个空白符来计算。注意，这里面的多字节字符是3位。</p><img src="https://pic4.zhimg.com/v2-849df13f913622d1d73a88f2bbd56984_r.jpg" data-caption="" data-size="normal" data-rawwidth="1738" data-rawheight="700" data-watermark="watermark" data-original-src="v2-849df13f913622d1d73a88f2bbd56984" data-watermark-src="v2-f771424c054178bfb338134b333c8c47" data-private-watermark-src=""><p><br></p><p>如图，第40个字符正好是<code class="inline">]</code>，那么最终位置恰好识别为<code class="inline">41</code>，就正好落在了多字节字符<code class="inline">）</code>的内部，从而引起错误。</p><p>那么这个计算失误是怎么引起来的呢。再回到代码中：</p><code lang="rust">sum + doc_comment_padding + line.len() - line.trim().len()</code><p>关键是这行代码。最后的<code class="inline">line.trim()</code>方法，会将整行字符串头和尾两边的空格或制表符、换行符都去掉。这就导致文档注释第二行后面的空格，被trim给剪掉了。</p><p>前面说了，Rust计算位置分为两个部分。第一个部分是code_doc，也就是前面<code class="inline">///</code>的总长度，这个是没问题的。但是把后面的空格个剪掉了，就导致计算markdown文档内容（Dox）的位置，少了两格。</p><p>这就是问题的原因了。</p><p>所以修复起来也比较简单，就是把trim方法，改成trim_start，只剪掉前面的空格，这样操作，不会影响Dox的计算，也不会影响到code_dox的计算。但官方开发者QuietMisdreavus说可能会有其他问题，这个就等他发新的issues吧。</p><p>现在把trim方法改成trim_start方法，然后重新编译Stage2版编译器，并执行rustdoc命令</p><code lang="rust">$ ./x.py build -i --stage 2  --keep-stage 1 
+$  RUST_LOG=rustdoc::passes rustdoc +local src/test/rustdoc-ui/intra-link-span-ice-55723.rs</code><p>输出结果如下：</p><code lang="rust">DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links:  dox : ======= " ## For example:\n  \n  （arr[i]）"
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;line_offset&gt;&gt;&gt;&gt;&gt;handong!!! 3 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! 0, "///  ", 3, 5, 5 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! 3, "///  （arr[i]）", 3, 17, 17 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! code_dox_len: 9 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! link_range.start: 29 
+DEBUG 2018-12-03T11:48:33Z: rustdoc::passes::collect_intra_doc_links: &gt;&gt;&gt;&gt;&gt;handong!!! link_range.end: 30 
+*warning: `[i]` cannot be resolved, ignoring it...*
+ *--&gt;*src/test/rustdoc-ui/intra-link-span-ice-55723.rs:3:11
+  *|*
+*3* *|*///  （arr[i]）
+  *|*           *^* *cannot be resolved, ignoring*
+  *|*
+  *= note*: #[warn(intra_doc_link_resolution_failure)] on by default
+  *= help*: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`</code><p>这个结果就很正常了。当然你也可以使用<code class="inline">#![deny(intra_doc_link_resolution_failure)]</code>属性来消除上面的Warning。</p><p>最后，创建<code class="inline">src/test/rustdoc-ui/intra-link-span-ice-55723.stderr</code>文件，将上面的warning信息加进去。</p><hr><h2>提交PR说明</h2><p>在修改完Bug之后，就可以提交PR了。但是在提交PR之前，还需要运行一遍整个项目的测试，避免引入新的问题。</p><code lang="rust">$ python x.py test --stage 1</code><p>通过运行此测试，发现代码违反了一些代码风格：</p><code lang="rust">./x.py test --stage 1
+*Finished* dev [unoptimized] target(s) in 0.29s                                                                                  
+Building stage0 tool tidy (x86_64-apple-darwin)                                                                                    
+*Compiling* syn v0.14.9                                                                                                           
+*Compiling* serde_derive v1.0.75                                                                                                  
+*Compiling* tidy v0.1.0 (/Users/songxinxin/work/projects/rust/rust/src/tools/tidy)                                                
+*Finished* release [optimized] target(s) in 31.45s                                                                               
+tidy check
+tidy error: /Users/Name/work/projects/rust/rust/src/librustdoc/passes/collect_intra_doc_links.rs:584: line longer than 100 chars
+tidy error: /Users/Name/work/projects/rust/rust/src/test/rustdoc-ui/intra-link-span-ice-55723.rs:2: trailing whitespace
+some tidy checks failed
+
+
+command did not execute successfully: "/Users/Name/work/projects/rust/rust/build/x86_64-apple-darwin/stage0-tools-bin/tidy" "/Users/Name/work/projects/rust/rust/src" "/Users/Name/work/projects/rust/rust/build/x86_64-apple-darwin/stage0/bin/cargo" "--no-vendor" "--quiet"
+expected success, got: exit code: 1</code><p>这个错误告诉我，<code class="inline">librustdoc/passes/collect_intra_doc_links.rs</code>代码中第584行超过了100个字符。这个是通过<code class="inline">tidy</code>这个工具发现的。除此之外，测试代码里还有两个尾随空格检测失败了。</p><p>584行是我加的测试代码，现在将其删除。而测试文件中的尾随空格，是故意加的，删掉就起不到测试效果了，所以将其保留。</p><p>使用GitHub标准<code class="inline">fork+pull</code>的方式来提交PR，在PR提交之后，使用下面格式的回复来调用机器人。</p><code lang="rust">r? @steveklabnik</code><p>这样一来，@rust-highfive机器人就会将此PR指派给@steveklabnik来进行review。</p><p>在Review之后，就会继续使用机器人来对PR进行下一步审核。格式如下：</p><code lang="rust">@bors: r+ 38fe8d2</code><p>@bors机器人就会来处理此PR，将此PR放到<a href="https://buildbot2.rust-lang.org/homu/queue/rust">Merge队列 - rust</a>，然后运行一遍所有的测试。如果工作正常，@bors就会merge你的代码并关闭该PR。</p><hr><h2>小结</h2><p>通过梳理ICE问题分析和Bug修复的整个过程，明白了如何在本地搭建Rust调试环境，以及如何通过Debug信息来定位问题、分析问题，最终提交PR的整个流程。如果你想为Rust做点贡献，完全可以参考这个流程。</p><hr><p>更多的细节内容，请参考以下资料：</p><ul><li><a href="https://rust-lang.github.io/rustc-guide/how-to-build-and-run.html">How to build the compiler and run what you built - Guide to Rustc Development</a></li><li><a href="https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md">https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md</a> </li></ul><p></p>
