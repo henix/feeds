@@ -3,9 +3,9 @@
 <channel>
 <title>impress your cat</title>
 <link>https://henix.github.io/feeds/zhuanlan.impress-your-cat/</link>
-<description>Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
+<description>Erlang, the Bananarama o… Erlang, the Bananarama of languages, is a language out of Sweden that can be used to build web scale, asynchronous, non-blocking, sharded, event driven, message passing, NoSQL, reliable, highly available, high performance, real time, clusterable, bad ass, rock star, get the girls, get the boys, impress your mom, impress your cat applications.</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 12 Feb 2018 16:33:15 +0800</lastBuildDate>
+<lastBuildDate>Sun, 30 Dec 2018 17:16:42 +0800</lastBuildDate>
 <item>
 <title>强烈推荐untrusted</title>
 <link>https://henix.github.io/feeds/zhuanlan.impress-your-cat/2016-07-18-21636039.html</link>
@@ -102,6 +102,51 @@ int(Acc, S) -&amp;gt;
 <pubDate>Wed, 30 Mar 2016 00:00:00 +0800</pubDate>
 </item>
 <item>
+<title>[黑魔法]Python模拟HTML表单提交</title>
+<link>https://henix.github.io/feeds/zhuanlan.impress-your-cat/2016-03-30-20612720.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20612720&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;application/x-www-form-urlencoded这种比较简单就不讨论了。&lt;/p&gt;&lt;p&gt;multipart/form-data就比较麻烦了。搜了一下结果发现要么是远古时期的，要么就是推荐requests。有必要这么麻烦么？Python明明自带MIME库了，为啥就没人推荐用标准库的方法？只能自己来了&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;urllib2&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;email.message&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Form&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;fm&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;fm&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Content-Type&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;multipart/form-data&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_payload&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;_write_headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_generator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# DARK MAGIC followed&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;fm&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;fm&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Content-Disposition&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;form-data&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_payload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;make_request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;form_data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;form&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Form&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;form_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iteritems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;form&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;attach&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;form&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as_string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# THIS IS A SEPARATION BARRIER&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# NEVER LET CODE MOVE ACROSS THIS&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Content-Type&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;form&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Content-Type&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt; 就是这样&lt;/p&gt;</description>
+<author>bhuztez</author>
+<guid isPermaLink="false">2016-03-30-20612720</guid>
+<pubDate>Wed, 30 Mar 2016 00:00:00 +0800</pubDate>
+</item>
+<item>
 <title>向OJ提交编译出来的汇编代码2</title>
 <link>https://henix.github.io/feeds/zhuanlan.impress-your-cat/2016-03-18-20656358.html</link>
 <description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20656358&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
@@ -172,34 +217,6 @@ def make_request(url,form_data):
 <author>bhuztez</author>
 <guid isPermaLink="false">2016-01-21-20521163</guid>
 <pubDate>Thu, 21 Jan 2016 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>向OJ提交编译出来的汇编代码</title>
-<link>https://henix.github.io/feeds/zhuanlan.impress-your-cat/2016-01-12-20494114.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20494114&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt; 比如 x.c 的内容如下&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;asm(&quot;\t.globl main\n&quot;
-&quot;\t.type main,@function\n&quot;
-&quot;main:\n&quot;
-&quot;\tmovl $1,%eax\n&quot;
-&quot;\tret\n&quot;);
-&lt;/code&gt;&lt;p&gt;编译，运行，可以看到退出代码确实是1&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;$ gcc -o x x.c
-$ ./x
-$ echo $?
-1
-$
-&lt;/code&gt;&lt;p&gt;所以，理论上我们只需要把汇编代码，改写成C语言字符串就好了。&lt;/p&gt;&lt;p&gt;用 gcc -S -o- x.c 就能看到编译出来的汇编代码了&lt;/p&gt;&lt;p&gt;可是，发现在某些运行在Windows的OJ(用老版本的MinGW gcc)提交这些汇编代码时，会编译不过去，提示缺少 ___chkstk_ms ，假如关掉这个会导致程序出错。参考&lt;a class=&quot;&quot; data-title=&quot;c++ - What is the purpose of the _chkstk() function?&quot; data-editable=&quot;true&quot; href=&quot;https://stackoverflow.com/questions/8400118/what-is-the-purpose-of-the-chkstk-function&quot;&gt;c++ - What is the purpose of the _chkstk() function?&lt;/a&gt;&lt;/p&gt;&lt;p&gt;假设当前函数栈横跨 B - E ，假如直接跳过C页访问D页，就出错了&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;  A    B    C    D    E
-+----+----+----+----+----
-|    |    |    |    |
-+----+----+----+----+----
-       |         ^     |-&amp;gt;
-&lt;/code&gt;&lt;p&gt;暂时的办法就是直接抄一份现在版本的代码进去，反正也不长&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;&quot; data-title=&quot;mingw-w64/dll_dependency.S at cf136d93e41ffff7f593230e20c5854a68322b5d · mirror/mingw-w64 · GitHub&quot; data-editable=&quot;true&quot; href=&quot;https://github.com/mirror/mingw-w64/blob/cf136d93e41ffff7f593230e20c5854a68322b5d/mingw-w64-libraries/winpthreads/src/libgcc/dll_dependency.S&quot;&gt;mingw-w64/dll_dependency.S at cf136d93e41ffff7f593230e20c5854a68322b5d · mirror/mingw-w64 · GitHub&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那C++怎么办？不同的libstdc++可能有不小的区别。需要关掉一些C++的功能，使得用gcc也能正常链接C++代码就没问题了。也就是使用以下命令编译&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;gcc -fno-rtti -fno-exceptions
-&lt;/code&gt;&lt;p&gt;-----------------------------------------------------------------------&lt;/p&gt;&lt;p&gt;这样生成出来的汇编代码很长，尝试压缩。比如&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;asm(&quot;...movl...&quot;)
-&lt;/code&gt;&lt;p&gt; 可以替换成&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define M &quot;movl&quot;
-asm(&quot;...&quot;M&quot;...&quot;)
-&lt;/code&gt;&lt;p&gt;这么做的好处是不需要考虑escape什么的。 可是压缩率不太行，找了几个文件试了一下，仅仅在10%-15%之间。&lt;/p&gt;</description>
-<author>bhuztez</author>
-<guid isPermaLink="false">2016-01-12-20494114</guid>
-<pubDate>Tue, 12 Jan 2016 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
