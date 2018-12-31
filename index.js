@@ -26,8 +26,9 @@ const feeds = [
 		"c_156910707",
 	]],
 	["", [
-		"Trading_CNY",
+		"FinanEx",
 		"hthgyj",
+		"Trading_CNY",
 		"Chouma2016",
 		"touyanbang88",
 		"sanleima",
