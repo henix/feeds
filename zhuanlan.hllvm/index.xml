@@ -3,9 +3,9 @@
 <channel>
 <title>编程语言与高级语言虚拟机杂谈（仮）</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/</link>
-<description>探讨编程语言的设计与实现</description>
+<description>探讨编程语言的设计与实现 探讨编程语言的设计与实现</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 25 Oct 2018 03:05:08 +0800</lastBuildDate>
+<lastBuildDate>Tue, 01 Jan 2019 06:45:11 +0800</lastBuildDate>
 <item>
 <title>考不上三本也能懂系列——实现C++类型系统</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-10-19-47203297.html</link>
@@ -203,6 +203,15 @@ object defMacros {
 <pubDate>Fri, 06 Jul 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
+<title>又发现JDK的一个bug，这次是：ConcurrentHashMap</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-05-30-36297733.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36297733&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;更新：ConcurrentHashMap的作者Doug Lea确认这是一个逻辑缺陷：&lt;/p&gt;&lt;figure&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c19ea84d64f48f2b9a9efb9590aeccf9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1498&quot; data-rawheight=&quot;320&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1498&quot; data-original=&quot;https://pic2.zhimg.com/v2-c19ea84d64f48f2b9a9efb9590aeccf9_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c19ea84d64f48f2b9a9efb9590aeccf9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1498&quot; data-rawheight=&quot;320&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1498&quot; data-original=&quot;https://pic2.zhimg.com/v2-c19ea84d64f48f2b9a9efb9590aeccf9_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-c19ea84d64f48f2b9a9efb9590aeccf9_b.jpg&quot;&gt;&lt;/figure&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//bugs.openjdk.java.net/browse/JDK-8202422%3FfocusedCommentId%3D14182353%26page%3Dcom.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel%23comment-14182353&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Bug链接&lt;/a&gt;&lt;p&gt;并在他维护的JSR166规范里提交了修改：&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/main/java/util/concurrent/ConcurrentHashMap.java%3Fr1%3D1.310%26r2%3D1.311&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;http://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;gee.cs.oswego.edu/cgi-b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;in/viewcvs.cgi/jsr166/src/main/java/util/concurrent/ConcurrentHashMap.java?r1=1.310&amp;amp;r2=1.311&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;p&gt;分割线以下是我当时给JDK提这个bug后写的：&lt;/p&gt;&lt;p&gt;------------------------------------------------------------------------------------------&lt;/p&gt;&lt;p&gt;JDK的源码都没人仔细看吗？我刚开始看JDK-1.8的ConcurrentHashMap的源码，就发现构造函数有问题，给Java提了bug，果然如此。&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//bugs.openjdk.java.net/browse/JDK-8202422&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;bugs.openjdk.java.net/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;rowse/JDK-8202422&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;p&gt;而且assign给了大神Doug Lea:&lt;/p&gt;&lt;figure&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0a0bd99d31f7c543ef66788dab694bbc_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;534&quot; data-rawheight=&quot;64&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;534&quot; data-original=&quot;https://pic1.zhimg.com/v2-0a0bd99d31f7c543ef66788dab694bbc_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0a0bd99d31f7c543ef66788dab694bbc_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;534&quot; data-rawheight=&quot;64&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;534&quot; data-original=&quot;https://pic1.zhimg.com/v2-0a0bd99d31f7c543ef66788dab694bbc_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-0a0bd99d31f7c543ef66788dab694bbc_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;我在so上也问了这个问题，有人认为这是一个优化技巧，但在逻辑上有一点说不太通，如果增加一个文档说明，把3/2这个计算参数的说明加进去，也勉强可以说得过去。总之，目前来看，确实是有逻辑缺陷的。&lt;/p&gt;&lt;p&gt;SO链接：&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//stackoverflow.com/questions/50083966/bug-parameter-initialcapacity-of-concurrenthashmaps-construct-method&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic1.zhimg.com/v2-2d47e939feed796bcf7483d306661c88_ipico.jpg&quot; data-image-width=&quot;316&quot; data-image-height=&quot;316&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Bug: parameter &#39;initialCapacity&#39; of ConcurrentHashMap&#39;s construct method?&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Old Driver</author>
+<guid isPermaLink="false">2018-05-30-36297733</guid>
+<pubDate>Wed, 30 May 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
 <title>机器学习与编译优化的入门介绍</title>
 <link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-05-15-36884760.html</link>
 <description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36884760&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
@@ -210,6 +219,32 @@ object defMacros {
 <author>「已注销」</author>
 <guid isPermaLink="false">2018-05-15-36884760</guid>
 <pubDate>Tue, 15 May 2018 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>榨干机器硬件性能: JVM＆GPU</title>
+<link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-05-02-36284998.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/36284998&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-657d4c369db90c1bfe3ea9dd06a173e0_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;随着过去几年机器学习 模型训练，以及区块链领域中（币圈和链圈） 对计算力的要求，人们对硬件计算速度的要求越来越高。很自然的，作为传统科学计算领域， 基于GPU的加速也获得了大量的关注：Tensorflow 底层利用GPU来计算；大量的挖矿软件( e.g., ethminer)直接对GPU暴力使用。在16,17年，由于币价格的爆发，对GPU显卡挖矿的需求，直接导致Nvida的股票价格翻了好几倍。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;一　需求&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;然而很遗憾的是，目前GPU显卡API操作，主要是基于两大框架: Opencl 和CUDA。这两种框架实际上需要开发人员对框架底层有大量的了解, 主要体现在： &lt;/p&gt;&lt;ol&gt;&lt;li&gt;自己需要在底层实现kernel函数&lt;/li&gt;&lt;li&gt;自己申请，管理GPU的内存，并负责 Host memory和GPU memory的通讯。&lt;/li&gt;&lt;li&gt;自己去手动优化Kernle 方法的实现，比如基于数据类型的优化。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;由于这种复杂性，GPU的应用(e.g, coin mining, Machine Learning) 对高层语言开发者, 比如作为目前最通用的编程平台JVM(Java或者其他JVM语言),　是一件非常复杂的实现. 开发者只能通过自己写JNI的方式，对GPU做封装，然后自己在上层通过Java调用（这种方式对于绝大部分的程序员来说，可行性不高）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;本文的目的并不真正深入J9对 GPU的具体技术细节，更多的还是从上层的科普角度出发。自己在14,15年，以及后来的17年了解 参与，讨论了部分J9这方面的调研和工作，包括后来15年在pppj也接触了Rice＆IBM Tokyo RD那边的Akihiro和Kazuaki等博士 关于这方面的沟通，理了几遍代码。&lt;/p&gt;&lt;p&gt;首先，需要特别澄清的是:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;JVM Specification 并没有制定JVM要对GPU的支持。这个Feature只是IBM J9 Java8自己一个特有的属性。(Hotspot不清楚，谁知道的喊声？)&lt;/li&gt;&lt;li&gt;J9 Java 8是最早开始支持 Cuda GPU的，至少我当时15年是，今天可能还有其它家的也支持（待考证）。&lt;/li&gt;&lt;li&gt;本文也区分另外一个Java &amp;amp; GPU的开源项目 &lt;b&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/Syncleus/aparapi&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;aparapi&lt;/a&gt;&lt;/b&gt; 。Aparapi是在Java 语言中支持GPU, 但是需要开发者自己操作类似Kernel函数的，开发者需要知道GPu开发理论知识背景。而J9 不需要高层感知底下任何关于CUDA/OPENCL等知识, 它是直接在Runtime这一层去支持的。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;本文阅读需要一些背景：　&lt;/p&gt;&lt;ul&gt;&lt;li&gt;简单知道JVM以及bytecode&lt;/li&gt;&lt;li&gt;简单知道GPU以及CUDA是什么，以及知道为什么会有GPU这玩意&lt;/li&gt;&lt;li&gt;知道JIT 以及编译器是用来干什么的。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;二　大概原理&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;J9 对 GPU 的支持主要是在以下两个方面&lt;/p&gt;&lt;ol&gt;&lt;li&gt;CUDA GPU (或者严格说基于Nvida家的CUDA框架)。&lt;/li&gt;&lt;li&gt;支持仅限于 Java 8中的Stream API.  比如： &lt;/li&gt;&lt;/ol&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;     LongStream.range(low, up).parallel().forEach(i -&amp;gt; &amp;lt;lambda&amp;gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Java8中的 Stream API 是从高层应用中去抽象出来了一个Parallel ，而GPU本身是在物理硬件上实现了 Same Instruction Multiple Data (SIMD)的数据并行。所以，直接通过GPU实现上层并行的逻辑是一个很自然而然的想法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;大概的框架流程图如下：&lt;/p&gt;&lt;figure&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-57abb2c1b1faafd601b0de246072263d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1000&quot; data-rawheight=&quot;245&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1000&quot; data-original=&quot;https://pic2.zhimg.com/v2-57abb2c1b1faafd601b0de246072263d_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-57abb2c1b1faafd601b0de246072263d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1000&quot; data-rawheight=&quot;245&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1000&quot; data-original=&quot;https://pic2.zhimg.com/v2-57abb2c1b1faafd601b0de246072263d_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-57abb2c1b1faafd601b0de246072263d_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;1， J9 Interpreter 解释bytecode指令的时候，检测 并识别出来 Stream API中的foreach (for_loops) 以及lambda closure (这中间涉及到Invokedynamic). &lt;/p&gt;&lt;p&gt;2, JIT compiler (TR in J9) 此时进行优化，将产生两部分代码: Host machine  code, and target GPU code（NVVM IR）。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Host Machine Code (i.e., CPU here)运行的，这部分将包括：在GPU申请内存，GPU-CPU 内存之间的相互复制，调用Nvida的driver 来编译，启动NVVM IR在GPU上的执行。 &lt;/li&gt;&lt;li&gt;NVVM IR: 严格上来说是对应着lambda closure， 这部分最后会有变成Parallel Thread Execution (PTX) 指令，并最终由Nvida编译器生成具体GPU上的指令。综合起来，这块的转化为：　&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;bytecode-&amp;gt; NVVM IR-&amp;gt;PTX instruction-&amp;gt; Nvida GPU  instruction.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;三　优化方案&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;直接利用GPU实现上层Java 语言的并行，能提高上层应用的运效率。这个是在比较理想的状况下能够成立的。&lt;/p&gt;&lt;p&gt;所以，在对lambda closure-&amp;gt; NVVM转化的时候，JVM还需要做一些其他方面的优化。对于计算能力，或者说 对于计算速度的提升，或者说 在考虑榨干 现有硬件的条件下，一般是从两个方面去考虑：内存，指令。&lt;/p&gt;&lt;h2&gt;3.1 内存　（Array aligning）&lt;/h2&gt;&lt;p&gt;通过内存优化Runtime的性能，这本身是一个非常大的范围： 比如通过memory management, GC, cache, locality等种种。细说起来需要一本书来完成。&lt;/p&gt;&lt;p&gt;J9对GPU的支持中，我们说的内存优化是指的是GPU中的array(i.e., device memory)的处理, 而非host memory中的array。在cuda原先memory allocation方法中 。原先的管理方式是直接讲array object (array header and array body) 放入连续的一块地址中(starting from 0)。在新的优化，实际上重新对array object进行placement 使得body从128 的整数位(e.g., index 31) 开始。如下图：&lt;/p&gt;&lt;figure&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f0023fae5dd4e0537cdf0487cf2dc45a_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;483&quot; data-rawheight=&quot;174&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;483&quot; data-original=&quot;https://pic3.zhimg.com/v2-f0023fae5dd4e0537cdf0487cf2dc45a_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f0023fae5dd4e0537cdf0487cf2dc45a_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;483&quot; data-rawheight=&quot;174&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;483&quot; data-original=&quot;https://pic3.zhimg.com/v2-f0023fae5dd4e0537cdf0487cf2dc45a_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-f0023fae5dd4e0537cdf0487cf2dc45a_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;这么做的理由主要是基于两种条件：　a) 内存的操作更多的是对元素中read and write，对array header的操作并没有那么频繁（对比而言）, 所以header的读写的重要性不高; b) 　在128 index对齐后，读或者写可以在一个GPU指令周期内完成，而前者需要两个指令周期(第一个：　０－１２7，　第二个周期: １２８－３８４ )．&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，除了array aligning, J9 也对内存其他方面进行的优化(不细说了)，比如基于jit对内存region 读写进行识别,　对指令进行re-order,　以达到high memory cache hit in GPU, 又或者减少不必要的复制指令 for copying from GPU memory to host memory，有或对 array header elimination. &lt;/p&gt;&lt;h2&gt;3.2 指令优化（Lambda Closure Optimization）&lt;/h2&gt;&lt;p&gt;指令优化属于传统的JIT 编译器方面的内容, 所以传统的JIT  optimization（e.g. , Deadcode elimination, ）基本上都可以拿过来用，毕竟lambda closure里面也是bytecode。这一部分就不需要细讲。&lt;/p&gt;&lt;p&gt;可以拿出来说的是 cross lambda method calling.  Exactly speaking, the caller is inside of lambda while the callee is out of lambda closure. 比如下面这个例子：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;public class Sample{
+    public void myMethod(args...){}
+    public void anotherMethod(){
+        intSteam...forEach( i -&amp;gt;{
+                myMethod(receiver, other-args);
+                obj.anotherMethod();..
+        });
+    }
+    public void anotherMethod(){}
+} 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这个例子中， myMethod 和anotherMethod调用都是跨lambda closure (直白点：myMethod, anotherMethod 都不是closure内的方法). 这就产生一个问题或者中间有两个gap:  &lt;/p&gt;&lt;p&gt;a)  GPU上高速执行的代码调用CPU上低速执行的代码　－_－!!&lt;/p&gt;&lt;p&gt;b)  GPU上还要在runtime 决定　方法的具体实现方法(Java上若无显示标注方法是 invokevirtiual)。 =_=&lt;/p&gt;&lt;p&gt;　为了决定具体某个方法的实现，the receiver of a method call 和　virtual method table 需要在runtime时候从host memory 复制到device memory中去。为了使得程序跑的正确，这两个Gap将会kill GPU的效率。&lt;/p&gt;&lt;p&gt;　　To resolve both Gaps,  J9中JIT 编译器直接进行inline Caching (IC)优化（Akihiro认为是Method Inling). 在VM中，Inline Caching之前是SELF　language中(For detail, please refer Dr Urs Hölzle&#39;s PhD thesis [3])。&lt;/p&gt;&lt;p&gt;　　简单的归纳下就是在生成NVVM的时候，先直接假定 the type of method call receiver是哪一种，然后将被调用的方法实现直接inline到方法调用处。为了生成代码的正确性，在原先call site之前插入一个guard (中文不知道如何翻译？？)进行检测。若检测没有成功，则jmp到原先低速的方法（也就是这个时候GPU停下来去要求CPU执行：看当前receiver具体是哪路神仙(这个GPU也可以做，但是需要先copy from host memory to device memory)，CPU执行callee&#39;s　method）.　所以对于上面lambda内 obj.anotherMethod();　变成了&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;if(receiver is someType){
+    SomeType&#39;s anotherMethod real Implementation and will be executed at GPU kernel.
+}else{
+    invoke receiver.anotherMethod(..)  //execute on CPU
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;四  附注：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;性能benchmark结果可以参考文章4. &lt;/li&gt;&lt;li&gt;本文的图来自4,5&lt;/li&gt;&lt;li&gt;转载请保留原作者的名字&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;【１】Project &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/Syncleus/aparapi&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Syncleus/aparapi&lt;/a&gt;&lt;/p&gt;&lt;p&gt;【２】&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.nvidia.com/cuda/nvvm-ir-spec/index.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;CUDA Toolkit Documentation&lt;/a&gt;&lt;/p&gt;&lt;p&gt;【３】Urs Hölzle, Adaptive Optimization for Self: Reconciling High Performance with Exploratory Programming. Ph.D. thesis, Stanford, CA, USA, 1995, UMI Order No. GAX95-12396.&lt;/p&gt;&lt;p&gt;【４】Kazuaki Ishizaki, Akihiro Hayashi, Gita Koblents and Vivek Sarkar, Compiling and Optimizing Java 8 Programs for GPU Execution/&lt;/p&gt;&lt;p&gt;【５】Akihiro Hayashi, Kazuaki Ishizaki, and Gita Koblents, Machine-Learning-based Performance Heuristics for Runtime CPU/GPU Selection. PPPJ 2015.&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>Shijie XU</author>
+<guid isPermaLink="false">2018-05-02-36284998</guid>
+<pubDate>Wed, 02 May 2018 00:00:00 +0800</pubDate>
 </item>
 <item>
 <title>又发现JDK的一个bug，这次是：ConcurrentHashMap</title>
@@ -241,52 +276,6 @@ object defMacros {
 <author>Shijie XU</author>
 <guid isPermaLink="false">2018-04-30-36284998</guid>
 <pubDate>Mon, 30 Apr 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>[新闻] 大部分Intel hardware intrinsic 将在 .NET Core 2.1 中启用</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-03-26-34960352.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34960352&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;随着 .NET Core 2.1 发布的临近，上周&lt;a href=&quot;https://github.com/dotnet/coreclr&quot;&gt;CoreCLR&lt;/a&gt; 已经停止向master 分支中提交新功能。&lt;/p&gt;&lt;p&gt;所以目前已经确定，&lt;a href=&quot;https://github.com/dotnet/corefx/issues/22940&quot;&gt;Intel hardware intrinsic 项目&lt;/a&gt;将作为一个&lt;a href=&quot;https://github.com/dotnet/corefx/issues/27486&quot;&gt;Preview 特性&lt;/a&gt;在 .NET Core 2.1 正式发布版中启用。&lt;/p&gt;&lt;p&gt;1. .&lt;b&gt;NET Core 2.1 正式发布版中将启用所有的SSE，SSE2，SSE3，SSSE3，SSE4.1，AVX，LZCNT，POPCNT intrinsic，以及大约70%的AVX2 和SSE4.2 中的Crc32 intrinsic.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;2. 作为一个Preview 特性，用户在程序中必须显式安装/引用一个Nuget 包（System.Runtime.Intrinsics.Experimental），这个包中并没有任何实际代码，但它负责向用户暴露可用的intrinsic API。在成为正式特新之前，这些API 可能还会轻微改动。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我会随后在专栏里写一个系列文章来教大家使用这个hardware intrinsic 功能（安装，配置，C# SIMD编程，等等）。也希望大家在GitHub 上向我们多多提交意见和bug report :)&lt;/p&gt;</description>
-<author>彭飞</author>
-<guid isPermaLink="false">2018-03-26-34960352</guid>
-<pubDate>Mon, 26 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>一个让Netty作者也感到惊讶的错误</title>
-<link>https://henix.github.io/feeds/zhuanlan.hllvm/2018-03-16-34609401.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/34609401&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;为了表示我不是标题党，先来个截图：&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ce8476a71905621c52ff6e1003e96baa_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;747&quot; data-rawheight=&quot;135&quot;&gt;&lt;p&gt;Netty是Java世界里网络编程框架的明星，也是我非常喜欢和推崇的开源项目之一。但其核心的Future接口实现却犯了一个基本的逻辑错误，本文就指出了Netty中的核心Future接口在实现cancel和isDone方法时违反了约定规则的问题。&lt;/p&gt;&lt;p&gt;首先来看java.util.concurrent.Future#cancel方法的javadoc约定：&lt;/p&gt;&lt;blockquote&gt;After this method returns, subsequent calls to isDone will always return true.&lt;br&gt;&lt;/blockquote&gt;&lt;p&gt;就是说，在调用了cancel方法后，再调用isDone将永远返回true。&lt;/p&gt;&lt;p&gt;Netty的Future接口继承了Java的Future接口:&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;public interface Future&amp;lt;V&amp;gt; extends java.util.concurrent.Future&amp;lt;V&amp;gt;&lt;/code&gt;&lt;/p&gt;&lt;p&gt;所以在实现的时候理应遵循这一约定，但Netty截止到目前的最新版本中(4.1.21)，并没有遵循这一约定，参见下面的代码例子：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;import io.netty.util.concurrent.GlobalEventExecutor;
-
-import io.netty.util.concurrent.Promise;
-
-public class DefaultPromiseIsDoneTest {
-
-    private final Promise defaultPromise = GlobalEventExecutor.INSTANCE.newPromise();
-
-    public static void main(String args[]) {
-
-        DefaultPromiseIsDoneTest main = new DefaultPromiseIsDoneTest();
-
-        main.isDoneTest();
-
-    }
-
-    private void isDoneTest() {
-
-        defaultPromise.setUncancellable();
-
-        defaultPromise.cancel(false);
-
-        boolean isDone = defaultPromise.isDone();
-
-        System.out.println(isDone);
-
-    }
-}&lt;/code&gt;&lt;p&gt;运行后，控制台打印的是 false。 而按照约定，应该打印true才对。&lt;/p&gt;&lt;p&gt;Netty其它几个实现类也没有遵循这一约定：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;io.netty.channel.group.VoidChannelGroupFuture#isDone
-io.netty.channel.VoidChannelPromise#isDone&lt;/code&gt;&lt;p&gt;我在Netty的github上提出了这个问题，得到了Netty官方的确认。&lt;/p&gt;&lt;p&gt;https://github.com/netty/netty/issues/7712&lt;/p&gt;&lt;p&gt;但由于修改会导致当前版本用户受到影响，所以Netty准备在下一个大版本中修复这一问题。&lt;/p&gt;&lt;p&gt;我们在异步编程，实现Future接口的时候，对cancel和isDone方法的理解很可能会依赖于直觉，而没有严格对照接口文档中约定的逻辑来实现。甚至像Netty这样的老司机也犯了大意的错误。特写出这篇文章，跟大家共勉。&lt;/p&gt;&lt;p&gt;具体的讨论可以参见我的stackoverflow帖子（本文开头的图片就截自下面的帖子）：&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://stackoverflow.com/questions/48792248/does-netty-violate-the-contract-of-future-cancel-method&quot;&gt;does-netty-violate-the-contract-of-future-cancel-method&lt;/a&gt;&lt;/p&gt;</description>
-<author>Old Driver</author>
-<guid isPermaLink="false">2018-03-16-34609401</guid>
-<pubDate>Fri, 16 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
