@@ -12,6 +12,7 @@ const feeds = [
 		"bwdo",
 		"gh_5d86493a0d6b",
 		"factor-investing",
+		"SimpleNotEasyInvest",
 		"DreamyTalks",
 		"TokyoTradingFloor",
 		"JoinQuant-jx",
