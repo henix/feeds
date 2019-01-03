@@ -8,6 +8,7 @@ const feeds = [
 		"mitcshi",
 		"ForrestM",
 		"shenyantao-60",
+		"AssetObserver",
 		"FICCGeek",
 		"bwdo",
 		"gh_5d86493a0d6b",
