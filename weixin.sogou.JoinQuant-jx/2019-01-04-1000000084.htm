@@ -1,0 +1,315 @@
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    【揭秘专业投资者的武器】经典组合优化模型 在行业资产配置中的应用示例
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                Syylt
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        聚宽量化实验室                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">聚宽量化实验室</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">JoinQuant-jx</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p style="white-space: normal;text-align: center;"><img class=" __bg_gif" data-backh="124" data-backw="558" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640" data-copyright="0" data-ratio="0.2222222222222222" data-type="gif" data-w="900" src="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?" style="box-sizing: border-box !important;overflow-wrap: break-word !important;width: 542.188px !important;visibility: visible !important;"></p><p style="white-space: normal;text-align: center;"><br></p><p style="white-space: normal;">　　</p><p style="white-space: normal;">　　组合优化的目的在于给予高收益，低风险的标的更多的权重，来提高组合整体表现。策略里面大部分情况下都会默认平均持仓的方法，由于没有考虑各个标的风险的不同，标的之间的相关性，并未较好的解决鸡蛋在一个篮子里的问题，若是稍加关注一下对组合权重的处理，就会考虑到各标的间的涨跌是否本身就有较强关联这样的问题，这个时候就是需要研究各标的历史价格的协方差、波动率等统计量。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">　　对组合中各标的权重进行适当优化调整，对组合收益会有不小的提升。接下来我们将研究几种不同组合优化方法对组合收益的影响，偏重于优化目标方法设置，标的选择均是权益类资产，用于全A股测试，同时考虑到研究的实际意义，我们设置行业资产配置这样的组合情境（同样也可以做不同板块配置优化），基于申万一级行业数据，采用了较为常见的最小方差、最大夏普、风险平价这样的模型，应用在行业配置中，来探究组合优化模型效果。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;"><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">1、行业指数数据准备：</strong></h2><p style="white-space: normal;"><br></p><p style="white-space: normal;"><br></p><p style="white-space: normal;">　　接下来将28个申万一级行业指数进行研究，给予不同权重配置，首先，获取了行业指数数据，构造收益序列效果如下图所示</p><p style="white-space: normal;"><br></p><p style="white-space: normal;text-align: center;"><img class="" data-copyright="0" data-cropselx1="0" data-cropselx2="495" data-cropsely1="0" data-cropsely2="311" data-ratio="0.6276595744680851" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATJ4XACM3lLykIKHibKbwq5mzrn5tst641EkM6LNeKlJRjMaMKM5VvTibQ/640?wx_fmt=png" data-type="png" data-w="1034" style="height: 311px;width: 495px;"></p><p style="white-space: normal;"><br></p><p style="white-space: normal;">　　可以看到，各行业之间涨跌存在一定的差异，但在极端行情如2015年6月之前的牛市和之后的熊市都有着一致的表现。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">　　下面获取行业间相关性矩阵,并以热力图进行展示</p><p style="white-space: normal;"><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.738238841978287" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATuX8k7U5PsyAZWwaVXPdlJ799TY4JebPaXgkGZjEZuvRLxXmtuvTvhg/640?wx_fmt=png" data-type="png" data-w="829" style=""></p><p style="white-space: normal;"><br></p><p>　　热力图颜色由深到浅，表示相关度有低到高的过程。</p><p>　　从图中可以明显看到银行业与非银金融与其他行业有着较为明显的不同，化工、电器设备、机械设备、纺织服装等行业都有较高的相关度。</p><p style="white-space: normal;text-align: left;"><br></p><p style="white-space: normal;"><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">2、设置不同优化方法：</strong></h2><p style="white-space: normal;"><br></p><p><br></p><p>　　接下来，我们将针对申万行业5年的历史数据，按不同的组合优化方式，每季度进行仓位平衡，下面就对几种优化方法进行说明，并通过调用scipy.optimize提供的优化算法，构造对应的目标函数进行求解获取行业配置权重。</p><p><br></p><p>（1）平均分仓</p><p><br></p><p>　　就是对28个行业进行等权重资金配置。</p><p><br></p><p>（2）等波动率</p><p><br></p><p>　　等波动率是使得每个股票贡献的表征风险相等，如组合中第i个标的的权重为wi,波动率为wiσi</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.1790633608815427" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATMKhphIgIoz2F4DW5fNj6babLKVzue5fqY3tMqcGdxibcssvOqoyN78w/640?wx_fmt=png" data-type="png" data-w="363" style=""></p><p>　　即权重应满足如下关系</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.12311557788944724" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATr1HNznEIP0qAYk94KYUBgXgXJfMpgDaR97eQiasn8l0ubRN5JyRHpCg/640?wx_fmt=png" data-type="png" data-w="398" style=""></p><p>　　此优化方法下的行业配置权重</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.5417142857142857" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATkQWtHnVbAEyBeJazpCVuu55HYP1D3rVZOpT2O74rUibVZqdamFK1YMQ/640?wx_fmt=png" data-type="png" data-w="875" style=""></p><p style="text-align: center;"><br></p><p>（3）最小方差</p><p><br></p><p>　　最小方差，也可以称为最小波动或最低风险</p><p>　　ω为投资权重向量，Σ为各标的的收益率协方差矩阵</p><p>　　组合的波动率满足</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.10306406685236769" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATFcTUNbT73OCgsJDM6VbQKmfujicBcPhWzpMhWOSmkFfNMztG8LtMLRw/640?wx_fmt=png" data-type="png" data-w="359" style=""></p><p>　　只要找到ω使得使得σ最小即可</p><p>　　此优化方法下的行业配置权重</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.5874285714285714" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATmJ7xibXqnPaEXB3loWiaA9FjqmCwGsIcLqfTMeGf12GDWGBOejzYjwKg/640?wx_fmt=png" data-type="png" data-w="875" style=""></p><p><br></p><p>　　组合长期对银行有较高的权重配置，尤其在2015年熊市之后不断进行权重增加，到2017年年初达到最大权重。</p><p>　　下面我们贴一张相同时间轴的银行指数走势图</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.41023417172593235" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvAT728fsXV5sPRA1MC60RzyWsXojREKmsusAjTGYNhiczaljreI0azh8AQ/640?wx_fmt=png" data-type="png" data-w="1153" style=""></p><p style="text-align: center;"><br></p><p><br></p><p>（4）风险平价</p><p><br></p><p>　　风险平价模型是通过衡量组合各标的对于组合的风险贡献度，来制定投资模型的各类资产权重，目标是使得组合标的达到等风险贡献</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="1.1795841209829867" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATMibnevzgu7V2SlAELeHOGBDIkGibl2gQ7O9Y6xnvGE3qWbuhLyWlRXTA/640?wx_fmt=png" data-type="png" data-w="529" style=""></p><p style="text-align: center;"><br></p><p style="text-align: left;">　　此优化方法下的行业配置权重</p><p style="text-align: left;"><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.5417142857142857" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATjuqT1kVG36abS9Hm31VkkvibicnPPdTfSKohLZp1ebiaIWjk4MibGXFObA/640?wx_fmt=png" data-type="png" data-w="875" style=""></p><p style="text-align: center;"><br></p><p>（5）最大夏普</p><p><br></p><p>　　夏普率用来表示每承受一单位风险，会产生多少的超额报酬，是对策略的收益与风险进行综合考虑</p><p style="text-align: center;"><img class="" data-copyright="0" data-cropselx1="0" data-cropselx2="556" data-cropsely1="0" data-cropsely2="244" data-ratio="0.4393939393939394" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATRZOF1gsWoy4GxY4LqqYKicYI0sw9YwFQIU1M1hHCeQwnynlQZcUmoCw/640?wx_fmt=png" data-type="png" data-w="726" style="width: 556px;height: 244px;"></p><p style="text-align: center;"><br></p><p><span style='color: rgb(0, 25, 47);font-family: "Microsoft Yahei", "Open Sans", "Helvetica Neue", Helvetica, sans-serif;font-size: 14px;background-color: rgb(255, 255, 255);'><span style="display: none;line-height: 0px;">‍</span></span><span style="display: none;line-height: 0px;">‍</span>　　即寻找目标<em>，</em><nobr aria-hidden="true"></nobr>使得目标 （-1）<nobr aria-hidden="true"></nobr>·<mi><em>S</em></mi><mi><em>h</em></mi><mi><em>a</em></mi><mi><em>r</em></mi><mi><em>p</em></mi><mi><em>e</em></mi><mi><em>R</em></mi><mi><em>a</em></mi><mi><em>t</em></mi><mi><em>i</em></mi><mi><em>o <span style="color:#00192f;font-family:Microsoft Yahei, Open Sans, Helvetica Neue, Helvetica, sans-serif;"><span style="font-size: 14px;background-color: rgb(255, 255, 255);"> </span></span></em></mi>最小</p><p>　　此优化方法下的行业配置权重<mi><em><span style="color:#00192f;font-family:Microsoft Yahei, Open Sans, Helvetica Neue, Helvetica, sans-serif;"><span style="font-size: 14px;background-color: rgb(255, 255, 255);"></span></span></em></mi></p><p><mi><em><span style="color:#00192f;font-family:Microsoft Yahei, Open Sans, Helvetica Neue, Helvetica, sans-serif;"><span style="font-size: 14px;background-color: rgb(255, 255, 255);"><br></span></span></em></mi></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.5874285714285714" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATKzHibOgGXLYDuw3nkgpxsDk0oDndbICYgEqehZjNSicXUr3r5T5nZvRg/640?wx_fmt=png" data-type="png" data-w="875" style=""></p><p>　　</p><p>　　最大夏普配置，最小方差模型的配置权重中，可以看到有标的权重过于集中，针对这种情况可以考虑针对模型加入更多的约束条件，比如加入收益预期。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">3、组合收益表现</strong></h2><p><strong style="color: rgb(51, 51, 51);font-size: 17px;"><br></strong></p><p><strong style="color: rgb(51, 51, 51);font-size: 17px;"><br></strong></p><p style="white-space: normal;">　　模型模拟进行了季度调仓，保存调仓时点计算出的权重结构，构造回测，以下是不同组合优化的净值表现</p><p style="white-space: normal;"><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.5268571428571428" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvATUicSzFtIcQCEiaBD5ThEkuPicIGmkurIxsH0TPXtS8QvvA3fd41ribcpVA/640?wx_fmt=png" data-type="png" data-w="875" style=""></p><p style="text-align: center;"><br></p><ul class=" list-paddingleft-2" style="list-style-type: disc;"><li><p>红色的线是等权重配置，可以看到最小方差、风险平价、等波动率优化后是有增益效果</p></li><li><p>紫色的线是最波动最小，即最小方差配置，净值表现最好</p></li><li><p>最大夏普和最小方差的是组合优化表现的两个极端</p></li><li><p>中间三种组合方法的区分度还不是很明显</p></li></ul><p style="text-indent: 0em;white-space: normal;text-align: left;"><br></p><p>　　不同优化方法对应的风险指标</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-cropselx1="0" data-cropselx2="556" data-cropsely1="0" data-cropsely2="126" data-ratio="0.2554002541296061" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQT2AYGeBnpnYE8hMoCkKvAT4gZnLXqJdsHttGtZKHiaiaYyD0wclEUudOV6MmwCRKeSo4KjFNFI93oQ/640?wx_fmt=png" data-type="png" data-w="787" style="width: 556px;height: 142px;"></p><p style="text-align: center;"><br></p><ul class=" list-paddingleft-2" style="list-style-type: disc;"><li><p>组合优化处理后普遍优于平均分仓的效果</p></li><li><p>最小方差组合效果显著，累计收益从39.2%提升至76.9%，年化收益从7.98%提升至12.85%，最大回撤从56.46%降低至40.51%，夏普比率从0.12提升至0.41</p></li><li><p>最大夏普模型表现最差，且模型持股过于集中</p></li><li><p>几种优化方法整体提升效果一般，区分度不够明显，如年化波动0.2467略微降低至0.2187，最大回撤仅从56.46%优化到47.87%</p></li></ul><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">4、结束语</strong></h2><p style="white-space: normal;"><br></p><p style="white-space: normal;"><br></p><p style="white-space: normal;">　　组合优化方法是分散化投资的理论工具，分散化投资降低风险，是寻找相关度低的资产作为投资标的，而A股市场标的基本都有着较高的贝塔值，这使得所有行业同样与大盘有着一致的牛熊，因此组合优化效果不尽如人意，基于组合优化方法，在更为宏观的市场领域内，选择相关度低的资产进行配置，这样的场景能更好的发挥组合优化模型的工具优势。</p><p style="white-space: normal;"><br></p><p>　　另外，针对策略持仓的组合优化方法，目前聚宽平台已经提供了优化器功能，支持对股票、基金进行投资优化，大家不妨去官网试试吧。</p><p><br></p>
+                </div>
+                <script nonce="504106617" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx42f400.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">Syylt</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          好看<span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已推荐到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png">
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">推荐</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    <div id="js_unlike_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+        
+        <div class="weui-dialog__bd">
+            已取消，“好看”想法已同步删除        </div>
+        <div class="weui-dialog__ft">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_unlike_know">知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>已推荐到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">和朋友分享想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          分享你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 分享想法到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="分享你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+<div id="js_loading" style=" display: none;">
+    <div class="weui-mask_transparent"></div>
+    <div class="weui-toast">
+        <i class="weui-loading weui-icon_toast"></i>
+        <p class="weui-toast__content">发送中</p>
+    </div>
+</div>
+
+<div id="js_fail" style="display:none">
+    <div class="weui-mask"></div>
+    <div class="weui-dialog">
+    <div class="weui-dialog__bd">
+        网络异常，请稍后重试    </div>
+    <div class="weui-dialog__ft">
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_fail_inform">知道了</a>
+    </div>
+    </div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://www.joinquant.com/post/16172" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
