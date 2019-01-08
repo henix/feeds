@@ -13,6 +13,7 @@ const feeds = [
 		"bwdo",
 		"gh_5d86493a0d6b",
 		"factor-investing",
+		"c_152990241",
 		"Chihiro-Research",
 		"SimpleNotEasyInvest",
 		"DreamyTalks",
