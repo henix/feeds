@@ -1,0 +1,128 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-9f4d99d606d1c7818a6ed80f6af0b458_b.jpg" alt=""></div><blockquote>这是来自于《Rust编程之道》读者问题之一，觉得有必要分享一下。因为从这个问题中，挖掘出了新的知识点，可以作为本书的补充。<br><br>具体链接： <a href="http://link.zhihu.com/?target=https%3A//github.com/ZhangHanDong/tao-of-rust-codes/issues/42" class=" wrap external" target="_blank" rel="nofollow noreferrer">函数指针类型的一点建议 · Issue #42 · ZhangHanDong/tao-of-rust-codes</a> <br><br>这篇文章可以算是我和读者朋友的共同创作。</blockquote><p><br></p><h2><b>问题：</b></h2><p><b>相关代码：</b></p><div class="highlight"><pre><code class="language-rust"><span></span><span class="c1">// 代码清单6-14 函数指针</span>
+<span class="k">fn</span> <span class="nf">hello</span><span class="p">(){</span><span class="w"></span>
+<span class="w">    </span><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">"hello function pointer"</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">fn</span> <span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">fn_ptr</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">"{:p}"</span><span class="p">,</span><span class="w"> </span><span class="n">fn_ptr</span><span class="p">);</span><span class="w"> </span><span class="c1">// 0x562bacfb9f80</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">other_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// println!("{:p}", other_fn);  // not function pointer</span>
+<span class="w">    </span><span class="n">hello</span><span class="p">();</span><span class="w"></span>
+<span class="w">   </span><span class="n">other_fn</span><span class="p">();</span><span class="w"></span>
+<span class="w">   </span><span class="n">fn_ptr</span><span class="p">();</span><span class="w"></span>
+<span class="w">   </span><span class="p">(</span><span class="n">fn_ptr</span><span class="p">)();</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div><p>书中在这里讲到 let other_fn = hello; 这里的类型是fn() {hello} 是这个函数本身的类型而不是函数指针类型, 后面还说到, “传入sum和product函数名之后, 会自动通过模式匹配转换为函数指针类型”</p><p>读到这里的时候, 有点不太理解 “函数本身的类型” 和 函数指针类型在rust内的具体区别, 以及, 是哪个trait/语言特性导致了 函数类型和函数指针的相互转换?</p><p>函数调用的时候如果传入一个函数名, 到底传入的是什么? 这里的细节还希望作者可以能多深入写两句. 因为写了函数本身的类型后, 我读后面的内容老是会纠结这两个概念在每个地方实际上是什么样子的.</p><p><br></p><h2><b>回答：</b></h2><p><br></p><p>代码里的fn_ptr是一个<a href="http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/reference/types/function-pointer.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">函数指针类型（Function Pointer Type）</a> 。这样创建实际上是一种强制转换。就是通过函数名hello和类型签名`fn()`，强制将一个函数或者是没有捕获变量的闭包转换为函数指针类型。</p><p>函数指针，其实是来自于C语言的概念，它首先是一个指针，可以像一般函数一样，用于调用函数、传递参数。在Rust里，你直接用函数名字，就可以当函数指针使用。你结合示例理解，指针是可以通过`{:p}`格式打印地址的，而非指针类型，则无法通过那个格式打印地址。</p><p><br></p><p>这里说「函数本身的类型」，是指<a href="http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/reference/types/function-item.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">函数项类型（Function Item Type）</a>。你可以像下面这样修改代码清单6-14中那一行代码：</p><p><br></p><div class="highlight"><pre><code class="language-rust"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">other_fn</span>: <span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+</code></pre></div><p>编译示例代码后，输出：</p><div class="highlight"><pre><code class="language-text"><span></span>error[E0308]: mismatched types
+ --&gt; src/main.rs:8:24
+  |
+8 |     let other_fn: () = hello;
+  |                        ^^^^^ expected (), found fn item
+  |
+  = note: expected type `()`
+             found type `fn() {hello}`
+</code></pre></div><p><br></p><p>通过这个技巧，你可以看到，other_fn的类型是`fn(){hello}`，这个类型是函数本身自有的类型，它不是指针。</p><p><br></p><p><b>如何挖掘知识</b></p><p><br></p><p>实际上，如果像这样深究细节的话，会有很多东西，一本书根本写不完的。书的目的，不是告诉你全部的细节，我更希望你通过学习本书的知识，自己挖掘出更多的细节。比如这个问题中，你既然已经看到了第六章，那是不是意味着你第五章已经看完了呢？ 那说明你已经了解过MIR了。</p><p><br></p><p>所以，你为什么不能自己去精简一下代码，输出MIR自己研究下。像下面这样：</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="k">fn</span> <span class="nf">hello</span><span class="p">(){</span><span class="w"></span>
+<span class="w">   </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">fn</span> <span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">fn_ptr</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">other_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div><p><br></p><p>这样简化代码，是为了减少更多的认知障碍，比如println!语句会生成很多对你分析问题无用的MIR。</p><p>然后可以在playground里打印输出它的MIR：</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="k">fn</span> <span class="nf">hello</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="p">(){</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">_0</span>: <span class="p">();</span><span class="w">                      </span><span class="c1">// return place</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">_1</span>: <span class="kt">i32</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">bb0</span>: <span class="p">{</span><span class="w">                              </span>
+<span class="w">        </span><span class="n">_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="mi">1</span><span class="k">i32</span><span class="p">;</span><span class="w">                 </span><span class="c1">// bb0[0]: scope 0 at src/main.rs:3:4: 3:5</span>
+<span class="w">                                         </span><span class="c1">// ty::Const</span>
+<span class="w">                                         </span><span class="c1">// + ty: i32</span>
+<span class="w">                                         </span><span class="c1">// + val: Scalar(Bits { size: 4, bits: 1 })</span>
+<span class="w">                                         </span><span class="c1">// mir::Constant</span>
+<span class="w">                                         </span><span class="c1">// + span: src/main.rs:3:4: 3:5</span>
+<span class="w">                                         </span><span class="c1">// + ty: i32</span>
+<span class="w">                                         </span><span class="c1">// + literal: Const { ty: i32, val: Scalar(Bits { size: 4, bits: 1 }) }</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w">                          </span><span class="c1">// bb0[1]: scope 0 at src/main.rs:4:2: 4:2</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="p">(){</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">_0</span>: <span class="p">();</span><span class="w">                      </span><span class="c1">// return place</span>
+<span class="w">    </span><span class="n">scope</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">scope</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">scope</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="kd">let</span><span class="w"> </span><span class="n">_2</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="n">hello</span><span class="p">};</span><span class="w">        </span><span class="c1">// "other_fn" in scope 4 at src/main.rs:7:9: 7:17</span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">scope</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">_1</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">UserTypeProjection</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">base</span>: <span class="nc">Ty</span><span class="p">(</span><span class="n">Canonical</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">variables</span>: <span class="p">[],</span><span class="w"> </span><span class="n">value</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="p">}),</span><span class="w"> </span><span class="n">projs</span>: <span class="p">[]</span><span class="w"> </span><span class="p">};</span><span class="w"> </span><span class="c1">// "fn_ptr" in scope 2 at src/main.rs:6:9: 6:15</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">bb0</span>: <span class="p">{</span><span class="w">                              </span>
+<span class="w">        </span><span class="n">StorageLive</span><span class="p">(</span><span class="n">_1</span><span class="p">);</span><span class="w">                 </span><span class="c1">// bb0[0]: scope 0 at src/main.rs:6:9: 6:15</span>
+<span class="w">        </span><span class="n">_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">hello</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">fn</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="n">ReifyFnPointer</span><span class="p">);</span><span class="w"> </span><span class="c1">// bb0[1]: scope 0 at src/main.rs:6:24: 6:29</span>
+<span class="w">                                         </span><span class="c1">// ty::Const</span>
+<span class="w">                                         </span><span class="c1">// + ty: fn() {hello}</span>
+<span class="w">                                         </span><span class="c1">// + val: Scalar(Bits { size: 0, bits: 0 })</span>
+<span class="w">                                         </span><span class="c1">// mir::Constant</span>
+<span class="w">                                         </span><span class="c1">// + span: src/main.rs:6:24: 6:29</span>
+<span class="w">                                         </span><span class="c1">// + ty: fn() {hello}</span>
+<span class="w">                                         </span><span class="c1">// + literal: Const { ty: fn() {hello}, val: Scalar(Bits { size: 0, bits: 0 }) }</span>
+<span class="w">        </span><span class="n">StorageLive</span><span class="p">(</span><span class="n">_2</span><span class="p">);</span><span class="w">                 </span><span class="c1">// bb0[2]: scope 1 at src/main.rs:7:9: 7:17</span>
+<span class="w">        </span><span class="n">_2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w">                </span><span class="c1">// bb0[3]: scope 1 at src/main.rs:7:20: 7:25</span>
+<span class="w">                                         </span><span class="c1">// ty::Const</span>
+<span class="w">                                         </span><span class="c1">// + ty: fn() {hello}</span>
+<span class="w">                                         </span><span class="c1">// + val: Scalar(Bits { size: 0, bits: 0 })</span>
+<span class="w">                                         </span><span class="c1">// mir::Constant</span>
+<span class="w">                                         </span><span class="c1">// + span: src/main.rs:7:20: 7:25</span>
+<span class="w">                                         </span><span class="c1">// + ty: fn() {hello}</span>
+<span class="w">                                         </span><span class="c1">// + literal: Const { ty: fn() {hello}, val: Scalar(Bits { size: 0, bits: 0 }) }</span>
+<span class="w">        </span><span class="n">StorageDead</span><span class="p">(</span><span class="n">_2</span><span class="p">);</span><span class="w">                 </span><span class="c1">// bb0[4]: scope 1 at src/main.rs:9:1: 9:2</span>
+<span class="w">        </span><span class="n">StorageDead</span><span class="p">(</span><span class="n">_1</span><span class="p">);</span><span class="w">                 </span><span class="c1">// bb0[5]: scope 0 at src/main.rs:9:1: 9:2</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w">                          </span><span class="c1">// bb0[6]: scope 0 at src/main.rs:9:2: 9:2</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div><p><br></p><p>可以通过这个MIR，就看得出来</p><p>1. hello，是一个函数指针类型 （ReifyFnPointer），因为 <code> _1 =const hello as fn()(ReifyFnPointer); </code> ，通过as，将hello转换为`fn()`类型的函数指针。</p><p>2. 而other_fn  是函数类型（fn(){hello }），<code> _2 =const hello;</code> ，它并没有被转换为函数指针类型。</p><p><br></p><p>但是，你如果这么写：</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">other_fn</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+</code></pre></div><p>other_fn就会被转换为一个函数指针类型。</p><p><br></p><p>另外，值得注意的是：</p><p><br></p><div class="highlight"><pre><code class="language-rust"><span></span><span class="c1">// + ty: fn() {hello}</span>
+<span class="c1">// + val: Scalar(Bits { size: 0, bits: 0 })</span>
+</code></pre></div><p>从生成的MIR中，可以看得出来，函数指针类型和函数类型，类型签名都是<code>fn(){hello}</code> 。并且它们的值，都是零大小的（Scalar代表具体存储的值）。只不过，函数指针类型，是被强制转换为了指针。而函数类型，并没有被转换为指针。</p><p>有的人有疑问，函数指针类型怎么是零大小的？继续深度挖掘一下。</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="c1">// src/librustc/mir/mod.rs</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">enum</span> <span class="nc">CastKind</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">Misc</span><span class="p">,</span><span class="w"></span>
+
+<span class="w">    </span><span class="sd">/// Convert unique, zero-sized type for a fn to fn()</span>
+<span class="w">    </span><span class="n">ReifyFnPointer</span><span class="p">,</span><span class="w"></span>
+
+<span class="w">    </span><span class="sd">/// Convert non capturing closure to fn()</span>
+<span class="w">    </span><span class="n">ClosureFnPointer</span><span class="p">,</span><span class="w"></span>
+
+<span class="w">    </span><span class="sd">/// Convert safe fn() to unsafe fn()</span>
+<span class="w">    </span><span class="n">UnsafeFnPointer</span><span class="p">,</span><span class="w"></span>
+
+<span class="w">    </span><span class="sd">/// "Unsize" -- convert a thin-or-fat pointer to a fat pointer.</span>
+<span class="w">    </span><span class="sd">/// codegen must figure out the details once full monomorphization</span>
+<span class="w">    </span><span class="sd">/// is known. For example, this could be used to cast from a</span>
+<span class="w">    </span><span class="sd">/// `&amp;[i32;N]` to a `&amp;[i32]`, or a `Box&lt;T&gt;` to a `Box&lt;dyn Trait&gt;`</span>
+<span class="w">    </span><span class="sd">/// (presuming `T: Trait`).</span>
+<span class="w">    </span><span class="n">Unsize</span><span class="p">,</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div><p>实际上，普通函数会经过一个ReifyFnPointer方式的转换。这种方式会将零大小类型的普通函数转换为函数指针类型。MIR代码中赋值语句可以这么理解：</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="n">_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">hello</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">fn</span><span class="p">())</span><span class="w"> </span><span class="p">(</span><span class="n">ReifyFnPointer</span><span class="p">);</span><span class="w"></span>
+<span class="c1">//等价于</span>
+<span class="n">_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cast</span><span class="p">(</span><span class="n">hello</span><span class="p">,</span><span class="w"> </span><span class="k">fn</span><span class="p">(),</span><span class="w"> </span><span class="n">ReifyFnPointer</span><span class="p">);</span><span class="w"></span>
+</code></pre></div><p>将hello转换为fn()类型，转换方式是ReifyFnPointer。</p><p>同样，可以看到，用于将未捕获闭包转换为函数指针类型的转换方式是ClosureFnPointer。用于将safe的普通函数指针转成unsafe函数指针类型的UnsafeFnPointer。而这里的Unsize是将指针转为胖指针。</p><p>再继续将上面的代码转成LLVM IR。</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="n">start</span>:
+  <span class="o">%</span><span class="n">other_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloca</span><span class="w"> </span><span class="p">{},</span><span class="w"> </span><span class="n">align</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="o">%</span><span class="n">fn_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloca</span><span class="w"> </span><span class="n">void</span><span class="w"> </span><span class="p">()</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">align</span><span class="w"> </span><span class="mi">8</span><span class="w"></span>
+</code></pre></div><p>可以看到，函数项类型（fn-item type）<code>other_fn</code>是零大小的<i>。而</i><code>fn_ptr</code>已经被转换成了指针类型，是要占用空间的。而otherfn只是函数名hello，而fn_ptr是一个ReifyFnPointer的强转。</p><p><b>那么此时这个问题「Rust中函数名是什么」的答案，已经冒出：是函数项类型（Fn-Item Type）。当普通函数作为函数参数传递的时候，是会显式标记签名类型，就会被转换为函数指针类型。</b></p><div class="highlight"><pre><code class="language-rust"><span></span><span class="k">fn</span> <span class="nf">hello</span><span class="p">(){</span><span class="w"></span>
+<span class="w">   </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">fn</span> <span class="nf">world</span><span class="p">(</span><span class="n">f</span>: <span class="nc">fn</span><span class="p">()){</span><span class="w"></span>
+<span class="w">    </span><span class="n">f</span><span class="p">();</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">fn</span> <span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">fn_ptr</span>: <span class="nc">fn</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">other_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">world</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div><p><br></p><p><br></p><p><b>零成本抽象</b></p><p>Rust里有很多零大小类型，包括单元值、单元结构体等。这里函数类型和函数指针类型同样都是零大小类型。</p><p>Rust这个函数指针类型和C/CPP中的函数名表达式是一致的，都是函数指针。但是在C/CPP中使用函数指针，想做到零开销还是有困难，因为函数指针在运行时占用空间，如果想降低开销只能依赖于代码优化。</p><p>Rust中的函数都实现了 FnOnce/FnMut/Fn 这三个 Trait ，所以对于下面的函数：</p><div class="highlight"><pre><code class="language-rust"><span></span><span class="k">fn</span> <span class="nf">call_fn</span><span class="o">&lt;</span><span class="n">F</span>: <span class="nb">FnOnce</span><span class="p">()</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span>: <span class="nc">F</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">f</span><span class="p">()</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</code></pre></div><p>参数<code>f</code>也可以传入一个普通函数，此时，f的行为可以在编译期完全确定。 所以，为了最大化地利用编译期已知信息，必须可以通过类型F携带函数<code>f</code>调用所需的必要信息。而不是通过函数指针类型来调用。后者不符合Rust零成本抽象的原则，并且还需要进行额外的一个指针大小的参数传递。</p><p>所以 Rust 的做法是，函数和类型构造器（枚举和元组结构体）的名字表达式，都有一个零大小的，只在类型里记录函数信息的值。这个值就叫做 函数项（Function item），它的类型就叫做 函数项类型（Function item type）。</p><p>并且，向上面的示例那样，该值可以通过显式地标记函数类型签名来强制转换到同函数签名的函数指针类型。但没有特别的必要，不要进行这种转换。因为函数项才是最高效的。一旦使用了函数项，剩下的优化就依赖于对零大小类型的优化了。</p><p>从上面示例中也看得出来，Rust的优化是分两个阶段的：MIR阶段和LLVM阶段。</p><h2><b>小结：</b></h2><p>任何一本书，都不可能囊括其主题内容的全部细节。看书学习的过程，也是一个再创造的过程，给自己一个机会去挖掘去创造更多知识。</p><p>以上。如果有错误，欢迎反馈。最后，感谢 <a class="member_mention" href="http://www.zhihu.com/people/a199ba1f2a7b0f281fe32de2f75ef82f" data-hash="a199ba1f2a7b0f281fe32de2f75ef82f" data-hovercard="p$b$a199ba1f2a7b0f281fe32de2f75ef82f">@林吟风</a> 和读者群朋友 KevinWang的深度反馈，很棒！</p>
