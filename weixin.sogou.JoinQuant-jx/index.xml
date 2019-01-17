@@ -5,11 +5,400 @@
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/</link>
 <description>用数学+编程,驾驭金融市场波动. 汇集最优质量化投资模型,和最勤奋聪明的大脑.</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 16 Jan 2019 10:19:18 +0800</lastBuildDate>
+<lastBuildDate>Thu, 17 Jan 2019 15:22:11 +0800</lastBuildDate>
+<item>
+<title>分钟K线重构+ATR自适应通道 期货CTA多品种模型分享</title>
+<link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-16-1000000089.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFiCTr2VoXWJDhRXjUHzjdpS9jLI4PMOoSW0oQfCfr6Mj9*jQEqMBRBLipaEGDFMwr2UFvDzV2*IE2s4yFBpYxDQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+                                    
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    分钟K线重构+ATR自适应通道 期货CTA多品种模型分享
+
+                                                                                &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                张绍勇
+                                            &lt;/span&gt;
+                                        
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        聚宽量化实验室                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;聚宽量化实验室&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;JoinQuant-jx&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p style=&quot;text-align: center;&quot;&gt;&lt;strong style=&quot;text-align: center;white-space: normal;&quot;&gt;&lt;img class=&quot; __bg_gif&quot; data-backh=&quot;124&quot; data-backw=&quot;558&quot; data-before-oversubscription-url=&quot;https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.2222222222222222&quot; data-type=&quot;gif&quot; data-w=&quot;900&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?&quot; style=&quot;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 542.188px !important;visibility: visible !important;&quot;&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　今天我们构建的量化模型，尝试用python搭建，首先它把数据拆分重构，使用15分钟或者更低颗粒度的K线，重构成为1小时线或者半日线。然后在重构的K线上，搭建ATR自适应通道交易模型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　如果说后半部分模型开发是很多软件都可以做的，前半部分就并非如此了。我们要以每天中午12点，下午15点为切分点，&lt;strong&gt;把每天的时间序列切分成3段。&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　让我们从最简单的模型本体交易逻辑开始讲。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&quot;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;color: rgb(51, 51, 51);font-size: 17px;&quot;&gt;一、模型本体——ATR自适应通道&lt;/strong&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　很多做期货动量交易的人都明白，通道突破类策略是典型的趋势策略，这类策略指导构建的交易模型也比较简单清晰，并且将标准差等波动率表达方式考虑到模型中，有助于提升绩效。这里说的提升绩效，一方面是通过通道的中轨确定大致方向，另一方面是通过标准差等波动率指标，确认通道宽度。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5653409090909091&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQQRNpC0iclibOLe0XjtY7NQKrQO1DowXYW0Ix41ibBqRyzTuDQU7duwXex3SxRgQ26AVYt23wCXn0IyA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;704&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　首当其中的就是布林带，这个经典指标已经几十年被使用，基本上没人敢说这套系统不能用，但是它毕竟太过于古老，需要改进，这是共识。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　&lt;strong&gt;典型的通道突破类策略是Aberration，实际上就是布林带，它被翻译理解为“失常、离开正路、越轨”等含义&lt;/strong&gt;。该模型在均线上，构建了上下两个通道，通过波动率高低调节通道大小，如果价格突破上轨，就做多，如果价格突破下轨，就做空，价格回到中轨平仓，达到一定的自适应突破效果。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　它的原理是这样：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;// 中轨AverageMA，此处的Length是计算均线的窗口期&lt;/p&gt;&lt;p&gt;AverageMA = Average(Close1,Length);&lt;/p&gt;&lt;p&gt;// 价格序列的标准差&lt;/p&gt;&lt;p&gt;StdValue = StandardDev(Close1,Length);&lt;/p&gt;&lt;p&gt;// 上轨和下轨，此处的StdDev是标准差倍数&lt;/p&gt;&lt;p&gt;UpperBand = Avema StdDev StdValue;&lt;/p&gt;&lt;p&gt;LowerBand = Avema - StdDev StdValue;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　今天的改进针对标准差部分，我们发现ATR比标准差更能够反应波动率的真伪，毕竟ATR采用的时间序列信息含量更高。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　标准差是一个统计工具，不再叙述。ATR概念由威尔德（J. Welles Wilder）1978年于《New Concepts in Technical Trading Systems》书中提出，它取一定时间周期内的价格波动幅度的移动平均值，和你看到的网络上的注解不同，它并不是主要用于研判买卖时机，也不是做什么反趋势指标，它能感知到波动率。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　海通证券测试了ATR和标准差的性能差异，这四种情况虽然特殊，但是以极端方式，体现了&lt;strong&gt;标准差和ATR的区别&lt;/strong&gt;。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5781710914454278&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcFcREcgha3qDhHNooiadVNHHproeZAyUFeBicGr4qaE8apQLl6ib94rw5Q/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1017&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5740922473012757&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbc2nh6Lazkiam1Lxdq90qQhN84NKGPdoS6okUm0HVUicv9vvQGXy3vNIicg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1019&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5731108930323847&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbc99MCwg0WyPoHQg6rosb4ElVPx4urLEawkqoJ6CxYHl3EiaONbfBl2AQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1019&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5656370656370656&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbc4B4eKQczp8xba1bBxicrXuUBDsW7u0h5GH0zbnvFibteLX8t7taAslNw/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1036&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　图1，标准差的表现力更强，因为价格确实出现了波动幅度变化。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　图2，和研报观点相同，ATR可以稳定的保持着较高的水平，能对新的价格运行方向上的波动状态进行有效的刻画，但是标准差不行。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　图3，标准差在适应新趋势时又一次表现出对趋势逆转时波动率提升的错误描述，它在新趋势刚开始出现时先缓慢下降，此时很容易造成通道类突破系统做出错误判断。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　图4，很罕见的情况，但是ATR采用了最高最低价，而标准差没有，所以它对于波动率的分析显然错了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　所以，我们要使用ATR改进布林带了，改进完的这套系统，应该被称作&lt;strong&gt;肯特纳通道&lt;/strong&gt;，网上会有很多资料，这里使用公众号《量化投资训练营》的结果，来体现两者的细微差距。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　我们关闭掉模型中其他条件，仅以布林带或者说使用ATR为逻辑的Keltner Band（肯特钠通道）作为开平仓条件进行测试。测试目标是螺纹钢RB000，2010年开始指数合约，沪深300指数2010年开始时间序列。频率都在1小时。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　为了公平起见，参数统一为20周日ATR或者标准差。且为了得到均等的参数面绩效，我们令中轨周期参数Length在30~200之间波动，间隔5,。令Offset上下轨宽度参数在1~3之间波动，间隔0.5.。这样既可得到一个约180组绩效。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　TOP组的意思是取按净利润排列，前30个绩效。ALL组的意思是所有绩效。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5948795180722891&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbceFaPSRXPoib5Fgibfv1jHMsnBVDlsGE953uo70mB4ibDAVICr8J7UIrJQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;664&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;螺纹钢参数面测试结果&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.6005961251862891&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcaLAtMLSt5wVZibWjicCLrricFXMLVh4QDicBWO6hcth0xDRhx7QFRswPLQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;671&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;沪深300参数面测试结果&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　经过测试发现，商品期货上性能差异不够明显，但是到了股指方面，ATR的优势进一步显现。这其中最核心的因素恰巧是交易次数，带来的绩效IR提升，这里我们定义的IR和信息广度有关，我们认为信号数量是对于绩效可信度的考察方式。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　ATR通道，在螺纹钢和沪深300指数上，信号数量是标准差的1.14倍和1.05倍，且同时绩效略好，所以导致这里定义的绩效IR = 绩效*SQRT（交易次数）差别更显著。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　该部分逻辑，使用python语言撰写效果如下：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;&#39;&gt;&lt;code style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;&lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# ATR计算  &lt;/span&gt;
+        g.low = g.AM[IndexFuture].exportArray(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;low&#39;&lt;/span&gt;)[-g.TodayBar[IndexFuture]*g.Window&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;:]
+        g.high = g.AM[IndexFuture].exportArray(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;high&#39;&lt;/span&gt;)[-g.TodayBar[IndexFuture]*g.Window&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;:]
+        g.close = g.AM[IndexFuture].exportArray(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;close&#39;&lt;/span&gt;)[-g.TodayBar[IndexFuture]*g.Window&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;:]        &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 为了防止ATR误算，如果出现大面积的空数据，则不计算ATR&lt;/span&gt;
+        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; g.close:            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;pass&lt;/span&gt;
+        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;else&lt;/span&gt;:
+            g.ATR[IndexFuture] = talib.ATR(g.high,g.low,g.close, timeperiod = g.TodayBar[IndexFuture]*g.Window)[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;]
+            print(g.ATR[IndexFuture])            &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 布林带计算&lt;/span&gt;
+            g.MidLine = g.close[-g.Window*g.TodayBar[IndexFuture]:].mean()
+            g.BollUp = g.MidLine   g.offset*g.ATR[IndexFuture]
+            g.BollDown = g.MidLine - g.offset*g.ATR[IndexFuture]            &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 交易信号计算&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.close[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;] &amp;gt; g.BollUp:
+                g.Cross = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;elif&lt;/span&gt; g.close[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;] &amp;lt; g.BollDown:
+                g.Cross = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;else&lt;/span&gt;:
+                g.Cross = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;
+
+            &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;#判断交易信号：布林带突破 可二次入场条件成立&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt;  g.Cross == &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;and&lt;/span&gt; g.Reentry_long == &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;False&lt;/span&gt;:
+                g.Signal = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;elif&lt;/span&gt; g.Cross == &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;and&lt;/span&gt; g.Reentry_short == &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;False&lt;/span&gt;:
+                g.Signal = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;else&lt;/span&gt;:
+                g.Signal = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;
+            &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 执行交易&lt;/span&gt;
+            Trade(context,RealFuture,IndexFuture)            &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 运行防止充入模块&lt;/span&gt;
+            Dont_Re_entry(context,IndexFuture,ins)            &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 计数器 1&lt;/span&gt;
+            g.Times[IndexFuture]  = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　需要注意的是，我们肯定要在模型中放入止损逻辑，也肯定要放入止损后的防止重入逻辑，这两部分大家应该都熟悉了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　还有一个重点变量计算：TodayBar，它可以帮助我们获取每天的bar数量，以此来得到均线的参数，ATR的参数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;&#39;&gt;&lt;code style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;&lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 吊灯止损模块（追踪止损）&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;span class=&quot;hljs-function&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;&lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;hljs-title&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);font-weight: bold;outline: none !important;&quot;&gt;TrailingStop&lt;/span&gt;&lt;span class=&quot;hljs-params&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;(context,RealFuture,IndexFuture)&lt;/span&gt;:&lt;/span&gt;
+
+    &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 仓位状态&lt;/span&gt;
+    long_positions = context.portfolio.long_positions
+    short_positions = context.portfolio.short_positions    &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 多头进场后最高价 空头进场后最低价&lt;/span&gt;
+    g.HighPrice[IndexFuture] = max(g.HighPrice[IndexFuture],g.close[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;])
+    g.LowPrice[IndexFuture] = min(g.LowPrice[IndexFuture],g.close[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;])    &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; RealFuture &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; long_positions.keys():        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; long_positions[RealFuture].total_amount &amp;gt; &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;:            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.HighPrice[IndexFuture]:                &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.close[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;]  &amp;lt; g.HighPrice[IndexFuture]  - g.NATRstop*g.ATR[IndexFuture]:
+                    log.info(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;多头止损:\t&#39;&lt;/span&gt;    RealFuture)
+                    order_target(RealFuture,&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;,side = &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;long&#39;&lt;/span&gt;)
+                    g.Reentry_long = &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;True&lt;/span&gt;
+
+    &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; RealFuture &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; short_positions.keys():        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; short_positions[RealFuture].total_amount &amp;gt; &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;:            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.LowPrice[IndexFuture]:                &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.close[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;]  &amp;gt; g.LowPrice[IndexFuture]   g.NATRstop*g.ATR[IndexFuture]:
+                    log.info(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;空头止损:\t&#39;&lt;/span&gt;   RealFuture)
+                    order_target(RealFuture,&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;,side = &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;short&#39;&lt;/span&gt;)
+                    g.Reentry_short = &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;True&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　还有就是移仓换月，我在比较早的帖子里已经写了它的逻辑，大家可以通过源码理解，其实不难，但是刚开始写确实有难度，&lt;strong&gt;好在以后聚宽会把这部分做成官方函数&lt;/strong&gt;，各位就不用费心思写了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&quot;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;color: rgb(51, 51, 51);font-size: 17px;&quot;&gt;二、数据重构——分钟线拼接为半日线&lt;/strong&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　数据重构是量化交易中的重要工作，我觉得有这样几个原因：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　1、大部分交易者在关键时间点上发单，会产生交易拥挤。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　2、很多K线并不是我们想要的长度，因为其时间含金量不同。比如夜盘从21点到某些品种的凌晨2点半，交易清淡，但是依然占据等时间划分的K线并不科学。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　3、除了改变时间颗粒度之外，还可以通过成交量、波动率等方法，重构K线，带来非常意外的超额收益。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　这些功能，基本上是传统的期货软件不具备的，它们都需要使用更精密地编程语言完成，python就是这样一个工具，这里有它的价值，也是我们和身边很多朋友都要转移到python平台上开发交易策略的原因。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　我们可以在【研究】平台打印出某品种的15分钟K线看看效果：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.5751565762004175&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcCCJ4885s1dvZ7dsPOTXmvfaC07NzoibPZicIPZ5E3h1orUplibFCf8Q3A/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;958&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　之后我们和聚宽技术客服沟通了解到：&lt;strong&gt;使用get_bars函数能够更好地获取到每天都是9点开始的数据&lt;/strong&gt;，这样使用较大粒度的K线，如1小时线，也可以完成拼接，且效率更高。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　这套模型中，我们首先在DataPrepare函数中，读取了15分钟K线，每次取50个样本进入之后要介绍的ArrayManager模块。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;&#39;&gt;&lt;code style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;g.LastPrice[IndexFuture] = attribute_history(IndexFuture,&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;50&lt;/span&gt;, unit=&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;15m&#39;&lt;/span&gt;,fields = [&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;close&#39;&lt;/span&gt;,&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;open&#39;&lt;/span&gt;,&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;high&#39;&lt;/span&gt;,&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;low&#39;&lt;/span&gt;])&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;　　&lt;strong&gt;然后构建了类ArrayManager&lt;/strong&gt;，该模块用于拼接K线的类，该策略基于不均匀的K线完成，在固定时间输出bar（日内，如早盘收盘时）。而当前平台未推出该功能，因而自定义ArrayManager类来实现，完整代码在模型中可看到。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;&#39;&gt;&lt;code style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;&lt;span class=&quot;hljs-class&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;&lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;hljs-title&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);font-weight: bold;outline: none !important;&quot;&gt;ArrayManager&lt;/span&gt;(&lt;span class=&quot;hljs-title&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);font-weight: bold;outline: none !important;&quot;&gt;object&lt;/span&gt;):&lt;/span&gt;
+
+    &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 初始化函数，设定基准等等&lt;/span&gt;
+    &lt;span class=&quot;hljs-function&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;&lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;hljs-title&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);font-weight: bold;outline: none !important;&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;hljs-params&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;(&lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;, size=&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;100&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;:        &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 设定Array的缓存大小&lt;/span&gt;
+        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.size = size  
+
+        &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 基本指标与基本指标的Array字典初始化（用于K线按收盘时间分割）&lt;/span&gt;
+        &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 在这里VarArrays指的是全新K线的数据，以字典的形式存放，Vars是更新K线前的缓存&lt;/span&gt;
+        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.Vars = {&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;close&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:False&lt;/span&gt;,                    &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;open&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:False&lt;/span&gt;,                    &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;high&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:False&lt;/span&gt;,                    &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;low&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:False&lt;/span&gt;}        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.VarsArrays = {&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;close&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:np&lt;/span&gt;.zeros(size),                          &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;open&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:np&lt;/span&gt;.zeros(size),                          &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;high&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:np&lt;/span&gt;.zeros(size),                          &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;low&#39;&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:np&lt;/span&gt;.zeros(size)}    &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 更新Array，形成新的bar数据，后续指标等都是基于该Array进行计算    &lt;/span&gt;
+    &lt;span class=&quot;hljs-function&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;&lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;hljs-title&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);font-weight: bold;outline: none !important;&quot;&gt;updateBarArray&lt;/span&gt;&lt;span class=&quot;hljs-params&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;(&lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;:        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;for&lt;/span&gt; var &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.VarsArrays.keys():            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.VarsArrays[var][&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:self&lt;/span&gt;.size-&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt;] = &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.VarsArrays[var][&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;hljs-symbol&quot; style=&quot;box-sizing: border-box;outline: none !important;&quot;&gt;:self&lt;/span&gt;.size]            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.VarsArrays[var][-&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;1&lt;/span&gt;] = &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;self&lt;/span&gt;.Vars[var]&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;　　在拼接数据前，我们做了一个小的识别，看数据是有有夜盘，&lt;strong&gt;有夜盘的品种我们可以定todaybar=3，没有夜盘的品种，我们定todaybar=2&lt;/strong&gt;。该变量用于在模型里帮助计算参数。这部分逻辑放在before_market_open函数中。g.TodayBar[IndexFuture]作为全局变量在模型里传递。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;&#39;&gt;&lt;code style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;&lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 以下逻辑判断该品种是否有夜盘，并计算TodayBar&lt;/span&gt;
+        g.Data[IndexFuture] = attribute_history(IndexFuture,&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;120&lt;/span&gt;, unit=&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;60m&#39;&lt;/span&gt;,fields = [&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;close&#39;&lt;/span&gt;])
+        HourList = [x.strftime(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;%H&#39;&lt;/span&gt;) &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;for&lt;/span&gt; x &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; g.Data[IndexFuture].index[:]]        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;21&#39;&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; HourList: 
+            g.TodayBar[IndexFuture] = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;3&lt;/span&gt;
+        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;else&lt;/span&gt;:
+            g.TodayBar[IndexFuture] = &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;2&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　然后就是在DataPrepare函数中，拼接数据：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;&#39;&gt;&lt;code style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;&lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 如果当前时间在该品种实际交易时间内（基于15分钟bar），则执行拼接&lt;/span&gt;
+            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; str(context.current_dt.time()) &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; [x.strftime(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;%H:%M:%S&#39;&lt;/span&gt;) &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;for&lt;/span&gt; x &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; g.LastPrice[IndexFuture].index[:]]:                &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 初始化&lt;/span&gt;
+                &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; IndexFuture &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; g.AM.keys():
+                    g.AM[IndexFuture] = ArrayManager()
+                    g.AM[IndexFuture].updateBar(g.LastPrice[IndexFuture][&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;close&#39;&lt;/span&gt;][&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;],
+                                            g.LastPrice[IndexFuture][&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;high&#39;&lt;/span&gt;][&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;],
+                                            g.LastPrice[IndexFuture][&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;low&#39;&lt;/span&gt;][&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;],
+                                            g.LastPrice[IndexFuture][&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;open&#39;&lt;/span&gt;][&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;])                &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;else&lt;/span&gt;:                    &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 收盘时间时输出新Bar&lt;/span&gt;
+                    &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.LastPrice[IndexFuture].index[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;].strftime(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;%H%M&#39;&lt;/span&gt;) &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;in&lt;/span&gt; g.CloseMarket :                        &lt;span class=&quot;hljs-comment&quot; style=&quot;box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;&quot;&gt;# 没有夜盘的品种在9点15分不输出新Bar&lt;/span&gt;
+                        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;if&lt;/span&gt; g.TodayBar[IndexFuture] == &lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;and&lt;/span&gt; g.LastPrice[IndexFuture].index[&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;-1&lt;/span&gt;].strftime(&lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;%H%M&#39;&lt;/span&gt;) == &lt;span class=&quot;hljs-string&quot; style=&quot;box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;&quot;&gt;&#39;0915&#39;&lt;/span&gt;:                            &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;pass&lt;/span&gt;
+                        &lt;span class=&quot;hljs-keyword&quot; style=&quot;box-sizing: border-box;font-weight: bold;outline: none !important;&quot;&gt;else&lt;/span&gt;:&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　这部分的关键语句就是：&lt;br&gt;g.LastPrice[IndexFuture].index[-1].strftime(&#39;%H%M&#39;) in g.CloseMarket : 数据开始切分，g.CloseMarket被我们定义为[&#39;0915&#39;,&#39;1130&#39;,&#39;1500&#39;]，在这3个时间点上，模型通过updateBarArray产生新的拼接完毕后的K线。每次拼接完毕后，要执行数据删除clear函数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　updateBar函数用于更新数据，这里不用更新open数据，因为一个重构后的K线的open等于最初传入的open。close数据始终更新，因为要取到最后切分那一刻之前的close。最高和最低价，自然要寻找这段时间的最高最低点了，所以进行max和min比较方法。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　模型中其他逻辑都比较简单易懂，所以搞懂此部分，基本上就能完成计算所需的数据支撑。下面我们进行参数组合测试，发现全过程表现较优质的参数。因为数据拼接涉及到IO量大，计算速度较慢，所以我建议从2014年测试，且如果你想要得到一个完整、可信度高的参数表现，要和之前测试动量模型一样，测试大约25个以上的品种。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&quot;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;color: rgb(51, 51, 51);font-size: 17px;&quot;&gt;三、绩效测试&lt;/strong&gt;&lt;/h2&gt;&lt;p&gt;&lt;strong style=&quot;color: rgb(51, 51, 51);font-size: 17px;&quot;&gt;&lt;br&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　今天的文章仅演示6个品种。多组资金曲线的回测，是通过【研究】调用【回测】得到的，具体过程在这里讲过：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;https://www.joinquant.com/post/4351?tag=algorithm&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.4180035650623886&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcOiaeMJpiaKW30bLoB6fPaBQfVfDcamriczPnrFHa6XgBxpf1icrlkM1iawg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1122&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.39403706688154716&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcagsLYOmERslZQh4YSzFZic3g8ywqSXFgqXMfib2OZKOHj8VyiaEO4j4kQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1241&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.3592964824120603&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbc7gEHYGcXibvIia4B1hFFy1e5A7k5g0npcWO4oNzqibPJX4rIjavsKic3mg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1194&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　多组（参数）绩效如上图所示。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.6411428571428571&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcPexnEKAvPwwGompwkXUSG6E91qowIGH2TTiaRTypcwXO2X22Tfdeibrg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;875&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　单组绩效如上图所示。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　对于每个期货模型，&lt;strong&gt;因为很强的动量效应存在，结果都是比较理想的&lt;/strong&gt;。但是其中也不免一些参数由于设置不合理，导致性能偏低。还是建议大家在品种数量更多的环境下，且最好能够分离训练集和测试集，找到合适的实盘参数。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;　　　我们将全部源码放在&lt;strong&gt;&lt;span style=&quot;color: rgb(255, 41, 65);&quot;&gt;原文链接&lt;/span&gt;&lt;/strong&gt;部分，需要的朋友们可以点击获取。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot; __bg_gif&quot; data-backh=&quot;556&quot; data-backw=&quot;556&quot; data-before-oversubscription-url=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/zEy1aCmAZQRLdpTXYOswDgyjlZMzJr3YZQFNaDd3pIAtWRVkFJSK7ezf2iafDzabFgIqzSNXRlvT8slRNWCZhiaA/0?wx_fmt=jpeg&quot; data-copyright=&quot;0&quot; data-cropselx1=&quot;12&quot; data-cropselx2=&quot;351&quot; data-cropsely1=&quot;0&quot; data-cropsely2=&quot;339&quot; data-ratio=&quot;0.9344444444444444&quot; data-s=&quot;300,640&quot; data-type=&quot;gif&quot; data-w=&quot;900&quot; height=&quot;542&quot; width=&quot;694&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_gif/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcUwUgKuqM0OADcR1IT2z0AhW2eQMyibaV77UibB4V0XKCAengxnHYRz9w/640?wx_fmt=gif&quot; style=&quot;width: 528.047px;box-sizing: border-box !important;overflow-wrap: break-word !important;visibility: visible !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;white-space: normal;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: inherit;font-family: inherit;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;欢迎关注&lt;/span&gt;&lt;span style=&quot;max-width: 100%;font-size: 16px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: inherit;font-family: inherit;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;『&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;聚宽量化实验室&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;color: inherit;font-family: inherit;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;』&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;453761219&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx430b95.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;张绍勇&lt;/div&gt;
+                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+        &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
+    &lt;/span&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          好看&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已推荐到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png&quot;&gt;
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;推荐&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog&quot;&gt;
+        
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+            已取消，“好看”想法已同步删除        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+
+&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;like_comment_inner&quot;&gt;
+    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;like_comment_bd&quot;&gt;
+      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已推荐到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;和朋友分享想法&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;like_comment_ft&quot;&gt;
+      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          分享你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 分享想法到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;分享你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
+    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-dialog&quot;&gt;
+    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        网络异常，请稍后重试    &lt;/div&gt;
+    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://www.joinquant.com/post/16022&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                            
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>张绍勇</author>
+<guid isPermaLink="false">2019-01-16-1000000089</guid>
+<pubDate>Wed, 16 Jan 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>【年度干货】精选99个量化投资策略源码打包下载</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-14-1000000088.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqJar9*mEKs67-aD*m4-r7THyLfIvowEFu6M7dpQRM-PYqxNgz5YAsCL0YJMepOMzsHmeQVg4PjtbNoboDSNUogA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFuW00*FAuz2ZZn3keSJy3l3jeN2CjA9llF490JGHPOHye07lgC3sZJZCze9yFcTA1ZjUg0HDQlCJ1EH3rzSWNzw=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -329,7 +718,7 @@
 <item>
 <title>TensorFlow 学习之循环神经网络（RNN）</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-11-1000000087_569094288.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqLh5hOYwu3gkcOeH3kKDRE5*ilAk1sN75yscgj2k8CrqKrAOZAAFshTf8ebUx4AXvJ2nrzk5sHeGT9W3nCnFyNs=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFlzfsnbYXzavDwQmHg4owD1TlzeEGf*mqKLec7A-7U*ua-7rcvGo7G4Lpe8xozMu4i1hWJ8TVY50un-*oaPz4SI=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -652,7 +1041,7 @@
 <item>
 <title>深度学习入门：什么是张量(Tensor)？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-11-1000000087.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqLh5hOYwu3gkcOeH3kKDRE4VGMbWRob0Q7lx*5K8Xoxl-nI0CaJVyUGBlWv*RFqBgjd9tEYlZ2O0nercAQqf1kQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFlzfsnbYXzavDwQmHg4owD1y3nnhPdR10UKJ4j3oQXrs*gq6pz3dKD8aGEnAPSJOjzia4SJ8UdTrMWUEJOjrsdQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -998,7 +1387,7 @@
 <item>
 <title>瑞银量化策略公布：通过散户羊群效应 获得A股超额收益</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-09-1000000086.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqMCRrVjgveE-uk18L0MFIhWPnaz2N0ZCpdd2atLyUZR4339HUJ5zQ0QCvnHPWrVsqJIjXNhio7ZsQDHKlKvL8Lc=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFsYVIH5Wy6OTvqSp0tDEfm3zST0Ylzqahub0tA3u4F1AVGi-J*3m2*nRvZcvvSbmuPPKjldBmaHriSPbdEcW1aE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1319,7 +1708,7 @@
 <item>
 <title>“降准”带来大牛市？ 量化测算PMI 社融 汇率等宏观数据A股择时效果</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-07-1000000085.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqAOYVo-vBDyJz8HtwZaOGQjDbPk86sODznylwb5fz2QNcDrk98nD5w*0fMmy8dvVHWRGsCk6XqkoXu0yGT3SYMU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFmQcdMUDnTXErbuKAbeGA*xk*HfOZvJk9srTFkZpHkC8DhSRCzkn*AM5F1r2DYm2vPTq91ghC6hvYlnPKVdqLdU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1642,7 +2031,7 @@
 <item>
 <title>【揭秘专业投资者的武器】经典组合优化模型 在行业资产配置中的应用示例</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-04-1000000084.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqBfLzYRuMvWw8O*8ofVBE33Aqe7hzJqCFoKT8wB8Tgd2dIOKbA5g6Nlo0rrNF0ldEsZHGSVFK3vO6f5qrAOu1TE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFqv*6dB*0lGVLRPaL0aKq2unFNCrNqzNf*lEHMnCzFpI6s627vAMG11b2LhXPZHEkj0r3fm8dbMvObISmi735ik=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1965,7 +2354,7 @@
 <item>
 <title>前方高能：量化算法交易 数据驱动学习的特殊性及挑战</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2019-01-02-1000000083.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqAohD*iKwj5lLsAmqOMl0fOkwWHHnWG23AtKgArEeWpG9jSrPMSsBqxEoeyx0rwOpfOGk95zSPgIHXt-zk-gnpk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFi5NPPlzHABq9Prnx7fDkOTKoap8YTDwxKID6SS5LEvdYL-nxwF0aOBQ87V6q3t5AsZxYukcnQ1Uy1qY0SDph0c=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2290,7 +2679,7 @@
 <item>
 <title>下跌行情中存在超额收益吗？2018年因子回顾</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2018-12-31-1000000082.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqLvqSuG-0Q3-NM3NvGYlr4Bt*tgUdpchhk1u5TRDZbEvUF-1xLoj49p2z5Ank53Qqz-pSiDYdsWpwD8Q7wg-KlY=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFsEVhvoCW3isn1LkfKIOu1im4HFAdOVf0U2OiO57ErJKTt9Ae11PdRzXzx91z9VCrKcd1U6DscbgL0mOLv0r3yA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2613,7 +3002,7 @@
 <item>
 <title>量化择业 银行vs券商vs公募vs私募？（行内人深度分享）</title>
 <link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2018-12-28-1000000081.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqDzIiKS9CyK-x*Yed5D9vj4FU7pAwCF2w0ocZ9KA6rt6ciO9QdMvD25*Y47muuAQEoMikz4FYRAp8mtz0gUXQmg=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547709728&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=9jfvGdqbXLKsPqVnWKz4*pOkuO8hRRd6cFsohkr*UeV0DbUDZfIVLHbgRCFQ5EhPO-OuqHQP2pLm4gEsE-iNFs2lArSwjb-FzsgUcTuEH9koWU1H5haEisRWZxgroUiNb4mY9wg-WjQhYLXm7fIK2I899Wf2l13LXofmKJn2xw0=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2932,331 +3321,6 @@
 <author>远毅</author>
 <guid isPermaLink="false">2018-12-28-1000000081</guid>
 <pubDate>Fri, 28 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>牛熊分界点？技术指标择时 在当前A股指数效果解密</title>
-<link>https://henix.github.io/feeds/weixin.sogou.JoinQuant-jx/2018-12-26-1000000080.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1547605157&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=3Cu58vedqC0BZsuCHLzDdh26eXVnlt2jKFM*mLc1JF-lu7j8Q*97Vv1QQHn9pK1iIBMaROlC5LkvWc2sNFLUqIYjtsavN-QSdDUhqKye3anlFvYaK9JfKnfVhqKypctJLKpnQQV24xlMDvVpPz-vL4txflFBRo1smLFGLJNnPlY=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-                                    
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    牛熊分界点？技术指标择时 在当前A股指数效果解密
-
-                                                                                &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
-                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                syylt
-                                            &lt;/span&gt;
-                                        
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        聚宽量化实验室                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;聚宽量化实验室&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;JoinQuant-jx&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot; __bg_gif&quot; data-backh=&quot;124&quot; data-backw=&quot;558&quot; data-before-oversubscription-url=&quot;https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.2222222222222222&quot; data-type=&quot;gif&quot; data-w=&quot;900&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?&quot; style=&quot;text-align: center;box-sizing: border-box !important;word-wrap: break-word !important;width: 542.188px !important;visibility: visible !important;&quot;&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&#39;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;max-width: 100%;font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;一、&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;技术指标说明&lt;/strong&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/h2&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box;margin-bottom: 15px;text-align: justify;outline: none !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        说到技术指标，想必不论新韭老韭都能随口念出几个来，是判断行情走势的衍生工具，也是行情软件中必备的板块内容，技术分析一直在大多数股民中备受好评，各个频道的股评专家也是乐此不疲。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box;margin-bottom: 15px;text-align: justify;outline: none !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;    &lt;/span&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;   &lt;/span&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;股市参与者千万人，在同一市场中博弈，作为个人投资者获取行业或公司信息并无优势，然而关于市场所有的信息最终都会落到交易上，会体现在成交量和价格上，量价信息这个层面来讲，市场是公平的，这也是技术分析能够为大多数人使用的原因之一。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box;margin-bottom: 15px;text-align: justify;outline: none !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        使用技术分析之前，我们需要了解到，所有技术分析能够成立，是建&lt;/span&gt;立在以下的三大基石之上&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: square;&quot;&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: circle;&quot;&gt;&lt;li&gt;&lt;p&gt;市场行为包容消化一切信息&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;价格以趋势方式演变&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;历史会重演&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;        基于以上假设，演化出了各类市场分析的手段方法，下面进行了简单的汇总，技术指标作为技术分析的一个分支，其方便、直观、快捷的使用方式很受投资者的欢迎，其中蕴涵了投资者对股价变化进行长期观察并积累经验，逐步归纳总结出来的有关股市波动的规律，本篇旨在针对技术指标进行一些探索。&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.2477797513321492&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS0T12xiawb2cibX1AmpcrCu2Co06vqNxFgOl4sm2Y1eDpPERcgaFicSMmhBKuVE1pF49DRowF7Sg0gQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1126&quot;&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&#39;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;max-width: 100%;font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;二、&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;进行大盘择时效果验证&lt;/strong&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/h2&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p&gt;        &lt;span style=&quot;font-size: 17px;&quot;&gt;技术指标关注的点在于标的在市场中的成交量与价格变化情况，并没有去考虑所参与的标的是造酒的还是卖软件的，我们有理由认为股价变动会与自身的实际业务及行业而具有自己独特的规律，所以，这里为了避免在个股操作中受到行业及个股自身特性的干扰，我们直接拿指标进行指数交易。这里我们选了常见的13个技术指标，指标列表下&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.8024439918533605&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTicQYE7ehXgvtcrS1OIAia7jYtiabUVXa3FUHgibxJibv4KIkOMdVNTnmkchvuD9wgeTic1nBGXBZouOgQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;491&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;color: rgb(51, 51, 51);word-break: break-word;word-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;outline: none !important;&#39;&gt;注：后面的分指标回测图，数字与这里的指标是对应的关系&lt;/pre&gt;&lt;p&gt;       &lt;span style=&quot;font-size: 17px;&quot;&gt; 用以上指标分别统计了各个指标在沪深300、上证50、中证500、中证1000指数上的应用效果，为了能对结果有较为直观的对比，这里加入了指标‘None’，用于记录全仓买入指数没有择时的情况，&lt;/span&gt;&lt;span style=&quot;font-size: 17px;text-align: justify;&quot;&gt;下面是指标在沪深300指数上的择时表现，以按收益进行排序&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;text-align: justify;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;text-align: justify;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.7440147329650092&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTU9L3RtuKVV6ZMIiavwxibHOuxMeOOp1jgNWCbSmsWrtKibibt4XywCfehAhTydjn75p0ib9hLvx591DA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;543&quot;&gt;&lt;/p&gt;&lt;p&gt;　　&lt;span style=&quot;&quot;&gt;这里说明一下，表格当中指标含义分别为算术回报（algorithm_return）、alpha超额收益(alpha)、夏普比率(sharpe)、胜率(win_ratio)、最大回撤阶段(max_drawdown_period)。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-cropselx1=&quot;0&quot; data-cropselx2=&quot;556&quot; data-cropsely1=&quot;0&quot; data-cropsely2=&quot;219&quot; data-ratio=&quot;2.539877300613497&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTicQYE7ehXgvtcrS1OIAia7jibLbt03iaBHIxgrHcnxibOzicvbkIUv8zOZBib0wth2R0KcGKdBvuchF22g/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;489&quot; style=&quot;width: 556px;height: 1412px;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;text-align: justify;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        可以看到13个指标，有9个是可以跑赢大盘本身，排名第一的是反转类指标（一般均线突破类的为趋势类，设置临界阈值类的指标为反转类），且大部分回撤都集中在大盘股灾期间。&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box;margin-bottom: 15px;text-align: justify;outline: none !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        下面是指标在上证50指数上的择时表现&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.7065026362038664&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTU9L3RtuKVV6ZMIiavwxibHOyypFTuyMS9pchIWBrRmZqC7PmEORCCLTj9xJO9VPxbKb1gfmShxgMw/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;569&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-cropselx1=&quot;0&quot; data-cropselx2=&quot;556&quot; data-cropsely1=&quot;0&quot; data-cropsely2=&quot;219&quot; data-ratio=&quot;2.539877300613497&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTicQYE7ehXgvtcrS1OIAia7jGupR6lNIA8eybEBnhr18cEa5iagV8A9fIw8X2TQM6h1I4OsXLuLKbXw/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;489&quot; style=&quot;width: 556px;height: 1412px;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;box-sizing: border-box;margin-bottom: 15px;text-align: justify;outline: none !important;&quot;&gt;        &lt;/p&gt;&lt;p style=&quot;box-sizing: border-box;margin-bottom: 15px;text-align: justify;outline: none !important;&quot;&gt;        其中只有3个指标能够跑赢大盘，排名第一的是趋势类指标布林带，大部分回撤集中在08年股灾后到15年股灾前的长熊期间。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        下面是指标在中证500指数上的择时表现&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.72875226039783&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTU9L3RtuKVV6ZMIiavwxibHOOico7brNfqKGeJtwclAuqsuQ4xN0sbQvnmbRpPag6sfFkgEwl98qWHQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;553&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-cropselx1=&quot;0&quot; data-cropselx2=&quot;556&quot; data-cropsely1=&quot;0&quot; data-cropsely2=&quot;219&quot; data-ratio=&quot;2.539877300613497&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTicQYE7ehXgvtcrS1OIAia7jON6ZRldia5PQw8wQBHPtRkzpXpEibnzMndL4nAyXkEQ0xdHWUzqfLaYg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;489&quot; style=&quot;width: 556px;height: 1412px;&quot;&gt;&lt;/p&gt;&lt;p&gt;        &lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        其中有4个指标能跑赢大盘，排名第一的是趋势类指标指数移动平均线，大部分回撤都集中在15年股灾后。&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;list-style-type: none;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;下图是指数在中证1000指数上的择时表现&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.7738317757009345&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTU9L3RtuKVV6ZMIiavwxibHOTjm702SQHDRHGMg6n9phVdIOhyoxwooP8YuDasDMpw2P1S70sZpJ1Q/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;535&quot; style=&quot;text-align: center;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-cropselx1=&quot;0&quot; data-cropselx2=&quot;556&quot; data-cropsely1=&quot;0&quot; data-cropsely2=&quot;219&quot; data-ratio=&quot;2.539877300613497&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQTicQYE7ehXgvtcrS1OIAia7ja8sPw9JQ4zdcnicHBYGT6xCozlB6NO8Qh68hZVaQoM7Lu3UYeCykJaQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;489&quot; style=&quot;width: 556px;height: 1412px;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        中证1000由于指数编制较晚，出现了较长时间的空仓期，10个指标是可以跑赢指数本身的，排名第一的是趋势类布林带指标，BOLL指标第二次出现，回撤集中在15年股灾后。&lt;/span&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&#39;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;letter-spacing: 0.544px;text-align: justify;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;三、参数调试&lt;/span&gt;&lt;/strong&gt;&lt;/h2&gt;&lt;p&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        以上指标进行测试直接调用的聚宽技术指标库的方法，涉及到指标参数均使用已设置的默认参数，部分涉及到设置信号阈值类的指标，如RSI指标，目前是主观给的范围（未做调优），为了进一步测试指标的效果是否稳定（Robust），下面将进行策略收益对参数变化的敏感性测试，我们取了两个指标进行测试，分别是在中证500上效果显著的EMA指数移动平均线指标,和在中证1000上效果显著的BOLL带指标，设置不同统计长度（timeperiod），分别设置为&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;pre style=&#39;box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: &quot;Source Code Pro&quot;, monospace;font-size: 0.9em;line-height: 1.6;color: rgb(51, 51, 51);word-break: break-word;word-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;outline: none !important;&#39;&gt;&lt;code class=&quot;lang-python&quot; style=&#39;box-sizing: border-box;font-family: &quot;Source Code Pro&quot;, monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;&#39;&gt;[&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;10&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;11&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;12&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;13&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;14&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;15&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;16&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;17&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;18&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;19&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;20&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;21&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;22&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;23&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;24&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;25&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;26&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;27&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;28&lt;/span&gt;&#39;,&#39;&lt;span class=&quot;hljs-number&quot; style=&quot;box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;&quot;&gt;30&lt;/span&gt;&#39;]&lt;/code&gt;&lt;/pre&gt;&lt;ul style=&quot;list-style-type: none;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.67828418230563&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS0T12xiawb2cibX1AmpcrCu2DT2zoYCUe2Vu66XrJicKNqkID7V7bPmZXTr6R18wiat8Ow3UGfz0PwXQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;373&quot; style=&quot;white-space: normal;&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p style=&quot;text-align:center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.67828418230563&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS0T12xiawb2cibX1AmpcrCu2kpuxW3zT24JibgqRg9stXWE7ov0icdz6KNBzFeib2YwbszO5YzlFPOqicg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;373&quot; style=&quot;white-space: normal;&quot;&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;　　可以看到，EMA表现最好的参数为21，BOLL带表现最好的指标是23，并且在两边是逐步下降的过程，而实际上，指标表现最好的参数基本就是一个月的交易日个数，我们猜测市场存在明显的月度效应（这里可以试着拿该指标在更多的标的中进行测试，分别统计不同参数下，跑赢不择时的比率变化规律）。&lt;/span&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;h2 mpa-is-content=&quot;t&quot; style=&#39;margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;letter-spacing: 0.544px;text-align: justify;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;四、结果说明&lt;/span&gt;&lt;/strong&gt;&lt;/h2&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        通过上述的测试结果，我们初步得出如下结论&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: disc;&quot;&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: square;&quot;&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;在4个指数上都能跑赢指数本身的指标有两个，MA、RSI（这里不禁感慨难怪信仰均线的人不在少数，均线确实是广泛有效的指标）&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;均线类指标统计长度（timeperiod）表现最好的参数基本就是一个月交易日个数&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;择时指标开平仓普遍胜率不高，由此推测盈利主要来自于盈亏比&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;趋势类指标效果整体优于反转类指标&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;        为了避免个别标的自身特性的影响，增加结果的普适性，都是拿指数进行的测试，然而不同指数本身也有各自的特点，小伙伴们可以借助已有的代码，进行更多标的枚举暴力测试，通过多回测方法进一步挖掘更为有效的指标参数。&lt;/span&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&#39;max-width: 100%;min-height: 1em;color: rgb(51, 51, 51);font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;font-size: 17px;letter-spacing: 0.544px;text-align: justify;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;word-wrap: break-word !important;&#39;&gt;　　点击&lt;span style=&quot;color: rgb(255, 0, 0);&quot;&gt;&lt;strong&gt;阅读&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;color: rgb(255, 41, 65);box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;word-wrap: break-word !important;&quot;&gt;原文&lt;/strong&gt;&lt;/span&gt;，进行策略代码克隆，验证下效果吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;764366468&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx42c23e.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;syylt&lt;/div&gt;
-                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                &lt;/div&gt;
-
-                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x3534dd.png&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                
-                
-                            &lt;/div&gt;
-                                    
-                        &lt;div class=&quot;article_modify_area tips_global_primary article_modify_area_primary&quot;&gt;
-              文章已于&lt;span id=&quot;js_modify_time&quot;&gt;&lt;/span&gt;修改            &lt;/div&gt;
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-        &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
-        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          好看&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已推荐到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42a817.png&quot;&gt;
-            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;推荐&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog&quot;&gt;
-        
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-            已取消，“好看”想法已同步删除        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-
-&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;like_comment_inner&quot;&gt;
-    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;like_comment_bd&quot;&gt;
-      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已推荐到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;和朋友分享想法&lt;/a&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;like_comment_ft&quot;&gt;
-      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          分享你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 分享想法到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;分享你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
-    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-dialog&quot;&gt;
-    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        网络异常，请稍后重试    &lt;/div&gt;
-    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
-      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
-    &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://www.joinquant.com/post/15754?tag=algorithm&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                            
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>syylt</author>
-<guid isPermaLink="false">2018-12-26-1000000080</guid>
-<pubDate>Wed, 26 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
