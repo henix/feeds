@@ -21,6 +21,7 @@ const feeds = [
 		"JoinQuant-jx",
 		"worldofboss",
 		"yan-guan-lin-20",
+		"gh_0f34e4e813fc",
 		"Gaosweco",
 		"ricequant",
 		"forex-analysis",
