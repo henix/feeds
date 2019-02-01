@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>期货市场的免费午餐？期限结构Carry收益模型分享</title>
+</head>
+<body>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1549059115&amp;src=3&amp;ver=1&amp;signature=yZfL8al4TIlYDfJsfeFm4geHP7SjGqYI*WTH0sKAyCSgGrox9P84yFEvPFjNx3lw24sxnLriJ4ryf-uIS2ZYPhTsO-OPdTwO*946BtnewiicOT7LG*CrvwsDYbRGNfEu9VVsuGbieD1qFch0MaqD2Ji4ZvShFQof3T4c43SP-J4=">原文</a></p>
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    期货市场的免费午餐？期限结构Carry收益模型分享
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                张瀚升
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        聚宽量化实验室                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">聚宽量化实验室</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">JoinQuant-jx</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p style="text-align: center;"><strong style="text-align: center;white-space: normal;"><span style="font-family: 等线;font-size: 16px;color: rgb(89, 89, 89);"><img src="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?" class="" data-ratio="0.2222222222222222" data-w="900" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?" style="width: 540px;"></span></strong></p><p><br></p><p>　　我们有没有注意到：同一商品期货合约，由于交割时间不同，价格有很大差异？这种差异如果可以被利用，<strong>我们即可获得一种特殊的收益——展期收益</strong>。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px 8px;padding-right: 10px;padding-left: 10px;font-weight: bold;text-indent: 0em;white-space: normal;text-align: left;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="font-size: 17px;text-align: justify;">展期收益定义</strong></h2><p><br></p><p><br></p><p>　　每个期货合约都有自己固定的生命周期，这个周期在交割结算日结束。如果你持有到期，就需要持有这些市场头寸的交易者退出（平仓）这些合约，并将其<strong>展期</strong>至下一个季度。这种期货合约展期动作，是期货市场所特有的。</p><p><br></p><p>　　这种收益也被称为carry（持续持有）收益，一般意义上的carry是指票息所得和资金成本之间的差。</p><p><br></p><p>　　很多科班的金融学生都了解，利率期限结构（Term Structure of Interest Rates），是指在某一时点上，不同期限资金的收益率（Yield）与到期期限（Maturity）之间的关系。而到了商品期货市场，期限结构就是指远期和近期合约，由于交割时间不同，市场需求不同，产生了价差，价差又产生了<strong>展期收益（carry收益）</strong>。</p><p><br></p><p style="white-space: normal;text-align: center;"><img class="" data-copyright="0" data-ratio="0.7170818505338078" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0Yn8z8ALwGDRgAEHFLscibCIaXovbOfdwV69OhdibLGFXab0Z5kScf7cwQ/640?wx_fmt=png" data-type="png" data-w="562"></p><p style="white-space: normal;text-align: center;">通过上图看出，螺纹的远期合约价格更低</p><p><br></p><p>　　carry展期收益是一种重要的收益来源，你可以按照字面理解就是持有它，在很多市场carry都会产生收益。在<strong>固定收益领域有句话：Carry is the king</strong>。Total Return = Carry + Mark to Market P&amp;L（总回报=Carry 市值），其中Carry = 票息 – 融资成本。</p><p><br></p><p>　　回到商品期货市场，远期合约和近期合约，存在套利机会，期货合约到期日之前，期货与现货除受供需影响外，亦受持有成本（cost of carry）的影响。由此可以理解carry收益，由期货的两个特性决定——<strong>期限性和收敛性</strong>。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px 8px;padding-right: 10px;padding-left: 10px;font-weight: bold;text-indent: 0em;white-space: normal;text-align: left;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="font-size: 17px;text-align: justify;">期限结构——和动量不同源的有趣因子</strong></h2><p><br></p><p><br></p><p>　　期货合约的期限性（期货合约的生命周期有限）使期货市场定价必须及时解决问题。随着期货合约所剩交易日的减少，合约价格代表性、市场流动性、影响价格变化的因素等也都将发生相应的变化。</p><p><br></p><p>　　期限结构因子作为期货合约的特色因子，与现货的库存水平、持有成本（包括交通、仓储以及保险费用等）、市场利率（购买现货的融资成本）以及持有现货的便利收益（convenience yield）等因素相关，而且它和动量几乎完全无关（因为计算期限结构考虑的是两个不同时间的合约价格，而不是一个合约价格），所以在CTA量化因子倍受关注。</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="1.1108108108108108" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0YReoSvFbsnyrl3IoxKDTe9ecdn3l2hnUglUhPgBhmzTCdibWydxC1BEA/640?wx_fmt=png" data-type="png" data-w="370" style=""></p><p><br></p><p>　　讲完了期限性，再说说收敛性。价格收敛是指越是临近期货合约交割日，期货价格越是趋近于现货价格。这个过程实质上就是期货基差趋向于最小化的过程，也可以说是期货价格逼近现货价格、二者逐渐收敛的过程。我们可以用近月合约近似替代现货价格，则可以计算出合约升水Contango、贴水backward幅度。</p><p><br></p><p>　　远期和近期合约由于交割时间不同，市场需求不同，产生了价差。远期升水Contango的情况较多，因为有资金利息和仓储成本的影响。期货贴水backward也会发生，由于短期供需缺口和产期经济前景看淡，会造成远期合约价格较低。</p><p><br></p><p>　　比如我在2018年12月28日，以3868元平仓1手螺纹钢1901合约多单，然后以3399元买入1手1905合约多单，我的持仓量始终都是1手，但是我降低了持有成本3868 - 3399元，此时可以认为我的展期收益 = 01新合约 - 05老合约 = 469元，全段展期收益率 = 14.04%，折合每月展期收益率 = 14.04% / 4(两个合约之间的相隔月数) = 3.51%。这种展期收益为正的结果叫做远月合约贴水，如果远月比近月贵，则叫做升水。</p><p><br></p><p>　　今天简单介绍一个标准的商品期货市场展期收益率模型，它通过做多贴水最多的合约，做空升水最多的合约，赌升贴水收敛，获得较为稳定的carry收益。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px 8px;padding-right: 10px;padding-left: 10px;font-weight: bold;text-indent: 0em;white-space: normal;text-align: left;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="font-size: 17px;text-align: justify;">展期收益率观察与计算</strong></h2><p><br></p><p><br></p><p>　　展期收益策略是商品期货特有的策略类型。逻辑上，展期收益策略与传统的趋势类策略相关性较差，有较好的互补性，因为他们从根源上不同源。商品配置一般不投资于实物商品，业内流行的方式是通过商品期货，然后滚动移仓，达到配置商品的目的。理论上，投资商品期货的收益可以分解成：<br></p><p><br></p><p>　　Futuresreturn = Spotreturn + Rollreturn + Collateralreturn</p><p><br></p><p>　　即期货投资收益由3部分构成：对应现货的收益、展期收益和现金收益。这里roll收益和carry收益相对应。</p><p><br></p><p>　　在商品期货市场，同一标的品种对应着不同交割日的期货合约，如螺纹钢每年有1月，5月，10月，这3个主力合约。</p><p><br></p><p>　　商品期货的现货价格（<strong>这里常用近月合约代替现货价格</strong>）与不同交割月期货合约交易价格之间的价格差，即商品期货的期限结构。若现货价格大于期货价格，或近月合约的期货价格大于远月合约的期货价格，称为期货贴水backward，或现货升水；若现货价格小于期货价格，或近月合约的期货价格小于远月合约的期货价格，称为期货升水Contango，或现货贴水。</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.7409948542024014" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0Y179ibnhDoMKKAKKZhysfJWibdmuHrWGAhxfWjdOhSnoLp1JMibWQFLk7A/640?wx_fmt=png" data-type="png" data-w="583" style=""></p><p><br></p><p>　　我们一般说升贴水，习惯于针对远期合约。</p><p><br></p><p>　　展期收益率特指两个合约之间的收益差额，它属于期限结构的研究范围内，期限结构是某一个特定品种的期货所有合约的价格按时间排列构成的曲线，如下图：</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.4469135802469136" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0Y84EuFoOxcoVGeXzonLCGY3EY4MUow5q2c6HLWfCp41ibrDFwnpvPfIg/640?wx_fmt=png" data-type="png" data-w="810" style=""></p><p style="text-align: center;">沪铝期货 期限结构</p><p style="text-align: center;"><br></p><p style="text-align: center;"><img class="" data-ratio="0.4618272841051314" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0YskOORrNZ0IyOd1BaUFMvnLbB5icbqDf5ntQWljy6lQsL6upsyAgWGeQ/640?wx_fmt=png" data-type="png" data-w="799" style=""></p><p style="text-align: center;"><span style="text-align: center;">螺纹钢期货 期限结构</span></p><p><br></p><p>在聚宽研究平台获取价格和绘图代码如下：</p><p><br></p><pre style='box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: "Source Code Pro", monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;'><code style='box-sizing: border-box;font-family: "Source Code Pro", monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;'>import matplotlib.pyplot as plt
+import pandas as pd
+symbolList = get_future_contracts('RB')
+PriceList  = []
+SymList = []
+for i in symbolList:
+    SymList.append(i)
+    PriceList.append(attribute_history(i,1,'1d',['close'])['close'][-1])
+s_1 = pd.Series(SymList, name='Symbol')
+s_2 = pd.Series(PriceList, name=<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">"Price"</span>)
+df = pd.concat([s_1, s_2], axis=1)
+df=df.set_index(<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">"Symbol"</span>)  
+
+plt.figure(figsize=(15, 7))
+plt.plot(df)
+plt.show()</code></pre><p><br></p><p>　　我们可以通过计算不同标的物的展期收益率来度量不同标的的现货溢价幅度，<strong>并根据不同标的之间展期收益率的高低来构建交易策略</strong>。</p><p><br></p><p>　　假设 Pt,n 是 t 时刻近月合约的价格，Pt,d 是 t 时刻远月合约的价格，Nt,n 是近月合约在 t 时刻距离交割日的天数，Nt,n 是远月合约在 t 时刻距离交割日的天数。则展期收益率 Rt为：</p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.3058510638297872" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0YI1mhooUeHiciarjaMayI6mmRb4BDsiavCLbNqlCia9IWhDU8ia1XyC2Poyw/640?wx_fmt=png" data-type="png" data-w="752" style=""></p><p>　　当 Rt 为正，即近月合约价格大于远月合约价格，当 Rt 为负，即近月合约价格小于远月合约价格。对同一横截面的所有品种来说，最大的 Rt，即对所有品种来说，该标的的近月合约对远月合约涨幅最大，最小的 Rt，即对所有品种来说，该标的的近月合约对远月合约跌幅最大。</p><p><br></p><p>　　按照机构提供的交易逻辑：若不同合约的展期收益率排名可在一定程度上体现“多强空弱”，这里的“强”、“弱”概念，即可根据展期收益率排名构建交易策略，从而在<strong>展期收益率的角度做到“顺势而为”</strong>。</p><p><br></p><p>　　计算和绘制展期收益率的代码如下：</p><p><br></p><pre style='box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: "Source Code Pro", monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;'><code style='box-sizing: border-box;font-family: "Source Code Pro", monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;'><span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;"># 以螺纹钢1901 1905合约为例<br><br></span>PriceList1901 = attribute_history(<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RB1901.XSGE'</span>,<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">120</span>,<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'1d'</span>,[<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'close'</span>])
+PriceList1905 = attribute_history(<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RB1905.XSGE'</span>,<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">120</span>,<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'1d'</span>,[<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'close'</span>])
+df = pd.concat([PriceList1901, PriceList1905], axis=<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>)
+df.columns= [<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RB1901.XSGE'</span>,<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RB1905.XSGE'</span>]<span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;"># 计算展期收益率</span>df[<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RY:RB'</span>] = df.apply(<span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">lambda</span> x: (x[<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">0</span>] / x[<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>]<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">-1</span>)*<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">3</span>, axis=<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>)
+plt.figure(figsize=(<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">15</span>, <span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">7</span>))
+plt.plot(df[<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RY:RB'</span>])
+plt.legend([<span class="hljs-string" style="box-sizing: border-box;color: rgb(136, 0, 0);outline: none !important;">'RY:RB'</span>])
+plt.show()</code></pre><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.469281045751634" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0Y2HhoOVIwFyQpA9k1MbJ4eeUJnXT4Fz7u0nHnq7uTyUOnnL1d8EX2vA/640?wx_fmt=png" data-type="png" data-w="765" style=""></p><p style="text-align: center;">螺纹展期收益率</p><p style="text-align: center;"><br></p><p style="text-align: center;"><img class="" data-ratio="0.4454428754813864" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0YoZm05xvicicmfkdictIwunibhwicxe7K7LJibMva3TcHojezEdqmRBU5LKibA/640?wx_fmt=png" data-type="png" data-w="779" style=""><span style="text-align: justify;">沪铝展期收益率</span></p><p style="text-align: center;"><span style="text-align: justify;"><br></span></p><p style="text-align: left;"><span style="text-align: justify;">　　由于展期收益率的计算不涉及到指数合约，都是在两个相邻的真实合约之间进行，所以我们首先人工写出了历史上的大部分期货品种的主力合约，在模型源码中即可看到。</span></p><p style="text-align: left;"><span style="text-align: justify;"><br></span></p><p>　　交易规则方面，我们考虑一定要尽可能简单，我们计算商品池内所有商品的ts（展期收益率）因子，将因子值大于0的商品归为远期贴水backward组，将因子小于0的商品归为远期升水contango组；</p><p><br></p><p>　　因为我们约定常用远期合约描述升水贴水，所以近期比远期高，是远期贴水，近期升水，属于contango。反之，属于backward。这里的升和贴，和展期收益率的大小，是相反的，这里是比较绕的一点。</p><p style="text-align: left;"><span style="text-align: justify;"><br></span></p><p style="text-align: left;"><span style="text-align: justify;"><br></span></p><pre style='box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: "Source Code Pro", monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;'><code style='box-sizing: border-box;font-family: "Source Code Pro", monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;'><span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;"># 展期收益率<br><br></span>g.RY[ins] = (g.PriceCurrent-g.PriceNext)/g.PriceNext/g.DM<span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;"># 分为远期升水RYS，远期贴水RYB，两组</span><span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">if</span> g.RY[ins] &lt; <span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">0</span>:
+    g.RYS[ins] = g.RY[ins]<span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">elif</span> g.RY[ins] &gt; <span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">0</span>:
+    g.RYB[ins] = g.RY[ins]</code></pre><p style="text-align: left;"><span style="text-align: justify;"></span><br></p><p style="text-align: left;"><span style="text-align: justify;">　　按照“多强空弱”中的理念，我们做多展期收益率最高的品种，做空展期收益率最低的品种。这里你可以按照某些研报上所说，在两组内再做一个强度区分，比如只做每一组的前50%的品种。当然也可以全部做，我建议在测试模型时，全部交易。这说明了展期收益率一个特性——<strong>单调性，强者恒强，弱者恒弱。</strong></span></p><p style="text-align: left;"><span style="text-align: justify;"><br></span></p><pre style='box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: "Source Code Pro", monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;'><code style='box-sizing: border-box;font-family: "Source Code Pro", monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;'><span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;">## 交易模块 </span><span class="hljs-function" style="box-sizing: border-box;outline: none !important;"><span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">def</span> <span class="hljs-title" style="box-sizing: border-box;color: rgb(136, 0, 0);font-weight: bold;outline: none !important;">Trade</span><span class="hljs-params" style="box-sizing: border-box;outline: none !important;">(context)</span>:</span>
+    <span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;"># 多头部分的品种，展期收益率大于0</span>
+    a = sorted(g.RYB.items(), key=<span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">lambda</span> x: x[<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>],reverse = <span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">True</span>)    <span class="hljs-comment" style="box-sizing: border-box;color: rgb(136, 136, 136);outline: none !important;"># 空头部分的品种，展期收益率小于0</span>
+    b = sorted(g.RYS.items(), key=<span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">lambda</span> x: x[<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>],reverse = <span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">False</span>)</code></pre><p style="text-align: left;"><span style="text-align: justify;"></span><br></p><p style="text-align: left;"><br></p><h2 mpa-is-content="t" style="margin: 5px 8px;padding-right: 10px;padding-left: 10px;font-weight: bold;text-indent: 0em;white-space: normal;text-align: left;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="font-size: 17px;text-align: justify;">期限结构Carry收益性能测试和分析</strong></h2><p><br></p><p><br></p><p>　　我们最初采用了月度调仓方案，获得如下绩效：</p><p style="text-align: left;"><span style="text-align: justify;"><br></span></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.3238434163701068" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0Yiae4JGgHO3aXvCRq4sicRTo9e08lp0VYiaRK10PGqdKzicicdiay3dx4BV7A/640?wx_fmt=png" data-type="png" data-w="1124" style=""></p><p style="text-align: left;"><span style="text-align: justify;"></span><br></p><p style="text-align: left;">　　然后我们尝试，对所做的合约进行筛选，比如说，我只做多展期收益率为正的且最高的前50%，做空为负且最低的后50%，在代码这里做调整：</p><p style="text-align: left;"><br></p><pre style='box-sizing: border-box;padding: 10px 20px;margin-top: 0px;margin-bottom: 1.1em;overflow: auto;font-family: "Source Code Pro", monospace;font-size: 0.9em;line-height: 1.6;word-break: break-word;overflow-wrap: break-word;background-color: rgb(245, 245, 245);border-width: 0px;border-style: initial;border-color: initial;border-radius: 5px;text-align: start;outline: none !important;'><code style='box-sizing: border-box;font-family: "Source Code Pro", monospace;font-size: inherit;color: inherit;border-radius: 0px;white-space: pre-wrap;outline: none !important;background-color: transparent !important;'><span class="hljs-meta" style="box-sizing: border-box;outline: none !important;"># 将字典进行排序，各买入50%，或者全部交易</span>
+    <span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">for</span> i <span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">in</span> range(<span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">int</span>(len(a)*<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>)):
+        BuyList.append(a[i][<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">0</span>])    <span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">for</span> i <span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">in</span> range(<span class="hljs-keyword" style="box-sizing: border-box;font-weight: bold;outline: none !important;">int</span>(len(b)*<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">1</span>)):
+        SellList.append(b[i][<span class="hljs-number" style="box-sizing: border-box;color: rgb(0, 136, 0);outline: none !important;">0</span>])</code></pre><p style="text-align: left;"><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.8809946714031972" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0YiaBctPys7qqVFiamyUkicWujAIiatvOUTVX6zKEU3NCNusFhRzDIgicC1gA/640?wx_fmt=png" data-type="png" data-w="1126" style=""></p><p style="text-align: left;"><br></p><p>　　直观上感觉这样的测试不利于得到稳定的测试结论，所以还是<strong>选择全做（展期高做多，展期低做空）</strong>。在全部交易的时候，我截取了一天的持仓，大家可以看细节：</p><p style="text-align: left;"><br></p><p>　　可以看到，持仓是相对均衡的，也就是说，它基本上实现了多品种多空对冲。这就是Carry收益的策略。</p><p><br></p><p>　　再次总结，<strong>它获取的是和趋势完全不相关的收益</strong>，通过远期近期合约的收益率差异，计算升贴水，然后全市场分析升贴水率（展期收益率）。做多展期收益率更高（近期比远期更强）的品种，做空展期收益率更低（近期比远期更弱）的品种。</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="0.29797191887675506" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRpOXRbXWSykNzmkBzCcw0YKXIKnqtbbHYJDg5Hx6xzXQgqRPIBboGTyOZDxHT7WXN8pjVyJbccBg/640?wx_fmt=png" data-type="png" data-w="1282" style=""></p><p><br></p><p>　　<strong>Carry展期收益是有一定风险的，要做好风险控制</strong>，在做期货趋势的同时搭配这套模型，综合曲线可能会更好。最后如上图，我们还测试了周度调仓上图，结果较为理想，回撤控制确实满意。</p><p style="text-align: left;"><br></p><p style="text-align: left;">　　全部源码，我们已经发布于聚宽论坛，点击<strong>阅读原文</strong>即可看到，欢迎大家复现，并迭代出更好的模型。</p><p style="text-align: left;"><br></p><p style="margin-right: 8px;margin-left: 8px;white-space: normal;text-align: center;"><img class="" data-copyright="0" data-ratio="0.7809798270893372" src="https://mmbiz.qpic.cn/mmbiz_gif/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcUwUgKuqM0OADcR1IT2z0AhW2eQMyibaV77UibB4V0XKCAengxnHYRz9w/640?wx_fmt=gif" data-type="gif" data-w="694"></p><p style="margin-right: 8px;margin-left: 8px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="font-size: 15px;color: rgb(89, 89, 89);">欢迎关注</span><span style='color: rgb(89, 89, 89);font-size: 15px;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;text-align: start;'>『</span><strong><span style='font-size: 15px;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;text-align: start;color: rgb(54, 116, 201);'>聚宽量化实验室</span></strong><span style='color: rgb(89, 89, 89);font-size: 15px;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;text-align: start;'>』</span></p><p style="text-align: left;"><br></p>
+                </div>
+                <script nonce="96330366" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">张瀚升</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          <span id="js_like_wording"> 好看</span><span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已推荐到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png">
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">推荐</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    <div id="js_unlike_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+        
+        <div class="weui-dialog__bd">
+            已取消，“好看”想法已同步删除        </div>
+        <div class="weui-dialog__ft">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_unlike_know">知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>已推荐到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">和朋友分享想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          分享你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 分享想法到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="分享你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+<div id="js_loading" style=" display: none;">
+    <div class="weui-mask_transparent"></div>
+    <div class="weui-toast">
+        <i class="weui-loading weui-icon_toast"></i>
+        <p class="weui-toast__content">发送中</p>
+    </div>
+</div>
+
+<div id="js_fail" style="display:none">
+    <div class="weui-mask"></div>
+    <div class="weui-dialog">
+    <div class="weui-dialog__bd">
+        网络异常，请稍后重试    </div>
+    <div class="weui-dialog__ft">
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_fail_inform">知道了</a>
+    </div>
+    </div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://www.joinquant.com/post/16076" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
