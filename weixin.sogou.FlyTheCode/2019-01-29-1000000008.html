@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>如何实现一个跨进程的观察者模式？</title>
+</head>
+<body>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1549104042&amp;src=3&amp;ver=1&amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1LAqu6Ho0G*UP9DKX9e7jaohMIPfwy5Q9mXdFS-Z26P-wDqgWPUzbVqbCHvpTigxrtAfB0EAX07vEgMkgXD8bto=">原文</a></p>
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    如何实现一个跨进程的观察者模式？
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                Tankery
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        FlyTheCode                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">FlyTheCode</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">FlyTheCode</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">希望有一天，代码能如风一般飞奔在原野。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">快过年了，大家都放假了么？放假这么无聊，正是学习的好时候！莫负青春好时光啊少年！</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">本文比较长，也比较干，建议收藏以后慢慢品味，嗯嗯。。</p><hr style="border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);"><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">什么是 Binder？我面试时听到过很多答案，比如 “bindService 返回的那个对象”，“binder 就是 AIDL”。。如果你的理解仅限于此，那你的世界就太小了。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">Binder 可以说是 Android 系统最重要的基石之一，你能想到的各种涉及跨进程调用的场景，几乎都是使用 Binder 机制实现，比如 broadcast receiver，比如 content provider，比如 Activity result，等等。了解了 Binder，就拿到了新世界的船票，可以尽情畅游在跨进程的世界里了。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">但是请放心，今天我不会分析这些系统应用，也不会介绍具体实现细节。更不会深入去阅读 Binder 机制的源码。因为网络上这样的分析已经非常多，也有非常好的资料可供学习。才疏学浅的我，就不在这儿误导你了，真想了解的话，附录贴出了一些参考资料可以看看。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">我今天要做的是“拿来主义”，Binder 已经这么好了，拿来用用呗。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">背景</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">之所以研究 Binder，是因为最近在开发手表的运动App时，遇到一个有趣的问题：如何才能统一多个模块对同一种数据的监听需求？</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">比如运动需要监听心率变化，睡眠也需要监听心率变化，而心率模块还希望做全天24小时的心率监测。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">如果是同一个进程，使用观察者模式就能很轻易的解决这个问题（多个模块同时观察同一个数据源）。但这些功能都处在不同的App中，属于不同的进程。这时候，事情就变得有意思起来：<span style="box-sizing: inherit;">怎样才能实现一个跨进程的观察者呢？</span></p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">方案的选择</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">想要实现跨进程的数据传递，我们有很多选择。可以在数据变化时，发送广播，接收方通过单例、静态类等方式将数据继续往外传播；也可以用 start Service 等方式，让数据都在接收方的一个 Service 中处理；或者用 Content Provider 对外提供数据，并使用 provider 的 notify 机制来通知数据变化，等等。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">这些方案都有着各自的优势和适用场景。所以实际上，在我们的应用中，这些方式都在使用。比如运动会广播自己的运动状态变化（无需关心接收者），比如接收到手机消息时通过 start service 来处理消息，比如通过 provider 提供统一的运动数据接口，等等。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">但我发现，这些跨进程方案，都不适用于我们的场景。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">跨进程的数据监听，要求数据源像 observable 那样，能够知道都哪些 observer 在监听，以便动态的开启、关闭数据服务。这就使得我们需要一套注册、注销机制来管理数据源，和数据对应的 observer，并且将指定数据精确的发布给它的 observer。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">于是，我选择了直接使用 binder。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">Android 的基石 - Binder</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">说 Binder 是 Android 的基石真是一点也不为过。你能想到的各种涉及跨进程调用的场景，几乎都是使用 Binder 机制实现。Binder 兼具了性能与安全，是其他 Linux 平台的跨进程方案无法比拟的。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">本文不会细谈 Binder 机制，只告诉你三个关键点，帮助你快速的了解 Binder</p><ol style="" class=" list-paddingleft-2"><li><p><span style="box-sizing: inherit;">性能</span>：Binder 非常高效，利用内核驱动中的内存映射机制，实现了高效的跨进程通讯（减少内存拷贝次数），同时也在 framework 层做了处理，使得如果调用是发生在单一进程内部，效率与直接的函数调用无异。</p></li><li><p><span style="box-sizing: inherit;">架构</span>：Binder 采用 C/S 架构，Client 可以向 Server 发起一个附带数据的交易 (transact)，并收到回复（数据或异常）。</p></li><li><p><span style="box-sizing: inherit;">使用方式</span>：Binder 由 Server 创建，并通过 bindService，或者其他跨进程通讯方式，将 IBinder 接口传递给 Client，Client 持有反序列化出的 IBinder，即可利用此 IBinder 进行交易。</p></li></ol><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">了解了这些，就可以利用 Binder 进行高效的跨进程通讯了。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">下面举个例子：</p><pre class="highlight" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;"><code style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;"><span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Kotlin code</span><br style="box-sizing: inherit;"><span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Service (process=":remote")</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">class</span> <span class="nc" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">MainService</span> <span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">Service</span><span class="p" style="box-sizing: inherit;">()</span> <span class="p" style="box-sizing: inherit;">{</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">private</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">val</span> <span class="py" style="box-sizing: inherit;">binder</span> <span class="p" style="box-sizing: inherit;">=</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">object</span> <span class="err" style="box-sizing: inherit;color: rgb(166, 23, 23);background-color: rgb(227, 210, 210);">: </span><span class="nc" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">Binder</span><span class="p" style="box-sizing: inherit;">()</span> <span class="p" style="box-sizing: inherit;">{</span>
+    <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">override</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">fun</span> <span class="n" style="box-sizing: inherit;">onTransact</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">code</span><span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">Int</span><span class="p" style="box-sizing: inherit;">,</span> <span class="n" style="box-sizing: inherit;">data</span><span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">Parcel</span><span class="p" style="box-sizing: inherit;">,</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">..</span><span class="p" style="box-sizing: inherit;">.):</span> <span class="n" style="box-sizing: inherit;">Boolean</span> <span class="p" style="box-sizing: inherit;">{</span>
+      <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">if</span> <span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">code</span> <span class="p" style="box-sizing: inherit;">==</span> <span class="n" style="box-sizing: inherit;">BINDER_TRANSACT_CODE</span><span class="p" style="box-sizing: inherit;">)</span> <span class="p" style="box-sizing: inherit;">{</span>
+        <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">val</span> <span class="py" style="box-sizing: inherit;">value</span> <span class="p" style="box-sizing: inherit;">=</span> <span class="n" style="box-sizing: inherit;">data</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">readString</span><span class="p" style="box-sizing: inherit;">()</span>
+        <span class="n" style="box-sizing: inherit;">Log</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">i</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">TAG</span><span class="p" style="box-sizing: inherit;">,</span> <span class="s" style="box-sizing: inherit;color: rgb(221, 17, 68);">"Got value from activity: $value"</span><span class="p" style="box-sizing: inherit;">)</span>
+      <span class="p" style="box-sizing: inherit;">}</span>
+      <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">return</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">super</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">onTransact</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">code</span><span class="p" style="box-sizing: inherit;">,</span> <span class="n" style="box-sizing: inherit;">data</span><span class="p" style="box-sizing: inherit;">,</span> <span class="n" style="box-sizing: inherit;">reply</span><span class="p" style="box-sizing: inherit;">,</span> <span class="n" style="box-sizing: inherit;">flags</span><span class="p" style="box-sizing: inherit;">)</span>
+    <span class="p" style="box-sizing: inherit;">}</span>
+  <span class="p" style="box-sizing: inherit;">}</span>
+
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">override</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">fun</span> <span class="n" style="box-sizing: inherit;">onBind</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">intent</span><span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">Intent</span><span class="p" style="box-sizing: inherit;">)</span> <span class="p" style="box-sizing: inherit;">=</span> <span class="n" style="box-sizing: inherit;">binder</span><br style="box-sizing: inherit;"><span class="p" style="box-sizing: inherit;">}<br><br></span><span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Activity</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">class</span> <span class="nc" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">MainActivity</span> <span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">Activity</span><span class="p" style="box-sizing: inherit;">(),</span> <span class="n" style="box-sizing: inherit;">ServiceConnection</span> <span class="p" style="box-sizing: inherit;">{</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">override</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">fun</span> <span class="n" style="box-sizing: inherit;">onCreate</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">savedInstanceState</span><span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">Bundle</span><span class="p" style="box-sizing: inherit;">?)</span> <span class="p" style="box-sizing: inherit;">{</span>
+    <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">..</span><span class="p" style="box-sizing: inherit;">.</span>
+    <span class="n" style="box-sizing: inherit;">bindService</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">intent</span><span class="p" style="box-sizing: inherit;">,</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">this</span><span class="p" style="box-sizing: inherit;">,</span> <span class="n" style="box-sizing: inherit;">Service</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">BIND_AUTO_CREATE</span><span class="p" style="box-sizing: inherit;">)</span>
+  <span class="p" style="box-sizing: inherit;">}</span>
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">..</span><span class="p" style="box-sizing: inherit;">.</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">override</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">fun</span> <span class="n" style="box-sizing: inherit;">onServiceConnected</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">name</span><span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">ComponentName</span><span class="p" style="box-sizing: inherit;">?,</span> <span class="n" style="box-sizing: inherit;">remote</span><span class="p" style="box-sizing: inherit;">:</span> <span class="n" style="box-sizing: inherit;">IBinder</span><span class="p" style="box-sizing: inherit;">?)</span> <span class="p" style="box-sizing: inherit;">{</span>
+    <span class="n" style="box-sizing: inherit;">Log</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">i</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">TAG</span><span class="p" style="box-sizing: inherit;">,</span> <span class="s" style="box-sizing: inherit;color: rgb(221, 17, 68);">"Service connected, got binder $remote in activity"</span><span class="p" style="box-sizing: inherit;">)</span>
+
+    <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">val</span> <span class="py" style="box-sizing: inherit;">data</span> <span class="p" style="box-sizing: inherit;">=</span> <span class="n" style="box-sizing: inherit;">Parcel</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">obtain</span><span class="p" style="box-sizing: inherit;">()</span>
+    <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">try</span> <span class="p" style="box-sizing: inherit;">{</span>
+      <span class="n" style="box-sizing: inherit;">data</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">writeString</span><span class="p" style="box-sizing: inherit;">(</span><span class="s" style="box-sizing: inherit;color: rgb(221, 17, 68);">"Hello World!"</span><span class="p" style="box-sizing: inherit;">)</span>
+      <span class="n" style="box-sizing: inherit;">remote</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">?.</span><span class="n" style="box-sizing: inherit;">transact</span><span class="p" style="box-sizing: inherit;">(</span><span class="n" style="box-sizing: inherit;">BINDER_TRANSACT_CODE</span><span class="p" style="box-sizing: inherit;">,</span> <span class="n" style="box-sizing: inherit;">data</span><span class="p" style="box-sizing: inherit;">,</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">null</span><span class="p" style="box-sizing: inherit;">,</span> <span class="m" style="box-sizing: inherit;color: rgb(0, 153, 153);">0</span><span class="p" style="box-sizing: inherit;">)</span>
+      <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">..</span><span class="p" style="box-sizing: inherit;">.</span>
+    <span class="p" style="box-sizing: inherit;">}</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">finally</span> <span class="p" style="box-sizing: inherit;">{</span>
+      <span class="n" style="box-sizing: inherit;">data</span><span class="p" style="box-sizing: inherit;">.</span><span class="n" style="box-sizing: inherit;">recycle</span><span class="p" style="box-sizing: inherit;">()</span>
+    <span class="p" style="box-sizing: inherit;">}</span>
+  <span class="p" style="box-sizing: inherit;">}</span>
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">..</span><span class="p" style="box-sizing: inherit;">.</span><br style="box-sizing: inherit;"><span class="p" style="box-sizing: inherit;">}</span></code></pre><blockquote style="box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);"><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">（完整代码移步 GitHub： https://github.com/tankery/binder-demo）</p></blockquote><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">从这个代码看到，我们在独立进程的 Service 中创建了一个 Binder 对象，并重载 onTransaction 来接收交易信息。接着，在 onBind 函数返回 Binder 对象。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">这个对象，以 IBinder 的形式序列化，并传递给 Activity 的 onServiceConnected 方法。Activity 即可使用此 IBinder 对象发送交易了。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">运行代码，查看 logcat：</p><pre class="highlight" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;"><code style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;">6694-6694/me.tankery.demo.binder I/binder.activity: Service connected, got binder android.os.BinderProxy@c7cd6b8 in activity
+6717-6732/me.tankery.demo.binder:remote I/binder.service: Got value from activity: Hello World!</code></pre><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">你看，我们成功的从 Activity 所在进程，将 “Hello World” 传递到了 Service 进程。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">再注意观察这个输出，你会发现，Activity 进程（Client 进程）拿到的 IBinder，并不是 Binder，而是 BinderProxy，为什么？</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">因为 Binder 是在 Service 中，也就是 Server 进程创建的对象，当然无法共享给其他进程。因此，系统给 Client 进程创建了一个 BinderProxy，作为一个代理，负责与 Server 进程通讯。</p><blockquote style="box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);"><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">这里多解释一下代理（Proxy）设计模式。所谓代理，就是一个中间人，或者中介。你只需要和中介沟通，中介负责处理麻烦事儿（IPC），最终将你的要求传达给最终的对象。</p></blockquote><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">看过一些文章，或是使用过 binder 的朋友可能会有些惊讶，为什么没见到 IInterface？确实很多文章都会强调 IInterface 的重要性，但说起它的用途，都是模棱两可的说到它是“Binder服务的基类”，“Binder 通讯的核心类”，或者说代表了Server “具备什么样的能力” 云云。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">但你看上文的示例代码，全程没有碰到 IInterface，说明 IInterface 并不是什么不可或缺的东西。那 IInterface 到底是一个什么样的存在？我们暂且按下不表。先来看看大家常常提起的 AIDL 是什么。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">AIDL</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">AIDL 全称是 Android Interface Definition Language，Android 接口定义语言。它实际上就是一个 Android 创造的语言，但语法非常简单，用途也很单一，就是用来定义 Binder 相关接口的。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">使用 AIDL 语法定义好接口以后，Android build 会帮你生成对应的 Java 文件，定义好核心的几个用于数据通讯的类，方便你后续使用。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">废话不多说，先来看一个例子：</p><pre style="box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;"><code class="language-aidl" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;">// IWelcome.aidl
+package me.tankery.demo.binder.aidl;
+
+interface IWelcome {
+    void hello(String words);
+}</code></pre><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">这就是一个最简单的 AIDL 文件了，只定义了一个方法 <code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);">hello</code>。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">他生成的代码类似下面这样（省略大量错误判断和非关键逻辑），我将文章直接写到了注释里，不要像编译器一样直接忽略了哈。。</p><pre class="highlight" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;"><code style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;"><span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Java code: IWelcome</span><br style="box-sizing: inherit;"><span class="cm" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">/**
+ * IWelcome 是我们定义的接口，和 AIDL 一致，包含了 void hello(String words) 方法。
+ * 并且，扩展了 IInterface，有什么用？看后文。
+ */</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">interface</span> <span class="nc" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">IWelcome</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">extends</span> <span class="n" style="box-sizing: inherit;">IInterface</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+  <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">public</span> <span class="kt" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">void</span> <span class="nf" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">hello</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">String</span> <span class="n" style="box-sizing: inherit;">words</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span><br style="box-sizing: inherit;"><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span></code></pre><pre class="highlight" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;"><code style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;"><span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Java code: Stub</span><br style="box-sizing: inherit;"><span class="cm" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">/**
+ * “Local-side IPC implementation stub class.”
+ *
+ * Stub 是一个抽象类，Server 进程需继承 Stub，并实例化，用于初始化 IPC 环境，
+ * 以及接收跨进程消息。
+ *
+ * Stub 实现了 IWelcome，所以它也是一个 IInterface，并将 IWelcome 的方法
+ * 交给子类去实现。
+ */</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">abstract</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">class</span> <span class="nc" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">Stub</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">extends</span> <span class="n" style="box-sizing: inherit;">Binder</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">implements</span> <span class="n" style="box-sizing: inherit;">IWelcome</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{<br><br></span><span class="cm" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">/**
+ * “Construct the stub at attach it to the interface.”
+ *
+ * 注意这里，Stub 初始化时，将自己（实际上是将继承类）绑定到 Binder 的
+ * interface 上。什么用？看后文。
+ */</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">public</span> <span class="nf" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">Stub</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">()</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">this</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">attachInterface</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">this</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="n" style="box-sizing: inherit;">DESCRIPTOR</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span><br style="box-sizing: inherit;"><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}<br><br></span><span class="cm" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">/**
+ * “Cast an IBinder object into IWelcome interface,
+ * generating a proxy if needed.”
+ *
+ * 敲黑板！！！
+ * 我认为，IInterface 最核心的作用，就是这个方法做的事情了。
+ *
+ * 无论是哪个进程，拿到反序列化的 IBinder 以后，通过这个静态方法来获取
+ * IWelcome 接口。
+ *
+ * 如果是 Server 进程（local），可以从 binder 中直接取出之前 attach
+ * 的 IInterface 实例，那么调用 IWelcome 的方法，就相当于直接调用
+ * Stub 实例的方法了。
+ *
+ * 如果是 Client 进程，IBinder 只是系统在远程创建的一个 Proxy 类，
+ * 并无实现，因此，iin 将变成 null，此时 asInterface 会创建一个
+ * Stub.Proxy 代理类，来实现 IWelcome 接口。
+ */</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">public</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">static</span> <span class="n" style="box-sizing: inherit;">IWelcome</span> <span class="nf" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">asInterface</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">IBinder</span> <span class="n" style="box-sizing: inherit;">obj</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+  <span class="n" style="box-sizing: inherit;">IInterface</span> <span class="n" style="box-sizing: inherit;">iin</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">=</span> <span class="n" style="box-sizing: inherit;">obj</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">queryLocalInterface</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">DESCRIPTOR</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">if</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">iin</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">instanceof</span> <span class="n" style="box-sizing: inherit;">IWelcome</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+    <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">return</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">IWelcome</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="n" style="box-sizing: inherit;">iin</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">;</span>
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">return</span> <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">new</span> <span class="nf" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">Proxy</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">obj</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span><br style="box-sizing: inherit;"><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">...</span><span class="nd" style="box-sizing: inherit;color: rgb(60, 93, 93);font-weight: bold;">@Override</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">public</span> <span class="kt" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">boolean</span> <span class="nf" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">onTransact</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="kt" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">int</span> <span class="n" style="box-sizing: inherit;">code</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="n" style="box-sizing: inherit;">Parcel</span> <span class="n" style="box-sizing: inherit;">data</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="n" style="box-sizing: inherit;">Parcel</span> <span class="n" style="box-sizing: inherit;">reply</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="kt" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">int</span> <span class="n" style="box-sizing: inherit;">flags</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+  <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">switch</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">code</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+    <span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Server 进程的 Binder，在这里接收 transaction，并将数据</span>
+    <span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// 反序列化以后，调用 hello 抽象方法。</span>
+    <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">case</span> <span class="nl" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">TRANSACTION_hello:</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+      <span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// enforceInterface 的作用？本人并没完全搞懂，我的理解来看，</span>
+      <span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// 似乎仅仅是某种校验方式，通过 DESCRIPTOR 来确认给自己发</span>
+      <span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// 消息的是正确的对象。</span>
+      <span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// 懂的人可以留言讨论，感激！</span>
+      <span class="n" style="box-sizing: inherit;">data</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">enforceInterface</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">DESCRIPTOR</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span>
+      <span class="n" style="box-sizing: inherit;">String</span> <span class="n" style="box-sizing: inherit;">_arg0</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">=</span> <span class="n" style="box-sizing: inherit;">data</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">readString</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">();</span>
+      <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">this</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">hello</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">_arg0</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span>
+      <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">...</span>
+    <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span>
+    <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">...</span>
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span><br style="box-sizing: inherit;"><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span></code></pre><pre class="highlight" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;"><code style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;"><span class="c1" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">// Java code: Proxy</span><br style="box-sizing: inherit;"><span class="cm" style="box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;">/**
+ * Client 进程持有的代理类，通过 Stub.asInterface 创建。
+ * Proxy 也实现了 IWelcome，会将方法调用的数据，都通过 mRemote 转发给
+ * 远程的 Binder 实体。
+ */</span><br style="box-sizing: inherit;"><span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">class</span> <span class="nc" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">Proxy</span> <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">implements</span> <span class="n" style="box-sizing: inherit;">IWelcome</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+  <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">private</span> <span class="n" style="box-sizing: inherit;">IBinder</span> <span class="n" style="box-sizing: inherit;">mRemote</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">;</span>
+
+  <span class="n" style="box-sizing: inherit;">Proxy</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">IBinder</span> <span class="n" style="box-sizing: inherit;">remote</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+    <span class="n" style="box-sizing: inherit;">mRemote</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">=</span> <span class="n" style="box-sizing: inherit;">remote</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">;</span>
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span>
+
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">...</span>
+
+  <span class="nd" style="box-sizing: inherit;color: rgb(60, 93, 93);font-weight: bold;">@Override</span>
+  <span class="kd" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">public</span> <span class="kt" style="box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;">void</span> <span class="nf" style="box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;">hello</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">String</span> <span class="n" style="box-sizing: inherit;">words</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">)</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+    <span class="n" style="box-sizing: inherit;">Parcel</span> <span class="n" style="box-sizing: inherit;">_data</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">=</span> <span class="n" style="box-sizing: inherit;">Parcel</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">obtain</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">();</span>
+    <span class="n" style="box-sizing: inherit;">Parcel</span> <span class="n" style="box-sizing: inherit;">_reply</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">=</span> <span class="n" style="box-sizing: inherit;">Parcel</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">obtain</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">();</span>
+    <span class="k" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">try</span> <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">{</span>
+      <span class="n" style="box-sizing: inherit;">_data</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">writeInterfaceToken</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">DESCRIPTOR</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span>
+      <span class="n" style="box-sizing: inherit;">_data</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">writeString</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">words</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span>
+      <span class="n" style="box-sizing: inherit;">mRemote</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">transact</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">(</span><span class="n" style="box-sizing: inherit;">Stub</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">.</span><span class="na" style="box-sizing: inherit;color: rgb(0, 128, 128);">TRANSACTION_hello</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="n" style="box-sizing: inherit;">_data</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="n" style="box-sizing: inherit;">_reply</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">,</span> <span class="mi" style="box-sizing: inherit;color: rgb(0, 153, 153);">0</span><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">);</span>
+      <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">...</span>
+    <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span>
+    <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">...</span>
+  <span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span><br style="box-sizing: inherit;"><span class="o" style="box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;">}</span></code></pre><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">总结一下 AIDL 生成的东西：</p><ol style="" class=" list-paddingleft-2"><li><p>一个继承 IInterface 的接口 IWelcome，与 AIDL 定义的方法一一对应，用于声明业务相关方法。</p></li><li><p>Proxy 类 和 Stub 类，都实现了 IWelcome，分别对应于本地进程和远程进程的实例。</p></li><li><p>Stub 类在 Server 进程中实例化，并通过 <code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;">Service.onBind</code> 方法传递给 Client 进程。</p></li><li><p>Client 进程接收到 IBinder 以后，通过 <code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;">Stub.asInterface</code> 方法转换成 IWelcome 之后使用。</p></li><li><p><code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;">Stub.asInterface</code> 在本地进程工作时，返回 Stub 实例。否则，创建一个 Proxy 实例来代理通讯。</p></li></ol><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">那么，现在你应该能够明白，为什么需要 AIDL，而不是直接使用 <code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);">IBinder.transact</code> 来通讯？</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">因为 AIDL 通过定义 IWelcome，将具体的 transaction 细节隐藏起来，使用者只需直接调用接口方法即可，很好的将业务逻辑与平台代码分离开来，实现了较好的软件设计。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">另外，通过这个例子，你应该也清楚了 IInterface 的作用。他不是 IPC 所需的“不可或缺“的部分。他实际上是用于抽象出业务逻辑，实现更好设计的一个工具。有了他，业务代码就可以<span style="box-sizing: inherit;">依赖接口，不依赖具体实现</span>了。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">Service 是必须的吗？</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">初遇 binder 之时，很多人都会认为，binder 只能通过 <code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);">Service.onBind</code> 返回。因为 binder 不是基于 Client - Server 架构嘛，bind service 的各个接口不都有 IBinder 的接口嘛。一切看起来都那么合拍。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">但是，Service 是必须的吗？</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">回到背景问题，跨进程的观察者模式，被观察者一定是用 Service 无疑了，这样任何进程都可以绑定到数据源上，也可以远程调用 Service 的方法进行注册之类的操作。但是被观察者的数据，如何才能发布出来呢？难道每个观察者，都需要创建一个 Service？这太疯狂了。Binder 想要成为 Android 的基石，绝不能受限于 Service，要想想 ContentProvider 之类的组件，不可能还需要创建 Service 吧？</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">道理很简单，然而资料却很少，或许大家并不关心 Service 之外的场景。亦或许是大家其实并没有场景，硬是要分析一通，反正大家都这么说的，不会错。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">很幸运，我们有这么一个有趣的场景，于是可以继续深挖，打破 Service 的边界，再往前走一步。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">有道是，“踏破铁鞋无觅处”。其实 Binder 最直接的使用方法，已经写在了 IBinder 的注释里：</p><blockquote style="box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);"><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">This mechanism ensures that when an IBinder is written into a Parcel and sent to another process, if that other process sends a reference to that same IBinder back to the original process, then the original process will receive the same IBinder object back. These semantics allow IBinder/Binder objects to be used as a unique identity (to serve as a token or for other purposes) that can be managed across processes.</p></blockquote><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">意思就是说，你可以把 IBinder 写到 Parcel 里，并发送给任何进程。binder 机制可以保证在反序列化时，同一个进程拿出来的，一定是同一个实例，并且它是与 Server 进程匹配的，可以进行 transaction 调用。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">也就是说，如果你是在 Server 进程（原始进程）反序列化，拿出的 IBinder，就是 Binder 本身。如果在其他进程反序列化，<span style="box-sizing: inherit;">并持有了 IBinder 实例</span>，再次反序列化出来的，仍然是之前的实例。</p><blockquote style="box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);"><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">注意，如果你未持有 IBinder 的引用，那么之前的实例会被 GC 回收，再次反序列化，将会创建新的实例。</p></blockquote><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">这就为我们的目标，打下了最后一个地基。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">实现跨进程的观察者模式</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">观察者进程可以创建 Binder，并以 binder 为 token，向数据源（被观察者）注册。数据源收到注册请求后，持有这个 IBinder，就可以通过它，将数据反向传递给观察者进程了。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">并且，由于 binder token 的唯一性。观察者进程在注销时，把注册时的 binder 再次序列化传递到数据源，数据源就可以找到注册表中对应的 IBinder，并将其删除了。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">思路清晰了，实现起来就不难。后面如果有时间，我再将代码整理开源出来，或者直接写一个 library 供大家使用。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">最后解一个附加题：观察者进程意外死亡了怎么办？数据源进程岂不是存在着内存泄露的风险？</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">其实，Client 是可以监听 Server 进程的死亡事件的。针对注册表里的 binder 来说，观察者进程创建了 Binder，它就是 Server 进程。而数据源进程反序列化出 BinderProxy，就是 Client 进程。数据源可以通过 <code class="highlighter-rouge" style="box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);">linkToDeath</code> 来监听观察者的意外死亡，及时从注册表中删除这个观察者。避免资源的泄露。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">后记</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">之所以想到 Binder，是因为我发现我们的需求实际上和 GMS Fitness API 很像，都是需要从一个独立的进程来获取数据。于是我阅读了 GMS 的代码（被混淆以后的。。），发现他居然使用了 Binder。由于对 Binder 并不熟悉，当时的我非常惊讶，想知道这是如何做到的，于是走进 Binder 的世界，打开了一扇大门。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">了解过程中，发现 LocationManager 也是使用 Binder 实现的，也给我的代码设计提供了非常好的参考资料。</p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;">于是感慨道，还是应该要站在巨人的肩膀上啊。</p><h2 style="box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;">附录</h2><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;text-align: left;">想了解 Binder 机制的原理，通过例子掌握核心内容。可以看这里：<br style="box-sizing: inherit;">《写给 Android 应用工程师的 Binder 原理剖析》：<span style='font-family: -apple-system-font, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;'>https://zhuanlan.zhihu.com/p/35519585</span></p><p style="box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;text-align: left;">想了解实现细节，重要的源码，全面的研究 Binder。可以看这篇文章：<br style="box-sizing: inherit;">《Android跨进程通信IPC之13——Binder总结》：<span style='font-family: -apple-system-font, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;'>https://www.jianshu.com/p/485233919c15</span></p><p><br></p><section class="col s12" style="box-sizing: border-box;float: left;min-height: 1px;width: 648px;margin-left: auto;left: auto;right: auto;"></section><p><br></p><p><br></p>
+                </div>
+                <script nonce="1942910154" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">Tankery</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          <span id="js_like_wording"> 好看</span><span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已推荐到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png">
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">推荐</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    <div id="js_unlike_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+        
+        <div class="weui-dialog__bd">
+            已取消，“好看”想法已同步删除        </div>
+        <div class="weui-dialog__ft">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_unlike_know">知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>已推荐到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">和朋友分享想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          分享你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 分享想法到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="分享你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+<div id="js_loading" style=" display: none;">
+    <div class="weui-mask_transparent"></div>
+    <div class="weui-toast">
+        <i class="weui-loading weui-icon_toast"></i>
+        <p class="weui-toast__content">发送中</p>
+    </div>
+</div>
+
+<div id="js_fail" style="display:none">
+    <div class="weui-mask"></div>
+    <div class="weui-dialog">
+    <div class="weui-dialog__bd">
+        网络异常，请稍后重试    </div>
+    <div class="weui-dialog__ft">
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_fail_inform">知道了</a>
+    </div>
+    </div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://blog.tankery.me/development/use-binder-for-ipc" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>

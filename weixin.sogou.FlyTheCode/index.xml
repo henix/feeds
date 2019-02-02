@@ -5,11 +5,448 @@
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/</link>
 <description>希望有一天,代码能如风一般飞奔在原野.</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 28 Jan 2019 08:44:43 +0800</lastBuildDate>
+<lastBuildDate>Sat, 02 Feb 2019 18:40:45 +0800</lastBuildDate>
+<item>
+<title>如何实现一个跨进程的观察者模式？</title>
+<link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2019-01-29-1000000008.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1LAqu6Ho0G*UP9DKX9e7jaohMIPfwy5Q9mXdFS-Z26P-wDqgWPUzbVqbCHvpTigxrtAfB0EAX07vEgMkgXD8bto=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+                                    
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    如何实现一个跨进程的观察者模式？
+
+                                                                                &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                Tankery
+                                            &lt;/span&gt;
+                                        
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        FlyTheCode                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;FlyTheCode&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;FlyTheCode&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;希望有一天，代码能如风一般飞奔在原野。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;快过年了，大家都放假了么？放假这么无聊，正是学习的好时候！莫负青春好时光啊少年！&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;本文比较长，也比较干，建议收藏以后慢慢品味，嗯嗯。。&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;什么是 Binder？我面试时听到过很多答案，比如 “bindService 返回的那个对象”，“binder 就是 AIDL”。。如果你的理解仅限于此，那你的世界就太小了。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;Binder 可以说是 Android 系统最重要的基石之一，你能想到的各种涉及跨进程调用的场景，几乎都是使用 Binder 机制实现，比如 broadcast receiver，比如 content provider，比如 Activity result，等等。了解了 Binder，就拿到了新世界的船票，可以尽情畅游在跨进程的世界里了。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;但是请放心，今天我不会分析这些系统应用，也不会介绍具体实现细节。更不会深入去阅读 Binder 机制的源码。因为网络上这样的分析已经非常多，也有非常好的资料可供学习。才疏学浅的我，就不在这儿误导你了，真想了解的话，附录贴出了一些参考资料可以看看。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;我今天要做的是“拿来主义”，Binder 已经这么好了，拿来用用呗。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;背景&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;之所以研究 Binder，是因为最近在开发手表的运动App时，遇到一个有趣的问题：如何才能统一多个模块对同一种数据的监听需求？&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;比如运动需要监听心率变化，睡眠也需要监听心率变化，而心率模块还希望做全天24小时的心率监测。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;如果是同一个进程，使用观察者模式就能很轻易的解决这个问题（多个模块同时观察同一个数据源）。但这些功能都处在不同的App中，属于不同的进程。这时候，事情就变得有意思起来：&lt;span style=&quot;box-sizing: inherit;&quot;&gt;怎样才能实现一个跨进程的观察者呢？&lt;/span&gt;&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;方案的选择&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;想要实现跨进程的数据传递，我们有很多选择。可以在数据变化时，发送广播，接收方通过单例、静态类等方式将数据继续往外传播；也可以用 start Service 等方式，让数据都在接收方的一个 Service 中处理；或者用 Content Provider 对外提供数据，并使用 provider 的 notify 机制来通知数据变化，等等。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;这些方案都有着各自的优势和适用场景。所以实际上，在我们的应用中，这些方式都在使用。比如运动会广播自己的运动状态变化（无需关心接收者），比如接收到手机消息时通过 start service 来处理消息，比如通过 provider 提供统一的运动数据接口，等等。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;但我发现，这些跨进程方案，都不适用于我们的场景。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;跨进程的数据监听，要求数据源像 observable 那样，能够知道都哪些 observer 在监听，以便动态的开启、关闭数据服务。这就使得我们需要一套注册、注销机制来管理数据源，和数据对应的 observer，并且将指定数据精确的发布给它的 observer。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;于是，我选择了直接使用 binder。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;Android 的基石 - Binder&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;说 Binder 是 Android 的基石真是一点也不为过。你能想到的各种涉及跨进程调用的场景，几乎都是使用 Binder 机制实现。Binder 兼具了性能与安全，是其他 Linux 平台的跨进程方案无法比拟的。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;本文不会细谈 Binder 机制，只告诉你三个关键点，帮助你快速的了解 Binder&lt;/p&gt;&lt;ol style=&quot;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;box-sizing: inherit;&quot;&gt;性能&lt;/span&gt;：Binder 非常高效，利用内核驱动中的内存映射机制，实现了高效的跨进程通讯（减少内存拷贝次数），同时也在 framework 层做了处理，使得如果调用是发生在单一进程内部，效率与直接的函数调用无异。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;box-sizing: inherit;&quot;&gt;架构&lt;/span&gt;：Binder 采用 C/S 架构，Client 可以向 Server 发起一个附带数据的交易 (transact)，并收到回复（数据或异常）。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;box-sizing: inherit;&quot;&gt;使用方式&lt;/span&gt;：Binder 由 Server 创建，并通过 bindService，或者其他跨进程通讯方式，将 IBinder 接口传递给 Client，Client 持有反序列化出的 IBinder，即可利用此 IBinder 进行交易。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;了解了这些，就可以利用 Binder 进行高效的跨进程通讯了。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;下面举个例子：&lt;/p&gt;&lt;pre class=&quot;highlight&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;&quot;&gt;&lt;code style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;&lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Kotlin code&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Service (process=&quot;:remote&quot;)&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;MainService&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Service&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot; style=&quot;box-sizing: inherit;&quot;&gt;binder&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot; style=&quot;box-sizing: inherit;color: rgb(166, 23, 23);background-color: rgb(227, 210, 210);&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;Binder&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;onTransact&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.):&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Boolean&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;code&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;BINDER_TRANSACT_CODE&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot; style=&quot;box-sizing: inherit;&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;readString&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Log&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;TAG&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot; style=&quot;box-sizing: inherit;color: rgb(221, 17, 68);&quot;&gt;&quot;Got value from activity: $value&quot;&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;onTransact&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;reply&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;onBind&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;intent&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Intent&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;binder&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Activity&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;MainActivity&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Activity&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;ServiceConnection&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;onCreate&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;savedInstanceState&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Bundle&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;?)&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;
+    &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;bindService&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;intent&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Service&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;BIND_AUTO_CREATE&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;onServiceConnected&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;ComponentName&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;remote&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IBinder&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;?)&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Log&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;TAG&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot; style=&quot;box-sizing: inherit;color: rgb(221, 17, 68);&quot;&gt;&quot;Service connected, got binder $remote in activity&quot;&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;obtain&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;writeString&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot; style=&quot;box-sizing: inherit;color: rgb(221, 17, 68);&quot;&gt;&quot;Hello World!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;remote&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;transact&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;BINDER_TRANSACT_CODE&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot; style=&quot;box-sizing: inherit;color: rgb(0, 153, 153);&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;
+    &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;finally&lt;/span&gt; &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;recycle&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;.&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;p&quot; style=&quot;box-sizing: inherit;&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;blockquote style=&quot;box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);&quot;&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;（完整代码移步 GitHub： https://github.com/tankery/binder-demo）&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;从这个代码看到，我们在独立进程的 Service 中创建了一个 Binder 对象，并重载 onTransaction 来接收交易信息。接着，在 onBind 函数返回 Binder 对象。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;这个对象，以 IBinder 的形式序列化，并传递给 Activity 的 onServiceConnected 方法。Activity 即可使用此 IBinder 对象发送交易了。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;运行代码，查看 logcat：&lt;/p&gt;&lt;pre class=&quot;highlight&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;&quot;&gt;&lt;code style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;6694-6694/me.tankery.demo.binder I/binder.activity: Service connected, got binder android.os.BinderProxy@c7cd6b8 in activity
+6717-6732/me.tankery.demo.binder:remote I/binder.service: Got value from activity: Hello World!&lt;/code&gt;&lt;/pre&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;你看，我们成功的从 Activity 所在进程，将 “Hello World” 传递到了 Service 进程。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;再注意观察这个输出，你会发现，Activity 进程（Client 进程）拿到的 IBinder，并不是 Binder，而是 BinderProxy，为什么？&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;因为 Binder 是在 Service 中，也就是 Server 进程创建的对象，当然无法共享给其他进程。因此，系统给 Client 进程创建了一个 BinderProxy，作为一个代理，负责与 Server 进程通讯。&lt;/p&gt;&lt;blockquote style=&quot;box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);&quot;&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;这里多解释一下代理（Proxy）设计模式。所谓代理，就是一个中间人，或者中介。你只需要和中介沟通，中介负责处理麻烦事儿（IPC），最终将你的要求传达给最终的对象。&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;看过一些文章，或是使用过 binder 的朋友可能会有些惊讶，为什么没见到 IInterface？确实很多文章都会强调 IInterface 的重要性，但说起它的用途，都是模棱两可的说到它是“Binder服务的基类”，“Binder 通讯的核心类”，或者说代表了Server “具备什么样的能力” 云云。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;但你看上文的示例代码，全程没有碰到 IInterface，说明 IInterface 并不是什么不可或缺的东西。那 IInterface 到底是一个什么样的存在？我们暂且按下不表。先来看看大家常常提起的 AIDL 是什么。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;AIDL&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;AIDL 全称是 Android Interface Definition Language，Android 接口定义语言。它实际上就是一个 Android 创造的语言，但语法非常简单，用途也很单一，就是用来定义 Binder 相关接口的。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;使用 AIDL 语法定义好接口以后，Android build 会帮你生成对应的 Java 文件，定义好核心的几个用于数据通讯的类，方便你后续使用。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;废话不多说，先来看一个例子：&lt;/p&gt;&lt;pre style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;&quot;&gt;&lt;code class=&quot;language-aidl&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;// IWelcome.aidl
+package me.tankery.demo.binder.aidl;
+
+interface IWelcome {
+    void hello(String words);
+}&lt;/code&gt;&lt;/pre&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;这就是一个最简单的 AIDL 文件了，只定义了一个方法 &lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);&quot;&gt;hello&lt;/code&gt;。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;他生成的代码类似下面这样（省略大量错误判断和非关键逻辑），我将文章直接写到了注释里，不要像编译器一样直接忽略了哈。。&lt;/p&gt;&lt;pre class=&quot;highlight&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;&quot;&gt;&lt;code style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;&lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Java code: IWelcome&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;cm&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;/**
+ * IWelcome 是我们定义的接口，和 AIDL 一致，包含了 void hello(String words) 方法。
+ * 并且，扩展了 IInterface，有什么用？看后文。
+ */&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;IWelcome&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IInterface&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;words&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;pre class=&quot;highlight&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;&quot;&gt;&lt;code style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;&lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Java code: Stub&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;cm&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;/**
+ * “Local-side IPC implementation stub class.”
+ *
+ * Stub 是一个抽象类，Server 进程需继承 Stub，并实例化，用于初始化 IPC 环境，
+ * 以及接收跨进程消息。
+ *
+ * Stub 实现了 IWelcome，所以它也是一个 IInterface，并将 IWelcome 的方法
+ * 交给子类去实现。
+ */&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;Stub&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Binder&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IWelcome&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;span class=&quot;cm&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;/**
+ * “Construct the stub at attach it to the interface.”
+ *
+ * 注意这里，Stub 初始化时，将自己（实际上是将继承类）绑定到 Binder 的
+ * interface 上。什么用？看后文。
+ */&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;Stub&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;attachInterface&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;span class=&quot;cm&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;/**
+ * “Cast an IBinder object into IWelcome interface,
+ * generating a proxy if needed.”
+ *
+ * 敲黑板！！！
+ * 我认为，IInterface 最核心的作用，就是这个方法做的事情了。
+ *
+ * 无论是哪个进程，拿到反序列化的 IBinder 以后，通过这个静态方法来获取
+ * IWelcome 接口。
+ *
+ * 如果是 Server 进程（local），可以从 binder 中直接取出之前 attach
+ * 的 IInterface 实例，那么调用 IWelcome 的方法，就相当于直接调用
+ * Stub 实例的方法了。
+ *
+ * 如果是 Client 进程，IBinder 只是系统在远程创建的一个 Proxy 类，
+ * 并无实现，因此，iin 将变成 null，此时 asInterface 会创建一个
+ * Stub.Proxy 代理类，来实现 IWelcome 接口。
+ */&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IWelcome&lt;/span&gt; &lt;span class=&quot;nf&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;asInterface&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IBinder&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IInterface&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;iin&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;queryLocalInterface&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;iin&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;instanceof&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IWelcome&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IWelcome&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;iin&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;nd&quot; style=&quot;box-sizing: inherit;color: rgb(60, 93, 93);font-weight: bold;&quot;&gt;@Override&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;onTransact&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;reply&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;switch&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Server 进程的 Binder，在这里接收 transaction，并将数据&lt;/span&gt;
+    &lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// 反序列化以后，调用 hello 抽象方法。&lt;/span&gt;
+    &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nl&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;TRANSACTION_hello:&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// enforceInterface 的作用？本人并没完全搞懂，我的理解来看，&lt;/span&gt;
+      &lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// 似乎仅仅是某种校验方式，通过 DESCRIPTOR 来确认给自己发&lt;/span&gt;
+      &lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// 消息的是正确的对象。&lt;/span&gt;
+      &lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// 懂的人可以留言讨论，感激！&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;enforceInterface&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_arg0&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;readString&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;();&lt;/span&gt;
+      &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_arg0&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;pre class=&quot;highlight&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 0.8rem;padding: 1.25rem;background-color: rgba(240, 240, 240, 0.8);margin-bottom: 1.5625rem;overflow: scroll;&quot;&gt;&lt;code style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;&lt;span class=&quot;c1&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;// Java code: Proxy&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;cm&quot; style=&quot;box-sizing: inherit;color: rgb(85, 139, 47);font-style: italic;&quot;&gt;/**
+ * Client 进程持有的代理类，通过 Stub.asInterface 创建。
+ * Proxy 也实现了 IWelcome，会将方法调用的数据，都通过 mRemote 转发给
+ * 远程的 Binder 实体。
+ */&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;Proxy&lt;/span&gt; &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IWelcome&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IBinder&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;mRemote&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;IBinder&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;remote&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;mRemote&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;remote&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;...&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot; style=&quot;box-sizing: inherit;color: rgb(60, 93, 93);font-weight: bold;&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot; style=&quot;box-sizing: inherit;color: rgb(68, 85, 136);font-weight: bold;&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot; style=&quot;box-sizing: inherit;color: rgb(153, 0, 0);font-weight: bold;&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;words&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_data&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;obtain&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_reply&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Parcel&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;obtain&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_data&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;writeInterfaceToken&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_data&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;writeString&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;words&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;mRemote&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;transact&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;Stub&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot; style=&quot;box-sizing: inherit;color: rgb(0, 128, 128);&quot;&gt;TRANSACTION_hello&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_data&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot; style=&quot;box-sizing: inherit;&quot;&gt;_reply&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot; style=&quot;box-sizing: inherit;color: rgb(0, 153, 153);&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;br style=&quot;box-sizing: inherit;&quot;&gt;&lt;span class=&quot;o&quot; style=&quot;box-sizing: inherit;color: rgb(0, 0, 0);font-weight: bold;&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;总结一下 AIDL 生成的东西：&lt;/p&gt;&lt;ol style=&quot;&quot; class=&quot; list-paddingleft-2&quot;&gt;&lt;li&gt;&lt;p&gt;一个继承 IInterface 的接口 IWelcome，与 AIDL 定义的方法一一对应，用于声明业务相关方法。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;Proxy 类 和 Stub 类，都实现了 IWelcome，分别对应于本地进程和远程进程的实例。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;Stub 类在 Server 进程中实例化，并通过 &lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;Service.onBind&lt;/code&gt; 方法传递给 Client 进程。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;Client 进程接收到 IBinder 以后，通过 &lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;Stub.asInterface&lt;/code&gt; 方法转换成 IWelcome 之后使用。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;&quot;&gt;Stub.asInterface&lt;/code&gt; 在本地进程工作时，返回 Stub 实例。否则，创建一个 Proxy 实例来代理通讯。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;那么，现在你应该能够明白，为什么需要 AIDL，而不是直接使用 &lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);&quot;&gt;IBinder.transact&lt;/code&gt; 来通讯？&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;因为 AIDL 通过定义 IWelcome，将具体的 transaction 细节隐藏起来，使用者只需直接调用接口方法即可，很好的将业务逻辑与平台代码分离开来，实现了较好的软件设计。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;另外，通过这个例子，你应该也清楚了 IInterface 的作用。他不是 IPC 所需的“不可或缺“的部分。他实际上是用于抽象出业务逻辑，实现更好设计的一个工具。有了他，业务代码就可以&lt;span style=&quot;box-sizing: inherit;&quot;&gt;依赖接口，不依赖具体实现&lt;/span&gt;了。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;Service 是必须的吗？&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;初遇 binder 之时，很多人都会认为，binder 只能通过 &lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);&quot;&gt;Service.onBind&lt;/code&gt; 返回。因为 binder 不是基于 Client - Server 架构嘛，bind service 的各个接口不都有 IBinder 的接口嘛。一切看起来都那么合拍。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;但是，Service 是必须的吗？&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;回到背景问题，跨进程的观察者模式，被观察者一定是用 Service 无疑了，这样任何进程都可以绑定到数据源上，也可以远程调用 Service 的方法进行注册之类的操作。但是被观察者的数据，如何才能发布出来呢？难道每个观察者，都需要创建一个 Service？这太疯狂了。Binder 想要成为 Android 的基石，绝不能受限于 Service，要想想 ContentProvider 之类的组件，不可能还需要创建 Service 吧？&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;道理很简单，然而资料却很少，或许大家并不关心 Service 之外的场景。亦或许是大家其实并没有场景，硬是要分析一通，反正大家都这么说的，不会错。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;很幸运，我们有这么一个有趣的场景，于是可以继续深挖，打破 Service 的边界，再往前走一步。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;有道是，“踏破铁鞋无觅处”。其实 Binder 最直接的使用方法，已经写在了 IBinder 的注释里：&lt;/p&gt;&lt;blockquote style=&quot;box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);&quot;&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;This mechanism ensures that when an IBinder is written into a Parcel and sent to another process, if that other process sends a reference to that same IBinder back to the original process, then the original process will receive the same IBinder object back. These semantics allow IBinder/Binder objects to be used as a unique identity (to serve as a token or for other purposes) that can be managed across processes.&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;意思就是说，你可以把 IBinder 写到 Parcel 里，并发送给任何进程。binder 机制可以保证在反序列化时，同一个进程拿出来的，一定是同一个实例，并且它是与 Server 进程匹配的，可以进行 transaction 调用。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;也就是说，如果你是在 Server 进程（原始进程）反序列化，拿出的 IBinder，就是 Binder 本身。如果在其他进程反序列化，&lt;span style=&quot;box-sizing: inherit;&quot;&gt;并持有了 IBinder 实例&lt;/span&gt;，再次反序列化出来的，仍然是之前的实例。&lt;/p&gt;&lt;blockquote style=&quot;box-sizing: inherit;margin-top: 20px;margin-bottom: 20px;padding-left: 1.5rem;border-left-width: 5px;border-left-color: rgb(51, 105, 30);&quot;&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;注意，如果你未持有 IBinder 的引用，那么之前的实例会被 GC 回收，再次反序列化，将会创建新的实例。&lt;/p&gt;&lt;/blockquote&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;这就为我们的目标，打下了最后一个地基。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;实现跨进程的观察者模式&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;观察者进程可以创建 Binder，并以 binder 为 token，向数据源（被观察者）注册。数据源收到注册请求后，持有这个 IBinder，就可以通过它，将数据反向传递给观察者进程了。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;并且，由于 binder token 的唯一性。观察者进程在注销时，把注册时的 binder 再次序列化传递到数据源，数据源就可以找到注册表中对应的 IBinder，并将其删除了。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;思路清晰了，实现起来就不难。后面如果有时间，我再将代码整理开源出来，或者直接写一个 library 供大家使用。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;最后解一个附加题：观察者进程意外死亡了怎么办？数据源进程岂不是存在着内存泄露的风险？&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;其实，Client 是可以监听 Server 进程的死亡事件的。针对注册表里的 binder 来说，观察者进程创建了 Binder，它就是 Server 进程。而数据源进程反序列化出 BinderProxy，就是 Client 进程。数据源可以通过 &lt;code class=&quot;highlighter-rouge&quot; style=&quot;box-sizing: inherit;font-family: monospace, monospace;font-size: 1em;padding: 0.15rem 0.5rem;border-radius: 0.25rem;background: rgba(240, 240, 240, 0.8);&quot;&gt;linkToDeath&lt;/code&gt; 来监听观察者的意外死亡，及时从注册表中删除这个观察者。避免资源的泄露。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;后记&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;之所以想到 Binder，是因为我发现我们的需求实际上和 GMS Fitness API 很像，都是需要从一个独立的进程来获取数据。于是我阅读了 GMS 的代码（被混淆以后的。。），发现他居然使用了 Binder。由于对 Binder 并不熟悉，当时的我非常惊讶，想知道这是如何做到的，于是走进 Binder 的世界，打开了一扇大门。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;了解过程中，发现 LocationManager 也是使用 Binder 实现的，也给我的代码设计提供了非常好的参考资料。&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;&quot;&gt;于是感慨道，还是应该要站在巨人的肩膀上啊。&lt;/p&gt;&lt;h2 style=&quot;box-sizing: inherit;line-height: 35.09px;font-size: 2.2rem;margin-top: 2.37333rem;margin-bottom: 1.424rem;&quot;&gt;附录&lt;/h2&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;text-align: left;&quot;&gt;想了解 Binder 机制的原理，通过例子掌握核心内容。可以看这里：&lt;br style=&quot;box-sizing: inherit;&quot;&gt;《写给 Android 应用工程师的 Binder 原理剖析》：&lt;span style=&#39;font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;&#39;&gt;https://zhuanlan.zhihu.com/p/35519585&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;box-sizing: inherit;margin-top: 1rem;margin-bottom: 1rem;text-align: left;&quot;&gt;想了解实现细节，重要的源码，全面的研究 Binder。可以看这篇文章：&lt;br style=&quot;box-sizing: inherit;&quot;&gt;《Android跨进程通信IPC之13——Binder总结》：&lt;span style=&#39;font-family: -apple-system-font, BlinkMacSystemFont, &quot;Helvetica Neue&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;&#39;&gt;https://www.jianshu.com/p/485233919c15&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;section class=&quot;col s12&quot; style=&quot;box-sizing: border-box;float: left;min-height: 1px;width: 648px;margin-left: auto;left: auto;right: auto;&quot;&gt;&lt;/section&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1942910154&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;Tankery&lt;/div&gt;
+                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+        &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
+    &lt;/span&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 好看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已推荐到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png&quot;&gt;
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;推荐&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog&quot;&gt;
+        
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+            已取消，“好看”想法已同步删除        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+
+&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;like_comment_inner&quot;&gt;
+    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;like_comment_bd&quot;&gt;
+      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已推荐到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;和朋友分享想法&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;like_comment_ft&quot;&gt;
+      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          分享你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 分享想法到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;分享你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
+    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-dialog&quot;&gt;
+    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        网络异常，请稍后重试    &lt;/div&gt;
+    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://blog.tankery.me/development/use-binder-for-ipc&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                            
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>Tankery</author>
+<guid isPermaLink="false">2019-01-29-1000000008</guid>
+<pubDate>Tue, 29 Jan 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>重写了我的个人博客</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2018-08-09-1000000007.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOOqARHQ4l6kphlalmoHBepsSjE7Z19Zk-ckGlqAXuaLolfv*UBDZeCQWXNcB4Qyxg*CrNPwrka4ZVSM2Md6tFXE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1Gl6-IZZIINbwQt54L25MJQenWtvcIwhRqAJB97113Z1xHUWW-sMSp49fCX2QcvGtf3x7O7acMYQzT3tp2E7Hss=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -216,7 +653,7 @@
 <item>
 <title>查询之前，为什么要先给数据库加索引？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2018-07-08-1000000006.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOOuwpXV8QwCI7aGuwg7KFWTdQB2ncURQiZ08T7hv1RHfDTLPbUbipf5zk9mkvx*iZw2bAlrm6JpKLP-rXWJxNfI=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1K6cOoDRWIE3bWD8C8pSuDxmWPAzFj7Kf-ypKPdYXu*xP*62s7sXeDq34SEKEiaa8VsN3kg6WLWdarhNupG3CZk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -426,7 +863,7 @@
 <item>
 <title>快捷的动态权限请求 - Permission Requester</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2018-01-13-1000000005.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOLy6S8Or86cEbEeZapMoJlEBPvXurg5leBKJ7TQKJ3QZp6iFGWWpNUjRSx93i29S4UAzhwlY0ciHEgoiQCMtKNQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1MpWs5C2l*ffQQLHhUS63Kb08ry7drTyRN7GYHBYWEibnmMYTfPUZwm3zEGZihGzZ5s3ZLj3AmZzzXwE06cukzI=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;img-content&quot;&gt;
                 
                 &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
@@ -578,7 +1015,7 @@
 <item>
 <title>刨根问底 - 如何将 PCM 音频编码成 MP4？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2017-11-18-1000000004.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOOOAc-cBAeRDFeEa4-47rrL*AFJbUoWkYK4QJKx4CnVzGUSPXvVs9NWd2lU8DmLYvbE3z2ZZ9ulF9yJPW-*2Q7M=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1Em*cFzAt*D5V08oCb6XgF2AFkEV3PGuS0SkM5WW9WT8YtliIhyz19ozf5Kt4l8YZXHKZSaDa0MU5bUa7IOb0Uk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;img-content&quot;&gt;
                 
                 &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
@@ -864,7 +1301,7 @@
 <item>
 <title>成为更优秀的开发者</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2017-09-24-1000000003.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOOhrnojAM8ZTdbovaA6kGdUy*AwMLCHBaSVuWi2rRPeu4MBpWNNGqWOdJTfftv-cGXdhhfMKY1P1EBjWeLLMohk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1JkRXH9v2Tr6Uvr7LnR1Q9sRHKvIhC6Z1dc-NlCkySDJqWbwyyh*kJMJbjPz9Ia1mjW0SNOB88wGtRlaIgZxWNE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;img-content&quot;&gt;
                 
                 &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
@@ -973,7 +1410,7 @@
 <item>
 <title>Solve Jump Game Problem using State Machine</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2017-09-22-1000000002.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOERI36xbpmcFLVD-19cJt7wv3C6zHffQ*hRT3ixuEMstABRzfN3TA5Stdmd0jYL8dUgvpQFueL6MRGok2zzddTk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1K9HRsLrfdC7dEllOrMgnM04w6qWUsgaCEkWk2swmMUNSdQk5xNBr*aB9*uR8hc2qOaH1lsZnWNBi7KEawPQOGA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;img-content&quot;&gt;
                 
                 &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
@@ -1102,7 +1539,7 @@
 <item>
 <title>关于我，关于这个公众号</title>
 <link>https://henix.github.io/feeds/weixin.sogou.FlyTheCode/2017-09-16-1000000001.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1548636283&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=zOh*eaaOCsMbrhuOqBOYytKTBzX35BSgvHuel6bp0Fzxup1JFDxid*y88Hqc77bIQ6g5bIaJvK95H7qSQwbFOMlrGFcJROLl*wj0OO9aLgFY1olSzWNmFmNEQJqulvLD-CIRGMSY2pOc9xwDizd2GYVCQfaE4P3ea0Oz2E6QmwE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1549104042&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=mHANPYwGkVCaUMR7r5lCZmLXOmM1VYq7NVUXfeq-DjWXw*sxGPqyWjovXkTbTWkAHk0ERjVHhIKlFkBe54DX1D4deY8PmDlO*GqB-E0GHDNa1JtYoLwtkaVIEcO3BgLWUPRmzQWwDSdOwE2x8Uu41cjSVPELo-ypXh5TBQ*Ag7s=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;img-content&quot;&gt;
                 
                 &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
