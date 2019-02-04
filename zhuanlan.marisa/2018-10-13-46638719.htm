@@ -1,0 +1,144 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-9638fd46a52e4de070d1c91e2bbe536c_b.jpg" alt=""></div><p>这是我接触Java的第二个星期（雾），大概是自己上手最快的语言了吧。</p><p>作为一个菜Haskeller，总想人肉将Haskell代码编译到Java上。</p><p>看了<i>A little Java</i>这本书，相比于<i>Thinking in Java</i>这些“传统”一点的书，觉得挺耳目一新的。</p><p>今天就把学到的东西记录一下——「利用Visitor Pattern模拟ML系语言的Pattern Matching」</p><p>当然，在OOP里面模拟Pattern Matching也是一件特别有成就感的事情，毕竟Pattern Matching这是一个特别好用的东西。</p><p>先看最简单的Maybe（写成Option）模式匹配的例子：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kr">data</span> <span class="kt">Option</span> <span class="n">a</span> 
+    <span class="ow">=</span> <span class="kt">Some</span> <span class="n">a</span> 
+    <span class="o">|</span> <span class="kt">None</span>
+
+<span class="nf">getOrElse</span> <span class="ow">::</span> <span class="kt">Option</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">getOrElse</span> <span class="n">opt</span> <span class="n">other</span> <span class="ow">=</span> 
+    <span class="kr">case</span> <span class="n">opt</span> <span class="kr">of</span>
+        <span class="kt">Some</span> <span class="n">v</span> <span class="ow">-&gt;</span> <span class="n">v</span>
+        <span class="kt">None</span>   <span class="ow">-&gt;</span> <span class="n">other</span>
+</code></pre></div><p>然后再看看在Java里面如何表达。首先要定义等价的数据结构：</p><div class="highlight"><pre><code class="language-java"><span></span><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{}</span>
+<span class="kd">final</span> <span class="kd">class</span> <span class="nc">Some</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">T</span> <span class="n">value</span><span class="o">;</span>
+    <span class="n">Some</span><span class="o">(</span><span class="n">T</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+       <span class="n">value</span> <span class="o">=</span> <span class="n">v</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">final</span> <span class="kd">class</span> <span class="nc">None</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{}</span>
+</code></pre></div><p>可以将Java中抽象类表示一个Datatype，然后将继承这个抽象类的类作为这个Datatype的变体(variant)。然后如何模拟模式匹配呢？有请今天的主角：Visitor Pattern。用一个visitor来访问每个变体里的字段。</p><div class="highlight"><pre><code class="language-java"><span></span><span class="kd">interface</span> <span class="nc">OptionVisitors</span><span class="o">&lt;</span><span class="n">T</span><span class="o">,</span> <span class="n">R</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="n">R</span> <span class="nf">forSome</span><span class="o">(</span><span class="n">T</span> <span class="n">v</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">forNone</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+   <span class="kd">public</span> <span class="kd">abstract</span> <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">OptionVisitors</span><span class="o">&lt;?</span> <span class="kd">super</span> <span class="n">T</span><span class="o">,</span> <span class="o">?</span> <span class="kd">extends</span> <span class="n">R</span><span class="o">&gt;</span> <span class="n">v</span><span class="o">);</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="nf">Some</span><span class="o">(</span><span class="n">T</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">v</span><span class="o">==</span><span class="kc">null</span><span class="o">){</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">NullPointerException</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="n">Some</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;(</span><span class="n">v</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="nf">None</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="n">None</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">final</span> <span class="kd">class</span> <span class="nc">Some</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">T</span> <span class="n">value</span><span class="o">;</span>
+    <span class="n">Some</span><span class="o">(</span><span class="n">T</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">v</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">OptionVisitors</span><span class="o">&lt;?</span> <span class="kd">super</span> <span class="n">T</span><span class="o">,</span> <span class="o">?</span> <span class="kd">extends</span> <span class="n">R</span><span class="o">&gt;</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="na">forSome</span><span class="o">(</span><span class="n">value</span><span class="o">);</span> <span class="c1">//用Visitor访问私有字段value，并进行变换</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">final</span> <span class="kd">class</span> <span class="nc">None</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">OptionVisitors</span><span class="o">&lt;?</span> <span class="kd">super</span> <span class="n">T</span><span class="o">,</span> <span class="o">?</span> <span class="kd">extends</span> <span class="n">R</span><span class="o">&gt;</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="na">forNone</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div><p>我们为每个类里加入了accept方法，接受一个visitor作为一个参数，返回作用将访问到的数据经visitor变换后的结果。于是我们来写一个getOrElse方法吧（在Option里）：</p><div class="highlight"><pre><code class="language-java"><span></span>    <span class="kd">public</span> <span class="n">T</span> <span class="nf">getOrElse</span><span class="o">(</span><span class="n">T</span> <span class="n">other</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">new</span> <span class="n">OptionVisitors</span><span class="o">&lt;&gt;()</span> <span class="o">{</span>
+            <span class="kd">public</span> <span class="n">T</span> <span class="nf">forSome</span><span class="o">(</span><span class="n">T</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="n">v</span><span class="o">;</span> <span class="o">}</span>
+            <span class="kd">public</span> <span class="n">T</span> <span class="nf">forNone</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">other</span><span class="o">;</span> <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+</code></pre></div><p>如果我们改一改约定俗成的名字，将accept改成match，Visitor改成Pattern，就很Haskell了（虽然这样就不Java了）</p><div class="highlight"><pre><code class="language-java"><span></span>    <span class="kd">public</span> <span class="n">T</span> <span class="nf">getOrElse</span><span class="o">(</span><span class="n">T</span> <span class="n">other</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">match</span><span class="o">(</span><span class="k">new</span> <span class="n">OptionPattern</span><span class="o">&lt;&gt;()</span> <span class="o">{</span>
+            <span class="kd">public</span> <span class="n">T</span> <span class="nf">Some</span><span class="o">(</span><span class="n">T</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="n">v</span><span class="o">;</span> <span class="o">}</span>
+            <span class="kd">public</span> <span class="n">T</span> <span class="nf">None</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">other</span><span class="o">;</span> <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+</code></pre></div><p><i>我们还可以使用visitor pattern来解决expression problem——刚刚看到了，添加一个新方法是一个很稀松平常的事情；而每添加Datatype的新的一个变体，也只需要多写一个visitor继承旧visitor添加处理新变体的方法即可。</i></p><hr><p>听说visitor pattern和Scott encoding有些许关系，于是我去粗略看了一下——这不就是CPS变换嘛！</p><p>我们来看一下在Haskell里怎么用CPS模拟模式匹配的：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kr">type</span> <span class="kt">OptionCPS</span> <span class="n">r</span> <span class="n">a</span> <span class="ow">=</span> 
+    <span class="n">r</span> <span class="ow">-&gt;</span> <span class="c1">-- forNone</span>
+    <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="c1">-- forSome</span>
+    <span class="ow">-&gt;</span> <span class="n">r</span> <span class="c1">-- return type</span>
+
+<span class="nf">none</span> <span class="ow">::</span> <span class="kt">OptionCPS</span> <span class="n">r</span> <span class="n">a</span> <span class="c1">-- data constructor</span>
+<span class="nf">none</span> <span class="n">forNone</span> <span class="n">forSome</span> <span class="ow">=</span> <span class="n">forNone</span>
+
+<span class="nf">some</span> <span class="ow">::</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">OptionCPS</span> <span class="n">r</span> <span class="n">a</span> <span class="c1">-- data constructor</span>
+<span class="nf">some</span> <span class="n">a</span> <span class="n">forNone</span> <span class="n">forSome</span> <span class="ow">=</span> <span class="n">forSome</span> <span class="n">a</span>
+
+<span class="nf">getOrElse</span> <span class="ow">::</span> <span class="kt">OptionCPS</span> <span class="n">a</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">getOrElse</span> <span class="n">opt</span> <span class="n">other</span> <span class="ow">=</span> 
+    <span class="n">opt</span> 
+    <span class="n">other</span> <span class="c1">-- while none</span>
+    <span class="p">(</span><span class="nf">\</span><span class="n">v</span> <span class="ow">-&gt;</span> <span class="n">v</span><span class="p">)</span> <span class="c1">-- while some</span>
+</code></pre></div><p>这就是Option的Scott encoding。</p><p>这里还可以用newtype封装一下。</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kr">newtype</span> <span class="kt">OptionCPS</span> <span class="n">r</span> <span class="n">a</span> <span class="ow">=</span> <span class="kt">OptionCPS</span> <span class="p">{</span> <span class="n">dispatch</span> <span class="ow">::</span>
+    <span class="n">r</span> <span class="ow">-&gt;</span> <span class="c1">-- forNone</span>
+    <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="c1">-- forSome</span>
+    <span class="ow">-&gt;</span> <span class="n">r</span> <span class="c1">-- return type</span>
+<span class="p">}</span>
+
+<span class="nf">none</span> <span class="ow">::</span> <span class="kt">OptionCPS</span> <span class="n">r</span> <span class="n">a</span> <span class="c1">-- data constructor</span>
+<span class="nf">none</span>  <span class="ow">=</span> <span class="kt">OptionCPS</span> <span class="o">$</span> <span class="nf">\</span><span class="n">forNone</span> <span class="n">forSome</span> <span class="ow">-&gt;</span> <span class="n">forNone</span>
+
+<span class="nf">some</span> <span class="ow">::</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">OptionCPS</span> <span class="n">r</span> <span class="n">a</span> <span class="c1">-- data constructor</span>
+<span class="nf">some</span> <span class="n">a</span> <span class="ow">=</span> <span class="kt">OptionCPS</span> <span class="o">$</span> <span class="nf">\</span><span class="n">forNone</span> <span class="n">forSome</span> <span class="ow">-&gt;</span> <span class="n">forSome</span> <span class="n">a</span>
+
+<span class="nf">getOrElse</span> <span class="ow">::</span> <span class="kt">OptionCPS</span> <span class="n">a</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">getOrElse</span> <span class="n">opt</span> <span class="n">other</span> <span class="ow">=</span> <span class="n">dispatch</span> <span class="n">opt</span> 
+    <span class="n">other</span> <span class="c1">-- forNone = other</span>
+    <span class="p">(</span><span class="nf">\</span><span class="n">v</span> <span class="ow">-&gt;</span> <span class="n">v</span><span class="p">)</span> <span class="c1">-- forSome = \v -&gt; v</span>
+</code></pre></div><p>这里的形式跟visitor pattern已经十分相像了。</p><p>我尝试解释一下这玩意儿，我们来看一下最原始的模式匹配的一个形式：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kr">case</span> <span class="n">d</span> <span class="kr">of</span>
+    <span class="kt">C1</span> <span class="n">x11</span> <span class="n">x12</span> <span class="o">...</span> <span class="n">x1n1</span> <span class="ow">-&gt;</span> <span class="n">f1</span> <span class="n">x11</span> <span class="n">x12</span> <span class="o">...</span> <span class="n">x1n1</span>
+    <span class="kt">C2</span> <span class="n">x21</span> <span class="n">x22</span> <span class="o">...</span> <span class="n">x2n2</span> <span class="ow">-&gt;</span> <span class="n">f2</span> <span class="n">x21</span> <span class="n">x22</span> <span class="o">...</span> <span class="n">x2n2</span>
+    <span class="o">...</span>
+    <span class="kt">Cm</span> <span class="n">xm1</span> <span class="n">xm2</span> <span class="o">...</span> <span class="n">xmnm</span> <span class="ow">-&gt;</span> <span class="n">fm</span> <span class="n">xm1</span> <span class="n">xm2</span> <span class="o">...</span> <span class="n">xmnm</span>
+</code></pre></div><p>其实，一个模式匹配表达式，本质就是传入m个函数（一个Datatype有m个变体），替换掉对应data constructor的位置，进行进一步的计算。</p><p><br></p><p>根据这个形式，我们可以用写出一个Datatype的data constructor的形式：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kt">C1</span> <span class="n">x11</span> <span class="n">x12</span> <span class="o">...</span> <span class="n">x1n1</span> <span class="ow">=</span> <span class="nf">\</span><span class="n">c1</span> <span class="n">c2</span> <span class="o">...</span> <span class="n">cm</span> <span class="ow">-&gt;</span> <span class="n">c1</span> <span class="n">x11</span> <span class="n">x12</span> <span class="o">...</span> <span class="n">x1n1</span>
+<span class="kt">C2</span> <span class="n">x21</span> <span class="n">x22</span> <span class="o">...</span> <span class="n">x2n2</span> <span class="ow">=</span> <span class="nf">\</span><span class="n">c1</span> <span class="n">c2</span> <span class="o">...</span> <span class="n">cm</span> <span class="ow">-&gt;</span> <span class="n">c2</span> <span class="n">x21</span> <span class="n">x22</span> <span class="o">...</span> <span class="n">x2n2</span>
+<span class="o">...</span>
+<span class="kt">Cm</span> <span class="n">xm1</span> <span class="n">xm2</span> <span class="o">...</span> <span class="n">xmnm</span> <span class="ow">=</span> <span class="nf">\</span><span class="n">c1</span> <span class="n">c2</span> <span class="o">...</span> <span class="n">cm</span> <span class="ow">-&gt;</span> <span class="n">cm</span> <span class="n">xm1</span> <span class="n">xm2</span> <span class="o">...</span> <span class="n">xmnm</span>
+</code></pre></div><p>那么当传入了m个函数之后，比如作用在C1上：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="p">((</span><span class="kt">C1</span> <span class="n">x11</span> <span class="n">x12</span> <span class="o">...</span> <span class="n">x1n1</span><span class="p">)</span> <span class="n">f1</span> <span class="n">f2</span> <span class="o">...</span> <span class="n">fm</span><span class="p">)</span> <span class="ow">=</span> <span class="n">f1</span> <span class="n">x11</span> <span class="n">x12</span> <span class="o">...</span> <span class="n">x1n1</span> <span class="ow">::</span> <span class="n">r</span>
+</code></pre></div><p>就只会计算其中一个分支，这样就达到了模式匹配的效果。</p><p><br></p><p>我们顺便观察一下里面的类型：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kt">Ck</span> <span class="n">xk1</span> <span class="n">xk2</span> <span class="o">...</span> <span class="n">xknk</span> <span class="ow">::</span> <span class="kt">D</span> <span class="ow">=</span> <span class="p">(</span><span class="kt">X11</span> <span class="ow">-&gt;</span> <span class="kt">X12</span> <span class="ow">-&gt;</span> <span class="o">...</span> <span class="ow">-&gt;</span> <span class="kt">X1n1</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="c1">-- forC1</span>
+                        <span class="ow">-&gt;</span> <span class="p">(</span><span class="kt">X21</span> <span class="ow">-&gt;</span> <span class="kt">X22</span> <span class="ow">-&gt;</span> <span class="o">...</span> <span class="ow">-&gt;</span> <span class="kt">X2n2</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="c1">-- forC2</span>
+                        <span class="o">...</span>
+                        <span class="ow">-&gt;</span> <span class="p">(</span><span class="kt">Xm1</span> <span class="ow">-&gt;</span> <span class="kt">Xm2</span> <span class="ow">-&gt;</span> <span class="o">...</span> <span class="ow">-&gt;</span> <span class="kt">Xmnm</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="c1">-- forCm</span>
+                        <span class="ow">-&gt;</span> <span class="n">r</span>
+</code></pre></div><p>这个本质上就是CPS形式的代码：一个变体（Ck xk1 xk2 ... xknk）需要“取出”里面的数据，就要传入m个回调函数（延续）才能“得到”最终的结果（进行模式匹配）。（当然这也就是所谓的Scott encoding。）</p><p><i>这m个回调函数在Java的具体实现中就是Visitor中的m个方法，accept方法就是这个匹配的过程。</i></p><p><br></p><p>我们将上面的一段代码再改写一下：</p><div class="highlight"><pre><code class="language-haskell"><span></span><span class="kr">newtype</span> <span class="kt">Option</span> <span class="n">r</span> <span class="n">a</span> <span class="ow">=</span> <span class="kt">Option</span> <span class="p">{</span> <span class="n">accept</span> <span class="ow">::</span> <span class="kt">OptionVisitor</span> <span class="n">r</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span> <span class="p">}</span>
+<span class="kr">data</span> <span class="kt">OptionVisitor</span> <span class="n">r</span> <span class="n">a</span> <span class="ow">=</span> <span class="kt">OptionVisitor</span> <span class="p">{</span>
+    <span class="n">forNone</span> <span class="ow">::</span> <span class="n">r</span> 
+<span class="p">,</span>   <span class="n">forSome</span> <span class="ow">::</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span> 
+<span class="p">}</span>
+
+<span class="nf">none</span> <span class="ow">::</span> <span class="kt">Option</span> <span class="n">r</span> <span class="n">a</span> <span class="c1">-- data constructor</span>
+<span class="nf">none</span>  <span class="ow">=</span> <span class="kt">Option</span> <span class="o">$</span> <span class="nf">\</span><span class="p">(</span><span class="kt">OptionVisitor</span> <span class="n">forNone</span> <span class="n">forSome</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">forNone</span>
+
+<span class="nf">some</span> <span class="ow">::</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">Option</span> <span class="n">r</span> <span class="n">a</span> <span class="c1">-- data constructor</span>
+<span class="nf">some</span> <span class="n">a</span> <span class="ow">=</span> <span class="kt">Option</span> <span class="o">$</span> <span class="nf">\</span><span class="p">(</span><span class="kt">OptionVisitor</span> <span class="n">forNone</span> <span class="n">forSome</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">forSome</span> <span class="n">a</span>
+
+<span class="nf">getOrElse</span> <span class="ow">::</span> <span class="kt">Option</span> <span class="n">a</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">getOrElse</span> <span class="n">opt</span> <span class="n">other</span> <span class="ow">=</span>  <span class="n">opt</span> <span class="p">`</span><span class="n">accept</span><span class="p">`</span> <span class="kt">OptionVisitor</span> <span class="p">{</span>
+    <span class="n">forNone</span> <span class="ow">=</span> <span class="n">other</span>
+<span class="p">,</span>   <span class="n">forSome</span> <span class="ow">=</span> <span class="nf">\</span><span class="n">v</span> <span class="ow">-&gt;</span> <span class="n">v</span>
+<span class="p">}</span>
+</code></pre></div><p>这样就十分Java了，基本能做到跟上面的Java代码一一对应起来。但是注意的是，这里仅仅只是将上面CPS形式的代码封装了起来而已。</p><p><i>不过这样模拟出来的模式匹配的能力也是十分有限的，仅仅只能匹配一层的的结构。如果需要加强，就得在visitor中多加几个方法，但这样就十分的不灵活了</i></p><p><br></p><p>于是在这里下个结论：<i>visitor pattern在形式上就是一种运用了CPS变换的代码。但是知道的注意的是，它并不能具有与CPS变换具有相同的显式控制 控制流 的能力，因为它并没有将visitor当做参数传递到接下来的计算中</i>，尽管你写出来了这样一段代码：</p><div class="highlight"><pre><code class="language-java"><span></span><span class="kd">static</span> <span class="n">ABC</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="nf">fact</span><span class="o">(</span><span class="n">Integer</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="n">ABC</span><span class="o">&lt;&gt;(</span><span class="mi">1</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">fact</span><span class="o">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">).</span><span class="na">accept</span><span class="o">(</span><span class="n">n1</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="n">ABC</span><span class="o">&lt;&gt;(</span><span class="n">n1</span> <span class="o">*</span> <span class="n">n</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div><p>除非写成（我瞎写的，还没验证）：</p><div class="highlight"><pre><code class="language-java"><span></span><span class="kd">static</span> <span class="n">ABC</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="nf">fact</span><span class="o">(</span><span class="n">Integer</span> <span class="n">n</span><span class="o">,</span> <span class="n">ABCVisitor</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">ABC</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="n">ABC</span><span class="o">&lt;&gt;(</span><span class="mi">1</span><span class="o">).</span><span class="na">accept</span><span class="o">(</span><span class="n">v</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">fact</span><span class="o">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">,</span> <span class="n">n1</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="n">ABC</span><span class="o">&lt;&gt;(</span><span class="n">n1</span> <span class="o">*</span> <span class="n">n</span><span class="o">).</span><span class="na">accept</span><span class="o">(</span><span class="n">v</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div><p>只不过visitor pattern提出来并不是为了解决控制流这个问题的，这样弄简直是瞎搞= =，仅仅只是满足了我一时的探索心（强行把CPS变换和visitor pattern联系在了一起）</p><hr><p>visitor pattern用来做什么我就不多赘述了。</p><p>CPS变换究竟是什么也不多说了。</p><p>因为这两个东西太多文章说过了，你甚至不需要谷歌就能查询到很多关于它们的资料。</p><p><br></p><p>还有，文章采用了极为不严谨的表达，纯属自high，也懒得找出处了，</p><p>如有“带坏”，我也没办法，，</p><p>如有错误，感谢指出。。。</p><p>晚安</p>
