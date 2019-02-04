@@ -5,7 +5,107 @@
 <link>https://henix.github.io/feeds/yinwang/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 07 Dec 2018 20:55:23 +0800</lastBuildDate>
+<lastBuildDate>Mon, 04 Feb 2019 20:45:44 +0800</lastBuildDate>
+<item>
+<title>机器学习与逻辑编程</title>
+<link>https://henix.github.io/feeds/yinwang/2019-01-30-machine-learning.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;http://www.yinwang.org/blog-cn/2019/01/30/machine-learning&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;script&gt;
+            if (/mobile/i.test(navigator.userAgent) || /android/i.test(navigator.userAgent))
+            {
+               document.body.classList.add(&#39;mobile&#39;);
+            }
+        &lt;/script&gt;&lt;div class=&quot;inner&quot;&gt;
+            &lt;h2&gt;机器学习与逻辑编程&lt;/h2&gt;
+            &lt;p&gt;（声明：本文内容纯属个人的技术兴趣，与本人在职公司的立场无关）&lt;/p&gt;
+
+&lt;p&gt;你可能没有想到，机器学习（machine learning）和逻辑编程（logic programming）有着一种美妙的关系，在我眼里她们就像一对亲姐妹。&lt;/p&gt;
+
+&lt;p&gt;很多人都了解机器学习，可是很少有人理解逻辑编程。在这篇短文里，我试图告诉你逻辑编程是什么，以及它与机器学习的相似之处。&lt;/p&gt;
+
+&lt;h3 id=&quot;逻辑编程是什么&quot;&gt;逻辑编程是什么&lt;/h3&gt;
+
+&lt;p&gt;说到逻辑编程（logic programming），人们不禁想到 Prolog 之类晦涩的逻辑式编程语言。很多人上本科的时候被迫学过 Prolog，但从来不知道它有何意义。毕业之后再听到 logic programming 这个词，就只剩下敬畏和茫然，或者觉得是没用的老古董。&lt;/p&gt;
+
+&lt;p&gt;其实逻辑编程是很美的东西，并不过时。它的有些思想已经悄悄被应用到了最先进的编程语言之中。逻辑编程的原理可以被很轻松的解释清楚，而不需要理解 Prolog。&lt;/p&gt;
+
+&lt;p&gt;最近研究机器学习，我发现逻辑编程与机器学习之间有着有趣而隐秘的关系。我希望这可以调动起你的胃口来。&lt;/p&gt;
+
+&lt;p&gt;要理解逻辑编程是什么，你只需要看一个很简单的例子：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;有一个未知数 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;，我们不知道它是多少，但我们知道：&lt;/p&gt;
+
+  &lt;p&gt;​     X + 2 = 5&lt;/p&gt;
+
+  &lt;p&gt;请问 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 是几？&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;以上求解 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 的问题就是一个逻辑程序。像 Prolog 这样的逻辑语言系统，会给你结果：&lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 等于 3。可是这个问题却不能用其它几乎所有编程语言来表达（C, C++, Python, Java, Go, Scala, Haskell, Rust, Swift…）。原因在于，使用普通的编程语言，你不能把“未知数”当成一个值来进行演算。&lt;/p&gt;
+
+&lt;p&gt;在我们的例子里面，&lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 的值是未知数，所以当普通语言看到 &lt;code class=&quot;highlighter-rouge&quot;&gt;X + 2&lt;/code&gt; 这样的表达式，它就无法运行。它会报错：使用未初始化的变量 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;。也就是说，你必须先知道 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 的值，你才能说 &lt;code class=&quot;highlighter-rouge&quot;&gt;X + 2&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;但在像 Prolog 这样的逻辑式语言里面，“未知数”是可以被作为一个正常的值来进行计算的。它们可以被传递到其它函数里，可以被放进数据结构，可以进行复杂的逻辑组合操作，就像你在操作一个普通的数字或者字符串一样。&lt;/p&gt;
+
+&lt;p&gt;逻辑式程序中一般会有一个（或者多个）“目标”（goal）。目标一般是一个判断表达式，也就是说它的值是布尔类型（boolean）。这里我们的例子里只有一个目标，就是“X + 2 = 5”。也就是说，我们想要 X 加上 2 等于 5。&lt;/p&gt;
+
+&lt;p&gt;当逻辑式语言看到了目标，就把目标记下来。最后程序员开始提问：&lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 是几？这时候，逻辑语言的运行系统开始进行“反向计算”，找到未知数的值，使得目标的值为“真”（true）。在我们的例子里，系统会告诉你：&lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 等于 3。&lt;/p&gt;
+
+&lt;p&gt;为什么叫做“反向计算”呢？因为&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;我们先声明了未知变量 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;，&lt;/li&gt;
+  &lt;li&gt;然后我们提出目标 &lt;code class=&quot;highlighter-rouge&quot;&gt;X + 2 = 5&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;对于复杂一点的程序，1 和 2 之间可能还有其它的代码。我们最后的问题，却是问最开头声明的变量 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 等于几，所以系统从最后面的目标 &lt;code class=&quot;highlighter-rouge&quot;&gt;X + 2 = 5&lt;/code&gt; 出发，“反向”推导出 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; 的值。&lt;/p&gt;
+
+&lt;p&gt;这就是为什么研究逻辑式编程的人把这种操作叫做“反向计算”。你可能注意到了，我们的代码里面只写了加法（&lt;code class=&quot;highlighter-rouge&quot;&gt;+&lt;/code&gt;）操作，而系统实质上为我们做了减法：5 - 2 得到  3。&lt;/p&gt;
+
+&lt;p&gt;如果你想深入理解逻辑式编程，我建议你看看 Dan Friedman 的书『&lt;a href=&quot;https://mitpress.mit.edu/books/reasoned-schemer&quot;&gt;The Reasoned Schemer&lt;/a&gt;』。但目前你了解到的这些，应该足以读完这篇文章。&lt;/p&gt;
+
+&lt;h3 id=&quot;机器学习与逻辑编程的相似点&quot;&gt;机器学习与逻辑编程的相似点&lt;/h3&gt;
+
+&lt;p&gt;你可能已经明白了逻辑编程是什么。下面我们来看看它跟机器学习有什么关系。&lt;/p&gt;
+
+&lt;p&gt;首先我们看到逻辑编程有“目标”（goal），比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;X + 2 = 5&lt;/code&gt;。在机器学习中有一个对应的东西，那就是误差函数（loss function）。只不过逻辑编程的 goal 是个等式，而机器学习的 loss function 是个函数。&lt;/p&gt;
+
+&lt;p&gt;逻辑编程系统会为你选择未知数的值，从而精确地“满足”这个 goal。而机器学习的目标呢，是要为你选择未知数的值，最小化这个 loss function，使得误差最小。看到相似之处了吗？所以，机器学习可以被看成是“在连续空间中的近似的逻辑编程”，而逻辑编程可以被看成是“在离散空间中的精确的机器学习”。&lt;/p&gt;
+
+&lt;p&gt;逻辑编程有“反向计算”，机器学习有“反向传递”(back propagation)，而它们的工作方式，有着惊人的相似之处。只不过机器学习因为是连续空间的，所以需要使用微积分的原理，而不只是简单的逻辑组合。&lt;/p&gt;
+
+&lt;p&gt;实际上逻辑编程必须先进行正向计算，构造出含有未知数的结构，然后进行所谓“resolution“，求出未知数的值。而机器学习也类似，你必须进行一遍正向计算（forward pass），然后才能进行 back propagation，求出导数，并且更新“weight”的值。&lt;/p&gt;
+
+&lt;p&gt;逻辑编程的“未知数”（比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;），对应了机器学习的 weight。实际上，机器学习的 weight 本质就是“未知数”。你需要得到它们的值，使得 loss function 最小，但一开头你不知道它们是什么，所以你给它们一些随机的初始值，让系统开始正向计算。机器学习的 weight 和逻辑编程的未知数如此的相似，它们可以被作为普通的值，与输入进行计算操作（Conv 等操作），直至你遇到 goal 或者 loss function，然后你掉头回去调整未知数的值……&lt;/p&gt;
+
+&lt;h3 id=&quot;机器学习框架是程序语言&quot;&gt;机器学习框架是程序语言&lt;/h3&gt;
+
+&lt;p&gt;所以呢，你现在明白了我为什么对机器学习感兴趣了吧。我看到了它与编程语言的优雅知识之间的联系，看到了它是对于“计算”概念的一种扩展。机器学习把“计算”和“微积分”有趣地融合在了一起。&lt;/p&gt;
+
+&lt;p&gt;实际上，你可以把机器学习的各种框架（framework）看成是新的编程语言，它们的工作原理类似于 Prolog 语言的运行时系统。如果要起一个名字，你也许可以把它们叫做“可求导编程语言”（differentiable programming language）。&lt;/p&gt;
+
+&lt;p&gt;写 framework 的工作，实质上是设计编程语言或者解释器，编译器。而有些 framework 所谓的“计算图”，实质就是编译器中的 data-flow graph 或者 control-flow graph 一类的东西。&lt;/p&gt;
+
+&lt;p&gt;目前这些语言还处于初级阶段，表达力比较弱，有各种不完善的地方。由于机器学习解决的是连续的数值问题，机器学习的“模型”一般要很简单才行，否则很可能出现学习不收敛的情况。所以我还不知道编程语言的很多概念能否顺利的迁移到机器学习上面。&lt;/p&gt;
+
+&lt;p&gt;但目前看来有一些很明显的对应关系和发展趋势：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Feed-forward 网络，比如 CNN 一类的，对应了编程语言中最简单的表达式，或者叫“纯函数”。其中没有递归，也没有副作用。它只能处理图像一类具有固定长度的数据。&lt;/li&gt;
+  &lt;li&gt;RNN 对应的是程序语言里含有递归（循环）的函数。由于递归函数对应的是“递归数据结构”，这就是为什么 RNN 可以处理文本一类没有固定长度的“链表”数据。&lt;/li&gt;
+  &lt;li&gt;Neural Turing Machine 及其后续的研究 &lt;a href=&quot;https://deepmind.com/blog/differentiable-neural-computers/&quot;&gt;Differentiable Neural Computer&lt;/a&gt;，试图把更广阔的编程概念引入到机器学习里面，实现任意复杂的数据结构和计算。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;由于数值计算特有的误差问题和机器学习带来的巨大计算量，我不知道这个趋势最终可以发展到什么地步。但编程语言和机器学习的这个联系，是优雅而让人回味的。&lt;/p&gt;
+
+&lt;p&gt;（如果你觉得这篇文章有启发，可以点击这里&lt;a href=&quot;http://www.yinwang.org/blog-cn/2016/04/13/pay-blog&quot;&gt;付费&lt;/a&gt;）&lt;/p&gt;
+
+
+        &lt;/div&gt;</description>
+<author>yinwang0</author>
+<guid isPermaLink="false">2019-01-30-machine-learning</guid>
+<pubDate>Wed, 30 Jan 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>解谜英语语法（1）</title>
 <link>https://henix.github.io/feeds/yinwang/2018-11-24-grammar-chapter1.html</link>
@@ -1423,43 +1523,6 @@
 <author>yinwang0</author>
 <guid isPermaLink="false">2018-03-21-csbook-preface</guid>
 <pubDate>Wed, 21 Mar 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>从苹果产品的设计错误学教训</title>
-<link>https://henix.github.io/feeds/yinwang/2018-03-08-ciia1.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;http://www.yinwang.org/blog-cn/2018/03/08/ciia1&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;script&gt;
-            if (/mobile/i.test(navigator.userAgent) || /android/i.test(navigator.userAgent))
-            {
-               document.body.classList.add(&#39;mobile&#39;);
-            }
-        &lt;/script&gt;&lt;div class=&quot;inner&quot;&gt;
-            &lt;h2&gt;CIIA 苹果报告自觉付费模式&lt;/h2&gt;
-            &lt;p&gt;很多人之前购买了我的第一份设计报告，关于苹果 iPhone 的一些设计问题。那份报告采用了付费销售方式，而且价格不便宜。由于我不想再发表设计方面的东西，但希望它能帮助到更多的人，所以现在将这份报告放在这里，进行“自觉付费”的销售，价格也做了大幅度调整。这份报告仍然不是免费的。由于其中涉及到我多年观察得来的结果，其它地方找不到的，所以收取适当的费用是理所应当的。&lt;/p&gt;
-
-&lt;p&gt;自觉付费的原理就像一个水果摊（这次卖的是苹果）。我懒得去守着这个摊子，我就把水果摆在那里，你们吃了之后自己付钱就行。这跟我其他博文的“&lt;strong&gt;自愿&lt;/strong&gt;付费”形式不同。“自愿付费”的意思是，你看了如果不喜欢，或者你根本没看完，那么你可以不付钱。“&lt;strong&gt;自觉&lt;/strong&gt;付费”的意思是，你如果看了内容，那么你就已经“享用了”它，你就应该付钱。如果你不付，就是有道德过错的。如果你不想付钱，就请不要看。&lt;/p&gt;
-
-&lt;p&gt;这就像我摆个“自觉付费”水果摊，你们吃了自己付钱就好，结果你吃了没付钱，这就不好了。你是否付费，将会影响到我的水果摊是否可以继续营业。我的博客含有代码，会统计这段时间的阅读人数。我会根据阅读人数与付费的比例，来推断是否有很多人没付钱。如果我发现付费的比例太小，我会适当调整作法。&lt;/p&gt;
-
-&lt;p&gt;在我的书第一章还没完成之前，我想先把这份报告放在这里，作为“自觉付费”模式的一种实验。效果不错的话，我的 CS 教材会采用同样的作法。&lt;/p&gt;
-
-&lt;p&gt;虽然在&lt;a href=&quot;http://www.yinwang.org/blog-cn/2017/09/25/apple&quot;&gt;预告片&lt;/a&gt;里，我批评了很多人对于苹果公司的膜拜态度，但这份报告的语气是建设性的。它的目的是帮助广大设计人员，技术人员意识到设计是一个重要的问题，没有任何公司的设计是完美的，我们应该不断地改善产品。我仍然喜欢苹果产品的许多设计，而且会继续使用苹果的产品。如果苹果公司的设计人员需要这份文档，价格也是一样的，我不宰客 :p&lt;/p&gt;
-
-&lt;p&gt;如果你感兴趣的话，可以在这里下载这份文档。由于其中有比较多高清晰度的图片，虽然经过最大限度的压缩，文档的大小仍然是 5M 左右，所以请耐心等待下载完毕。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://www.yinwang.org/resources/ciia1.pdf&quot;&gt;&lt;img src=&quot;http://www.yinwang.org/images/ciia1-icon.jpg&quot; width=&quot;240&quot;&gt;&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;报告的第一章是免费的。如果你想继续阅读后面的章节，可以扫码付费购买之后继续。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/wechat-ciia1.jpg&quot; width=&quot;240&quot;&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://www.yinwang.org/images/alipay-ciia1.jpg&quot; width=&quot;240&quot;&gt;&lt;/p&gt;
-
-
-        &lt;/div&gt;</description>
-<author>yinwang0</author>
-<guid isPermaLink="false">2018-03-08-ciia1</guid>
-<pubDate>Thu, 08 Mar 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
