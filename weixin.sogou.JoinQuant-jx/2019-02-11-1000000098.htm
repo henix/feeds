@@ -1,0 +1,315 @@
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    VIF方法（方差膨胀因子）因子独立性检验 全流程解读
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                刘建涛
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        聚宽量化实验室                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">聚宽量化实验室</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">JoinQuant-jx</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p style="text-align: center;"><strong style="text-align: center;white-space: normal;"><img class=" __bg_gif" data-backh="124" data-backw="558" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640" data-copyright="0" data-ratio="0.2222222222222222" data-type="gif" data-w="900" src="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?" style="box-sizing: border-box !important;overflow-wrap: break-word !important;width: 542.188px !important;visibility: visible !important;"></strong></p><p><br></p><p>       基于因子模型的选股策略是股票市场量化应用最广泛的模型之一。然而很多时候，使用因子模型在实盘运行的绩效并不理想，究其原因可能是由于因子选择的偏差，市场风格轮动等。但还有一个显著的因素，就是选取因子之间可能存在高度的多重共线性，导致模型对股票价格与市场的解释能力存在很大偏误。</p><p><br></p><p>       为了在筛选因子之初就避免陷入这样的误区。本文介绍一种VIF（方差膨胀检验）方法，<strong>来对因子之间的线性相关关系进行检验</strong>，从而帮助投资者们在可以选取到独立性更好的因子，增强因子模型的解释能力。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">一、方法介绍</strong></h2><p><strong><br></strong></p><p><br></p><p>　　所谓VIF方法，计算难度并不高。在线性回归方法里，应用最广泛的就是最小二乘法（OLS），只不过<strong>我们对每个因子，用其他Ｎ个因子进行回归解释。</strong></p><p><br></p><p>　　其中有一个检验模型解释能力的检验统计指标为R^2（样本可决系数），R^2的大小决定了解释变量对因变量的解释能力。而为了检验因子之间的线性相关关系，我们可以通过OLS对单一因子和解释因子进行回归，然后如果其R^2较小，说明此因子被其他因子解释程度较低，线性相关程度较低。</p><p><br></p><p>　　注：之所以不使用协方差计算相关性是由于协方差难以应用在多元线性相关情况下。给出VIF计算方法：</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.3080357142857143" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcH11IIfh5bictic7T7j4icIxwVYvR99sAyibdWnANtCUSKu0ZFdvvOarb7w/640?wx_fmt=png" data-type="png" data-w="224" style=""></p><p style="text-align: center;"><br></p><p>从上文很容易看出，VIF越高解释变量和因变量之间线性相关性就越强。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">二、检验实践</strong></h2><p><br></p><p><br></p><p>　　数据来源：聚宽量化平台投资研究板块</p><p>　　选取因子：EPS（每股收益），</p><p>　　ROE（净资产收益率），</p><p>　　market_cap（市值），</p><p>　　pb（市净率），</p><p>　　'net_profit_ratio'（销售净利率），</p><p>　　'gross_income_ratio'，（销售毛利率）</p><p>　　'quick_ratio'，（速动比率）</p><p>　　'current_ratio'（流动比率(单季度)）</p><p>　　（后面四个因子来源于聚宽因子库）</p><p><br></p><p><span style="white-space:pre;">	</span>时间窗口选取：2012.3.4—2018.7.4</p><p><span style="white-space:pre;">	</span>回望频率：两个月检</p><p><br></p><p><br></p><p>1. 获取数据：（鉴于篇幅仅展示2012-03-04当日前十支股票相关因子数据）</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.3942652329749104" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcQfEyXrrTg0Yqw63gYJcu43XszUgSa9MuiaTHTicB6F1HhPJ6MebfHThQ/640?wx_fmt=png" data-type="png" data-w="558" style=""><br></p><p><br></p><p>2. 缺失值检验：（鉴于篇幅仅展示2013-03-04当日检验情况）<br></p><p>返回0代表无缺失值，返回其他数字代表缺失值数量</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.5" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbczsQFBZlpQINlttLicib2L9IpsnZ3xV6yyTHURh9bvunDYCzIaKZgBXnQ/640?wx_fmt=png" data-type="png" data-w="334" style=""></p><p><br></p><p>3. 被检验两两因子间线性相关性预了解（图例，鉴于篇幅仅展示2013-03-04当日检验情况）</p><p><br></p><p style="text-align: center;"><img class="" data-copyright="0" data-ratio="2.521333333333333" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcdAIXejJN9iaac4vZicynnLGF0EBBet0QNy0WMBiaocqibicJPL11w6ZfGEg/640?wx_fmt=png" data-type="png" data-w="750" style=""></p><p style="text-align: center;">案例图表示，各因子对市值因子market_cap的解释能力</p><p style="text-align: center;">蓝色阴影部分，是回归直线斜率95%的置信区间</p><p style="text-align: center;"><br></p><p>4. 计算并获取每个时点下被解释因子与其余7个因子之间的回归VIF值，绘制时间序列图</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="1.3349056603773586" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbc4lSK9u6Dw93T4JyYP8kdnheZonJJG7LV3XfibxkiaT2SWTiakrYHJDaFg/640?wx_fmt=png" data-type="png" data-w="424" style=""></p><p><br></p><p>　　分别是百分比堆积图，和绝对数值图（柱状图）。通过百分比堆积图可以看出，各因子的VIF值全程比较稳定，所以其占据总体的百分比也稳定。柱状图可以看出各因子值细节，各位读者可以去聚宽克隆该研究，即可看到更清晰图片。</p><p><br></p><p>5. 全段测试计算时间内，各因子VIF值均值，比较大小（图例）</p><p><br></p><p style="text-align: center;"><img class="" data-ratio="0.6415929203539823" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbc3v3vZWJW7BvsIhrAicn0WTGRZ3m3aNSC33MdCUAicE8zsxQGqqF7LOYw/640?wx_fmt=png" data-type="png" data-w="452" style=""></p><p><br></p><p>6. 相比而言quick_ratio这一因子的VIF在窗口期平均值较低，因而这就提示了我们如果在构建因子模型时，采用其余其中因子时可以考虑添加这一因子，增强模型的解释能力。</p><p><br></p><p><br></p><h2 mpa-is-content="t" style="margin: 5px;padding-right: 10px;padding-left: 10px;font-weight: bold;white-space: normal;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);border-left: 5px solid rgb(54, 116, 201);line-height: 32px;color: rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);box-sizing: border-box !important;overflow-wrap: break-word !important;"><strong style="color: rgb(51, 51, 51);font-size: 17px;">三、方法总结与体会</strong></h2><p><br></p><p><br></p><p>　　使用VIF进行检验的方法主要为，对某一因子和其余因子进行回归，得到R^2，计算VIF，剔除因子中VIF高的因子，保留VIF较低的因子，以此类推，直到得到一个相关性较低的因子组合来增强模型的解释能力。</p><p><br></p><p>　　在实际测试过程中，并非要指定一个VIF阈值，比如某因子的VIF值超过阈值才剔除，而是通过观察所有因子值的VIF值，<strong>如果发现该值较大（显著离群），剔除该因子即可。</strong>本次我们的几个因子表现都非常出色，VIF值稳定且没有离群较大值，因此，没能找到任何一个需要剔除的因子。</p><p><br></p><p>　　点击<strong><span style="color: rgb(255, 41, 65);">原文链接</span></strong>，到我们发布在社区的原文和源码，各位读者可以克隆源码，检验自己的模型因子是否有过度的相关性。</p><p><br></p><p style="max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;"><img class=" __bg_gif" data-backh="556" data-backw="556" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_jpg/zEy1aCmAZQRLdpTXYOswDgyjlZMzJr3YZQFNaDd3pIAtWRVkFJSK7ezf2iafDzabFgIqzSNXRlvT8slRNWCZhiaA/0?wx_fmt=jpeg" data-copyright="0" data-cropselx1="12" data-cropselx2="351" data-cropsely1="0" data-cropsely2="339" data-ratio="0.9344444444444444" data-s="300,640" data-type="gif" data-w="900" height="542" width="694" src="https://mmbiz.qpic.cn/mmbiz_gif/zEy1aCmAZQS5mRKwGwhQpWA8wKXpKTbcUwUgKuqM0OADcR1IT2z0AhW2eQMyibaV77UibB4V0XKCAengxnHYRz9w/640?wx_fmt=gif" style="width: 528.047px;box-sizing: border-box !important;overflow-wrap: break-word !important;visibility: visible !important;"></p><p style="margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;"><span style="max-width: 100%;color: inherit;font-family: inherit;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;">欢迎关注</span><span style="max-width: 100%;font-size: 16px;box-sizing: border-box !important;overflow-wrap: break-word !important;"><span style="max-width: 100%;color: inherit;font-family: inherit;box-sizing: border-box !important;overflow-wrap: break-word !important;">『</span><strong style="max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;">聚宽量化实验室</strong><span style="max-width: 100%;color: inherit;font-family: inherit;box-sizing: border-box !important;overflow-wrap: break-word !important;">』</span></span></p><p><br></p>
+                </div>
+                <script nonce="1948871037" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+                
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">刘建涛</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          <span id="js_like_wording"> 好看</span><span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已推荐到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png">
+            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">推荐</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    <div id="js_unlike_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+        
+        <div class="weui-dialog__bd">
+            已取消，“好看”想法已同步删除        </div>
+        <div class="weui-dialog__ft">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_unlike_know">知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>已推荐到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">和朋友分享想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          分享你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 分享想法到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="分享你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+<div id="js_loading" style=" display: none;">
+    <div class="weui-mask_transparent"></div>
+    <div class="weui-toast">
+        <i class="weui-loading weui-icon_toast"></i>
+        <p class="weui-toast__content">发送中</p>
+    </div>
+</div>
+
+<div id="js_fail" style="display:none">
+    <div class="weui-mask"></div>
+    <div class="weui-dialog">
+    <div class="weui-dialog__bd">
+        网络异常，请稍后重试    </div>
+    <div class="weui-dialog__ft">
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_fail_inform">知道了</a>
+    </div>
+    </div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://www.joinquant.com/post/16256" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
