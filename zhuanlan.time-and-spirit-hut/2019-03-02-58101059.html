@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>「官方」Async/Await状态报告</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/58101059">原文</a></p>
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-95081c04d1ad4b5bdb260f127c9fab9e_b.jpg" alt=""></div><blockquote>来源：<a href="http://link.zhihu.com/?target=http%3A//smallcultfollowing.com/babysteps/blog/2019/03/01/async-await-status-report/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">smallcultfollowing.com/</span><span class="invisible">babysteps/blog/2019/03/01/async-await-status-report/</span><span class="ellipsis"></span></a> <br>本文不是翻译，只是摘录</blockquote><p><b>Niko发表了这篇博客，阐述了async/await当前的状态：</b></p><ol><li>建立了async/await实施小组。该小组属于编译器团队，但是专注于具体的实现。</li><li>在async/await稳定之前，还需要确定一个重要的问题：「该稳定什么？」。</li></ol><p>Niko所考虑的是，为了什么目的而稳定。</p><p>如果稳定的目的是「促进async/await被广泛使用」，那么首先应该解决的就是await语法。</p><p>如果稳定的目的是「让早期的使用者们开始更多地使用它们」，则只要不存在向后兼容的问题就可以。</p><p>这两个目的都可以，但是如果选择后者，则需要传达更多的细节，以防止「早期使用者们」遇到下面的问题时不会被拒之门外。<br><br><b>当前的问题：</b></p><ul><li><b>实施问题</b>。实施组现在发现一个严重阻碍进度的问题：「<a href="http://link.zhihu.com/?target=https%3A//github.com/rust-lang/rust/issues/54716" class=" wrap external" target="_blank" rel="nofollow noreferrer">issues/54716</a>」，以及一些影响开发者体验的问题。另外也没有大量的活跃贡献者来参与async/await的实现工作。</li><li><b>语法问题</b>。对于await语法的讨论结果，由withoutboats在整理中。为了稳定aysnc/await，其实也并不一定非要稳定await语法，也可以先稳定await!宏。这个方案有利于早期的使用者，但是对于更广泛的大众来说，似乎并不是那么令人满意。所以可以像try!宏那样，先稳定宏，然后再稳定具体的语法。（让子弹飞一会）</li><li><b>解决难题</b>。作为一个社区最常做的事情之一，就是找到一种方法来解决真正难以解决的问题。await语法问题正是一个契机，可以帮助优化社区的讨论流程和工具。<br><br><b>总之， async/await即将到来：Niko已经迫不及待地想看看人们用它来构建什么了。</b></li></ul>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
