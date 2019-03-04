@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>基于区块链的物联网安全案例-3</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/58215008">原文</a></p>
+<p>Ø <b>物联网设备中可信计算基础的信任评估</b></p><p>可信计算基础（TCB）是确保计算机系统安全性的硬件，固件和/或软件组件的集合。这意味着要破坏安全性，攻击者必须破坏这些组件中的一个或多个。因此，TCB可以是物联网设备的一部分，物联网设备是一个微型计算机系统。如果所有TCB组件由于故障而未被更改并且未被对手篡改，则TCB是值得信赖的。执行TCB测量，其创建所有TCB组件的散列，以评估TCB的可信度。如果这些哈希值被安全存储，那么它们可以在以后用于验证TCB。当IoT设备连接到Internet并且每次更新其TCB时，都会执行TCB测量。如果无法验证TCB测量，则可信度受到影响。验证者通过发出加密随机数并对验证的TCB测量和随机数的串联进行签名来确保IoT设备的TCB是可信赖的，从而执行远程证明。</p><p>在Park and Kim（2017）中，一种称为TM-Coin（TCB Measurement-Coin）的协议被设计用于物联网设备中TCB测量的可信管理。 TM-Coin创建经过验证的TCB测量的交易记录，并将这些记录存储在区块链块中。 TM-Coin使用ARM TrustZone7提供的可信执行环境（TEE）作为物联网设备中的TCB，用于安全生成区块链的事务记录。 TM-Coin协议由两种区块链事务类型组成：注册和更新。当连接IoT设备时，注册事务在区块链块中存储TCB测量的验证记录。在IoT设备中的至少一个TCB组件的代码更新之后，更新事务还在区块链块中存储TCB测量的验证记录。区块链中的矿工节点在交易期间在物联网设备中执行TCB的远程证明。在由外部验证器进行远程验证之后，确保由IoT设备感测的数据是可信赖的。证明功能是其中TCB_M是从区块链获得的IoT设备的最新TCB测量，D是设备感测的数据，N是由验证者发布的随机数。</p><p>Ø <b>物联网设备身份验证</b></p><p>物联网设备的安全身份可以实现为嵌入式公钥加密芯片中的私钥。相应的公钥由IoT设备制造商存储在区块链块中（Lombardo，2016）。网络节点开始使用随机质询消息访问IoT设备，该消息由具有签名的IoT设备返回。此后，访问网络节点可以利用可以从区块链检索的公钥来验证IoT设备身份。使用区块链验证的物联网设备标识可实现对物联网的几乎完全安全的身份验证，使身份欺骗几乎不可能，并确保从物联网设备捕获的数据的完整性，因为区块链具有篡改弹性。</p><p>已经提出使用区块链验证的IoT设备标识用于创建基于区块链的身份日志，其捕获设备ID，其制造商，可用固件更新列表和已知安全问题（Manning，2017）。区块链还可以跟踪具有安全验证身份的设备的历史记录。当制造商将制造的IoT设备的标识 - 公钥 - 存储在区块链块中时，历史开始。正在为物联网设备（如监控摄像机）开发使用区块链验证的身份。</p><p><br></p><p><br></p><p>===============================================================</p><p><b>文章首发在微信公众号：btc201800</b></p><p><b>知识星球ID：28018093</b></p><p><b><a href="http://link.zhihu.com/?target=http%3A//weixin.qq.com/r/GC8UDDjEjmXxrXxv93oK" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">weixin.qq.com/r/GC8UDDj</span><span class="invisible">EjmXxrXxv93oK</span><span class="ellipsis"></span></a>(二维码自动识别)</b></p><p><b>音频发布在喜马拉雅上“区块链杂谈 (第2季)“</b></p><p><b>宁波格密链网络科技有限公司，专注于区块链上的密码技术研发。</b></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
