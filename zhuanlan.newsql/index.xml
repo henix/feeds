@@ -5,7 +5,217 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 13 Mar 2019 08:16:12 +0800</lastBuildDate>
+<lastBuildDate>Wed, 13 Mar 2019 23:14:52 +0800</lastBuildDate>
+<item>
+<title>TiKV 源码解析系列文章（四）Prometheus（下）</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-13-59165478.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/59165478&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-de58d30dd2a484aa745e78a60d3da04f_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：Breezewish&lt;/p&gt;&lt;blockquote&gt;本文为 TiKV 源码解析系列的第四篇，接上篇继续为大家介绍 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt;。&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/tikv-source-code-reading-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上篇&lt;/a&gt; 主要介绍了基础知识以及最基本的几个指标的内部工作机制，本篇会进一步介绍更多高级功能的实现原理。&lt;/blockquote&gt;&lt;p&gt;与上篇一样，以下内部实现都基于本文发布时最新的 rust-prometheus 0.5 版本代码，目前我们正在开发 1.0 版本，API 设计上会进行一些简化，实现上出于效率考虑也会和这里讲解的略微有一些出入，因此请读者注意甄别。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;指标向量（Metric Vector）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Metric Vector 用于支持带 Label 的指标。由于各种指标都可以带上 Label，因此 Metric Vector 本身实现为了一种泛型结构体，&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericGauge.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Gauge&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 在这之上实现了 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.CounterVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;CounterVec&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.GaugeVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;GaugeVec&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.HistogramVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec&lt;/a&gt;&lt;/code&gt;。Metric Vector 主要实现位于 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus/blob/89ca69913691d9d1609c78cc043fca9c3faa1a78/src/vec.rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;src/vec.rs&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.HistogramVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec&lt;/a&gt;&lt;/code&gt; 为例，调用 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.MetricVec.html%23method.with_label_values&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec::with_label_values&lt;/a&gt;&lt;/code&gt; 可获得一个 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 实例，而 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.HistogramVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec&lt;/a&gt;&lt;/code&gt; 定义为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub type HistogramVec = MetricVec&amp;lt;HistogramVecBuilder&amp;gt;;
+
+pub struct MetricVec&amp;lt;T: MetricVecBuilder&amp;gt; {
+   pub(crate) v: Arc&amp;lt;MetricVecCore&amp;lt;T&amp;gt;&amp;gt;,
+}
+
+impl&amp;lt;T: MetricVecBuilder&amp;gt; MetricVec&amp;lt;T&amp;gt; {
+   pub fn with_label_values(&amp;amp;self, vals: &amp;amp;[&amp;amp;str]) -&amp;gt; T::M {
+       self.get_metric_with_label_values(vals).unwrap()
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;因此 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.MetricVec.html%23method.with_label_values&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec::with_label_values&lt;/a&gt;&lt;/code&gt; 的核心逻辑其实在 &lt;code&gt;MetricVecCore::get_metric_with_label_values&lt;/code&gt;。这么做的原因是为了让 &lt;code&gt;MetricVec&lt;/code&gt; 是一个线程安全、可以被全局共享但又不会在共享的时候具有很大开销的结构，因此将内部逻辑实现在 &lt;code&gt;MetricVecCore&lt;/code&gt;，外层（即在 &lt;code&gt;MetricVec&lt;/code&gt;）套一个 &lt;code&gt;Arc&amp;lt;T&amp;gt;&lt;/code&gt; 后再提供给用户。进一步可以观察 &lt;code&gt;MetricVecCore&lt;/code&gt; 的实现，其核心逻辑如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub trait MetricVecBuilder: Send + Sync + Clone {
+   type M: Metric;
+   type P: Describer + Sync + Send + Clone;
+
+   fn build(&amp;amp;self, &amp;amp;Self::P, &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;Self::M&amp;gt;;
+}
+
+pub(crate) struct MetricVecCore&amp;lt;T: MetricVecBuilder&amp;gt; {
+   pub children: RwLock&amp;lt;HashMap&amp;lt;u64, T::M&amp;gt;&amp;gt;,
+   // Some fields are omitted.
+}
+
+impl&amp;lt;T: MetricVecBuilder&amp;gt; MetricVecCore&amp;lt;T&amp;gt; {
+   // Some functions are omitted.
+
+   pub fn get_metric_with_label_values(&amp;amp;self, vals: &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;T::M&amp;gt; {
+       let h = self.hash_label_values(vals)?;
+
+       if let Some(metric) = self.children.read().get(&amp;amp;h).cloned() {
+           return Ok(metric);
+       }
+
+       self.get_or_create_metric(h, vals)
+   }
+
+   pub(crate) fn hash_label_values(&amp;amp;self, vals: &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;u64&amp;gt; {
+       if vals.len() != self.desc.variable_labels.len() {
+           return Err(Error::InconsistentCardinality(
+               self.desc.variable_labels.len(),
+               vals.len(),
+           ));
+       }
+
+       let mut h = FnvHasher::default();
+       for val in vals {
+           h.write(val.as_bytes());
+       }
+
+       Ok(h.finish())
+   }
+
+   fn get_or_create_metric(&amp;amp;self, hash: u64, label_values: &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;T::M&amp;gt; {
+       let mut children = self.children.write();
+       // Check exist first.
+       if let Some(metric) = children.get(&amp;amp;hash).cloned() {
+           return Ok(metric);
+       }
+
+       let metric = self.new_metric.build(&amp;amp;self.opts, label_values)?;
+       children.insert(hash, metric.clone());
+       Ok(metric)
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;现在看代码就很简单了，它首先会依据所有 Label Values 构造一个 Hash，接下来用这个 Hash 在 &lt;code&gt;RwLock&amp;lt;HashMap&amp;lt;u64, T::M&amp;gt;&amp;gt;&lt;/code&gt; 中查找，如果找到了，说明给定的这个 Label Values 之前已经出现过、相应的 Metric 指标结构体已经初始化过，因此直接返回对应的实例；如果不存在，则要利用给定的 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.MetricVecBuilder.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;MetricVecBuilder&lt;/a&gt;&lt;/code&gt; 构造新的指标加入哈希表，并返回这个新的指标。&lt;/p&gt;&lt;p&gt;由上述代码可见，为了在线程安全的条件下实现 Metric Vector 各个 Label Values 具有独立的时间序列，Metric Vector 内部采用了 &lt;code&gt;RwLock&lt;/code&gt; 进行同步，也就是说 &lt;code&gt;with_label_values()&lt;/code&gt; 及类似函数内部是具有锁的。这在多线程环境下会有一定的效率影响，不过因为大部分情况下都是读锁，因此影响不大。当然，还可以发现其实给定 Label Values 之后调用 &lt;code&gt;with_label_values()&lt;/code&gt; 得到的指标实例是可以被缓存起来的，只访问缓存起来的这个指标实例是不会有任何同步开销的，也绕开了计算哈希值等比较占 CPU 的操作。基于这个思想，就有了 Static Metrics，读者可以在本文的后半部分了解 Static Metrics 的详细情况。&lt;/p&gt;&lt;p&gt;另外读者也可以发现，Label Values 的取值应当是一个有限的、封闭的小集合，不应该是一个开放的或取值空间很大的集合，因为每一个值都会对应一个内存中指标实例，并且不会被释放。例如 HTTP Method 是一个很好的 Label，因为它只可能是 GET / POST / PUT / DELETE 等；而 Client Address 则很多情况下并不适合作为 Label，因为它是一个开放的集合，或者有非常巨大的取值空间，如果将它作为 Label 很可能会有容易 OOM 的风险。这个风险在 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//prometheus.io/docs/practices/naming/%23labels&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Prometheus 官方文档&lt;/a&gt;中也明确指出了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;整型指标（Integer Metric）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在讲解 Counter / Gauge 的实现时我们提到，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 使用 CAS 操作实现 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/type.AtomicF64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicF64&lt;/a&gt;&lt;/code&gt; 中的原子递增和递减，如果改用 atomic fetch-and-add 操作则一般可以取得更高效率。考虑到大部分情况下指标都可以是整数而不需要是小数，例如对于简单的次数计数器来说它只可能是整数，因此 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 额外地提供了整型指标，允许用户自由地选择，针对整数指标情况提供更高的效率。&lt;/p&gt;&lt;p&gt;为了增强代码的复用，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 实际上采用了泛型来实现 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericGauge.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Gauge&lt;/a&gt;&lt;/code&gt;。通过对不同的 Atomic（如 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/type.AtomicF64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicF64&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/std/sync/atomic/struct.AtomicI64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicI64&lt;/a&gt;&lt;/code&gt;）进行泛化，就可以采用同一份代码实现整数的指标和（传统的）浮点数指标。&lt;/p&gt;&lt;p&gt;&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.Atomic.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Atomic&lt;/a&gt;&lt;/code&gt; trait 定义如下（&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus/blob/89ca69913691d9d1609c78cc043fca9c3faa1a78/src/atomic64/mod.rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;src/atomic64/mod.rs&lt;/a&gt;）：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub trait Atomic: Send + Sync {
+   /// The numeric type associated with this atomic.
+   type T: Number;
+   /// Create a new atomic value.
+   fn new(val: Self::T) -&amp;gt; Self;
+   /// Set the value to the provided value.
+   fn set(&amp;amp;self, val: Self::T);
+   /// Get the value.
+   fn get(&amp;amp;self) -&amp;gt; Self::T;
+   /// Increment the value by a given amount.
+   fn inc_by(&amp;amp;self, delta: Self::T);
+   /// Decrement the value by a given amount.
+   fn dec_by(&amp;amp;self, delta: Self::T);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;原生的 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/std/sync/atomic/struct.AtomicU64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicU64&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/std/sync/atomic/struct.AtomicI64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicI64&lt;/a&gt;&lt;/code&gt; 及我们自行实现的 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/type.AtomicF64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicF64&lt;/a&gt;&lt;/code&gt; 都实现了 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.Atomic.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Atomic&lt;/a&gt;&lt;/code&gt; trait。进而，&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericGauge.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Gauge&lt;/a&gt;&lt;/code&gt; 都可以利用上 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.Atomic.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Atomic&lt;/a&gt;&lt;/code&gt; trait：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub struct Value&amp;lt;P: Atomic&amp;gt; {
+   pub val: P,
+   // Some fields are omitted.
+}
+
+pub struct GenericCounter&amp;lt;P: Atomic&amp;gt; {
+   v: Arc&amp;lt;Value&amp;lt;P&amp;gt;&amp;gt;,
+}
+
+pub type Counter = GenericCounter&amp;lt;AtomicF64&amp;gt;;
+pub type IntCounter = GenericCounter&amp;lt;AtomicI64&amp;gt;;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;本地指标（Local Metrics）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;由前面这些源码解析可以知道，指标内部的实现是原子变量，用于支持线程安全的并发更新，但这在需要频繁更新指标的场景下相比简单地更新本地变量仍然具有显著的开销（大约有 10 倍的差距）。为了进一步优化、支持高效率的指标更新操作，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 提供了 Local Metrics 功能。&lt;/p&gt;&lt;p&gt;rust-prometheus 中 Counter 和 Histogram 指标支持 &lt;code&gt;local()&lt;/code&gt; 函数，该函数会返回一个该指标的本地实例。本地实例是一个非线程安全的实例，不能多个线程共享。例如，&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html%23method.local&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram::local()&lt;/a&gt;&lt;/code&gt; 会返回 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LocalHistogram&lt;/a&gt;&lt;/code&gt;。由于 Local Metrics 使用是本地变量，开销极小，因此可以放心地频繁更新 Local Metrics。用户只需定期调用 Local Metrics 的 &lt;code&gt;flush()&lt;/code&gt; 函数将其数据定期同步到全局指标即可。一般来说 Prometheus 收集数据的间隔是 15s 到 1 分钟左右（由用户自行配置），因此即使是以 1s 为间隔进行 &lt;code&gt;flush()&lt;/code&gt; 精度也足够了。&lt;/p&gt;&lt;p&gt;普通的全局指标使用流程如下图所示，多个线程直接利用原子操作更新全局指标：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;418&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;418&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;本地指标使用流程如下图所示，每个要用到该指标的线程都保存一份本地指标。更新本地指标操作开销很小，可以在频繁的操作中使用。随后，只需再定期将这个本地指标 flush 到全局指标，就能使得指标的更新操作真正生效。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;339&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;339&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;TiKV 中大量运用了本地指标提升性能。例如，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/56c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/util/futurepool.rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 的线程池&lt;/a&gt;一般都提供 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/56c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/util/futurepool.rs%23L284&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Context&lt;/a&gt;&lt;/code&gt; 变量，&lt;code&gt;Context&lt;/code&gt; 中存储了本地指标。线程池上运行的任务都能访问到一个和当前 worker thread 绑定的 &lt;code&gt;Context&lt;/code&gt;，因此它们都可以安全地更新 &lt;code&gt;Context&lt;/code&gt; 中的这些本地指标。最后，线程池一般提供 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/56c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/util/futurepool.rs%23L50&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;tick()&lt;/a&gt;&lt;/code&gt; 函数，允许以一定间隔触发任务， href=&quot;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//gith&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;gith&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;ub.com/&lt;/code&gt;tikv/tikv/&lt;code&gt;blob/56&lt;/code&gt;c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/coprocessor/readpool_context.rs#L50&quot;&amp;gt;在 tick() 中 TiKV 会对这些 Context 中的本地指标进行 flush()。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Local Counter&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 的本地指标 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericLocalCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LocalCounter&lt;/a&gt;&lt;/code&gt; 实现很简单，它是一个包含了计数器的结构体，该结构体提供了与 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 一致的接口方便用户使用。该结构体额外提供了 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericLocalCounter.html%23method.flush&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;flush()&lt;/a&gt;&lt;/code&gt;，将保存的计数器的值作为增量值更新到全局指标：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub struct GenericLocalCounter&amp;lt;P: Atomic&amp;gt; {
+   counter: GenericCounter&amp;lt;P&amp;gt;,
+   val: P::T,
+}
+
+pub type LocalCounter = GenericLocalCounter&amp;lt;AtomicF64&amp;gt;;
+pub type LocalIntCounter = GenericLocalCounter&amp;lt;AtomicI64&amp;gt;;
+
+impl&amp;lt;P: Atomic&amp;gt; GenericLocalCounter&amp;lt;P&amp;gt; {
+   // Some functions are omitted.
+
+   pub fn flush(&amp;amp;mut self) {
+       if self.val == P::T::from_i64(0) {
+           return;
+       }
+       self.counter.inc_by(self.val);
+       self.val = P::T::from_i64(0);
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;Local Histogram&lt;/b&gt;&lt;/p&gt;&lt;p&gt;由于 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 本质也是对各种计数器进行累加操作，因此 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LocalHistogram&lt;/a&gt;&lt;/code&gt; 的实现也很类似，例如 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html%23method.observe&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;observe(x)&lt;/a&gt;&lt;/code&gt;的实现与 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 如出一辙，除了它不是原子操作；&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html%23method.flush&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;flush()&lt;/a&gt;&lt;/code&gt; 也是将所有值累加到全局指标上去：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub struct LocalHistogramCore {
+   histogram: Histogram,
+   counts: Vec&amp;lt;u64&amp;gt;,
+   count: u64,
+   sum: f64,
+}
+
+impl LocalHistogramCore {
+   // Some functions are omitted.
+
+   pub fn observe(&amp;amp;mut self, v: f64) {
+       // Try find the bucket.
+       let mut iter = self
+           .histogram
+           .core
+           .upper_bounds
+           .iter()
+           .enumerate()
+           .filter(|&amp;amp;(_, f)| v &amp;lt;= *f);
+       if let Some((i, _)) = iter.next() {
+           self.counts[i] += 1;
+       }
+
+       self.count += 1;
+       self.sum += v;
+   }
+
+   pub fn flush(&amp;amp;mut self) {
+       // No cached metric, return.
+       if self.count == 0 {
+           return;
+       }
+       {
+           let h = &amp;amp;self.histogram;
+           for (i, v) in self.counts.iter().enumerate() {
+               if *v &amp;gt; 0 {
+                   h.core.counts[i].inc_by(*v);
+               }
+           }
+           h.core.count.inc_by(self.count);
+           h.core.sum.inc_by(self.sum);
+       }
+       self.clear();
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;静态指标（Static Metrics）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;之前解释过，对于 Metric Vector 来说，由于每一个 Label Values 取值都是独立的指标实例，因此为了线程安全实现上采用了 HashMap + RwLock。为了提升效率，可以将 &lt;code&gt;with_label_values&lt;/code&gt; 访问获得的指标保存下来，以后直接访问。另外使用姿势正确的话，Label Values 取值是一个有限的、确定的、小的集合，甚至大多数情况下在编译期就知道取值内容（例如 HTTP Method）。综上，我们可以直接写代码将各种已知的 Label Values 提前保存下来，之后可以以静态的方式访问，这就是静态指标。&lt;/p&gt;&lt;p&gt;以 TiKV 为例，有 Contributor 为 TiKV 提过这个 PR：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/pull/2765&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;#2765 server: precreate some labal metrics&lt;/a&gt;。这个 PR 改进了 TiKV 中统计各种 gRPC 接口消息次数的指标，由于 gRPC 接口是固定的、已知的，因此可以提前将它们缓存起来：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;struct Metrics {
+   kv_get: Histogram,
+   kv_scan: Histogram,
+   kv_prewrite: Histogram,
+   kv_commit: Histogram,
+   // ...
+}
+
+impl Metrics {
+   fn new() -&amp;gt; Metrics {
+       Metrics {
+           kv_get: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_get&quot;]),
+           kv_scan: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_scan&quot;]),
+           kv_prewrite: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_prewrite&quot;]),
+           kv_commit: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_commit&quot;]),
+           // ...
+       }
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用的时候也很简单，直接访问即可：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;@@ -102,10 +155,8 @@ fn make_callback&amp;lt;T: Debug + Send + &#39;static&amp;gt;() -&amp;gt; (Box&amp;lt;FnBox(T) + Send&amp;gt;, oneshot:
+
+impl&amp;lt;T: RaftStoreRouter + &#39;static&amp;gt; tikvpb_grpc::Tikv for Service&amp;lt;T&amp;gt; {
+    fn kv_get(&amp;amp;self, ctx: RpcContext, mut req: GetRequest, sink: UnarySink&amp;lt;GetResponse&amp;gt;) {
+-        let label = &quot;kv_get&quot;;
+-        let timer = GRPC_MSG_HISTOGRAM_VEC
+-            .with_label_values(&amp;amp;[label])
+-            .start_coarse_timer();
++        const LABEL: &amp;amp;str = &quot;kv_get&quot;;
++        let timer = self.metrics.kv_get.start_coarse_timer();
+
+        let (cb, future) = make_callback();
+        let res = self.storage.async_get(
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这样一个简单的优化可以为 TiKV 提升 7% 的 Raw Get 效率，可以说是很超值了（主要原因是 Raw Get 本身开销极小，因此在指标上花费的时间就显得有一些显著了）。但这个优化方案其实还有一些问题：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;代码繁琐，有大量重复的、或满足某些 pattern 的代码；&lt;/li&gt;&lt;li&gt;如果还有另一个 Label 维度，那么需要维护的字段数量就会急剧膨胀（因为每一种值的组合都需要分配一个字段）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;为了解决以上两个问题，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 提供了 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus/tree/master/static-metric&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Static Metric 宏&lt;/a&gt;。例如对于刚才的 TiKV 改进 PR #2765 来说，使用 Static Metric 宏可以简化为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;make_static_metric! {
+   pub struct GrpcMsgHistogram: Histogram {
+       &quot;type&quot; =&amp;gt; {
+           kv_get,
+           kv_scan,
+           kv_prewrite,
+           kv_commit,
+           // ...
+       },
+   }
+}
+
+let metrics = GrpcMsgHistogram::from(GRPC_MSG_HISTOGRAM_VEC);
+
+// Usage:
+metrics.kv_get.start_coarse_timer();
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到，使用宏之后，需要维护的繁琐的代码量大大减少了。这个宏也能正常地支持多个 Label 同时存在的情况。&lt;/p&gt;&lt;p&gt;限于篇幅，这里就不具体讲解这个宏是如何写的了，感兴趣的同学可以观看我司同学最近在 FOSDEM 2019 上的技术分享 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//fosdem.org/2019/schedule/event/rust_prometheus/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;视频&lt;/a&gt;（进度条 19:54 开始介绍 Static Metrics）和 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//fosdem.org/2019/schedule/event/rust_prometheus/attachments/slides/3301/export/events/attachments/rust_prometheus/slides/3301/Introducing_Rust_Prometheus.pdf&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Slide&lt;/a&gt;，里面详细地介绍了如何从零开始写出一个这样的宏（的简化版本）。&lt;/p&gt;&lt;p&gt;阅读更多：&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-3/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 源码解析系列文章（三）Prometheus（上）&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-03-13-59165478</guid>
+<pubDate>Wed, 13 Mar 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>Gopher China 2019 讲师专访 - PingCAP 姚维</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-12-59059569.html</link>
@@ -193,134 +403,6 @@
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-03-01-58054995</guid>
 <pubDate>Fri, 01 Mar 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>优秀的数据工程师，怎么用 Spark 在 TiDB 上做 OLAP 分析</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-02-27-57855988.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/57855988&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-903c0b831be84e0240629b5b88f04e6f_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;作者：RickyHuo&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;本文转载自公众号「大道至简bigdata」。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;原文链接：&lt;/b&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s/OijMYyM-7F2gbvURsfJskw&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;优秀的数据工程师，怎么用Spark在TiDB上做OLAP分析&lt;/a&gt;&lt;/p&gt;&lt;blockquote&gt;TiDB 是一款定位于在线事务处理/在线分析处理的融合型数据库产品，实现了一键水平伸缩，强一致性的多副本数据安全，分布式事务，实时 OLAP 等重要特性。&lt;br&gt;TiSpark 是 PingCAP 为解决用户复杂 OLAP 需求而推出的产品。它借助 Spark 平台，同时融合 TiKV 分布式集群的优势。直接使用 TiSpark 完成 OLAP 操作需要了解 Spark，还需要一些开发工作。&lt;b&gt;那么，有没有一些开箱即用的工具能帮我们更快速地使用 TiSpark 在 TiDB 上完成 OLAP 分析呢？&lt;/b&gt;&lt;br&gt;&lt;b&gt;目前开源社区上有一款工具 Waterdrop，可以基于 Spark，在 TiSpark 的基础上快速实现 TiDB 数据读取和 OLAP 分析。项目地址：&lt;/b&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/InterestingLab/waterdrop&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/InterestingL&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;ab/waterdrop&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/blockquote&gt;&lt;figure&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6718d267638bfb3b2adfff6a417cac52_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;591&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic3.zhimg.com/v2-6718d267638bfb3b2adfff6a417cac52_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6718d267638bfb3b2adfff6a417cac52_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;591&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic3.zhimg.com/v2-6718d267638bfb3b2adfff6a417cac52_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-6718d267638bfb3b2adfff6a417cac52_b.jpg&quot;&gt;&lt;/figure&gt;&lt;h2&gt;&lt;b&gt;使用 Waterdrop 操作 TiDB&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在我们线上有这么一个需求，从 TiDB 中读取某一天的网站访问数据，统计每个域名以及服务返回状态码的访问次数，最后将统计结果写入 TiDB 另外一个表中。 我们来看看 Waterdrop 是如何实现这么一个功能的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Waterdrop&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Waterdrop 是一个非常易用，高性能，能够应对海量数据的实时数据处理产品，它构建在 Spark 之上。Waterdrop 拥有着非常丰富的插件，支持从 TiDB、Kafka、HDFS、Kudu 中读取数据，进行各种各样的数据处理，然后将结果写入 TiDB、ClickHouse、Elasticsearch 或者 Kafka 中。&lt;/p&gt;&lt;p&gt;&lt;b&gt;准备工作&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;1. TiDB 表结构介绍&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Input（存储访问日志的表）&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE access_log (
-    domain VARCHAR(255),
-    datetime VARCHAR(63),
-    remote_addr VARCHAR(63),
-    http_ver VARCHAR(15),
-    body_bytes_send INT,
-    status INT,
-    request_time FLOAT,
-    url TEXT
-)
-+-----------------+--------------+------+------+---------+-------+
-| Field           | Type         | Null | Key  | Default | Extra |
-+-----------------+--------------+------+------+---------+-------+
-| domain          | varchar(255) | YES  |      | NULL    |       |
-| datetime        | varchar(63)  | YES  |      | NULL    |       |
-| remote_addr     | varchar(63)  | YES  |      | NULL    |       |
-| http_ver        | varchar(15)  | YES  |      | NULL    |       |
-| body_bytes_send | int(11)      | YES  |      | NULL    |       |
-| status          | int(11)      | YES  |      | NULL    |       |
-| request_time    | float        | YES  |      | NULL    |       |
-| url             | text         | YES  |      | NULL    |       |
-+-----------------+--------------+------+------+---------+-------+
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;Output（存储结果数据的表）&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE access_collect (
-    date VARCHAR(23),
-    domain VARCHAR(63),
-    status INT,
-    hit INT
-)
-+--------+-------------+------+------+---------+-------+
-| Field  | Type        | Null | Key  | Default | Extra |
-+--------+-------------+------+------+---------+-------+
-| date   | varchar(23) | YES  |      | NULL    |       |
-| domain | varchar(63) | YES  |      | NULL    |       |
-| status | int(11)     | YES  |      | NULL    |       |
-| hit    | int(11)     | YES  |      | NULL    |       |
-+--------+-------------+------+------+---------+-------+
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;2. 安装 Waterdrop&lt;/b&gt;&lt;/p&gt;&lt;p&gt;有了 TiDB 输入和输出表之后， 我们需要安装 Waterdrop，安装十分简单，无需配置系统环境变量&lt;/p&gt;&lt;p&gt;1) 准备 Spark 环境&lt;/p&gt;&lt;p&gt;2) 安装 Waterdrop&lt;/p&gt;&lt;p&gt;3) 配置 Waterdrop&lt;/p&gt;&lt;p&gt;以下是简易步骤，具体安装可以参照 Quick Start。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;# 下载安装Spark
-cd /usr/local
-wget https://archive.apache.org/dist/spark/spark-2.1.0/spark-2.1.0-bin-hadoop2.7.tgz
-tar -xvf https://archive.apache.org/dist/spark/spark-2.1.0/spark-2.1.0-bin-hadoop2.7.tgz
-wget
-# 下载安装Waterdrop
-https://github.com/InterestingLab/waterdrop/releases/download/v1.2.0/waterdrop-1.2.0.zip
-unzip waterdrop-1.2.0.zip
-cd waterdrop-1.2.0
-
-vim config/waterdrop-env.sh
-# 指定Spark安装路径
-SPARK_HOME=${SPARK_HOME:-/usr/local/spark-2.1.0-bin-hadoop2.7}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;实现 Waterdrop 处理流程&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们仅需要编写一个 Waterdrop 配置文件即可完成数据的读取、处理、写入。&lt;/p&gt;&lt;p&gt;Waterdrop 配置文件由四个部分组成，分别是 &lt;code&gt;Spark&lt;/code&gt;、&lt;code&gt;Input&lt;/code&gt;、&lt;code&gt;Filter&lt;/code&gt; 和 &lt;code&gt;Output&lt;/code&gt;。&lt;code&gt;Input&lt;/code&gt; 部分用于指定数据的输入源，&lt;code&gt;Filter&lt;/code&gt; 部分用于定义各种各样的数据处理、聚合，&lt;code&gt;Output&lt;/code&gt; 部分负责将处理之后的数据写入指定的数据库或者消息队列。&lt;/p&gt;&lt;p&gt;整个处理流程为 &lt;code&gt;Input&lt;/code&gt; -&amp;gt; &lt;code&gt;Filter&lt;/code&gt; -&amp;gt; &lt;code&gt;Output&lt;/code&gt;，整个流程组成了 Waterdrop 的处理流程（Pipeline）。&lt;/p&gt;&lt;blockquote&gt;以下是一个具体配置，此配置来源于线上实际应用，但是为了演示有所简化。&lt;/blockquote&gt;&lt;ul&gt;&lt;li&gt;Input (TiDB)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这里部分配置定义输入源，如下是从 TiDB 一张表中读取数据。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;input {
-    tidb {
-        database = &quot;nginx&quot;
-        pre_sql = &quot;select * from nginx.access_log&quot;
-        table_name = &quot;spark_nginx_input&quot;
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;Filter&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;在 Filter 部分，这里我们配置一系列的转化, 大部分数据分析的需求，都是在 Filter 完成的。Waterdrop 提供了丰富的插件，足以满足各种数据分析需求。这里我们通过 SQL 插件完成数据的聚合操作。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;filter {
-    sql {
-        table_name = &quot;spark_nginx_log&quot;
-        sql = &quot;select count(*) as hit, domain, status, substring(datetime, 1, 10) as date from spark_nginx_log where substring(datetime, 1, 10)=&#39;2019-01-20&#39; group by domain, status, substring(datetime, 1, 10)&quot;
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;Output (TiDB)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;最后， 我们将处理后的结果写入 TiDB 另外一张表中。TiDB Output 是通过 JDBC 实现的。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;output {
-    tidb {
-        url = &quot;jdbc:mysql://127.0.0.1:4000/nginx?useUnicode=true&amp;amp;characterEncoding=utf8&quot;
-        table = &quot;access_collect&quot;
-        user = &quot;username&quot;
-        password = &quot;password&quot;
-        save_mode = &quot;append&quot;
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;Spark&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;这一部分是 Spark 的相关配置，主要配置 Spark 执行时所需的资源大小以及其他 Spark 配置。&lt;br&gt;我们的 TiDB Input 插件是基于 TiSpark 实现的，而 TiSpark 依赖于 TiKV 集群和 Placement Driver (PD)。因此我们需要指定 PD 节点信息以及 TiSpark 相关配置&lt;code&gt;spark.tispark.pd.addresses&lt;/code&gt;和&lt;code&gt;spark.sql.extensions&lt;/code&gt;。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;spark {
-  spark.app.name = &quot;Waterdrop-tidb&quot;
-  spark.executor.instances = 2
-  spark.executor.cores = 1
-  spark.executor.memory = &quot;1g&quot;
-  # Set for TiSpark
-  spark.tispark.pd.addresses = &quot;localhost:2379&quot;
-  spark.sql.extensions = &quot;org.apache.spark.sql.TiExtensions&quot;
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;运行 Waterdrop&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们将上述四部分配置组合成我们最终的配置文件&lt;code&gt;conf/tidb.conf&lt;/code&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;spark {
-    spark.app.name = &quot;Waterdrop-tidb&quot;
-    spark.executor.instances = 2
-    spark.executor.cores = 1
-    spark.executor.memory = &quot;1g&quot;
-    # Set for TiSpark
-    spark.tispark.pd.addresses = &quot;localhost:2379&quot;
-    spark.sql.extensions = &quot;org.apache.spark.sql.TiExtensions&quot;
-}
-input {
-    tidb {
-        database = &quot;nginx&quot;
-        pre_sql = &quot;select * from nginx.access_log&quot;
-        table_name = &quot;spark_table&quot;
-    }
-}
-filter {
-    sql {
-        table_name = &quot;spark_nginx_log&quot;
-        sql = &quot;select count(*) as hit, domain, status, substring(datetime, 1, 10) as date from spark_nginx_log where substring(datetime, 1, 10)=&#39;2019-01-20&#39; group by domain, status, substring(datetime, 1, 10)&quot;
-    }
-}
-output {
-    tidb {
-        url = &quot;jdbc:mysql://127.0.0.1:4000/nginx?useUnicode=true&amp;amp;characterEncoding=utf8&quot;
-        table = &quot;access_collect&quot;
-        user = &quot;username&quot;
-        password = &quot;password&quot;
-        save_mode = &quot;append&quot;
-    }
-} 
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行命令，指定配置文件，运行 Waterdrop ，即可实现我们的数据处理逻辑。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Local&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;code&gt;./bin/start-waterdrop.sh --config config/tidb.conf --deploy-mode client --master &#39;local[2]&#39;&lt;/code&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;yarn-client&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;code&gt;./bin/start-waterdrop.sh --config config/tidb.conf --deploy-mode client --master yarn&lt;/code&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;yarn-cluster&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;code&gt;./bin/start-waterdrop.sh --config config/tidb.conf --deploy-mode cluster -master yarn&lt;/code&gt;&lt;/p&gt;&lt;p&gt;如果是本机测试验证逻辑，用本地模式（Local）就可以了，一般生产环境下，都是使用&lt;code&gt;yarn-client&lt;/code&gt;或者&lt;code&gt;yarn-cluster&lt;/code&gt;模式。&lt;/p&gt;&lt;p&gt;&lt;b&gt;检查结果&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;mysql&amp;gt; select * from access_collect;
-+------------+--------+--------+------+
-| date       | domain | status | hit  |
-+------------+--------+--------+------+
-| 2019-01-20 | b.com  |    200 |   63 |
-| 2019-01-20 | a.com  |    200 |   85 |
-+------------+--------+--------+------+
-2 rows in set (0.21 sec)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;总结&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在这篇文章中，我们介绍了如何使用 Waterdrop 从 TiDB 中读取数据，做简单的数据处理之后写入 TiDB 另外一个表中。仅通过一个配置文件便可快速完成数据的导入，无需编写任何代码。&lt;/p&gt;&lt;p&gt;除了支持 TiDB 数据源之外，Waterdrop 同样支持 Elasticsearch，Kafka，Kudu， ClickHouse 等数据源。&lt;/p&gt;&lt;p&gt;&lt;b&gt;与此同时，我们正在研发一个重要功能，就是在 Waterdrop 中，利用 TiDB 的事务特性，实现从 Kafka 到 TiDB 流式数据处理，并且支持端（Kafka）到端（TiDB）的 Exactly-Once 数据一致性。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;希望了解 Waterdrop 和 TiDB，ClickHouse、Elasticsearch、Kafka 结合使用的更多功能和案例，可以直接进入项目主页：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/InterestingLab/waterdrop&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/InterestingL&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;ab/waterdrop&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt; ，或者联系项目负责人： Garyelephan（微信: garyelephant）、RickyHuo （微信: chodomatte1994）。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-02-27-57855988</guid>
-<pubDate>Wed, 27 Feb 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
