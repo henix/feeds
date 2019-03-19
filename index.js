@@ -44,6 +44,16 @@ const feeds = [
 		"sishimiao",
 		"DimensionsCapital",
 	]],
+	["心理", [
+		"knowyourself2015",
+		"knowyourself",
+		"c_133439818",
+		"gh_d46d2c2a843d",
+		"pongba_mindhacks",
+		"mindhacks",
+		"PSY_Jile",
+		"bhahhltmusic",
+	]],
 	["FP", [
 		"yinwang",
 		"marisa",
@@ -54,16 +64,6 @@ const feeds = [
 		"yangbo",
 		"time-and-spirit-hut",
 		"rust-lang",
-	]],
-	["心理", [
-		"knowyourself2015",
-		"knowyourself",
-		"c_133439818",
-		"gh_d46d2c2a843d",
-		"pongba_mindhacks",
-		"mindhacks",
-		"PSY_Jile",
-		"bhahhltmusic",
 	]],
 	["政治 / 人文", [
 		"knowledgewealth",
@@ -91,6 +91,13 @@ const feeds = [
 		"c_126395105",
 		"c_1010472697662451712",
 	]],
+	["商业", [
+		"jingyunxiaowu",
+		"banfoSB",
+		"caozsay",
+		"xingshu100",
+		"Professor-Li",
+	]],
 	["独立", [
 		"hiyeka",
 		"wxieshuo",
@@ -100,12 +107,6 @@ const feeds = [
 		"FlyTheCode",
 		"zhoudaobiji",
 		"iamawguo",
-	]],
-	["商业", [
-		"jingyunxiaowu",
-		"caozsay",
-		"xingshu100",
-		"Professor-Li",
 	]],
 	["科学", [
 		"conformalgeometry",
