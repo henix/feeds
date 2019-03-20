@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/</link>
 <description>best of websecurity best of websecurity</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 21 Feb 2019 15:59:56 +0800</lastBuildDate>
+<lastBuildDate>Wed, 20 Mar 2019 12:33:11 +0800</lastBuildDate>
+<item>
+<title>国内外最新漏洞分析之 Burpsuite “权限提升”攻击</title>
+<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-03-19-59718973.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/59718973&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-369b0b6d80af80b9ff25a669ea90764a_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;Burpsuite 作为集成平台，包含了多种工具，其可用于攻击web应用程序，因此在web安全领域，一直被行业人士广泛使用。最近的一个公开报告中指出，Burpsuite出现了一个新的漏洞，即低权限的用户可利用不存在的路径来进行权限升级，从而对Burpsuit进行恶意攻击。让我们来看一下，这个漏洞究竟是如何产生的。&lt;/p&gt;&lt;p&gt;漏洞模拟步骤（Pro版本测试）：&lt;/p&gt;&lt;p&gt;1、首先，以低权限的账号登入系统，且该系统已安装了Burpsuite软件。（如下图所示）&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f446cd20ba11ca22385e86bcf82dbb48_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;263&quot; data-rawheight=&quot;288&quot; class=&quot;content_image&quot; width=&quot;263&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f446cd20ba11ca22385e86bcf82dbb48_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;263&quot; data-rawheight=&quot;288&quot; class=&quot;content_image lazy&quot; width=&quot;263&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-f446cd20ba11ca22385e86bcf82dbb48_b.png&quot;&gt;&lt;/figure&gt;&lt;p&gt;2、之后，在C:\Program%20Files下创建递归目录，如下图所示：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-90ff65cae7a1b91ad4819331707c63bd_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;297&quot; data-rawheight=&quot;183&quot; class=&quot;content_image&quot; width=&quot;297&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-90ff65cae7a1b91ad4819331707c63bd_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;297&quot; data-rawheight=&quot;183&quot; class=&quot;content_image lazy&quot; width=&quot;297&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-90ff65cae7a1b91ad4819331707c63bd_b.png&quot;&gt;&lt;/figure&gt;&lt;p&gt;3、然后在最底层目录中，复制一个名为“sunec.dll”的dll文件。&lt;/p&gt;&lt;p&gt;4、最后，登录进入“特权账号”，并运行Burpsuite软件，即会出现如下消息。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f5a9c5a55166ec67232e514fdd6fe652_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;260&quot; data-rawheight=&quot;132&quot; class=&quot;content_image&quot; width=&quot;260&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f5a9c5a55166ec67232e514fdd6fe652_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;260&quot; data-rawheight=&quot;132&quot; class=&quot;content_image lazy&quot; width=&quot;260&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-f5a9c5a55166ec67232e514fdd6fe652_b.png&quot;&gt;&lt;/figure&gt;&lt;p&gt;通过上述步骤以及最后的结果来看，我们可以发现，“特权用户”在运行Burpsuite的时候，执行了原低权限用户所留下来的dll文件，而该权限本不应该是低权限用户所具备的。这也就意味着，如果该低权限用户存在恶意攻击行为，其可以通过上述步骤，来进行“越权攻击”，从而威胁系统的信息安全。&lt;/p&gt;&lt;p&gt;已知漏洞产生的方式，那么漏洞产生的原因又在哪里呢？这是由于，Burpsuite在运行过程中，它会去尝试在C:\Program%20Files路径下加载一些dll文件。由于文件夹本身并不存在，且可以由低权限用户来进行创建。在这给个加载过程中，也就产生了漏洞。&lt;/p&gt;&lt;p&gt;即低权限用户在该系统下，可以在路径C:\Program%20Files下创建递归文件夹，并且在文件夹中放入带有目的性的dll文件，这也就埋下了“伏笔”。当“特权用户”运行Burpsuite之时，也就会顺带运行低权限用户留下的dll文件。&lt;/p&gt;&lt;p&gt;我们可以把低权限的用户比作“杜鹃”，它自己不会孵蛋，就把蛋产在其他鸟类的巢中，让其帮助“义务”孵化。这种“杜鹃”式的攻击，存在明显的越权行为，确实是Burpsuite的漏洞之一。&lt;/p&gt;&lt;p&gt;在报告公开之前，工作人员已经对该漏洞已经进行了修补，不过在工作人员看来，这并不是安全问题，只是一个普通的错误罢了，因为Burpsuite本身就无法在已被侵入的系统上安全的运行，即其无法防范已经存在的本地恶意用户。&lt;/p&gt;&lt;p&gt;换句话说，是否可以认为，过来下蛋的杜鹃，本身就有家里的钥匙，并且是主人亲自给他的。门本身的质量没有问题，它只是无法识别是谁开的门，让原本不能开门的人把门打开了。而现在，这个问题也得到了解决。&lt;/p&gt;</description>
+<author>二向箔安全</author>
+<guid isPermaLink="false">2019-03-19-59718973</guid>
+<pubDate>Tue, 19 Mar 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>您有一份免费的《BurpSuite 从原理到实战 28 讲》微课堂，点击领取！</title>
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-02-21-57227026.html</link>
@@ -86,15 +95,6 @@
 <author>二向箔安全</author>
 <guid isPermaLink="false">2018-10-29-47847424</guid>
 <pubDate>Mon, 29 Oct 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Live : HTML5 ServiceWorker安全探索</title>
-<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2018-10-28-47847424.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/47847424&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3f7773f4a083acccd6afd43805c542dd_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;关于serviceworker：&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;ServiceWorker的出现，为前端开发提供了更多的技术支持，使 Web APP 具有Native APP的离线使用、消息推送、默认更新等功能，并给前端安全增添了不少新玩法。&lt;/p&gt;&lt;p&gt;- HTTPS Only&lt;/p&gt;&lt;p&gt;- Events：fetch,sync,push&lt;/p&gt;&lt;p&gt;- 浏览器支持程度局限性&lt;/p&gt;&lt;p&gt;- 运行在浏览器后台的独立线程的脚本&lt;/p&gt;&lt;p&gt;- 可拦截及处理网络请求&lt;/p&gt;&lt;p&gt;- 不能直接参与Web交互，比如：DOM操作&lt;/p&gt;&lt;p&gt;- 推送通知、后台同步&lt;/p&gt;&lt;p&gt;作为一段独立于页面运行在浏览器后端的脚本。使用Service Worker来进行缓存，可以用javascript代码来拦截浏览器的请求，设置缓存文件，不经服务器直接返回。SW工作原理基于注册、安装、激活等步骤，我们需要了解它的生命周期以至于帮助我们学会在各个生命周期阶段进行有目的的回调。&lt;/p&gt;&lt;p&gt;从安全角度来看不难想到可能带来的一些问题，如：基于 SW的XSS+JSONP 相当于持久化XSS、DDos、流量盗用、基于SW构造僵尸网络结合CSRF扩大影响范围、新型Flash攻击、SW缓存劫持。&lt;/p&gt;&lt;p&gt;对于防御基于SW的XSS可采取 CSP、域内不存在XSS及用户可控的JS文件、JSONP接口应只允许特定字符or白名单。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Live 内容预告：&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;功能简介&lt;/li&gt;&lt;li&gt;ServiceWorker 的出现原因&lt;/li&gt;&lt;li&gt;ServiceWorker 结构和特点&lt;/li&gt;&lt;li&gt;安全利用&lt;/li&gt;&lt;li&gt;水坑攻击&lt;/li&gt;&lt;li&gt;延长网页生命期&lt;/li&gt;&lt;li&gt;一些黑科技&lt;/li&gt;&lt;li&gt;流量盗用&lt;/li&gt;&lt;li&gt;防御探讨&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;Live 主讲人：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;EtherDream：&lt;/b&gt;&lt;/p&gt;&lt;p&gt; 阿里巴巴安全工程师，从事 Web 安全相关的研发。专注浏览器前端技术，爱好网络安全，以及探索各种黑科技。相比于攻击，在安全防御方面有着更大的兴趣，研发过多种基于 Web 前端的防御系统。本次分享在讲解攻击的同时，也会讲解一些新理念的防御思路。&lt;/p&gt;&lt;p&gt;&lt;b&gt;开讲时间：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;2018/11/03 晚上 8 点&lt;/p&gt;&lt;p&gt;&lt;b&gt;报名方式：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://jinshuju.net/f/qqH48u&quot;&gt;Live 报名表&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>Twosecurity</author>
-<guid isPermaLink="false">2018-10-28-47847424</guid>
-<pubDate>Sun, 28 Oct 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
