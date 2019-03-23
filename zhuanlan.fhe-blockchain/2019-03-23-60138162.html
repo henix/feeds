@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>全同态加密是如何被解决的-3</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/60138162">原文</a></p>
+<p>前言：这篇文章是由陈智罡博士于2013年写的博客文章，当时全同态加密研究刚起步，方案非常复杂。陈博士的这篇博客文章，成为了每个进入全同态加密领域同学的必读文章，也为很多学习全同态加密的同学解答了很多学习困惑。今天读起来，会让我们很好的了解当初全同态加密是如何被解决的。</p><p>——————————————这是一条美丽的分割线——————————————</p><h2>3 Bootstapping：一个生硬的思路<br></h2><p>噪音阻碍了我们的目标，那么如何消除噪音这个敌人呢？一个直观的方法就是对密文解密，密文解密后噪音就没有了，但是要解密必须要知道私钥，要想通过获得私钥来消除噪音是不现实的。那么如果对密钥加密来做可以么？</p><p><br></p><p>让我们先看看Evaluate算法。在Evaluate算法中能够对密文执行函数f的运算，其中f是属于permitted functions 集合的任一function（这里稍微解释一下，permitted functions 集合也称permitted circuit。</p><p><br></p><p>例如有两个函数功能f1和f2，运行Evaluate(pk, f1, c1,c2,…，cn)和Evaluate(pk, f1, c1,c2,…，cn)，就是分别对密文执行f1运算和f2运算，如果f1运算的结果解密后恰好是f1对相应明文运算的结果（同态成立），那么f1就属于permitted functions。而f2运算的结果解密后如果不等于f2对相应明文运算的结果，那么f2就不属于permitted functions。）。 </p><p><br></p><p>试想如果Dec解密算法也在permitted functions 集合中，那么Evaluate算法就可以执行Dec解密功能了。如果我们输入的是s*（是用pk2对私钥s加密得到的密文），以及对密文c*（是用pk2对c再加密的密文，原密文c是用pk1进行加密的)，那么执行</p><p>Evaluate(pk2, Dec, s*,c*)；</p><p><br></p><p>所得结果为一个新的密文，该密文是明文在pk2下加密的密文，是不是有点像魔术，就像原来一个人穿的是西装，现在你没有看到这个人换衣服的情况下，魔术师只是施了一下魔法，这个人立刻就换了一身运动服，人还是原来那个人，只是包装变了。这也是Gentry思想中一个最重要的特性：同态解密。</p><p><br></p><p>     那么同态解密对于降低噪音又有什么关系呢？</p><p><br></p><p>     当密文运算后，噪音会被迅速放大，如果我们对运算后的密文做一次同态解密，是不是相当于得到了一个新鲜密文呢，而新鲜密文的噪音是最小的，所以达到了降噪的目的。（事实上同态解密后得到的密文的噪音要比新鲜密文噪音稍微大一些。）这一手法称之为：重加密技术，它为我们提供了降低噪音的一个方法。</p><p><br></p><p>接下来你肯定会想到：每次密文运算前只要对密文进行重加密来降低噪音，然后再进行密文运算，那么噪音永远都在可控的范围内，运算结果的解密也就不会失败了。运算电路可以反复递归此过程，就可以达到无限次密文运算的目的了。</p><p><br></p><p>==========================================================================</p><p><b>文章首发在微信公众号：btc201800</b><br><b>知识星球ID：28018093</b></p><p><br><b>音频发布在喜马拉雅上“区块链杂谈 (第2季)”</b> <b><u><a href="http://link.zhihu.com/?target=http%3A//xima.tv/Bjq4se" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/Bjq4se</span><span class="invisible"></span></a></u></b></p><p><b>解读区块链白皮书</b> <u><a href="http://link.zhihu.com/?target=http%3A//xima.tv/RNU1Q8" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/RNU1Q8</span><span class="invisible"></span></a></u></p><p><br><b>宁波格密链网络科技有限公司，专注于区块链上的密码技术研发。</b></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+</body>
+</html>
