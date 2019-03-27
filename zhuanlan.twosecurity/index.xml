@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/</link>
 <description>best of websecurity best of websecurity</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 21 Mar 2019 11:02:13 +0800</lastBuildDate>
+<lastBuildDate>Thu, 28 Mar 2019 04:00:24 +0800</lastBuildDate>
+<item>
+<title>国内外最新漏洞分析之 Steam客户端的重大漏洞，缓冲区溢出致使用户遭遇RCE</title>
+<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-03-26-60462300.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/60462300&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-369b0b6d80af80b9ff25a669ea90764a_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;在Steam客户端以及其他V社游戏中，都提供了一种可以寻找服务器的功能，即Server Browser。它与服务器本身是通过UDP协议通信。&lt;/p&gt;&lt;p&gt;在近期的一份公开报告中，揭露了Steam客户端中的一个漏洞，攻击者可以利用启动过程时，寻找服务器所造成的缓冲区溢出，来对用户的电脑进行攻击，控制电脑以达到获取信息等目的。&lt;/p&gt;&lt;p&gt;该发布者构建了一个自定义的服务器，然后通过Server Browser与服务器之间的通信协议来进行调试，在模糊了几个参数之后，Steam客户端在收到回复时崩溃了，这是由于缓冲区溢出造成的崩溃。&lt;/p&gt;&lt;p&gt;发布者在发现崩溃现象之后，进一步检查了该漏洞，发现是Server Browser的库中发生了溢出，用户名甚至都被转化为unicode，此外，由于没有 canary的保护，这就使得在返回windows的时候，如果存在攻击者，其可以在用户电脑上执行任何操作。&lt;/p&gt;&lt;p&gt;为验证这一漏洞，发布者进行了如下操作：&lt;/p&gt;&lt;p&gt;1. 首先构建一个自定义的服务器。&lt;/p&gt;&lt;p&gt;2. 使用Immunity Debugger之类的调试器并将其添加到Steam.exe。&lt;/p&gt;&lt;p&gt;3. 获取Steam.exe的基地址，并编辑服务器上的STEAM_BASE变量，使漏洞100％可靠。&lt;/p&gt;&lt;p&gt;4. 找到并运行该漏洞服务器。&lt;/p&gt;&lt;p&gt;5. 编辑POC.html并改变用户的IP地址。&lt;/p&gt;&lt;p&gt;6. 等待cmd.exe的运行。&lt;/p&gt;&lt;p&gt;该系列操作使得运行服务器时，由于缓冲区溢出而造成崩溃，并在返回过程中，执行恶意代码，达到用户信息窃取的目的，甚至是控制用户电脑进行一系列操作，来对用户本身造成损害。该发布者主要针对windows系统进行了测试，并成功验证了该Bug。&lt;/p&gt;&lt;p&gt;缓冲区溢出错误是网络安全中常见的漏洞，会造成极大的恶劣影响。对于Steam客户端这样用户量极大的客户端，其对于网络安全的重要性更为看重。本次缓冲区溢出的漏洞，对于Steam来说，是一件需要即刻解决的大事。根据已公布的报告来看，Steam已经修复了该漏洞，及时保证了用户的网络安全。&lt;/p&gt;</description>
+<author>二向箔安全</author>
+<guid isPermaLink="false">2019-03-26-60462300</guid>
+<pubDate>Tue, 26 Mar 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>教练，我想学渗透</title>
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-03-20-59817282.html</link>
@@ -86,15 +95,6 @@
 <author>二向箔安全</author>
 <guid isPermaLink="false">2018-12-05-51644375</guid>
 <pubDate>Wed, 05 Dec 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>Live ：APT事件追踪精要</title>
-<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2018-11-23-50698408.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/50698408&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-1df847769338bc3ece34a3e58d324350_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;相信大家对于 &lt;b&gt;APT 攻击 &lt;/b&gt;这个词并不陌生，这期二向箔安全 Live 邀请到 &lt;b&gt;Merjerson &lt;/b&gt;为大家讲解一些 APT 事件追踪的一些要点，快来一睹为快吧！&lt;/p&gt;&lt;p&gt;&lt;b&gt;主讲人：Merjerson&lt;/b&gt;&lt;/p&gt;&lt;p&gt;360CERT 安全研究员，Defcon 010、HITB Amsterdam 2018 演讲者。&lt;/p&gt;&lt;p&gt;4年网络安全研究学习经验，擅长脚本安全，病毒分析，安全事件分析。自主挖掘过大量互联网企业漏洞并得到致谢，拥有丰富的实战经验，并发表过多篇高质量技术分析报告。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Live 简介&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;APT 攻击行为复杂度高，时间跨度长，隐蔽性强，是最难追踪的安全事件。经常会看到国内外各大安全厂家发布APT分析报告，但关于这方面的分析方法却鲜有资料。本次 Live 将以事件分析为主线，参考 Diamond Model，kill chain 模型，来讲述 APT 事件追踪的一些要点。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Live 内容&lt;/b&gt;&lt;/p&gt;&lt;ol&gt;&lt;li&gt;攻击事件&lt;/li&gt;&lt;li&gt;什么是APT&lt;/li&gt;&lt;li&gt;APT分析两种方法&lt;/li&gt;&lt;li&gt;IoC层级&lt;/li&gt;&lt;li&gt;TTPs简单描述&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;开讲时间：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;2018/12/02 晚上 8 点&lt;/p&gt;&lt;p&gt;&lt;b&gt;报名方式：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://jinshuju.net/f/XFKzdy&quot;&gt;Live 报名表&lt;/a&gt; &lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>二向箔安全</author>
-<guid isPermaLink="false">2018-11-23-50698408</guid>
-<pubDate>Fri, 23 Nov 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
