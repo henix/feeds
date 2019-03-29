@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 29 Mar 2019 10:48:47 +0800</lastBuildDate>
+<lastBuildDate>Fri, 29 Mar 2019 16:40:33 +0800</lastBuildDate>
+<item>
+<title>EE 团队：Automating Everything！ | PingCAP 招聘季</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-29-60715241.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/60715241&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-690d32ed3ff9cf69a71ccba4fad1ce78_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;在 PingCAP 成立之初，我们就在思考 TiDB 的核心价值。在存储并处理较大规模的数据时，TiDB 本质上是帮助 DBA 和开发人员提升效率。《资本论》中说道：当个别劳动时间低于社会必要劳动时间时，人们才有钱赚。可见效率即是价值。&lt;b&gt;在 PingCAP 内部，我们信奉效率至上。&lt;/b&gt;&lt;br&gt;随着公司的发展和壮大，沟通协作的成本随之升高，在研发、测试、交付，乃至公司运营等各个环节的效率问题随之暴露出来。公司内部网络不稳定时，我们经常调侃：这个网络就是阻碍未来的分布式数据库前进的障碍！我们必须主动的发现日常工作中各种影响效率的问题，然后用最擅长的武器，即手中的代码来一一解决。&lt;b&gt;在 PingCAP，有一支特殊的 Team 肩负着此项重任—— EE (Efficiency Engineering) 效率工程团队，也就是我们今天介绍的主角。&lt;/b&gt;&lt;/blockquote&gt;&lt;h2&gt;&lt;b&gt;关于 EE 团队&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;EE 团队致力于提高公司内部的自动化程度，是 PingCAP 中最 Hack 的团队，信仰重复的事情人肉只做一遍，尽最大努力把一切可以 Scaling 的事情都交给工具和各种 bot 来解决。为了能让大家对 EE 团队有更直观的了解，EE 团队小伙伴下面将「现身说法」，分享他们是如何用工程化的手段来解决效率问题的。&lt;/p&gt;&lt;p&gt;&lt;b&gt;@zhouqiang-cl &lt;/b&gt;&lt;/p&gt;&lt;p&gt;大家好，我来介绍下 PingCAP 内部的 DevOps 是如何&lt;b&gt;提高研发的效率的&lt;/b&gt;。可能各个技术型公司都有自己的一套 DevOps，而且社区的各种轮子也不少。虽然建设一套 DevOps 并不难，但要和公司内部研发流程紧密契合，真正提高研发效率，也不是一件容易的事。不仅需要对开发、对测试、对产品了解的都比较深入，同时需要具备运维的思想和知识体系。接下来我结合实际例子，具体介绍一下。&lt;/p&gt;&lt;p&gt;DevOps 里面很重要的一个是 CI，而 TiDB 的 CI 并不好做。一方面数据库的 test case 比较多，一次代码提交可能会触发跑上千万 test case；另一方面 TiDB 项目非常活跃，平均每天都有 10-20 多个 PR，而每个 PR 的每次 commit 都要触发 CI。可想而知，如果 CI 跑的比较慢，我们和社区的开发者就会浪费大量的时间在等 CI 跑完，如果跑挂了，fix 之后还要再跑一次。&lt;b&gt;因此我们设定了一个目标，让千万级的分布式数据库 test case 在 3 分钟内跑完。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;为了实现这个目标，我们从几个方面来考虑。&lt;/p&gt;&lt;p&gt;首先第一个思想是“拆”。把大的 test case 拆成小的，耗时的拆成多段来跑，然后尽可能的并行跑。一个 pipeline 不行就多个 pipeline，一个 Jenkins master 不够就多个 master。这里不得不提的是 K8s，Jenkins 自身的并发管控能力是有限的，然而 Jenkins 和 K8s 的结合极大的扩展了 Jenkins 的并发能力，利用 K8s 动态创建 Jenkins 的 worker node，使得千万级的测试 case 能够在 3 分钟内跑完。另外一个好处是，对资源使用非常弹性，过了高峰期后对集群资源使用会自动回缩。&lt;/p&gt;&lt;p&gt;第二个思路是对基础设施进行极致的优化。拉代码慢就优化网络、自建 DNS；编译慢就尽可能将中间结果放到持久化缓存，甚至我们对底层操作系统做定制，选择最优的内核版本；集成测试慢就自建对象存储，减少重复编译的次数。不要小看每一秒钟的优化，因为很可能因为这一秒钟达不到 3 分钟的目标。是的，我们就是这样苛刻的提升效率。&lt;/p&gt;&lt;p&gt;第三个思路，是不是每个代码 commit 都要跑完整的 CI？显然不是。有时候恰恰开发者不希望跑 CI 或者跑部分的 test。于是我们使用 PR-bot 实现基于 GitHub 的协作，开发者通过在 PR 上回复命令的方式，决定 CI 要怎么跑。bot 还可以帮我们干很多事，比如我们内部项目管理是用 JIRA，而 GitHub 上的 issue 能否自动同步到 JIRA，于是我们开发了一个 bot 专门干这个事情。&lt;/p&gt;&lt;p&gt;其实还有很多的事情，现在还没做或者做的不够好。比如：发版流程自动化，benchmark 自动化，PR-bot 也需要更多的功能，像自动 merge 代码，自动打 label，通过 commit message 控制行为等等。所以希望有想法的小伙伴加入，一起做更酷的事情。&lt;/p&gt;&lt;p&gt;&lt;b&gt;@sykp241095&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我在 EE 团队主要负责优化 IDC、网络等基础设施，&lt;b&gt;提升内部资源利用率，以及提高办公自动化水平和团队协作的效率。&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在 PingCAP 这样一家极客公司，一群优秀的工程师对基础设施的要求极为苛刻，每天又都会有大量的开发和测试的资源需求找到我们。可能某位同学刚刚优化好的代码，希望立刻找个地方跑一下，而低效繁琐的流程是难以容忍的。另外一方面，如果资源分配出去了，但资源利用率很低，对于一个“处女座”占大多数比例的公司也绝对是难以接受的。&lt;/p&gt;&lt;p&gt;这样想的话，我们是不是要在公司内建一套私有云呢？不，私有云管理太重了。&lt;u&gt;&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzI3NDIxNTQyOQ%3D%3D%26mid%3D2247488166%26idx%3D1%26sn%3Df8065b32b13fc5f3db6792989c27b4a1%26chksm%3Deb1635ccdc61bcda2a6ce3fa3821d7e13afe3bbd24564050dc76e516c20347f13cbc41797928%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上篇文章&lt;/a&gt;&lt;/u&gt; 介绍过，我们 All in K8s，&lt;b&gt;我们用 K8s 来管理 IDC 资源。每个 PingCAP 工程师用自己的公司 G Suite 帐号在内网 K8s 进行认证和鉴权，并在属于自己的独立 namespace 下搞事情。同时我们可以统一调配每个人的资源使用限制（CPU/内存/磁盘），让大家最大化的利用好这个大池子。&lt;/b&gt;未来我们也会监控大家的使用量，对于用完没有及时释放的资源会通过 Slack 自动发出通知，不过这个目前还没有实现。&lt;/p&gt;&lt;p&gt;对于网络方面的效率优化就不具体展开说了。PingCAP 是个全球化的公司，为了保证和硅谷团队的同事能顺畅的交流和开发协作，我们在基础设施上面的确做了很多工作。如果想了解更多细节，欢迎加入我们（^ ^）&lt;/p&gt;&lt;p&gt;最后聊聊团队协作，实话说这部分做的还不够。虽然我们同时在用多个协作工具，比如 Google G Suite，GitHub，Slack，Trello，Atlassian JIRA &amp;amp; Confluence，但平台之间还没有完全打通，流程还没有串起来。近期计划要做的几件事，譬如：通过 SAML2 进行统一登录认证，点对点 Slack 通知，完善平台之间的数据自动同步等等。&lt;/p&gt;&lt;p&gt;&lt;b&gt;@ethercflo&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我是一名 Linux 内核工程师，我的目标是高效精准的定位与内核相关的各种性能和稳定性问题，并开发工具来度量操作系统内部的实时状态，&lt;b&gt;提高排查线上问题的效率。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对于性能分析，已有的一些 Linux 性能分析工具只能给出比较笼统的性能指标 （比如 top, pidstat），或给被分析的服务带来较大的负面性能影响（比如 strace）等，我们花了大量时间，运行了几组工具后，依然一头雾水的场景并不少见；另一方面，当面对多个内核进程进入了不可中断状态导致服务不可用，或运行一段时间后，内核突然 panic 掉重启了，我们如何从根本上去解决这些问题，并构造类似的可控场景去测试我们分布式系统的稳定性。&lt;/p&gt;&lt;p&gt;&lt;b&gt;为了解决上述问题，我们需要深入研究 Linux 内核，能够动态 hack 内核子系统来提升定位问题的效率，以及给稳定性测试增加错误注入的能力进而提高测试效率。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;举个性能分析的例子：如何诊断并修复不稳定的 Kmem Account 问题。&lt;/p&gt;&lt;p&gt;我们的 TiKV 在薛定谔平台上（K8s 环境）做 OLTP 测试时偶尔会发生 IO 性能抖动，且从服务日志、负载等监控信息看不到任何异常，于是我们将目光转向了 Linux 内核 ，使用基于 ftrace 的工具，我们抓取到引起性能抖动的内核执行路径，结合出现性能抖动前后 dmesg 出现大量 SLUB: Unable to allocate memory on node -1 信息（而我们系统剩余内存是充足的），我们研究了对应的内核代码，初步验证了延迟的来源，于是我们需要进一步分析 SLUB 分配失败的原因。我们创建 docker 容器时，并没有设置 kmem limit，为什么还会有 kmem 不足的问题呢？为了确定 kmem limit 是否被设置，我们进入了 cgroup memory controller 对容器的 kmem 信息进行查看（执行 cat memory.kmem.slabinfo，未开启 kmem account 会得到 cat: memory.kmem.slabinfo: Input/output error），发现 kmem 的统计信息被开启了,  但 limit 值设置的非常大。我们已知 kmem account 在 RHEL 3.10 版本内核上是不稳定的，因此怀疑 SLUB 分配失败是由内核 bug 引起的，搜索 kernel patch 信息我们发现确实是内核 bug，在社区高版本内核中已修复：&lt;/p&gt;&lt;p&gt;commit d6e0b7f (slub: make dead caches discard free slabs immediately)&lt;/p&gt;&lt;p&gt;同时还有一个 namespace 泄漏问题也和 kmem account 有关：&lt;/p&gt;&lt;p&gt;commit:73f576c (mm: memcontrol: fix cgroup creation failure after many small jobs)&lt;/p&gt;&lt;p&gt;那么是谁开启了 kmem account 功能呢？我们开发的内核工具捕获到了开启 kmem account 的进程：runc。 找到罪魁祸首后，我们从 K8s 代码上发现，K8s 的 runc 项目在 1.9 版本默认开启了 kmem account。定位到问题后，解决方案也就有了，要么 patch 内核，要么从 K8s 入手，为实现最小化改动，我们通过条件编译 runc 修复了这个问题。&lt;/p&gt;&lt;p&gt;类似的问题还有很多，比如当剩余内存不足，产生大量 allocStall 时，如何量化对关键业务的延迟影响，当关键业务执行 fsync 有较大的 stall 时，如何定位 stall 的来源，当多个进程进入不可中断状态时，如何判定是否是读写信号量产生了死锁，如何分析锁未释放的原因等等。&lt;/p&gt;&lt;p&gt;&lt;b&gt;如果你对 x86_64 体系结构和 Linux 内核感兴趣，深入了解过某个内核子系统，欢迎上船。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;@cwen&lt;/b&gt;&lt;/p&gt;&lt;p&gt;大家好，最后我来谈谈 EE 团队在&lt;b&gt;提升测试效率方面&lt;/b&gt;做的事情。&lt;/p&gt;&lt;p&gt;通常情况下，我们进行一次测试需要做那些工作呢？ Write Case -&amp;gt; Prepare Machines -&amp;gt; Build TiDB Binary -&amp;gt; Deploy TiDB Cluster -&amp;gt; Inject Faults -&amp;gt; Run Test Cases -&amp;gt; Watch Result -&amp;gt; Output Report -&amp;gt; Analysis Result...  想象一下如果我们的每一位工程师每天都在做这些，估计我们自己都会疯掉的。&lt;/p&gt;&lt;p&gt;当看到这些重复而又复杂的手动劳动时候，我们第一反应就是如何“偷懒”，毕竟“偷懒”是我们每一位 EE Team 的小伙伴都应该具备的基本素质嘛。我们思考能不能构建一套自动化测试平台，来提高测试效率，同时提供底层的错误注入能力。因此，诞生了我们的“薛定谔”平台。&lt;/p&gt;&lt;p&gt;&lt;b&gt;“薛定谔”是基于 Kubernetes 建立的一套自动化测试框架，提供各种 Chaos 能力，&lt;/b&gt;比如干扰 CPU 、干扰内存、干扰网络、模拟网络分区、模拟磁盘损坏、模拟节点宕机等等一系列我们在生产环境中可能遇到的错误。同时也提供自动化的 Bench 测试来验证每次代码提交对数据库性能是提升还是下降的影响。此外测试平台还提供各类异常监控、告警以及自动输出测试报告等功能。&lt;/p&gt;&lt;p&gt;目前薛定谔平台正在使用我司 80% 的机器、数十套测试集群 7*24 小时不间断运行着，很大程度上保证了 TiDB 正确性以及稳定性。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-581342ce01e7fd08ae174554ee1c4e12_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;508&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic3.zhimg.com/v2-581342ce01e7fd08ae174554ee1c4e12_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-581342ce01e7fd08ae174554ee1c4e12_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;508&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic3.zhimg.com/v2-581342ce01e7fd08ae174554ee1c4e12_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-581342ce01e7fd08ae174554ee1c4e12_b.jpg&quot;&gt;&lt;/figure&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-020d9fa55cc842e05caf8424c879cf8e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;458&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic3.zhimg.com/v2-020d9fa55cc842e05caf8424c879cf8e_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-020d9fa55cc842e05caf8424c879cf8e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;458&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic3.zhimg.com/v2-020d9fa55cc842e05caf8424c879cf8e_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-020d9fa55cc842e05caf8424c879cf8e_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;薛定谔在 PingCAP 内部使用快将近一年了，TiDB 已修复的缺陷中已经有不少是通过薛定谔平台发现或者帮助复现的。我们还需要考虑如何在有限的资源下应对不断增长的测试需求？同时随着 TiDB 周边组件的不断成熟，测试的对象也会不断丰富，“薛定谔”平台需要承担的测试任务也越来越重。&lt;b&gt;接下来除了要把薛定谔平台做的更稳定易用，我们还打算把底层的 Chaos 这部分的实现独立开源出去，并结合 K8s 提供通用的错误注入能力，希望成为测试分布式系统稳定性的一个通用解决方案。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;总而言之，EE 团队致力于用工程的方式解决效率问题，最终的目标是 Automate Everything。&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;对你的期望&lt;/b&gt;&lt;/h2&gt;&lt;h3&gt;&lt;b&gt;兴趣和野心&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;希望你热爱技术，对开源、基础架构有兴趣，看到这里面的巨大技术挑战以及广阔前景，希望能为业界带来激动人心的解决方案。同时希望你是一个能自我驱动的人，且能带动周边的人一起来推进，这一点很重要。&lt;/p&gt;&lt;h3&gt;&lt;b&gt;技术能力&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;看到这里，你会知道我们的技能树有好几十米。如果你技术精湛，喜欢紧跟新技术的步伐，涉猎广泛，那就过来一起折腾吧。&lt;/p&gt;&lt;h3&gt;&lt;b&gt;沟通能力&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;目前我们已经有一百多名同事，分散在全球 6 个 Office 或者是远程办公。所以如何高效的沟通，如何能跟上其他同事的思维节奏非常重要。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;你会得到的收获&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在 PingCAP，我们不设限，工程师可以足够自主的选择所使用的技术和拓展新的方向，公司在很大范围内提供相应的资源及指导。&lt;/p&gt;&lt;p&gt;我们崇尚自由的文化，你可以在这里使用和探索新的语言、工具、方法等等（如 Golang / Rust / K8s / Raft / Chaos / Wperf）、自由的选择合适的技术和工具来解决问题；我们提供丰富的可供选择的方向（分布式测试平台/ Kernel Debug Toolkit / CI 工具链 / DevOps 各类管理工具等），对个人的职业发展也有足够的好处；另外团队间合作交流足够通畅，可以深入了解各其他团队所使用的技术思想，也常有各种 Meetup 供大家业余充电；就职业发展来说 PingCAP 处于高速发展时期，你可以经历国内稀有的开源公司的整个发展历程和周期。 我们公司不仅做开源产品，也可能将各种小工具开源出去，让社区和个人都从中受益。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;加入我们吧！&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们认为优秀的工程师或多或少有以下共同特质：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;A Quick Learner&lt;/li&gt;&lt;li&gt;An Earnest Curiosity&lt;/li&gt;&lt;li&gt;Faith in Open Source&lt;/li&gt;&lt;li&gt;Self-driven&lt;/li&gt;&lt;li&gt;Get Things Done&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;如果你符合以上特质，欢迎进入招聘页面查看目前开放的工作机会：&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.pingcap.com/recruit-cn/join/%23positions&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;虚位以待&lt;/a&gt;&lt;p&gt;&lt;b&gt;简历投递通道：hire@pingcap.com&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;实习生&lt;/b&gt;：公司的各项福利和学习资源对实习生全面开放，更重要的是实习生还未毕业就有机会接触工业级项目，而且实习期间表现优异者将有机会获得校招绿色通道特权。如果小伙伴们时间不够充裕，也可以先从社区 Contributor 做起，或许下一期 &lt;u&gt;&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzI3NDIxNTQyOQ%3D%3D%26mid%3D2247487451%26idx%3D1%26sn%3D53b17f49e05af2cd832192fd67eaf75f%26chksm%3Deb1628b1dc61a1a704544f250cee480e7f6cf95cf5e84c2ccb7f0858398e685160122ed687b6%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Talent Plan&lt;/a&gt;&lt;/u&gt; 的主角就是你！&lt;/p&gt;&lt;p&gt;&lt;b&gt;伯乐推荐&lt;/b&gt;：如果你身边有符合以上要求的小伙伴，也可以找我们聊一聊，推荐成功就有机会获得伯乐推荐奖励（iPad、iPhone、MacBook Pro 等等）。伯乐推荐邮件格式：[伯乐推荐] 候选人姓名-职位名称-推荐人姓名-推荐人手机号。&lt;/p&gt;&lt;p&gt;&lt;b&gt;工程效率研发工程师职位信息：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//pingcap.com/recruit-cn/engineering/engineering-efficiency-engineer/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;工程效率研发工程师&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-03-29-60715241</guid>
+<pubDate>Fri, 29 Mar 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>EE 团队：Automating Everything！ | PingCAP 招聘季</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-28-60715241.html</link>
@@ -86,216 +95,6 @@
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-03-14-59275863</guid>
 <pubDate>Thu, 14 Mar 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>TiKV 源码解析系列文章（四）Prometheus（下）</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-13-59165478.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/59165478&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-de58d30dd2a484aa745e78a60d3da04f_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：Breezewish&lt;/p&gt;&lt;blockquote&gt;本文为 TiKV 源码解析系列的第四篇，接上篇继续为大家介绍 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt;。&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/tikv-source-code-reading-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上篇&lt;/a&gt; 主要介绍了基础知识以及最基本的几个指标的内部工作机制，本篇会进一步介绍更多高级功能的实现原理。&lt;/blockquote&gt;&lt;p&gt;与上篇一样，以下内部实现都基于本文发布时最新的 rust-prometheus 0.5 版本代码，目前我们正在开发 1.0 版本，API 设计上会进行一些简化，实现上出于效率考虑也会和这里讲解的略微有一些出入，因此请读者注意甄别。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;指标向量（Metric Vector）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Metric Vector 用于支持带 Label 的指标。由于各种指标都可以带上 Label，因此 Metric Vector 本身实现为了一种泛型结构体，&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericGauge.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Gauge&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 在这之上实现了 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.CounterVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;CounterVec&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.GaugeVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;GaugeVec&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.HistogramVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec&lt;/a&gt;&lt;/code&gt;。Metric Vector 主要实现位于 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus/blob/89ca69913691d9d1609c78cc043fca9c3faa1a78/src/vec.rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;src/vec.rs&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;以 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.HistogramVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec&lt;/a&gt;&lt;/code&gt; 为例，调用 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.MetricVec.html%23method.with_label_values&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec::with_label_values&lt;/a&gt;&lt;/code&gt; 可获得一个 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 实例，而 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/type.HistogramVec.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec&lt;/a&gt;&lt;/code&gt; 定义为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub type HistogramVec = MetricVec&amp;lt;HistogramVecBuilder&amp;gt;;
-
-pub struct MetricVec&amp;lt;T: MetricVecBuilder&amp;gt; {
-   pub(crate) v: Arc&amp;lt;MetricVecCore&amp;lt;T&amp;gt;&amp;gt;,
-}
-
-impl&amp;lt;T: MetricVecBuilder&amp;gt; MetricVec&amp;lt;T&amp;gt; {
-   pub fn with_label_values(&amp;amp;self, vals: &amp;amp;[&amp;amp;str]) -&amp;gt; T::M {
-       self.get_metric_with_label_values(vals).unwrap()
-   }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;因此 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.MetricVec.html%23method.with_label_values&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;HistogramVec::with_label_values&lt;/a&gt;&lt;/code&gt; 的核心逻辑其实在 &lt;code&gt;MetricVecCore::get_metric_with_label_values&lt;/code&gt;。这么做的原因是为了让 &lt;code&gt;MetricVec&lt;/code&gt; 是一个线程安全、可以被全局共享但又不会在共享的时候具有很大开销的结构，因此将内部逻辑实现在 &lt;code&gt;MetricVecCore&lt;/code&gt;，外层（即在 &lt;code&gt;MetricVec&lt;/code&gt;）套一个 &lt;code&gt;Arc&amp;lt;T&amp;gt;&lt;/code&gt; 后再提供给用户。进一步可以观察 &lt;code&gt;MetricVecCore&lt;/code&gt; 的实现，其核心逻辑如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub trait MetricVecBuilder: Send + Sync + Clone {
-   type M: Metric;
-   type P: Describer + Sync + Send + Clone;
-
-   fn build(&amp;amp;self, &amp;amp;Self::P, &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;Self::M&amp;gt;;
-}
-
-pub(crate) struct MetricVecCore&amp;lt;T: MetricVecBuilder&amp;gt; {
-   pub children: RwLock&amp;lt;HashMap&amp;lt;u64, T::M&amp;gt;&amp;gt;,
-   // Some fields are omitted.
-}
-
-impl&amp;lt;T: MetricVecBuilder&amp;gt; MetricVecCore&amp;lt;T&amp;gt; {
-   // Some functions are omitted.
-
-   pub fn get_metric_with_label_values(&amp;amp;self, vals: &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;T::M&amp;gt; {
-       let h = self.hash_label_values(vals)?;
-
-       if let Some(metric) = self.children.read().get(&amp;amp;h).cloned() {
-           return Ok(metric);
-       }
-
-       self.get_or_create_metric(h, vals)
-   }
-
-   pub(crate) fn hash_label_values(&amp;amp;self, vals: &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;u64&amp;gt; {
-       if vals.len() != self.desc.variable_labels.len() {
-           return Err(Error::InconsistentCardinality(
-               self.desc.variable_labels.len(),
-               vals.len(),
-           ));
-       }
-
-       let mut h = FnvHasher::default();
-       for val in vals {
-           h.write(val.as_bytes());
-       }
-
-       Ok(h.finish())
-   }
-
-   fn get_or_create_metric(&amp;amp;self, hash: u64, label_values: &amp;amp;[&amp;amp;str]) -&amp;gt; Result&amp;lt;T::M&amp;gt; {
-       let mut children = self.children.write();
-       // Check exist first.
-       if let Some(metric) = children.get(&amp;amp;hash).cloned() {
-           return Ok(metric);
-       }
-
-       let metric = self.new_metric.build(&amp;amp;self.opts, label_values)?;
-       children.insert(hash, metric.clone());
-       Ok(metric)
-   }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;现在看代码就很简单了，它首先会依据所有 Label Values 构造一个 Hash，接下来用这个 Hash 在 &lt;code&gt;RwLock&amp;lt;HashMap&amp;lt;u64, T::M&amp;gt;&amp;gt;&lt;/code&gt; 中查找，如果找到了，说明给定的这个 Label Values 之前已经出现过、相应的 Metric 指标结构体已经初始化过，因此直接返回对应的实例；如果不存在，则要利用给定的 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.MetricVecBuilder.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;MetricVecBuilder&lt;/a&gt;&lt;/code&gt; 构造新的指标加入哈希表，并返回这个新的指标。&lt;/p&gt;&lt;p&gt;由上述代码可见，为了在线程安全的条件下实现 Metric Vector 各个 Label Values 具有独立的时间序列，Metric Vector 内部采用了 &lt;code&gt;RwLock&lt;/code&gt; 进行同步，也就是说 &lt;code&gt;with_label_values()&lt;/code&gt; 及类似函数内部是具有锁的。这在多线程环境下会有一定的效率影响，不过因为大部分情况下都是读锁，因此影响不大。当然，还可以发现其实给定 Label Values 之后调用 &lt;code&gt;with_label_values()&lt;/code&gt; 得到的指标实例是可以被缓存起来的，只访问缓存起来的这个指标实例是不会有任何同步开销的，也绕开了计算哈希值等比较占 CPU 的操作。基于这个思想，就有了 Static Metrics，读者可以在本文的后半部分了解 Static Metrics 的详细情况。&lt;/p&gt;&lt;p&gt;另外读者也可以发现，Label Values 的取值应当是一个有限的、封闭的小集合，不应该是一个开放的或取值空间很大的集合，因为每一个值都会对应一个内存中指标实例，并且不会被释放。例如 HTTP Method 是一个很好的 Label，因为它只可能是 GET / POST / PUT / DELETE 等；而 Client Address 则很多情况下并不适合作为 Label，因为它是一个开放的集合，或者有非常巨大的取值空间，如果将它作为 Label 很可能会有容易 OOM 的风险。这个风险在 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//prometheus.io/docs/practices/naming/%23labels&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Prometheus 官方文档&lt;/a&gt;中也明确指出了。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;整型指标（Integer Metric）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在讲解 Counter / Gauge 的实现时我们提到，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 使用 CAS 操作实现 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/type.AtomicF64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicF64&lt;/a&gt;&lt;/code&gt; 中的原子递增和递减，如果改用 atomic fetch-and-add 操作则一般可以取得更高效率。考虑到大部分情况下指标都可以是整数而不需要是小数，例如对于简单的次数计数器来说它只可能是整数，因此 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 额外地提供了整型指标，允许用户自由地选择，针对整数指标情况提供更高的效率。&lt;/p&gt;&lt;p&gt;为了增强代码的复用，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 实际上采用了泛型来实现 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericGauge.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Gauge&lt;/a&gt;&lt;/code&gt;。通过对不同的 Atomic（如 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/type.AtomicF64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicF64&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/std/sync/atomic/struct.AtomicI64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicI64&lt;/a&gt;&lt;/code&gt;）进行泛化，就可以采用同一份代码实现整数的指标和（传统的）浮点数指标。&lt;/p&gt;&lt;p&gt;&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.Atomic.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Atomic&lt;/a&gt;&lt;/code&gt; trait 定义如下（&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus/blob/89ca69913691d9d1609c78cc043fca9c3faa1a78/src/atomic64/mod.rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;src/atomic64/mod.rs&lt;/a&gt;）：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub trait Atomic: Send + Sync {
-   /// The numeric type associated with this atomic.
-   type T: Number;
-   /// Create a new atomic value.
-   fn new(val: Self::T) -&amp;gt; Self;
-   /// Set the value to the provided value.
-   fn set(&amp;amp;self, val: Self::T);
-   /// Get the value.
-   fn get(&amp;amp;self) -&amp;gt; Self::T;
-   /// Increment the value by a given amount.
-   fn inc_by(&amp;amp;self, delta: Self::T);
-   /// Decrement the value by a given amount.
-   fn dec_by(&amp;amp;self, delta: Self::T);
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;原生的 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/std/sync/atomic/struct.AtomicU64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicU64&lt;/a&gt;&lt;/code&gt;、&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//doc.rust-lang.org/std/sync/atomic/struct.AtomicI64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicI64&lt;/a&gt;&lt;/code&gt; 及我们自行实现的 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/type.AtomicF64.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;AtomicF64&lt;/a&gt;&lt;/code&gt; 都实现了 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.Atomic.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Atomic&lt;/a&gt;&lt;/code&gt; trait。进而，&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericGauge.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Gauge&lt;/a&gt;&lt;/code&gt; 都可以利用上 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/trait.Atomic.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Atomic&lt;/a&gt;&lt;/code&gt; trait：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub struct Value&amp;lt;P: Atomic&amp;gt; {
-   pub val: P,
-   // Some fields are omitted.
-}
-
-pub struct GenericCounter&amp;lt;P: Atomic&amp;gt; {
-   v: Arc&amp;lt;Value&amp;lt;P&amp;gt;&amp;gt;,
-}
-
-pub type Counter = GenericCounter&amp;lt;AtomicF64&amp;gt;;
-pub type IntCounter = GenericCounter&amp;lt;AtomicI64&amp;gt;;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;本地指标（Local Metrics）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;由前面这些源码解析可以知道，指标内部的实现是原子变量，用于支持线程安全的并发更新，但这在需要频繁更新指标的场景下相比简单地更新本地变量仍然具有显著的开销（大约有 10 倍的差距）。为了进一步优化、支持高效率的指标更新操作，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 提供了 Local Metrics 功能。&lt;/p&gt;&lt;p&gt;rust-prometheus 中 Counter 和 Histogram 指标支持 &lt;code&gt;local()&lt;/code&gt; 函数，该函数会返回一个该指标的本地实例。本地实例是一个非线程安全的实例，不能多个线程共享。例如，&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html%23method.local&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram::local()&lt;/a&gt;&lt;/code&gt; 会返回 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LocalHistogram&lt;/a&gt;&lt;/code&gt;。由于 Local Metrics 使用是本地变量，开销极小，因此可以放心地频繁更新 Local Metrics。用户只需定期调用 Local Metrics 的 &lt;code&gt;flush()&lt;/code&gt; 函数将其数据定期同步到全局指标即可。一般来说 Prometheus 收集数据的间隔是 15s 到 1 分钟左右（由用户自行配置），因此即使是以 1s 为间隔进行 &lt;code&gt;flush()&lt;/code&gt; 精度也足够了。&lt;/p&gt;&lt;p&gt;普通的全局指标使用流程如下图所示，多个线程直接利用原子操作更新全局指标：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;418&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;418&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-6b6a6d23cd686b9369ea13da93303229_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;本地指标使用流程如下图所示，每个要用到该指标的线程都保存一份本地指标。更新本地指标操作开销很小，可以在频繁的操作中使用。随后，只需再定期将这个本地指标 flush 到全局指标，就能使得指标的更新操作真正生效。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;339&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;339&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-882df0ce5bcac976929204f30d80d3b9_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;TiKV 中大量运用了本地指标提升性能。例如，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/56c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/util/futurepool.rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 的线程池&lt;/a&gt;一般都提供 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/56c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/util/futurepool.rs%23L284&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Context&lt;/a&gt;&lt;/code&gt; 变量，&lt;code&gt;Context&lt;/code&gt; 中存储了本地指标。线程池上运行的任务都能访问到一个和当前 worker thread 绑定的 &lt;code&gt;Context&lt;/code&gt;，因此它们都可以安全地更新 &lt;code&gt;Context&lt;/code&gt; 中的这些本地指标。最后，线程池一般提供 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/56c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/util/futurepool.rs%23L50&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;tick()&lt;/a&gt;&lt;/code&gt; 函数，允许以一定间隔触发任务， href=&quot;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//gith&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;gith&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;ub.com/&lt;/code&gt;tikv/tikv/&lt;code&gt;blob/56&lt;/code&gt;c1c6c2fbf6e357e0778b81f41343c52c91fddf/src/coprocessor/readpool_context.rs#L50&quot;&amp;gt;在 tick() 中 TiKV 会对这些 Context 中的本地指标进行 flush()。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Local Counter&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 的本地指标 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericLocalCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LocalCounter&lt;/a&gt;&lt;/code&gt; 实现很简单，它是一个包含了计数器的结构体，该结构体提供了与 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericCounter.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Counter&lt;/a&gt;&lt;/code&gt; 一致的接口方便用户使用。该结构体额外提供了 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/core/struct.GenericLocalCounter.html%23method.flush&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;flush()&lt;/a&gt;&lt;/code&gt;，将保存的计数器的值作为增量值更新到全局指标：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub struct GenericLocalCounter&amp;lt;P: Atomic&amp;gt; {
-   counter: GenericCounter&amp;lt;P&amp;gt;,
-   val: P::T,
-}
-
-pub type LocalCounter = GenericLocalCounter&amp;lt;AtomicF64&amp;gt;;
-pub type LocalIntCounter = GenericLocalCounter&amp;lt;AtomicI64&amp;gt;;
-
-impl&amp;lt;P: Atomic&amp;gt; GenericLocalCounter&amp;lt;P&amp;gt; {
-   // Some functions are omitted.
-
-   pub fn flush(&amp;amp;mut self) {
-       if self.val == P::T::from_i64(0) {
-           return;
-       }
-       self.counter.inc_by(self.val);
-       self.val = P::T::from_i64(0);
-   }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;Local Histogram&lt;/b&gt;&lt;/p&gt;&lt;p&gt;由于 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 本质也是对各种计数器进行累加操作，因此 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LocalHistogram&lt;/a&gt;&lt;/code&gt; 的实现也很类似，例如 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html%23method.observe&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;observe(x)&lt;/a&gt;&lt;/code&gt;的实现与 &lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/struct.Histogram.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Histogram&lt;/a&gt;&lt;/code&gt; 如出一辙，除了它不是原子操作；&lt;code&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//docs.rs/prometheus/0.5.0/prometheus/local/struct.LocalHistogram.html%23method.flush&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;flush()&lt;/a&gt;&lt;/code&gt; 也是将所有值累加到全局指标上去：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub struct LocalHistogramCore {
-   histogram: Histogram,
-   counts: Vec&amp;lt;u64&amp;gt;,
-   count: u64,
-   sum: f64,
-}
-
-impl LocalHistogramCore {
-   // Some functions are omitted.
-
-   pub fn observe(&amp;amp;mut self, v: f64) {
-       // Try find the bucket.
-       let mut iter = self
-           .histogram
-           .core
-           .upper_bounds
-           .iter()
-           .enumerate()
-           .filter(|&amp;amp;(_, f)| v &amp;lt;= *f);
-       if let Some((i, _)) = iter.next() {
-           self.counts[i] += 1;
-       }
-
-       self.count += 1;
-       self.sum += v;
-   }
-
-   pub fn flush(&amp;amp;mut self) {
-       // No cached metric, return.
-       if self.count == 0 {
-           return;
-       }
-       {
-           let h = &amp;amp;self.histogram;
-           for (i, v) in self.counts.iter().enumerate() {
-               if *v &amp;gt; 0 {
-                   h.core.counts[i].inc_by(*v);
-               }
-           }
-           h.core.count.inc_by(self.count);
-           h.core.sum.inc_by(self.sum);
-       }
-       self.clear();
-   }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;静态指标（Static Metrics）&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;之前解释过，对于 Metric Vector 来说，由于每一个 Label Values 取值都是独立的指标实例，因此为了线程安全实现上采用了 HashMap + RwLock。为了提升效率，可以将 &lt;code&gt;with_label_values&lt;/code&gt; 访问获得的指标保存下来，以后直接访问。另外使用姿势正确的话，Label Values 取值是一个有限的、确定的、小的集合，甚至大多数情况下在编译期就知道取值内容（例如 HTTP Method）。综上，我们可以直接写代码将各种已知的 Label Values 提前保存下来，之后可以以静态的方式访问，这就是静态指标。&lt;/p&gt;&lt;p&gt;以 TiKV 为例，有 Contributor 为 TiKV 提过这个 PR：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/pull/2765&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;#2765 server: precreate some labal metrics&lt;/a&gt;。这个 PR 改进了 TiKV 中统计各种 gRPC 接口消息次数的指标，由于 gRPC 接口是固定的、已知的，因此可以提前将它们缓存起来：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;struct Metrics {
-   kv_get: Histogram,
-   kv_scan: Histogram,
-   kv_prewrite: Histogram,
-   kv_commit: Histogram,
-   // ...
-}
-
-impl Metrics {
-   fn new() -&amp;gt; Metrics {
-       Metrics {
-           kv_get: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_get&quot;]),
-           kv_scan: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_scan&quot;]),
-           kv_prewrite: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_prewrite&quot;]),
-           kv_commit: GRPC_MSG_HISTOGRAM_VEC.with_label_values(&amp;amp;[&quot;kv_commit&quot;]),
-           // ...
-       }
-   }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用的时候也很简单，直接访问即可：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;@@ -102,10 +155,8 @@ fn make_callback&amp;lt;T: Debug + Send + &#39;static&amp;gt;() -&amp;gt; (Box&amp;lt;FnBox(T) + Send&amp;gt;, oneshot:
-
-impl&amp;lt;T: RaftStoreRouter + &#39;static&amp;gt; tikvpb_grpc::Tikv for Service&amp;lt;T&amp;gt; {
-    fn kv_get(&amp;amp;self, ctx: RpcContext, mut req: GetRequest, sink: UnarySink&amp;lt;GetResponse&amp;gt;) {
--        let label = &quot;kv_get&quot;;
--        let timer = GRPC_MSG_HISTOGRAM_VEC
--            .with_label_values(&amp;amp;[label])
--            .start_coarse_timer();
-+        const LABEL: &amp;amp;str = &quot;kv_get&quot;;
-+        let timer = self.metrics.kv_get.start_coarse_timer();
-
-        let (cb, future) = make_callback();
-        let res = self.storage.async_get(
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这样一个简单的优化可以为 TiKV 提升 7% 的 Raw Get 效率，可以说是很超值了（主要原因是 Raw Get 本身开销极小，因此在指标上花费的时间就显得有一些显著了）。但这个优化方案其实还有一些问题：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;代码繁琐，有大量重复的、或满足某些 pattern 的代码；&lt;/li&gt;&lt;li&gt;如果还有另一个 Label 维度，那么需要维护的字段数量就会急剧膨胀（因为每一种值的组合都需要分配一个字段）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;为了解决以上两个问题，&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rust-prometheus&lt;/a&gt; 提供了 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/rust-prometheus/tree/master/static-metric&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Static Metric 宏&lt;/a&gt;。例如对于刚才的 TiKV 改进 PR #2765 来说，使用 Static Metric 宏可以简化为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;make_static_metric! {
-   pub struct GrpcMsgHistogram: Histogram {
-       &quot;type&quot; =&amp;gt; {
-           kv_get,
-           kv_scan,
-           kv_prewrite,
-           kv_commit,
-           // ...
-       },
-   }
-}
-
-let metrics = GrpcMsgHistogram::from(GRPC_MSG_HISTOGRAM_VEC);
-
-// Usage:
-metrics.kv_get.start_coarse_timer();
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到，使用宏之后，需要维护的繁琐的代码量大大减少了。这个宏也能正常地支持多个 Label 同时存在的情况。&lt;/p&gt;&lt;p&gt;限于篇幅，这里就不具体讲解这个宏是如何写的了，感兴趣的同学可以观看我司同学最近在 FOSDEM 2019 上的技术分享 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//fosdem.org/2019/schedule/event/rust_prometheus/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;视频&lt;/a&gt;（进度条 19:54 开始介绍 Static Metrics）和 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//fosdem.org/2019/schedule/event/rust_prometheus/attachments/slides/3301/export/events/attachments/rust_prometheus/slides/3301/Introducing_Rust_Prometheus.pdf&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Slide&lt;/a&gt;，里面详细地介绍了如何从零开始写出一个这样的宏（的简化版本）。&lt;/p&gt;&lt;p&gt;阅读更多：&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-3/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 源码解析系列文章（三）Prometheus（上）&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-03-13-59165478</guid>
-<pubDate>Wed, 13 Mar 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
