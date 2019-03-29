@@ -5,7 +5,87 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 29 Mar 2019 16:40:33 +0800</lastBuildDate>
+<lastBuildDate>Fri, 29 Mar 2019 22:36:27 +0800</lastBuildDate>
+<item>
+<title>TiKV 源码解析系列文章（五）fail-rs 介绍</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-29-60828896.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/60828896&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-25202dccab23cfd715153fc1377b1045_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：张博康&lt;/p&gt;&lt;p&gt;本文为 TiKV 源码解析系列的第五篇，为大家介绍 TiKV 在测试中使用的周边库 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fail-rs&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;fail-rs 的设计启发于 FreeBSD 的 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;failpoints&lt;/a&gt;，由 Rust 实现。通过代码或者环境变量，其允许程序在特定的地方动态地注入错误或者其他行为。在 TiKV 中通常在测试中使用 fail point 来构建异常的情况，是一个非常方便的测试工具。&lt;/p&gt;&lt;h2&gt;Fail point 需求&lt;/h2&gt;&lt;p&gt;在我们的集成测试中，都是简单的构建一个 KV 实例，然后发送请求，检查返回值和状态的改变。这样的测试可以较为完整地测试功能，但是对于一些需要精细化控制的测试就鞭长莫及了。我们当然可以通过 mock 网络层提供网络的精细模拟控制，但是对于诸如磁盘 IO、系统调度等方面的控制就没办法做到了。&lt;/p&gt;&lt;p&gt;同时，在分布式系统中时序的关系是非常关键的，可能两个操作的执行顺行相反，就导致了迥然不同的结果。尤其对于数据库来说，保证数据的一致性是至关重要的，因此需要去做一些相关的测试。&lt;/p&gt;&lt;p&gt;基于以上原因，我们就需要使用 fail point 来复现一些 corner case，比如模拟数据落盘特别慢、raftstore 繁忙、特殊的操作处理顺序、错误 panic 等等。&lt;/p&gt;&lt;h2&gt;基本用法&lt;/h2&gt;&lt;h3&gt;示例&lt;/h3&gt;&lt;p&gt;在详细介绍之前，先举一个简单的例子给大家一个直观的认识。&lt;/p&gt;&lt;p&gt;还是那个老生常谈的 Hello World：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;#[macro_use]
+extern crate fail;
+
+fn say_hello() {
+    fail_point!(“before_print”);
+    println!(“Hello World~”);
+}
+
+fn main() {
+    say_hello();
+    fail::cfg(&quot;before_print&quot;, &quot;panic&quot;);
+    say_hello();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;运行结果如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;Hello World~
+thread &#39;main&#39; panicked at &#39;failpoint before_print panic&#39; ...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到最终只打印出一个 &lt;code&gt;Hello World～&lt;/code&gt;，而在打印第二个之前就 panic 了。这是因为我们在第一次打印完后才指定了这个 fail point 行为是 panic，因此第一次在 fail point 不做任何事情之后正常输出，而第二次在执行到 fail point 时就会根据配置的行为 panic 掉！&lt;/p&gt;&lt;h3&gt;Fail point 行为&lt;/h3&gt;&lt;p&gt;当然 fail point 不仅仅能注入 panic，还可以是其他的操作，并且可以按照一定的概率出现。描述行为的格式如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;[&amp;lt;pct&amp;gt;%][&amp;lt;cnt&amp;gt;*]&amp;lt;type&amp;gt;[(args...)][-&amp;gt;&amp;lt;more terms&amp;gt;]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;pct：行为被执行时有百分之 pct 的机率触发&lt;/li&gt;&lt;li&gt;cnt：行为总共能被触发的次数&lt;/li&gt;&lt;li&gt;type：行为类型&lt;/li&gt;&lt;ul&gt;&lt;li&gt;off：不做任何事&lt;/li&gt;&lt;li&gt;return(arg)：提前返回，需要 fail point 定义时指定 expr，arg 会作为字符串传给 expr 计算返回值&lt;/li&gt;&lt;li&gt;sleep(arg)：使当前线程睡眠 arg 毫秒&lt;/li&gt;&lt;li&gt;panic(arg)：使当前线程崩溃，崩溃消息为 arg&lt;/li&gt;&lt;li&gt;print(arg)：打印出 arg&lt;/li&gt;&lt;li&gt;pause：暂停当前线程，直到该 fail point 设置为其他行为为止&lt;/li&gt;&lt;li&gt;yield：使当前线程放弃剩余时间片&lt;/li&gt;&lt;li&gt;delay(arg)：和 sleep 类似，但是让 CPU 空转 arg 毫秒&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;args：行为的参数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;比如我们想在 &lt;code&gt;before_print&lt;/code&gt; 处先 sleep 1s 然后有 1% 的机率 panic，那么就可以这么写：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;&quot;sleep(1000)-&amp;gt;1%panic&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3&gt;定义 fail point&lt;/h3&gt;&lt;p&gt;只需要使用宏 &lt;code&gt;fail_point!&lt;/code&gt; 就可以在相应代码中提前定义好 fail point，而具体的行为在之后动态注入。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;fail_point!(&quot;failpoint_name&quot;);
+fail_point!(&quot;failpoint_name&quot;, |_| { // 指定生成自定义返回值的闭包，只有当 fail point 的行为为 return 时，才会调用该闭包并返回结果
+    return Error
+});
+fail_point!(&quot;failpoint_name&quot;, a == b, |_| { // 当满足条件时，fail point 才被触发
+    return Error
+})
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3&gt;动态注入&lt;/h3&gt;&lt;p&gt;&lt;b&gt;环境变量&lt;/b&gt;&lt;/p&gt;&lt;p&gt;通过设置环境变量指定相应 fail point 的行为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;FAILPOINTS=&quot;&amp;lt;failpoint_name1&amp;gt;=&amp;lt;action&amp;gt;;&amp;lt;failpoint_name2&amp;gt;=&amp;lt;action&amp;gt;;...&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;注意，在实际运行的代码需要先使用 &lt;code&gt;fail::setup()&lt;/code&gt; 以环境变量去设置相应 fail point，否则 &lt;code&gt;FAILPOINTS&lt;/code&gt; 并不会起作用。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;#[macro_use]
+extern crate fail;
+
+fn main() {
+    fail::setup(); // 初始化 fail point 设置
+    do_fallible_work();
+    fail::teardown(); // 清除所有 fail point 设置，并且恢复所有被 fail point 暂停的线程
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;代码控制&lt;/b&gt;&lt;/p&gt;&lt;p&gt;不同于环境变量方式，代码控制更加灵活，可以在程序中根据情况动态调整 fail point 的行为。这种方式主要应用于集成测试，以此可以很轻松地构建出各种异常情况。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;fail::cfg(&quot;failpoint_name&quot;, &quot;actions&quot;); // 设置相应的 fail point 的行为
+fail::remove(&quot;failpoint_name&quot;); // 解除相应的 fail point 的行为
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;内部实现&lt;/h2&gt;&lt;p&gt;以下我们将以 fail-rs v0.2.1 版本代码为基础，从 API 出发来看看其背后的具体实现。&lt;/p&gt;&lt;p&gt;fail-rs 的实现非常简单，总的来说，就是内部维护了一个全局 map，其保存着相应 fail point 所对应的行为。当程序执行到某个 fail point 时，获取并执行该全局 map 中所保存的相应的行为。&lt;/p&gt;&lt;p&gt;全局 map 其具体定义在 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L602&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;FailPointRegistry&lt;/a&gt;。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;struct FailPointRegistry {
+    registry: RwLock&amp;lt;HashMap&amp;lt;String, Arc&amp;lt;FailPoint&amp;gt;&amp;gt;&amp;gt;,
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其中 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L518&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;FailPoint&lt;/a&gt; 的定义如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;struct FailPoint {
+    pause: Mutex&amp;lt;bool&amp;gt;,
+    pause_notifier: Condvar,
+    actions: RwLock&amp;lt;Vec&amp;lt;Action&amp;gt;&amp;gt;,
+    actions_str: RwLock&amp;lt;String&amp;gt;,
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;pause&lt;/code&gt; 和 &lt;code&gt;pause_notifier&lt;/code&gt; 是用于实现线程的暂停和恢复，感兴趣的同学可以去看看代码，太过细节在此不展开了；&lt;code&gt;actions_str&lt;/code&gt; 保存着描述行为的字符串，用于输出；而 &lt;code&gt;actions&lt;/code&gt; 就是保存着 failpoint 的行为，包括概率、次数、以及具体行为。&lt;code&gt;Action&lt;/code&gt; 实现了 &lt;code&gt;FromStr&lt;/code&gt; 的 trait，可以将满足格式要求的字符串转换成 &lt;code&gt;Action&lt;/code&gt;。这样各个 API 的操作也就显而易见了，实际上就是对于这个全局 map 的增删查改：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L628&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fail::setup()&lt;/a&gt; 读取环境变量 &lt;code&gt;FAILPOINTS&lt;/code&gt; 的值，以 &lt;code&gt;;&lt;/code&gt; 分割，解析出多个 &lt;code&gt;failpoint name&lt;/code&gt; 和相应的 &lt;code&gt;actions&lt;/code&gt; 并保存在 &lt;code&gt;registry&lt;/code&gt; 中。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L729&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fail::teardown()&lt;/a&gt; 设置 &lt;code&gt;registry&lt;/code&gt; 中所有 fail point 对应的 &lt;code&gt;actions&lt;/code&gt; 为空。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L729&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fail::cfg(name, actions)&lt;/a&gt; 将 &lt;code&gt;name&lt;/code&gt; 和对应解析出的 &lt;code&gt;actions&lt;/code&gt; 保存在 &lt;code&gt;registry&lt;/code&gt; 中。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L729&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fail::remove(name)&lt;/a&gt; 设置 &lt;code&gt;registry&lt;/code&gt; 中 &lt;code&gt;name&lt;/code&gt; 对应的 &lt;code&gt;actions&lt;/code&gt; 为空。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;而代码到执行到 fail point 的时候到底发生了什么呢，我们可以展开 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/pingcap/fail-rs/blob/v0.2.1/src/lib.rs%23L817&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fail_point!&lt;/a&gt; 宏定义看一下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;macro_rules! fail_point {
+    ($name:expr) =&amp;gt; {{
+        $crate::eval($name, |_| {
+            panic!(&quot;Return is not supported for the fail point \&quot;{}\&quot;&quot;, $name);
+        });
+    }};
+    ($name:expr, $e:expr) =&amp;gt; {{
+        if let Some(res) = $crate::eval($name, $e) {
+            return res;
+        }
+    }};
+    ($name:expr, $cond:expr, $e:expr) =&amp;gt; {{
+        if $cond {
+            fail_point!($name, $e);
+        }
+    }};
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;现在一切都变得豁然开朗了，实际上就是对于 &lt;code&gt;eval&lt;/code&gt; 函数的调用，当函数返回值为 &lt;code&gt;Some&lt;/code&gt; 时则提前返回。而 &lt;code&gt;eval&lt;/code&gt; 就是从全局 map 中获取相应的行为，在 &lt;code&gt;p.eval(name)&lt;/code&gt; 中执行相应的动作，比如输出、等待亦或者 panic。而对于 &lt;code&gt;return&lt;/code&gt; 行为的情况会特殊一些，在 &lt;code&gt;p.eval(name)&lt;/code&gt; 中并不做实际的动作，而是返回 &lt;code&gt;Some(arg)&lt;/code&gt; 并通过 &lt;code&gt;.map(f)&lt;/code&gt; 传参给闭包产生自定义的返回值。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&lt;span&gt;&lt;/span&gt;pub fn eval&amp;lt;R, F: FnOnce(Option&amp;lt;String&amp;gt;) -&amp;gt; R&amp;gt;(name: &amp;amp;str, f: F) -&amp;gt; Option&amp;lt;R&amp;gt; {
+    let p = {
+        let registry = REGISTRY.registry.read().unwrap();
+        match registry.get(name) {
+            None =&amp;gt; return None,
+            Some(p) =&amp;gt; p.clone(),
+        }
+    };
+    p.eval(name).map(f)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;小结&lt;/h2&gt;&lt;p&gt;至此，关于 fail-rs 背后的秘密也就清清楚楚了。关于在 TiKV 中使用 fail point 的测试详见 &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/tree/master/tests/failpoints&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;github.com/tikv/tikv/tree/master/tests/failpoints&lt;/a&gt;，大家感兴趣可以看看在 TiKV 中是如何来构建异常情况的。&lt;/p&gt;&lt;p&gt;同时，fail-rs 计划支持 HTTP API，欢迎感兴趣的小伙伴提交 PR。&lt;/p&gt;&lt;p&gt;&lt;b&gt;更多阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/%23TiKV-%25E6%25BA%2590%25E7%25A0%2581%25E8%25A7%25A3%25E6%259E%2590&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;博客&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-03-29-60828896</guid>
+<pubDate>Fri, 29 Mar 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>EE 团队：Automating Everything！ | PingCAP 招聘季</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-29-60715241.html</link>
@@ -86,15 +166,6 @@
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-03-20-59792129</guid>
 <pubDate>Wed, 20 Mar 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>TiFlash &amp; TiSpark？那都是 AP 团队开的坑 ！ | PingCAP 招聘季</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-03-14-59275863.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/59275863&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-da5c6f0e4e2c14ccabdc9b960f33d0ad_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;前面两期我们介绍了 &lt;u&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/58605224&quot; class=&quot;internal&quot;&gt;TiDB 团队&lt;/a&gt;&lt;/u&gt;和&lt;u&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/58947267&quot; class=&quot;internal&quot;&gt;TiKV 团队&lt;/a&gt;&lt;/u&gt;，颇受好评，今天我司数据库专家&lt;b&gt;马晓宇&lt;/b&gt;老师将为大家介绍 PingCAP 最具活力的团队——&lt;b&gt;AP（Analytical Product）&lt;/b&gt;团队，如果你对亲手打造酷炫的大数据分析产品感兴趣，就快快投个简历来和我们聊聊吧～&lt;/blockquote&gt;&lt;p&gt;大家都知道 TiDB 是一款定位于在线事务处理/在线分析处理（ HTAP: Hybrid Transactional/Analytical Processing）的融合型数据库产品，&lt;b&gt;加强和补齐 HTAP 中的 AP 环节是这个团队的重要工作职责。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;TiDB 的 Coprocessor（协处理器）架构使得大量计算可以并行进行，例如由协处理器进行谓词过滤，预聚合等等，这样一来很多计算被众多 TiKV 资源分担，并且汇聚到 TiDB 的计算将大大减少，由此虽然 TiDB 本身仍然是单机，却可以很大程度满足 AP 需求。&lt;/p&gt;&lt;p&gt;不过这并不是 AP 团队工作的全部。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;TiFlash&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;TiFlash 是一个相对独立完整的分析型数据库产品。独立，说明历史包袱会比较小，可以尝试各种可能的设计；同时，我们也希望它尽可能完整，能承担一个分析型数据库应有的职责。&lt;/b&gt;这个项目需要熟悉 C++，熟悉分布式系统的 Infra 工程师同学们入伙。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Why&lt;/b&gt;&lt;/p&gt;&lt;p&gt;也许您看了 TiDB / TiSpark 的架构，会有个疑问。TiDB 仍然使用的是行格式存储，但似乎大多数分析型数据库都是列式存储喔？&lt;/p&gt;&lt;p&gt;没错。这就是我们开新坑的主要目的之一。&lt;/p&gt;&lt;p&gt;列式存储能提供更高的压缩比，增加 IO 效率（毕竟 IO 在很多时候是最慢的一环），也使引擎能只读取需要的列，更进一步加快读取速度。但是列式存储在 TP 场景下会使 IO 变得零散，如果使用了压缩就会更麻烦。因此基本上交易型系统还是会使用行格式存储的（就像 TiDB 现在这样）。&lt;/p&gt;&lt;p&gt;另外，HTAP 系统面临的另一个挑战是资源隔离。当所有计算任务都依赖于 TiKV 存储的时候，我们很难有效地进行资源隔离：不管如何处理，AP 任务都有可能影响 TP 的稳定。因此，我们希望有一组独立的资源提供 AP 服务。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Raft 和列存副本&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Multi-Raft 协议使我们有了另一种选择：何不把列存当做一个 Raft Learner 副本来实现呢？Raft Learner 接入让我们得以在对 TP 端极低的消耗下，提供一致性的数据读取，同时又兼顾了资源隔离。这大概算是一个相当有创新的做法了 :)&lt;/p&gt;&lt;p&gt;其实您也可以认为列存副本是某种奇特索引结构，因此计算层其实可以在行存和列存中根据代价进行选择。例如我们进行两表 Join，也许一张表可以通过索引过滤大部分数据，而另一边则希望通过列存减少扫描代价，那么我们也可以同时使用行存+索引和列存进行 Join。&lt;/p&gt;&lt;p&gt;列存 + Raft 副本是一个正在进行的任务，为了使列存能够支持快速的 MVCC 更新和删除，我们专门开发了新的存储引擎，同时也在和 TiKV 组紧密合作对接 Raft 协议。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f5ae87f0b06356e19a5d5bd2389a0014_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;603&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-f5ae87f0b06356e19a5d5bd2389a0014_r.jpg&quot;&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-f5ae87f0b06356e19a5d5bd2389a0014_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;603&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-f5ae87f0b06356e19a5d5bd2389a0014_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-f5ae87f0b06356e19a5d5bd2389a0014_b.jpg&quot;&gt;&lt;/figure&gt;&lt;p&gt;如上图，这就是一个 TiFlash + TiDB 集群。最上层仍然是 TiSpark + TiDB 的计算层，而下层则是类似 TiKV 的存储 + 协处理器的架构。其中一部分存储引擎节点将通过 Raft 协议和 TP 区连接，实时同步数据；而另一部分则作为独立的写入区，支持纯 AP 需求。&lt;/p&gt;&lt;p&gt;&lt;b&gt;现在我们的列存引擎还只是初版，我们正在进行更多的探索，尝试不同的存储格式和技术，让它变得更快，适合更多场景。而要支持独立写入，也代表 TiFlash 本身将会向一个完整的 MPP 数据库演进，而这无疑需要耗费大量人力。总之，非常期待各位同学的加盟。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;TiFlash MPP Engine&lt;/b&gt;&lt;/p&gt;&lt;p&gt;另一个计划中但是仍然没有开工的事情是，我们希望在协处理器层加入 Exchange / Shuffle 功能，让数据可以通过网络进行 MPP 模型的重分布操作。&lt;/p&gt;&lt;p&gt;如果我们在协处理器层加入 Pipeline 模型的数据交换，计算层 TiDB 作为一个单节点服务器也可以享受到集群计算的加速。而 TiSpark 在运行非长时间 ETL 任务时也可以选择下推计算到 MPP 计算节点以避免 Spark Shuffle 高容错模型带来的消耗。&lt;/p&gt;&lt;p&gt;实际上要实现基于 Exchange 和重分布的 Query Engine 是非常庞大的一件事。几乎大部分算子都需要重新改造，完全做到需要很久。不过好在我们的计算层各自都已经实现了完备的算子集，这样我们可以按照合理的进度逐步构建 MPP 引擎，逐步开放更多可下推的算子。&lt;/p&gt;&lt;p&gt;与此同时，在这个引擎上，我们也希望试验一些更新的计算模型，例如完整的向量化算子实现，或者结合 JIT 进行加速，甚至尝试 GPU 等，都是预期中的任务。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;TiSpark&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;TiSpark 是我们组的另一个产品。TiSpark 是一款深度订制的 Spark Connection Layer，将 Spark 平台深度整合到现有的 TiDB 产品栈里。它借助了 Apache Spark 的计算平台，直接对接存储层（TiKV 和 TiFlash）读取数据，并下推可能的计算以加速。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;TiSpark 的定位是多重的：一方面在 TiFlash 还无法完整承担 MPP 引擎职责的当下，它是我们在超规模计算下的首选；另一方面，借助 Spark 我们将 TiDB 延伸到了大数据领域，配合 TiFlash，我们可以替代相当一部分传统上需要 Hadoop 集群的场景。&lt;/p&gt;&lt;p&gt;通过对接 Spark 的 Extension 接口，TiSpark 得以在不直接修改 Spark 源代码的前提下，深度订制 Spark SQL 的根本行为，包括加入算子，扩充语法，修改执行计划等等，让它看起来更像是一款 Spark 原生产品而非第三方扩展。&lt;/p&gt;&lt;p&gt;由于直接对接了存储，我们也可以像传统数据库一样利用好存储的特点，实现一些 Hadoop 体系无法完成的功能，例如 IndexJoin，Index only scan 等。另外，安全和审计体系，基于 Spark Streaming 的异步触发器和看板，或者 PL/SQL 等，都是之后可能的选择。总之，这个项目还很初步，还有很多可以折腾的事情。&lt;/p&gt;&lt;p&gt;另外，TiSpark 暂时还是一个只读的系统，但是我们也准备加入写入和修改的支持（数据编码，索引维护，事务支持等等），这样 TiSpark 也将成为一个能相对独立使用的完整产品。&lt;/p&gt;&lt;p&gt;我们也期待您的加盟。如果您是大数据领域新手，这个项目可以让你深入了解 Spark 的架构和实现细节；如果您是老鸟，除了一起快乐写代码，还可以一起制定产品 Roadmap 也许也是您乐意做的事情；总之，这是一个老少咸宜的项目。&lt;/p&gt;&lt;p&gt;所以来聊聊看吧？这两个项目是眼下 AP 团队正在折腾的东西，很多部分都还处在比较初期的阶段，而且这里写的都只是我们比较确定会开展的工作，有一些想法因为人力不足经验不足我们只敢想却没办法写在这里。如果有了各位同学的加盟，相信这些产品可以变得更完善，更野心勃勃。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;加入我们吧！&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;我们认为优秀的工程师或多或少有以下共同特质：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;A Quick Learner&lt;/li&gt;&lt;li&gt;An Earnest Curiosity&lt;/li&gt;&lt;li&gt;Faith in Open Source&lt;/li&gt;&lt;li&gt;Self-driven&lt;/li&gt;&lt;li&gt;Get Things Done&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;如果你符合以上特质，欢迎进入招聘页面查看目前开放的工作机会：&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//www.pingcap.com/recruit-cn/join/%23positions&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;虚位以待&lt;/a&gt;&lt;p&gt;&lt;b&gt;简历投递通道：hire@pingcap.com&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;实习生&lt;/b&gt;：公司的各项福利和学习资源对实习生全面开放，更重要的是实习生还未毕业就有机会接触工业级项目，而且实习期间表现优异者将有机会获得校招绿色通道特权。如果小伙伴们时间不够充裕，也可以先从社区 Contributor 做起，或许下一期 &lt;u&gt;&lt;a href=&quot;http://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzI3NDIxNTQyOQ%3D%3D%26mid%3D2247487451%26idx%3D1%26sn%3D53b17f49e05af2cd832192fd67eaf75f%26chksm%3Deb1628b1dc61a1a704544f250cee480e7f6cf95cf5e84c2ccb7f0858398e685160122ed687b6%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Talent Plan&lt;/a&gt;&lt;/u&gt; 的主角就是你！&lt;/p&gt;&lt;p&gt;&lt;b&gt;伯乐推荐&lt;/b&gt;：如果你身边有符合以上要求的小伙伴，也可以找我们聊一聊，推荐成功就有机会获得伯乐推荐奖励（iPad、iPhone、MacBook Pro 等等）。伯乐推荐邮件格式：[伯乐推荐] 候选人姓名-职位名称-推荐人姓名-推荐人手机号。&lt;/p&gt;&lt;p&gt;&lt;b&gt;OLAP 引擎研发工程师职位信息：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//pingcap.com/recruit-cn/engineering/olap-engineer/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;OLAP 引擎研发工程师&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-03-14-59275863</guid>
-<pubDate>Thu, 14 Mar 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
