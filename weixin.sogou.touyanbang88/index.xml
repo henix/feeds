@@ -5,11 +5,653 @@
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/</link>
 <description>金融推理 内幕揭秘 独立调研 散户立场 白话解读 风趣幽默 【这里有主流媒体上看不到的东西……最好玩的投资研究解读】</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 01 Apr 2019 14:35:17 +0800</lastBuildDate>
+<lastBuildDate>Wed, 03 Apr 2019 04:07:33 +0800</lastBuildDate>
+<item>
+<title>精华—量化多因子选股模型（一）</title>
+<link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-04-01-1000000485_100004763.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8EtuBWx34tD39VJMXLAzDINh89LfPOp1nKq8nxuxpkyL6pHgatbVx9KRPakM0wcKDo8v3q0e2UV-3eG0UCNCQ-o=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+                                    
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    精华—量化多因子选股模型（一）
+
+                                                                                &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                量化小王子
+                                            &lt;/span&gt;
+                                        
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        投研帮                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;投研帮&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;touyanbang88&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;金融推理 | 内幕揭秘 | 独立调研 | 散户立场 | 白话解读 | 风趣幽默 【这里有主流媒体上看不到的东西……最好玩的投资研究解读】&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;Hello，各位读者好鸭~&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天和大家聊聊股票量化中运用最广的一个模型：多因子模型。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;既然是多因子模型，首先我们必须要从股票的众多历史数据中挖掘出一些合适的因子。最基础的数据当然是股票的量价数据和基本面数据啦。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;量价数据有低频也有高频，比如股票某日成交的最高价、开盘价、最低价、收盘价，成交量、成交额等即为日级别的低频量价数据；每天交易时间为4个小时，即240分钟，将240分钟分为48个5分钟（48*5=240）,比如9:30-9:35为第一个5分钟，9:35-9:40为第二个5分钟，每隔5分钟统计一次那5分钟内股票的高开低收、成交额、成交量等量价数据，则为日内的5分钟高频量价数据；当然每三分钟统计一次即为日内3分钟的高频量价数据。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;随着量化行业竞争越来越激烈，有实力的公司使用的数据越来越高频，比如日内3秒的高频量价数据；甚至直接使用Tick级别的高频数据（股票逐笔分笔成交的Level2数据）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5288135593220339&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuesbtR1kRdFrGZdBCmnq72oaBzwtibVqud8jbcYicDFHqFUVZfI8mEoLA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1770&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;基本面数据比较好理解，大致就是股票的季报和年报里反应公司基本发展的一些数据，比如公司的营业收入、基本每股收益、归母净利润等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5034013605442177&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuoWdBAr8lwylzdygxTY8YnZldapHibiaIRpSfOicjAA9C25oTDHLHpC0wA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;588&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;除了量价数据和基本面数据，一般的对冲基金还会用到朝阳永续的一致预期数据，即基于各券商分析师对各上市公司盈利预期整合出来的数据库，这个数据库其实还挺丰富，涉及到各公司的业绩预期、估值指标、研究员评价等。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.370398773006135&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNu9DmQ1fyooqe4zrBQjBiamrS7DQiayK7cqJP4tm0Dhibdhw4hHzoe50rgw/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1304&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;更有钱的对冲基金还会买入一些更多维的数据，比如互联网相关的数据：百度的搜索数据、东方财富股吧的数据、京东的数据等。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;话说这些数据其实很贵，一般小型的对冲基金仅用在买入基本数据上的花费至少也要大几十万，像业内头部的量化私募每年仅购买数据的预算就数百万。所以一般量化对冲基金的管理规模生死线大概在5个亿，否则如果某年业绩不佳，则大概率会亏本（假设管理规模为5亿，管理费一般为1%，则管理费为500万，这500万买买数据，付付房租，发发工资也就所剩无几了）。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在知道有哪些可以挖掘的数据后，那我们怎么判断一个因子是否适合于我们的模型呢，换句话说，什么样的因子才是一个好因子？这让我联想到了如今企业招聘人才的流程。企业会根据求职者的简历匹配程度、笔试成绩、面试成绩等因素决定是否发放offer。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，求职者简历可能会造假，笔试和面试成绩也会有诸多偶然的因素，为了平衡风险，企业给的这个offer通常会有一定时长的试用期，只有通过试用期的考核后，他才能成为企业的正式员工。回到因子挖掘上，我们一般会把所有历史数据分为两部分，一部分作为样本内，另一部分则作为样本外。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如把2008年1月1日到2017年1月1日这九年的数据作为样本内，2017年1月1日至今的数据作为样本外。我们在样本内挖掘因子，然后在样本外测试因子，换句话说，我们的量化研究员只能接触到样本内的数据，然后根据样本内的数据挖掘出来的因子要在样本内每一年都要有相对于指数的超额收益，然后才能进行到样本外的测试，只有样本外里的每一年仍然相对于指数有一定的超额收益，我们才认定这个因子为暂时合格的因子。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;样本内的测试，就像是求职者的简历关一样，只有学历、专业、实习工作经历都匹配的面试者，才能进行下一轮的笔试和面试。当然，就算笔试面试都通过了也不行，还要有一段时间的试用期。同样的，就算是样本内和样本外都有超额收益的因子，只有再观察一段时间，比如用小额资金实盘跟踪，仍有超额收益后，这个因子才会被正式加入我们的投资组合。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.29185867895545314&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuuCLhSlo3LrKUtV9ia8Px6NxOGIYa3Gu1qXpD7nX9XdpTEN1ZUk2icrVg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1302&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;这时有读者又会问了，那挖掘因子时具体有哪些评判标准来判断一个因子的好坏呢，判断简历的好坏可以从学历、专业、实习等角度评判，那因子呢？&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;首先，我们每个人来到这个市场，都是为了来赚钱的，机构更是如此，所以一个好的因子，首先年化的超额收益要高，越高越好。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，散户如果亏个20%还能扛过去，机构如果有个20%的回撤恐怕就要面临巨额的赎回压力，还想不想干了？所以，在保证超额收益尽可能高的同时，最大回撤要小，越小越好。综合一个指标，可以说夏普比率要越高越好。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;除了收益和回撤，还有一个很重要的指标就是换手率了。各位如果还记得我上篇文章里的内容的话，一定会记得我对高频交易的相关描述，高频交易换手率极高，收益也很稳定，但是有个最大的缺陷就是资金容量小。对于小千万的资金，可能我们能把换手率提高一些，这样收益会更高，回撤还更低，美滋滋的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但是对于大额资金，换手越高，对股票的冲击成本就越高，手续费也会更高，带来的超额收益很难覆盖冲击成本和手续费，所以最好要把换手率控制在一定的范围内，管理规模越大，换手率大概率会越低。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;举个极端的例子，假设只有100万的资金，最完美的量化策略，可以每天买一个涨停股，这样收益飞上天，根本没回撤，每天换手率100%。但是假设你有10个亿的资金，这种换手率还行吗？也许你买哪只股票，哪只股票就涨停了，卖哪只股票，哪只股票就跌停了，这种就是典型的炒股炒成股东了哈哈。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以这也是某些小的对冲基金在规模小的时候，实盘净值曲线逆天，一募集到更多资金后，就泯然众人的原因之一了，他们没有实力开发出更好的低换手的策略。当然评价一个因子的好坏还有很多其他的指标，比如因子的胜率、因子多头收益占比等，各个对冲基金仁者见仁智者见智。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;一不小心说了这么多，这次就先到这哈哈。下一篇文章我将会继续举例一些常见的因子，之后再说说如何组合因子，这样就离我们开发出一个高收益低回撤的量化策略越来越近了哈哈~&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;那我们下一篇文章再见~&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;量化专栏历史文章：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;amp;mid=2247488352&amp;amp;idx=2&amp;amp;sn=e9a29f359890cb894bceebe5068731bf&amp;amp;chksm=fb36b2e5cc413bf3d2ac07aa64361e592cdea1f7e24d8902e4b989e6ab0086fb14f4bbab7546&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;从《流浪地球》的豆瓣评分到量化多因子选股&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;amp;mid=2247488352&amp;amp;idx=3&amp;amp;sn=3eb1e6e4ed680de25ba570c0748f9d3e&amp;amp;chksm=fb36b2e5cc413bf3fdbc75c1727e168bde31109696eab0cf17072ddced2c321a73c324a0e4e3&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;量化投资让你开心吗？&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;amp;mid=2247488366&amp;amp;idx=2&amp;amp;sn=3d7b0c0dee9e7352acc5f2ad795c4517&amp;amp;chksm=fb36b2ebcc413bfd5b976d704a67f8d7405b18a48cad523a1dcc06b34734199d33e8e13efbfe&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;量化投资能赚钱吗？能赚多少钱？&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;2105906537&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;量化小王子&lt;/div&gt;
+                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
+    &lt;/span&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png&quot;&gt;
+            你的朋友会在“发现-看一看”看到你点击“在看”的内容        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog&quot;&gt;
+        
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+            已取消，想法已同步删除        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+
+&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;like_comment_inner&quot;&gt;
+    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;like_comment_bd&quot;&gt;
+      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;like_comment_ft&quot;&gt;
+      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          写下你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
+    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-dialog&quot;&gt;
+    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        网络异常，请稍后重试    &lt;/div&gt;
+    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                            
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>量化小王子</author>
+<guid isPermaLink="false">2019-04-01-1000000485_100004763</guid>
+<pubDate>Mon, 01 Apr 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>大佬，你到底啥时候出狱？</title>
+<link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-04-01-1000000485.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8EtuBWx34tD39VJMXLAzDIMvMURLi4FJvOi7ZRJmWVwxG2G42oWJarebHse6gywG0zNC50Xgm5EhNyJNbbuOouU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+                                    
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    大佬，你到底啥时候出狱？
+
+                                                                                &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                王了了
+                                            &lt;/span&gt;
+                                        
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        投研帮                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;投研帮&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;touyanbang88&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;金融推理 | 内幕揭秘 | 独立调研 | 散户立场 | 白话解读 | 风趣幽默 【这里有主流媒体上看不到的东西……最好玩的投资研究解读】&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;今天我手机连续收到了几条新闻，看到最后一条时我笑出声了，然后果断截了屏：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;1.5208333333333333&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNum4QZMNTfGjGk72WWJ6sUt79oickpUYame9cPCaxgvjyl0NSMunSadUA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;288&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;从传闻出狱到否认，一个来回，股价也过山车一个来回。收盘后大家以为没事了，结果几分钟前又反向辟谣，搞的我现在也不知道到底大佬明年出不出狱了：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.21921182266009853&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuK3VU2Mnwd1W96aYO2U0cfhcocwMvCM4QfgN8Aa0wB97rYrad2EeCjg/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;406&quot; style=&quot;width: 308px;height: 67px;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;消息刚出的时候黄光裕关联的上市公司全部暴涨：其中中关村、国美通讯是A股，直接以涨停来表达对大佬的欢迎。还有两个是港股，没有天花板直接暴涨20%。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;盘中辟谣的时候这几个出狱概念股又跌了，我觉得可能又跟之前每次一样耍人玩，结果收盘后竟然又来一次大反转。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;黄老板人在狱中都能跟A股股民过愚人节，可见十年后影响力依然不减当年。&lt;/strong&gt;&lt;/span&gt;盼着他这条鲶鱼出来成为资本市场新的搅局者，机会都是搅出来的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;---------&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;被黄老板这么一搅，格力的事情反倒被淹没了。但实际上格力今天的新闻蛮大的，涉及到股权变更而停牌。而且这个股权变更会影响到控制权，这就真不是一般的大事了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;目前格力电器是由珠海国资委控制的，如果说影响到控制权，是要撼动国资委的，在国资层面产生控制权的变更，只能是更高一层的战略部署&lt;/strong&gt;&lt;/span&gt;，比如从珠海上升到广东省国资，或者跟其他更有实力的省国资联手。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不管怎样，这个级别的控制权变更，理论上只可能是利好。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但是今天格力的最大对手美的集团暴涨8.62%，从消息面失去的关注度，要从盘面上抢回来。这种抢镜精神值得嘉奖。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;text-align: center;&quot;&gt;---------&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;话又说回来，&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;今天只有59家公司是没涨的（去掉停牌的），只占A股的1.6%。&lt;/strong&gt;&lt;/span&gt;可以说只要是只健全的股票，最近没有明显的利空，今天都涨了。这个市场情绪可以用高歌猛进来形容。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最主要的是，今天上证指数和沪深300都创了新高，后面50和创业板大概率也会跟上。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我们知道个股的新高是看多信号，说明有资金在慷慨解囊解救前面高点套住的人，为的是后续更大的利益。所以有人专门去做新高股，“突破买入”是他们的绝技。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;暂且不论个股搞这套灵不灵，但是&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;全市场指数层面的新高，一定程度上强化了市场情绪，正反馈已经开始了。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有些人说是刚出炉的PMI数据推高了市场。我先解释一下这个PMI中文叫“采购经理人指数”，取值从0%到100%，中间值50%被称为“枯荣线”，50%以上经济活跃，50%以下经济低迷。这次的数据从49.2变成50.5，跨越了枯荣线。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不过从图上看，其实也就是一个小反弹：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5569453587886768&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuEzxLjp5g9aKCH2pibTcd52LKcRzp3ZUwa2f2zLZ2GXQb581xluX5jGw/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1519&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在资本市场里，数据变化的幅度并没有绝对意义，一切都看预期。这点小涨幅在预期一片大好的时候甚至可能会被理解为利空，但在全市场等待基本面走坏的当下，任何一点反弹都是巨大利好。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;重复我今年初说的那句话：&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;amp;mid=2247488291&amp;amp;idx=1&amp;amp;sn=cddcabfa949764a9b2cbe509e67ad882&amp;amp;chksm=fb36b2a6cc413bb0389be5f834968aa6e9f9b2f391f90930a1b7be602699d6a8f3906192f236&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot; style=&quot;color: rgb(255, 76, 0);text-decoration: underline;&quot;&gt;&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;&lt;span style=&quot;color: rgb(255, 76, 0);letter-spacing: 0.544px;background-color: rgb(255, 255, 255);&quot;&gt;人在最绝望的时候，但凡看到点光亮都会很兴奋。&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;提醒一句，今天文章二条又更新了量化小王子的文章，这次已经深入到实际策略的内容了（多因子选股模型），想要对量化入门学习的乡亲们不容错过。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: center;&quot;&gt;&lt;strong style=&quot;max-width: 100%;color: rgb(255, 104, 39);font-size: 18px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;长按识别二维码加入亲友团&lt;/strong&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5620525059665871&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/sDlyOwOgQlNIsIZUtFnLoxsJibMvMiapH2UxFrZTtKVXfWQYPib44jfLQoRfKjX7icZg1hCMx5aoWtuibiaRowz5zmNw/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;838&quot; style=&quot;text-align: center;&quot;&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1883019822&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;王了了&lt;/div&gt;
+                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
+    &lt;/span&gt;
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png&quot;&gt;
+            你的朋友会在“发现-看一看”看到你点击“在看”的内容        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog&quot;&gt;
+        
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+            已取消，想法已同步删除        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+
+&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;like_comment_inner&quot;&gt;
+    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;like_comment_bd&quot;&gt;
+      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;like_comment_ft&quot;&gt;
+      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          写下你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
+    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-dialog&quot;&gt;
+    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        网络异常，请稍后重试    &lt;/div&gt;
+    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
+      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                            
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>王了了</author>
+<guid isPermaLink="false">2019-04-01-1000000485</guid>
+<pubDate>Mon, 01 Apr 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>机构今天进场接了散户的筹码</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-29-1000000484.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTNrOqJW9*bWrcJ5A6OicXDk2aNL7vOeFmvBZb9crfL1TwD35Qlz3NUbLRUK*3nt8H3sfy*SJ1hDfr7yFxomYH7Q=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8L*5tK6ZtqBxOxTx6Die9Y0AckNV4-WShProK7HtntVunphr9h7l-t5tdXqINjE53ulKTKwJPeXbjoVbCf11nbs=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -330,7 +972,7 @@
 <item>
 <title>小周期衰退进入后半段，即将迎来曙光</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-28-1000000483.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTEbXZlujKP*lMcPHuzf-M-zlt2CibbiFwuEiRS-K2bEZqkRyCCcD4cl6mnHVC1UeCq25jBENfpzjnoIBQVWvff4=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8IfCriLkjnq53dm7lmBT0pPwthcVdpaWEogws7*o*C7iWVHnWbsbHqYJgbzK3aHJEfFhbxpMOfdWTfDHwUjnu-Y=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;/&gt;
 &lt;div class=&quot;rich_media_inner&quot;&gt;
 
@@ -653,7 +1295,7 @@
 <item>
 <title>亲友团问答汇总</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-25-1000000482_100004727.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTNqJ38atcPqcGTX6dgebO5GRqA4KO8ov1-zBZ8tQ1TFWgXlZvxWIF9DwBCJ6msfGLhQjtedVITJ6-y-enQN8i5c=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8FUq4qgthxxaEPrneT-tvocKReirRBuDxE2LmlvX9Vdj*fSDgv6L19eF-OyuNUz7EKytNWdi0kRq2xVPwW5vWZw=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -969,7 +1611,7 @@
 <item>
 <title>暴利的可转债</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-25-1000000482.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTNqJ38atcPqcGTX6dgebO5H9qbB*7uJJap9xv6lndatooahTtPmi1FcOKwFLqqOOmozBzBrU6lcZ6ZB4G1HPTdo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8FUq4qgthxxaEPrneT-tvof2i2o4jzAjoSLcS4YWZdQ1DtyKzavCIiXb3DNenkn2MdAmVZPjW7X0pRMNnRklWlU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1290,7 +1932,7 @@
 <item>
 <title>量化投资能赚钱吗？能赚多少钱？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-21-1000000481_100004713.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTLmUeFQcyMLyUA-289EBuk2WlPSUOPVQeIdWxMzzYFBRdpy-LN*bPVMlPoF19ruFvO*TxKtFHTjzLeFQkOmyo88=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8IY6346dJ7nUev0L5idUZcrvCtVAcpazSrvl3Z8xUvWgk0MadqgY5dDBeSxb4rrlh9gpTjzfza-qF9JxoOL3VBg=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1611,7 +2253,7 @@
 <item>
 <title>股王腾讯活生生把港股拉跳水了</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-21-1000000481.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTLmUeFQcyMLyUA-289EBuk3Umm2uf-BZBFyyoydl*VERAerGt8s*uTQ1fhExHn1QfA*hjsXkRky1e*OsaGN7UO8=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8IY6346dJ7nUev0L5idUZcpF4fUIL*dTvRi*0-4n4TIbfU1WfYzbGq-wYOMgjVM19t1NI4yfu*pX9jGqJNmvk7o=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1932,7 +2574,7 @@
 <item>
 <title>量化投资让你开心吗？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-13-1000000480_100004703.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTN6q8RMLEYl7y23o79YP62gozxDCbPEE5jbUJJYXDVp3pcnAixweQySJZHN6UilVc*ne*M5iGSRDHxi4FnAyPks=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8MCAGk23nVP7A9gx2zxbHeatI2XOvfB9Lu-smx8trGRYYyETogK2CvLdGo5kP8DtPLlmxxCaHANByAVrV8wlCK0=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2253,7 +2895,7 @@
 <item>
 <title>从《流浪地球》的豆瓣评分到量化多因子选股</title>
 <link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-13-1000000480_100004697.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTN6q8RMLEYl7y23o79YP62irExajvhQIrf6VGwhgqTnvzLLYP*ljaUnisTvYudYYkxaW3nbrPqWzwPFBATOS6hM=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554235647&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=qTBAdndcNsQ-R3ihklh25EXItCELzMSUynw5XAJwO5jAUmq262NcbHAHZNajj8i396dLk0fMDHsbRZa*8J6*8MCAGk23nVP7A9gx2zxbHeYnzRBkKppiXaqgZDkziBmSr6WsXvR9CeUtpfP9lRjVfUIHisuGbd*-wupiI9AX74k=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2570,648 +3212,6 @@
 <author>量化小王子</author>
 <guid isPermaLink="false">2019-03-13-1000000480_100004697</guid>
 <pubDate>Wed, 13 Mar 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>基本面显灵了</title>
-<link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-13-1000000480.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTN6q8RMLEYl7y23o79YP62jmLw-gkFERVE4exTmBm1Mw12HFPU*imDHNl2B4R0SvZVugkE2WTEeafWFEJwaaHws=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-                                    
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    基本面显灵了
-
-                                                                                &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
-                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                王了了
-                                            &lt;/span&gt;
-                                        
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        投研帮                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;投研帮&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;touyanbang88&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;金融推理 | 内幕揭秘 | 独立调研 | 散户立场 | 白话解读 | 风趣幽默 【这里有主流媒体上看不到的东西……最好玩的投资研究解读】&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p&gt;近一段时间A股里传颂着一首鬼故事般的歌谣：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.6388888888888888&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/sDlyOwOgQlOQ6CmuErI6gsQF7tdZpl1krE2f9IKkDJ7nzX0TTBbOfSgfLO21jbjZIBiaGNSY66wyFW0MLLia5R0Q/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;216&quot; style=&quot;width: 172px;height: 110px;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;基本面就像鬼，人人都在说但没人见过。它就像幽灵一样游荡在每根大阳线上方，一些基本面分析师每天念叨这些吓得一群人不敢入场。每根阳线又像大巴掌一样抽在基本面脸上，把基本面分析师熬得鼻青脸肿。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.8395061728395061&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz/VhzmrH7lyuvB7qWV28CAXyyhIGySgvQhZRXokejPUjWI5Med9ibyxyo8ibqXBn5wntL9OD2TpsgQxKVB4j88VcRQ/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;162&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;========&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;以上是我上周花了2个多小时写的一篇长文的开头。接下来的事你应该猜得到，长文的内容过于精彩以至于没有机会跟大家见面。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;出于自责，我面壁思过了好几天，小李看不下去了，说要不你今天写点啥吧，不然别人以为咱们关门大吉了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得说的有道理，于是开始小心翼翼的码字。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;客观的说，目前的A股处于第一阶段膨胀后的冷却时期，大家都赚到钱了，开始环顾四周，警惕的盯着周围的人，生怕别人比自己跑得快。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;再客观的说，目前冲进市场的大多是散户，一部分机构开始落袋为安，一部分游资在徘徊。但更重要的是，有能力减持的大股东，都在减持。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但是主观上说，&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;减持并不意味着他们看空后市，减持只有一个理由——他们真的很缺钱。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;M1增长率还在低位，信用利差还在高位，企业们依然缺钱。这时股票涨了一波自己可以减持，要是我我也会减持。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看M1和M2的增速差目前有回升的迹象，&lt;strong&gt;&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;你可以理解为M1-M2增速差越大，企业的活期存款比例越高&lt;/span&gt;&lt;/strong&gt;。如果企业不缺钱了，M1会快速增长，那是经济回暖的重要信号之一：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5556287030941409&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlPklzwJMPwCcgRLmhCNyS7WiaH0CZYdIYwlxy1Y4ibYd05pt2AVjIglrwn73owQU2kBqaH8PA0XINuA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1519&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;同样的，M1增速如果缓过来，信用利差也会下降，那时代表整个市场的流动性显著加强了，股市也会有继续上涨的基础。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.554312047399605&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlPklzwJMPwCcgRLmhCNyS7WAibVCAmHWDPg7nzmtLLlVuugIQVP2cIYOJ5XTZqN0Ewia3KnbaWaficNQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1519&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;还有两个值得说道的数据，但是只能肤浅的点评一下——出口和社融。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其中2月出口数据确实比较惨，历史上排名倒数第三：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5557020435069215&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOQ6CmuErI6gsQF7tdZpl1k3kCDoPfzD7hBQfc2Q2IR5JD15EMv52NvGRwzuxyqG7aAibF685llRCA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1517&quot; style=&quot;text-align: center;white-space: normal;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而社融增速也不及预期，其中，贡献上个月天量社融的票据融资没有后续力量接住，掉了下来，加上居民和企业贷款不太给力，整个社融增速显得有点萎靡。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;随着经济数据的披露，压力显现，A股也有点止步不前。这就是为什么我说“基本面显灵了”，&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;意思是在当前时点下，因为没有其他更大的逻辑线指引，所以经济基本面成了市场关注的焦点，经济数据也就成了股市情绪的主旋律。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但这时如果有另一件事的重要性大过经济数据，吸引了市场的大部分注意力，那基本面又会坍缩回幽灵态，市场主旋律就会切换到另一个频道。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我虽然喜欢研究经济，但我一直告诉自己经济和基本面只是决定市场波动的诸多因素之一，绝不是全部。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在我的理解，市场是一个注意力很不集中的孩子，他的感官很敏锐，会被很多外界现象吸引。&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;如果他面前有个拨浪鼓一直在发出声音，他的目光一定会盯着拨浪鼓；这时如果电视机开了，他又会被画面和声音吸引，转头去看电视；再接下来如果窗外开始打雷，巨大的雷声可能直接把它吓哭了，电视和拨浪鼓都被淹没。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以不要说基本面有效还是无效，任何因子在市场里都有有效的时候，也有失效的时候，过度迷信和过度忽视都不可取。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如现在，经济数据陆续披露，市场注意力被吸引到基本面上。接下来可以预见到的要发生的大事可能就是毛衣协定，或者一些政策的发布。到时候市场注意力又会从经济数据转向到其他事情上，主旋律又切换掉。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以你如果选择做投资，你就选好一个主旋律，比如基本面，发生其他任何事都置之不理，长期根据基本面来进行投资。（此法鼻祖是巴菲特）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;你如果选择投机或交易，你就要善于在所有主旋律之间切换，把握好当前市场的目光所在，看到市场在看什么，然后顺势操作。（此法牛人为索罗斯）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但我们也必须承认，作为A股散户，可能最有效、最实际、门槛最低的还是技术面。顺着趋势走，虽然不可能利润最大化，甚至有可能长期亏损，但至少可以躲避掉股灾，也能在趋势里跟着赚点。这也是为什么绝大多数散户最喜欢看图划线的原因吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不管哪种策略都有它的优势和缺点，决定自己的方向就选择一个方法一直坚持下去，不要今天看这个好做一做，明天看那个牛跟一跟，最后什么都留不下。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不贪心，已经胜过无数人。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: center;&quot;&gt;&lt;strong style=&quot;max-width: 100%;color: rgb(255, 104, 39);font-size: 18px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;长按识别二维码加入亲友团&lt;/strong&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5620525059665871&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/sDlyOwOgQlNIsIZUtFnLoxsJibMvMiapH2UxFrZTtKVXfWQYPib44jfLQoRfKjX7icZg1hCMx5aoWtuibiaRowz5zmNw/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;838&quot; style=&quot;text-align: center;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;今天的二条和三条，是投研帮一名读者的作品。他在一家大型量化私募里面担任量化投资经理，对量化选股以及策略研究方面有自己的心得。我邀请他把他的工作，以及门外汉该如何看待量化这件事，用轻松易懂的语言描述出来。&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;今天是他写的前两篇入门级别文章，欢迎大家阅读，并提出建设性意见，告诉我你希望后续的文章看到哪些跟量化相关的内容。感谢捧场。&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;1670642933&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;王了了&lt;/div&gt;
-                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                &lt;/div&gt;
-
-                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已发送到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png&quot;&gt;
-            你的朋友会在“发现-看一看”看到你点击“在看”的内容        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog&quot;&gt;
-        
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-            已取消，想法已同步删除        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-
-&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;like_comment_inner&quot;&gt;
-    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;like_comment_bd&quot;&gt;
-      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已发送到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;like_comment_ft&quot;&gt;
-      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          写下你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发送想法到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
-    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-dialog&quot;&gt;
-    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        网络异常，请稍后重试    &lt;/div&gt;
-    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
-      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
-    &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                            
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>王了了</author>
-<guid isPermaLink="false">2019-03-13-1000000480</guid>
-<pubDate>Wed, 13 Mar 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>中小创的兴奋剂：减税</title>
-<link>https://henix.github.io/feeds/weixin.sogou.touyanbang88/2019-03-05-1000000478.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1554100516&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=uRG2goUDBh6Bs5lFjhKVFUz1StBWudAAyq7IgZlfuWXU5WU8jYi5ujLhp0ajM2mXyw7jZwo3pp1NSEm26i5OTAW4HS*xCD9VdjeXqQADQzpb5XOVBFf*BNRDS1n7pskmDPehM8Dqnh*x-KYfmbKJNLDANnPv6UP2Nsbm1jCIuIA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-        &lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-          &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-                                    
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    中小创的兴奋剂：减税
-
-                                                                                &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
-                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                王了了
-                                            &lt;/span&gt;
-                                        
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        投研帮                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;投研帮&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;touyanbang88&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;金融推理 | 内幕揭秘 | 独立调研 | 散户立场 | 白话解读 | 风趣幽默 【这里有主流媒体上看不到的东西……最好玩的投资研究解读】&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p&gt;今天我磨叽到很晚了还没开始动笔，虽然行情波澜壮阔，政策也给力，市场情绪也高，但我还是觉得没啥可写的。主要是大家都知道的事，我总觉得写起来没劲。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我这个精神洁癖真是让我极其苦恼。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;说说减税的事吧，这是今年万众瞩目也是市场最期待的事了。减税力度从16%到13%，有3个点的空间，大概释放出6684亿元，总理说减税降负总共能释放2万亿。不管怎么说，这是好事。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;只不过利好的程度需要好好拿捏。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;首先减税重点利好了小微企业，因为他们利润比较小，减税规模占利润的比重比较大，弹性比较高。而且同时强调了给小企业定向降准的力度，所以今天A股是小票涨得疯。创业板跟中证500又庆祝了一把。我们持仓里有很多债性转债，正股都是这种小票，这几天也是涨得比正股还疯狂，有时一天就20%，因为转债没有涨跌停板。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;每次牛市最典型的现象就是小票疯狂，鸡犬升天。注意这里我说牛市，完全是技术面判断的，20日线上就是牛市，20日线下就进入熊市，国际上也都这么界定。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;这种时候我觉得，股票操作应该已经变容易了，因为趋势已经走出来了。A股的强趋势性本身就是优势之一。如果你现在已经有持仓，大盘在20日线上时就别动，在20日线以下再减仓或者上个对冲。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实A股最缺的就是对冲手段，假设你在年初就满仓了，涨到现在一路浮盈，然后大盘回调10%，你舍得卖掉手里低价捡来的筹码吗？但没办法，不舍得就得承受回调，甚至反转的风险。这时如果可以做空，把市场风险对冲掉，我相信你持股可以更坚定。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以，限制做空反而放大了A股的波动。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;然后再说回减税，这是利好没错，但到底利好什么样的公司？&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;我认为依然是在产业上下游中占有议价能力的企业，或者通俗一点说还是竞争小、护城河高的企业。&lt;/strong&gt;&lt;/span&gt;你有别人没有的，你能做到别人做不到的，这种公司无论在任何情况里都是杰出的，在减税环境里当然也不例外。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后我想说，之所以现在要大力扶持中小企业，是因为它们过去受到了重创。哪里来的重创呢？其实是金融去杠杆。以银行理财为首的表外业务和影子银行过去是中小微企业的最大资金来源，结果去杠杆给去掉了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;过去两年单从银行理财撤走的资金（原本应该增加却没增加）有几个万亿，大家可以自己数数。这还只是银行理财的，其他影子银行还没算。2万亿够不够弥补，大家心知肚明。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5557020435069215&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlNSl9gB1F2RE4rwjnB8rggZcZEQdwS9KWC3ONIYUQbSCURuUdx9vJbXfrfQnjyn6zkPib44c9DHHGQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1517&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;所以，这些小企业融资成本骤升，至今信用利差还在高位。什么时候信用利差真正降下来了，中小企业才能真正意义上起死回生。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5531353135313531&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlNSl9gB1F2RE4rwjnB8rggZl15Id3ffEiaj7QbOibicsBEmxswH3biac3UZJU2C1IyOfmZ33syNd7wtkA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;1515&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然了，减税总比不减好，市场情绪也确实吃这一套。所以做交易必须要“说一套做一套”，这是我上周起就开始强调的。&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;心里明白基本面是怎么回事，但是操作跟着市场情绪走。&lt;/strong&gt;&lt;/span&gt;20日线上坚定持股，10日线上加仓，跌破20日线跑路，是小散最实际的操作了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;接下来一段时间，市场情绪还会围绕在改革利好和科创板上，这段期间维稳的手会一直在，确保科创板顺利登上历史舞台。所以，毛衣协定面世、科创板出炉、年报披露，这三件事结束后，市场主题会切换到下一个主线上，到时候情绪也会跟着变化。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对了，我发现你们读文章好像都不看作者的，昨天那两篇都不是我写的，你们留言还一口一个“帮主”的叫着，我不知道是该欣喜还是忧桑？&lt;img src=&quot;https://res.wx.qq.com/mpres/htmledition/images/icon/common/emotion_panel/emoji_wx/2_05.png&quot; data-ratio=&quot;1&quot; data-w=&quot;20&quot; style=&quot;display:inline-block;width:20px;vertical-align:text-bottom;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;昨天头文是小李写的，他在试图帮散户出一套“投资解决方案”，&lt;span style=&quot;color: rgb(255, 76, 0);&quot;&gt;&lt;strong&gt;把选股和择时这两大终极问题用两个工具解决：股票池和估值表。&lt;/strong&gt;&lt;/span&gt;昨天介绍了股票池的由来，下次再讲估值表。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得昨天留言里解释的一段话特别能说明这个股票池的优势：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5349162011173184&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlNSl9gB1F2RE4rwjnB8rggZufcjGuLiclB5VLjoCGlibzEM0IXRsQxSjSXD2Ic1P69t4KluHEesBnVA/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;716&quot; style=&quot;width: 364px;height: 195px;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: left;&quot;&gt;期待他的下文吧。届时，大家赚钱愉快。&lt;img src=&quot;https://res.wx.qq.com/mpres/htmledition/images/icon/common/emotion_panel/emoji_wx/2_09.png&quot; data-ratio=&quot;1&quot; data-w=&quot;20&quot; style=&quot;display:inline-block;width:20px;vertical-align:text-bottom;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: center;&quot;&gt;&lt;strong style=&quot;max-width: 100%;color: rgb(255, 104, 39);font-size: 18px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;长按识别二维码加入亲友团&lt;/strong&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;text-align: left;&quot;&gt;&lt;img class=&quot;&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.5620525059665871&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/sDlyOwOgQlNIsIZUtFnLoxsJibMvMiapH2UxFrZTtKVXfWQYPib44jfLQoRfKjX7icZg1hCMx5aoWtuibiaRowz5zmNw/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;838&quot; style=&quot;text-align: center;&quot;&gt;&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;2011623951&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-                &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;王了了&lt;/div&gt;
-                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                &lt;/div&gt;
-
-                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;阅读 &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;&lt;/div&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          &lt;span id=&quot;js_like_wording&quot;&gt; 好看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;div id=&quot;js_like_educate&quot; style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已推荐到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-          &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png&quot;&gt;
-            你的朋友可以在“发现”-“看一看”看到你认为好看的文章。        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;推荐&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    &lt;div id=&quot;js_unlike_educate&quot; style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog&quot;&gt;
-        
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-            已取消，“好看”想法已同步删除        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_unlike_know&quot;&gt;知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-
-&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;like_comment_inner&quot;&gt;
-    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;like_comment_bd&quot;&gt;
-      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;已推荐到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;和朋友分享想法&lt;/a&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;like_comment_ft&quot;&gt;
-      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          分享你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 分享想法到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;分享你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_fail&quot; style=&quot;display:none&quot;&gt;
-    &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-dialog&quot;&gt;
-    &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        网络异常，请稍后重试    &lt;/div&gt;
-    &lt;div class=&quot;weui-dialog__ft&quot;&gt;
-      &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_fail_inform&quot;&gt;知道了&lt;/a&gt;
-    &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-                            &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                            
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>王了了</author>
-<guid isPermaLink="false">2019-03-05-1000000478</guid>
-<pubDate>Tue, 05 Mar 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

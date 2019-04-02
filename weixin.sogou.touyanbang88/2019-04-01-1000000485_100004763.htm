@@ -1,0 +1,313 @@
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+        <div id="page-content" class="rich_media_area_primary">
+          <div class="rich_media_area_primary_inner">
+                                    
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    精华—量化多因子选股模型（一）
+
+                                                                                </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                量化小王子
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        投研帮                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">投研帮</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">touyanbang88</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">金融推理 | 内幕揭秘 | 独立调研 | 散户立场 | 白话解读 | 风趣幽默 【这里有主流媒体上看不到的东西……最好玩的投资研究解读】</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p>Hello，各位读者好鸭~<br></p><p><br></p><p>今天和大家聊聊股票量化中运用最广的一个模型：多因子模型。</p><p><br></p><p>既然是多因子模型，首先我们必须要从股票的众多历史数据中挖掘出一些合适的因子。最基础的数据当然是股票的量价数据和基本面数据啦。</p><p><br></p><p>量价数据有低频也有高频，比如股票某日成交的最高价、开盘价、最低价、收盘价，成交量、成交额等即为日级别的低频量价数据；每天交易时间为4个小时，即240分钟，将240分钟分为48个5分钟（48*5=240）,比如9:30-9:35为第一个5分钟，9:35-9:40为第二个5分钟，每隔5分钟统计一次那5分钟内股票的高开低收、成交额、成交量等量价数据，则为日内的5分钟高频量价数据；当然每三分钟统计一次即为日内3分钟的高频量价数据。</p><p><br></p><p>随着量化行业竞争越来越激烈，有实力的公司使用的数据越来越高频，比如日内3秒的高频量价数据；甚至直接使用Tick级别的高频数据（股票逐笔分笔成交的Level2数据）。</p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.5288135593220339" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuesbtR1kRdFrGZdBCmnq72oaBzwtibVqud8jbcYicDFHqFUVZfI8mEoLA/640?wx_fmt=png" data-type="png" data-w="1770" style=""></p><p><br></p><p>基本面数据比较好理解，大致就是股票的季报和年报里反应公司基本发展的一些数据，比如公司的营业收入、基本每股收益、归母净利润等。</p><p><br></p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.5034013605442177" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuoWdBAr8lwylzdygxTY8YnZldapHibiaIRpSfOicjAA9C25oTDHLHpC0wA/640?wx_fmt=png" data-type="png" data-w="588" style=""></p><p><br></p><p><br></p><p>除了量价数据和基本面数据，一般的对冲基金还会用到朝阳永续的一致预期数据，即基于各券商分析师对各上市公司盈利预期整合出来的数据库，这个数据库其实还挺丰富，涉及到各公司的业绩预期、估值指标、研究员评价等。</p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.370398773006135" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNu9DmQ1fyooqe4zrBQjBiamrS7DQiayK7cqJP4tm0Dhibdhw4hHzoe50rgw/640?wx_fmt=png" data-type="png" data-w="1304" style=""></p><p><br></p><p><br></p><p><br></p><p>更有钱的对冲基金还会买入一些更多维的数据，比如互联网相关的数据：百度的搜索数据、东方财富股吧的数据、京东的数据等。</p><p> </p><p>话说这些数据其实很贵，一般小型的对冲基金仅用在买入基本数据上的花费至少也要大几十万，像业内头部的量化私募每年仅购买数据的预算就数百万。所以一般量化对冲基金的管理规模生死线大概在5个亿，否则如果某年业绩不佳，则大概率会亏本（假设管理规模为5亿，管理费一般为1%，则管理费为500万，这500万买买数据，付付房租，发发工资也就所剩无几了）。</p><p><br></p><p>在知道有哪些可以挖掘的数据后，那我们怎么判断一个因子是否适合于我们的模型呢，换句话说，什么样的因子才是一个好因子？这让我联想到了如今企业招聘人才的流程。企业会根据求职者的简历匹配程度、笔试成绩、面试成绩等因素决定是否发放offer。</p><p><br></p><p>当然，求职者简历可能会造假，笔试和面试成绩也会有诸多偶然的因素，为了平衡风险，企业给的这个offer通常会有一定时长的试用期，只有通过试用期的考核后，他才能成为企业的正式员工。回到因子挖掘上，我们一般会把所有历史数据分为两部分，一部分作为样本内，另一部分则作为样本外。</p><p><br></p><p>比如把2008年1月1日到2017年1月1日这九年的数据作为样本内，2017年1月1日至今的数据作为样本外。我们在样本内挖掘因子，然后在样本外测试因子，换句话说，我们的量化研究员只能接触到样本内的数据，然后根据样本内的数据挖掘出来的因子要在样本内每一年都要有相对于指数的超额收益，然后才能进行到样本外的测试，只有样本外里的每一年仍然相对于指数有一定的超额收益，我们才认定这个因子为暂时合格的因子。</p><p><br></p><p>样本内的测试，就像是求职者的简历关一样，只有学历、专业、实习工作经历都匹配的面试者，才能进行下一轮的笔试和面试。当然，就算笔试面试都通过了也不行，还要有一段时间的试用期。同样的，就算是样本内和样本外都有超额收益的因子，只有再观察一段时间，比如用小额资金实盘跟踪，仍有超额收益后，这个因子才会被正式加入我们的投资组合。</p><p><br></p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.29185867895545314" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuuCLhSlo3LrKUtV9ia8Px6NxOGIYa3Gu1qXpD7nX9XdpTEN1ZUk2icrVg/640?wx_fmt=png" data-type="png" data-w="1302" style=""></p><p><br></p><p> </p><p>这时有读者又会问了，那挖掘因子时具体有哪些评判标准来判断一个因子的好坏呢，判断简历的好坏可以从学历、专业、实习等角度评判，那因子呢？</p><p> </p><p>首先，我们每个人来到这个市场，都是为了来赚钱的，机构更是如此，所以一个好的因子，首先年化的超额收益要高，越高越好。</p><p><br></p><p>当然，散户如果亏个20%还能扛过去，机构如果有个20%的回撤恐怕就要面临巨额的赎回压力，还想不想干了？所以，在保证超额收益尽可能高的同时，最大回撤要小，越小越好。综合一个指标，可以说夏普比率要越高越好。</p><p><br></p><p>除了收益和回撤，还有一个很重要的指标就是换手率了。各位如果还记得我上篇文章里的内容的话，一定会记得我对高频交易的相关描述，高频交易换手率极高，收益也很稳定，但是有个最大的缺陷就是资金容量小。对于小千万的资金，可能我们能把换手率提高一些，这样收益会更高，回撤还更低，美滋滋的。</p><p><br></p><p>但是对于大额资金，换手越高，对股票的冲击成本就越高，手续费也会更高，带来的超额收益很难覆盖冲击成本和手续费，所以最好要把换手率控制在一定的范围内，管理规模越大，换手率大概率会越低。</p><p><br></p><p>举个极端的例子，假设只有100万的资金，最完美的量化策略，可以每天买一个涨停股，这样收益飞上天，根本没回撤，每天换手率100%。但是假设你有10个亿的资金，这种换手率还行吗？也许你买哪只股票，哪只股票就涨停了，卖哪只股票，哪只股票就跌停了，这种就是典型的炒股炒成股东了哈哈。</p><p><br></p><p>所以这也是某些小的对冲基金在规模小的时候，实盘净值曲线逆天，一募集到更多资金后，就泯然众人的原因之一了，他们没有实力开发出更好的低换手的策略。当然评价一个因子的好坏还有很多其他的指标，比如因子的胜率、因子多头收益占比等，各个对冲基金仁者见仁智者见智。</p><p> </p><p>一不小心说了这么多，这次就先到这哈哈。下一篇文章我将会继续举例一些常见的因子，之后再说说如何组合因子，这样就离我们开发出一个高收益低回撤的量化策略越来越近了哈哈~</p><p> </p><p>那我们下一篇文章再见~</p><p> </p><hr style="border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);"><p><br></p><p>量化专栏历史文章：</p><p><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488352&amp;idx=2&amp;sn=e9a29f359890cb894bceebe5068731bf&amp;chksm=fb36b2e5cc413bf3d2ac07aa64361e592cdea1f7e24d8902e4b989e6ab0086fb14f4bbab7546&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">从《流浪地球》的豆瓣评分到量化多因子选股</a><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488352&amp;idx=3&amp;sn=3eb1e6e4ed680de25ba570c0748f9d3e&amp;chksm=fb36b2e5cc413bf3fdbc75c1727e168bde31109696eab0cf17072ddced2c321a73c324a0e4e3&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">量化投资让你开心吗？</a><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488366&amp;idx=2&amp;sn=3d7b0c0dee9e7352acc5f2ad795c4517&amp;chksm=fb36b2ebcc413bfd5b976d704a67f8d7405b18a48cad523a1dcc06b34734199d33e8e13efbfe&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">量化投资能赚钱吗？能赚多少钱？</a><br></p><p><br></p>
+                </div>
+                <script nonce="2105906537" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+                <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display:none;"></div>
+
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">量化小王子</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">阅读 <span id="readNum3"></span></div>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          <span id="js_like_wording"> 在看</span><span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+    <div id="js_like_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已同步到看一看</strong></div>
+        <div class="weui-dialog__bd">
+          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png">
+            你的朋友会在“发现-看一看”看到你点击“在看”的内容        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">发送</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    <div id="js_unlike_educate" style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+        
+        <div class="weui-dialog__bd">
+            已取消，想法已同步删除        </div>
+        <div class="weui-dialog__ft">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_unlike_know">知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+
+<div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+  <div class="like_comment_inner">
+    <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+    <div class="like_comment_bd">
+      <div class="tips_global_primary like_comment_tips">
+        <i class="weui-icon-success"></i>已同步到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">写下你的想法</a>
+      </div>
+    </div>
+    <div class="like_comment_ft">
+      <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+      <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+    </div>
+  </div>
+</div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          写下你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 发布到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="写下你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+<div id="js_loading" style=" display: none;">
+    <div class="weui-mask_transparent"></div>
+    <div class="weui-toast">
+        <i class="weui-loading weui-icon_toast"></i>
+        <p class="weui-toast__content">发送中</p>
+    </div>
+</div>
+
+<div id="js_fail" style="display:none">
+    <div class="weui-mask"></div>
+    <div class="weui-dialog">
+    <div class="weui-dialog__bd">
+        网络异常，请稍后重试    </div>
+    <div class="weui-dialog__ft">
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_fail_inform">知道了</a>
+    </div>
+    </div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+                            <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                            
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
