@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/</link>
 <description>编程、读书、学习、境界提升</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 05 Apr 2019 21:12:34 +0800</lastBuildDate>
+<lastBuildDate>Sun, 07 Apr 2019 13:11:12 +0800</lastBuildDate>
+<item>
+<title>Linkerd v2: 从产品中吸取了什么了教训导致重写了服务网格？</title>
+<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2019-04-07-61617593.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/61617593&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-65fe0fa8569438378516307a3bbdfee8_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;blockquote&gt;原文： &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.infoq.com/articles/linkerd-v2-production-adoption&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://www.&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;infoq.com/articles/link&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;erd-v2-production-adoption&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt; &lt;br/&gt;注： 本文不是翻译，只是重点信息摘要&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;Linkerd的服务之前是Scala写的，并且受到了Twitter在Finagle RFC系统上工作的启发。但是Linkerd 2却用Go（Control Plane）和Rust（Data Plane）进行了重写。&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;（这让我想到Twitter曾经宣布用Scala/Java替换Ruby的新闻，感受到了时代的车轮在转动。本文作者是Buoyant的CEO和联合创始人。在加入Buoyant之前，他是Twitter的基础架构工程师，就是他帮助将Twitter从一个失败的单片Ruby on Rails应用程序迁移到基于Scala的高度分布式，容错的微服务架构）&lt;/blockquote&gt;&lt;p&gt;&lt;br/&gt;Buoyant团队对底层的Rust网络堆栈进行了深入的技术投资，并将UX重新定位于简单性，易用性和低认知开销上。结果显着更快，更轻，更简单。&lt;br/&gt;自Linkerd 2.0发布至今已有六个多月，该团队认为重写已经带来了好处，许多以前无法采用1.x分支的用户现在乐于采用2.x。&lt;/p&gt;&lt;h3&gt;&lt;br/&gt;&lt;b&gt;Linkerd团队从1.0产品中吸取了什么教训？&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;尽管Linkerd取得了成功，但许多组织不愿意将Linkerd部署到生产中，或者愿意为了这样做而不得不进行重大投资。这种摩擦是由下面几个因素引起的。&lt;/p&gt;&lt;ul&gt;&lt;li&gt;有些组织不愿意将JVM引入其运营环境。 JVM具有特别复杂的操作表面，一些操作团队无论是对还是错，都避免将任何基于JVM的软件引入其技术栈 - 特别是像Linkerd这样扮演关键任务的角色。&lt;/li&gt;&lt;li&gt;其他组织不愿意分配Linkerd所需的系统资源。一般来说，Linkerd 1.x非常擅长扩展 - 如果有足够的内存和CPU，单个实例每秒可以处理数万个请求 - 但它不擅长缩减：很难获得内存单个实例的占用空间低于150 MB的RSS。 Scala，Netty和Finagle使问题变得更糟，因为它们都旨在最大限度地提高资源丰富环境中的吞吐量，即以牺牲内存为代价。&lt;/li&gt;&lt;li&gt;由于组织可能部署数百或数千个链接器代理，因此这种占用空间非常重要。作为替代方案，我们建议用户为每个主机而不是每个进程部署Data Plane，从而允许用户更好地分摊资源消耗。但是，这增加了操作的复杂性，并限制了Linkerd提供某些功能（如每服务TLS证书）的能力。&lt;/li&gt;&lt;li&gt;存在复杂性问题。 Finagle是一个具有大型功能集的丰富库，通过配置文件或多或少直接向用户公开了许多这些功能。因此，Linkerd 1.x可定制且灵活，但学习曲线陡峭。特别是一个设计错误是使用委托表（dtabs），一种由Finagle使用的回溯，分层，后缀保留的路由语言，作为基本配置原语。任何试图自定义Linkerd行为的用户都会很快遇到dtabs，并且必须投入很大精力。&lt;/li&gt;&lt;/ul&gt;&lt;blockquote&gt;（更新的JVM显着改善了这些数字。在IBM的OpenJ9下，Linkerd 1.x的资源占用和尾部延迟大大减少，而Oracle的GraalVM承诺会进一步降低它。小声嘀咕：但这也改变不了第一条）&lt;/blockquote&gt;&lt;h3&gt;&lt;b&gt;船新的开始&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;痛定思痛之后，Linkerd开始改变。定了几个目标：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;目标1:&lt;b&gt; 最低资源配置&lt;/b&gt;。Linkerd 1.x中，控制层和数据层都是基于JVM实现的，但实际上这两件产品是完全不同的。控制层对性能和资源的要求比较宽松，而数据层对性能和资源的要求非常严格，而且必须安全。所以2.x就采用Go语言来写控制层，Rust来写数据层。但是为什么控制层也不用JVM呢？Go比JVM更轻量，而且在K8S生态中有很多现成的库。数据层最初他们也考虑过Cpp，但从一开始他们就知道Rust是最符合他们要求的语言，并且团队的Scala工程师也非常喜欢Rust语言。但在2017年，Rust生态有一个非常大的缺点，就是确实网络库的支持，他们对Rust的网络库也投资了大量精力。（我想这就是他们赞组tokio作者的原因，后来出了tower库）&lt;/li&gt;&lt;li&gt;目标2: &lt;b&gt;正常工作&lt;/b&gt;。&lt;/li&gt;&lt;li&gt;目标3: &lt;b&gt;简单&lt;/b&gt;。&lt;/li&gt;&lt;/ol&gt;&lt;h3&gt;&lt;b&gt;小结：&lt;/b&gt;&lt;/h3&gt;&lt;p&gt;最后在2018年9月他们推出了Linkerd2.0，六个月后，也就是2019年3月了，这种改变已经产生了回报，之前很多不愿意使用1.x的用户都接受了2.x。&lt;/p&gt;&lt;p&gt;他们对Rust的选择引起了人们的极大兴趣。他们也承认，这是一种赌博，之前发布的早期产品叫「Conduit」，原因是害怕“玷污”了Linkerd的品牌（233......），现在证明赌博是赌对了。&lt;/p&gt;&lt;p&gt;从2017年开始，Linkerd团队对Rust网络库（Tokio、Tower和Hyper）进行了大量的投入（对Rust生态贡献很大）。&lt;/p&gt;</description>
+<author>张汉东</author>
+<guid isPermaLink="false">2019-04-07-61617593</guid>
+<pubDate>Sun, 07 Apr 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>故事：Rust在企业领域的应用</title>
 <link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2019-04-04-61410107.html</link>
@@ -137,15 +146,6 @@ Rust    1.8 Super naive
 <author>张汉东</author>
 <guid isPermaLink="false">2019-02-23-57478131</guid>
 <pubDate>Sat, 23 Feb 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>「可视化」Rust语言编译器十年变迁</title>
-<link>https://henix.github.io/feeds/zhuanlan.time-and-spirit-hut/2019-02-18-57026696.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/57026696&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-db4a201d40bb62ed4790c2588cf260de_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;搬运自：&lt;a href=&quot;http://link.zhihu.com/?target=https%3A//vimeo.com/317852618&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;vimeo.com/317852618&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt; &lt;/p&gt;&lt;p&gt;该视频可视化制作软件： &lt;a href=&quot;http://link.zhihu.com/?target=https%3A//gource.io/&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;gource.io/&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;a class=&quot;video-box&quot; href=&quot;http://link.zhihu.com/?target=https%3A//www.zhihu.com/video/1080858879344250880&quot; target=&quot;_blank&quot; data-video-id=&quot;&quot; data-video-playable=&quot;true&quot; data-name=&quot;Rust语言编译器十年变迁&quot; data-poster=&quot;https://pic4.zhimg.com/v2-480c78a4b47564aa2114548882487ef3.jpg&quot; data-lens-id=&quot;1080858879344250880&quot;&gt;              &lt;img class=&quot;thumbnail&quot; src=&quot;https://pic4.zhimg.com/v2-480c78a4b47564aa2114548882487ef3.jpg&quot;&gt;              &lt;span class=&quot;content&quot;&gt;                &lt;span class=&quot;title&quot;&gt;Rust语言编译器十年变迁&lt;span class=&quot;z-ico-extern-gray&quot;&gt;&lt;/span&gt;&lt;span class=&quot;z-ico-extern-blue&quot;&gt;&lt;/span&gt;&lt;/span&gt;                &lt;span class=&quot;url&quot;&gt;&lt;span class=&quot;z-ico-video&quot;&gt;&lt;/span&gt;https://www.zhihu.com/video/1080858879344250880&lt;/span&gt;              &lt;/span&gt;            &lt;/a&gt;            &lt;p&gt;&lt;/p&gt;</description>
-<author>张汉东</author>
-<guid isPermaLink="false">2019-02-18-57026696</guid>
-<pubDate>Mon, 18 Feb 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
