@@ -15,6 +15,7 @@ const feeds = [
 		"factor-investing",
 		"c_152990241",
 		"Chihiro-Research",
+		"tvp_fund",
 		"SimpleNotEasyInvest",
 		"DreamyTalks",
 		"TokyoTradingFloor",
