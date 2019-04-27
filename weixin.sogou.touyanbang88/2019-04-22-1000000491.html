@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>精华—量化多因子选股模型（一）</title>
+<title>A股进入精分态</title>
 </head>
 <body>
-<p><a href="https://mp.weixin.qq.com/s?timestamp=1556381307&amp;src=3&amp;ver=1&amp;signature=1I8izPV4LulnWK*WGCqIeCSorQcdD0UfXPB0zKIAUBlvutzT6JL2allaZikIMTXf-YAPjElsKT-3UVdWdb7o6dV9vjSFGeWHUchODLFV6e9f2xnfinF4kXGtcafWj*Ie8ZIQk9mMVN1H4rgm1DfWPZG3JdBSPJNCmFTtmbfzgK4=">原文</a></p>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1556381307&amp;src=3&amp;ver=1&amp;signature=1I8izPV4LulnWK*WGCqIeCSorQcdD0UfXPB0zKIAUBlvutzT6JL2allaZikIMTXf-YAPjElsKT-3UVdWdb7o6ROfn6dqxXK4Fd0*9BI4QbZe40RaHXJB7o29NXc9JcAfEj*-kouDRqtMqvO5*QMjdyPA6S7mUKHKK1tpEMA4DbE=">原文</a></p>
 <div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
 
         
@@ -21,13 +21,13 @@
                 <h2 class="rich_media_title" id="activity-name">
                     
                     
-                    精华—量化多因子选股模型（一）
+                    A股进入精分态
 
                                                                                 </h2>
                 <div id="meta_content" class="rich_media_meta_list">
                                                             <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
                                                             <span class="rich_media_meta rich_media_meta_text">
-                                                量化小王子
+                                                王了了
                                             </span>
                                         
                                         <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
@@ -79,9 +79,9 @@
 
                     
                     
-                    <p>Hello，各位读者好鸭~<br></p><p><br></p><p>今天和大家聊聊股票量化中运用最广的一个模型：多因子模型。</p><p><br></p><p>既然是多因子模型，首先我们必须要从股票的众多历史数据中挖掘出一些合适的因子。最基础的数据当然是股票的量价数据和基本面数据啦。</p><p><br></p><p>量价数据有低频也有高频，比如股票某日成交的最高价、开盘价、最低价、收盘价，成交量、成交额等即为日级别的低频量价数据；每天交易时间为4个小时，即240分钟，将240分钟分为48个5分钟（48*5=240）,比如9:30-9:35为第一个5分钟，9:35-9:40为第二个5分钟，每隔5分钟统计一次那5分钟内股票的高开低收、成交额、成交量等量价数据，则为日内的5分钟高频量价数据；当然每三分钟统计一次即为日内3分钟的高频量价数据。</p><p><br></p><p>随着量化行业竞争越来越激烈，有实力的公司使用的数据越来越高频，比如日内3秒的高频量价数据；甚至直接使用Tick级别的高频数据（股票逐笔分笔成交的Level2数据）。</p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.5288135593220339" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuesbtR1kRdFrGZdBCmnq72oaBzwtibVqud8jbcYicDFHqFUVZfI8mEoLA/640?wx_fmt=png" data-type="png" data-w="1770" style=""></p><p><br></p><p>基本面数据比较好理解，大致就是股票的季报和年报里反应公司基本发展的一些数据，比如公司的营业收入、基本每股收益、归母净利润等。</p><p><br></p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.5034013605442177" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuoWdBAr8lwylzdygxTY8YnZldapHibiaIRpSfOicjAA9C25oTDHLHpC0wA/640?wx_fmt=png" data-type="png" data-w="588" style=""></p><p><br></p><p><br></p><p>除了量价数据和基本面数据，一般的对冲基金还会用到朝阳永续的一致预期数据，即基于各券商分析师对各上市公司盈利预期整合出来的数据库，这个数据库其实还挺丰富，涉及到各公司的业绩预期、估值指标、研究员评价等。</p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.370398773006135" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNu9DmQ1fyooqe4zrBQjBiamrS7DQiayK7cqJP4tm0Dhibdhw4hHzoe50rgw/640?wx_fmt=png" data-type="png" data-w="1304" style=""></p><p><br></p><p><br></p><p><br></p><p>更有钱的对冲基金还会买入一些更多维的数据，比如互联网相关的数据：百度的搜索数据、东方财富股吧的数据、京东的数据等。</p><p> </p><p>话说这些数据其实很贵，一般小型的对冲基金仅用在买入基本数据上的花费至少也要大几十万，像业内头部的量化私募每年仅购买数据的预算就数百万。所以一般量化对冲基金的管理规模生死线大概在5个亿，否则如果某年业绩不佳，则大概率会亏本（假设管理规模为5亿，管理费一般为1%，则管理费为500万，这500万买买数据，付付房租，发发工资也就所剩无几了）。</p><p><br></p><p>在知道有哪些可以挖掘的数据后，那我们怎么判断一个因子是否适合于我们的模型呢，换句话说，什么样的因子才是一个好因子？这让我联想到了如今企业招聘人才的流程。企业会根据求职者的简历匹配程度、笔试成绩、面试成绩等因素决定是否发放offer。</p><p><br></p><p>当然，求职者简历可能会造假，笔试和面试成绩也会有诸多偶然的因素，为了平衡风险，企业给的这个offer通常会有一定时长的试用期，只有通过试用期的考核后，他才能成为企业的正式员工。回到因子挖掘上，我们一般会把所有历史数据分为两部分，一部分作为样本内，另一部分则作为样本外。</p><p><br></p><p>比如把2008年1月1日到2017年1月1日这九年的数据作为样本内，2017年1月1日至今的数据作为样本外。我们在样本内挖掘因子，然后在样本外测试因子，换句话说，我们的量化研究员只能接触到样本内的数据，然后根据样本内的数据挖掘出来的因子要在样本内每一年都要有相对于指数的超额收益，然后才能进行到样本外的测试，只有样本外里的每一年仍然相对于指数有一定的超额收益，我们才认定这个因子为暂时合格的因子。</p><p><br></p><p>样本内的测试，就像是求职者的简历关一样，只有学历、专业、实习工作经历都匹配的面试者，才能进行下一轮的笔试和面试。当然，就算笔试面试都通过了也不行，还要有一段时间的试用期。同样的，就算是样本内和样本外都有超额收益的因子，只有再观察一段时间，比如用小额资金实盘跟踪，仍有超额收益后，这个因子才会被正式加入我们的投资组合。</p><p><br></p><p><br></p><p style="text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.29185867895545314" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlOZgEQ9ouTk61DicnAGzsUNuuCLhSlo3LrKUtV9ia8Px6NxOGIYa3Gu1qXpD7nX9XdpTEN1ZUk2icrVg/640?wx_fmt=png" data-type="png" data-w="1302" style=""></p><p><br></p><p> </p><p>这时有读者又会问了，那挖掘因子时具体有哪些评判标准来判断一个因子的好坏呢，判断简历的好坏可以从学历、专业、实习等角度评判，那因子呢？</p><p> </p><p>首先，我们每个人来到这个市场，都是为了来赚钱的，机构更是如此，所以一个好的因子，首先年化的超额收益要高，越高越好。</p><p><br></p><p>当然，散户如果亏个20%还能扛过去，机构如果有个20%的回撤恐怕就要面临巨额的赎回压力，还想不想干了？所以，在保证超额收益尽可能高的同时，最大回撤要小，越小越好。综合一个指标，可以说夏普比率要越高越好。</p><p><br></p><p>除了收益和回撤，还有一个很重要的指标就是换手率了。各位如果还记得我上篇文章里的内容的话，一定会记得我对高频交易的相关描述，高频交易换手率极高，收益也很稳定，但是有个最大的缺陷就是资金容量小。对于小千万的资金，可能我们能把换手率提高一些，这样收益会更高，回撤还更低，美滋滋的。</p><p><br></p><p>但是对于大额资金，换手越高，对股票的冲击成本就越高，手续费也会更高，带来的超额收益很难覆盖冲击成本和手续费，所以最好要把换手率控制在一定的范围内，管理规模越大，换手率大概率会越低。</p><p><br></p><p>举个极端的例子，假设只有100万的资金，最完美的量化策略，可以每天买一个涨停股，这样收益飞上天，根本没回撤，每天换手率100%。但是假设你有10个亿的资金，这种换手率还行吗？也许你买哪只股票，哪只股票就涨停了，卖哪只股票，哪只股票就跌停了，这种就是典型的炒股炒成股东了哈哈。</p><p><br></p><p>所以这也是某些小的对冲基金在规模小的时候，实盘净值曲线逆天，一募集到更多资金后，就泯然众人的原因之一了，他们没有实力开发出更好的低换手的策略。当然评价一个因子的好坏还有很多其他的指标，比如因子的胜率、因子多头收益占比等，各个对冲基金仁者见仁智者见智。</p><p> </p><p>一不小心说了这么多，这次就先到这哈哈。下一篇文章我将会继续举例一些常见的因子，之后再说说如何组合因子，这样就离我们开发出一个高收益低回撤的量化策略越来越近了哈哈~</p><p> </p><p>那我们下一篇文章再见~</p><p> </p><hr style="border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);"><p><br></p><p>量化专栏历史文章：</p><p><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488352&amp;idx=2&amp;sn=e9a29f359890cb894bceebe5068731bf&amp;chksm=fb36b2e5cc413bf3d2ac07aa64361e592cdea1f7e24d8902e4b989e6ab0086fb14f4bbab7546&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">从《流浪地球》的豆瓣评分到量化多因子选股</a><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488352&amp;idx=3&amp;sn=3eb1e6e4ed680de25ba570c0748f9d3e&amp;chksm=fb36b2e5cc413bf3fdbc75c1727e168bde31109696eab0cf17072ddced2c321a73c324a0e4e3&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">量化投资让你开心吗？</a><br></p><p><a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488366&amp;idx=2&amp;sn=3d7b0c0dee9e7352acc5f2ad795c4517&amp;chksm=fb36b2ebcc413bfd5b976d704a67f8d7405b18a48cad523a1dcc06b34734199d33e8e13efbfe&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">量化投资能赚钱吗？能赚多少钱？</a><br></p><p><br></p>
+                    <p>要是有个人今天跟你勾肩搭背，明天就往死里骂你，你会把他归类为精神分裂者。A股目前就是这么一种状态，我叫他精分态。</p><p><br></p><p>这个名字不重要，但再这么下去你的内心就被折磨成肉馅了。所以股市里勇于割肉的人没什么，但上涨之后面对锯齿波动还能抗住不卖的人应该是一种可遇不可求的旷世奇才。<br></p><p><br></p><p>造成这种精分的理由也很精分。市场多空两股力量，一边认为经济在起底，一切都是好兆头，买。另一边认为预期的利好已经兑现的差不多，小冰河期过去之后央妈没有放水的动力了，卖。<br></p><p><br></p><p>举个简单的例子。上周发布的3月社融数据，大幅超预期。媒体已经不知道怎么形容比天更高的东西了，只能用“炸裂”来形容。</p><p style="white-space: normal;"><br></p><p style="white-space: normal;">我给你看一下，从走势上看这个“炸裂”长啥样：</p><p style="white-space: normal;"><br></p><p style="white-space: normal;text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.5764222069910898" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlPm33AahLSbzedQicgW9ABMiciaDI7d8PicTFTz9tF79nOibV7fPQHH4MI8SVnnxqn30pITshThGD3xuibg/640?wx_fmt=png" data-type="png" data-w="1459"></p><p><br></p><p><br></p><p>本来是件大好事，但市场偏偏是个“无远虑必有近忧”的人，用了广角镜头看了一眼全貌，发现“炸裂”社融数据在镜头拉远后是这样的：</p><p style="white-space: normal;"><br></p><p style="white-space: normal;text-align: center;"><img class="rich_pages" data-copyright="0" data-ratio="0.5546772068511199" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/sDlyOwOgQlPm33AahLSbzedQicgW9ABMic5Kyl9zx6fcwibkKyCRXDvw3VwIF1Owzr24Hjp4icVcOL2jnGnDF7jZhA/640?wx_fmt=png" data-type="png" data-w="1518"></p><p><br></p><p><br></p><p>没错就还在最低谷。就这还是去年最惨的时候放水的结果，现在不惨了水也就不放了，那后面可就没有增量了啊！</p><p><br></p><p>尤其现在通胀开始抬头了，3月份CPI从1.5%跳涨到2.3%，大幅降低了放水预期，传说中的降准也了无音讯了。<br></p><p><br></p><p>于是看空的一方开始发酵。</p><p><br></p><p>这就是目前A股的精分态，在下一件大事发生前还会继续。下一件大事就是那个靴子落地。</p><p><br></p><p>不过话说回来，你不觉得现在这种走势如果能持续一年，我们就实现了梦想中的长慢牛吗？</p><p><br></p><p>红红火火恍恍惚惚，梦想还是要有的。</p><p><br></p><p style="text-align: center;">---------<br></p><p><br></p><p><br></p><p>昨天的一件大事是政策调整了股指期货的规则，相当于是放宽了一些。有人说这事对A股没有任何影响。我觉得也不尽然。</p><p><br></p><p>我们知道股指期货是另一个赌场的另一套赌具，只是赌的标的是A股而已。就好像骰子下一次多少点，跟你押的大小没有关系。<br></p><p><br></p><p>但是话说回来，在金融市场上期指是很重要的对冲工具，如果我在A股上持有一篮子股票，这时我预计可能发生短期系统性风险，风险过了我依然希望持有这篮子股票。<br></p><p><br></p><p>那这时我可以选择做空股指期货来对冲风险，也可以选择减仓。如果我打算长期持有股票，暂时用期指对冲显然是更好的做法，毕竟股票在低位买的，卖了还能不能以那么好的价格收上来谁也不知道。<br></p><p><br></p><p>所以，期指作为对冲工具，在市场上的作用应该是良性的，它能让投资者的股票持仓拿得更稳，不会涨一点就怕回调而卖掉。</p><p><br></p><p>还有就是，有了对冲，更多原本不敢进A股的资金也许会更愿意进来。这也是好的作用。</p><p><br></p><p>股指期货在金融市场上一定有它的用处，否则不会一直存在。但它就像刀子，切菜的和砍人的都是刀子，关键看你怎么用，刀本身并无善恶。<br></p><p><br></p><p style="text-align: center;">-----------</p><p><br></p><p><br></p><p>还记得上次提过的<a href="http://mp.weixin.qq.com/s?__biz=MzU0MDUyMjczMA==&amp;mid=2247488444&amp;idx=1&amp;sn=e8fbcd23f2e860bf645482976116581f&amp;chksm=fb36b239cc413b2fe1c5f1985c8200dc95488db5a320f02913b221733524dd0a96b02318bd25&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">6只战略配售基金吗</a>？<br></p><p><br></p><p>最近这些货在手里都是债的情况下（债在跌），竟然还各个都涨了，而且有的已经溢价。市场对科创板打新的热切盼望已经充分体现在这个溢价里边了。<br></p><p><br></p><p>接下来就不是套利的问题了，已经变成博弈了。科创板战略配售到底会有多少肉，值不值当前的溢价，这是我们需要考虑的。如果你从折价的时候就持有上来，倒不着急卖，毕竟持仓还都是债，波动没那么大。</p><p><br></p><hr style="border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);"><p><br></p><p><br></p><p>今天在亲友团里发了一篇研报，给大家详细解释了一下保险行业，这个未来在中国有巨大增长空间的行业，到底是个什么样子？（长按下图二维码加入亲友团）</p><p><br></p><p><br></p><p><br></p><p style="white-space: normal;text-align: center;"><strong style="max-width: 100%;color: rgb(255, 104, 39);font-size: 18px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;">长按识别二维码加入亲友团</strong></p><p style="white-space: normal;text-align: left;"><img class="" data-copyright="0" data-ratio="0.5620525059665871" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_jpg/sDlyOwOgQlNIsIZUtFnLoxsJibMvMiapH2UxFrZTtKVXfWQYPib44jfLQoRfKjX7icZg1hCMx5aoWtuibiaRowz5zmNw/640?wx_fmt=jpeg" data-type="jpeg" data-w="838" style="text-align: center;"></p>
                 </div>
-                <script nonce="2105906537" type="text/javascript">
+                <script nonce="766719936" type="text/javascript">
                     var first_sceen__time = (+new Date());
 
                     if ("" == 1 && document.getElementById('js_content')) {
@@ -95,7 +95,7 @@
                             var head = document.getElementsByTagName('head')[0];
                             link.rel = 'stylesheet';
                             link.type = 'text/css';
-                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx435ee6.css";
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx4516f8.css";
                             head.appendChild(link);
                         }
                     })();
@@ -115,7 +115,7 @@
                         <img src="" alt="" id="js_preview_reward_author_head">
                     </div>
                     
-                                        <div class="reward-author" id="js_preview_reward_author_name">量化小王子</div>
+                                        <div class="reward-author" id="js_preview_reward_author_name">王了了</div>
                                         <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
                     <p>
                         <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
@@ -158,13 +158,13 @@
         </button>
     </span>
 
-    <div id="js_like_educate" style="display:none">
+
+    <div style="display:none">
         <div class="weui-mask"></div>
         <div class="weui-dialog weui-dialog_haokan">
         <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已同步到看一看</strong></div>
         <div class="weui-dialog__bd">
-          <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan42f400.png">
-            你的朋友会在“发现-看一看”看到你点击“在看”的内容        </div>
+        </div>
         <div class="weui-dialog__ft" id="educate_btn" style="display: none">
           <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
           <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">发送</a>
@@ -190,6 +190,21 @@
     
     </div>
 
+<div style="display: none;" id="js_like_educate" class="like_skin_primary like_comment_primary_pop">
+  <div id="js_like_educate_wrapper" class="like_comment_primary_wrp like_comment_primary_pos_top">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友会在“发现-看一看”看到你“在看”的内容        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png">
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_3"></div>
+</div>
 
 <div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
   <div class="like_comment_inner">
