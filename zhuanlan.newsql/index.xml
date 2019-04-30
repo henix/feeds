@@ -5,7 +5,276 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sat, 27 Apr 2019 19:06:48 +0800</lastBuildDate>
+<lastBuildDate>Tue, 30 Apr 2019 17:18:12 +0800</lastBuildDate>
+<item>
+<title>Golang Failpoint 的设计与实现</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-04-30-64340817.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/64340817&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-bafeeae88945a35b3a137c3013b39afc_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：龙恒&lt;/p&gt;&lt;p&gt;对于一个大型复杂的系统来说，通常包含多个模块或多个组件构成，模拟各个子系统的故障是测试中必不可少的环节，并且这些故障模拟必须做到无侵入地集成到自动化测试系统中，通过在自动化测试中自动激活这些故障点来模拟故障，并观测最终结果是否符合预期结果来判断系统的正确性和稳定性。如果在一个分布式系统中需要专门请一位同事来插拔网线来模拟网络异常，一个存储系统中需要通过破坏硬盘来模拟磁盘损坏，昂贵的测试成本会让测试成为一场灾难，并且难以模拟一些需要精细化控制的的测试。所以我们需要一些自动化的方式来进行确定性的故障测试。&lt;/p&gt;&lt;p&gt;&lt;b&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/failpoint&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Failpoint 项目&lt;/a&gt;&lt;/b&gt; &lt;b&gt;就是为此而生，它是 FreeBSD&lt;/b&gt; &lt;b&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;failpoints&lt;/a&gt;&lt;/b&gt; &lt;b&gt;的 Golang 实现，允许在代码中注入错误或异常行为， 并由环境变量或代码动态激活来触发这些异常行为。Failpoint 能用于各种复杂系统中模拟错误处理来提高系统的容错性、正确性和稳定性，比如：&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;微服务中某个服务出现随机延迟、某个服务不可用。&lt;/li&gt;&lt;li&gt;存储系统磁盘 IO 延迟增加、IO 吞吐量过低、落盘时间长。&lt;/li&gt;&lt;li&gt;调度系统中出现热点，某个调度指令失败。&lt;/li&gt;&lt;li&gt;充值系统中模拟第三方重复请求充值成功回调接口。&lt;/li&gt;&lt;li&gt;游戏开发中模拟玩家网络不稳定、掉帧、延迟过大等，以及各种异常输入（外挂请求）情况下系统是否正确工作。&lt;/li&gt;&lt;li&gt;……&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;为什么要重复造轮子？&lt;/h2&gt;&lt;p&gt;Etcd 团队在 2016 年开发了 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/etcd-io/gofail/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;gofail&lt;/a&gt; 极大地简化了错误注入，为 Golang 生态做出了巨大贡献。我们在 2018 年已经引入了 gofail 进行错误注入测试，但是我们在使用中发现了一些功能性以及便利性的问题，所以我们决定造一个更好的「轮子」。&lt;/p&gt;&lt;h3&gt;如何使用 gofail&lt;/h3&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;使用注释在程序中注入一个 failpoint：
+// gofail: var FailIfImportedChunk int
+// if merger, ok := scp.merger.(*ChunkCheckpointMerger); ok &amp;amp;&amp;amp; merger.Checksum.SumKVS() &amp;gt;= uint64(FailIfImportedChunk) {
+// rc.checkpointsWg.Done()
+// rc.checkpointsWg.Wait()
+// panic(&amp;#34;forcing failure due to FailIfImportedChunk&amp;#34;)
+// }
+// goto RETURN1
+    
+// gofail: RETURN1:
+    
+// gofail: var FailIfStatusBecomes int
+// if merger, ok := scp.merger.(*StatusCheckpointMerger); ok &amp;amp;&amp;amp; merger.EngineID &amp;gt;= 0 &amp;amp;&amp;amp; int(merger.Status) == FailIfStatusBecomes {
+// rc.checkpointsWg.Done()
+// rc.checkpointsWg.Wait()
+// panic(&amp;#34;forcing failure due to FailIfStatusBecomes&amp;#34;)
+// }
+// goto RETURN2
+    
+// gofail: RETURN2:&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;使用 gofail enable 转换后的代码：&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if vFailIfImportedChunk, __fpErr := __fp_FailIfImportedChunk.Acquire(); __fpErr == nil { defer __fp_FailIfImportedChunk.Release(); FailIfImportedChunk, __fpTypeOK := vFailIfImportedChunk.(int); if !__fpTypeOK { goto __badTypeFailIfImportedChunk} 
+    if merger, ok := scp.merger.(*ChunkCheckpointMerger); ok &amp;amp;&amp;amp; merger.Checksum.SumKVS() &amp;gt;= uint64(FailIfImportedChunk) {
+        rc.checkpointsWg.Done()
+        rc.checkpointsWg.Wait()
+        panic(&amp;#34;forcing failure due to FailIfImportedChunk&amp;#34;)
+    }
+    goto RETURN1; __badTypeFailIfImportedChunk: __fp_FailIfImportedChunk.BadType(vFailIfImportedChunk, &amp;#34;int&amp;#34;); };
+    
+/* gofail-label */ RETURN1:
+    
+if vFailIfStatusBecomes, __fpErr := __fp_FailIfStatusBecomes.Acquire(); __fpErr == nil { defer __fp_FailIfStatusBecomes.Release(); FailIfStatusBecomes, __fpTypeOK := vFailIfStatusBecomes.(int); if !__fpTypeOK { goto __badTypeFailIfStatusBecomes} 
+    if merger, ok := scp.merger.(*StatusCheckpointMerger); ok &amp;amp;&amp;amp; merger.EngineID &amp;gt;= 0 &amp;amp;&amp;amp; int(merger.Status) == FailIfStatusBecomes {
+        rc.checkpointsWg.Done()
+        rc.checkpointsWg.Wait()
+        panic(&amp;#34;forcing failure due to FailIfStatusBecomes&amp;#34;)
+    }
+    goto RETURN2; __badTypeFailIfStatusBecomes: __fp_FailIfStatusBecomes.BadType(vFailIfStatusBecomes, &amp;#34;int&amp;#34;); };
+    
+/* gofail-label */ RETURN2:&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3&gt;gofail 使用中遇到的问题&lt;/h3&gt;&lt;ul&gt;&lt;li&gt;使用注释的方式在代码中注入 failpoint，代码容易出错，并且没有编译器检测。&lt;/li&gt;&lt;li&gt;只能全局生效，大型项目为了缩短自动化测试的时间会引入并行测试，不同并行任务之间会存在干扰。&lt;/li&gt;&lt;li&gt;需要写一些 hack 代码来避免一些不必要的错误日志，比如如上代码，必须要写 &lt;code&gt;// goto RETURN2&lt;/code&gt; 和 &lt;code&gt;// gofail: RETURN2:&lt;/code&gt;，并且中间必须添加一个空行，至于原因可以看 generated code 逻辑。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;我们要设计一个什么样子的 failpoint？&lt;/h2&gt;&lt;h3&gt;理想的 failpoint 实现应该是什么样子？&lt;/h3&gt;&lt;p&gt;理想中的 failpoint 应该是使用代码定义并且对业务逻辑无侵入，如果在一个支持宏的语言中 (比如 Rust)，我们可以定义一个 &lt;code&gt;fail_point&lt;/code&gt; 宏来定义 failpoint：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fail_point!(&amp;#34;transport_on_send_store&amp;#34;, |sid| if let Some(sid) = sid {
+    let sid: u64 = sid.parse().unwrap();
+    if sid == store_id {
+        self.raft_client.wl().addrs.remove(&amp;amp;store_id);
+    }
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;但是我们遇到了一些问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Golang 并不支持 macro 语言特性。&lt;/li&gt;&lt;li&gt;Golang 不支持编译器插件。&lt;/li&gt;&lt;li&gt;Golang tags 也不能提供一个比较优雅的实现 (&lt;code&gt;go build --tag=&amp;#34;enable-failpoint-a&amp;#34;&lt;/code&gt;)。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;Failpoint 设计准则&lt;/h3&gt;&lt;ul&gt;&lt;li&gt;使用 Golang 代码定义 failpoint，而不是注释或其他形式。&lt;/li&gt;&lt;li&gt;Failpoint 代码不应该有任何额外开销：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;不能影响正常功能逻辑，不能对功能代码有任何侵入。&lt;/li&gt;&lt;li&gt;注入 failpoint 代码之后不能导致性能回退。&lt;/li&gt;&lt;li&gt;Failpoint 代码最终不能出现在最终发行的二进制文件中。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Failpoint 代码必须是易读、易写并且能引入编译器检测。&lt;/li&gt;&lt;li&gt;最终生成的代码必须具有可读性。&lt;/li&gt;&lt;li&gt;生成代码中，功能逻辑代码的行号不能发生变化（便于调试）。&lt;/li&gt;&lt;li&gt;支持并行测试，可以通过 &lt;code&gt;context.Context&lt;/code&gt; 控制一个某个具体的 failpoint 是否激活。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;Golang 如何实现一个类似 failpoint 宏？&lt;/h3&gt;&lt;p&gt;宏的本质是什么？如果追本溯源，发现其实可以通过 AST 重写在 Golang 中实现满足以上条件的 failpoint，原理如下图所示：&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2260&quot; data-rawheight=&quot;1478&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2260&quot; data-original=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2260&quot; data-rawheight=&quot;1478&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2260&quot; data-original=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;对于任何一个 Golang 代码的源文件，可以通过解析出这个文件的语法树，遍历整个语法树，找出所有 failpoint 注入点，然后对语法树重写，转换成想要的逻辑。&lt;/p&gt;&lt;h2&gt;相关概念&lt;/h2&gt;&lt;h3&gt;Failpoint&lt;/h3&gt;&lt;p&gt;Failpoint 是一个代码片段，并且仅在对应的 failpoint name 激活的情况下才会执行，如果通过 &lt;code&gt;failpoint.Disable(&amp;#34;failpoint-name-for-demo&amp;#34;)&lt;/code&gt; 禁用后， 那么对应的的 failpoint 永远不会触发。所有 failpoiint 代码片段不会编译到最终的二进制文件中，比如我们模拟文件系统权限控制：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func saveTo(path string) error {
+    failpoint.Inject(&amp;#34;mock-permission-deny&amp;#34;, func() error {
+         // It&amp;#39;s OK to access outer scope variable
+         return fmt.Errorf(&amp;#34;mock permission deny: %s&amp;#34;, path)
+    })
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3&gt;Marker 函数&lt;/h3&gt;&lt;p&gt;AST 重写阶段标记需要被重写的部分，主要有以下功能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;提示 Rewriter 重写为一个相等的 IF 语句。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;标记函数的参数是重写过程中需要用到的参数。&lt;/li&gt;&lt;li&gt;标记函数是一个空函数，编译过程会被 inline，进一步被消除。&lt;/li&gt;&lt;li&gt;标记函数中注入的 failpoint 是一个闭包，如果闭包访问外部作用于变量，闭包语法允许捕获外部作用域变量，不会出现编译错误， 同时转换后的的代码是一个 IF 语句，IF 语句访问外部作用域变量不会产生任何问题，所以闭包捕获只是为了语法合法，最终不会有任何额外开销。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;简单、易读、易写。&lt;/li&gt;&lt;li&gt;引入编译器检测，如果 Marker 函数的参数不正确，程序不能通过编译的，进而保证转换后的代码正确性。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;目前支持的 Marker 函数列表：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;func Inject(fpname string&lt;/code&gt;, &lt;code&gt;fpblock func(val Value)) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func InjectContext(fpname string&lt;/code&gt;, &lt;code&gt;ctx context.Context&lt;/code&gt;, &lt;code&gt;fpblock func(val Value)) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Break(label ...string) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Goto(label string) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Continue(label ...string) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Fallthrough() {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Return(results ...interface{}) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Label(label string) {}&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;如何在你的程序中使用 failpoint 进行注入？&lt;/h2&gt;&lt;p&gt;&lt;b&gt;最简单的方式是使用&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Inject&lt;/code&gt;&lt;/b&gt; &lt;b&gt;在调用的地方注入一个 failpoint，最终&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Inject&lt;/code&gt;&lt;/b&gt; &lt;b&gt;调用会重写为一个 IF 语句， 其中&lt;/b&gt; &lt;b&gt;&lt;code&gt;mock-io-error&lt;/code&gt;&lt;/b&gt; &lt;b&gt;用来判断是否触发，&lt;code&gt;failpoint-closure&lt;/code&gt;&lt;/b&gt; &lt;b&gt;中的逻辑会在触发后执行。&lt;/b&gt; 比如我们在一个读取文件的函数中注入一个 IO 错误：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Inject(&amp;#34;mock-io-error&amp;#34;, func(val failpoint.Value) error {
+    return fmt.Errorf(&amp;#34;mock error: %v&amp;#34;, val.(string))
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最终转换后的代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if ok, val := failpoint.Eval(_curpkg_(&amp;#34;mock-io-error&amp;#34;)); ok {
+    return fmt.Errorf(&amp;#34;mock error: %v&amp;#34;, val.(string))
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;通过 &lt;code&gt;failpoint.Enable(&amp;#34;mock-io-error&amp;#34;, &amp;#34;return(&amp;#34;disk error&amp;#34;)&amp;#34;)&lt;/code&gt; 激活程序中的 failpoint，如果需要给 &lt;code&gt;failpoint.Value&lt;/code&gt; 赋一个自定义的值，则需要传入一个 failpoint expression，比如这里 &lt;code&gt;return(&amp;#34;disk error&amp;#34;)&lt;/code&gt;，更多语法可以参考 &lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;failpoint语法&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;闭包可以为&lt;/b&gt; &lt;b&gt;&lt;code&gt;nil&lt;/code&gt;&lt;/b&gt; &lt;b&gt;，比如&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Enable(&amp;#34;mock-delay&amp;#34;, &amp;#34;sleep(1000)&amp;#34;)&lt;/code&gt;，目的是在注入点休眠一秒，不需要执行额外的逻辑。&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Inject(&amp;#34;mock-delay&amp;#34;, nil)
+failpoint.Inject(&amp;#34;mock-delay&amp;#34;, func(){})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最终会产生以下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Eval(_curpkg_(&amp;#34;mock-delay&amp;#34;))
+failpoint.Eval(_curpkg_(&amp;#34;mock-delay&amp;#34;))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;如果我们只想在 failpoint 中执行一个 panic，不需要接收&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Value&lt;/code&gt;，则我们可以在闭包的参数中忽略这个值。&lt;/b&gt; 例如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Inject(&amp;#34;mock-panic&amp;#34;, func(_ failpoint.Value) error {
+    panic(&amp;#34;mock panic&amp;#34;)
+})
+// OR
+failpoint.Inject(&amp;#34;mock-panic&amp;#34;, func() error {
+    panic(&amp;#34;mock panic&amp;#34;)
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最佳实践是以下这样：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Enable(&amp;#34;mock-panic&amp;#34;, &amp;#34;panic&amp;#34;)
+failpoint.Inject(&amp;#34;mock-panic&amp;#34;, nil)
+// GENERATED CODE
+failpoint.Eval(_curpkg_(&amp;#34;mock-panic&amp;#34;))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;为了可以在并行测试中防止不同的测试任务之间的干扰，可以在&lt;/b&gt; &lt;b&gt;&lt;code&gt;context.Context&lt;/code&gt;&lt;/b&gt; &lt;b&gt;中包含一个回调函数，用于精细化控制 failpoint 的激活与关闭&lt;/b&gt; ：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.InjectContext(ctx, &amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+    fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;转换后的代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if ok, val := failpoint.EvalContext(ctx, _curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+    fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;使用&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.WithHook&lt;/code&gt;&lt;/b&gt; &lt;b&gt;的示例&lt;/b&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func (s *dmlSuite) TestCRUDParallel() {
+    sctx := failpoint.WithHook(context.Backgroud(), func(ctx context.Context, fpname string) bool {
+        return ctx.Value(fpname) != nil // Determine by ctx key
+    })
+    insertFailpoints = map[string]struct{} {
+        &amp;#34;insert-record-fp&amp;#34;: {},
+        &amp;#34;insert-index-fp&amp;#34;: {},
+        &amp;#34;on-duplicate-fp&amp;#34;: {},
+    }
+    ictx := failpoint.WithHook(context.Backgroud(), func(ctx context.Context, fpname string) bool {
+        _, found := insertFailpoints[fpname] // Only enables some failpoints.
+        return found
+    })
+    deleteFailpoints = map[string]struct{} {
+        &amp;#34;tikv-is-busy-fp&amp;#34;: {},
+        &amp;#34;fetch-tso-timeout&amp;#34;: {},
+    }
+    dctx := failpoint.WithHook(context.Backgroud(), func(ctx context.Context, fpname string) bool {
+        _, found := deleteFailpoints[fpname] // Only disables failpoints. 
+        return !found
+    })
+    // other DML parallel test cases.
+    s.RunParallel(buildSelectTests(sctx))
+    s.RunParallel(buildInsertTests(ictx))
+    s.RunParallel(buildDeleteTests(dctx))
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;如果我们在循环中使用 failpoint，可能我们会使用到其他的 Marker 函数&lt;/b&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Label(&amp;#34;outer&amp;#34;)
+for i := 0; i &amp;lt; 100; i++ {
+    inner:
+        for j := 0; j &amp;lt; 1000; j++ {
+            switch rand.Intn(j) + i {
+            case j / 5:
+                failpoint.Break()
+            case j / 7:
+                failpoint.Continue(&amp;#34;outer&amp;#34;)
+            case j / 9:
+                failpoint.Fallthrough()
+            case j / 10:
+                failpoint.Goto(&amp;#34;outer&amp;#34;)
+            default:
+                failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+                    fmt.Println(&amp;#34;unit-test&amp;#34;, val.(int))
+                    if val == j/11 {
+                        failpoint.Break(&amp;#34;inner&amp;#34;)
+                    } else {
+                        failpoint.Goto(&amp;#34;outer&amp;#34;)
+                    }
+                })
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以上代码最终会重写为如下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;outer:
+    for i := 0; i &amp;lt; 100; i++ {
+    inner:
+        for j := 0; j &amp;lt; 1000; j++ {
+            switch rand.Intn(j) + i {
+            case j / 5:
+                break
+            case j / 7:
+                continue outer
+            case j / 9:
+                fallthrough
+            case j / 10:
+                goto outer
+            default:
+                if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+                    fmt.Println(&amp;#34;unit-test&amp;#34;, val.(int))
+                    if val == j/11 {
+                        break inner
+                    } else {
+                        goto outer
+                    }
+                }
+            }
+        }
+    }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;对于为什么会有 label, break, continue 和 fallthrough 相关 Marker 函数保持疑问，为什么不直接使用关键字？&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Golang 中如果某个变量或则标签未使用，是不能通过编译的。&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;label1: // compiler error: unused label1
+    failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+        if val.(int) == 1000 {
+            goto label1 // illegal to use goto here
+        }
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    })&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;break 和 continue 只能在循环上下文中使用，在闭包中使用。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;一些复杂的注入示例&lt;/h3&gt;&lt;p&gt;&lt;b&gt;示例一：在 IF 语句的 INITIAL 和 CONDITIONAL 中注入 failpoint&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if a, b := func() {
+    failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    })
+}, func() int { return rand.Intn(200) }(); b &amp;gt; func() int {
+    failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) int {
+        return val.(int)
+    })
+    return rand.Intn(3000)
+}() &amp;amp;&amp;amp; b &amp;lt; func() int {
+    failpoint.Inject(&amp;#34;failpoint-name-2&amp;#34;, func(val failpoint.Value) {
+        return rand.Intn(val.(int))
+    })
+    return rand.Intn(6000)
+}() {
+    a()
+    failpoint.Inject(&amp;#34;failpoint-name-3&amp;#34;, func(val failpoint.Value) {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    })
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面的代码最终会被重写为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if a, b := func() {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    }
+}, func() int { return rand.Intn(200) }(); b &amp;gt; func() int {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+        return val.(int)
+    }
+    return rand.Intn(3000)
+}() &amp;amp;&amp;amp; b &amp;lt; func() int {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name-2&amp;#34;)); ok {
+        return rand.Intn(val.(int))
+    }
+    return rand.Intn(6000)
+}() {
+    a()
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name-3&amp;#34;)); ok {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;示例二：在 SELECT 语句的 CASE 中注入 failpoint 来动态控制某个 case 是否被阻塞&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func (s *StoreService) ExecuteStoreTask() {
+    select {
+    case &amp;lt;-func() chan *StoreTask {
+        failpoint.Inject(&amp;#34;priority-fp&amp;#34;, func(_ failpoint.Value) {
+            return make(chan *StoreTask)
+        })
+        return s.priorityHighCh
+    }():
+        fmt.Println(&amp;#34;execute high priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityNormalCh:
+        fmt.Println(&amp;#34;execute normal priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityLowCh:
+        fmt.Println(&amp;#34;execute normal low task&amp;#34;)
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面的代码最终会被重写为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func (s *StoreService) ExecuteStoreTask() {
+    select {
+    case &amp;lt;-func() chan *StoreTask {
+        if ok, _ := failpoint.Eval(_curpkg_(&amp;#34;priority-fp&amp;#34;)); ok {
+            return make(chan *StoreTask)
+        })
+        return s.priorityHighCh
+    }():
+        fmt.Println(&amp;#34;execute high priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityNormalCh:
+        fmt.Println(&amp;#34;execute normal priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityLowCh:
+        fmt.Println(&amp;#34;execute normal low task&amp;#34;)
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;示例三：动态注入 SWITCH CASE&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;switch opType := operator.Type(); {
+case opType == &amp;#34;balance-leader&amp;#34;:
+    fmt.Println(&amp;#34;create balance leader steps&amp;#34;)
+
+case opType == &amp;#34;balance-region&amp;#34;:
+    fmt.Println(&amp;#34;create balance region steps&amp;#34;)
+
+case opType == &amp;#34;scatter-region&amp;#34;:
+    fmt.Println(&amp;#34;create scatter region steps&amp;#34;)
+
+case func() bool {
+    failpoint.Inject(&amp;#34;dynamic-op-type&amp;#34;, func(val failpoint.Value) bool {
+        return strings.Contains(val.(string), opType)
+    })
+    return false
+}():
+    fmt.Println(&amp;#34;do something&amp;#34;)
+
+default:
+    panic(&amp;#34;unsupported operator type&amp;#34;)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以上代码最终会重写为如下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;switch opType := operator.Type(); {
+case opType == &amp;#34;balance-leader&amp;#34;:
+    fmt.Println(&amp;#34;create balance leader steps&amp;#34;)
+
+case opType == &amp;#34;balance-region&amp;#34;:
+    fmt.Println(&amp;#34;create balance region steps&amp;#34;)
+
+case opType == &amp;#34;scatter-region&amp;#34;:
+    fmt.Println(&amp;#34;create scatter region steps&amp;#34;)
+
+case func() bool {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;dynamic-op-type&amp;#34;)); ok {
+        return strings.Contains(val.(string), opType)
+    }
+    return false
+}():
+    fmt.Println(&amp;#34;do something&amp;#34;)
+
+default:
+    panic(&amp;#34;unsupported operator type&amp;#34;)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;除了上面的例子之外，还可以写的更加复杂的情况：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;循环的 INITIAL 语句, CONDITIONAL 表达式，以及 POST 语句&lt;/li&gt;&lt;li&gt;FOR RANGE 语句&lt;/li&gt;&lt;li&gt;SWITCH INITIAL 语句&lt;/li&gt;&lt;li&gt;Slice 的构造和索引&lt;/li&gt;&lt;li&gt;结构体动态初始化&lt;/li&gt;&lt;li&gt;……&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;实际上，任何你可以调用函数的地方都可以注入 failpoint，所以请发挥你的想象力。&lt;/p&gt;&lt;h2&gt;Failpoint 命名最佳实践&lt;/h2&gt;&lt;p&gt;上面生成的代码中会自动添加一个 &lt;code&gt;_curpkg_&lt;/code&gt; 调用在 &lt;code&gt;failpoint-name&lt;/code&gt; 上，是因为名字是全局的，为了避免命名冲突，所以会在最终的名字包包名，&lt;code&gt;_curpkg_&lt;/code&gt; 相当一个宏，在运行的时候自动使用包名进行展开。你并不需要在自己的应用程序中实现 &lt;code&gt;_curpkg_&lt;/code&gt;，它在 &lt;code&gt;failpoint-ctl enable&lt;/code&gt; 的自动生成以及自动添加，并在 &lt;code&gt;failpoint-ctl disable&lt;/code&gt; 的时候被删除。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;package ddl // ddl’s parent package is `github.com/pingcap/tidb`
+
+func demo() {
+	// _curpkg_(&amp;#34;the-original-failpoint-name&amp;#34;) will be expanded as `github.com/pingcap/tidb/ddl/the-original-failpoint-name`
+	if ok, val := failpoint.Eval(_curpkg_(&amp;#34;the-original-failpoint-name&amp;#34;)); ok {...}
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;因为同一个包下面的所有 failpoint 都在同一个命名空间，所以需要小心命名来避免命名冲突，这里有一些推荐的规则来改善这种情况：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;保证名字在包内是唯一的。&lt;/li&gt;&lt;li&gt;使用一个自解释的名字。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;可以通过环境变量来激活 failpoint： &lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;GO_FAILPOINTS=&amp;#34;github.com/pingcap/tidb/ddl/renameTableErr=return(100);github.com/pingcap/tidb/planner/core/illegalPushDown=return(true);github.com/pingcap/pd/server/schedulers/balanceLeaderFailed=return(true)&amp;#34;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;致谢&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;感谢 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/etcd-io/gofail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;gofail&lt;/a&gt; 提供最初实现，给我们提供了灵感，让我们能站在巨人的肩膀上对 failpoint 进行迭代。&lt;/li&gt;&lt;li&gt;感谢 FreeBSD 定义 &lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;语法规范&lt;/a&gt;。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;最后，欢迎大家和我们交流讨论，一起完善 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/failpoint&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Failpoint 项目&lt;/a&gt;。&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-04-30-64340817</guid>
+<pubDate>Tue, 30 Apr 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>DM 源码阅读系列文章（四）dump/load 全量同步的实现</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-04-26-63895873.html</link>
@@ -189,15 +458,6 @@ fn Progress::update_state(&amp;amp;mut self, last: u64) {
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-04-12-62243443</guid>
 <pubDate>Fri, 12 Apr 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>DM 源码阅读系列文章（三）数据同步处理单元介绍</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-04-10-61993234.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/61993234&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-b03b0a83307d67f9378e3d60f6d3a59d_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：lan&lt;/p&gt;&lt;p&gt;本文为 DM 源码阅读系列文章的第三篇，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/dm-source-code-reading-2/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上篇文章&lt;/a&gt; 介绍了 DM 的整体架构，DM 组件 DM-master 和 DM-worker 的入口代码，以及两者之间的数据交互模型。本篇文章详细地介绍 DM 数据同步处理单元（DM-worker 内部用来同步数据的逻辑单元），包括数据同步处理单元实现了什么功能，数据同步流程、运行逻辑，以及数据同步处理单元的 interface 设计。&lt;/p&gt;&lt;h2&gt;数据同步处理单元&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e41c0a9e9850e25c12a8c26a72030b39_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;499&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-e41c0a9e9850e25c12a8c26a72030b39_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e41c0a9e9850e25c12a8c26a72030b39_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;499&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic2.zhimg.com/v2-e41c0a9e9850e25c12a8c26a72030b39_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-e41c0a9e9850e25c12a8c26a72030b39_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;从上图可以了解到目前 DM 包含 relay log、dump、load、binlog replication（sync） 4 个数据同步处理单元，涵盖了以下数据同步处理的功能：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-efb00a7e9cb3445a8eeaf272c7fd4788_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1240&quot; data-rawheight=&quot;506&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1240&quot; data-original=&quot;https://pic1.zhimg.com/v2-efb00a7e9cb3445a8eeaf272c7fd4788_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-efb00a7e9cb3445a8eeaf272c7fd4788_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1240&quot; data-rawheight=&quot;506&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1240&quot; data-original=&quot;https://pic1.zhimg.com/v2-efb00a7e9cb3445a8eeaf272c7fd4788_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-efb00a7e9cb3445a8eeaf272c7fd4788_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;数据同步流程&lt;/h2&gt;&lt;p&gt;Task 数据同步流程初始化操作步骤：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;DM-master 接收到 task，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/master/server.go%23L190&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;将 task 拆分成 subtask&lt;/a&gt; 后 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/master/server.go%23L248&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;分发给对应的各个 DM-worker&lt;/a&gt;；&lt;/li&gt;&lt;li&gt;DM-worker 接收到 subtask 后 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/server.go%23L160&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;创建一个 subtask 对象&lt;/a&gt;，然后 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L84&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;初始化数据同步流程&lt;/a&gt;。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;从 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L84&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;初始化数据同步流程&lt;/a&gt; 的代码中我们可以看到，根据 task 配置项 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/config/task.go%23L220&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;task-mode&lt;/a&gt; 的不同，DM-worker 会初始化不同的数据同步流程：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-aae56ec5e24de4ca6d048a5c19c1b5b1_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1232&quot; data-rawheight=&quot;468&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1232&quot; data-original=&quot;https://pic2.zhimg.com/v2-aae56ec5e24de4ca6d048a5c19c1b5b1_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-aae56ec5e24de4ca6d048a5c19c1b5b1_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1232&quot; data-rawheight=&quot;468&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1232&quot; data-original=&quot;https://pic2.zhimg.com/v2-aae56ec5e24de4ca6d048a5c19c1b5b1_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-aae56ec5e24de4ca6d048a5c19c1b5b1_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;运行逻辑&lt;/h2&gt;&lt;p&gt;DM 数据同步处理单元 interface 定义在 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/unit/unit.go&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;dm/unit&lt;/a&gt;&lt;/code&gt;，relay log、dump、load、binlog replication（sync）都实现了该 interface（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//golang.org/doc/effective_go.html%23interfaces&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;golang interface 介绍&lt;/a&gt;）。&lt;/p&gt;&lt;p&gt;实际上 DM-worker 中的数据同步处理单元分为两类：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;全局共享单例。dm-worker 启动的时候只初始化一次这类数据同步处理单元，所有的 subtask 都可以使用这类数据同步处理单元的服务；relay log 属于这种类型。&lt;/li&gt;&lt;li&gt;subtask 独享。dm-worker 会为每个 subtask 初始化一系列的数据同步处理单元；dump、load、binlog replication（sync）属于这种类型。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;两类数据同步处理单元的使用逻辑不同，这篇文档会着重讲一下 subtask 独享的数据同步处理单元的使用逻辑，不会囊括更多的 relay log 相关的内容，后面会有单独一篇文章详细介绍它。&lt;/p&gt;&lt;p&gt;relay log 相关使用代码在 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/relay.go&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;dm/worker/relay.go&lt;/a&gt;&lt;/code&gt; 、具体功能实现代码在 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/relay/relay.go&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;relay/relay.go&lt;/a&gt;&lt;/code&gt;，有兴趣的同学也可以先行阅读一下相关代码，relay log 的代码注释也是比较丰富，并且简单易懂。&lt;/p&gt;&lt;p&gt;subtask 独享数据同步处理单元使用逻辑相关代码在 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;dm/worker/subtask.go&lt;/a&gt;&lt;/code&gt;。subtask 对象包含的主要属性有：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;units：初始化后要运行的数据同步处理单元。&lt;/li&gt;&lt;li&gt;currUnit：当前正在运行的数据同步处理单元。&lt;/li&gt;&lt;li&gt;prevUnit：上一个运行的数据同步处理单元。&lt;/li&gt;&lt;li&gt;stage：subtask 的运行阶段状态， 包含 &lt;code&gt;New&lt;/code&gt;、&lt;code&gt;Running&lt;/code&gt;、&lt;code&gt;Paused&lt;/code&gt;，&lt;code&gt;Stopped&lt;/code&gt;，&lt;code&gt;Finished&lt;/code&gt;，具体定义的代码在 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/proto/dmworker.proto%23L129&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;dm/proto/dmworker.proto&lt;/a&gt;&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;result：subtask 当前数据同步处理单元的运行结果，对应着 stage = &lt;code&gt;Paused/Stopped/Finished&lt;/code&gt; 的详细信息。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;主要的逻辑有：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;初始化 subtask 对象实例的时候会 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L39&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;编排数据同步处理单元的运行先后顺序&lt;/a&gt;。所有的数据同步处理单元都实现了 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/unit/unit.go&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;dm/unit&lt;/a&gt;&lt;/code&gt; interface，所以接下来的运行中就不需要关心具体的数据同步处理单元的类型，可以按照统一的 interface 方法来运行数据同步处理单元，以及对其进行状态监控。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L93&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;初始化各个数据同步处理单元&lt;/a&gt;。subtask 在运行前集中地初始化所有的数据同步处理单元，我们计划之后优化成在各个数据同步处理单元运行前再进行初始化，这样子减少资源的提前或者无效的占用。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L167&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;数据同步处理单元运行状态监控&lt;/a&gt;。通过监控当前运行的数据同步处理单元的结果，将 subtask 的 stage 设置为 &lt;code&gt;Paused/Stopped/Finished&lt;/code&gt;。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;如果 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L190&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;当前的数据同步处理单元工作已经完成&lt;/a&gt;，则会根据 units 来 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L216&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;选取下一个需要运行的数据同步处理单元&lt;/a&gt;，如果没有需要的数据同步处理单元，那么会将 subtask 的 stage 设置为 &lt;code&gt;Finished&lt;/code&gt;。这里有个注意点，因为 binlog replication 单元永远不会结束，所以不会进入 &lt;code&gt;Finished&lt;/code&gt; 的状态。&lt;/li&gt;&lt;li&gt;如果 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L192&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;返回的 result 里面包含有错误信息&lt;/a&gt;，则会将 subtask 的 stage 设置为 &lt;code&gt;Paused&lt;/code&gt;，并且打印具体的错误信息。&lt;/li&gt;&lt;li&gt;如果是用户手动暂停或者停止，则会将 subtask 的 stage 设置为 &lt;code&gt;Paused/Stopped&lt;/code&gt;。这里有个注意点，这个时候 stage=&lt;code&gt;Paused&lt;/code&gt; 是没有错误信息的。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/6855ea4e40bb5e3775709054a59a55c628a0922f/dm/worker/subtask.go%23L606&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;数据同步处理单元之间的运行交接处理逻辑&lt;/a&gt;。部分数据同步处理单元在开始工作的时候需要满足一些前置条件，例如 binlog replication（sync）的运行需要等待 relay log 处理单元已经储存下来其开始同步需要的 binlog 文件，否则 subtask 将处于 stage=&lt;code&gt;Paused&lt;/code&gt; 的暂停等待状态。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;小结&lt;/h2&gt;&lt;p&gt;本篇文章主要介绍了数据同步处理单元实现了什么功能，数据同步流程、运行逻辑，以及数据同步处理单元的 interface 设计。后续会分三篇文章详细地介绍数据同步处理单元的实现，包括：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;dump/load 全量同步实现&lt;/li&gt;&lt;li&gt;binlog replication 增量同步实现&lt;/li&gt;&lt;li&gt;relay log 实现&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;更多阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/%23DM-%25E6%25BA%2590%25E7%25A0%2581%25E9%2598%2585%25E8%25AF%25BB&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;博客&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-04-10-61993234</guid>
-<pubDate>Wed, 10 Apr 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
