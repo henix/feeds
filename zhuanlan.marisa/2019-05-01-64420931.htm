@@ -1,0 +1,214 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-b062ca1c4dce747076060362eabda24b_b.jpg" alt=""></div><p>这是一篇关于Haskell在日常开发过程中的实践的文章，主要介绍了Haskell在代码生成方面的实现和使用。</p><p>现在常用的高性能计算中，使用GPU来加速是一种非常重要的方法，而OpenCL因为其良好的跨平台特性，可以在Windows、Linux、macOS、Android和嵌入式Linux系统上使用，可以在多种硬件平台上运行，比如AMD、Nvidia、高通、ARM mali的GPU上运行，甚至可以在FPGA上运行。因此，在工程实践中大量使用OpenCL来实现并行化的高性能计算。</p><p>当我们在写一个需要大量使用OpenCL来加速计算的项目时，会有很多个OpenCL的kernel函数来实现这些并行化的加速计算。这个时候我们就需要写大量的调用OpenCL的kernel函数的代码，而且这些代码都是很机械的设置kernel的参数，然后调用函数clEnqueueNDRangeKernel。如下所示：</p><div class="highlight"><pre><code class="language-c">	<span class="n">cl_int</span> <span class="n">status</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="n">status</span> <span class="o">|=</span> <span class="n">clSetKernelArg</span><span class="p">(</span><span class="n">matrixMul</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">cl_mem</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">C</span><span class="p">);</span>
+	<span class="n">status</span> <span class="o">|=</span> <span class="n">clSetKernelArg</span><span class="p">(</span><span class="n">matrixMul</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">cl_mem</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">);</span>
+	<span class="n">status</span> <span class="o">|=</span> <span class="n">clSetKernelArg</span><span class="p">(</span><span class="n">matrixMul</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">cl_mem</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">B</span><span class="p">);</span>
+	<span class="n">status</span> <span class="o">|=</span> <span class="n">clSetKernelArg</span><span class="p">(</span><span class="n">matrixMul</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">intt32_t</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">wA</span><span class="p">);</span>
+	<span class="n">status</span> <span class="o">|=</span> <span class="n">clSetKernelArg</span><span class="p">(</span><span class="n">matrixMul</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">intt32_t</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">wB</span><span class="p">);</span>
+	<span class="n">chk</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="s">&#34;matrixMul&#34;</span><span class="p">);</span>
+
+	<span class="n">status</span> <span class="o">=</span> <span class="n">clEnqueueNDRangeKernel</span><span class="p">(</span><span class="n">command_queue</span><span class="p">,</span> <span class="n">matrixMul</span><span class="p">,</span>
+		<span class="mi">2</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">globalSize</span><span class="p">,</span> <span class="n">localSize</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+	<span class="n">chk</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="s">&#34;matrixMul clEnqueueNDRangeKernel&#34;</span><span class="p">);</span>
+	<span class="k">return</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">status</span><span class="p">;</span></code></pre></div><p>写这些代码是很枯燥乏味的，那有没有工具可以自动生成这些代码呢？我看了不少工程项目，都没有使用自动生成代码的方式，也没有找到这样的工具。于是就决定自己做一个这样的工具，而Haskell有一个很好用的C/C++语言解析的包，是language-c，这是一个历史悠久的包，里面的作者都是Haskell的高手。但是这个language-c的包目前不支持OpenCL的解析，我看了一下代码，觉得可以自己加上支持OpenCL的解析的功能。于是就花了几个晚上修改了language-c的代码，顺利的增加了OpenCL解析的功能。</p><p>有了language-c的支持后，接下来就开始写解析OpenCL的kernel源代码的*.cl文件并生成上面的调用OpenCL的kernel函数的代码了。得益于language-c的良好设计，并参考了一个解析C语言的范例，很快就写好了这个工具的代码。加上脚本的配合，现在已经可以从kernel源代码的*.cl文件自动生成调用OpenCL的kernel函数的代码了。</p><p>使用如下从这个链接<a href="https://link.zhihu.com/?target=https%3A//www.olcf.ornl.gov/tutorials/opencl-game-of-life/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">olcf.ornl.gov/tutorials</span><span class="invisible">/opencl-game-of-life/</span><span class="ellipsis"></span></a>拿到的GOL-kernels.cl文件，这个文件如下所示：</p><div class="highlight"><pre><code class="language-c"><span class="n">__kernel</span> <span class="kt">void</span> <span class="nf">ghostRows</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">dim</span><span class="p">,</span>
+                        <span class="n">__global</span> <span class="o">*</span><span class="n">grid</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// We want id to range from 1 to dim
+</span><span class="c1"></span>    <span class="kt">int</span> <span class="n">id</span> <span class="o">=</span> <span class="n">get_global_id</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+ 
+    <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">&lt;=</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">grid</span><span class="p">[(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="n">id</span><span class="p">];</span> <span class="c1">//Copy first real row to bottom ghost row
+</span><span class="c1"></span>        <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">dim</span> <span class="o">+</span> <span class="n">id</span><span class="p">];</span> <span class="c1">//Copy last real row to top ghost row
+</span><span class="c1"></span>    <span class="p">}</span>
+<span class="p">}</span>
+ 
+<span class="n">__kernel</span> <span class="kt">void</span> <span class="nf">ghostCols</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">dim</span><span class="p">,</span>
+                        <span class="n">__global</span> <span class="o">*</span><span class="n">grid</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// We want id to range from 0 to dim+1
+</span><span class="c1"></span>    <span class="kt">int</span> <span class="n">id</span> <span class="o">=</span> <span class="n">get_global_id</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+ 
+    <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">&lt;=</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span> <span class="c1">//Copy first real column to right most ghost column
+</span><span class="c1"></span>        <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">dim</span><span class="p">];</span> <span class="c1">//Copy last real column to left most ghost column
+</span><span class="c1"></span>    <span class="p">}</span>
+<span class="p">}</span>
+ 
+<span class="n">__kernel</span> <span class="kt">void</span> <span class="nf">GOL</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">dim</span><span class="p">,</span>
+                  <span class="n">__global</span> <span class="kt">int</span> <span class="o">*</span><span class="n">grid</span><span class="p">,</span>
+                  <span class="n">__global</span> <span class="kt">int</span> <span class="o">*</span><span class="n">newGrid</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">ix</span> <span class="o">=</span> <span class="n">get_global_id</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">iy</span> <span class="o">=</span> <span class="n">get_global_id</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">id</span> <span class="o">=</span> <span class="n">iy</span> <span class="o">*</span> <span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">ix</span><span class="p">;</span>
+ 
+    <span class="kt">int</span> <span class="n">numNeighbors</span><span class="p">;</span>
+ 
+    <span class="k">if</span> <span class="p">(</span><span class="n">iy</span> <span class="o">&lt;=</span> <span class="n">dim</span> <span class="o">&amp;&amp;</span> <span class="n">ix</span> <span class="o">&lt;=</span> <span class="n">dim</span><span class="p">)</span> <span class="p">{</span>
+ 
+    <span class="c1">// Get the number of neighbors for a given grid point
+</span><span class="c1"></span>    <span class="n">numNeighbors</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">+</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span> <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">-</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span> <span class="c1">//upper lower
+</span><span class="c1"></span>                 <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>             <span class="c1">//right left
+</span><span class="c1"></span>                 <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">+</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">3</span><span class="p">)]</span> <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">-</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">3</span><span class="p">)]</span> <span class="c1">//diagonals
+</span><span class="c1"></span>                 <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">-</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="o">+</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)];</span>
+ 
+    <span class="kt">int</span> <span class="n">cell</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">id</span><span class="p">];</span>
+    <span class="c1">// Here we have explicitly all of the game rules
+</span><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">cell</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">numNeighbors</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">newGrid</span><span class="p">[</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cell</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">numNeighbors</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">||</span> <span class="n">numNeighbors</span> <span class="o">==</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">newGrid</span><span class="p">[</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cell</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">numNeighbors</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">newGrid</span><span class="p">[</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cell</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">numNeighbors</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">newGrid</span><span class="p">[</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">else</span>
+        <span class="n">newGrid</span><span class="p">[</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>使用这个工具后，可以生成如下的OpenCL的kernel的调用代码</p><div class="highlight"><pre><code class="language-text">#include &lt;stdint.h&gt;
+
+int oclGOL(
+	cl_command_queue command_queu,
+	const size_t* globalSize,
+	const size_t* localSize,
+	intt32_t dim,
+	cl_mem grid,
+	cl_mem newGrid)
+{
+	cl_int status = 0;
+
+	status |= clSetKernelArg(GOL, 0, sizeof(intt32_t), &amp;dim);
+	status |= clSetKernelArg(GOL, 1, sizeof(cl_mem), &amp;grid);
+	status |= clSetKernelArg(GOL, 2, sizeof(cl_mem), &amp;newGrid);
+	chk(status, &#34;GOL&#34;);
+
+#ifdef DEBUG_KERNEL
+	cl_event debug_event;
+	status = clEnqueueNDRangeKernel(command_queue, GOL,
+		2, NULL, globalSize, localSize, 0, NULL, &amp;debug_event);
+	chk(status, &#34;GOL clEnqueueNDRangeKernel&#34;);
+	CheckKernelEvent(debug_event, &#34;GOL&#34;);
+	clReleaseEvent(debug_event);
+#else
+	status = clEnqueueNDRangeKernel(command_queue, GOL,
+		2, NULL, globalSize, localSize, 0, NULL, NULL);
+	chk(status, &#34;GOL clEnqueueNDRangeKernel&#34;);
+#endif
+	return (int)status;
+}
+
+int oclghostCols(
+	cl_command_queue command_queu,
+	const size_t* globalSize,
+	const size_t* localSize,
+	intt32_t dim,
+	cl_mem grid)
+{
+	cl_int status = 0;
+
+	status |= clSetKernelArg(ghostCols, 0, sizeof(intt32_t), &amp;dim);
+	status |= clSetKernelArg(ghostCols, 1, sizeof(cl_mem), &amp;grid);
+	chk(status, &#34;ghostCols&#34;);
+
+#ifdef DEBUG_KERNEL
+	cl_event debug_event;
+	status = clEnqueueNDRangeKernel(command_queue, ghostCols,
+		2, NULL, globalSize, localSize, 0, NULL, &amp;debug_event);
+	chk(status, &#34;ghostCols clEnqueueNDRangeKernel&#34;);
+	CheckKernelEvent(debug_event, &#34;ghostCols&#34;);
+	clReleaseEvent(debug_event);
+#else
+	status = clEnqueueNDRangeKernel(command_queue, ghostCols,
+		2, NULL, globalSize, localSize, 0, NULL, NULL);
+	chk(status, &#34;ghostCols clEnqueueNDRangeKernel&#34;);
+#endif
+	return (int)status;
+}
+
+int oclghostRows(
+	cl_command_queue command_queu,
+	const size_t* globalSize,
+	const size_t* localSize,
+	intt32_t dim,
+	cl_mem grid)
+{
+	cl_int status = 0;
+
+	status |= clSetKernelArg(ghostRows, 0, sizeof(intt32_t), &amp;dim);
+	status |= clSetKernelArg(ghostRows, 1, sizeof(cl_mem), &amp;grid);
+	chk(status, &#34;ghostRows&#34;);
+
+#ifdef DEBUG_KERNEL
+	cl_event debug_event;
+	status = clEnqueueNDRangeKernel(command_queue, ghostRows,
+		2, NULL, globalSize, localSize, 0, NULL, &amp;debug_event);
+	chk(status, &#34;ghostRows clEnqueueNDRangeKernel&#34;);
+	CheckKernelEvent(debug_event, &#34;ghostRows&#34;);
+	clReleaseEvent(debug_event);
+#else
+	status = clEnqueueNDRangeKernel(command_queue, ghostRows,
+		2, NULL, globalSize, localSize, 0, NULL, NULL);
+	chk(status, &#34;ghostRows clEnqueueNDRangeKernel&#34;);
+#endif
+	return (int)status;
+}</code></pre></div><p>这样我们就可以直接调用这些封装好的OpenCL的kernel的调用函数，直接传入C/C++中的普通的参数即可。当有大量（好几十个）的kernel函数需要调用时，可以让我们少写很多这种枯燥无味的调用OpenCL的kernel的代码，减少写这些代码的时间，并且不会在参数较多的情况下出现参数设置错误的情况，正确性有保障。</p><p>这个工具的实现比较简单，总共只有195行代码。首先，写一个handler，响应language-c中解析*.cl文件时的事件。</p><div class="highlight"><pre><code class="language-haskell"><span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="kr">do</span>
+    <span class="kr">let</span> <span class="nf">usage</span> <span class="ow">=</span> <span class="ne">error</span> <span class="s">&#34;give file to parse&#34;</span>
+    <span class="p">(</span><span class="nf">opts</span><span class="p">,</span><span class="nf">c_file</span><span class="p">)</span> <span class="ow">&lt;-</span> <span class="nf">liftM</span> <span class="p">(</span><span class="nf">init</span> <span class="o">&amp;&amp;&amp;</span> <span class="nf">last</span><span class="p">)</span> <span class="nf">getArgs</span>
+
+    <span class="kr">let</span> <span class="nf">compiler</span> <span class="ow">=</span> <span class="nf">newGCC</span> <span class="s">&#34;gcc&#34;</span>
+    <span class="nf">ast</span> <span class="ow">&lt;-</span> <span class="nf">parseCFile</span> <span class="nf">compiler</span> <span class="kt">Nothing</span> <span class="nf">opts</span> <span class="nf">c_file</span> <span class="o">&gt;&gt;=</span> <span class="nf">checkResult</span> <span class="s">&#34;[parsing]&#34;</span>
+
+    <span class="kr">case</span> <span class="p">(</span><span class="nf">runTrav</span> <span class="nf">newState</span> <span class="p">(</span><span class="nf">withExtDeclHandler</span> <span class="p">(</span><span class="nf">analyseAST</span> <span class="nf">ast</span><span class="p">)</span> <span class="nf">handler</span><span class="p">))</span> <span class="kr">of</span>
+         <span class="kt">Left</span> <span class="nf">errs</span> <span class="ow">-&gt;</span> <span class="kr">do</span> <span class="nf">putStrLn</span> <span class="p">(</span><span class="s">&#34;errors: &#34;</span> <span class="o">++</span> <span class="nf">concat</span> <span class="p">(</span><span class="nf">map</span> <span class="nf">errToString</span> <span class="nf">errs</span><span class="p">))</span>
+         <span class="kt">Right</span> <span class="p">(</span><span class="nf">decls</span><span class="p">,</span> <span class="nf">state</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="kr">do</span> <span class="nf">putStr</span> <span class="o">$</span> <span class="nf">header</span> <span class="p">(</span><span class="nf">takeWhile</span> <span class="p">(</span><span class="o">/=</span><span class="sc">&#39;.&#39;</span><span class="p">)</span> <span class="o">$</span> <span class="nf">takeBaseName</span> <span class="nf">c_file</span><span class="p">)</span>
+                                    <span class="nf">mapM_</span> <span class="p">(</span><span class="nf">putStr</span> <span class="o">.</span> <span class="nf">outputFunDef</span><span class="p">)</span> <span class="p">(</span><span class="nf">userState</span> <span class="nf">state</span><span class="p">)</span>
+                                    <span class="nf">putStr</span> <span class="o">$</span> <span class="nf">footer</span> <span class="p">(</span><span class="nf">map</span> <span class="nf">funName</span> <span class="p">(</span><span class="nf">userState</span> <span class="nf">state</span><span class="p">))</span></code></pre></div><p>handler函数如下：</p><div class="highlight"><pre><code class="language-haskell"><span class="nf">handler</span> <span class="ow">::</span> <span class="kt">DeclEvent</span> <span class="ow">-&gt;</span> <span class="kt">Trav</span> <span class="kt">State</span> <span class="nb">()</span>
+<span class="nf">handler</span> <span class="p">(</span><span class="kt">DeclEvent</span> <span class="p">(</span><span class="kt">FunctionDef</span> <span class="nf">fd</span><span class="p">))</span> <span class="ow">=</span>
+        <span class="kr">do</span> <span class="ne">error</span> <span class="s">&#34;FunctionDef not implemented&#34;</span>
+           <span class="nf">return</span> <span class="nb">()</span>
+<span class="nf">handler</span> <span class="p">(</span><span class="kt">DeclEvent</span> <span class="p">(</span><span class="kt">Declaration</span> <span class="nf">d</span><span class="p">))</span> <span class="ow">=</span>
+        <span class="kr">do</span>
+        <span class="kr">let</span> <span class="p">(</span><span class="kt">VarDecl</span> <span class="nf">varName</span> <span class="nf">declAttr</span> <span class="nf">t</span><span class="p">)</span> <span class="ow">=</span> <span class="nf">getVarDecl</span> <span class="nf">d</span>
+        <span class="kr">case</span> <span class="nf">t</span> <span class="kr">of</span>
+          <span class="p">(</span><span class="kt">FunctionType</span> <span class="p">(</span><span class="kt">FunType</span> <span class="nf">returnType</span> <span class="nf">params</span> <span class="nf">isVaradic</span><span class="p">)</span> <span class="nf">attrs</span><span class="p">)</span> <span class="ow">-&gt;</span>
+             <span class="kr">do</span> <span class="kr">let</span> <span class="nf">fun</span> <span class="ow">=</span> <span class="p">(</span><span class="nf">makeOclCallFun</span> <span class="p">(</span><span class="nf">asS</span> <span class="nf">varName</span><span class="p">)</span> <span class="nf">returnType</span> <span class="nf">params</span> <span class="nf">isVaradic</span> <span class="nf">attrs</span><span class="p">)</span>
+                  <span class="kr">in</span> <span class="kr">case</span> <span class="nf">fun</span> <span class="kr">of</span>
+                       <span class="kt">Nothing</span> <span class="ow">-&gt;</span> <span class="kr">do</span> <span class="nf">return</span> <span class="nb">()</span>
+                       <span class="kt">Just</span> <span class="nf">x</span>  <span class="ow">-&gt;</span> <span class="kr">do</span> <span class="nf">modifyUserState</span> <span class="p">(</span><span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="nf">x</span> <span class="kt">:</span> <span class="nf">s</span><span class="p">)</span>
+                                     <span class="nf">return</span> <span class="nb">()</span>
+          <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="kr">do</span> <span class="nf">return</span> <span class="nb">()</span>
+        <span class="nf">return</span> <span class="nb">()</span>
+<span class="nf">handler</span> <span class="kr">_</span> <span class="ow">=</span>
+        <span class="kr">do</span> <span class="nf">return</span> <span class="nb">()</span></code></pre></div><p>然后，通过函数makeOclCallFun生成中间的OclCallDef数据结构</p><div class="highlight"><pre><code class="language-haskell"><span class="kr">data</span> <span class="kt">OclCallDef</span> <span class="ow">=</span> <span class="kt">OclCallDef</span> <span class="kt">String</span> <span class="kt">OclCallParamType</span> <span class="p">[</span><span class="kt">OclCallParam</span><span class="p">]</span>
+
+<span class="nf">makeOclCallFun</span> <span class="ow">::</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="kt">Type</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="kt">ParamDecl</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="kt">Bool</span> <span class="ow">-&gt;</span> <span class="kt">Attributes</span> <span class="ow">-&gt;</span> <span class="kt">Maybe</span> <span class="kt">OclCallDef</span>
+<span class="nf">makeOclCallFun</span> <span class="nf">name</span> <span class="nf">returnType</span> <span class="nf">params</span> <span class="nf">isVaradic</span> <span class="nf">attrs</span> <span class="ow">=</span>
+  <span class="kr">case</span> <span class="nf">rtype</span> <span class="kr">of</span>
+    <span class="kt">Left</span> <span class="nf">s</span>  <span class="ow">-&gt;</span> <span class="kt">Nothing</span>
+    <span class="kt">Right</span> <span class="nf">t</span> <span class="ow">-&gt;</span> <span class="nf">toOclCallDef</span> <span class="nf">name</span> <span class="nf">t</span> <span class="o">&lt;$&gt;</span> <span class="nf">traverse</span> <span class="nf">getOclCallParam</span> <span class="nf">params</span>
+  <span class="kr">where</span> <span class="nf">toOclCallDef</span> <span class="nf">name</span> <span class="nf">t</span> <span class="nf">ps</span> <span class="ow">=</span> <span class="kt">OclCallDef</span> <span class="nf">name</span> <span class="nf">t</span> <span class="nf">ps</span>
+        <span class="nf">rtype</span> <span class="ow">=</span> <span class="nf">oclParamType</span> <span class="nf">returnType</span>
+</code></pre></div><p>最后，搜集到所有的OclCallDef后，通过函数outputFunDef生成调用OpenCL的kernel的C代码</p><div class="highlight"><pre><code class="language-haskell"><span class="nf">outputFunDef</span> <span class="ow">::</span> <span class="kt">OclCallDef</span> <span class="ow">-&gt;</span> <span class="kt">String</span>
+<span class="nf">outputFunDef</span> <span class="p">(</span><span class="kt">OclCallDef</span> <span class="nf">name</span> <span class="nf">returnType</span> <span class="nf">params</span><span class="p">)</span> <span class="ow">=</span>
+  <span class="s">&#34;int ocl&#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span> <span class="s">&#34;(</span><span class="se">\n\t</span><span class="s">&#34;</span> <span class="o">++</span> 
+  <span class="s">&#34;cl_command_queue command_queu,</span><span class="se">\n\t</span><span class="s">const size_t* globalSize,</span><span class="se">\n\t</span><span class="s">const size_t* localSize,</span><span class="se">\n\t</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="p">(</span><span class="nf">intercalate</span> <span class="s">&#34;,</span><span class="se">\n\t</span><span class="s">&#34;</span> <span class="p">(</span><span class="nf">map</span> <span class="nf">show</span> <span class="nf">params</span><span class="p">))</span> <span class="o">++</span> <span class="s">&#34;)</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;{</span><span class="se">\n\t</span><span class="s">cl_int status = 0;</span><span class="se">\n\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="nf">concat</span> <span class="p">(</span><span class="nf">map</span> <span class="p">(</span><span class="nf">\</span><span class="p">(</span><span class="nf">n</span><span class="p">,</span> <span class="nf">p</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="nf">printSetKernelArg</span> <span class="nf">n</span> <span class="nf">name</span> <span class="nf">p</span><span class="p">)</span> <span class="o">$</span> <span class="nf">zip</span> <span class="p">[</span><span class="mi">0</span><span class="o">..</span><span class="p">]</span> <span class="nf">params</span><span class="p">)</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">chk(status, </span><span class="se">\&#34;</span><span class="s">&#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span> <span class="s">&#34;</span><span class="se">\&#34;</span><span class="s">);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\n</span><span class="s">#ifdef DEBUG_KERNEL</span><span class="se">\n\t</span><span class="s">cl_event debug_event;</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">status = clEnqueueNDRangeKernel(command_queue, &#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span>
+  <span class="s">&#34;,</span><span class="se">\n\t\t</span><span class="s">2, NULL, globalSize, localSize, 0, NULL, &amp;debug_event);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">chk(status, </span><span class="se">\&#34;</span><span class="s">&#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span> <span class="s">&#34; clEnqueueNDRangeKernel&#34;</span> <span class="o">++</span> <span class="s">&#34;</span><span class="se">\&#34;</span><span class="s">);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">CheckKernelEvent(debug_event, </span><span class="se">\&#34;</span><span class="s">&#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span> <span class="s">&#34;</span><span class="se">\&#34;</span><span class="s">);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">clReleaseEvent(debug_event);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;#else</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">status = clEnqueueNDRangeKernel(command_queue, &#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span>
+  <span class="s">&#34;,</span><span class="se">\n\t\t</span><span class="s">2, NULL, globalSize, localSize, 0, NULL, NULL);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">chk(status, </span><span class="se">\&#34;</span><span class="s">&#34;</span> <span class="o">++</span> <span class="nf">name</span> <span class="o">++</span> <span class="s">&#34; clEnqueueNDRangeKernel&#34;</span> <span class="o">++</span> <span class="s">&#34;</span><span class="se">\&#34;</span><span class="s">);</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;#endif</span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">++</span>
+  <span class="s">&#34;</span><span class="se">\t</span><span class="s">return (int)status;</span><span class="se">\n</span><span class="s">}</span><span class="se">\n\n</span><span class="s">&#34;</span></code></pre></div><p>Haskell在代码生成方面还是比较好用的，有着很多好用的基础库，可以很方便的写出类似的代码生成的功能。</p>
