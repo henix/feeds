@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>关于近日劝退risk quant言论的感想一二</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/64753933">原文</a></p>
+<div class="title-image"><img src="" alt=""></div><p>今日这个问题下一些劝退“金融行业里低端工种”的话题又活跃起来。</p><a href="https://www.zhihu.com/question/68410831" data-draft-node="block" data-draft-type="link-card" class="internal">你为什么劝退quant？</a><p>猫本身作为“低端人口”之一的model reviewer，平时被各类“上游人士”鄙视惯了，也是见怪不怪。但是一些“上游人士”口中关于risk quant做无用模型给fed看的言论倒是让猫想起了去年底和前台交流时发生的一些不愉快的事。</p><p>事情的起因是猫在检测一个parameterized from implied vol（与之相对的是parameterized from Und dynamic）的波动曲面时发现才波动率有一些极端变化时拟合曲面的结果会导致套利。这本来不是什么特别令人吃惊的事，因为导致曲面可能存在套利的情况太多，从data中本身含套利，到极端情景突破了拟合函数中隐含的无套利边界条件都有可能导致曲面有套利情形。但是由于猫自己测试的条件过于极端，并不一定具有作为常规场景的效力，因此去请教了老板。</p><p>老板表示前台和开发的人对哪些场景比较实际有发言权，因此猫遍将这个事情邮件了前台和开发。前台和开发大致上表示了这么一个点：系统里没有现成类似的场景，他们很难给出特定的，构建场景我们后台的事情。</p><p>于是黑猫为了确定这个场景可行性，通过各种渠道咨询下粗略敲定了一个会导致曲面套利情况中最可能发生的场景——atm波动率暴跌40%～80%（其中40%的情形历史上发生过多次）。</p><p>再进一步的交流中，黑猫提出了这个场景，然而得到的回复大致上是</p><p><b>“你这个场景不切实际”</b></p><p>但是且不论测试可能会破坏模型的极端场景本来就是我们工作职责的一部分，在明确了构建场景的权责在我们这边后，做出了可行的结果后却又急于否定我们的工作，这让当时黑猫极其不悦。后来在deadline和多方的压力下，<b>黑猫被迫在正式报告中删除关于极端套利情形的所有内容。</b></p><p>结果是“令人满意的”，fed方面好交差了，前台也满意，上司也满意，猫的deadline也meet了。</p><p><b>但是真正潜在风险就这么被隐藏下来了。</b></p><p>有一点气不过的猫在后来大老板来组会的时候在想法中发了以下吐槽：</p><p>黑猫Q形态的想法 - 知乎 <a href="https://www.zhihu.com/pin/1004906226110599168" class="internal"><span class="invisible">https://www.</span><span class="visible">zhihu.com/pin/100490622</span><span class="invisible">6110599168</span><span class="ellipsis"></span></a></p><p class="ztext-empty-paragraph"><br/></p><p>可能有的“上游人士”会质疑猫，你们做的这个atm波动率暴跌40%场景本来就有些不切实际，再次且不论测试极端情形本就是我们工作的一部分<b>，你们知道什么是黑天鹅么?</b></p><p><b>还没发生过的才叫黑天鹅</b></p><p>还不论atm波动率暴跌40%是真正发生过多次</p><p class="ztext-empty-paragraph"><br/></p><p>术业有专攻，前台和开发本就应该关注一些具体执行上的工作，不可能什么都管得到。所以才有了中和后台。 黑猫相信在这个”行业“（真的不愿意提起这个词，万一说错话又被”上游人士“鄙视”你还没入行“就尴尬了）里，这个例子是普遍的，不极端的。</p><p class="ztext-empty-paragraph"><br/></p><p>过了些年岁，这个问题上黑猫也没什力气像个像前年那样一点就炸的火药桶一样了</p><p>在这里，黑猫想表达的这么疑问：</p><p class="ztext-empty-paragraph"><br/></p><p>然而到底所谓的”下游工种“做的东西本就是应付差事的无用功？</p><p>还是所谓的”上游人士“本身就先入为主的认为”下游工种“做的是无用功，忽视，无视甚至鄙视工作内容甚至是工种本身，然后”下游工种“的工作慢慢以为各种内因和外因变成了无用功？</p><p>如果都有这两个是谁导致了谁？</p><p>谁是鸡，谁是蛋？</p><p>如果能抛开偏见，分工合作，能否有更好的结果？</p><p class="ztext-empty-paragraph"><br/></p><p>很遗憾，这些问题难有答案，甚至最后一个问题。在这么些年过去后连猫自己的都不得不承认：<br/></p><p><b>有些偏见是无法被抛开的</b></p><p><b>“他们”若是鄙视”我们“，那”我们和他们“也只好互相鄙视了</b></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
