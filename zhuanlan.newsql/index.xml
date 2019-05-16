@@ -5,7 +5,278 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 14 May 2019 20:22:21 +0800</lastBuildDate>
+<lastBuildDate>Thu, 16 May 2019 15:13:44 +0800</lastBuildDate>
+<item>
+<title>Golang Failpoint 的设计与实现</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-05-16-64340817.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/64340817&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-bafeeae88945a35b3a137c3013b39afc_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：龙恒&lt;/p&gt;&lt;p&gt;对于一个大型复杂的系统来说，通常包含多个模块或多个组件构成，模拟各个子系统的故障是测试中必不可少的环节，并且这些故障模拟必须做到无侵入地集成到自动化测试系统中，通过在自动化测试中自动激活这些故障点来模拟故障，并观测最终结果是否符合预期结果来判断系统的正确性和稳定性。如果在一个分布式系统中需要专门请一位同事来插拔网线来模拟网络异常，一个存储系统中需要通过破坏硬盘来模拟磁盘损坏，昂贵的测试成本会让测试成为一场灾难，并且难以模拟一些需要精细化控制的的测试。所以我们需要一些自动化的方式来进行确定性的故障测试。&lt;/p&gt;&lt;p&gt;&lt;b&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/failpoint&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Failpoint 项目&lt;/a&gt;&lt;/b&gt; &lt;b&gt;就是为此而生，它是 FreeBSD&lt;/b&gt; &lt;b&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;failpoints&lt;/a&gt;&lt;/b&gt; &lt;b&gt;的 Golang 实现，允许在代码中注入错误或异常行为， 并由环境变量或代码动态激活来触发这些异常行为。Failpoint 能用于各种复杂系统中模拟错误处理来提高系统的容错性、正确性和稳定性，比如：&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;微服务中某个服务出现随机延迟、某个服务不可用。&lt;/li&gt;&lt;li&gt;存储系统磁盘 I/O 延迟增加、I/O 吞吐量过低、落盘时间长。&lt;/li&gt;&lt;li&gt;调度系统中出现热点，某个调度指令失败。&lt;/li&gt;&lt;li&gt;充值系统中模拟第三方重复请求充值成功回调接口。&lt;/li&gt;&lt;li&gt;游戏开发中模拟玩家网络不稳定、掉帧、延迟过大等，以及各种异常输入（外挂请求）情况下系统是否正确工作。&lt;/li&gt;&lt;li&gt;……&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;为什么要重复造轮子？&lt;/h2&gt;&lt;p&gt;etcd 团队在 2016 年开发了 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/etcd-io/gofail/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;gofail&lt;/a&gt; 极大地简化了错误注入，为 Golang 生态做出了巨大贡献。我们在 2018 年已经引入了 gofail 进行错误注入测试，但是我们在使用中发现了一些功能性以及便利性的问题，所以我们决定造一个更好的「轮子」。&lt;/p&gt;&lt;h3&gt;如何使用 gofail&lt;/h3&gt;&lt;ul&gt;&lt;li&gt;使用注释在程序中注入一个 failpoint：&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;// gofail: var FailIfImportedChunk int
+// if merger, ok := scp.merger.(*ChunkCheckpointMerger); ok &amp;amp;&amp;amp; merger.Checksum.SumKVS() &amp;gt;= uint64(FailIfImportedChunk) {
+// rc.checkpointsWg.Done()
+// rc.checkpointsWg.Wait()
+// panic(&amp;#34;forcing failure due to FailIfImportedChunk&amp;#34;)
+// }
+// goto RETURN1
+    
+// gofail: RETURN1:
+    
+// gofail: var FailIfStatusBecomes int
+// if merger, ok := scp.merger.(*StatusCheckpointMerger); ok &amp;amp;&amp;amp; merger.EngineID &amp;gt;= 0 &amp;amp;&amp;amp; int(merger.Status) == FailIfStatusBecomes {
+// rc.checkpointsWg.Done()
+// rc.checkpointsWg.Wait()
+// panic(&amp;#34;forcing failure due to FailIfStatusBecomes&amp;#34;)
+// }
+// goto RETURN2
+    
+// gofail: RETURN2:&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;使用 &lt;code&gt;gofail enable&lt;/code&gt; 命令将注释转换为代码：&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if vFailIfImportedChunk, __fpErr := __fp_FailIfImportedChunk.Acquire(); __fpErr == nil { defer __fp_FailIfImportedChunk.Release(); FailIfImportedChunk, __fpTypeOK := vFailIfImportedChunk.(int); if !__fpTypeOK { goto __badTypeFailIfImportedChunk} 
+    if merger, ok := scp.merger.(*ChunkCheckpointMerger); ok &amp;amp;&amp;amp; merger.Checksum.SumKVS() &amp;gt;= uint64(FailIfImportedChunk) {
+        rc.checkpointsWg.Done()
+        rc.checkpointsWg.Wait()
+        panic(&amp;#34;forcing failure due to FailIfImportedChunk&amp;#34;)
+    }
+    goto RETURN1; __badTypeFailIfImportedChunk: __fp_FailIfImportedChunk.BadType(vFailIfImportedChunk, &amp;#34;int&amp;#34;); };
+    
+/* gofail-label */ RETURN1:
+    
+if vFailIfStatusBecomes, __fpErr := __fp_FailIfStatusBecomes.Acquire(); __fpErr == nil { defer __fp_FailIfStatusBecomes.Release(); FailIfStatusBecomes, __fpTypeOK := vFailIfStatusBecomes.(int); if !__fpTypeOK { goto __badTypeFailIfStatusBecomes} 
+    if merger, ok := scp.merger.(*StatusCheckpointMerger); ok &amp;amp;&amp;amp; merger.EngineID &amp;gt;= 0 &amp;amp;&amp;amp; int(merger.Status) == FailIfStatusBecomes {
+        rc.checkpointsWg.Done()
+        rc.checkpointsWg.Wait()
+        panic(&amp;#34;forcing failure due to FailIfStatusBecomes&amp;#34;)
+    }
+    goto RETURN2; __badTypeFailIfStatusBecomes: __fp_FailIfStatusBecomes.BadType(vFailIfStatusBecomes, &amp;#34;int&amp;#34;); };
+    
+/* gofail-label */ RETURN2:&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3&gt;gofail 使用中遇到的问题&lt;/h3&gt;&lt;ul&gt;&lt;li&gt;使用注释的方式在代码中注入 failpoint，代码容易出错，并且没有编译器检测。&lt;/li&gt;&lt;li&gt;只能全局生效，大型项目为了缩短自动化测试的时间会引入并行测试，不同并行任务之间会存在干扰。&lt;/li&gt;&lt;li&gt;需要写一些 hack 代码来避免一些不必要的错误日志，比如如上代码，必须要写 &lt;code&gt;// goto RETURN2&lt;/code&gt; 和 &lt;code&gt;// gofail: RETURN2:&lt;/code&gt;，并且中间必须添加一个空行，至于原因可以看 generated code 逻辑。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;我们要设计一个什么样子的 failpoint？&lt;/h2&gt;&lt;h3&gt;理想的 failpoint 实现应该是什么样子？&lt;/h3&gt;&lt;p&gt;理想中的 failpoint 应该是使用代码定义并且对业务逻辑无侵入，如果在一个支持宏的语言中 (比如 Rust)，我们可以定义一个 &lt;code&gt;fail_point&lt;/code&gt; 宏来定义 failpoint：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fail_point!(&amp;#34;transport_on_send_store&amp;#34;, |sid| if let Some(sid) = sid {
+    let sid: u64 = sid.parse().unwrap();
+    if sid == store_id {
+        self.raft_client.wl().addrs.remove(&amp;amp;store_id);
+    }
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;但是我们遇到了一些问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Golang 并不支持 macro 语言特性。&lt;/li&gt;&lt;li&gt;Golang 不支持编译器插件。&lt;/li&gt;&lt;li&gt;Golang tags 也不能提供一个比较优雅的实现 (&lt;code&gt;go build --tag=&amp;#34;enable-failpoint-a&amp;#34;&lt;/code&gt;)。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;Failpoint 设计准则&lt;/h3&gt;&lt;ul&gt;&lt;li&gt;使用 Golang 代码定义 failpoint，而不是注释或其他形式。&lt;/li&gt;&lt;li&gt;Failpoint 代码不应该有任何额外开销：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;不能影响正常功能逻辑，不能对功能代码有任何侵入。&lt;/li&gt;&lt;li&gt;注入 failpoint 代码之后不能导致性能回退。&lt;/li&gt;&lt;li&gt;Failpoint 代码最终不能出现在最终发行的二进制文件中。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Failpoint 代码必须是易读、易写并且能引入编译器检测。&lt;/li&gt;&lt;li&gt;最终生成的代码必须具有可读性。&lt;/li&gt;&lt;li&gt;生成代码中，功能逻辑代码的行号不能发生变化（便于调试）。&lt;/li&gt;&lt;li&gt;支持并行测试，可以通过 &lt;code&gt;context.Context&lt;/code&gt; 控制一个某个具体的 failpoint 是否激活。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;Golang 如何实现一个类似 failpoint 宏？&lt;/h3&gt;&lt;p&gt;宏的本质是什么？如果追本溯源，发现其实可以通过 AST 重写在 Golang 中实现满足以上条件的 failpoint，原理如下图所示：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2260&quot; data-rawheight=&quot;1478&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2260&quot; data-original=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2260&quot; data-rawheight=&quot;1478&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2260&quot; data-original=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-e5020c7090df7d820cbe00563fddd42d_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;对于任何一个 Golang 代码的源文件，可以通过解析出这个文件的语法树，遍历整个语法树，找出所有 failpoint 注入点，然后对语法树重写，转换成想要的逻辑。&lt;/p&gt;&lt;h2&gt;相关概念&lt;/h2&gt;&lt;h3&gt;Failpoint&lt;/h3&gt;&lt;p&gt;Failpoint 是一个代码片段，并且仅在对应的 failpoint name 激活的情况下才会执行，如果通过 &lt;code&gt;failpoint.Disable(&amp;#34;failpoint-name-for-demo&amp;#34;)&lt;/code&gt; 禁用后，那么对应的的 failpoint 永远不会触发。所有 failpoint 代码片段不会编译到最终的二进制文件中，比如我们模拟文件系统权限控制：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func saveTo(path string) error {
+    failpoint.Inject(&amp;#34;mock-permission-deny&amp;#34;, func() error {
+         // It&amp;#39;s OK to access outer scope variable
+         return fmt.Errorf(&amp;#34;mock permission deny: %s&amp;#34;, path)
+    })
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3&gt;Marker 函数&lt;/h3&gt;&lt;p&gt;AST 重写阶段标记需要被重写的部分，主要有以下功能：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;提示 Rewriter 重写为一个相等的 IF 语句。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;标记函数的参数是重写过程中需要用到的参数。&lt;/li&gt;&lt;li&gt;标记函数是一个空函数，编译过程会被 inline，进一步被消除。&lt;/li&gt;&lt;li&gt;标记函数中注入的 failpoint 是一个闭包，如果闭包访问外部作用域变量，闭包语法允许捕获外部作用域变量，则不会出现编译错误，同时转换后的的代码是一个 IF 语句，IF 语句访问外部作用域变量不会产生任何问题，所以闭包捕获只是为了语法合法，最终不会有任何额外开销。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;简单、易读、易写。&lt;/li&gt;&lt;li&gt;引入编译器检测，如果 Marker 函数的参数不正确，程序不能通过编译的，进而保证转换后的代码正确性。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;目前支持的 Marker 函数列表：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;func Inject(fpname string&lt;/code&gt;, &lt;code&gt;fpblock func(val Value)) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func InjectContext(fpname string&lt;/code&gt;, &lt;code&gt;ctx context.Context&lt;/code&gt;, &lt;code&gt;fpblock func(val Value)) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Break(label ...string) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Goto(label string) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Continue(label ...string) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Return(results ...interface{}) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Fallthrough() {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Return(results ...interface{}) {}&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;func Label(label string) {}&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;如何在你的程序中使用 failpoint 进行注入？&lt;/h2&gt;&lt;p&gt;&lt;b&gt;最简单的方式是使用&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Inject&lt;/code&gt;&lt;/b&gt; &lt;b&gt;在调用的地方注入一个 failpoint，最终&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Inject&lt;/code&gt;&lt;/b&gt; &lt;b&gt;调用会重写为一个 IF 语句，其中&lt;/b&gt; &lt;b&gt;&lt;code&gt;mock-io-error&lt;/code&gt;&lt;/b&gt; &lt;b&gt;用来判断是否触发，&lt;code&gt;failpoint-closure&lt;/code&gt;&lt;/b&gt; &lt;b&gt;中的逻辑会在触发后执行。&lt;/b&gt; 比如我们在一个读取文件的函数中注入一个 I/O 错误：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Inject(&amp;#34;mock-io-error&amp;#34;, func(val failpoint.Value) error {
+    return fmt.Errorf(&amp;#34;mock error: %v&amp;#34;, val.(string))
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最终转换后的代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if ok, val := failpoint.Eval(_curpkg_(&amp;#34;mock-io-error&amp;#34;)); ok {
+    return fmt.Errorf(&amp;#34;mock error: %v&amp;#34;, val.(string))
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;通过 &lt;code&gt;failpoint.Enable(&amp;#34;mock-io-error&amp;#34;, &amp;#34;return(&amp;#34;disk error&amp;#34;)&amp;#34;)&lt;/code&gt; 激活程序中的 failpoint，如果需要给 &lt;code&gt;failpoint.Value&lt;/code&gt; 赋一个自定义的值，则需要传入一个 failpoint expression，比如这里 &lt;code&gt;return(&amp;#34;disk error&amp;#34;)&lt;/code&gt;，更多语法可以参考 &lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;failpoint 语法&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;闭包可以为&lt;/b&gt; &lt;b&gt;&lt;code&gt;nil&lt;/code&gt;，比如&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Enable(&amp;#34;mock-delay&amp;#34;, &amp;#34;sleep(1000)&amp;#34;)&lt;/code&gt;，目的是在注入点休眠一秒，不需要执行额外的逻辑。&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Inject(&amp;#34;mock-delay&amp;#34;, nil)
+failpoint.Inject(&amp;#34;mock-delay&amp;#34;, func(){})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最终会产生以下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Eval(_curpkg_(&amp;#34;mock-delay&amp;#34;))
+failpoint.Eval(_curpkg_(&amp;#34;mock-delay&amp;#34;))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;如果我们只想在 failpoint 中执行一个 panic，不需要接收&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.Value&lt;/code&gt;，则我们可以在闭包的参数中忽略这个值。&lt;/b&gt;例如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Inject(&amp;#34;mock-panic&amp;#34;, func(_ failpoint.Value) error {
+    panic(&amp;#34;mock panic&amp;#34;)
+})
+// OR
+failpoint.Inject(&amp;#34;mock-panic&amp;#34;, func() error {
+    panic(&amp;#34;mock panic&amp;#34;)
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最佳实践是以下这样：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Enable(&amp;#34;mock-panic&amp;#34;, &amp;#34;panic&amp;#34;)
+failpoint.Inject(&amp;#34;mock-panic&amp;#34;, nil)
+// GENERATED CODE
+failpoint.Eval(_curpkg_(&amp;#34;mock-panic&amp;#34;))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;为了可以在并行测试中防止不同的测试任务之间的干扰，可以在&lt;/b&gt; &lt;b&gt;&lt;code&gt;context.Context&lt;/code&gt;&lt;/b&gt; &lt;b&gt;中包含一个回调函数，用于精细化控制 failpoint 的激活与关闭&lt;/b&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.InjectContext(ctx, &amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+    fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+})&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;转换后的代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if ok, val := failpoint.EvalContext(ctx, _curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+    fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;使用&lt;/b&gt; &lt;b&gt;&lt;code&gt;failpoint.WithHook&lt;/code&gt;&lt;/b&gt; &lt;b&gt;的示例&lt;/b&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func (s *dmlSuite) TestCRUDParallel() {
+    sctx := failpoint.WithHook(context.Backgroud(), func(ctx context.Context, fpname string) bool {
+        return ctx.Value(fpname) != nil // Determine by ctx key
+    })
+    insertFailpoints = map[string]struct{} {
+        &amp;#34;insert-record-fp&amp;#34;: {},
+        &amp;#34;insert-index-fp&amp;#34;: {},
+        &amp;#34;on-duplicate-fp&amp;#34;: {},
+    }
+    ictx := failpoint.WithHook(context.Backgroud(), func(ctx context.Context, fpname string) bool {
+        _, found := insertFailpoints[fpname] // Only enables some failpoints.
+        return found
+    })
+    deleteFailpoints = map[string]struct{} {
+        &amp;#34;tikv-is-busy-fp&amp;#34;: {},
+        &amp;#34;fetch-tso-timeout&amp;#34;: {},
+    }
+    dctx := failpoint.WithHook(context.Backgroud(), func(ctx context.Context, fpname string) bool {
+        _, found := deleteFailpoints[fpname] // Only disables failpoints. 
+        return !found
+    })
+    // other DML parallel test cases.
+    s.RunParallel(buildSelectTests(sctx))
+    s.RunParallel(buildInsertTests(ictx))
+    s.RunParallel(buildDeleteTests(dctx))
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;如果我们在循环中使用 failpoint，可能我们会使用到其他的 Marker 函数&lt;/b&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;failpoint.Label(&amp;#34;outer&amp;#34;)
+for i := 0; i &amp;lt; 100; i++ {
+    inner:
+        for j := 0; j &amp;lt; 1000; j++ {
+            switch rand.Intn(j) + i {
+            case j / 5:
+                failpoint.Break()
+            case j / 7:
+                failpoint.Continue(&amp;#34;outer&amp;#34;)
+            case j / 9:
+                failpoint.Fallthrough()
+            case j / 10:
+                failpoint.Goto(&amp;#34;outer&amp;#34;)
+            default:
+                failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+                    fmt.Println(&amp;#34;unit-test&amp;#34;, val.(int))
+                    if val == j/11 {
+                        failpoint.Break(&amp;#34;inner&amp;#34;)
+                    } else {
+                        failpoint.Goto(&amp;#34;outer&amp;#34;)
+                    }
+                })
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以上代码最终会重写为如下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;outer:
+    for i := 0; i &amp;lt; 100; i++ {
+    inner:
+        for j := 0; j &amp;lt; 1000; j++ {
+            switch rand.Intn(j) + i {
+            case j / 5:
+                break
+            case j / 7:
+                continue outer
+            case j / 9:
+                fallthrough
+            case j / 10:
+                goto outer
+            default:
+                if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+                    fmt.Println(&amp;#34;unit-test&amp;#34;, val.(int))
+                    if val == j/11 {
+                        break inner
+                    } else {
+                        goto outer
+                    }
+                }
+            }
+        }
+    }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;为什么会有&lt;/b&gt; &lt;b&gt;&lt;code&gt;label&lt;/code&gt;、&lt;code&gt;break&lt;/code&gt;、&lt;code&gt;continue&lt;/code&gt;&lt;/b&gt; &lt;b&gt;和&lt;/b&gt; &lt;b&gt;&lt;code&gt;fallthrough&lt;/code&gt;&lt;/b&gt; &lt;b&gt;相关 Marker 函数? 为什么不直接使用关键字？&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Golang 中如果某个变量或则标签未使用，是不能通过编译的。&lt;br/&gt;&lt;i&gt;Copy&lt;/i&gt;label1: // compiler error: unused label1  failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {         if val.(int) == 1000 {             goto label1 // illegal to use goto here         }         fmt.Println(&amp;#34;unit-test&amp;#34;, val)     })&lt;/li&gt;&lt;li&gt;&lt;code&gt;break&lt;/code&gt; 和 &lt;code&gt;continue&lt;/code&gt; 只能在循环上下文中使用，在闭包中使用。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;一些复杂的注入示例&lt;/h3&gt;&lt;p&gt;&lt;b&gt;示例一：在 IF 语句的&lt;/b&gt; &lt;b&gt;&lt;code&gt;INITIAL&lt;/code&gt;&lt;/b&gt; &lt;b&gt;和&lt;/b&gt; &lt;b&gt;&lt;code&gt;CONDITIONAL&lt;/code&gt;&lt;/b&gt; &lt;b&gt;中注入 failpoint&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if a, b := func() {
+    failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    })
+}, func() int { return rand.Intn(200) }(); b &amp;gt; func() int {
+    failpoint.Inject(&amp;#34;failpoint-name&amp;#34;, func(val failpoint.Value) int {
+        return val.(int)
+    })
+    return rand.Intn(3000)
+}() &amp;amp;&amp;amp; b &amp;lt; func() int {
+    failpoint.Inject(&amp;#34;failpoint-name-2&amp;#34;, func(val failpoint.Value) {
+        return rand.Intn(val.(int))
+    })
+    return rand.Intn(6000)
+}() {
+    a()
+    failpoint.Inject(&amp;#34;failpoint-name-3&amp;#34;, func(val failpoint.Value) {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    })
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面的代码最终会被重写为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;if a, b := func() {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    }
+}, func() int { return rand.Intn(200) }(); b &amp;gt; func() int {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name&amp;#34;)); ok {
+        return val.(int)
+    }
+    return rand.Intn(3000)
+}() &amp;amp;&amp;amp; b &amp;lt; func() int {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name-2&amp;#34;)); ok {
+        return rand.Intn(val.(int))
+    }
+    return rand.Intn(6000)
+}() {
+    a()
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;failpoint-name-3&amp;#34;)); ok {
+        fmt.Println(&amp;#34;unit-test&amp;#34;, val)
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;示例二：在&lt;/b&gt; &lt;b&gt;&lt;code&gt;SELECT&lt;/code&gt;&lt;/b&gt; &lt;b&gt;语句的 CASE 中注入 failpoint 来动态控制某个 case 是否被阻塞&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func (s *StoreService) ExecuteStoreTask() {
+    select {
+    case &amp;lt;-func() chan *StoreTask {
+        failpoint.Inject(&amp;#34;priority-fp&amp;#34;, func(_ failpoint.Value) {
+            return make(chan *StoreTask)
+        })
+        return s.priorityHighCh
+    }():
+        fmt.Println(&amp;#34;execute high priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityNormalCh:
+        fmt.Println(&amp;#34;execute normal priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityLowCh:
+        fmt.Println(&amp;#34;execute normal low task&amp;#34;)
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面的代码最终会被重写为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;func (s *StoreService) ExecuteStoreTask() {
+    select {
+    case &amp;lt;-func() chan *StoreTask {
+        if ok, _ := failpoint.Eval(_curpkg_(&amp;#34;priority-fp&amp;#34;)); ok {
+            return make(chan *StoreTask)
+        })
+        return s.priorityHighCh
+    }():
+        fmt.Println(&amp;#34;execute high priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityNormalCh:
+        fmt.Println(&amp;#34;execute normal priority task&amp;#34;)
+
+    case &amp;lt;- s.priorityLowCh:
+        fmt.Println(&amp;#34;execute normal low task&amp;#34;)
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;示例三：动态注入 SWITCH CASE&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;switch opType := operator.Type(); {
+case opType == &amp;#34;balance-leader&amp;#34;:
+    fmt.Println(&amp;#34;create balance leader steps&amp;#34;)
+
+case opType == &amp;#34;balance-region&amp;#34;:
+    fmt.Println(&amp;#34;create balance region steps&amp;#34;)
+
+case opType == &amp;#34;scatter-region&amp;#34;:
+    fmt.Println(&amp;#34;create scatter region steps&amp;#34;)
+
+case func() bool {
+    failpoint.Inject(&amp;#34;dynamic-op-type&amp;#34;, func(val failpoint.Value) bool {
+        return strings.Contains(val.(string), opType)
+    })
+    return false
+}():
+    fmt.Println(&amp;#34;do something&amp;#34;)
+
+default:
+    panic(&amp;#34;unsupported operator type&amp;#34;)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以上代码最终会重写为如下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;switch opType := operator.Type(); {
+case opType == &amp;#34;balance-leader&amp;#34;:
+    fmt.Println(&amp;#34;create balance leader steps&amp;#34;)
+
+case opType == &amp;#34;balance-region&amp;#34;:
+    fmt.Println(&amp;#34;create balance region steps&amp;#34;)
+
+case opType == &amp;#34;scatter-region&amp;#34;:
+    fmt.Println(&amp;#34;create scatter region steps&amp;#34;)
+
+case func() bool {
+    if ok, val := failpoint.Eval(_curpkg_(&amp;#34;dynamic-op-type&amp;#34;)); ok {
+        return strings.Contains(val.(string), opType)
+    }
+    return false
+}():
+    fmt.Println(&amp;#34;do something&amp;#34;)
+
+default:
+    panic(&amp;#34;unsupported operator type&amp;#34;)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;除了上面的例子之外，还可以写的更加复杂的情况：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;由 &lt;code&gt;INITIAL&lt;/code&gt; 语句、&lt;code&gt;CONDITIONAL&lt;/code&gt; 表达式，以及 &lt;code&gt;POST&lt;/code&gt; 语句组成的循环&lt;/li&gt;&lt;li&gt;&lt;code&gt;FOR RANGE&lt;/code&gt; 语句&lt;/li&gt;&lt;li&gt;&lt;code&gt;SWITCH INITIAL&lt;/code&gt; 语句&lt;/li&gt;&lt;li&gt;Slice 的构造和索引&lt;/li&gt;&lt;li&gt;结构体动态初始化&lt;/li&gt;&lt;li&gt;……&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;实际上，任何你可以调用函数的地方都可以注入 failpoint，所以请发挥你的想象力。&lt;/p&gt;&lt;h2&gt;Failpoint 命名最佳实践&lt;/h2&gt;&lt;p&gt;上面生成的代码中会自动添加一个 &lt;code&gt;_curpkg_&lt;/code&gt; 调用在 &lt;code&gt;failpoint-name&lt;/code&gt; 上，是因为名字是全局的，为了避免命名冲突，所以会在最终的名字中包含包名，&lt;code&gt;_curpkg_&lt;/code&gt; 相当一个宏，在运行的时候自动使用包名进行展开。你并不需要在自己的应用程序中实现 &lt;code&gt;_curpkg_&lt;/code&gt;，它在执行 &lt;code&gt;failpoint-ctl enable&lt;/code&gt; 命令的时候自动生成以及自动添加，并在执行 &lt;code&gt;failpoint-ctl disable&lt;/code&gt; 命令的时候被删除。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;package ddl // ddl’s parent package is `github.com/pingcap/tidb`
+
+func demo() {
+	// _curpkg_(&amp;#34;the-original-failpoint-name&amp;#34;) will be expanded as `github.com/pingcap/tidb/ddl/the-original-failpoint-name`
+	if ok, val := failpoint.Eval(_curpkg_(&amp;#34;the-original-failpoint-name&amp;#34;)); ok {...}
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;因为同一个包下面的所有 failpoint 都在同一个命名空间，所以需要小心命名来避免命名冲突，这里有一些推荐的规则来改善这种情况：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;保证名字在包内是唯一的。&lt;/li&gt;&lt;li&gt;使用一个自解释的名字。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;可以通过环境变量来激活 failpoint：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;GO_FAILPOINTS=&amp;#34;github.com/pingcap/tidb/ddl/renameTableErr=return(100);github.com/pingcap/tidb/planner/core/illegalPushDown=return(true);github.com/pingcap/pd/server/schedulers/balanceLeaderFailed=return(true)&amp;#34;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;致谢&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;感谢 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/etcd-io/gofail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;gofail&lt;/a&gt; 提供最初实现，给我们提供了灵感，让我们能站在巨人的肩膀上对 failpoint 进行迭代。&lt;/li&gt;&lt;li&gt;感谢 FreeBSD 定义&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.freebsd.org/cgi/man.cgi%3Fquery%3Dfail&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;语法规范&lt;/a&gt;。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;最后，欢迎大家和我们交流讨论，一起完善 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/failpoint&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Failpoint 项目&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;原文阅读：&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/golang-failpoint/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Golang Failpoint 的设计与实现&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-05-16-64340817</guid>
+<pubDate>Thu, 16 May 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>银行交易系统 TiDB 在线缩容迁移</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-05-15-65878590.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/65878590&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-e5610024df07e75583d513f6a7d6d59d_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：Dan&lt;/p&gt;&lt;p&gt;本文转载自公众号「白噪声OG」。&lt;/p&gt;&lt;p&gt;经历了上礼拜漫长的上线周期，终于有时间总结一下期间发生的故事。TiDB 是一款非常优秀的国产分布式 NewSQL 数据库，因其支持水平扩展性、强一致性、高可用性，从 18 年 3 月起已在国内银行的账务、支付类核心系统得到应用。&lt;/p&gt;&lt;p&gt;临近年中，银行重要系统的建设进入投产冲刺阶段，本次上线又有多个系统对接 TiDB，为了优化集群资源分配，引发了这次分享的主题——&lt;b&gt;线上系统 TiKV 的缩容、region 的迁移&lt;/b&gt;，本文主要针对本次 TiKV 的缩容、迁移过程进行梳理总结。&lt;/p&gt;&lt;p&gt;&lt;b&gt;TiDB 数据库的扩容已在官方文档进行了详细的说明&lt;/b&gt;（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/docs-cn/op-guide/horizontal-scale/&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;pingcap.com/docs-cn/op-&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;guide/horizontal-scale/&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;）&lt;b&gt;并被各路大咖广泛提及，但缩容迁移并在银行交易系统上的实践却少有分享，这也是本文的目的之一。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;进入主题，先交代下环境，服务器集群采用 NVMe+SSD 的存储方案构建了 16 个 TiKV 实例，作为重要的核心支付类系统，两地三中心五副本不可少，每个 TiKV 上 8K+ 个 region。&lt;b&gt;整个迁移过程历时 5 个小时，过程中没有停止系统对外服务，很是顺滑平稳。&lt;/b&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-076f34fdabe840a09b7ac9765cae57e6_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;529&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic3.zhimg.com/v2-076f34fdabe840a09b7ac9765cae57e6_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-076f34fdabe840a09b7ac9765cae57e6_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;529&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic3.zhimg.com/v2-076f34fdabe840a09b7ac9765cae57e6_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-076f34fdabe840a09b7ac9765cae57e6_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;接下来还是看一下迁移的过程：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（一）&lt;/b&gt;TiKV 采用 Raft 一致性算法保证副本强一致性，迁移过程本质上是扩容的逆过程，确定下线的 TiKV 打上 label 后，将 region 搬移到最终保留下来的 TiKV 上。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-463994044be8e73c8161a5eb9e6d57a8_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;676&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-463994044be8e73c8161a5eb9e6d57a8_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-463994044be8e73c8161a5eb9e6d57a8_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;676&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-463994044be8e73c8161a5eb9e6d57a8_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-463994044be8e73c8161a5eb9e6d57a8_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;（二）&lt;/b&gt;接下来聚焦 region 1 的 Raft Group，对其副本进行搬移，实际上所有 region 的数据是一样的，只是在保留的 TiKV 内进行 region 数据的复制，新产生的副本由于数据不完整，作为 Raft Group 中的 learner。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a85bc5542754c7f96751820cc9a59018_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;373&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-a85bc5542754c7f96751820cc9a59018_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a85bc5542754c7f96751820cc9a59018_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;373&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-a85bc5542754c7f96751820cc9a59018_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-a85bc5542754c7f96751820cc9a59018_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;（三）&lt;/b&gt;Learner 创建后，PD 会在这样的一个 Raft Group（5 个全副本 region + 2 个 learner）中发起选举：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;选举会增加 label 限制，确保 leader 最终在保留的 TiKV 中产生；&lt;/li&gt;&lt;li&gt;由于 learner 没有投票权，选举实际还是个 5 副本选主，多数派 (N+1)/2 仍为 3。&lt;/li&gt;&lt;/ul&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8434cd530afeadd794ff536310abad65_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;474&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-8434cd530afeadd794ff536310abad65_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8434cd530afeadd794ff536310abad65_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;474&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-8434cd530afeadd794ff536310abad65_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-8434cd530afeadd794ff536310abad65_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;（四）&lt;/b&gt;这样新的 leader 选出来了，当两个新副本数据追平后，将删除下线 TiKV 中的 region。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e551cc40b3c2dec6e6be3002913b8a29_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;747&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-e551cc40b3c2dec6e6be3002913b8a29_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e551cc40b3c2dec6e6be3002913b8a29_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;747&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-e551cc40b3c2dec6e6be3002913b8a29_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-e551cc40b3c2dec6e6be3002913b8a29_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;（五）&lt;/b&gt;这样一个新的 5 副本 Raft Group 我们就获得了。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c0194bd790246f323b7a3062f450a8da_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;406&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic3.zhimg.com/v2-c0194bd790246f323b7a3062f450a8da_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-c0194bd790246f323b7a3062f450a8da_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;406&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic3.zhimg.com/v2-c0194bd790246f323b7a3062f450a8da_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-c0194bd790246f323b7a3062f450a8da_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;这里再说几点：&lt;/p&gt;&lt;p&gt;1. 磁盘 IO 对迁移的效率影响还是很大的，测试环境使用普通的 SAS 盘，在更高并发的条件下，耗时长了很多。&lt;/p&gt;&lt;p&gt;2.（二）、（三）、（四）的过程并非原子化操作，当然 learner 的数据本身也不具备一致性，但对 raft 的改造最终要保证一致性，与 PingCAP 的开发同学确认后，这些会在之后加入。&lt;/p&gt;&lt;p&gt;&lt;b&gt;3. 我认为最有意思，也最有意义的一点，learner 的引入是本次迁移过程中非常巧妙的设计，解决了数据不一致副本在选举过程中的尴尬地位，而 learner 也是 Multi-Raft 协议中的重要角色，HTAP 引擎 TiFlash&amp;amp;TiSpark 也以此引入列存副本，非常期待&lt;/b&gt; &lt;b&gt;TiDB 3.0。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;PS：本次上线的重头戏 Cloud TiDB 在平稳运行后，希望有机会进行总结分享。TiDB 自上线后实现了多次重要变更操作，均未暂停系统对外服务，从一只开发狗的角度看 TiDB 在金融级 NewSQL 数据库的方向上的确投入了很多。&lt;/p&gt;&lt;p&gt;最后，感谢 PingCAP Gin 同学和研发大神们的支持，感谢运维爸爸们直到凌晨 4 点的奋斗。&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-05-15-65878590</guid>
+<pubDate>Wed, 15 May 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>RustCon Asia 实录 | Distributed Actor System in Rust</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-05-14-65610580.html</link>
@@ -597,65 +868,6 @@ func demo() {
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-04-30-64340817</guid>
 <pubDate>Tue, 30 Apr 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>DM 源码阅读系列文章（四）dump/load 全量同步的实现</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-04-26-63895873.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/63895873&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-02d2281158b02e72cb1e60c6cc7d11f4_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：杨非&lt;/p&gt;&lt;p&gt;本文为 DM 源码阅读系列文章的第四篇，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/dm-source-code-reading-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上篇文章&lt;/a&gt; 介绍了数据同步处理单元实现的功能，数据同步流程的运行逻辑以及数据同步处理单元的 interface 设计。本篇文章在此基础上展开，详细介绍 dump 和 load 两个数据同步处理单元的设计实现，重点关注数据同步处理单元 interface 的实现，数据导入并发模型的设计，以及导入任务在暂停或出现异常后如何恢复。&lt;/p&gt;&lt;h2&gt;dump 处理单元&lt;/h2&gt;&lt;p&gt;dump 处理单元的代码位于 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/tree/master/mydumper&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;github.com/pingcap/dm/mydumper&lt;/a&gt; 包内，作用是从上游 MySQL 将表结构和数据导出到逻辑 SQL 文件，由于该处理单元总是运行在任务的第一个阶段（full 模式和 all 模式），该处理单元每次运行不依赖于其他处理单元的处理结果。另一方面，如果在 dump 运行过程中被强制终止（例如在 dmctl 中执行 pause-task 或者 stop-task），也不会记录已经 dump 数据的 checkpoint 等信息。不记录 checkpoint 是因为每次运行 mydumper 从上游导出数据，上游的数据都可能发生变更，为了能得到一致的数据和 metadata 信息，每次恢复任务或重新运行任务时该处理单元会 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/092b5e4378ce42cf6c2488dd06498792190a091b/mydumper/mydumper.go%23L68&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;清理旧的数据目录&lt;/a&gt;，重新开始一次完整的数据 dump。&lt;/p&gt;&lt;p&gt;导出表结构和数据的逻辑并不是在 DM 内部直接实现，而是 href=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/092b5e4378ce42cf6c2488dd06498792190a091b/mydumper/mydumper.go%23L104&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/092b5e4378ce42cf6c2488dd06498792190a091b/mydumper/mydumper.go#L104&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;通过 os/exec 包调用外部 mydumper 二进制文件 来完成。在 mydumper 内部，我们需要关注以下几个问题：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;数据导出时的并发模型是如何实现的。&lt;/li&gt;&lt;li&gt;no-locks, lock-all-tables, less-locking 等参数有怎样的功能。&lt;/li&gt;&lt;li&gt;库表黑白名单的实现方式。&lt;/li&gt;&lt;/ul&gt;&lt;h3&gt;mydumper 的实现细节&lt;/h3&gt;&lt;p&gt;mydumper 的一次完整的运行流程从主线程开始，主线程按照以下步骤执行：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;解析参数。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1076&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;创建到数据库的连接&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;会根据 &lt;code&gt;no-locks&lt;/code&gt; 选项进行一系列的备份安全策略，包括 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1253-L1292&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;long query guard&lt;/a&gt;&lt;/code&gt; 和 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1294-L1453&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;lock all tables or FLUSH TABLES WITH READ LOCK&lt;/a&gt;&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;&lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1469&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;START TRANSACTION WITH CONSISTENT SNAPSHOT&lt;/a&gt;&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1496-L1503&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;记录 binlog 位点信息&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;&lt;code&gt;&lt;a href=&quot;htt&amp;lt;/code&amp;gt;ps://github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c#L1508-L1519&quot;&gt;less locking 处理线程的初始化&lt;/a&gt;。&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1525-L1530&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;普通导出线程初始化&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;f=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingc&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingc&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;ap/mydumper/blob/9493dd752b9&lt;/code&gt;ea8804458e56a955e7f74960fa969/mydumper.c#L1534-L1539&amp;#34;&amp;gt;如果配置了 trx-consistency-only 选项，执行 UNLOCK TABLES /* trx-only */ 释放之前获取的表锁。注意，如果开启该选项，是无法保证非 InnoDB 表导出数据的一致性。更多关于一致性读的细节可以参考 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//dev.mysql.com/doc/refman/5.7/en/innodb-consistent-read.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;MySQL 官方文档 Consistent Nonlocking Reads 部分&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1541-L1566&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;根据配置规则（包括 –database, –tables-list 和 –regex 配置）读取需要导出的 schema 和表信息，并在这个过程中有区分的记录 innodb_tables 和 non_innodb_table&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1572-L1646&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;为工作子线程创建任务，并将任务 push 到相关的工作队列&lt;/a&gt;。&lt;/li&gt;&lt;li&gt;=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//g&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;ithub.com/pingcap/my&lt;/code&gt;dumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c#L1648-L1654&amp;#34;&amp;gt;如果没有配置 no-locks 和 trx-consistency-only 选项，执行 UNLOCK TABLES /* FTWRL */ 释放锁。&lt;/li&gt;&lt;li&gt;ef=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;.com/pingcap&lt;/code&gt;/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c#L1663-L1668&amp;#34;&amp;gt;如果开启 less-locking，等待所有 less locking 子线程退出。&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1670-L1679&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;等待所有工作子线程退出&lt;/a&gt;。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;工作线程的并发控制包括了两个层面，一层是在不同表级别的并发，另一层是同一张表级别的并发。mydumper 的主线程会将一次同步任务拆分为多个同步子任务，并将每个子任务分发给同一个异步队列 &lt;code&gt;conf.queue_less_locking/conf.queue&lt;/code&gt;，工作子线程从队列中获取任务并执行。具体的子任务划分包括以下策略：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;开启 &lt;code&gt;less-locking&lt;/code&gt; 选项的非 InnoDB 表的处理。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;ef=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.c&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.c&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;om/pingcap/&lt;/code&gt;mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c#L1574-L1586&amp;#34;&amp;gt;先将所有 non_innodb_table 分为 num_threads 组，分组方式是遍历这些表，依此将遍历到的表加入到当前数据量最小的分组，尽量保证每个分组内的数据量相近。&lt;/li&gt;&lt;li&gt;上述得到的每个分组内会包含一个或多个非 InnoDB 表，如果配置了 &lt;code&gt;rows-per-file&lt;/code&gt; 选项，会对每张表进行 &lt;code&gt;chunks&lt;/code&gt; 估算，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/%3Ccode%3Emydump%3C/code%3Eer/blob/9%3Ccode%3E493dd7%3C/code%3E52b9ea8804458e56a955e7f74960fa969/mydumper.c%23L3033-L3046&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;对于每一张表，如果估算结果包含多个 chunks，会将子任务进一步按照 chunks 进行拆分，分发 chunks 数量个子任务&lt;/a&gt;，ef=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L3047-L3057&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/mydu&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;mper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c#L3047-L3057&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;如果没有 chunks 划分，分发为一个独立的子任务。&lt;/li&gt;&lt;li&gt;注意，在该模式下，子任务会 ref=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L3059&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/mydu&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;mper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c#L3059&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;发送到 queue_less_locking，并在编号为 &lt;code&gt;num_threads&lt;/code&gt; ~ 2 * &lt;code&gt;num_threads&lt;/code&gt; 的子线程中处理任务。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;less_locking_threads&lt;/code&gt; 任务执行完成之后，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1648-L1654&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;主线程就会 UNLOCK TABLES /* FTWRL */ 释放锁&lt;/a&gt;，这样有助于减少锁持有的时间。主线程根据 &lt;code&gt;conf.unlock_tables&lt;/code&gt; 来判断非 InnoDB 表是否全部导出，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L639-L641&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;普通工作线程&lt;/a&gt; 或者 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L787-L789&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;queue_less_locking&lt;/a&gt; 工作线程每次处理完一个非 InnoDB 表任务都会根据 &lt;code&gt;non_innodb_table_counter&lt;/code&gt; 和 &lt;code&gt;non_innodb_done&lt;/code&gt; 两个变量判断是否还有没有导出结束的非 InnoDB 表，如果都已经导出结束，就会向异步队列 &lt;code&gt;conf.unlock_tables&lt;/code&gt; 中发送一条数据，表示可以解锁全局锁。&lt;/li&gt;&lt;li&gt;每个 &lt;code&gt;less_locking_threads&lt;/code&gt; 处理非 InnoDB 表任务时，会先 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L771-L778&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;加表锁&lt;/a&gt;，导出数据，最后 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L803&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;解锁表锁&lt;/a&gt;。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;li&gt;未开启 &lt;code&gt;less-locking&lt;/code&gt; 选项的非 InnoDB 表的处理。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.c%3Ccode%3Eom/pin%3C/code%3Egcap/mydump%3Ccode%3Eer/blo%3C/code%3Eb/9493dd752b9ea8804458e56a955e%3Ccode%3E7f7496%3C/code%3E0fa969/mydumper.c%23L1606-L1614&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;遍历每一张非 InnoDB 表，同样对每张表进行 chunks 估算，如果包含多个 chunks，按照 chunks 个数分发同样的子任务数；如果没有划分 chunks，每张表分发一个子任务。所有的任务都分发到 conf-&amp;gt;queue 队列。&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;InnoDB 表的处理。&lt;/li&gt;&lt;ul&gt;&lt;li&gt;与未开启 &lt;code&gt;less-locking&lt;/code&gt; 选项的非 InnoDB 表的处理相同，同样是 &lt;a href=&quot;https://link.zhihu.com/?target=http%3Ccode%3Es%3A//gi%3C/code%3Ethub.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1616-L1620&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;按照表分发子任务，如果有 chunks 子任务会进一步细分&lt;/a&gt;。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;p&gt;从上述的并发模型可以看出 mydumper 首先按照表进行同步任务拆分，对于同一张表，如果配置 &lt;code&gt;rows-per-file&lt;/code&gt; 参数，会根据该参数和表行数将表划分为合适的 &lt;code&gt;chunks&lt;/code&gt; 数，这即是同一张表内部的并发。具体表行数的估算和 &lt;code&gt;chunks&lt;/code&gt; 划分的实现见 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L1885-L2004&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;get_chunks_for_table&lt;/a&gt;&lt;/code&gt; 函数。&lt;/p&gt;&lt;p&gt;需要注意目前 DM 在任务配置中指定的库表黑白名单功能只应用于 load 和 binlog replication 处理单元。如果在 dump 处理单元内使用库表黑白名单功能，需要在同步任务配置文件的 dump 处理单元配置提供 extra-args 参数，并指定 mydumper 相关参数，包括 –database, –tables-list 和 –regex。mydumper 使用 regex 过滤库表的实现参考 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/mydumper/blob/9493dd752b9ea8804458e56a955e7f74960fa969/mydumper.c%23L314-L338&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;check_regex&lt;/a&gt;&lt;/code&gt; 函数。&lt;/p&gt;&lt;h2&gt;load 处理单元&lt;/h2&gt;&lt;p&gt;load 处理单元的代码位于 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/tree/master/loader&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;github.com/pingcap/dm/loader&lt;/a&gt; 包内，该处理单元在 dump 处理单元运行结束后运行，读取 dump 处理单元导出的 SQL 文件解析并在下游数据库执行逻辑 SQL。我们重点分析 &lt;code&gt;Init&lt;/code&gt; 和 &lt;code&gt;Process&lt;/code&gt; 两个 interface 的实现。&lt;/p&gt;&lt;h3&gt;Init 实现细节&lt;/h3&gt;&lt;p&gt;该阶段进行一些初始化和清理操作，并不会开始同步任务，如果在该阶段运行中出现错误，会通过 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L356-L361&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;rollback 机制&lt;/a&gt; 清理资源，不需要调用 Close 函数。该阶段包含的初始化操作包括以下几点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;href=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L363&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go#L363&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;创建 checkpoint，&lt;code&gt;checkpoint&lt;/code&gt; 用于记录全量数据的导入进度和 load 处理单元暂停或异常终止后，恢复或重新开始任务时可以从断点处继续导入数据。&lt;/li&gt;&lt;li&gt;应用任务配置的数据同步规则，包括以下规则：&lt;/li&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L370&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;初始化黑白名单&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L380&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;初始化表路有规则&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L385-L390&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;初始化列值转换规则&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;h3&gt;Process 实现细节&lt;/h3&gt;&lt;p&gt;该阶段的工作流程也很直观，通过 &lt;a href=&quot;https://link.zhihu.com/?target=h%3Ccode%3Ettps%3A//github.co%3C/code%3Em/p%3Ccode%3Eingcap/%3C/code%3Edm/blob/25f95ee08d008fb6469f0b%3Ccode%3E172e432270%3C/code%3Eaaa6be52/loader/loader.go%23L408-L422&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;一个收发数据类型为 *pb.ProcessError 的 channel 接收运行过程中出现的错误，出错后通过 context 的 CancelFunc 强制结束处理单元运行&lt;/a&gt;。在核心的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L485&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;数据导入函数&lt;/a&gt; 中，工作模型与 mydumper 类似，即在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L507&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;主线程中分发任务&lt;/a&gt;，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L500-L503&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;有多个工作线程执行具体的数据导入任务&lt;/a&gt;。具体的工作细节如下：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;主线程会按照库，表的顺序读取创建库语句文件 &lt;code&gt;&amp;lt;db-name&amp;gt;-schema-create.sql&lt;/code&gt; 和建表语句文件 &lt;code&gt;&amp;lt;db-name&amp;gt;.&amp;lt;table-name&amp;gt;-schema-create.sql&lt;/code&gt;，并在下游执行 SQL 创建相对应的库和表。&lt;/li&gt;&lt;li&gt;f=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L944-L1015&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go#L944-L1015&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;主线程读取 checkpoint 信息，结合数据文件信息创建 fileJob 随机分发任务给一个工作子线程，fileJob 任务的结构如下所示 ：&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt; type fileJob struct {
-    schema    string
-    table     string
-    dataFile  string
-    offset    int64 // 表示读取文件的起始 offset，如果没有 checkpoint 断点信息该值为 0
-    info      *tableInfo // 保存原库表，目标库表，列名，insert 语句 column 名字列表等信息
- }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;在每个工作线程内部，有一个循环不断从自己 &lt;code&gt;fileJobQueue&lt;/code&gt; 获取任务，每次获取任务后会对文件进行解析，并将解析后的结果分批次打包为 SQL 语句分发给线程内部的另外一个工作协程，该工作协程负责处理 SQL 语句的执行。工作流程的伪代码如下所示，完整的代码参考 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L114-L173&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;func (w *Worker) run()&lt;/a&gt;&lt;/code&gt;：&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt; // worker 工作线程内分发给内部工作协程的任务结构
- type dataJob struct {
-    sql         string // insert 语句, insert into &amp;lt;table&amp;gt; values (x, y, z), (x2, y2, z2), … (xn, yn, zn);
-    schema      string // 目标数据库
-    file        string // SQL 文件名
-    offset      int64 // 本次导入数据在 SQL 文件的偏移量
-    lastOffset  int64 // 上一次已导入数据对应 SQL 文件偏移量
- }
- 
- // SQL 语句执行协程
- doJob := func() {
-    for {
-        select {
-        case &amp;lt;-ctx.Done():
-            return
-        case job := &amp;lt;-jobQueue:
-            sqls := []string{
-                fmt.Sprintf(&amp;#34;USE `%s`;&amp;#34;, job.schema), // 指定插入数据的 schema
-                job.sql,
-                checkpoint.GenSQL(job.file, job.offset), // 更新 checkpoint 的 SQL 语句
-            }
-            executeSQLInOneTransaction(sqls) // 在一个事务中执行上述 3 条 SQL 语句
-        }
-    }
- }
- 
- // worker 主线程
- for {
-    select {
-    case &amp;lt;-ctx.Done():
-        return
-    case job := &amp;lt;-fileJobQueue:
-        go doJob()
-        readDataFileAndDispatchSQLJobs(ctx, dir, job.dataFile, job.offset, job.info)
-    }
- }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L192&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;dispatchSQL&lt;/a&gt;&lt;/code&gt; 函数负责在工作线程内部读取 SQL 文件和重写 SQL，该函数会在运行初始阶段 &lt;a href=&quot;&amp;lt;code&quot;&gt;&amp;#34;https://github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go#L211&amp;#34;&amp;gt;创建所操作表的 checkpoint 信息&lt;/a&gt;，需要注意在任务中断恢复之后，如果这个文件的导入还没有完成，&lt;code&gt;&lt;a href=&quot;https:&amp;lt;/code&amp;gt;//github.com/pingcap/d&amp;lt;code&amp;gt;m/blob/25f&amp;lt;/code&amp;gt;95ee08d008fb6469f0b172e432270aaa6be52/loader/checkpoint.go#L271-L274&quot;&gt;checkpoint.Init 仍然会执行，但是这次运行不会更新该文件的 checkpoint 信息&lt;/a&gt;。&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L256-L264&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;列值转换和库表路由也是在这个阶段内完成&lt;/a&gt;。&lt;/code&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;列值转换：需要对输入 SQL 进行解析拆分为每一个 field，对需要转换的 field 进行转换操作，然后重新拼接起 SQL 语句。详细重写流程见 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/convert_data.go%23L293&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;reassemble&lt;/a&gt; 函数。&lt;/li&gt;&lt;li&gt;库表路由：这种场景下只需要 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go%23L263&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;替换源表到目标表&lt;/a&gt; 即可。&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;在工作线程执行一个批次的 SQL 语句之前，&lt;a href=&quot;&amp;lt;code&quot;&gt;&amp;#34;https://github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/loader.go#L132-L137&amp;#34;&amp;gt;会首先根据文件 offset 信息生成一条更新 checkpoint 的语句，加入到打包的 SQL 语句中&lt;/a&gt;，具体执行时这些语句会 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/25f95ee08d008fb6469f0b172e432270aaa6be52/loader/db.go%23L152-L195&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;在一个事务中提交&lt;/a&gt;，这样就保证了断点信息的准确性，如果导入过程暂停或中断，恢复任务后从断点重新同步可以保证数据一致。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;小结&lt;/h2&gt;&lt;p&gt;本篇详细介绍 dump 和 load 两个数据同步处理单元的设计实现，对核心 interface 实现、数据导入并发模型、数据导入暂停或中断的恢复进行了分析。接下来的文章会继续介绍 &lt;code&gt;binlog replication&lt;/code&gt;，&lt;code&gt;relay log&lt;/code&gt; 两个数据同步处理单元的实现。&lt;/p&gt;&lt;p&gt;阅读更多：&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/%23DM-%25E6%25BA%2590%25E7%25A0%2581%25E9%2598%2585%25E8%25AF%25BB&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;博客&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-04-26-63895873</guid>
-<pubDate>Fri, 26 Apr 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>首届 RustCon Asia 圆满落幕，Let&#39;s Rust the World！</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-04-26-63817476.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/63817476&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-052d5be5489c8c52efaf5bbb602d5534_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;4 月 23 日，为期 4 天的 RustCon Asia 在北京圆满落幕，300 余位来自中国、美国、加拿大、德国、俄罗斯、印度、澳大利亚等国家和地区的 Rust 爱好者参加了本次大会。作为 Rust 亚洲社区首次「大型网友面基 Party」&lt;/b&gt;，本届大会召集了 20 余位海内外顶尖 Rust 开发者讲师，为大家带来一天半节奏紧凑的分享和两天 Workshop 实操辅导，内容包括 Rust 在分布式数据存储、安全领域、搜索引擎、嵌入式 IoT、图像处理等等跨行业、跨领域的应用实践。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4f9154471997242b9b59d8ce10b0a88c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;720&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-4f9154471997242b9b59d8ce10b0a88c_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4f9154471997242b9b59d8ce10b0a88c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;720&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-4f9154471997242b9b59d8ce10b0a88c_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-4f9154471997242b9b59d8ce10b0a88c_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;会后我们收到了很多小伙伴们的反馈，大家纷纷表示干货密集，诚意满满，而且通过 Workshop 和很多大神面对面讨论交流，非常受益。&lt;/p&gt;&lt;blockquote&gt;“这次参加 RustCon Asia 非常直观的感受到了 Rust 开发的应用早已渗透到我们的生活中，以前跟朋友推广 Rust 的时候总是说不出什么杀手级应用，现在总算有些可以说了！”&lt;b&gt;来自宝岛台湾的 Weihang Lo 表示这次大会有两个热情的东道主，更有许多赞助好伙伴，让整个大会品质非常高&lt;/b&gt;，“参会的小伙伴们热情、不藏私，让人看到了中国技术发展与交流真的非常蓬勃，大家都是 Learning by Sharing，整体技术能力也很高。台上的所有讲师，每一个都技术了得，面对很多问题都能从容应答，技术人员若能如此，夫复何求？”&lt;/blockquote&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;从新加坡赶来参会的 Alan 说：“这个大会非常专业，我也认识了很多朋友。&lt;/b&gt;我最喜欢的 Talk 是 Zimon Dai 的，他给我们这些做 APP 的人带来很多新的看法，来自俄罗斯讲师 Ilya Baryshnikov 分享了自己如何在工作中使用 Rust，让我受到了启发，整个会场气氛很热闹，交流很顺畅。我参加了好几个 Workshop，Nick 的 Worskhop 对我有很大帮助，Parity 的 Workshop 让我知道怎么创造一个区块链……”&lt;/blockquote&gt;&lt;p&gt;看到大家能够学到干货受到启发、与老朋友聚会同时又结识了新朋友，作为本届 RustCon Asia 的主办方之一，我们感到非常欣慰。其实自从使用 Rust 构建分布式 Key-Value 数据库 &lt;b&gt;TiKV&lt;/b&gt; 以来，PingCAP 与 Rust 社区就保持了非常紧密的联系，非常有幸见证了 Rust 亚洲社区成熟、壮大。同时也很欣喜的看到 Rust 在各个行业和领域应用的蓬勃之势，希望今后能看到 Rust 在各行各业遍地开花，&lt;b&gt;Let&amp;#39;s Rust the World! &lt;/b&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3a1ddff1caadf98c61951615a151ec8f_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;899&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic4.zhimg.com/v2-3a1ddff1caadf98c61951615a151ec8f_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-3a1ddff1caadf98c61951615a151ec8f_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;899&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic4.zhimg.com/v2-3a1ddff1caadf98c61951615a151ec8f_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-3a1ddff1caadf98c61951615a151ec8f_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;本次大会上还有我司唐刘、Nick Cameron、屈鹏、Wish (施闻轩) &amp;amp; Shirly (吴雪莲) 五位讲师还有主持人 Ana 的身影哦～不知道大家有没有「成功面基」呢 ？&lt;/p&gt;&lt;p&gt;后续我们将分享现场视频&amp;amp;PPT，欢迎大家在下方评论「&lt;b&gt;本届 RustCon Asia 你最喜欢的议题及原因&lt;/b&gt;」，我们也将整理输出本次大会的部分干货实录，敬请期待～ &lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-04-26-63817476</guid>
-<pubDate>Fri, 26 Apr 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
