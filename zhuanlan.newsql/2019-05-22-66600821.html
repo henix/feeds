@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>TiKV 成功晋级 CNCF 孵化项目</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/66600821">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-bbfdd6ba9aeff9ad58299478524f0608_b.jpg" alt=""></div><blockquote><b>今天，CNCF（Cloud Native Computing Foundation，云原生计算基金会）技术监督委员会（TOC）宣布已经投票决议通过，正式将  TiKV 从沙箱项目晋级至孵化项目。</b></blockquote><p>TiKV 是一个开源的分布式事务 Key-Value 数据库，支持跨行 ACID 事务，同时实现了自动水平伸缩、数据强一致性、跨数据中心高可用和云原生等重要特性，最初由 PingCAP 团队在 2016 年作为 TiDB 的底层存储引擎设计并开发，于 2018 年 8 月被 CNCF 宣布接纳为 CNCF 沙箱云原生项目。</p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-d7112596433c749a70b627712caaec9d_b.jpg" data-caption="" data-size="normal" data-rawwidth="1080" data-rawheight="527" class="origin_image zh-lightbox-thumb" width="1080" data-original="https://pic2.zhimg.com/v2-d7112596433c749a70b627712caaec9d_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-d7112596433c749a70b627712caaec9d_b.jpg" data-caption="" data-size="normal" data-rawwidth="1080" data-rawheight="527" class="origin_image zh-lightbox-thumb lazy" width="1080" data-original="https://pic2.zhimg.com/v2-d7112596433c749a70b627712caaec9d_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-d7112596433c749a70b627712caaec9d_b.jpg"/></figure><p>对于 TiKV 的此次晋级，CNCF 首席技术及运营官 Chris Aniszczyk 表示：“社区需要更多支持一致性和可伸缩性的云原生存储选项，TiKV 填补了这个空缺，而不依赖于任何分布式文件系统。自从加入 CNCF 以来，我们看到该项目在中国和国外都取得了令人瞩目的增长。随着它进入孵化阶段，我们很高兴看到该项目持续增长，期待新的贡献者继续添加更多新功能。”</p><p>TiKV 最初的设计便采用云原生架构，并很好地融入了现有的 CNCF 生态系统：使用 Prometheus 进行集群监控，使用 gRPC 进行通信，可以部署在 Kubernetes 上，采用 Operator 简化安装、升级和维护。</p><p>作为一个基础组件，TiKV 可作为构建其它系统的基石。除了作为分布式 HTAP 数据库 TiDB 的存储引擎，还有更多的存储系统构建于 TiKV 之上，包括三个 Redis-on-TiKV 项目：Tidis、Titan 以及 Titea ，和一个 Prometheus-metrics-in-TiKV 项目：TiPrometheus。TiKV 的生态影响力正在持续扩大。</p><p>2018 年 12 月， TiKV 发布了 2.1 GA 版本。目前，TiKV 汇集了来自三星、摩拜、知乎、饿了么、腾讯云、一点资讯，以及 UCloud 的贡献。并已被银行、金融科技、保险、拼车、游戏等多个行业的领先企业应用在实际生产环境中，比如小米、北京银行、知乎、Shopee、BookMyShow 等。</p><p><b>TiKV 的主要特点</b></p><ul><li><b>跨数据中心高可用</b><br/>使用 Raft 和 PD（Placement Driver）来支持跨数据中心高可用。</li><li><b>水平扩展</b><br/>通过 PD 和精心设计的 Raft 协议，TiKV 在水平扩展性方面的表现出色，可以轻松扩展到 200+TB 的数据。</li><li><b>一致的分布式事务</b><br/>与 Google Spanner 类似，TiKV 支持外部一致的分布式事务。</li><li><b>协处理器（Coprocessor）支持</b><br/>与 HBase 类似，TiKV 实现了支持分布式计算的协处理器框架，用于支持计算下推操作。</li><li><b>与 TiDB 无缝衔接</b><br/>TiKV 和 TiDB 强强联合，构建了一个具有高水平可伸缩性、支持一致性事务、具备传统关系型数据库和 NoSQL 最佳特性的、优雅的数据库解决方案。</li></ul><p><b>TiKV 大事记</b></p><ul><li>247 contributors</li><li>5,120 GitHub stars</li><li>54 releases</li><li>3,654 commits</li><li>743 forks</li></ul><p>CNCF 的其他孵化项目还包括：gRPC, rkt, CNI, Jaeger, Notary, TUF, Vitess, NATS, Linkerd, Helm, Rook, Harbor, etcd, Open Policy Agent 和 CRI-O。晋级为 CNCF 孵化项目之后，TiKV 将与其他项目一道，成为与其技术利益一致的、中立的基金会的一部分，享有 Linux 基金会为其提供的治理、市场和社区推广等权益。</p><p>每个 CNCF 项目都有一个相关的成熟度级别：沙箱、孵化或毕业阶段。有关每个级别的技术资格的更多信息，请参阅 CNCF 毕业标准  v1.1 版本。</p><p>TiKV 项目信息:</p><a href="https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv" data-draft-node="block" data-draft-type="link-card" data-image="https://pic3.zhimg.com/v2-7171758dc75db70e5d19d005d27e7ae2_ipico.jpg" data-image-width="284" data-image-height="284" class=" wrap external" target="_blank" rel="nofollow noreferrer">tikv/tikv</a><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
