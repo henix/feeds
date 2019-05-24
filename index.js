@@ -14,6 +14,7 @@ const feeds = [
 		"gh_5d86493a0d6b",
 		"factor-investing",
 		"c_152990241",
+		"MacrotraderJz",
 		"Chihiro-Research",
 		"tvp_fund",
 		"SimpleNotEasyInvest",
@@ -94,12 +95,14 @@ const feeds = [
 	]],
 	["商业", [
 		"jingyunxiaowu",
+		"PoliticalQuotient",
 		"banfoSB",
 		"caozsay",
 		"xingshu100",
 		"Professor-Li",
 	]],
 	["独立", [
+		"meixiao421",
 		"hiyeka",
 		"wxieshuo",
 		"yeka52",
