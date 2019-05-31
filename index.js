@@ -102,6 +102,7 @@ const feeds = [
 		"Professor-Li",
 	]],
 	["独立", [
+		"anotherland",
 		"meixiao421",
 		"hiyeka",
 		"wxieshuo",
