@@ -80,6 +80,7 @@ const feeds = [
 		"zhidaoshe",
 	]],
 	["ACG", [
+		"shiningacg",
 		"mei-you-cun-zai-gan",
 		"c_1012395899472998400",
 		"acgn-cultural-studies",
@@ -103,6 +104,7 @@ const feeds = [
 	]],
 	["独立", [
 		"anotherland",
+		"mirrored-travel",
 		"meixiao421",
 		"hiyeka",
 		"wxieshuo",
