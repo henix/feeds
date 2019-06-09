@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Encode Extensible Tuple In λ-Calculus</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/68506839">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-89a92d224f91a0df1cd674752eacfa96_b.jpg" alt=""></div><h2>前言</h2><p>在λ-calculus中我们可以通过scott encoding来对所有常见的ADT进行直观的encode，但是对于一些其他的数据结构却不尽如此。例如本文中要实现的数据结构便是用church encoding的natural number来作为tuple的arity来实现extensible tuple，此数据结构便无法简单的用scott encoding来进行encode。</p><h2><b>前置知识</b></h2><ul><li>对函数式编程及相关编程语言的知识</li><li>对λ-calculus的相关知识</li><li>对church number的相关知识</li></ul><h2>分析</h2><p>首先对于非extensible的tuple，我们可以使用scott encoding来进行encode，例如以下例子：</p><div class="highlight"><pre><code class="language-text">tuple0 := λt.t
+
+tuple1 := λx.λt.t x
+tuple1_0th := λx.x
+
+tuple2 := λx.λy.λt.t x y
+tuple2_0th := λx.λy.x
+tuple2_1th := λx.λy.y
+
+tuple3 := λx.λy.λz.λt.t x y z
+tuple3_0th := λx.λy.λz.x
+tuple3_1th := λx.λy.λz.y
+tuple3_2th := λx.λy.λz.z</code></pre></div><p>能够发现明显的规律，因此，我们需要对这些constructor和pattern match函数进行generalize写出tuple和nth这两个函数。</p><h2>实现</h2><p>对于constructor tuple来说，可以注意到是由n个argument以及1个进行pattern match的higher order function作为参数传入，并给这个function依次apply n个argument。此时应用church number的性质，一个church number相当于对一个x，以及一个函数f，将x apply n次f，那么x就应该是tuple0，因为要将一个参数传入其内部，所以将其变换为：</p><div class="highlight"><pre><code class="language-text">λu.λt.u t</code></pre></div><p>然后最后apply一个id，但由于实际上变换前和变换后的lambda term是eta equivalent的，所以这一步不是必须的，现在得到如下的lambda term：</p><div class="highlight"><pre><code class="language-text">λn.n f (λu.λt.u t) id</code></pre></div><p>对于f，相当于将一个argument加在之前的tuple constructor上，那么就应该是：</p><div class="highlight"><pre><code class="language-text">λf.λu.λx.f (λt.u t x)</code></pre></div><p>将其合并起来组成extensible tuple的constructor：</p><div class="highlight"><pre><code class="language-text">λn.n (λf.λu.λx.f (λt.u t x)) (λu.λt.u t) id</code></pre></div><p>最后进行简化就得到了extensible tuple的constructor：</p><div class="highlight"><pre><code class="language-text">tuple := λn.n (λf.λu.λx.f (λt.u t x)) (λu.u) (λx.x)</code></pre></div><p>对于pattern match函数，需要2个church number，n作为tuple的大小，m作为第m的element。同样应用church number的性质，先生成n - m个arity的const function：</p><div class="highlight"><pre><code class="language-text">(m pred n) (λf.λx.f)</code></pre></div><p>然后在外部加m个constant argument，组成extensible tuple的pattern match函数nth：</p><div class="highlight"><pre><code class="language-text">nth := λn.λm.m (λf.λx.f) ((m pred n) (λf.λx.f))</code></pre></div><p>其中pred定义为：</p><div class="highlight"><pre><code class="language-text">pred := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)</code></pre></div><p>如果需要测试相关代码，可以直接使用我写的λ-calculus在线测试工具：</p><a href="https://link.zhihu.com/?target=https%3A//yuxuanchiadm.github.io/hyperlambda/" data-draft-node="block" data-draft-type="link-card" class=" wrap external" target="_blank" rel="nofollow noreferrer">Hyper Lambda</a><h2>相关文章</h2><a href="https://zhuanlan.zhihu.com/p/36081360" data-draft-node="block" data-draft-type="link-card" data-image="https://pic3.zhimg.com/v2-fc94609d676b4704ccfce8b67fd56e62_180x120.jpg" data-image-width="1440" data-image-height="816" class="internal">非构造性雨轩菌：lambda演算与数据类型</a><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
