@@ -5,11 +5,680 @@
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/</link>
 <description>caoz的心得与分享,只此一家,别无分号.</description>
 <language>zh-cn</language>
-<lastBuildDate>Wed, 12 Jun 2019 19:06:28 +0800</lastBuildDate>
+<lastBuildDate>Thu, 13 Jun 2019 21:50:10 +0800</lastBuildDate>
+<item>
+<title>学好kafka，轻松做架构</title>
+<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-13-1000000433_502384841.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbQ9DN8v2ZkJ70ib858sGWDq604eIzYacFslzQwVsAAOog*hMPdviKzkeGmc3iBvgnPtYbMkgac4r8nmqih7og8Q=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;/&gt;
+&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+
+		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+
+            
+                          
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    
+            学好kafka，轻松做架构
+                      &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                                                &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                极客时间
+                                            &lt;/span&gt;
+                                        
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        caoz的梦呓                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;/&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;/&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;/&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;/&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;去年的时候，我有几个月在给一家超级独角兽企业做顾问，跟他们其中一个核心团队的负责人沟通比较多，他们团队很年轻，技术经验不能说很充分，但发展速度太快了，几个年轻人两三年前写的东西，已经可以一年贡献几个亿的利润，从商业上来说非常成功，但技术欠债也在所难免，规模访问时系统单点隐患可以说相当的多，当时团队扩招了不少人才，整个架构也在重构，负责人就给我讲他们的整个架构升级的方案，并征询我的意见。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;然后我发现我有点懵圈了，很惭愧，对方谈及的架构完全是基于kafka，而我对这玩意居然没有概念！！&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;回来后赶紧补课，网上搜索了一下，先是大吃一惊，这玩意解决的问题，不就是当年我做架构的时候，焦头烂额搞的七晕八素的问题么！为什么当年我不知道有这个神器！仔细再看才恍然大悟，kafka是2011年底linkedin开源，2012年底由apache孵化器单独孵化这个项目，这之后慢慢的才引起业内的重视，在业内被广泛应用，应该是2014年以后的事情了。而我，真惭愧，2011年底的时候，基本上就不碰一线技术了，2013年则远渡南洋，更是连技术顾问都不做了，所以几年下来，业内技术工具的重大变化，居然一概不知。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;坦白说，如果当年我在4399做架构的时候，要是有这么个玩意，我随便拍脑袋说一下，我平时关于架构升级的工作，大概50%可以省下来。而线上故障的出现频率，大约可以减少70%以上。睡眠时间可以增加。。。这条就算了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;为什么说kafka这个东西这么重要，在集群里，统一信息流管理太有意义了。当并发规模增加时，我们当时遇到的最大的负载问题是数据库，而数据库优化不是万能的，需要做集群处理，但这里引申了很多问题，中间件调配问题，以及集群中的信息一致性问题，此外，为了解决数据库写入压力，同步写入转为异步写入也是很重要的一环。以上，都需要信息流的工具。此外，前端缓存的读取和快速更新，也需要一些信息流工具协助，纯粹的共享内存固然有其价值一面，但太多存在约束的问题了，限于篇幅就不展开说了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;当时我们采用了一些第三方的中间件产品和共享内存产品来解决这些问题，然后中间出现了太多问题，一些第三方中间件产品属于个人产品，缺乏维护，出现问题也无法及时解决，我水平也有限，最窘迫的时候紧急从杭州刷脸请来一个高手到厦门，帮助我们处理一些第三方缓存队列工具的bug问题。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;那有人可能觉得，用好共享内存不就够了，为什么还要用消息队列？我当时真的做过测试，高并发的情况下，对共享内存的快速读写，其实很容易造成写入顺序的错误，导致漏写或错写。有个简单测试，有兴趣的读者可以试试，我读取memcache的数据，加1操作，然后写回去，用apache的ab做模拟并发压测，执行1万次，猜猜结果是多少，理论上应该加1万吧，其实只加了6000多，现在机器性能和以前不一样，不知道再跑一次会是多少。仔细想想数据是怎么丢掉的？所以高并发写入一定要用消息队列，这是血淋淋教训得到的结论。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;那看到这个kafka的介绍如此强悍，我赶紧发消息给坚守在4399的小伙伴们，希望他们尽快学习掌握，结果童鞋们云淡风轻的回了一句，早都用上了。哦，好吧，原来只有我一个人落伍了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;那么，今天&lt;span style=&quot;font-size: 17px;&quot;&gt; &lt;span class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Kafka 已经广泛应用于国内外大厂，比如 BAT、字节跳动、美团、&lt;/span&gt;&lt;span style=&quot;color: rgb(73, 73, 73);letter-spacing: 0.544px;background-color: rgb(255, 255, 255);&quot;&gt;Netflix、Airbnb、Twitter、Cloudflare 等等&lt;/span&gt;&lt;span class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。这不是偶然的，从我短暂的架构经验来看，这个工具解决的问题，恰恰都是架构设计和实际应用场景中最容易出坑，也最让人焦头烂额的地方。 架构设计的目标是什么，可靠性，可扩展性，和成本可控性。有希望从事架构师职业的童鞋，务必记住这几个核心目标。&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;防范单点隐患，系统资源灵活扩展，运维成本与业务规模的增长关系低于等比线。这三个原则，我建议研发人员也能理解一下，如果你希望自己职场的路更宽阔，更长远。那么kafka，你不能说，完美的解决这三个问题，但你会发现，应用到位的话，对解决这三个问题来说，可以省力很多。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;去年我给那家超级独角兽在顾问的时候，参与他们技术分享会，发现他们高薪招聘来的优秀研发人才，几乎每个人对kafka都很熟悉，这已经成为业内很重要的通用技能。就算不是架构师，做好研发工作，可能也需要这方面的知识，才能更好的理解架构诉求和自己的研发目标。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);color: rgb(74, 74, 74);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;所以，我建议身边从事研发和运维的年轻人，可以将&lt;/span&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;color: rgb(73, 73, 73);letter-spacing: 0.544px;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; Kafka 加入到自己的学习列表。的确，&lt;/span&gt;我们&lt;strong&gt;仅需要学习一套框架，就能在实际业务系统中实现消息队列应用、应用程序集成、分布式存储构建，甚至是流处理应用的开发与部署&lt;/strong&gt;，&lt;span style=&quot;font-size: 17px;max-width: 100%;color: rgb(73, 73, 73);letter-spacing: 0.544px;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;可谓相当超值了。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;max-width: 100%;color: rgb(73, 73, 73);letter-spacing: 0.544px;background-color: rgb(255, 255, 255);font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;不过，想要学透 Kafka 没有想象中的那么简单，学习路径和方法尤为重要。我的建议是：&lt;strong&gt;千万不要直接扎到具体的细节中，亦或是从一个很小的点开始学习。&lt;/strong&gt;因为你无法建立全局的认知观，从而实现系统地学习。还记得我以前强调过的学习观么，&lt;strong&gt;用思想驾驭工具，而不是用工具奴役思想！&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;&lt;br/&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;要从应用场景，实际问题出发，理解架构目标和思想，理解工具在这一目标中的作用和地位，然后基于实际诉求驾驭它，才是真正的掌握了工具，如果你只是熟练的操作，而缺乏整体观，那反而被工具奴役了。&lt;strong&gt;&lt;br/&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p line=&quot;v1XI&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;在我看来，针对不同的角色，Kafka 的学习路径是不一样的。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;kxPL&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;&quot;&gt;&lt;li&gt;&lt;p&gt;如果你是&lt;strong&gt;软件开发工程师&lt;/strong&gt;，可以先根据编程语言寻找对应的 Kafka 客户端，然后去官网上学习代码示例，正确编译和运行这些样例。接下来，你可以尝试修改样例代码并使用其他的 API，之后观测你修改的结果。如果这些都没有难倒你，你可以自己编写一个小型项目来验证下学习成果，然后就是改善和提升客户端的可靠性和性能了。到了这一步，就熟读一遍 Kafka 文档吧，确保你理解了那些可能影响可靠性和性能的参数。最后是学习 Kafka 的高级功能，比如流处理应用开发。&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p line=&quot;YtJK&quot;&gt; &lt;/p&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;&quot;&gt;&lt;li&gt;&lt;p&gt;如果你是&lt;strong&gt;系统管理员或运维工程师&lt;/strong&gt;，那么学习目标应该是如何根据实际业务需求评估、搭建生产Kafka 线上环境。对生产环境的监控也是重中之重的工作，Kafka 提供了超多的 JMX 监控指标，你可以选择任意你熟知的框架进行监控。有了监控数据，作为系统运维管理员的你，势必要观测真实业务负载下的 Kafka 集群表现。之后利用已有的监控指标来找出系统瓶颈，然后提升整个系统的吞吐量，这是最能体现你工作价值的地方。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p line=&quot;oSIn&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;说到这里，送大家一张&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/strong&gt;Kafka 学习框架，出自 Kafka 资深专家&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;胡夕&lt;/strong&gt;之手&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/strong&gt;我想你应该听过他的书《Apache Kafka实战》，豆瓣评分 8.8 分。胡夕根据他的实战经验，把 Kafka 学习框架整理成了下图。具体地，分为 Kafka 入门、Kafka 的基本使用、客户端详解、Kafka 原理介绍、Kafka 运维与监控以及高级 Kafka 应用。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;sYhA&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;span style=&quot;max-width: 100%;font-size: 11pt;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;  &lt;/span&gt;&lt;img class=&quot;&quot; data-ratio=&quot;0.6469175340272217&quot; data-type=&quot;png&quot; data-w=&quot;1249&quot; height=&quot;auto&quot; width=&quot;1249&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/ZWlgPpfVHWwkv56B1SgQfe9Up8cXiaXQePl0uicCibw2eK1XXZlicoLP6BlSB5uphmbXIibxNrCNc7PzI7OzeyocyiaQ/640?wx_fmt=png&quot; style=&quot;font-size: 11pt;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;/&gt;&lt;/p&gt;&lt;p line=&quot;KTKt&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);text-align: center;line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span class=&quot;&quot; style=&quot;max-width: 100%;font-size: 10pt;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Kafka 学习框架&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;piy7&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/p&gt;&lt;p line=&quot;iMuM&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;span class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这些内容，胡夕都会在他在极客时间新上线的&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;《Kafka 核心技术与实战》&lt;/span&gt;&lt;/strong&gt;&lt;span class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;专栏里为你一一讲解，跟着他对 Apache Kafka 的理解和实战方面的经验，相信你一定能透彻理解 Kafka、更好地应用 Kafka。&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;iMuM&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-ratio=&quot;0.3333333333333333&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer01HjlJVCSNpVFJdDkAUINqDxMvSZ4CHcBl9yKeIfIVKNYKycWGauX2sB8CE8yUXUtN7cAictlbIEQ/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;798&quot; style=&quot;&quot;/&gt;&lt;/p&gt;&lt;h2 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;/&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 18px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;胡夕是谁？&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p line=&quot;xBHK&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p line=&quot;xBHK&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;胡夕，现任人人贷公司计算平台部总监，也是 Apache Kafka 的一名活跃代码贡献者。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;Y9KN&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;31eF&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;在过去 5 年中，他经历了 Kafka 从最初的 0.8 版本逐步演进到 2.3 版本的完整过程，可以说对 Kafka 及其他开源流处理框架与技术有深刻理解。他主导过多个十亿级/天的消息引擎业务系统的设计与搭建，具有丰富的线上环境定位和诊断调优经验，也曾给多家大型公司提供企业级 Kafka 培训。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;QFzn&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;p2nm&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;他的书《Apache Kafka实战》，读者好评如潮，说内容实战，看完上手即用，在工作中帮大家解决了问题。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-ratio=&quot;0.35929203539823007&quot; data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; data-w=&quot;1130&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/ZWlgPpfVHWzK4ia7gF5RotHSAJaLniaBEKIQXVcR4wGdhm2b2hdmPw5h7Cwvu9vOBwUcKQ376Sickcaiahl6dsibM7g/640?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;/&gt;&lt;/p&gt;&lt;p line=&quot;q4Xr&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;你可能会问，&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;《Kafka 核心技术与实战》专栏与书的区别又是什么呢？&lt;/strong&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;t3Ef&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;vV21&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;其实区别还是挺大的，书是基于 Kafka 1.0 版本撰写的，但目前 Kafka 已经演进到 2.3 版本了，书中的部分内容已经过时甚至是不准确了，而《Kafka核心技术与实战》专栏的写作是&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;基于 Kafka 的最新版&lt;/strong&gt;。 &lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;vV21&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;vV21&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;要于是俱进啊，不要跟我一样落伍啊！&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;kN4Q&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;A7Mf&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;另外，《Kafka核心技术与实战》专栏作为一次全新的交付，胡夕希望能用&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;更轻松更容易理解的语言和形式&lt;/strong&gt;，帮你获取到最新的 Kafka 实战经验。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;A7Mf&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;h2 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;/&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;你将获得？&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;&quot;&gt;&lt;li&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;专栏的第一部分会介绍消息引擎这类系统大致的原理和用途，以及作为优秀消息引擎代表的 Kafka 在这方面的表现。&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;第二部分则重点探讨 Kafka 如何用于生产环境，特别是线上环境方案的制定。&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;在第三部分中会陪你一起学习Kafka客户端的方方面面，既有生产者的实操讲解也有消费者的原理剖析，你一定不要错过。&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;第四部分会着重介绍 Kafka 最核心的设计原理，包括 Controller 的设计机制、请求处理全流程解析等。&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;第五部分则涵盖 Kafka 运维与监控的内容，助你获得高效运维 Kafka 集群以及有效监控Kafka的实战经验。&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;最后一个部分会简单介绍一下 Kafka 流处理组件 Kafka Streams 的实战应用，希望能让你认识一个不太一样的 Kafka。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-ratio=&quot;4.968&quot; data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; data-w=&quot;750&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/ZWlgPpfVHWzK4ia7gF5RotHSAJaLniaBEK9INYnuqPbwEjiaicYSHSbujIHaiaib5Eg8wgCaM08rFEfUJsYP7K1C0SrQ/640?wx_fmt=jpeg&quot; style=&quot;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;/&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;/&gt;&lt;/p&gt;&lt;h2 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;/&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 18px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;限时订阅福利&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p line=&quot;kzvj&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p line=&quot;kzvj&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;1.&lt;/span&gt;&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(255, 120, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;上新优惠 ¥68&lt;/strong&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;（原价 ¥99 ），&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(255, 120, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;最后 &lt;/strong&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;&quot;&gt;&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(255, 120, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;2 天&lt;/strong&gt;&lt;/span&gt;&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(255, 120, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;倒计时，6月15日恢复原价。&lt;/strong&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;init&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;2.分享海报，邀请好友订阅即可获得 &lt;/span&gt;&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;¥24 返现&lt;/strong&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，多邀多得，上不封顶。&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;LosC&quot; class=&quot;&quot; style=&quot;margin-top: 0pt;margin-bottom: 0pt;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.7;font-size: 11pt;color: rgb(73, 73, 73);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;font-size: 17px;&quot;&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;3.&lt;/span&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;凭订阅截图，可领取「&lt;/span&gt;&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(255, 120, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;学习礼包&lt;/strong&gt;&lt;span class=&quot;&quot; style=&quot;font-size: 17px;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;」，包括 111 本实战指南，仅限 500 人。&lt;/span&gt;&lt;strong class=&quot;&quot; style=&quot;max-width: 100%;color: rgb(51, 51, 51);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;获取方式：点「阅读原文」&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span class=&quot;&quot; line-inline=&quot;Y57C&quot; style=&quot;color: rgb(73, 73, 73);font-size: 11pt;letter-spacing: 0.544px;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;      &lt;img class=&quot;&quot; data-ratio=&quot;0.40463215258855584&quot; data-type=&quot;png&quot; data-w=&quot;734&quot; height=&quot;auto&quot; width=&quot;734&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/ZWlgPpfVHWwkv56B1SgQfe9Up8cXiaXQeuGxXsE4Of7I0fKv9vVujr385Lmq4oc47rBvmAHVNjlztv0giazwvR4Q/640?wx_fmt=png&quot; style=&quot;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;/&gt;&lt;/span&gt;&lt;strong&gt;识别我的海报，立即试读或订阅课程 &lt;/strong&gt;&lt;br/&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-ratio=&quot;1.7777777777777777&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer01HjlJVCSNpVFJdDkAUINqFxKBiaH11MHdKEew96AicV30L84MFSI7mbY0fK83PuDPVeQEzn2ktc3w/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;450&quot; style=&quot;&quot;/&gt;&lt;/p&gt;&lt;p&gt; 点「&lt;strong&gt;阅读原文&lt;/strong&gt;」，领取「&lt;strong&gt;学习礼包&lt;/strong&gt;」&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1682556680&quot; type=&quot;text/javascript&quot;&gt;&lt;![CDATA[
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx464c32.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                ]]&gt;&lt;/script&gt;
+
+                
+  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;/&gt;
+
+
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;/&gt;
+                    &lt;/div&gt;
+                    
+                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;极客时间&lt;/div&gt;
+                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;/&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;/&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;/&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;/&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
+
+    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
+
+    &lt;span id=&quot;readNum3&quot;/&gt;
+    &lt;/div&gt;
+
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;/&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;/&gt;
+    &lt;/span&gt;
+
+      
+    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
+        &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
+    &lt;/span&gt;
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;/&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+      &lt;div style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;/&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
+  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;/&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;/&gt;
+&lt;/div&gt;
+
+  
+  &lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+    &lt;div class=&quot;like_comment_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;/&gt;
+      &lt;div class=&quot;like_comment_bd&quot;&gt;
+        &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+          &lt;i class=&quot;weui-icon-success&quot;/&gt;&lt;i class=&quot;icon-success-primary&quot;/&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_ft&quot;&gt;
+        &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;/&gt;字&lt;/span&gt;
+        &lt;button class=&quot;like_comment_btn&quot; disabled=&quot;disabled&quot; id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;/&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;/&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          写下你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;/&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;/&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;/&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;/&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;/&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;/&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;http://plf.chuiwanhui.com/cp/sdk/7873854526.html&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;/&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+  
+      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;/&gt;
+                
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;/&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;/&gt;
+                    &lt;p&gt;微信扫一扫&lt;br/&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+</description>
+<author>极客时间</author>
+<guid isPermaLink="false">2019-06-13-1000000433_502384841</guid>
+<pubDate>Thu, 13 Jun 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>年薪百万是种怎样的体验</title>
+<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-13-1000000433.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbQ9DN8v2ZkJ70ib858sGWDo6VlvuH7qy99b-OtpYK-khFzIeD7zTZpZ2R3beldQNTOYgOZg8DE1C2LwAlbmDGPM=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;/&gt;
+&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+
+		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+
+            
+                          
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    
+            年薪百万是种怎样的体验
+                      &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                &lt;span id=&quot;js_author_name&quot; class=&quot;rich_media_meta_link&quot; data-rewardsn=&quot;&quot; data-timestamp=&quot;&quot; data-canreward=&quot;0&quot;&gt;caozsay&lt;/span&gt;
+                                            &lt;/span&gt;
+                                        
+                                                                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        caoz的梦呓                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;/&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;/&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;/&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;/&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;最近冯老师和浪人高少先后发文谈及百万年薪的话题，忍不住我也跟着扯几句。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;先做个说明，本文中提及的年薪，包含基本薪酬和存在相对明确预期的股权，分红收益（当然也会在一定范围内起伏）。比如阿里，腾讯，百度，京东的限制性股权，华为的分红计划。 不包括职场外收入，比如自媒体广告，以及不可预期的股权期权收益，比如创业公司的期权。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;冯老师的文章，&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MjM5ODIyMTE0MA==&amp;amp;mid=2650972904&amp;amp;idx=1&amp;amp;sn=443edc06d8f3e7e773f8871e4e14451a&amp;amp;chksm=bd3806d38a4f8fc5051f4476a77b17f6bde98af550a896ccdaee89b4a528fb8530a07896a0ae&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;年薪 100 万，差不多是这样的&lt;/a&gt;&lt;/p&gt;&lt;p&gt;高少的文章，&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=Mzg5MzE2ODM5NQ==&amp;amp;mid=2247484359&amp;amp;idx=1&amp;amp;sn=88bc81dec3477bd9a1a01e36d49df553&amp;amp;chksm=c033bda3f74434b5f7b5b831d5c95e3d188db12bc1f64bd6ac3d95082d919728907c270dfb08&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;年薪100万的经验和路径，了解一下&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;其实特别惭愧，高少星说他35岁以后才触达百万年薪，那我呢，真不好意思，活这么大，到现在都没见过百万年薪。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;不开玩笑，真没见过。当然，也不用装穷，年收入过百万，多少还是有些经历的。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;自己都没拿过年薪百万，你说我有什么资格谈这个话题，这个，说个自吹的话，在我朋友圈里，如果随意抽一些朋友坐一起吃饭，里面要是有年薪刚过百万的同学，是不好意思叫他来埋单的。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;我这些年对职场待遇无感，本来当年也不善于争取待遇，经常低估行情，我记得说过这样的案例，以前有百度老同事，当年入职的时候还是菜鸟，啥都不懂，老被我嘲讽的那种，去年偶尔聊天，我说你现在应该年薪百万了吧，人家回了一句，老大，你太低估我了，现在是二百万。当时我就不知道怎么接话了。话说这是当年团队里资历最浅的新人。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;我在百度的同事，无论是合作过的研发，带过的实习生，被我嘲讽过的新人，但凡现在还有联系的并且混职场的（不过基本都不在百度了），好像就没有年薪低于百万的，只有自己出来创业的，或者已经退休的，是不能用年薪算的。&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;我当年绿盟的老同事，技术领域的，只要是仍在混职场的，无论在硅谷还是在国内巨头，年薪百万以上也都算正常，而其中比较厉害的如TK教主，袁哥，那更是n多个百万，高山仰止，反正这些人跟我一起吃饭的时候，我是不会抢着埋单的。当年袁哥确实成名很早，但我认识TK教主的时候，他还只是青涩的有潜质的年轻人。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;很可惜，4399的老同事，老部下，百万年薪的不多，有点遗憾，但总是有的，我知道的从4399离职去了微博，阿里的程序员，几年打拼下来，年薪过百万的也是有的。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;至于我的大学同学，混职场的大部分也都年薪过百万了，混公务员的确实没有，但其他福利多的不得了。从事教育领域，在大学当教授的可能也没有，不过科研经费看怎么算了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;那简单总结一下。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1、读好书，成绩优秀，上好大学，能极大提升获得高薪酬的概率。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;实话说，我前些年经常跟草根创业者混，对学历这事真不看重，网上很多段子，读了名校的学生最后给当时同学中的差生打工。这种案例肯定不少。一些名校出来的人眼高手低，最后职场落魄的新闻也有不少。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;但你要知道，新闻之所以容易传播，是因为那是小概率事件。名校优等生可能未必真的改变了人类或者做出特别大的事业，但认真工作，职场拿到一份高薪，是大概率事件。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;读书不好的人里确实也不乏优秀的人才，也有不少职场逆袭的典范，但需要在职场付出更多的努力。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;2、选择适合自己的赛道，行业。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;互联网行业出高薪，是因为互联网行业是市场竞争相对充分的行业，我这个观点也强调很多次了，市场竞争越充分的行业，人才的价值才会越发凸显。虽然现在的趋势看上去不那么乐观。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;当然有人愿意从事科研和教育，有人觉得自己擅长搞定关系和资源，人各有志，不可强求。但是如果你希望靠自己本事干干净净的站着赚钱，我建议还是进入市场竞争充分的领域。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;3、个人成长非常关键。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;绿盟，百度都是高速成长的企业，而且早期都有很多牛人坐镇关键岗位，优秀的年轻人进来后，学习成长很快，也容易建立业内口碑。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;没有成长，没有进步，你稀里糊涂搭上车，也很难跟到底。其实每年进入巨头的新人里，淘汰率也是非常高的。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;年轻人不知道offer怎么选，去牛人多的地方就对了。去了之后，肯学肯干不要玻璃心，尽快跟上牛人的步伐，高薪就是迟早的事情。&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;行业在发展，知识体系也在进步。十几年前领先的技术水平，可能很快就落伍，如果个人能力和视野不发展，企业一旦出现风险和危机，个人在职场就完全失去竞争力。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;坦白说，以我现在的技术能力，已经无法胜任任何一家巨头的研发和运维岗位。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;4、去大城市，去头部企业，去优秀人才集中的企业。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;4399的基层研发员工，当年杀到大城市去，进入巨头企业的，刚去的时候其实职位和级别也不高，但后面上升的非常快。而留在厦门的，可能说实话，高薪机会真的不多。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;去创业团队博百万年薪的，说实话，很不容易，需要极强的判断力。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;一般而言，愿意给高薪的创业企业需要有以下几个特征。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;第一，企业急需人才竞争力，并愿意用高薪招募紧缺人才。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;比如说，你是新人，你的职位薪酬待遇不高，这其实不要太在意，但企业是否愿意用高薪聘请顶尖人才，企业内的核心骨干的薪酬和其他待遇如何。如果企业足够尊重优质人才，你就努力提升自己，朝着目标前进呗。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;第二，企业老板尊重人才，理解人才价值。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;与老板之前的社会背景有关，也与老板个人格局有关。如果你应聘的职位够高，你所面临的选择有非常多不错的其他备选，那么建议你认真做一下背景调查。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;第三，企业资金充裕，短期内不会现金流枯竭。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;这个不解释。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;其实，对比阅读吧 &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649868363&amp;amp;idx=1&amp;amp;sn=caacb180421d6d7ef21b78457bccdeb3&amp;amp;chksm=f1075226c670db30c073d5231ae27435ed3b345d384eb072fd482d922b201acc0e196f476196&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;听说你，对薪酬待遇不太满意。。。&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;对比旧文，如果你的目标是尽早达成年薪百万，你职场初期真的要把能力，把目标定清楚。找到上升的主脉络，太多人在职场纠结于并不重要的事情，刚毕业的时候，月薪1万，还是8千，对于最终年薪百万的目标而言，这个差异是可以忽略的，要看自己是不是能够得到快速的晋升，包括能力上，也包括影响力和行业地位上。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;还有，就是，目标高一些，在社交中也要多主动结交优秀的人才，不是说非要蹭人家资源，多学习交流，多分享你的价值，让别人也能通过跟你交流获益。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;我看到有的人在某些社群回帖，身边认识一个年薪百万的牛人，就觉得非常了不起，拿对方的言论当作真理。说明什么，视野太窄，眼界太低。统共没见过几个优秀的人。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;多认识优秀的人才，你自己对价值的判定和格局也会上去。思考问题的方式也会不一样，跟大牛学习什么，技巧和经验？都不是，学习的是人家思考问题的方法。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;最后说一点，建立正确的职场价值观很重要，什么是正确的职场价值观。其实就是朴素的鸡汤。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;相信付出终有回报，做正确的事情，优先考虑提升自己，目标长远。&lt;/p&gt;&lt;p&gt;不要沉迷于赚快钱，做短期效益的事情。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;坚持学习，坚持提升。&lt;/p&gt;&lt;p&gt;多找自己的问题，把握容错尺度。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;旧文两篇&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867005&amp;amp;idx=1&amp;amp;sn=8d2c47cead54264afbfc0bc628f48a0c&amp;amp;chksm=f1075890c670d186792521e0afa1ed2e1e8162d26786ba58fe384002cd566aa9721c76ee17ff&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;谈谈容错性&lt;/a&gt; &lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867673&amp;amp;idx=1&amp;amp;sn=7ba4babd45191c245c825e291ed69631&amp;amp;chksm=f1075ff4c670d6e2c4911691f666aac92591f2ba18d56242258b4e49d0df617678b083117ded&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;再谈容错性&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;不要玻璃心，不要躲在舒适区。很多旧文都有，不赘述了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;那么特别提醒就是，尽量远离那些总是散播负能量的人。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;随便举些日常交流中可能遇到的例子。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;工作那么努力有什么用，老板才给咱多少钱。&lt;/p&gt;&lt;p&gt;差不多行了，你做的再好老板也看不到的。&lt;/p&gt;&lt;p&gt;全都拿回扣的，放心拿，没人查的。&lt;/p&gt;&lt;p&gt;这不是咱的责任，管那么多干嘛，让他们解决去。&lt;/p&gt;&lt;p&gt;其他部门的同事/上司/老板/合作伙伴都是傻逼，搞不好都是他们的错。&lt;/p&gt;&lt;p&gt;这个东西我没学过，我做不来，我学的专业你们发挥不出来，是你们的问题。&lt;/p&gt;&lt;p&gt;认真你就输了，应付应付得了。&lt;/p&gt;&lt;p&gt;你就跟他磨，磨到他不耐烦就完了，还费那劲解决干嘛。&lt;/p&gt;&lt;p&gt;我工作这么久就会干这个，你们现在说不要我了，我以后还能干嘛啊。&lt;/p&gt;&lt;p&gt;那谁谁谁就是运气好/爹好/时机好。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;如果你身边都是这样的人，你自己能脱颖而出称为职场精英的概率不会高，真的。但职场里最多的就是这种人。&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;如果年轻人，工作一上来，被老混子带的，职场价值观扭曲了，完了，基本上就废了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;/&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;我个人认为，如果一个年轻人肯学习，价值观和态度没问题，尽量让自己成长的快一点，尽量找一些能跟牛人共事的职场机会。年薪百万可能需要一些运气，但其实成长起来，还真的不太需要拼天赋。可能很多人觉得这跟天花板一样高，说真的，我十几年前共事过的年轻人（都是比我小十岁左右的），基本都已经跨过这个门槛了。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;在有些人眼里，可能年薪百万是个天花板，其实当你跨过那一步的时候才会发现，在更高阶的人眼里，不过是刚入门而已。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;做到TK教主或者袁哥那样境界的，确实要看天赋，但那就不是年薪百万可以涵盖的范畴了。&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;561125637&quot; type=&quot;text/javascript&quot;&gt;&lt;![CDATA[
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx464c32.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                ]]&gt;&lt;/script&gt;
+
+                
+  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;/&gt;
+
+
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_reward_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_reward_author_head&quot;/&gt;
+                    &lt;/div&gt;
+                    
+                                                                    &lt;div class=&quot;reward-author&quot; style=&quot;display: none;&quot; id=&quot;js_reward_author&quot;&gt;caozsay&lt;/div&gt;
+                                                                                    &lt;p class=&quot;reward_tips js_reward_wording&quot;&gt;感谢您的支持&lt;/p&gt;
+                                        &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_reward_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                    &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;p class=&quot;weui-loadmore weui-loadmore_line reward_user_tips&quot; id=&quot;js_reward_total_parent&quot;&gt;
+                          &lt;span class=&quot;weui-loadmore__tips&quot;&gt;
+                            &lt;a href=&quot;##&quot; id=&quot;js_reward_total&quot;/&gt; &lt;span id=&quot;js_reward_total_text&quot;&gt;人赞赏&lt;/span&gt;
+                        &lt;/span&gt;
+                        &lt;/p&gt;
+                        
+                        &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;/&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                                        &lt;p class=&quot;reward_tips&quot;&gt;感谢您的支持&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; id=&quot;js_reward_qrcode_img&quot;/&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;/&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
+
+    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
+
+    &lt;span id=&quot;readNum3&quot;/&gt;
+    &lt;/div&gt;
+
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;/&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;/&gt;
+    &lt;/span&gt;
+
+      
+    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
+        &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
+    &lt;/span&gt;
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;/&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+      &lt;div style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;/&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
+  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;/&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;/&gt;
+&lt;/div&gt;
+
+  
+  &lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+    &lt;div class=&quot;like_comment_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;/&gt;
+      &lt;div class=&quot;like_comment_bd&quot;&gt;
+        &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+          &lt;i class=&quot;weui-icon-success&quot;/&gt;&lt;i class=&quot;icon-success-primary&quot;/&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_ft&quot;&gt;
+        &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;/&gt;字&lt;/span&gt;
+        &lt;button class=&quot;like_comment_btn&quot; disabled=&quot;disabled&quot; id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;/&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;/&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          写下你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;/&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;/&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;/&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;/&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;/&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;/&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;/&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+  
+      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;/&gt;
+                
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;/&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;/&gt;
+                    &lt;p&gt;微信扫一扫&lt;br/&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+</description>
+<author>caozsay</author>
+<guid isPermaLink="false">2019-06-13-1000000433</guid>
+<pubDate>Thu, 13 Jun 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>谈谈数据分析</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-11-1000000432.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-kgmZ4zkbMGSxx4JLipLPDXnd4bVGKumovFVx2KfZTuE*fX*HI99YUPlKhaK5BvuHzJhXbPMuglkSmYSRTaQBb9o=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbdsf9c9TBJ8bKMHjhhZhJLOEx7*nDkm7oYNwHIWuIF5dv1aadztqOzIVLnlIP9P2-ld6Qpwf4cIrRFsz3C4IUr0=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -338,7 +1007,7 @@
 <item>
 <title>听说你想炒币</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-09-1000000431.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-kq3FFRmIm4EYxCRqFwh402jYSCQ8XC2pa*M-JOPCrvSRPtXlurtGunjnc1wUERlnHN9fVcOt6M2K9n-rN4uZzRo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbbnxRheGfcB9g-HAzNZSeAuE-P-*ikF-zeLadwxjOSCtrChnTKCRZ-*mR1b7F3EB*T7vyLCRv-YQ9IgeiLqW3mc=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -682,7 +1351,7 @@
 <item>
 <title>选择PHP编程，算不算世界上最好的语言</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-06-1000000430_502384826.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-kq34sJC2a*ReS3bt--XQ6fYxCISQVJVXIP1TXs2r4z9EAY2pvZ*ju8d6TZkPFoKPP5mIqA77KvRGpioq0Q86SyM=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbRJ5jgTG6osdQNUBJJtadI*yP47o6UajORK77way61EYNMrpl81rq5PqLV2LEsscsrwvgOFSJFOFRLXxxDnZrtw=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1011,7 +1680,7 @@
 <item>
 <title>时间是把尺子</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-06-1000000430.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-kq34sJC2a*ReS3bt--XQ6fahSfps0WVdFH5xvm5uIAyroo5-zSQJZJrvKFFvpIK6DI69MFmCx-F3JbpEh4xL0zg=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbRJ5jgTG6osdQNUBJJtadI-ERL1nEsyqFhEZkRAt-7E5sUbfkdyZz42knq29mEXbJ93m5M9Zi0d9dAmzx1YYCDg=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1347,7 +2016,7 @@
 <item>
 <title>技术没有捷径，敢不敢坚持学习一百天</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-05-30-1000000429_502384820.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-km523Rc*TY7X8XxoPkNe-EPRkfk1EsoyYpdLbyh7C9ZF-fkg-lGNyNZ-O50QpDBai6B1QscmZ6AmInunfH*boxk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbX1zoXgGi2OInznuOq6gs04pX3bf1W6hbC5*f6opwpGAfpj21NDdQk*220bgAebI6Qnz5-NffElnnsmN93T4I0g=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1675,7 +2344,7 @@
 <item>
 <title>漏斗模型被营销大师们玩烂了</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-05-30-1000000429.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-km523Rc*TY7X8XxoPkNe-EPjxgXzv3jIDp8Dx0U67uZ3FpApruohXzd8vQvA2OgCsquDK-pBNdxwnzmdfniZBqA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbX1zoXgGi2OInznuOq6gs06VukT5iR4DfCMGSnly45DFAU5NlOxlkdG6Vape7L*UudViC6ank1-0i5uEdYFEXO4=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2010,7 +2679,7 @@
 <item>
 <title>活钱如何才能安全增值</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-05-27-1000000427.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-ki5onUxl5YJ7EwT5x3Q7JWvsJ3VQ1YOthb-vn280BdzxLGu7hTQXsLissS3PzSWr-cFxgFP5lFrUBGYaAXpuW-c=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbQB1Vqj8-Ap5PM0O2FbSoeYeqN9PJ9slVlxwWxWRgxQNmRQ3-M*Oy7Iwu6BkYOspFbaKJNLxPneAFnLyvH-YWnI=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2338,7 +3007,7 @@
 <item>
 <title>学无止境，我去考证</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-05-24-1000000425.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-kpa6p1CJywElaEQIqcUPXNpOlXRJYfSuIcEpCgPLVXzWbEe2giGroosmP2zhI4cw9mJ3QwKgRLDsXD0hhgWolQo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560433811&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=doYi7d-WAzJ6*PAPL0x*FyMCVQIQoGmIc-w31*pqfvRNAYlW*TsuWZ5ZVZhdH6kUk0f-9pOHJEeQhaKNmUuGbZdbVP2RB8oWHwOUSi6OgUsygertPJJYGixITGuWhMCF4IUbKPTQZ5XhE9jIp0uVE*MgRXd4hXmPM8Ydbddxrho=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -2669,659 +3338,6 @@
 <author>caozsay</author>
 <guid isPermaLink="false">2019-05-24-1000000425</guid>
 <pubDate>Fri, 24 May 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>推荐系统，如何从入门到精通</title>
-<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-05-23-1000000424_502384780.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-krBM0TRD9LXGEwqoIS879floaJKfpQVajWWLRPjXayteJBDIKmuFPM0*2O7X4W43msat7cXczkRDkt3xXvPLrLU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-
-		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-
-
-                                    
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    推荐系统，如何从入门到精通
-
-                                                                                &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                                                &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                极客时间
-                                            &lt;/span&gt;
-                                        
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        caoz的梦呓                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p&gt;推荐系统可以做的很简单，但如果想做的很优秀，那就很不简单。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果你正在一个中小企业负责推荐系统的设计，你们企业既没有什么资源也给你，技术储备也很薄弱，只有一些历史数据勉强可以用，那么，我这里有两篇旧文适合你，可以快速启动一套推荐系统，而且效果，文中案例说话，还马马虎虎说的过去。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=209302719&amp;amp;idx=1&amp;amp;sn=b30b0432c702e45dc0d49de91630cb5e&amp;amp;chksm=608f2ed257f8a7c48719b0f6b6ca7628f5efa7ca3ee41c3de3687222992c816a52a213f4a35d&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;史上最简单的推荐系统设计&lt;/a&gt; （如果不了解推荐系统是什么，这篇里面也有说明）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867790&amp;amp;idx=1&amp;amp;sn=b2d04f9f88f61fb0f88a8fa4d5071c6e&amp;amp;chksm=f1075c63c670d57522f662c0721d01b833f84bf44376a465e94d16c075cea847245898fb77e4&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;一个至简推荐系统的实现(附源代码)&lt;/a&gt; （有实测案例效果及源代码）&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看，从实测案例到源代码都有，这个不收钱，够良心不。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但如果你现在想去应聘一个不错的公司，想去找一份推荐算法工程师的高薪职位，你说你读通了我的代码和文章，你去跟面试官讲这个，行不行，坦白说，不太行。面试官多半会笑一笑说，同学，再练几年再来。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;或者你启用了我的系统后，老板觉得不够满意，说，为什么没有谁谁谁家的系统效果好，老板舍得投资源，而且数据越来越丰富，现在需要你升级策略，寻求更好的解决方案，你来问我，不好意思，我水平真的有限。我能帮你快速解决从0到1的问题，但从有到好的问题，就真的没什么捷径可以走了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但我今天给你介绍个好老师&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span data-shimo-docs=&#39;[[20,&quot;刑无刀，本名陈开江，现在是”贝壳找房“资深算法专家，从事算法类产品的研发。曾任新浪微博资深算法工程师，考拉FM算法主管。从业8年时间，他的工作和研究范围始终没有超出推荐系统，同时也是中国最专业推荐技术与产品社区之一ResysChina的特约作者，不仅经验丰富，还很会写。\n\n这些年，他曾服务过创业公司、传统大公司和大型互联网公司，这见证了大大小小、形状各异的推荐系统的构建过程，基本都从0到1参与了这些公司的推荐系统，专栏中也凝聚了他无数的踩坑经验。\n\n极客时间的运营同学找我推荐下这个专栏，同样的给大家争取了一些优惠，参与拼团仅需58元，不过优惠的周期和人数都有限制，先到先得！\n&quot;]]&#39;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;zI9O&quot; class=&quot;ql-long-12880145&quot;&gt;刑无刀，本名陈开江，现在是”贝壳找房“资深算法专家，从事算法类产品的研发。曾任新浪微博资深算法工程师，考拉FM算法主管。从业8年时间，他的工作和研究范围始终没有超出推荐系统，同时也是中国最专业推荐技术与产品社区之一ResysChina的特约作者，不仅经验丰富，还很会写。&lt;/p&gt;&lt;p line=&quot;3225&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;mLbe&quot; class=&quot;ql-long-12880145&quot;&gt;这些年，他曾服务过创业公司、传统大公司和大型互联网公司，这见证了大大小小、形状各异的推荐系统的构建过程，基本都从0到1参与了这些公司的推荐系统，专栏中也凝聚了他无数的踩坑经验。&lt;/p&gt;&lt;p line=&quot;yRl7&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;yRl7&quot;&gt;我找极客时间的运营同学给大家争取了一些优惠，参与拼团仅需58元，不过优惠的周期和人数都有限制，先到先得！&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-ratio=&quot;0.93375&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer2tc9ibvD89xJesK42nYNnFjQkVIA6819dH8SrpwHYsoAicLquEXPxpMDOTs3g7WI7bgxsicmyMV1U2g/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;800&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;那为什么我要推荐这门课程呢，来，先看一下目录。&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-ratio=&quot;4.8853333333333335&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer2tc9ibvD89xJesK42nYNnFjTWBt8bZFdWztGQgibeaYeFDkFqqXe3tmAlejiafBepIYmqh1polribxwg/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;750&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;从技术，到工程，到产品观，以及团队管理，你们知道，我一向建议技术人员，要抬头看天，懂产品，懂团队管理，有工程概念，这并不是一个纯粹的算法烧脑技术培训，他带给工程师的是全方位的素质提升。&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;strong&gt;你所收获的不只是如何根据需求编写推荐算法，而是如何从整体上考虑如何构建优秀的推荐系统&lt;/strong&gt;，一个职场事实就是，推荐系统，产品经理往往拿不出合理的执行策略，这就需要工程师自己多担当。&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p line=&quot;xqOt&quot; class=&quot;ql-long-12880145&quot;&gt;说真的，但凡其中任何一个点对你的成长有帮助，这个课程费就是百倍回报。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;也欢迎转发给你认为可能有需要的同事和同学。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不报名也没关系，前面提到的我的两篇旧文，对小公司来说，短期够用了，这诚意可以吧，用起来一段时间，对业绩有效果，对增长有期待，你回过头来再来看看这个课程，没问题的。我坚持那个观点，有价值的东西，经得起时间考验。你看，别的很多平台喜欢推新课，一茬茬追逐热点去收割，我这里好几次推极客时间旧课，口碑和效果都明明白白的列在那里，就是这个理。&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;0.93375&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer2tc9ibvD89xJesK42nYNnFjQkVIA6819dH8SrpwHYsoAicLquEXPxpMDOTs3g7WI7bgxsicmyMV1U2g/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;800&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;890746924&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx45f902.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
-
-
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;极客时间&lt;/div&gt;
-                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                &lt;/div&gt;
-
-                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
-
-    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
-
-    &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;
-    &lt;/div&gt;
-
-
-    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
-        &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;div style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
-  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;like_comment_inner&quot;&gt;
-    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;like_comment_bd&quot;&gt;
-      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;&lt;i class=&quot;icon-success-primary&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;like_comment_ft&quot;&gt;
-      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          写下你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-  
-      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>极客时间</author>
-<guid isPermaLink="false">2019-05-23-1000000424_502384780</guid>
-<pubDate>Thu, 23 May 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>俞军关于企业本质的读书思考</title>
-<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-05-23-1000000424.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1560337588&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=03hB3P2WUVJ1BeTtHX6rhFjukYsAc7rFj9-EvbMuslUhqYZHf7O4NUc*8vLzskNFu*yP2cDHFVHWwxW2IS5-krBM0TRD9LXGEwqoIS879fmj3g0VA9yXqt3raS*gjvabITUUTEN6A47x0wdyF0WN-w1MjCh*qp-yFwBplgdkl1E=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-
-		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-
-
-                                    
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    俞军关于企业本质的读书思考
-
-                                                                                &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
-                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                俞军
-                                            &lt;/span&gt;
-                                        
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        caoz的梦呓                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;pre class=&quot;js_message_plain ng-binding&quot; ng-bind-html=&quot;message.MMActualContent&quot; style=&quot;font-family: inherit;font-size: inherit;white-space: pre-wrap;word-break: normal;&quot;&gt;&lt;p&gt;本文内容来自于俞军老师的聊天记录，经其本人授权转载，以下原文&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;关于企业本质的一点思考&lt;/p&gt;&lt;br&gt;总体上，企业的本质，只在于两点：&lt;br&gt;1. 发现市场获利机会。&lt;br&gt;2. 生产效率高于市场。&lt;br&gt;&lt;br&gt;&lt;strong&gt;一、发现市场获利机会&lt;/strong&gt;&lt;br&gt;&lt;br&gt;发现市场获利机会的路径有三种：&lt;br&gt;&lt;br&gt;&lt;ol class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: decimal;&quot;&gt;&lt;li&gt;&lt;p&gt;&lt;strong&gt;洞察，其实是利用信息不对称获利。&lt;/strong&gt;你知道哪里能买到便宜生产要素，你知道哪些用户更想要什么，你精通一种有用的新技术新方法新渠道，你知道什么约束条件将会变化，而别人不知道，这里就都有市场获利机会。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;试错，其实是因为信息不完全原理。&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;哪怕你自信度100%的洞察，你也可能并无完备信息，你的判断可能失误，结果可能失败，从这个角度，所有自以为洞察后的行为，客观上也是在试错。更何况你对有些洞察只有不完全自信，在这种情况下是用试错去确定市场获利机会。（边界是需要靠对和错双向界定的，如果每个扩大边界的行为都成功，那你还是不知道产品的边界在哪里，所以试错和失败必然是产品过程的一部分。）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;&lt;/span&gt;&lt;strong&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;偶然性：其实是因为信息不确定。&lt;/span&gt;&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;&lt;span style=&quot;font-family: inherit;font-size: inherit;&quot;&gt;&lt;/span&gt;很多事情的未来结果，取决于无数个体和群体的未来决策，取决于超越个人已知规律的未来变化，这些信息对于现在的你、对于哪怕掌握过往所有信息的你，依然是不确定的。总之，我们要尊重和敬畏这个世界的不确定性，产品结果必然有偶然性，人们不认可的或看不见的产品，也许就会成长壮大。&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;br&gt;&lt;p&gt;我以前多次拿BAT举例：&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;马化腾当年为什么想50万卖QQ？因为他不看好啊。为什么没卖掉？因为别人也不看好啊。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;百度创业做的前三个业务：搜索技术供应商、企业搜索数据库、CDN早就烟消云散。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;阿里创业前几年做的1688业务，现有价值不知道还有没有阿里的1%。&lt;br&gt;&lt;br&gt;&lt;strong&gt;信息的不对称、不确定、不完全充斥着这个世界，洞察、试错、偶然性也纠缠在一起，洞察不大可能孤立的出现，在试错中积累知识越多，就会有越来越高的洞察可能性，因为一人一事的偶然性触发后续连锁反应也总是存在。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;BTW，产品经理这个职业能为企业创造最大价值的，就是在“发现市场获利机会”，但是，不幸的是，这里往往存在类似阿罗信息悖论（在买方得到信息之前，他并不了解信息对他具有的价值，但是一旦他了解信息的价值，他事实上已经无成本地获得了这一信息。），&lt;strong&gt;发现后的实现是个长链过程，影响因素众多，真的成功后，你也无法证明主要是因为你的发现，甚至有时都无法证明那是“你的”发现。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;strong&gt;而大型市场获利机会的来源，一般来说，第一是环境和制度变化给的，第二是关键新技术给的，&lt;/strong&gt;&lt;strong&gt;然后是长期关键因素：组织建设能力，抓住机会和最终实现生产效率高于市场，都相当依赖组织建设能力。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;strong&gt;二、生产效率高于市场&lt;/strong&gt;&lt;br&gt;&lt;br&gt;市场有交易费用，企业是节约市场交易费用的产物，只有企业内部组织生产的效率优于市场提供同等产品时，企业才可持续。&lt;br&gt;&lt;br&gt;&lt;strong&gt;企业是用什么提高效率替代市场的？&lt;br&gt;&lt;br&gt;&lt;/strong&gt;&lt;strong&gt;答：权威。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;企业建立科层制，通过权威来配置企业资源，组织实现更有效率地生产（提供物品或服务），效率必须高于市场。&lt;br&gt;&lt;br&gt;企业不是民主投票不是自由市场，企业的优势来自权威自上而下的更优决策。即使企业文化鼓励异议鼓励平等争议，也是采用一种运行机制为了获取更权威的结论。&lt;br&gt;&lt;br&gt;权威，在这里可以理解为掌握专业知识的员工，各领域各层级都可以，企业家本人、采购、HR、PM、RD、PR、GA、安全、法务、运营、行政等，纷纷自上而下，用自己的专业知识，在各个岗位上做出超过市场平均水准的更优决策。&lt;br&gt;&lt;br&gt;&lt;p&gt;&lt;strong&gt;这些专业知识，就是企业的核心竞争力来源。&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;&lt;br&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;这些专业知识，分散在员工个人脑中，既包括用户的、市场的、行业的、政策的知识，也包括企业内部运行机制的、文化价值观的、以及企业内其他人的工作内容和个人能力风格偏好等属性。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;这些专业知识，可以分为两种：显性知识，默会知识。&lt;br&gt;&lt;strong&gt;显性知识，是可以通过语言文字符号表达或传递的知识。&lt;br&gt;默会知识，是一种只可意会不可言传的知识，无法通过语言文字符号表达。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;员工在个人岗位的工作中持续获得和积累的知识，起初都是个人专有的知识，但如果通过语言文字转换为显性知识，就可以被传播，成为企业的共同知识。企业把员工个体积累的默会知识不断转换成显性知识并变成企业共同知识的这个过程，是创新的常见过程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;另一种转换方式是，通过形成内部惯例和制度，一部分个人专有的默会知识也能转换成企业共同知识，后来者只要按惯例和制度行事就是利用了那些知识。&lt;br&gt;&lt;br&gt;企业积累的共同知识越多，企业内组织效率就越高。因为，虽然企业通过权威决策能比市场节约交易费用，但是，企业内部科层制也会带来层级之间人际之间的信息损耗，可以理解为这是企业内的组织成本（除信息损耗外，另一种主要的组织成本是机会主义带来的）。这些组织成本限制了企业的边界，即企业是不能无限扩大的，&lt;strong&gt;企业的边界只能扩大到：企业内部科层增加而增大的组织成本等于外部市场交易成本。&lt;/strong&gt;所以，&lt;strong&gt;共同知识是企业效率和核心竞争力的本源。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;但还是有多少不一的个人专有的默会知识，是不会变成企业共同知识的，每一个员工的离去，就会带走这些个人专有知识，而且，更换一个新员工后，互相之间工作内容和个人能力风格偏好等属性的共同知识又会降低，又要重新磨合积累，这些，都是企业的损失，其中，某些关键员工离职带走的个人专有知识，造成的企业知识损失可能很大，即企业核心竞争力损失有可能也很大。&lt;br&gt;&lt;br&gt;企业靠科层制的自上而下权威决策必须胜过市场平均水平，所以，如果企业内各关键岗位掌握的专业知识和共同知识超过市场平均水平越多，企业的效率优势就越大。而如果这些关键岗位的人才流失率高，专业知识和共同知识含金量较低，甚至低于市场平均水平，就悲剧了。&lt;br&gt;&lt;br&gt;&lt;strong&gt;三、组织&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;什么是组织？组织，是有共同目标、共同理念、共同知识，一定运行机制下的一群人。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;企业，是组织的最常见形式之一，可以看作组织的一个特例----共同目标默认是赚钱（但这是隐性目标，真这么说就low了。符合社会利益的远大显性目标是好企业必须有的，否则不可持续）。&lt;br&gt;&lt;br&gt;&lt;strong&gt;共同目标、共同理念、共同知识，运行机制，这四点都会影响组织的效率。这四个条件不是孤立的，互相影响。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;共同目标和共同理念，改动很难、成本很高，所以企业得先有合适的目标和理念，而且企业一般在招聘时就要选择志同道合的人。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;所以使命（终极目标）、愿景（阶段性中长期目标）、价值观（共同理念，取舍偏好）才会那么重要，因为事关效率。这方面有缺陷的企业，天然比别人少一个提高效率的抓手。&lt;br&gt;&lt;br&gt;&lt;strong&gt;运行机制，是制度设计问题。但首要是激励（其次是约束），激励机制做不好，就像非市场经济长期一定是竞争不过激励更优的市场经济的。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;strong&gt;一个组织，如果目标low、理念low、运行机制差（激励和约束有缺陷），没法让人在心里愿意认同，势必会长期逆向筛选人才；而人才质量变低、人又流动性高，共同知识的积累效果就差，而共同知识是企业效率和核心竞争力的本源。&lt;/strong&gt;&lt;br&gt;&lt;br&gt;总之，作为一个组织，企业如果想用好权威和共同知识提高效率，那么相配的共同目标、共同理念、运行机制（激励、约束等）是必不可少和相辅相成的。&lt;/pre&gt;&lt;p&gt;  &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p&gt;最后吐槽一句，微信不允许新的作者名开赞赏，所以本文没有开启赞赏。&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;1318384484&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx45f902.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
-
-
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;俞军&lt;/div&gt;
-                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                &lt;/div&gt;
-
-                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
-
-    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
-
-    &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;
-    &lt;/div&gt;
-
-
-    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
-        &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-    &lt;div style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
-  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;like_comment_inner&quot;&gt;
-    &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;like_comment_bd&quot;&gt;
-      &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-        &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;&lt;i class=&quot;icon-success-primary&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;like_comment_ft&quot;&gt;
-      &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-      &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          写下你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-  
-      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>俞军</author>
-<guid isPermaLink="false">2019-05-23-1000000424</guid>
-<pubDate>Thu, 23 May 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
