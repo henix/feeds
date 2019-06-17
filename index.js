@@ -16,6 +16,7 @@ const feeds = [
 		"c_152990241",
 		"MacrotraderJz",
 		"Chihiro-Research",
+		"JoinQuant",
 		"tvp_fund",
 		"SimpleNotEasyInvest",
 		"DreamyTalks",
