@@ -1,0 +1,85 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-c132dc7e7666241cbc3d19ed86db2670_b.jpg" alt=""></div><p>上篇文章：<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/5388" class=" wrap external" target="_blank" rel="nofollow noreferrer">【量化交易入门】多股票策略</a><br/></p><h1>简单市值轮动策略</h1><p>学习内容：<br/>  学会使用run_daily进行周期循环<br/>  学会取用市值数据、持仓数据、指数成分股数据<br/>  学会写小市值策略</p><p>这一次我们要学写一个小市值轮动策略。</p><h2>1 确定策略内容</h2><p>简单小市值轮动策略内容是这样的：</p><p>&gt; 每隔若干个交易日，等金额持有市值排名最小的前几只股票，卖出其他股票。</p><p>进一步明确下，把量确定，例如这样：</p><p>&gt; 每隔10个交易日，等金额持有市值排名最小的前5只股票，卖出其他股票。</p><p>接下来按之前讲的套路出牌就好了，即初始化加周期循环。（想想之前的内容，这次具体该怎么做）</p><h2>2 初始化</h2><p>确定轮动频率，即每隔多少个交易日进行买卖。比如就是10个交易日。</p><p>确定持有最小市值股票数，即持有市值排名最小的前多少只股票。比如就是前5只。</p><p>则初始化部分代码为：</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+    g.stocksnum = 5 # 持有最小市值股票数
+    g.period = 10 # 轮动频率</code></pre></div><p>&gt; 答疑与延伸：<br/>&gt;- 这也是多股票策略，怎么不确定股票范围了？股票范围我们希望是能在全市场，但它是变化的，有新股上市，也有退市的，所以股票范围不能事先确定好不变，所以要在周期循环的部分不断更新并确定股票范围。</p><h2>3 周期循环的另一种写法--run_daily</h2><p>那么用run_daily的我们的初始化-周期循环的策略框架怎么写呢？</p><p>我们的新套路如下：</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+    写初始化的代码
+    run_daily(daily,time=&#39;every_bar&#39;)
+
+def daily(context):
+    写周期循环的代码</code></pre></div><p>首先，可以看出run_daily要写在initialize里。<br/>其次，需要知道的是，你把什么函数替换掉daily,谁就会像原来的handle_data一样进行周期循环。虽然名字不一定是daily，可以自己改，但不能很聚宽回测引擎已经有的函数重名，比如不能叫handle_data、initialize。</p><p>&gt; 答疑与延伸：<br/>&gt;- time=&#39;every_bar&#39;是什么意思？time这个参数控制循环行为的，当time=’every_bar‘时，循环的行为就和handle_data一样，按天回测时就每天开盘时运行，按分钟回测时就每分钟开始时运行。当然time还可以为别的，从而循环的行为会有所不同，从而实现一些handle_data做不到的事，具体见API原文：<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/api%23%25E5%25AE%259A%25E6%2597%25B6%25E8%25BF%2590%25E8%25A1%258C" class=" wrap external" target="_blank" rel="nofollow noreferrer">定时运行</a></p><h2>4 开始写周期循环部分</h2><p>按之前的设定，我们希望策略每十天进行一次循环，进行判断，买入卖出等，即轮动频率为10天。但策略回测只提供了基本的每分钟循环和每日循环，要做到每10天进行一次循环需要写代码编程解决。</p><p>怎么编呢？想法很简单，就每日循环好了，第一天正常进行判断买入卖出，之后九天什么都不做，然后，第十一天再正常判断买入卖出，再闲九天，这不就搞定了。</p><p>因此，我们需要一个变量，记着现在是策略进行第几天了，如果能被轮动频率10整除余1就干活，进行买卖。否则，就闲着，什么都不做。</p><p>所以，至此我们的代码应当是这样写的：</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+    g.stocksnum = 5 # 持有最小市值股票数
+    g.period = 10 # 轮动频率
+    run_daily(daily,time=&#39;every_bar&#39;)# 周期循环daily
+    g.days = 1 # 记录策略进行到第几天，初始为1
+
+def daily(context):
+    # 判断策略进行天数是否能被轮动频率整除余1
+    if g.days % g.period == 1:
+        写进行选股、判断、买入卖出等代码
+    else:
+        pass # 什么也不做
+    g.days = g.days + 1 #策略经过天数增加1</code></pre></div><p>&gt; 答疑与延伸：<br/>&gt;- g.days=1为什么要写到initialize里？因为g.days需要独立在周期循环之外来记录策略运行天数，而且还要在周期循环中使用，所以需要在initialize里设置为全局变量并赋予初值1。如果写在周期循环里，每次循环都将被重置为1，无法记录运行天数。<br/>&gt;- g.days % g.period什么意思？ 意为求g.days整除g.period后的余数，“%”是取余运算。例如，那么12%10就是等于2，因为12整除10得1余2，更多的，3%10等于3，3%5等于3。<br/>&gt;- pass什么意思？ 在python里就是什么也不做的意思。</p><p>接下来，我们关注点将在“写进行选股、判断、买入卖出等代码”这个关键代码，其余代码暂时放到视野外。</p><h2>5 找出全市场上市值最小的5只股票</h2><p>用context结构获取策略回测数据中的当前时间；用get_index_stocks获取指数成分股，从而确定股票范围；用get_fundamentals来使用财务数据中的市值数据，同时也能获取到相应股票代码。</p><p>代码如下：</p><div class="highlight"><pre><code class="language-text"># 获取当前时间
+date=context.current_dt.strftime(&#34;%Y-%m-%d&#34;)
+# 获取上证指数和深证综指的成分股代码并连接，即为全A股市场所有股票的股票代码
+scu = get_index_stocks(&#39;000001.XSHG&#39;)+get_index_stocks(&#39;399106.XSHE&#39;)
+# 选出在scu内的股票的股票代码，并按照当前时间市值从小到大排序
+df = get_fundamentals(query(
+        valuation.code
+    ).filter(
+        valuation.code.in_(scu)
+    ).order_by(
+        valuation.market_cap.asc()
+    ), date=date
+    )
+# 取出前g.stocksnum名的股票代码，并转成list类型，buylist即为选中的股票的代码列表
+buylist =list(df[&#39;code&#39;][:g.stocksnum])</code></pre></div><p>&gt; 答疑与延伸：<br/>&gt;- `这些数据都是怎么取用的？请到前文中查阅。<br/>&gt;- list(df[&#39;code&#39;][:g.stocksnum])什么意思？ df是取出的按市值从小到大排好序的股票代码，是个dataframe，df[&#39;code&#39;]就是选取df中的code列，即股票代码。df[&#39;code&#39;][:g.stocksnum]就是取df中的code列中的前g.stocksnum个。最后list()是把df[&#39;code&#39;][:g.stocksnum]转成将会用到的list的数据类型。dataframe的用法详情请见：<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/1980" class=" wrap external" target="_blank" rel="nofollow noreferrer">pandas库之数据查看、选择</a></p><h2>6 分配资金进行买卖交易</h2><p>要买的股票已经选好放在buylist里了，只要将资金分好，相应的买入就好了，如果看过之前那篇多股票策略的话，应该很好理解。</p><p>特别的是，存在这样的情况，某股票市值是最小前五的而被选入buylist，而且也买入持有了，但过了一段时间，其股票市值不是最小前五了，从而不再当下的buylist里，这时我们应当卖出这个股票。因为我们的策略就是10天为周期地持有市场上市值最小的五只股票。</p><p>代码如下：</p><div class="highlight"><pre><code class="language-text"># 对于每个当下持有的股票进行判断：现在是否已经不在buylist里，如果是则卖出
+for stock in context.portfolio.positions:
+    if stock not in buylist: #如果stock不在buylist
+        order_target(stock, 0) #调整stock的持仓为0，即卖出
+
+# 将资金分成g.stocksnum份
+position_per_stk = context.portfolio.cash/g.stocksnum
+# 用position_per_stk大小的g.stocksnum份资金去买buylist中的股票
+for stock in buylist:
+    order_value(stock, position_per_stk)</code></pre></div><p>&gt; 答疑与延伸：<br/>&gt;- context.portfolio.positions什么意思？ 是当前策略的持有股票数据是个dict，不妨自己输出看看，更多相关内容请在<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/1970" class=" wrap external" target="_blank" rel="nofollow noreferrer">Python入门（2）- 数据类型之列表</a>中查阅。<br/></p><h2>7 策略完成，进行回测</h2><p>至此，我们的策略都已经用代码实现好了，完整代码如下：</p><div class="highlight"><pre><code class="language-text"> def initialize(context):
+    g.stocksnum = 5 # 持有最小市值股票数
+    g.period = 10 # 轮动频率
+    run_daily(daily,time=&#39;every_bar&#39;)# 周期循环daily
+    g.days = 1 # 记录策略进行到第几天，初始为1
+
+def daily(context):
+    # 判断策略进行天数是否能被轮动频率整除余1
+    if g.days % g.period == 1:
+
+        # 获取当前时间
+        date=context.current_dt.strftime(&#34;%Y-%m-%d&#34;)
+        # 获取上证指数和深证综指的成分股代码并连接，即为全A股市场所有股票
+        scu = get_index_stocks(&#39;000001.XSHG&#39;)+get_index_stocks(&#39;399106.XSHE&#39;)
+
+        # 选出在scu内的股票的股票代码，并按照当前时间市值从小到大排序
+        df = get_fundamentals(query(
+                valuation.code,valuation.market_cap
+            ).filter(
+                valuation.code.in_(scu)
+            ).order_by(
+                valuation.market_cap.asc()
+            ), date=date
+            )
+
+        # 取出前g.stocksnum名的股票代码，并转成list类型，buylist为选中的股票
+        buylist =list(df[&#39;code&#39;][:g.stocksnum])
+
+        # 对于每个当下持有的股票进行判断：现在是否已经不在buylist里，如果是则卖出
+        for stock in context.portfolio.positions:
+            if stock not in buylist: #如果stock不在buylist
+                order_target(stock, 0) #调整stock的持仓为0，即卖出
+
+        # 将资金分成g.stocksnum份
+        position_per_stk = context.portfolio.cash/g.stocksnum
+        # 用position_per_stk大小的g.stocksnum份资金去买buylist中的股票
+        for stock in buylist:
+            order_value(stock, position_per_stk)
+    else:
+        pass # 什么也不做
+
+    g.days = g.days + 1 # 策略经过天数增加1
+</code></pre></div><p>进行回测，回测结果如图：</p><figure><noscript><img src="https://pic4.zhimg.com/v2-5e5ab60d605f6c0ce8684eb6f88d0007_b.png" data-rawwidth="866" data-rawheight="381" class="origin_image zh-lightbox-thumb" width="866" data-original="https://pic4.zhimg.com/v2-5e5ab60d605f6c0ce8684eb6f88d0007_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-5e5ab60d605f6c0ce8684eb6f88d0007_b.png" data-rawwidth="866" data-rawheight="381" class="origin_image zh-lightbox-thumb lazy" width="866" data-original="https://pic4.zhimg.com/v2-5e5ab60d605f6c0ce8684eb6f88d0007_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-5e5ab60d605f6c0ce8684eb6f88d0007_b.png"/></figure><h2>自测与自学</h2><ol><li>是否学会使用run_daily进行周期循环</li><li>是否学会取用市值数据、持仓数据、指数成分股数据</li><li>是否学会编写简单小市值轮动策略</li><li>调整下策略，比如轮动频率，持仓股票数，回测看看效果如何？</li><li>思考此文中，虽然每次都等资金的买入，为何5只股票的持仓量其实还是不同，而且可能差很大？</li></ol><p><figure><noscript><img src="https://pic1.zhimg.com/v2-65dff2fb66441c48cd5fab2d7102307c_b.png" data-rawwidth="844" data-rawheight="510" class="origin_image zh-lightbox-thumb" width="844" data-original="https://pic1.zhimg.com/v2-65dff2fb66441c48cd5fab2d7102307c_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-65dff2fb66441c48cd5fab2d7102307c_b.png" data-rawwidth="844" data-rawheight="510" class="origin_image zh-lightbox-thumb lazy" width="844" data-original="https://pic1.zhimg.com/v2-65dff2fb66441c48cd5fab2d7102307c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-65dff2fb66441c48cd5fab2d7102307c_b.png"/></figure>到JoinQuant查看策略源码，并与作者交流讨论：<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/6596%3Ff%3Dzhzl%26m%3D27193651" class=" wrap external" target="_blank" rel="nofollow noreferrer">【新手入门教程】简单市值轮动策略</a></p>

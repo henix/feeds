@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>基于SVM的机器学习选股模型v4.md（下）</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/51261128">原文</a></p>
+<h2>3 策略构建 （约 36 min）</h2><p>沪深 300 成份股：剔除 ST、停牌、上市时间 &lt;3 个月的股票<br/>回测时间：2014-01-01 至 2018-01-01<br/>调仓期：每月第一个交易日<br/>SVM 模型参数： 高斯核函数，C=10，γ=0.01<br/>选股：<br/>（1）利用 2010-2014 年数据建立 SVM 模型<br/>（2）利用 SVM 模型预测 2014-2018 年下月的收益<br/>（3）根据预测值选股投资<br/>评价方法: 回测年化收益率、夏普比率、最大回撤、胜率等。<br/>回测年化收益率: 年化收益率通常指投资一年后能够获得的收益率，由于回测时间的长短，往往会由于复利的影响导致长时间的总收益率更大，此时可通过年化收益率衡量模型的收益能力。<br/>夏普比率: 一般情况下，风险和收益总是背向而驰，模型在承担收益的同时也会承担相对应的风险，因此合理控制模型的收益与风险能够提高模型的优势。<br/>最大回撤: 最大回撤是指模型在过去的某一段时间可能出现的最大亏损程度，通常用来衡量模型的风险。在实际投资中，若是出现最大回撤较大的情况，往往会导致投资者对模型丧失信心，因此合理控制模型的最大回撤显得尤为重要。</p><h2>3.1 等权重选股 （约 2 min）</h2><p>策略步骤：<br/>（1）每月根据股票预测值进行排序<br/>（2）排序后将股票分为 N 层 (N=5)<br/>（3）按层级分别回测，每层股票等权重投资，得到 5 根回测曲线</p><div class="highlight"><pre><code class="language-text">#1 先导入所需要的程序包
+import datetime
+import numpy as np 
+......
+import pickle
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+start_date = &#39;2014-01-01&#39; 
+end_date = &#39;2018-01-01&#39; 
+num = [1,2,3,4,5]
+#group_backtest(start_date,end_date,num)</code></pre></div><h2>3.1.1 分层回测策略模型收益指标</h2><p>为了对模型的收益能力进行具体分析，将模型预测结果看成单因子，按照单因子有效性的测试方法，对模型的有效性进行测试，具体分析方法为：（1）根据预测结果按照从大到小的顺序进行排序；（2）将股票平均分为 5 等份，分别构成 5 个投资组合。具体每个组合的收益指标如下表所示。</p><div class="highlight"><pre><code class="language-text">pa = parameter_analysis()
+pa.read_backtest_data(&#39;results_1.pkl&#39;)
+pa.evaluations_df</code></pre></div><h2>3.1.2 分层回测净值</h2><p>为了进一步更直观的对 5 个组合进行分析，绘制了 5 个组合及 HS300 基准的净值收益曲线，具体下图所示。由图可以看出，组合 1 能够明显跑赢组合 5 ，可见符合单因子有效性的检验，即模型证明是有效的。</p><div class="highlight"><pre><code class="language-text">pa.plot_returns()</code></pre></div><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-75b5dc6662476dfc109cb3eb3d910e52_b.jpg" data-caption="" data-size="normal" data-rawwidth="1243" data-rawheight="487" class="origin_image zh-lightbox-thumb" width="1243" data-original="https://pic3.zhimg.com/v2-75b5dc6662476dfc109cb3eb3d910e52_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-75b5dc6662476dfc109cb3eb3d910e52_b.jpg" data-caption="" data-size="normal" data-rawwidth="1243" data-rawheight="487" class="origin_image zh-lightbox-thumb lazy" width="1243" data-original="https://pic3.zhimg.com/v2-75b5dc6662476dfc109cb3eb3d910e52_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-75b5dc6662476dfc109cb3eb3d910e52_b.jpg"/></figure><h2>3.1.3 多空组合净值</h2><p>从分层组合回测净值曲线图来看，每个组合波动性较大，策略存在较大的风险，因此考虑建立多空组合。多空组合是买入组合 1、卖空组合 5 (月度调仓)的一个资产组合，为了方便统计，多空组合每日收益率为（组合 1 每日收益率 - 组合 5 每日收益率）/2，然后获得多空组合的净值收益曲线，如图所示，多空组合净值收益曲线明显比任何一个组合的波动性更低，能够获得更为稳定的收益，风险控制效果较好。</p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-cca02f3f42d34391f46ad32735e30a49_b.jpg" data-caption="" data-size="normal" data-rawwidth="1221" data-rawheight="487" class="origin_image zh-lightbox-thumb" width="1221" data-original="https://pic2.zhimg.com/v2-cca02f3f42d34391f46ad32735e30a49_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-cca02f3f42d34391f46ad32735e30a49_b.jpg" data-caption="" data-size="normal" data-rawwidth="1221" data-rawheight="487" class="origin_image zh-lightbox-thumb lazy" width="1221" data-original="https://pic2.zhimg.com/v2-cca02f3f42d34391f46ad32735e30a49_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-cca02f3f42d34391f46ad32735e30a49_b.jpg"/></figure><h2>3.1.4 不同年份的收益（分 5 层）</h2><p>为了进一步分析模型的稳定性，对每一年每个组合的收益能力进行分析。如表所示，组合 1 每一年在 5 个组合中均能够获得较高的收益，而组合 5 基本上每年收益能力都排在最后两名。</p><div class="highlight"><pre><code class="language-text">pa.get_profit_year()</code></pre></div><p>3.1.5 高斯核 SVM 模型策略组合回测分析表</p><div class="highlight"><pre><code class="language-text">pa.get_eval4_bar()
+pa.get_eval()
+pa.get_excess_eval()</code></pre></div><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-8563687e96269a68f00c158245bd2493_b.jpg" data-caption="" data-size="normal" data-rawwidth="1186" data-rawheight="428" class="origin_image zh-lightbox-thumb" width="1186" data-original="https://pic4.zhimg.com/v2-8563687e96269a68f00c158245bd2493_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-8563687e96269a68f00c158245bd2493_b.jpg" data-caption="" data-size="normal" data-rawwidth="1186" data-rawheight="428" class="origin_image zh-lightbox-thumb lazy" width="1186" data-original="https://pic4.zhimg.com/v2-8563687e96269a68f00c158245bd2493_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-8563687e96269a68f00c158245bd2493_b.jpg"/></figure><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-12f45b227e4d0e209f063a73a639adc3_b.jpg" data-caption="" data-size="normal" data-rawwidth="1190" data-rawheight="483" class="origin_image zh-lightbox-thumb" width="1190" data-original="https://pic4.zhimg.com/v2-12f45b227e4d0e209f063a73a639adc3_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-12f45b227e4d0e209f063a73a639adc3_b.jpg" data-caption="" data-size="normal" data-rawwidth="1190" data-rawheight="483" class="origin_image zh-lightbox-thumb lazy" width="1190" data-original="https://pic4.zhimg.com/v2-12f45b227e4d0e209f063a73a639adc3_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-12f45b227e4d0e209f063a73a639adc3_b.jpg"/></figure><h2>3.2 行业中性选股（约 20 min）</h2><p>策略步骤：<br/>（1）所有股票归属申万一级行业<br/>（2）行业内股票按每月预测结果进行排序<br/>（3）行业内股票均分成 N层 (N=5)<br/>（4）每个分层组合的股票进行权重配置<br/>股票权重配置方法：<br/>在每个一级行业内部对所有个股按因子大小进行排序，每个行业内均分成 N 个分层组合。如图所示，黄色方块代表各行业内个股初始权重，可以相等也 可以不等(我们直接取相等权重进行测试)，分层具体操作方法为 N 等分行业内个股 权重累加值，例如图示行业 1 中，5 只个股初始权重相等(不妨设每只个股权重为 0.2)， 假设我们欲分成 3 层，则分层组合 1 在权重累加值 1/3 处截断，即分层组合 1 包含个股 1 和个股 2，它们的权重配比为 0.2:(1/3-0.2)=3:2，同样推理，分层组合 2 包含个股 2、3、4，配比为(0.4-1/3):0.2:(2/3-0.6)=1:3:1，分层组合 4 包含个股 4、5，配比 为 2:3。以上方法是用来计算各个一级行业内部个股权重配比的，行业间权重配比与基准组合(我们使用沪深 300)相同，也即行业中性。 </p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-42f1760cb80ea4ba15681c0801c6cada_b.jpg" data-caption="" data-size="normal" data-rawwidth="1300" data-rawheight="696" class="origin_image zh-lightbox-thumb" width="1300" data-original="https://pic3.zhimg.com/v2-42f1760cb80ea4ba15681c0801c6cada_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-42f1760cb80ea4ba15681c0801c6cada_b.jpg" data-caption="" data-size="normal" data-rawwidth="1300" data-rawheight="696" class="origin_image zh-lightbox-thumb lazy" width="1300" data-original="https://pic3.zhimg.com/v2-42f1760cb80ea4ba15681c0801c6cada_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-42f1760cb80ea4ba15681c0801c6cada_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,num):
+    warnings.filterwarnings(&#34;ignore&#34;)
+    pa = parameter_analysis()
+    pa.get_backtest_data(file_name = &#39;results_2.pkl&#39;,
+                          running_max = 10,
+                          algorithm_id = &#39;cfdda35cfec3faa0f6bcb1ab9f0dc705&#39;,
+                          start_date=start_date,
+                          end_date=end_date,
+                          frequency = &#39;day&#39;,
+                          initial_cash = &#39;10000000&#39;,
+                          param_names = [&#39;num&#39;],
+                          param_values = [num]                     
+                          )
+    
+start_date = &#39;2014-01-01&#39; 
+end_date = &#39;2018-01-01&#39; 
+num = [1,2,3,4,5]
+group_backtest(start_date,end_date,num)</code></pre></div><h2>3.2.1 分层回测策略模型收益指标</h2><p>为了对模型的收益能力进行具体分析，将模型预测结果看成单因子，按照单因子有效性的测试方法，对模型的有效性进行测试，具体分析方法为：（1）根据预测结果按照从大到小的顺序进行排序；（2）将股票平均分为 5 等份，分别构成 5 个投资组合。具体每个组合的收益指标如下表所示。</p><div class="highlight"><pre><code class="language-text">pa = parameter_analysis()
+pa.read_backtest_data(&#39;results_2.pkl&#39;)
+pa.evaluations_df</code></pre></div><h2>3.2.2 分层回测净值</h2><p>为了进一步更直观的对 5 个组合进行分析，绘制了 5 个组合及 HS300 基准的净值收益曲线，具体下图所示。由图可以看出，组合 1 能够明显跑赢组合 5 ，可见符合单因子有效性的检验，即模型证明是有效的。</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-fcc6d9010ba311759b6114bc107cae7c_b.jpg" data-caption="" data-size="normal" data-rawwidth="1243" data-rawheight="487" class="origin_image zh-lightbox-thumb" width="1243" data-original="https://pic1.zhimg.com/v2-fcc6d9010ba311759b6114bc107cae7c_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-fcc6d9010ba311759b6114bc107cae7c_b.jpg" data-caption="" data-size="normal" data-rawwidth="1243" data-rawheight="487" class="origin_image zh-lightbox-thumb lazy" width="1243" data-original="https://pic1.zhimg.com/v2-fcc6d9010ba311759b6114bc107cae7c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-fcc6d9010ba311759b6114bc107cae7c_b.jpg"/></figure><h2>3.2.3 多空组合净值</h2><p>从分层组合回测净值曲线图来看，每个组合波动性较大，策略存在较大的风险，因此考虑建立多空组合。多空组合是买入组合 1、卖空组合 5 (月度调仓)的一个资产组合，为了方便统计，多空组合每日收益率为（组合 1 每日收益率 - 组合 5 每日收益率）/2，然后获得多空组合的净值收益曲线，如图所示，多空组合净值收益曲线明显比任何一个组合的波动性更低，能够获得更为稳定的收益，风险控制效果较好。</p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-c76f678caeaee168daaca7dad30bc6d9_b.jpg" data-caption="" data-size="normal" data-rawwidth="1221" data-rawheight="487" class="origin_image zh-lightbox-thumb" width="1221" data-original="https://pic2.zhimg.com/v2-c76f678caeaee168daaca7dad30bc6d9_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-c76f678caeaee168daaca7dad30bc6d9_b.jpg" data-caption="" data-size="normal" data-rawwidth="1221" data-rawheight="487" class="origin_image zh-lightbox-thumb lazy" width="1221" data-original="https://pic2.zhimg.com/v2-c76f678caeaee168daaca7dad30bc6d9_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-c76f678caeaee168daaca7dad30bc6d9_b.jpg"/></figure><h2>3.2.4 不同年份的收益（分 5 层）</h2><p>为了进一步分析模型的稳定性，对每一年每个组合的收益能力进行分析。如表所示，组合 1 每一年在 5 个组合中均能够获得较高的收益，而组合 5 基本上每年收益能力都排在最后两名。</p><div class="highlight"><pre><code class="language-text">pa.get_profit_year()</code></pre></div><p>3.2.5 高斯核 SVM 模型策略组合回测分析表</p><div class="highlight"><pre><code class="language-text">pa.get_eval4_bar()
+pa.get_eval()
+pa.get_excess_eval()</code></pre></div><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-d2ea37022f56e49274318dbe86e7b3e0_b.jpg" data-caption="" data-size="normal" data-rawwidth="1186" data-rawheight="428" class="origin_image zh-lightbox-thumb" width="1186" data-original="https://pic1.zhimg.com/v2-d2ea37022f56e49274318dbe86e7b3e0_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-d2ea37022f56e49274318dbe86e7b3e0_b.jpg" data-caption="" data-size="normal" data-rawwidth="1186" data-rawheight="428" class="origin_image zh-lightbox-thumb lazy" width="1186" data-original="https://pic1.zhimg.com/v2-d2ea37022f56e49274318dbe86e7b3e0_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-d2ea37022f56e49274318dbe86e7b3e0_b.jpg"/></figure><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-51c15458641d97e92f00b8b558092e37_b.jpg" data-caption="" data-size="normal" data-rawwidth="1190" data-rawheight="483" class="origin_image zh-lightbox-thumb" width="1190" data-original="https://pic4.zhimg.com/v2-51c15458641d97e92f00b8b558092e37_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-51c15458641d97e92f00b8b558092e37_b.jpg" data-caption="" data-size="normal" data-rawwidth="1190" data-rawheight="483" class="origin_image zh-lightbox-thumb lazy" width="1190" data-original="https://pic4.zhimg.com/v2-51c15458641d97e92f00b8b558092e37_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-51c15458641d97e92f00b8b558092e37_b.jpg"/></figure><h2>3.3 不同核函数 SVM 模型（等权重）（约 12 min）</h2><p>策略步骤：<br/>（1）每月根据股票预测值进行排序<br/>（2）排序后，选择排名靠前的股票进行交易<br/>模型：<br/>（1）根据 SVM 模型核函数的不同，可分为不同的模型，具体参数设置如表所示<br/>（2）股票数量设定，分别选择 5%、10%、15%、20% 的股票数量进行交易，分析在交易股票数量下模型的收益能力。</p><p>| 序号 || 核函数 | 参数设定 | | ----- || ----- | ------ | | 0 || 线性核 | C = 1e-4 | | 1 || 3 阶多项式核 | C = 0.003 gamma = 0.03 | | 2 || 7 阶多项式核 | C = 0.03 gamma = 0.01 | | 3 || 高斯核 | C = 1 gamma = 3e-5|</p><h2>3.3.1 策略构建</h2><p>下面分别进行不同股票（5%、10%、15%、20%）的四个模型的构建，并将结果分别保存在文件（results_3.pkl&#39;,&#39;results_4.pkl&#39;,&#39;results_5.pkl&#39;,&#39;results_6.pkl&#39;）中。</p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,para):
+    warnings.filterwarnings(&#34;ignore&#34;)
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+group_backtest(start_date,end_date,para)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|4]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [1|3|0]. [1|3|0]. [1|3|0]. [1|3|0]. [1|3|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [3|1|0]. [3|1|0]. 
+【回测完成】总用时：161秒(即0.04小时)。</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,para):
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+group_backtest(start_date,end_date,para)
+</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|4]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [1|3|0]. [2|2|0]. [3|1|0]. [3|1|0]. [3|1|0]. 
+【回测完成】总用时：144秒(即0.04小时)。</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,para):
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+group_backtest(start_date,end_date,para)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|4]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [1|3|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. 
+【回测完成】总用时：216秒(即0.06小时)。</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,para):
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+group_backtest(start_date,end_date,para)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|4]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [0|4|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [2|2|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. [3|1|0]. 
+【回测完成】总用时：211秒(即0.06小时)。</code></pre></div><p>3.3.2 不同核函数策略模型年化收益（不同股票数量）</p><div class="highlight"><pre><code class="language-text">files = [&#39;results_3.pkl&#39;,&#39;results_4.pkl&#39;,&#39;results_5.pkl&#39;,&#39;results_6.pkl&#39;]
+num = [&#39;5%&#39;, &#39;10%&#39;, &#39;15%&#39;, &#39;20%&#39;]
+result = pd.DataFrame(index = [&#39;线性核&#39;, &#39;3 阶多项式核&#39;, &#39;7 阶多项式核&#39;, &#39;高斯核&#39;])
+pa = parameter_analysis()
+for i in range(len(num)):
+    pa.read_backtest_data(files[i])
+    result[num[i]] = list(pa.evaluations_df[&#39;annual_algo_return&#39;])
+result</code></pre></div><p>横轴代表选择的股票占所有股票的百分比，纵轴代表不同的核函数</p><h2>3.3.3 不同核函数策略模型夏普比率（不同股票数量）</h2><div class="highlight"><pre><code class="language-text">files = [&#39;results_3.pkl&#39;,&#39;results_4.pkl&#39;,&#39;results_5.pkl&#39;,&#39;results_6.pkl&#39;]
+num = [&#39;5%&#39;, &#39;10%&#39;, &#39;15%&#39;, &#39;20%&#39;]
+result = pd.DataFrame(index = [&#39;线性核&#39;, &#39;3 阶多项式核&#39;, &#39;7 阶多项式核&#39;, &#39;高斯核&#39;])
+pa = parameter_analysis()
+for i in range(len(num)):
+    pa.read_backtest_data(files[i])
+    result[num[i]] = list(pa.evaluations_df[&#39;sharpe&#39;])
+result</code></pre></div><p>3.3.4 不同核函数策略模型最大回撤（不同股票数量）</p><div class="highlight"><pre><code class="language-text">files = [&#39;results_3.pkl&#39;,&#39;results_4.pkl&#39;,&#39;results_5.pkl&#39;,&#39;results_6.pkl&#39;]
+num = [&#39;5%&#39;, &#39;10%&#39;, &#39;15%&#39;, &#39;20%&#39;]
+result = pd.DataFrame(index = [&#39;线性核&#39;, &#39;3 阶多项式核&#39;, &#39;7 阶多项式核&#39;, &#39;高斯核&#39;])
+pa = parameter_analysis()
+for i in range(len(num)):
+    pa.read_backtest_data(files[i])
+    result[num[i]] = list(pa.evaluations_df[&#39;max_drawdown&#39;])
+result</code></pre></div><h2>3.3.5 不同核函数策略模型信息比率（不同股票数量）</h2><div class="highlight"><pre><code class="language-text">files = [&#39;results_3.pkl&#39;,&#39;results_4.pkl&#39;,&#39;results_5.pkl&#39;,&#39;results_6.pkl&#39;]
+num = [&#39;5%&#39;, &#39;10%&#39;, &#39;15%&#39;, &#39;20%&#39;]
+result = pd.DataFrame(index = [&#39;线性核&#39;, &#39;3 阶多项式核&#39;, &#39;7 阶多项式核&#39;, &#39;高斯核&#39;])
+pa = parameter_analysis()
+for i in range(len(num)):
+    pa.read_backtest_data(files[i])
+    result[num[i]] = list(pa.evaluations_df[&#39;information&#39;])
+result</code></pre></div><p>通过不同模型的年化收益、夏普比率、最大回撤及信息比率来看，线性核和高斯核很明具有更好的收益，且当选择股票数量为 10% 时能够获得最高的收益，5% 时收益最差，可见，股票数量不是越少收益能力越强，数量过少容易导致风险不能被分散，从而使得模型承受更大的风险，导致收益能力下降。</p><h2>3.4 SVR 模型和 SVM 模型（等权重）（约 10 min）</h2><p>策略步骤：<br/>（1）每月根据股票预测值进行排序<br/>（2）排序后，选择排名靠前的股票进行交易<br/>模型：<br/>（1）根据 SVM 模型的不同，可分为不同的模型，具体参数设置如表所示<br/>（2）股票数量设定，分别选择 5%、10%、15%、20% 的股票数量进行交易，分析在交易股票数量下模型的收益能力。</p><p>| 序号 || 模型 | 参数设定 | | ----- || ----- | ------ | | 0 || SVC | C = 10 gamma = 0.01 kernel = &#39;rbf&#39; | | 1 || SVR | C = 10 gamma = 0.01 kernel = &#39;rbf&#39; |</p><h2>3.4.1 策略构建</h2><p>下面分别进行不同股票（5%、10%、15%、20%）的四个模型的构建，并将结果分别保存在文件（results_7.pkl&#39;,&#39;results_8.pkl&#39;,&#39;results_9.pkl&#39;,&#39;results_10.pkl&#39;）中。</p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,types,num):
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+group_backtest(start_date,end_date,types,num)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|2]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. 
+【回测完成】总用时：142秒(即0.04小时)。</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,types,num):
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+
+types = [&#39;SVC&#39;, &#39;SVR&#39;]
+num = [0.1]
+group_backtest(start_date,end_date,types,num)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|2]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [1|1|0]. [1|1|0]. [1|1|0]. 
+【回测完成】总用时：122秒(即0.03小时)。</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,types,num):
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+types = [&#39;SVC&#39;, &#39;SVR&#39;]
+num = [0.15]
+group_backtest(start_date,end_date,types,num)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|2]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. 
+【回测完成】总用时：160秒(即0.04小时)。</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">def group_backtest(start_date,end_date,types,num):
+    warnings.filterwarnings(&#34;ignore&#34;)
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+group_backtest(start_date,end_date,types,num)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">【已完成|运行中|待运行】: [0|0|2]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [0|2|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. [1|1|0]. 
+【回测完成】总用时：203秒(即0.06小时)。</code></pre></div><p>3.4.2 SVR 模型和 SVM 模型年化收益（不同股票数量）</p><div class="highlight"><pre><code class="language-text">files = [&#39;results_7.pkl&#39;,&#39;results_8.pkl&#39;,&#39;results_9.pkl&#39;,&#39;results_10.pkl&#39;]
+num = [&#39;5%&#39;, &#39;10%&#39;, &#39;15%&#39;, &#39;20%&#39;]
+result = pd.DataFrame(index = [&#39;SVC&#39;, &#39;SVR&#39;])
+pa = parameter_analysis()
+for i in range(len(num)):
+    pa.read_backtest_data(files[i])
+    result[num[i]] = list(pa.evaluations_df[&#39;annual_algo_return&#39;])
+result</code></pre></div><p>3.4.3 SVR 模型和 SVM 模型夏普比率（不同股票数量）</p><div class="highlight"><pre><code class="language-text">files = [&#39;results_7.pkl&#39;,&#39;results_8.pkl&#39;,&#39;results_9.pkl&#39;,&#39;results_10.pkl&#39;]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+result</code></pre></div><h2>3.4.4 SVR 模型和 SVM 模型最大回撤（不同股票数量）</h2><div class="highlight"><pre><code class="language-text">files = [&#39;results_7.pkl&#39;,&#39;results_8.pkl&#39;,&#39;results_9.pkl&#39;,&#39;results_10.pkl&#39;]
+num = [&#39;5%&#39;, &#39;10%&#39;, &#39;15%&#39;, &#39;20%&#39;]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+result</code></pre></div><p>3.4.5 SVR 模型和 SVM 模型信息比率（不同股票数量）</p><div class="highlight"><pre><code class="language-text">files = [&#39;results_7.pkl&#39;,&#39;results_8.pkl&#39;,&#39;results_9.pkl&#39;,&#39;results_10.pkl&#39;]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+result</code></pre></div><p>通过不同模型的年化收益、夏普比率、最大回撤及信息比率来看，SVC 模型很明具有更好的收益，且当选择股票数量为 15% 时 SVC 模型能够获得最高的收益，年化收益达到 14.85%，且夏普比率及信息比率均在所有模型中为最大值，此外，从风险指标最大回撤来看，该模型的最大回撤最小，可见该模型不仅收益能力最强，且风险控制能力也最强。接下来，我们选择股票数量为 15%，分别构建高斯核 SVM 模型和 SVR 模型的收益曲线，更直观地对模型进行分析。</p><h2>3.4.6 高斯核 SVM 模型和 SVR 模型收益曲线（股票数量 15%）</h2><div class="highlight"><pre><code class="language-text">pa = parameter_analysis()
+pa.read_backtest_data(&#39;results_9.pkl&#39;)
+pa.plot_returns()</code></pre></div><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-3d03401fdac1c8e47bf929f5f1a7d149_b.jpg" data-caption="" data-size="normal" data-rawwidth="1243" data-rawheight="487" class="origin_image zh-lightbox-thumb" width="1243" data-original="https://pic2.zhimg.com/v2-3d03401fdac1c8e47bf929f5f1a7d149_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-3d03401fdac1c8e47bf929f5f1a7d149_b.jpg" data-caption="" data-size="normal" data-rawwidth="1243" data-rawheight="487" class="origin_image zh-lightbox-thumb lazy" width="1243" data-original="https://pic2.zhimg.com/v2-3d03401fdac1c8e47bf929f5f1a7d149_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-3d03401fdac1c8e47bf929f5f1a7d149_b.jpg"/></figure><p>3.4.7 高斯核 SVM 模型和 SVR 模型超额收益曲线（股票数量 15%）</p><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-f376c0435b80d74dcd527787fc51fe25_b.jpg" data-caption="" data-size="normal" data-rawwidth="1240" data-rawheight="487" class="origin_image zh-lightbox-thumb" width="1240" data-original="https://pic2.zhimg.com/v2-f376c0435b80d74dcd527787fc51fe25_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-f376c0435b80d74dcd527787fc51fe25_b.jpg" data-caption="" data-size="normal" data-rawwidth="1240" data-rawheight="487" class="origin_image zh-lightbox-thumb lazy" width="1240" data-original="https://pic2.zhimg.com/v2-f376c0435b80d74dcd527787fc51fe25_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-f376c0435b80d74dcd527787fc51fe25_b.jpg"/></figure><h2>3.5 小结</h2><p>本部分以 HS300 成分股为股票池，将 2010-2014 年数据作为训练集构建不同模型，在 2014-2018 年进行策略回测，最后通过对策略的收益能力及风险控制能力的分析评价模型的优劣。首先，构建高斯核 SVM 模型进行分层回测，分别进行等权重选股及行业中性策略，结果表明高斯核模型是有效的；紧接着，对不同核模型，分别进行不同股票数量的回测，结果表明线性核和高斯核的收益能力更强，且选择股票数量为 10% 时能够获得最高的收益；最后，对 SVC 模型及 SVR 模型进行分析，结果表明 SVC 模型表现效果更好。</p><h2>总结</h2><p>以上我们对支持向量机进行了系统的测试，并且利用支持向量机模型构建沪深 300 选股策略，初步得到以下几个结论:<br/>一、SVM 具备不错的预测能力。我们以 2010-2014 年的因子及下期收益作为样本内集合， 2014 年 2018 年的数据为样本外测试集，高斯核 SVM 在 HS300 选股模型交叉验证集正确率为 56.2%，AUC 为 0.561，样本外测试集平均正确率为 55.1%，平均 AUC 为 0.550。<br/>二、我们分别以 HS300 为股票池，利用高斯核 SVM 模型构建选股策略。对于 HS300 成份股内选股的等权重策略以及行业中性策略。总体而言，高斯核 SVM 在收益、夏普比率、最大回撤等方面分层明确，可见模型是有效的。<br/>三、由此我们也可以推知，对于固定训练集的机器学习模型，训练集的选择至关重要，需要尽可能囊括市场风格的各种可能性。训练集时间长度不能过短，并且应包含至少一个经济周期，我们选择 2010~2014 年作为训练集正是出于上述考虑。然而类似 2014 年 12 月以及 2017 年上半年市场风格巨变的情况在历史上发生的次数不多，在训练集时间段中没有出现过，因此固定训练集的模型出现较大回撤在我们的预料之中。<br/>四、我们比较了高斯核支持向量机 (SVM) 以及支持向量回归 (SVR) 的预测能力。绝大多数时候，高斯核 SVC 的收益能力比 SVR 模型更强，可能的原因在于，对原始收益率进行二值化处理，分成正例和反例后，尽管损失了部分信息，但同时消除了收益率信息中包含的大量噪音，使得模型能够更准确地捕捉数据中蕴含的规律。<br/>五、我们比较了不同核支持向量机 (SVM) 的预测能力。绝大多数时候，高斯核收益能力要高于其他核函数模型。作为使用最为广泛的核函数，其优势在于不对原始数据做太多的先验假设。高斯核 SVM 假设原始数据线性可分，换言之因子和收益率之间存在线性关系。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>

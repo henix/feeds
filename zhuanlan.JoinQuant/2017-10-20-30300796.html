@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>pandas.dataframe 专题使用指南</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/30300796">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-4979ca90c02e2aa678baf9eb0a0fde89_b.jpg" alt=""></div><p>取用数据的时候有时候会取用dataframe的格式，很多人都不熟，本篇重点整理了相关的的内容，以便大家查阅和学习。</p><p><b>蓝字是文章链接，大家都知道吧。</b></p><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9328" class=" wrap external" target="_blank" rel="nofollow noreferrer">选取数据</a></b></h2><ul><li>选取行名、列名、值</li><li>以标签（行、列的名字）为索引选择数据—— x.loc[行标签,列标签]</li><li>以位置（第几行、第几列）为索引选择数据—— x.iloc[行位置,列位置]</li><li>同时根据标签和位置选择数据——x.ix[行,列]</li><li>选择连续的多行多列——切片</li><li>选择不连续的某几行或某几列</li><li>简便地获取行或列</li><li>如何返回一个dataframe的单列或单行</li><li>按条件选取数据——df[逻辑条件]</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9330" class=" wrap external" target="_blank" rel="nofollow noreferrer">转置、排序</a></b></h2><ul><li>转置 df.T</li><li>按行名或列名排序——df.sort_index</li><li>按值排序——df.sort_index</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9333" class=" wrap external" target="_blank" rel="nofollow noreferrer">增删行或列</a></b></h2><ul><li>增加一列</li><li>增加一行</li><li>删除行或列——df.drop</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9329" class=" wrap external" target="_blank" rel="nofollow noreferrer">连接多个dataframe</a></b></h2><ul><li>横向连接</li><li>纵向连接</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9369" class=" wrap external" target="_blank" rel="nofollow noreferrer">组建dataframe</a></b></h2><ul><li>组建方法——pd.DataFrame</li><li>用字典型数据组建——pd.DataFrame</li><li>简便地获得聚宽数据中的时间索引</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9373" class=" wrap external" target="_blank" rel="nofollow noreferrer">缺失值处理</a></b></h2><ul><li>去掉缺失值——df.dropna</li><li>对缺失值进行填充——df.fillna</li><li>判断数据是否为缺失——df.isnull</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9374" class=" wrap external" target="_blank" rel="nofollow noreferrer">常用统计函数</a></b></h2><ul><li>常用统计函数</li><ul><li>describe 针对Series或个DataFrame列计算汇总统计</li><li>count 非na值的数量</li><li>min、max 计算最小值和最大值</li><li>idxmin、idxmax 计算能够获取到最大值和最小值得索引值</li><li>quantile 计算样本的分位数（0到1）</li><li>sum 值的总和</li><li>mean 值得平均数</li><li>median 值得算术中位数（50%分位数）</li><li>mad 根据平均值计算平均绝对离差</li><li>var 样本值的方差</li><li>std 样本值的标准差</li><li>skew 样本值得偏度（三阶矩）</li><li>kurt 样本值得峰度（四阶矩）</li><li>cumsum 样本值得累计和</li><li>cummin，cummax 样本值得累计最大值和累计最小值</li><li>cumprod 样本值得累计积</li><li>diff 计算一阶差分</li><li>pct_change 计算百分数变化</li></ul><li>查看函数的详细信息</li><li>更多的函数</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9375" class=" wrap external" target="_blank" rel="nofollow noreferrer">panel类型数据分解成dataframe</a></b></h2><ul><li>panel类型数据分解成dataframe方法</li><li>更多panel操作指路</li></ul><h2><b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9401" class=" wrap external" target="_blank" rel="nofollow noreferrer">研究内存取dataframe</a></b></h2><ul><li>把dataframe存成csv文件——df.to_csv()</li><li>读取被存成csv文件的dataframe——pd.read_csv()</li></ul><p>欢迎反馈建议：）</p><p class="ztext-empty-paragraph"><br/></p><p><b>到JoinQuant查看原文并参与讨论：</b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9331" class=" wrap external" target="_blank" rel="nofollow noreferrer">pandas.dataframe 专题使用指南</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>

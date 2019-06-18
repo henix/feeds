@@ -1,0 +1,532 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-ebcca44f67e3522be1f322fc9dc731fd_b.jpg" alt=""></div><blockquote>Matplotlib是Python中最常用的可视化工具之一，可以非常方便地创建海量类型的2D图表和一些基本的3D图表。本文翻译自Jupyter nbviewer中的第四讲，主要介绍了绘制2D图像的相关信息，图像的位置、大小，曲线的样式、宽度，坐标轴的刻度、数值、标签，以及图例、标题参数的设置，还包括各种类型的图像的绘制，如柱状图、色图、等高线图等等。作为延伸，又介绍了3D曲线图、框线图和投影图，以及动图的制作。最后作为了解，介绍了后端以及图片视频格式的相关内容。</blockquote><ul><li>作者：J.R. Johansson (邮箱：jrjohansson@gmail.com)</li><li>最新版本的用法介绍见网站<a href="https://link.zhihu.com/?target=http%3A//github.com/jrjohansson/scientific-python-lectures" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://github.com/jrjohansson/scientific-python-lectures.</a> 其他相关介绍见<a href="https://link.zhihu.com/?target=http%3A//jrjohansson.github.io/" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://jrjohansson.github.io.</a></li></ul><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">In [1]:
+# 利用matplotlib生成的图像嵌入notebook中，而不用每次生成图像时打开一个新的窗口， 
+# 后面会再次提到它的用法。如果你在使用旧版本的Python，请运行 ‘%pylab inline’,如新版本，
+则输入 
+%matplotlib inline</code></pre></div><p class="ztext-empty-paragraph"><br/></p><h2><b>简介</b></h2><p>Matplotlib是一个绘制2D和3D科学图像的库，它包含了以下的优点：</p><ol><li>容易学习和掌握</li><li>兼容LaTeX格式的标题和文档</li><li>可以控制图像中的每个元素，包括图像大小和扫描精度。</li><li>对于很多格式都可以高质量的输出图像，包括PNG，PDF，SVG，EPS和PGF.</li><li>可以生成图形用户界面（GUI），做到交互式的获取图像以及无脑生成图像文件（通常用于批量作业）</li></ol><p>Matplotlib最重要的一个特点，也是它作出的图像非常适合作为科学出版物的原因，是因为图像可以完全被程序所控制。这一点对于图像重现非常重要，同时为更新数据后重新作图以及改变图像形状提供了方便。更多关于Matplotlib网页请见<a href="https://link.zhihu.com/?target=http%3A//matplotlib.org/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">matplotlib.org/</span><span class="invisible"></span></a></p><p>在Python中调用Matplotlib函数包有两种方法，一种是在pylab模式中包含一个星号（简单的方法）</p><div class="highlight"><pre><code class="language-text">In [2]: from pylab import *</code></pre></div><p>另一种是在matplotlib.pyplot模式下使用plt（整洁的方法）：</p><div class="highlight"><pre><code class="language-text">In [3]: import matplotlib
+        import matplotlib.pyplot as plt
+In [4]: import numpy as np</code></pre></div><h2><b>MATLAB样式的API</b></h2><p>学习用matplotlib绘制图像最简单的方法使用matplotlib自身提供的类似MATLAB的API。它和MATLAB绘制图像的函数非常相近，所以熟悉MATLAB的用户可以非常容易的上手。采用在pylab模式中包含星号的方式可以使用matplotlib中的API：</p><div class="highlight"><pre><code class="language-text">In [5]: from pylab import *</code></pre></div><p><b>例：</b></p><p>采用一个类似MATLAB作图的API，能够做出以下简单的图像：</p><div class="highlight"><pre><code class="language-text">In [6]: x = np.linspace(0, 5, 10)
+        y = x ** 2
+In [7]: figure() plot(x, y, &#39;r&#39;) xlabel(&#39;x&#39;) ylabel(&#39;y&#39;) title(&#39;title&#39;) show()</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-d7b88e97e4f49876eecd6f05ced7d00e_b.jpg" data-rawwidth="386" data-rawheight="287" class="content_image" width="386"/></noscript><img src="https://pic3.zhimg.com/v2-d7b88e97e4f49876eecd6f05ced7d00e_b.jpg" data-rawwidth="386" data-rawheight="287" class="content_image lazy" width="386" data-actualsrc="https://pic3.zhimg.com/v2-d7b88e97e4f49876eecd6f05ced7d00e_b.jpg"/></figure><p>MATLAB中大多数绘图相关的函数都能在pylab模式下实现。例如将多个图像绘制在一个窗口中，以及选择颜色和线条类型：</p><div class="highlight"><pre><code class="language-text">In [8]: subplot(1,2,1)
+        plot(x, y, &#39;r--&#39;)
+        subplot(1,2,2)
+        plot(y, x, &#39;g*-&#39;);</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-47a8ed0912d8a44144e87ecc2f391b44_b.jpg" data-rawwidth="377" data-rawheight="255" class="content_image" width="377"/></noscript><img src="https://pic1.zhimg.com/v2-47a8ed0912d8a44144e87ecc2f391b44_b.jpg" data-rawwidth="377" data-rawheight="255" class="content_image lazy" width="377" data-actualsrc="https://pic1.zhimg.com/v2-47a8ed0912d8a44144e87ecc2f391b44_b.jpg"/></figure><p>pylab这种MATLAB格式的API有一个优点，对于MATLAB熟悉的用户能够非常容易上手，而且对于绘制简单图像而言不需要花费很多精力去学习。</p><p>然而，对于并不是特别简单的图像，并不推荐使用MATLAB类似的API，学习使用matplotlib面向对象的绘图API是一种更好更强大的方法。对于多个复杂图像绘制在一个窗口中，插入图像和加入其它成分这样的复杂操作，matplotlib的API能够很好的解决。</p><p class="ztext-empty-paragraph"><br/></p><h2><b>matplotlib面向对象的API</b></h2><p>面向对象的程序的主要思路是让用户能够面向对象来使用函数和进行操作，而不是像MATLAB类似的API一样采用全局的程序状态。Matplotlib的优势在绘制多个图像或者一个图像窗口中包含多个子图像的时候能够彰显出来。</p><p>我们这次采用面向对象的API来绘制和前一个例子相似的图像，但是这次我们存储一个引用在新创建的fig变量的图像中，而并不直接创建一个全局的图像，然后我们创建一个新的坐标轴图像axes（采用Figure函数族中的add_axes方法）：</p><div class="highlight"><pre><code class="language-text">In [9]: fig = plt.figure()
+
+        axes = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        # 左侧间距，底部间距，宽度，高度 (从0到1)
+
+        axes.plot(x, y, &#39;r&#39;)
+
+        axes.set_xlabel(&#39;x&#39;)
+        axes.set_ylabel(&#39;y&#39;)
+        axes.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-9516c2f71d36a13fda97b39b4c04cfb0_b.jpg" data-rawwidth="389" data-rawheight="282" class="content_image" width="389"/></noscript><img src="https://pic1.zhimg.com/v2-9516c2f71d36a13fda97b39b4c04cfb0_b.jpg" data-rawwidth="389" data-rawheight="282" class="content_image lazy" width="389" data-actualsrc="https://pic1.zhimg.com/v2-9516c2f71d36a13fda97b39b4c04cfb0_b.jpg"/></figure><p>尽管代码看起来多了一点，但是我们现在能够完全掌控图像的坐标轴位置，并且能够在图像上轻易增加多个坐标轴：</p><div class="highlight"><pre><code class="language-text">In [10]: fig = plt.figure()
+
+         axes1 = fig.add_axes([0.1, 0.1, 0.8, 0.8]) # 主坐标轴
+         axes2 = fig.add_axes([0.2, 0.5, 0.4, 0.3]) # 插入的坐标轴
+
+         # 主要图像
+         axes1.plot(x, y, &#39;r&#39;)
+         axes1.set_xlabel(&#39;x&#39;)
+         axes1.set_ylabel(&#39;y&#39;)
+         axes1.set_title(&#39;title&#39;)
+
+         # 插入的图像
+         axes2.plot(y, x, &#39;g&#39;)
+         axes2.set_xlabel(&#39;y&#39;)
+         axes2.set_ylabel(&#39;x&#39;)
+         axes2.set_title(&#39;insert title&#39;);</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-60082407adc71644a0d0c0a422d934d5_b.jpg" data-rawwidth="404" data-rawheight="290" class="content_image" width="404"/></noscript><img src="https://pic2.zhimg.com/v2-60082407adc71644a0d0c0a422d934d5_b.jpg" data-rawwidth="404" data-rawheight="290" class="content_image lazy" width="404" data-actualsrc="https://pic2.zhimg.com/v2-60082407adc71644a0d0c0a422d934d5_b.jpg"/></figure><p>如果我们并不关心坐标轴的位置是否要明确处于画图窗口的哪个位置，我们可以采用matplotlib布局工具中的一个，例如subplots，用法如下：</p><div class="highlight"><pre><code class="language-text">In [11]: fig, axes = plt.subplots()
+
+         axes.plot(x, y, &#39;r&#39;)
+         axes.set_xlabel(&#39;x&#39;)
+         axes.set_ylabel(&#39;y&#39;)
+         axes.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-ac65140fafeaaca34b766bdf27812176_b.jpg" data-rawwidth="387" data-rawheight="287" class="content_image" width="387"/></noscript><img src="https://pic3.zhimg.com/v2-ac65140fafeaaca34b766bdf27812176_b.jpg" data-rawwidth="387" data-rawheight="287" class="content_image lazy" width="387" data-actualsrc="https://pic3.zhimg.com/v2-ac65140fafeaaca34b766bdf27812176_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">In [12]: fig, axes = plt.subplots(nrows=1, ncols=2)
+
+         for ax in axes:
+         ax.plot(x, y, &#39;r&#39;)
+         ax.set_xlabel(&#39;x&#39;)
+         ax.set_ylabel(&#39;y&#39;)
+         ax.set_title(&#39;title&#39;)</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-dfe46475df59be26945c84e8df6abb32_b.jpg" data-rawwidth="378" data-rawheight="278" class="content_image" width="378"/></noscript><img src="https://pic3.zhimg.com/v2-dfe46475df59be26945c84e8df6abb32_b.jpg" data-rawwidth="378" data-rawheight="278" class="content_image lazy" width="378" data-actualsrc="https://pic3.zhimg.com/v2-dfe46475df59be26945c84e8df6abb32_b.jpg"/></figure><p>这样的代码很简单，但是如果坐标轴或者标签重合在一起，就显得不太美观了。</p><p>我们可以采用fig.tight_layout方法来解决这个问题，它能够更自动调整坐标轴在图像窗口的位置，从而避免重合的发生：</p><div class="highlight"><pre><code class="language-text">In [13]: fig, axes = plt.subplots(nrows=1, ncols=2)
+
+         for ax in axes:
+             ax.plot(x, y, &#39;r&#39;)
+             ax.set_xlabel(&#39;x&#39;)
+             ax.set_ylabel(&#39;y&#39;)
+             ax.set_title(&#39;title&#39;)
+    
+         fig.tight_layout()</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-5a40a2486dd14fb420205ebf7f946439_b.jpg" data-rawwidth="424" data-rawheight="286" class="origin_image zh-lightbox-thumb" width="424" data-original="https://pic2.zhimg.com/v2-5a40a2486dd14fb420205ebf7f946439_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-5a40a2486dd14fb420205ebf7f946439_b.jpg" data-rawwidth="424" data-rawheight="286" class="origin_image zh-lightbox-thumb lazy" width="424" data-original="https://pic2.zhimg.com/v2-5a40a2486dd14fb420205ebf7f946439_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-5a40a2486dd14fb420205ebf7f946439_b.jpg"/></figure><h2><b>图像大小，纵横比和图像精度</b></h2><p>Matplotlib在绘制Figure对象时，允许用户确定图像纵横比、图像精度和大小，采用figsize和dpi关键字参数。figsize是关于图像宽度和高度（单位：英寸）的元组型变量，dpi是每英寸点数（像素）。为创建一个800×400像素，每英寸点数为100的图像，代码如下：</p><div class="highlight"><pre><code class="language-text">In [14]: fig = plt.figure(figsize=(8,4), dpi=100)</code></pre></div><p>                  &lt;matplotlib.figure.Figure at 0x7f7f385be950&gt;</p><p>同样的操作可以在布局工具中运行，例如subplots函数：</p><div class="highlight"><pre><code class="language-text">In [15]: fig, axes = plt.subplots(figsize=(12,3))
+
+         axes.plot(x, y, &#39;r&#39;)
+         axes.set_xlabel(&#39;x&#39;)
+         axes.set_ylabel(&#39;y&#39;)
+         axes.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-c1c20d75eb7e40b03f35415dbdee6ed9_b.jpg" data-rawwidth="602" data-rawheight="187" class="origin_image zh-lightbox-thumb" width="602" data-original="https://pic2.zhimg.com/v2-c1c20d75eb7e40b03f35415dbdee6ed9_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-c1c20d75eb7e40b03f35415dbdee6ed9_b.jpg" data-rawwidth="602" data-rawheight="187" class="origin_image zh-lightbox-thumb lazy" width="602" data-original="https://pic2.zhimg.com/v2-c1c20d75eb7e40b03f35415dbdee6ed9_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-c1c20d75eb7e40b03f35415dbdee6ed9_b.jpg"/></figure><h2><b>保存图像</b></h2><p>我们可以采用Figure函数族中的savefig方法来存储图像：</p><div class="highlight"><pre><code class="language-text">In [16]: fig.savefig(&#34;filename.png&#34;)</code></pre></div><p>这里我们还可以确定图像精度，以及选择不同的输出格式：</p><div class="highlight"><pre><code class="language-text">In [17]: fig.savefig(&#34;filename.png&#34;, dpi=200)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><b>可以存储什么样的格式？为获取最高质量图像，我们应该选择哪种格式？</b></p><p>Matplotlib可以产生各种高质量的输出格式，包括PNG，JPG，EPS，SVG，PGF和PDF。在学术论文中，如果可以的话推荐使用PDF格式（LaTeX文件编译pdflatex可以采用includegraphics来编译PDF）。在一些情况下，PGF格式也是一种好的选择。</p><p><b>图例、标签和标题</b></p><p>既然我们已经介绍了绘图和添加坐标轴的基本方法，我们现在来介绍如何添加图例、标签和标题。</p><ul><li>标题</li></ul><p>标题可以加在每个图像上，可以采用set_title方法来设置标题：</p><div class="highlight"><pre><code class="language-text">In [18]: ax.set_title(&#34;title&#34;);</code></pre></div><ul><li>坐标轴标签</li></ul><p>同样的，用set_xlabel和set_ylabel可以设置X和Y轴的标签：</p><div class="highlight"><pre><code class="language-text">In [19]: ax.set_xlabel(&#34;x&#34;)
+         ax.set_ylabel(&#34;y&#34;);</code></pre></div><ul><li>图例</li></ul><p>图像中曲线的图例可以用两种方式添加，一种是用坐标轴对象的legend指令，对于之前定义的曲线添加列表或元组形式的文本：</p><div class="highlight"><pre><code class="language-text">In [20]: ax.legend([&#34;curve1&#34;, &#34;curve2&#34;, &#34;curve3&#34;]);</code></pre></div><p>上面这种方法其实是MATLAB的API，如果图像上的曲线被添加或者删除时可能会报错（导致错误的添加图例）。</p><p>一种更好的方法是在绘图或添加其他元素的时候利用label=&#34;label text&#34; 关键字参数，然后用无参数的legend指令把图例添加到图像上：</p><div class="highlight"><pre><code class="language-text">In [21]: ax.plot(x, x**2, label=&#34;curve1&#34;)
+         ax.plot(x, x**3, label=&#34;curve2&#34;)
+         ax.legend();</code></pre></div><p>这种方法的优点是，如果在图像上添加或者删除曲线，图例会随之自动更新。</p><p>legend函数有一个可供选择的关键字参数loc，用来确定图例添加的位置，loc参数的允许值是数值型代码，详见<a href="https://link.zhihu.com/?target=http%3A//matplotlib.org/users/legend_guide.html%23legend-location" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://matplotlib.org/users/legend_guide.html#legend-location.</a>下面列举了一些常见的loc值：</p><div class="highlight"><pre><code class="language-text">In [22]: ax.legend(loc=0) # 由matplotlib确定最优位置
+         ax.legend(loc=1) # 右上角
+         ax.legend(loc=2) # 左上角
+         ax.legend(loc=3) # 左下角
+         ax.legend(loc=4) # 右下角
+         # .. 还有一些其他的选择，不一一列举
+
+Out[22]: &lt;matplotlib.legend.Legend at 0x7f7f441f33d0&gt;</code></pre></div><p>运用上面介绍的关于标题，坐标轴标签和图例的内容，我们可以作出如下图像：</p><div class="highlight"><pre><code class="language-text">In [23]: fig, ax = plt.subplots()
+
+         ax.plot(x, x**2, label=&#34;y = x**2&#34;)
+         ax.plot(x, x**3, label=&#34;y = x**3&#34;)
+         ax.legend(loc=2); # 左上角
+         ax.set_xlabel(&#39;x&#39;)
+         ax.set_ylabel(&#39;y&#39;)
+         ax.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-7d7dbe6ce127c9c277a31b6cc4837474_b.jpg" data-rawwidth="382" data-rawheight="279" class="content_image" width="382"/></noscript><img src="https://pic1.zhimg.com/v2-7d7dbe6ce127c9c277a31b6cc4837474_b.jpg" data-rawwidth="382" data-rawheight="279" class="content_image lazy" width="382" data-actualsrc="https://pic1.zhimg.com/v2-7d7dbe6ce127c9c277a31b6cc4837474_b.jpg"/></figure><p><b>文本格式: LaTeX，字体大小，字体样式</b></p><p>上面的绘制图像的方法都非常实用，但是还不能满足发表论文所需的标准。第一也是最重要的，我们需要采用LaTeX文本格式；第二，我们需要能够调整字体大小以适应出版社所需的要求。</p><p>Matplotlib与LaTeX非常兼容，我们只需采用美元符号来封装LaTeX的文本（图例，题目，标签等等），例如：&#34;y=x3y=x3&#34;。</p><p>但是这里我们可能在转换LaTeX代码和Python字符串的过程中出现一点问题。在LaTeX中，我们经常用反斜杠符号，例如用\alpha来产生符号α. 但是反斜杠在Python中已经有别的含义（转义码字符）。为了避免Python和LaTeX代码混淆，我们采用“原始”字符串。原始字符串带有前缀“r”，例如r&#34;\alpha&#34; 或者 r&#39;\alpha&#39; 而不是 &#34;\alpha&#34; or &#39;\alpha&#39;：</p><div class="highlight"><pre><code class="language-text">In [24]: fig, ax = plt.subplots()
+
+         ax.plot(x, x**2, label=r&#34;$y = \alpha^2$&#34;)
+         ax.plot(x, x**3, label=r&#34;$y = \alpha^3$&#34;)
+         ax.legend(loc=2) # 左上角
+         ax.set_xlabel(r&#39;$\alpha$&#39;, fontsize=18)
+         ax.set_ylabel(r&#39;$y$&#39;, fontsize=18)
+         ax.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-8b58f4ba522aabc534a1c26f2bcf76b1_b.jpg" data-rawwidth="396" data-rawheight="285" class="content_image" width="396"/></noscript><img src="https://pic2.zhimg.com/v2-8b58f4ba522aabc534a1c26f2bcf76b1_b.jpg" data-rawwidth="396" data-rawheight="285" class="content_image lazy" width="396" data-actualsrc="https://pic2.zhimg.com/v2-8b58f4ba522aabc534a1c26f2bcf76b1_b.jpg"/></figure><p>我们也可以改变全局的字体大小和字体样式，使得图像中的所有文本元素都适用（刻度标记、坐标轴标签，标题和图例等等）：</p><div class="highlight"><pre><code class="language-text">In [25]: # 更新matplotlib的布局参数:
+         matplotlib.rcParams.update({&#39;font.size&#39;: 18, &#39;font.family&#39;: &#39;serif&#39;})
+
+In [26]: fig, ax = plt.subplots()
+
+         ax.plot(x, x**2, label=r&#34;$y = \alpha^2$&#34;)
+         ax.plot(x, x**3, label=r&#34;$y = \alpha^3$&#34;)
+         ax.legend(loc=2) # 左上角
+         ax.set_xlabel(r&#39;$\alpha$&#39;)
+         ax.set_ylabel(r&#39;$y$&#39;)
+         ax.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-50f4d7ca415527d0db88e4cb5470ca17_b.jpg" data-rawwidth="405" data-rawheight="299" class="content_image" width="405"/></noscript><img src="https://pic4.zhimg.com/v2-50f4d7ca415527d0db88e4cb5470ca17_b.jpg" data-rawwidth="405" data-rawheight="299" class="content_image lazy" width="405" data-actualsrc="https://pic4.zhimg.com/v2-50f4d7ca415527d0db88e4cb5470ca17_b.jpg"/></figure><p>全局字体选择STIX字体样式是一个好的选择：</p><div class="highlight"><pre><code class="language-text">In [27]: # 更新matplotlib的布局参数:
+         matplotlib.rcParams.update({&#39;font.size&#39;:18, &#39;font.family&#39;:&#39;STIXGeneral&#39;,
+         &#39;mathtext.fontset&#39;: &#39;stix&#39;})
+
+In [28]: fig, ax = plt.subplots()
+
+         ax.plot(x, x**2, label=r&#34;$y = \alpha^2$&#34;)
+         ax.plot(x, x**3, label=r&#34;$y = \alpha^3$&#34;)
+         ax.legend(loc=2) # 左上角
+         ax.set_xlabel(r&#39;$\alpha$&#39;)
+         ax.set_ylabel(r&#39;$y$&#39;)
+         ax.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-4779c93226625dd25ee879f201a9f95a_b.jpg" data-rawwidth="400" data-rawheight="294" class="content_image" width="400"/></noscript><img src="https://pic3.zhimg.com/v2-4779c93226625dd25ee879f201a9f95a_b.jpg" data-rawwidth="400" data-rawheight="294" class="content_image lazy" width="400" data-actualsrc="https://pic3.zhimg.com/v2-4779c93226625dd25ee879f201a9f95a_b.jpg"/></figure><p>或者，我们可以要求matplotlib在图像中采用LaTeX文本元素：</p><div class="highlight"><pre><code class="language-text">In [29]: matplotlib.rcParams.update({&#39;font.size&#39;: 18, &#39;text.usetex&#39;: True})
+
+In [32]: fig, ax = plt.subplots()
+
+         ax.plot(x, x**2, label=r&#34;$y = \alpha^2$&#34;)
+         ax.plot(x, x**3, label=r&#34;$y = \alpha^3$&#34;)
+         ax.legend(loc=2) # 左上角
+         ax.set_xlabel(r&#39;$\alpha$&#39;)
+         ax.set_ylabel(r&#39;$y$&#39;)
+         ax.set_title(&#39;title&#39;);</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-0b7eab97e4c92d97b347485b8952a38e_b.jpg" data-rawwidth="396" data-rawheight="284" class="content_image" width="396"/></noscript><img src="https://pic3.zhimg.com/v2-0b7eab97e4c92d97b347485b8952a38e_b.jpg" data-rawwidth="396" data-rawheight="284" class="content_image lazy" width="396" data-actualsrc="https://pic3.zhimg.com/v2-0b7eab97e4c92d97b347485b8952a38e_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">In [31]: # 存储
+         matplotlib.rcParams.update({&#39;font.size&#39;: 12, &#39;font.family&#39;: &#39;sans&#39;, 
+         &#39;text.usetex&#39;: False})</code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><b>设置颜色，线条宽度和线条类型</b></p><ul><li>颜色</li></ul><p>用matplotlib，我们可以运用各种方法定义线条颜色和其他图像元素。首先，我们可以运用MATLAB的语法，定义&#39;b&#39;代表蓝色，&#39;g&#39;代表绿色，等等。同样，matplotlib也支持用MATLAB的API设置线条类型，例如：&#39;b.-&#39;代表蓝色虚点线：</p><div class="highlight"><pre><code class="language-text">In [33]: # MATLAB样式的线条颜色和类型
+         ax.plot(x, x**2, &#39;b.-&#39;) # 蓝色虚点线
+         ax.plot(x, x**3, &#39;g--&#39;) # 绿色短划线
+
+Out[33]: [&lt;matplotlib.lines.Line2D at 0x7f7f2892a790&gt;]</code></pre></div><p>我们也可以定义用颜色的英文名称定义，或者RGB十六进制码，或者用color和alpha关键字参数来选择性提供α值：</p><div class="highlight"><pre><code class="language-text">In [34]: fig, ax = plt.subplots()
+
+         ax.plot(x, x+1, color=&#34;red&#34;, alpha=0.5) # 半透明红色
+         ax.plot(x, x+2, color=&#34;#1155dd&#34;)        # 浅蓝色的RGB十六进制码
+         ax.plot(x, x+3, color=&#34;#15cc55&#34;)        # 浅绿色的RGB十六进制码
+
+Out[34]: [&lt;matplotlib.lines.Line2D at 0x7f7f382a0050&gt;]</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-a5568f639c48b3f436c1b529b8459ef1_b.jpg" data-rawwidth="381" data-rawheight="259" class="content_image" width="381"/></noscript><img src="https://pic2.zhimg.com/v2-a5568f639c48b3f436c1b529b8459ef1_b.jpg" data-rawwidth="381" data-rawheight="259" class="content_image lazy" width="381" data-actualsrc="https://pic2.zhimg.com/v2-a5568f639c48b3f436c1b529b8459ef1_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>线条和标记样式</li></ul><p>我们可以用linewidth或者lw关键字参数来调整线宽度，线条样式则可以在linestyle或者ls关键字参数中选择：</p><div class="highlight"><pre><code class="language-text">In [35]: fig, ax = plt.subplots(figsize=(12,6))
+
+         ax.plot(x, x+1, color=&#34;blue&#34;, linewidth=0.25)
+         ax.plot(x, x+2, color=&#34;blue&#34;, linewidth=0.50)
+         ax.plot(x, x+3, color=&#34;blue&#34;, linewidth=1.00)
+         ax.plot(x, x+4, color=&#34;blue&#34;, linewidth=2.00)
+
+         # 线条样式选择
+         ax.plot(x, x+5, color=&#34;red&#34;, lw=2, linestyle=&#39;-&#39;)
+         ax.plot(x, x+6, color=&#34;red&#34;, lw=2, ls=&#39;-.&#39;)
+         ax.plot(x, x+7, color=&#34;red&#34;, lw=2, ls=&#39;:&#39;)
+
+         # 自定义设置
+         line, = ax.plot(x, x+8, color=&#34;black&#34;, lw=1.50)
+         line.set_dashes([5, 10, 15, 10]) # 格式：线长, 间距, ...
+
+         # 标记符号
+         ax.plot(x, x+ 9, color=&#34;green&#34;, lw=2, ls=&#39;--&#39;, marker=&#39;+&#39;)
+         ax.plot(x, x+10, color=&#34;green&#34;, lw=2, ls=&#39;--&#39;, marker=&#39;o&#39;)
+         ax.plot(x, x+11, color=&#34;green&#34;, lw=2, ls=&#39;--&#39;, marker=&#39;s&#39;)
+         ax.plot(x, x+12, color=&#34;green&#34;, lw=2, ls=&#39;--&#39;, marker=&#39;1&#39;)
+
+         # 标记大小和颜色
+         ax.plot(x, x+13, color=&#34;purple&#34;, lw=1, ls=&#39;-&#39;, marker=&#39;o&#39;, markersize=2)
+         ax.plot(x, x+14, color=&#34;purple&#34;, lw=1, ls=&#39;-&#39;, marker=&#39;o&#39;, markersize=4)
+         ax.plot(x, x+15, color=&#34;purple&#34;, lw=1, ls=&#39;-&#39;, marker=&#39;o&#39;, markersize=8,
+         markerfacecolor=&#34;red&#34;)
+         
+         ax.plot(x, x+16, color=&#34;purple&#34;, lw=1, ls=&#39;-&#39;, marker=&#39;s&#39;, markersize=8,
+         markerfacecolor=&#34;yellow&#34;, markeredgewidth=2, markeredgecolor=&#34;blue&#34;);</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-1f64685c582cc4ca4e713eedbb53ab1b_b.jpg" data-rawwidth="610" data-rawheight="322" class="origin_image zh-lightbox-thumb" width="610" data-original="https://pic4.zhimg.com/v2-1f64685c582cc4ca4e713eedbb53ab1b_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-1f64685c582cc4ca4e713eedbb53ab1b_b.jpg" data-rawwidth="610" data-rawheight="322" class="origin_image zh-lightbox-thumb lazy" width="610" data-original="https://pic4.zhimg.com/v2-1f64685c582cc4ca4e713eedbb53ab1b_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-1f64685c582cc4ca4e713eedbb53ab1b_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>控制坐标轴外观</b></p><p>坐标轴外观是一个图像重要的方面，特别是我们经常需要更改它以满足出版刊物对于图像的要求。我们需要控制刻度和标签的位置，更改字体大小和坐标轴标签。这一节中，我们将会学习如何控制matplotlib图像的这些参数。</p><p class="ztext-empty-paragraph"><br/></p><ul><li>绘图范围</li></ul><p>首先我们想要设置坐标轴的范围，可以运用坐标轴对象中的set_ylim和set_xlim，或者axis(&#39;tight&#39;)来自动设置“紧密结合”的坐标范围：</p><div class="highlight"><pre><code class="language-text">In [36]: fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+         axes[0].plot(x, x**2, x, x**3)
+         axes[0].set_title(&#34;default axes ranges&#34;)
+
+         axes[1].plot(x, x**2, x, x**3)
+         axes[1].axis(&#39;tight&#39;)
+         axes[1].set_title(&#34;tight axes&#34;)
+
+         axes[2].plot(x, x**2, x, x**3)
+         axes[2].set_ylim([0, 60])
+         axes[2].set_xlim([2, 5])
+         axes[2].set_title(&#34;custom axes range&#34;);</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-303c8fa0cc54acc14ca41612dd4ac313_b.jpg" data-rawwidth="611" data-rawheight="233" class="origin_image zh-lightbox-thumb" width="611" data-original="https://pic4.zhimg.com/v2-303c8fa0cc54acc14ca41612dd4ac313_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-303c8fa0cc54acc14ca41612dd4ac313_b.jpg" data-rawwidth="611" data-rawheight="233" class="origin_image zh-lightbox-thumb lazy" width="611" data-original="https://pic4.zhimg.com/v2-303c8fa0cc54acc14ca41612dd4ac313_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-303c8fa0cc54acc14ca41612dd4ac313_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>对数标度</li></ul><p>对于单个或者两个坐标轴都可以设置对数标度。这个功能其实仅仅是Matplotlib全部变换系统的一个应用。每个坐标标度可以分别用set_xscale和set_yscale来设置（值填入“log”即可）:</p><div class="highlight"><pre><code class="language-text">In [37]: fig, axes = plt.subplots(1, 2, figsize=(10,4))
+      
+         axes[0].plot(x, x**2, x, np.exp(x))
+         axes[0].set_title(&#34;Normal scale&#34;)
+
+         axes[1].plot(x, x**2, x, np.exp(x))
+         axes[1].set_yscale(&#34;log&#34;)
+         axes[1].set_title(&#34;Logarithmic scale (y)&#34;);</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-6a344c13c188f92460da7ee1a744a86a_b.jpg" data-rawwidth="613" data-rawheight="273" class="origin_image zh-lightbox-thumb" width="613" data-original="https://pic3.zhimg.com/v2-6a344c13c188f92460da7ee1a744a86a_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-6a344c13c188f92460da7ee1a744a86a_b.jpg" data-rawwidth="613" data-rawheight="273" class="origin_image zh-lightbox-thumb lazy" width="613" data-original="https://pic3.zhimg.com/v2-6a344c13c188f92460da7ee1a744a86a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-6a344c13c188f92460da7ee1a744a86a_b.jpg"/></figure><p><b>刻度的放置以及用户定义的刻度标签</b></p><p>我们可以用set_xticks和set_yticks来明确确定坐标轴的刻度位置，二者都需要提供一个列表型数值。对于每个刻度位置，我们可以用set_xticklabels和set_yticklabels来提供一个用户定义的文本标签：</p><div class="highlight"><pre><code class="language-text">In [38]: fig, ax = plt.subplots(figsize=(10, 4))
+
+         ax.plot(x, x**2, x, x**3, lw=2)
+
+         ax.set_xticks([1, 2, 3, 4, 5])
+         ax.set_xticklabels([r&#39;$\alpha$&#39;, r&#39;$\beta$&#39;, r&#39;$\gamma$&#39;, r&#39;$\delta$&#39;,
+         r&#39;$\epsilon$&#39;], fontsize=18)
+
+         yticks = [0, 50, 100, 150]
+         ax.set_yticks(yticks)
+         ax.set_yticklabels([&#34;$%.1f$&#34; % y for y in yticks], fontsize=18); 
+         # 采用LaTeX格式标签</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-88dedcae91add28e890c587e0d6a9817_b.jpg" data-rawwidth="604" data-rawheight="281" class="origin_image zh-lightbox-thumb" width="604" data-original="https://pic4.zhimg.com/v2-88dedcae91add28e890c587e0d6a9817_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-88dedcae91add28e890c587e0d6a9817_b.jpg" data-rawwidth="604" data-rawheight="281" class="origin_image zh-lightbox-thumb lazy" width="604" data-original="https://pic4.zhimg.com/v2-88dedcae91add28e890c587e0d6a9817_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-88dedcae91add28e890c587e0d6a9817_b.jpg"/></figure><p>Matplotlib图像还有很多更为高级的方法来控制主刻度和副刻度的位置，比如在不同环境下自动确定其位置，详见<a href="https://link.zhihu.com/?target=http%3A//matplotlib.org/api/ticker_api.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://matplotlib.org/api/ticker_api.html.</a></p><p class="ztext-empty-paragraph"><br/></p><ul><li>科学计数法</li></ul><p>对于坐标轴上出现的较大的数字，通常运用科学计数法：</p><div class="highlight"><pre><code class="language-text">In [39]: fig, ax = plt.subplots(1, 1)
+      
+         ax.plot(x, x**2, x, np.exp(x))
+         ax.set_title(&#34;scientific notation&#34;)
+
+         ax.set_yticks([0, 50, 100, 150])
+
+         from matplotlib import ticker
+         formatter = ticker.ScalarFormatter(useMathText=True)
+         formatter.set_scientific(True) 
+         formatter.set_powerlimits((-1,1)) 
+         ax.yaxis.set_major_formatter(formatter)</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-27b83242fb906074305f6945802177dc_b.jpg" data-rawwidth="383" data-rawheight="284" class="content_image" width="383"/></noscript><img src="https://pic1.zhimg.com/v2-27b83242fb906074305f6945802177dc_b.jpg" data-rawwidth="383" data-rawheight="284" class="content_image lazy" width="383" data-actualsrc="https://pic1.zhimg.com/v2-27b83242fb906074305f6945802177dc_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>坐标数字以及坐标标签的位置</b></p><div class="highlight"><pre><code class="language-text">In [40]: # x和y轴的距离和坐标轴上的数字
+         matplotlib.rcParams[&#39;xtick.major.pad&#39;] = 5
+         matplotlib.rcParams[&#39;ytick.major.pad&#39;] = 5
+
+         fig, ax = plt.subplots(1, 1)
+      
+         ax.plot(x, x**2, x, np.exp(x))
+         ax.set_yticks([0, 50, 100, 150])
+
+         ax.set_title(&#34;label and axis spacing&#34;)
+
+         # 坐标轴标签和坐标轴数字的距离
+         ax.xaxis.labelpad = 5
+         ax.yaxis.labelpad = 5
+
+         ax.set_xlabel(&#34;x&#34;)
+         ax.set_ylabel(&#34;y&#34;);</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-dfa8a650f7794539d839c8716627ba4e_b.jpg" data-rawwidth="397" data-rawheight="296" class="content_image" width="397"/></noscript><img src="https://pic3.zhimg.com/v2-dfa8a650f7794539d839c8716627ba4e_b.jpg" data-rawwidth="397" data-rawheight="296" class="content_image lazy" width="397" data-actualsrc="https://pic3.zhimg.com/v2-dfa8a650f7794539d839c8716627ba4e_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">In [41]: # 存储默认值
+         matplotlib.rcParams[&#39;xtick.major.pad&#39;] = 3
+         matplotlib.rcParams[&#39;ytick.major.pad&#39;] = 3</code></pre></div><p class="ztext-empty-paragraph"><br/></p><ul><li>坐标轴位置调整</li></ul><p>不幸的是，当保存图像时候，标签有时会被缩短，因此需要微调坐标轴的位置，这可以由subplots_adjust来实现：</p><div class="highlight"><pre><code class="language-text">In [42]: fig, ax = plt.subplots(1, 1)
+      
+         ax.plot(x, x**2, x, np.exp(x))
+         ax.set_yticks([0, 50, 100, 150])
+
+         ax.set_title(&#34;title&#34;)
+         ax.set_xlabel(&#34;x&#34;)
+         ax.set_ylabel(&#34;y&#34;)
+
+         fig.subplots_adjust(left=0.15, right=.9, bottom=0.1, top=0.9);</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-ab01b468c376e12e0440d00d6e4b7ab9_b.jpg" data-rawwidth="402" data-rawheight="303" class="content_image" width="402"/></noscript><img src="https://pic2.zhimg.com/v2-ab01b468c376e12e0440d00d6e4b7ab9_b.jpg" data-rawwidth="402" data-rawheight="303" class="content_image lazy" width="402" data-actualsrc="https://pic2.zhimg.com/v2-ab01b468c376e12e0440d00d6e4b7ab9_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>坐标轴网格</li></ul><p>用坐标轴对象中的grid可以使用和取消网格线。我们也可以用plot函数中同样的关键字参数来定制网格样式：</p><div class="highlight"><pre><code class="language-text">In [44]: fig, axes = plt.subplots(1, 2, figsize=(10,3))
+
+         # 默认网格外观
+         axes[0].plot(x, x**2, x, x**3, lw=2)
+         axes[0].grid(True)
+
+         # 用户定义的网格外观
+         axes[1].plot(x, x**2, x, x**3, lw=2)
+         axes[1].grid(color=&#39;b&#39;, alpha=0.5, linestyle=&#39;dashed&#39;, linewidth=0.5)</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-4d31408d91f9a3f260b3c88f53ae3bd5_b.jpg" data-rawwidth="611" data-rawheight="215" class="origin_image zh-lightbox-thumb" width="611" data-original="https://pic2.zhimg.com/v2-4d31408d91f9a3f260b3c88f53ae3bd5_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-4d31408d91f9a3f260b3c88f53ae3bd5_b.jpg" data-rawwidth="611" data-rawheight="215" class="origin_image zh-lightbox-thumb lazy" width="611" data-original="https://pic2.zhimg.com/v2-4d31408d91f9a3f260b3c88f53ae3bd5_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-4d31408d91f9a3f260b3c88f53ae3bd5_b.jpg"/></figure><p><b>轴刻度标记线</b></p><p>我们也可以改变轴刻度标记线的参数：</p><div class="highlight"><pre><code class="language-text">In [45]: fig, ax = plt.subplots(figsize=(6,2))
+
+         ax.spines[&#39;bottom&#39;].set_color(&#39;blue&#39;)
+         ax.spines[&#39;top&#39;].set_color(&#39;blue&#39;)
+
+         ax.spines[&#39;left&#39;].set_color(&#39;red&#39;)
+         ax.spines[&#39;left&#39;].set_linewidth(2)
+
+         # 取消右侧的坐标轴刻度
+         ax.spines[&#39;right&#39;].set_color(&#34;none&#34;)
+         ax.yaxis.tick_left() # 只在左侧有刻度</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-9f487a70c6d5a2de96375a8eec4ed312_b.jpg" data-rawwidth="382" data-rawheight="158" class="content_image" width="382"/></noscript><img src="https://pic3.zhimg.com/v2-9f487a70c6d5a2de96375a8eec4ed312_b.jpg" data-rawwidth="382" data-rawheight="158" class="content_image lazy" width="382" data-actualsrc="https://pic3.zhimg.com/v2-9f487a70c6d5a2de96375a8eec4ed312_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>双刻度</b></p><p>有时在图像中采用两个x或y轴是十分有用的，例如单位不同的多条曲线画在一个图中。Matplotlib提供了twinx和twiny函数：</p><div class="highlight"><pre><code class="language-text">In [46]: fig, ax1 = plt.subplots()
+
+         ax1.plot(x, x**2, lw=2, color=&#34;blue&#34;)
+         ax1.set_ylabel(r&#34;area $(m^2)$&#34;, fontsize=18, color=&#34;blue&#34;)
+         for label in ax1.get_yticklabels():
+         label.set_color(&#34;blue&#34;)
+    
+         ax2 = ax1.twinx()
+         ax2.plot(x, x**3, lw=2, color=&#34;red&#34;)
+         ax2.set_ylabel(r&#34;volume $(m^3)$&#34;, fontsize=18, color=&#34;red&#34;)
+         for label in ax2.get_yticklabels():
+         label.set_color(&#34;red&#34;)</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-ff7098dc279b38dbfe71b033fd86c4fc_b.jpg" data-rawwidth="431" data-rawheight="271" class="origin_image zh-lightbox-thumb" width="431" data-original="https://pic1.zhimg.com/v2-ff7098dc279b38dbfe71b033fd86c4fc_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-ff7098dc279b38dbfe71b033fd86c4fc_b.jpg" data-rawwidth="431" data-rawheight="271" class="origin_image zh-lightbox-thumb lazy" width="431" data-original="https://pic1.zhimg.com/v2-ff7098dc279b38dbfe71b033fd86c4fc_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-ff7098dc279b38dbfe71b033fd86c4fc_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>x和y值为0的坐标轴</b></p><div class="highlight"><pre><code class="language-text">In [47]: fig, ax = plt.subplots()
+
+         ax.spines[&#39;right&#39;].set_color(&#39;none&#39;)
+         ax.spines[&#39;top&#39;].set_color(&#39;none&#39;)
+
+         ax.xaxis.set_ticks_position(&#39;bottom&#39;)
+         ax.spines[&#39;bottom&#39;].set_position((&#39;data&#39;,0)) # 设置x坐标轴刻度位置于x=0
+
+         ax.yaxis.set_ticks_position(&#39;left&#39;)
+         ax.spines[&#39;left&#39;].set_position((&#39;data&#39;,0))   # 设置y坐标轴刻度位置于y=0
+
+         xx = np.linspace(-0.75, 1., 100)
+         ax.plot(xx, xx**3);</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-6ac33abf244e3f809bb4a7394cc9a9b9_b.jpg" data-rawwidth="379" data-rawheight="258" class="content_image" width="379"/></noscript><img src="https://pic2.zhimg.com/v2-6ac33abf244e3f809bb4a7394cc9a9b9_b.jpg" data-rawwidth="379" data-rawheight="258" class="content_image lazy" width="379" data-actualsrc="https://pic2.zhimg.com/v2-6ac33abf244e3f809bb4a7394cc9a9b9_b.jpg"/></figure><p><b>其他二维绘图样式</b></p><p>除了常规的plot方法，还有一些其他的函数能够实现不同样式的绘图，所有可以绘制的图像种类请见<a href="https://link.zhihu.com/?target=http%3A//matplotlib.org/gallery.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://matplotlib.org/gallery.html.</a> 下面展示一些有用的样式：</p><div class="highlight"><pre><code class="language-text">In [49]: fig, axes = plt.subplots(1, 4, figsize=(12,3))
+
+         axes[0].scatter(xx, xx + 0.25*np.random.randn(len(xx)))
+         axes[0].set_title(&#34;scatter&#34;)
+
+         axes[1].step(n, n**2, lw=2)
+         axes[1].set_title(&#34;step&#34;)
+
+         axes[2].bar(n, n**2, align=&#34;center&#34;, width=0.5, alpha=0.5)
+         axes[2].set_title(&#34;bar&#34;)
+
+         axes[3].fill_between(x, x**2, x**3, color=&#34;green&#34;, alpha=0.5);
+         axes[3].set_title(&#34;fill_between&#34;);
+
+         /opt/conda/envs/python2/lib/python2.7/site-packages/matplotlib/
+         collections.py:590: FutureWarning: elementwise comparison failed; 
+         returning scalar instead, but in the future will perform elementwise 
+         comparison
+         if self._edgecolors == str(&#39;face&#39;):</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-fd6ef709942a42c998fc558951d5d7ec_b.jpg" data-rawwidth="607" data-rawheight="187" class="origin_image zh-lightbox-thumb" width="607" data-original="https://pic1.zhimg.com/v2-fd6ef709942a42c998fc558951d5d7ec_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-fd6ef709942a42c998fc558951d5d7ec_b.jpg" data-rawwidth="607" data-rawheight="187" class="origin_image zh-lightbox-thumb lazy" width="607" data-original="https://pic1.zhimg.com/v2-fd6ef709942a42c998fc558951d5d7ec_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-fd6ef709942a42c998fc558951d5d7ec_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">In [50]: # 用add_axes的极坐标图和球极投影
+         fig = plt.figure()
+         ax = fig.add_axes([0.0, 0.0, .6, .6], polar=True)
+         t = np.linspace(0, 2 * np.pi, 100)
+         ax.plot(t, t, color=&#39;blue&#39;, lw=3);</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-8828c973517ef6e1ace9a8e9db11821f_b.jpg" data-rawwidth="233" data-rawheight="221" class="content_image" width="233"/></noscript><img src="https://pic4.zhimg.com/v2-8828c973517ef6e1ace9a8e9db11821f_b.jpg" data-rawwidth="233" data-rawheight="221" class="content_image lazy" width="233" data-actualsrc="https://pic4.zhimg.com/v2-8828c973517ef6e1ace9a8e9db11821f_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">In [51]: # 柱状图
+         n = np.random.randn(100000)
+         fig, axes = plt.subplots(1, 2, figsize=(12,4))
+
+         axes[0].hist(n)
+         axes[0].set_title(&#34;Default histogram&#34;)
+         axes[0].set_xlim((min(n), max(n)))
+
+         axes[1].hist(n, cumulative=True, bins=50)
+         axes[1].set_title(&#34;Cumulative detailed histogram&#34;)
+         axes[1].set_xlim((min(n), max(n)));</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-6cfca3e53db6117576c89a26f17d734c_b.jpg" data-rawwidth="604" data-rawheight="237" class="origin_image zh-lightbox-thumb" width="604" data-original="https://pic1.zhimg.com/v2-6cfca3e53db6117576c89a26f17d734c_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-6cfca3e53db6117576c89a26f17d734c_b.jpg" data-rawwidth="604" data-rawheight="237" class="origin_image zh-lightbox-thumb lazy" width="604" data-original="https://pic1.zhimg.com/v2-6cfca3e53db6117576c89a26f17d734c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-6cfca3e53db6117576c89a26f17d734c_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>文字注释</b></p><p>采用text函数可以完成matplotlib图像的文字注释功能。和文字以及标题一样，它也支持LaTeX格式：</p><div class="highlight"><pre><code class="language-text">In [52]: fig, ax = plt.subplots()
+
+         ax.plot(xx, xx**2, xx, xx**3)
+
+         ax.text(0.15, 0.2, r&#34;$y=x^2$&#34;, fontsize=20, color=&#34;blue&#34;)
+         ax.text(0.65, 0.1, r&#34;$y=x^3$&#34;, fontsize=20, color=&#34;green&#34;);</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-f51c8bc56e8adb5036ac10bc27d80b27_b.jpg" data-rawwidth="388" data-rawheight="259" class="content_image" width="388"/></noscript><img src="https://pic4.zhimg.com/v2-f51c8bc56e8adb5036ac10bc27d80b27_b.jpg" data-rawwidth="388" data-rawheight="259" class="content_image lazy" width="388" data-actualsrc="https://pic4.zhimg.com/v2-f51c8bc56e8adb5036ac10bc27d80b27_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>多个子图像的绘制和插入</b></p><p>采用fig.add_axes可以手动将坐标轴加入matplotlib图像中，或者用子图绘制的布局管理器，如subplots，subplot2grid或者gridspec：</p><ul><li>subplots</li></ul><div class="highlight"><pre><code class="language-text">In [53]: fig, ax = plt.subplots(2, 3)
+         fig.tight_layout()</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-28caa3b5f2396171f27deb48afdc1233_b.jpg" data-rawwidth="423" data-rawheight="287" class="origin_image zh-lightbox-thumb" width="423" data-original="https://pic4.zhimg.com/v2-28caa3b5f2396171f27deb48afdc1233_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-28caa3b5f2396171f27deb48afdc1233_b.jpg" data-rawwidth="423" data-rawheight="287" class="origin_image zh-lightbox-thumb lazy" width="423" data-original="https://pic4.zhimg.com/v2-28caa3b5f2396171f27deb48afdc1233_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-28caa3b5f2396171f27deb48afdc1233_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>subplot2grid</li></ul><div class="highlight"><pre><code class="language-text">In [54]: fig = plt.figure()
+         ax1 = plt.subplot2grid((3,3), (0,0), colspan=3)
+         ax2 = plt.subplot2grid((3,3), (1,0), colspan=2)
+         ax3 = plt.subplot2grid((3,3), (1,2), rowspan=2)
+         ax4 = plt.subplot2grid((3,3), (2,0))
+         ax5 = plt.subplot2grid((3,3), (2,1))
+         fig.tight_layout()</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-4e23094afa835b230802e967c2039d3c_b.jpg" data-rawwidth="420" data-rawheight="285" class="content_image" width="420"/></noscript><img src="https://pic1.zhimg.com/v2-4e23094afa835b230802e967c2039d3c_b.jpg" data-rawwidth="420" data-rawheight="285" class="content_image lazy" width="420" data-actualsrc="https://pic1.zhimg.com/v2-4e23094afa835b230802e967c2039d3c_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>gridspec</li></ul><div class="highlight"><pre><code class="language-text">In [55]: import matplotlib.gridspec as gridspec
+
+In [56]: fig = plt.figure()
+
+         gs = gridspec.GridSpec(2, 3, height_ratios=[2,1], width_ratios=[1,2,1])
+         for g in gs:
+         ax = fig.add_subplot(g)
+    
+         fig.tight_layout()</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-4b23a6ae75a4bb331b362072bb6ffca2_b.jpg" data-rawwidth="426" data-rawheight="295" class="origin_image zh-lightbox-thumb" width="426" data-original="https://pic3.zhimg.com/v2-4b23a6ae75a4bb331b362072bb6ffca2_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-4b23a6ae75a4bb331b362072bb6ffca2_b.jpg" data-rawwidth="426" data-rawheight="295" class="origin_image zh-lightbox-thumb lazy" width="426" data-original="https://pic3.zhimg.com/v2-4b23a6ae75a4bb331b362072bb6ffca2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-4b23a6ae75a4bb331b362072bb6ffca2_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>add_axes</li></ul><p>用add_axes手动添加坐标轴对于添加元素于图像中非常有用：</p><div class="highlight"><pre><code class="language-text">In [57]: fig, ax = plt.subplots()
+
+         ax.plot(xx, xx**2, xx, xx**3)
+         fig.tight_layout()
+
+         # 插入
+         inset_ax = fig.add_axes([0.2, 0.55, 0.35, 0.35]) # X, Y, 宽度，高度
+
+         inset_ax.plot(xx, xx**2, xx, xx**3)
+         inset_ax.set_title(&#39;zoom near origin&#39;)
+
+         # 设置坐标轴范围
+         inset_ax.set_xlim(-.2, .2)
+         inset_ax.set_ylim(-.005, .01)
+
+         # 设置坐标轴刻度位置
+         inset_ax.set_yticks([0, 0.005, 0.01])
+         inset_ax.set_xticks([-0.1,0,.1]);</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-995fd6617a0e1fa655423f564b801d9d_b.jpg" data-rawwidth="413" data-rawheight="288" class="content_image" width="413"/></noscript><img src="https://pic2.zhimg.com/v2-995fd6617a0e1fa655423f564b801d9d_b.jpg" data-rawwidth="413" data-rawheight="288" class="content_image lazy" width="413" data-actualsrc="https://pic2.zhimg.com/v2-995fd6617a0e1fa655423f564b801d9d_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>色图和等高线图</b></p><p>色图和等高线图对于两个变量的绘图函数非常有用。在大多数函数中，我们采用色图编码一个维度的数据。下面列出了一些之前定义好的色图，他们对于确定定制版的色图是一种直接的方法，详见：<a href="https://link.zhihu.com/?target=http%3A//www.scipy.org/Cookbook/Matplotlib/Show_colormaps" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://www.scipy.org/Cookbook/Matplotlib/Show_colormaps.</a></p><div class="highlight"><pre><code class="language-text">In [58]: alpha = 0.7
+         phi_ext = 2 * np.pi * 0.5
+
+         def flux_qubit_potential(phi_m, phi_p):
+             return 2 + alpha - 2 * np.cos(phi_p) * np.cos(phi_m) - alpha * np.co
+s(phi_ext - 2*phi_p)
+
+In [59]: phi_m = np.linspace(0, 2*np.pi, 100)
+         phi_p = np.linspace(0, 2*np.pi, 100)
+         X,Y = np.meshgrid(phi_p, phi_m)
+         Z = flux_qubit_potential(X, Y).T</code></pre></div><p class="ztext-empty-paragraph"><br/></p><ul><li>pcolor函数</li></ul><div class="highlight"><pre><code class="language-text">In [60]: fig, ax = plt.subplots()
+
+         p = ax.pcolor(X/(2*np.pi), Y/(2*np.pi), Z, cmap=matplotlib.cm.RdBu, vmin
+         =abs(Z).min(), vmax=abs(Z).max())
+         cb = fig.colorbar(p, ax=ax)</code></pre></div><figure><noscript><img src="https://pic4.zhimg.com/v2-89a7bb78c631bed8131afbb1a82e71af_b.jpg" data-rawwidth="347" data-rawheight="264" class="content_image" width="347"/></noscript><img src="https://pic4.zhimg.com/v2-89a7bb78c631bed8131afbb1a82e71af_b.jpg" data-rawwidth="347" data-rawheight="264" class="content_image lazy" width="347" data-actualsrc="https://pic4.zhimg.com/v2-89a7bb78c631bed8131afbb1a82e71af_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>imshow函数</li></ul><div class="highlight"><pre><code class="language-text">In [61]: fig, ax = plt.subplots()
+
+         im = ax.imshow(Z, cmap=matplotlib.cm.RdBu, vmin=abs(Z).min(),vmax=abs(Z)
+         .max(), extent=[0, 1, 0, 1])
+         im.set_interpolation(&#39;bilinear&#39;)
+
+         cb = fig.colorbar(im, ax=ax)</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-ebd21e051951f8651a53d17651e561cc_b.jpg" data-rawwidth="315" data-rawheight="263" class="content_image" width="315"/></noscript><img src="https://pic1.zhimg.com/v2-ebd21e051951f8651a53d17651e561cc_b.jpg" data-rawwidth="315" data-rawheight="263" class="content_image lazy" width="315" data-actualsrc="https://pic1.zhimg.com/v2-ebd21e051951f8651a53d17651e561cc_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>contour函数</li></ul><div class="highlight"><pre><code class="language-text">In [62]: fig, ax = plt.subplots()
+
+         cnt = ax.contour(Z, cmap=matplotlib.cm.RdBu, vmin=abs(Z).min(), vmax=abs
+         (Z).max(), extent=[0, 1, 0, 1])
+         /opt/conda/envs/python2/lib/python2.7/site-packages/matplotlib/collectio
+         ns.py:650: FutureWarning: elementwise comparison failed;returning scalar
+         instead, but in the future will perform elementwise comparison
+           if self._edgecolors_original != str(&#39;face&#39;):</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-9ad791f21408b3b402d58c00a980c5a4_b.jpg" data-rawwidth="379" data-rawheight="266" class="content_image" width="379"/></noscript><img src="https://pic1.zhimg.com/v2-9ad791f21408b3b402d58c00a980c5a4_b.jpg" data-rawwidth="379" data-rawheight="266" class="content_image lazy" width="379" data-actualsrc="https://pic1.zhimg.com/v2-9ad791f21408b3b402d58c00a980c5a4_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>3D 图像</b></p><p>在使用matplotlib中的3D图像之前，我们首先需要创建Axes3D类。3D坐标轴和2D坐标轴创建的方法一样；或者更方便的方法是，在add_axes或者add_subplot中采用projection=&#39;3d&#39;关键字参数。</p><div class="highlight"><pre><code class="language-text">In [63]: from mpl_toolkits.mplot3d.axes3d import Axes3D</code></pre></div><p class="ztext-empty-paragraph"><br/></p><ul><li>曲面图</li></ul><div class="highlight"><pre><code class="language-text">In [64]: fig = plt.figure(figsize=(14,6))
+
+         # `ax` 是一个3D坐标轴，由于添加了projection=&#39;3d&#39;关键字参数于add_subplot
+         ax = fig.add_subplot(1, 2, 1, projection=&#39;3d&#39;)
+
+         p = ax.plot_surface(X, Y, Z, rstride=4, cstride=4, linewidth=0)
+
+         # 带有颜色梯度和颜色条的曲面图
+         ax = fig.add_subplot(1, 2, 2, projection=&#39;3d&#39;)
+         p = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=matplotlib.cm.co
+         olwarm, linewidth=0, antialiased=False)
+
+         cb = fig.colorbar(p, shrink=0.5)</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-450ba54785a49a078b1a723c1bfaab05_b.jpg" data-rawwidth="610" data-rawheight="275" class="origin_image zh-lightbox-thumb" width="610" data-original="https://pic2.zhimg.com/v2-450ba54785a49a078b1a723c1bfaab05_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-450ba54785a49a078b1a723c1bfaab05_b.jpg" data-rawwidth="610" data-rawheight="275" class="origin_image zh-lightbox-thumb lazy" width="610" data-original="https://pic2.zhimg.com/v2-450ba54785a49a078b1a723c1bfaab05_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-450ba54785a49a078b1a723c1bfaab05_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>三维线框图</li></ul><div class="highlight"><pre><code class="language-text">In [65]: fig = plt.figure(figsize=(8,6))
+
+         ax = fig.add_subplot(1, 1, 1, projection=&#39;3d&#39;)
+
+         p = ax.plot_wireframe(X, Y, Z, rstride=4, cstride=4)</code></pre></div><figure><noscript><img src="https://pic3.zhimg.com/v2-fecd35230b43696f0cdddc3818269c0a_b.jpg" data-rawwidth="413" data-rawheight="350" class="content_image" width="413"/></noscript><img src="https://pic3.zhimg.com/v2-fecd35230b43696f0cdddc3818269c0a_b.jpg" data-rawwidth="413" data-rawheight="350" class="content_image lazy" width="413" data-actualsrc="https://pic3.zhimg.com/v2-fecd35230b43696f0cdddc3818269c0a_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>带投影的等高线图</li></ul><div class="highlight"><pre><code class="language-text">In [66]: fig = plt.figure(figsize=(8,6))
+
+         ax = fig.add_subplot(1,1,1, projection=&#39;3d&#39;)
+
+         ax.plot_surface(X, Y, Z, rstride=4, cstride=4, alpha=0.25)
+         cset = ax.contour(X, Y, Z, zdir=&#39;z&#39;, offset=-np.pi, cmap=matplotlib.cm.c
+         oolwarm)
+         cset = ax.contour(X, Y, Z, zdir=&#39;x&#39;, offset=-np.pi, cmap=matplotlib.cm.c
+         oolwarm)
+         cset = ax.contour(X, Y, Z, zdir=&#39;y&#39;, offset=3*np.pi, cmap=matplotlib.cm.
+         coolwarm)
+
+         ax.set_xlim3d(-np.pi, 2*np.pi);
+         ax.set_ylim3d(0, 3*np.pi);
+         ax.set_zlim3d(-np.pi, 2*np.pi);</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-464ebd920e9403c100e97da546f39dc4_b.jpg" data-rawwidth="429" data-rawheight="351" class="origin_image zh-lightbox-thumb" width="429" data-original="https://pic1.zhimg.com/v2-464ebd920e9403c100e97da546f39dc4_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-464ebd920e9403c100e97da546f39dc4_b.jpg" data-rawwidth="429" data-rawheight="351" class="origin_image zh-lightbox-thumb lazy" width="429" data-original="https://pic1.zhimg.com/v2-464ebd920e9403c100e97da546f39dc4_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-464ebd920e9403c100e97da546f39dc4_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>改变视角</li></ul><p>采用view_init可以改变3D图像的视角，该命令有两个参数，elevation和azimuth角度（度数）：</p><div class="highlight"><pre><code class="language-text">In [67]: fig = plt.figure(figsize=(12,6))
+
+         ax = fig.add_subplot(1,2,1, projection=&#39;3d&#39;)
+         ax.plot_surface(X, Y, Z, rstride=4, cstride=4, alpha=0.25)
+         ax.view_init(30, 45)
+
+         ax = fig.add_subplot(1,2,2, projection=&#39;3d&#39;)
+         ax.plot_surface(X, Y, Z, rstride=4, cstride=4, alpha=0.25)
+         ax.view_init(70, 30)
+
+         fig.tight_layout()</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-a1616fab3e635c05a51c227bf666ddac_b.jpg" data-rawwidth="581" data-rawheight="288" class="origin_image zh-lightbox-thumb" width="581" data-original="https://pic1.zhimg.com/v2-a1616fab3e635c05a51c227bf666ddac_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-a1616fab3e635c05a51c227bf666ddac_b.jpg" data-rawwidth="581" data-rawheight="288" class="origin_image zh-lightbox-thumb lazy" width="581" data-original="https://pic1.zhimg.com/v2-a1616fab3e635c05a51c227bf666ddac_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-a1616fab3e635c05a51c227bf666ddac_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>动图</li></ul><p>Matplotlib也包含了一个简单的API用来产生一系列图像的动图。采用FuncAnimation函数，我们可以产生由一系列图像组成的视频文件。该函数采用了如下命令：fig图像窗口，func更新图像所用的函数，init_func组织图像的函数，frame产生的帧数，和blit指导动图函数只在帧数变动的时候更新（对于光滑动图而言）：</p><div class="highlight"><pre><code class="language-text">def init():
+    # setup figure
+
+def update(frame_counter):
+    # update figure for new frame
+
+anim = animation.FuncAnimation(fig, update, init_func=init, frames=200,blit=True)
+
+anim.save(&#39;animation.mp4&#39;, fps=30) # fps = frames per second</code></pre></div><p>为了使用matplotlib中的动图函数，我们首先调用matplotlib.animation：</p><div class="highlight"><pre><code class="language-text">In [68]: from matplotlib import animation
+
+In [69]: # 解决复摆的ODE（常微分方程）问题
+
+         from scipy.integrate import odeint
+         from numpy import cos, sin
+
+         g = 9.82; L = 0.5; m = 0.1
+
+         def dx(x, t):
+             x1, x2, x3, x4 = x[0], x[1], x[2], x[3]
+    
+             dx1 = 6.0/(m*L**2) * (2 * x3 - 3 * cos(x1-x2) * x4)/(16 - 9 * cos(x1
+             -x2)**2)
+             dx2 = 6.0/(m*L**2) * (8 * x4 - 3 * cos(x1-x2) * x3)/(16 - 9 * cos(x1
+             -x2)**2)
+             dx3 = -0.5 * m * L**2 * ( dx1 * dx2 * sin(x1-x2) + 3 * (g/L) * sin(x
+             1))
+             dx4 = -0.5 * m * L**2 * (-dx1 * dx2 * sin(x1-x2) + (g/L) * sin(x2))
+             return [dx1, dx2, dx3, dx4]
+
+         x0 = [np.pi/2, np.pi/2, 0, 0]  # 初始状态
+         t = np.linspace(0, 10, 250) # 时间坐标
+         x = odeint(dx, x0, t)    # 求常微分方程的解</code></pre></div><p>生成的动画显示了钟摆的位置作为时间的函数：</p><div class="highlight"><pre><code class="language-text">fig, ax = plt.subplots(figsize=(5,5))
+ax.set_ylim([-1.5, 0.5])ax.set_xlim([1, -1])
+pendulum1, = ax.plot([], [], color=&#34;red&#34;, lw=2)pendulum2, = ax.plot([], [], color
+=&#34;blue&#34;, lw=2)
+
+def init():
+    pendulum1.set_data([], [])
+    pendulum2.set_data([], [])
+def update(n): 
+    # n = 帧计数器
+    # 计算复摆的位置
+    x1 = + L * sin(x[n, 0])
+    y1 = - L * cos(x[n, 0])
+    x2 = x1 + L * sin(x[n, 1])
+    y2 = y1 - L * cos(x[n, 1])
+    
+    # 更新数据
+    pendulum1.set_data([0 ,x1], [0 ,y1])
+    pendulum2.set_data([x1,x2], [y1,y2])
+anim = animation.FuncAnimation(fig, update, init_func=init, frames=len(t), blit=T
+rue)
+# anim.save可以采用不同的方法运行，在不同平台、# 不同版本的matplotlib和视频编码器上可能有
+的方法不能使用#anim.save(&#39;animation.mp4&#39;, fps=20, extra_args=[&#39;-vcodec&#39;, &#39;libx264&#39;]
+, writer=animation.FFMpegWriter())#anim.save(&#39;animation.mp4&#39;, fps=20, extra_args=
+[&#39;-vcodec&#39;, &#39;libx264&#39;])#anim.save(&#39;animation.mp4&#39;, fps=20, writer=&#34;ffmpeg&#34;, codec
+=&#34;libx264&#34;)anim.save(&#39;animation.mp4&#39;, fps=20, writer=&#34;avconv&#34;, codec=&#34;libx264&#34;)
+plt.close(fig)
+/opt/conda/envs/python2/lib/python2.7/site-packages/matplotlib/animation.py:742: 
+UserWarning: MovieWriter avconv unavailable
+  warnings.warn(&#34;MovieWriter %s unavailable&#34; % writer)
+</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-b54be5b9812437eedc3fb98b915cfb98_b.jpg" data-rawwidth="333" data-rawheight="327" class="content_image" width="333"/></noscript><img src="https://pic1.zhimg.com/v2-b54be5b9812437eedc3fb98b915cfb98_b.jpg" data-rawwidth="333" data-rawheight="327" class="content_image lazy" width="333" data-actualsrc="https://pic1.zhimg.com/v2-b54be5b9812437eedc3fb98b915cfb98_b.jpg"/></figure><p>Note: 为了产生视频文件，我们需要安装ffmpeg或者avconv. 在Ubuntu上安装的指令:</p><div class="highlight"><pre><code class="language-text"> $ sudo apt-get install ffmpeg</code></pre></div><p>或者（更新的版本）</p><div class="highlight"><pre><code class="language-text"> $ sudo apt-get install libav-tools</code></pre></div><p>在MacOSX中, 尝试:</p><div class="highlight"><pre><code class="language-text"> $ sudo port install ffmpeg</code></pre></div><p>有兴趣的用户可以自行安装，这里不再演示视频文件。</p><div class="highlight"><pre><code class="language-text">from IPython.display import HTML
+video = open(&#34;animation.mp4&#34;, &#34;rb&#34;).read()
+video_encoded = video.encode(&#34;base64&#34;)
+video_tag = &#39;&lt;video controls alt=&#34;test&#34; src=&#34;data:video/x-m4v;base64,{0}&#34;&gt;&#39;.forma
+t(video_encoded)
+HTML(video_tag)
+---------------------------------------------------------------------------
+</code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><b>后端</b></p><p>Matplotlib有许多“后端”对产生的图像负责，不同的后端能够更产生不同样式的图和视频。非交互式的后端（如 &#39;agg&#39;，&#39;svg&#39;，&#39;pdf&#39;等）是用来产生图像文件（如savefig函数），与此不同，交互式的后端（如Qt4Agg，GTK，MaxOSX）能够运行GUI窗口，供用户进行交互式的使用图像。</p><p>可供选择的后端有:</p><div class="highlight"><pre><code class="language-text">print(matplotlib.rcsetup.all_backends)
+
+[u&#39;GTK&#39;, u&#39;GTKAgg&#39;, u&#39;GTKCairo&#39;, u&#39;MacOSX&#39;, u&#39;Qt4Agg&#39;, u&#39;Qt5Agg&#39;, u&#39;TkAgg&#39;, u&#39;WX&#39;
+,u&#39;WXAgg&#39;, u&#39;CocoaAgg&#39;, u&#39;GTK3Cairo&#39;, u&#39;GTK3Agg&#39;, u&#39;WebAgg&#39;, u&#39;nbAgg&#39;, u&#39;agg&#39;, u&#39;
+cairo&#39;, u&#39;emf&#39;, u&#39;gdk&#39;, u&#39;pdf&#39;, u&#39;pgf&#39;, u&#39;ps&#39;, u&#39;svg&#39;, u&#39;template&#39;]</code></pre></div><p>默认后端是agg，它基于栅格图形库，非常适合生成像PNG这样的光栅格式。</p><p>通常来说，我们并不需要改变默认后端，但是有时转换到例如PDF或者GTKcariro（如果是Linux系统）时会非常有用，能够更产生高质量矢量图形而不是栅格图。</p><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">#
+# 重启Notebook: matplotlib后端只能在pylab中选择
+# (e.g. Kernel &gt; Restart)
+# 
+import matplotlib
+matplotlib.use(&#39;svg&#39;)
+import matplotlib.pylab as plt
+import numpy
+from IPython.display import Image, SVG
+/opt/conda/envs/python2/lib/python2.7/site-packages/matplotlib/__init__.py:1318: 
+UserWarning:  This call to matplotlib.use() has no effect
+because the backend has already been chosen;
+matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+  warnings.warn(_use_error_msg)
+
+#
+# 现在我们用svg后端产生SVG矢量图
+#
+fig, ax = plt.subplots()
+t = numpy.linspace(0, 10, 100)
+ax.plot(t, numpy.cos(t)*numpy.sin(t))
+plt.savefig(&#34;test.svg&#34;)</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-f6b78a41cfeaa4fcf554a746db4fcc50_b.jpg" data-rawwidth="387" data-rawheight="267" class="content_image" width="387"/></noscript><img src="https://pic1.zhimg.com/v2-f6b78a41cfeaa4fcf554a746db4fcc50_b.jpg" data-rawwidth="387" data-rawheight="267" class="content_image lazy" width="387" data-actualsrc="https://pic1.zhimg.com/v2-f6b78a41cfeaa4fcf554a746db4fcc50_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">#
+# 显示产生的SVG文件. 
+#
+SVG(filename=&#34;test.svg&#34;)</code></pre></div><figure><noscript><img src="https://pic1.zhimg.com/v2-bdc8e6f04007f625a81213abbf5d3f44_b.jpg" data-rawwidth="522" data-rawheight="361" class="origin_image zh-lightbox-thumb" width="522" data-original="https://pic1.zhimg.com/v2-bdc8e6f04007f625a81213abbf5d3f44_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-bdc8e6f04007f625a81213abbf5d3f44_b.jpg" data-rawwidth="522" data-rawheight="361" class="origin_image zh-lightbox-thumb lazy" width="522" data-original="https://pic1.zhimg.com/v2-bdc8e6f04007f625a81213abbf5d3f44_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-bdc8e6f04007f625a81213abbf5d3f44_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>IPython notebook 内联后端</b></p><p>当我们使用IPython notebook时，可以很方便的用matplotlib后端输出嵌入在notebook的图形文件。要激活这个后端，需要在开始的某处添加：</p><div class="highlight"><pre><code class="language-text">%matplotlib inline</code></pre></div><p>采用如下格式也能够激活内联后端：</p><div class="highlight"><pre><code class="language-text">%pylab inline</code></pre></div><p>不同之处在于%pylab inline调用了一系列函数包到全局地址空间（scipy，numpy），然而%matplotlib inline只在内联绘图时才调用。在IPython 1.0+的新的notebook中，建议使用%matplotlib inline，因为它更整洁，对于函数包的调用控制更多。通常，scipy和numpy分别通过如下形式调用：</p><div class="highlight"><pre><code class="language-text">import numpy as np
+import scipy as sp
+import matplotlib.pyplot as plt</code></pre></div><p>内联后端有一系列的设置选择，可以通过IPython的命令%config来更新InlandBackend中的设置。例如，我们可以转换SVG图像或者更高分别率的图像通过：</p><div class="highlight"><pre><code class="language-text">%config InlineBackend.figure_format=&#39;svg&#39;</code></pre></div><p>或者</p><div class="highlight"><pre><code class="language-text">%config InlineBackend.figure_format=&#39;retina&#39;</code></pre></div><p>如需了解更多内容，请输入：</p><div class="highlight"><pre><code class="language-text">%config InlineBackend</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">%matplotlib inline
+%config InlineBackend.figure_format=&#39;svg&#39;
+
+import matplotlib.pylab as plt
+import numpy
+
+#
+# 现在我们替换notebook中的内联后端，使用SVG矢量图。
+#
+fig, ax = plt.subplots()
+t = numpy.linspace(0, 10, 100)
+ax.plot(t, numpy.cos(t)*numpy.sin(t))
+plt.savefig(&#34;test.svg&#34;)</code></pre></div><figure><noscript><img src="https://pic2.zhimg.com/v2-cecefd12d22c42c1acc5a2037cac5895_b.jpg" data-rawwidth="504" data-rawheight="346" class="origin_image zh-lightbox-thumb" width="504" data-original="https://pic2.zhimg.com/v2-cecefd12d22c42c1acc5a2037cac5895_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-cecefd12d22c42c1acc5a2037cac5895_b.jpg" data-rawwidth="504" data-rawheight="346" class="origin_image zh-lightbox-thumb lazy" width="504" data-original="https://pic2.zhimg.com/v2-cecefd12d22c42c1acc5a2037cac5895_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-cecefd12d22c42c1acc5a2037cac5895_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><ul><li>交互式后端（这使得Python脚本文件更有意义）</li></ul><div class="highlight"><pre><code class="language-text">#
+# 重启Notebook: matplotlib后端只能在pylab中选择
+# (e.g. Kernel &gt; Restart)
+# 
+import matplotlib
+matplotlib.use(&#39;Qt4Agg&#39;) # or for example MacOSX
+import matplotlib.pylab as plt
+import numpy as np
+/opt/conda/envs/python2/lib/python2.7/site-packages/matplotlib/__init__.py:1318: 
+UserWarning:  This call to matplotlib.use() has no effect
+because the backend has already been chosen;
+matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+  warnings.warn(_use_error_msg)
+
+# 现在采用Qt4Agg打开一个交互式的绘图窗口
+fig, ax = plt.subplots()
+t = np.linspace(0, 10, 100)
+ax.plot(t, np.cos(t) * np.sin(t))
+plt.show()</code></pre></div><p>注意，当我们采用交互式后端是，需要调用plt.show()命令将图像显示在屏幕上。</p><p class="ztext-empty-paragraph"><br/></p><h2><b>推荐阅读</b></h2><p><a href="https://link.zhihu.com/?target=http%3A//www.matplotlib.org/" class=" wrap external" target="_blank" rel="nofollow noreferrer">http://www.matplotlib.org</a>- 官方网页</p><p><a href="https://link.zhihu.com/?target=https%3A//github.com/matplotlib/matplotlib" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/matplotlib/m</span><span class="invisible">atplotlib</span><span class="ellipsis"></span></a> - matplotlib源代码</p><p><a href="https://link.zhihu.com/?target=http%3A//matplotlib.org/gallery.html" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">matplotlib.org/gallery.</span><span class="invisible">html</span><span class="ellipsis"></span></a> - 展示各种各样matplotlib函数包能够绘制的图像，强烈推荐！</p><p><a href="https://link.zhihu.com/?target=http%3A//www.loria.fr/~rougier/teaching/matplotlib" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://www.</span><span class="visible">loria.fr/~rougier/teach</span><span class="invisible">ing/matplotlib</span><span class="ellipsis"></span></a>- matplotlib课程</p><p><a href="https://link.zhihu.com/?target=http%3A//scipy-lectures.github.io/matplotlib/matplotlib.html" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">scipy-lectures.github.io</span><span class="invisible">/matplotlib/matplotlib.html</span><span class="ellipsis"></span></a>- 其他参考文献</p><p class="ztext-empty-paragraph"><br/></p><p class="ztext-empty-paragraph"><br/></p><p><b>到JoinQuant查看原文并参与讨论：</b><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/9155%3Ftag%3Dalgorithm" class=" wrap external" target="_blank" rel="nofollow noreferrer">【翻译搬运】Matplotlib - 用Python绘制2D和3D图像</a></p>

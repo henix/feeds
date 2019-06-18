@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>一个“罕见”的因子--Aroon指标</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/27559632">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-50f44707c1ede706054869bf39d0dcff_b.jpg" alt=""></div><p>昨天小编在外网上搬砖时，无意看到一篇介绍阿隆指标（Aroon）的文章，细读内容十分有趣，提供了新的思路。有一种说法是，量化投资指标用的人越少越有效。感觉目前几乎没有这一方面的文章，所以搬运过来与各位分享。</p><h2><b>组成</b></h2><p>“阿隆”是一个梵文词语，意思为“黎明的第一缕光”。Chande首次在1995年9月出版的《股票商品技术分析》杂志中提到这个指标。阿隆指标由3条线组成：阿隆上升线、阿隆下行线以及显示二者区别的阿隆震荡线，可以用来显示一个新趋势的开始并测量趋势强度。通过计算自价格达到近期最高值和最低值以来所经过的期间数，来帮助预测价格趋势到趋势区域（或者反过来，从趋势区域到趋势）的变化。</p><p>该指标由三部分组成：</p><ol><li>阿隆向上（AroonUp）<br/></li><li>阿隆向下（AroonDown）<br/></li><li>阿隆震荡线（Aroon Oscillator）<br/></li></ol><br/><br/><h2><b>计算方法</b></h2><p>首先，需要设定一个时间段（或周期），通常为20天或25天。则有：</p><ul><li>阿隆向上<br/></li></ul>AroonUp=[(计算期天数-最高价后的天数)/计算期天数]×100<ul><li>阿隆向下<br/></li></ul>AroonDown=[(计算期天数-最低价后的天数)/计算期天数]×100<ul><li>阿隆震荡线<br/></li></ul>Aroon Osc= AroonUp - AroonDown<ul><li>举个栗子，若取时间段为25天，如果今天为最高价，则“最高价后的天数”为0，AroonUp =（25-0）/ 25×100%= 100%；如果10天前为最高价，则“最高价后的天数”为10，AroonUp =（25-10）/ 25×100%= 60%<br/></li><li>也可以这样理解：<br/></li></ul><br/><p>指定一个计算区间（一般为25天），这个区间内创出收盘最高价的那天到起始日的时间距离作为分子，除以25天，即为AROON_UP指标；它反映了有多长时间，股价走势在近期最高点之下。AROON_DN指标的计算方式法及意义相似，只是将“收盘最高价”换成“收盘最低价”。与这两个指标相关联的AROON Osc，是用AROON_UP减去AROON_DN得到的。</p><h3><b>三种趋势</b></h3><ul><li> 在分析Aroon指标时，主要观察三种状态：<br/></li></ul><br/><p>1、极值0与100 </p><p>如果阿隆向上从下向上穿过阿隆向下，那么一个新的上升趋势可能即将开始；与此相反，如果阿隆向下从上到下穿过阿隆向上，那么一个新的下降趋势可能要开始了。如果阿隆向上的值达到了100，这说明一个新的上升周期可能开始了。如果它的值始终保持在70-100，同时阿隆向下的值保持在0-30，那么一个新的上升趋势也将开启。阿隆向下指标类似。</p><p>当Up线达到100时，市场处于多头强势；如果维持在70~100之间，表示处于多头上升趋势；同样，如果Down线达到100时，市场处于空头强势’；如果维持在70-100之间，表示处于空头下降趋势。当Up线达到0时，表示多头处于极弱势，如果维持在0~30之间，表明多头处于较弱势；当Down线达到0时，表示空头处于极弱势，如果维持在0~30之间，表明空头处于较弱势。如果两条线同处于底部，表示处于盘整时期，无趋势。</p><p>2、平行运动 　<br/>如果两条线平行运动时，表明市场原有趋势仍在继续，只到由极值水平或交叉穿行而改变市场方向为止。</p><p>3、交叉穿行 　<br/>当下行线上穿上行线时，表明原有趋势逐渐减弱，预计趋势将开始反转。反之亦然。</p><ul><li>实时研判<br/></li></ul><br/><ol><li>阿隆Up、阿隆Down可以研判一个新趋势的开始： 高于70，表示强势，低于50，趋势正在减弱；两线移近底部，表明即将盘整。</li><li>阿隆震荡线高于零表示为上升趋势;低于零表示为下降趋势，偏离零线越远，走势越强。</li></ol><h3><b>策略</b></h3><p>基于阿隆指标的特征，结合之前的选股策略，在对股票池进行筛选的基础上，进行策略的买卖条件设置。看到结果还是相对理想，更改了回测区间之后表现也还是不错的。也希望大家到社区留言给一些好的优化建议 (ฅ´ω`ฅ)</p><p><figure><noscript><img src="https://pic4.zhimg.com/v2-0b8356d578ec543bd3d866ace4d2d1eb_b.png" data-rawwidth="867" data-rawheight="519" class="origin_image zh-lightbox-thumb" width="867" data-original="https://pic4.zhimg.com/v2-0b8356d578ec543bd3d866ace4d2d1eb_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-0b8356d578ec543bd3d866ace4d2d1eb_b.png" data-rawwidth="867" data-rawheight="519" class="origin_image zh-lightbox-thumb lazy" width="867" data-original="https://pic4.zhimg.com/v2-0b8356d578ec543bd3d866ace4d2d1eb_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-0b8356d578ec543bd3d866ace4d2d1eb_b.png"/></figure>到JoinQuant查看策略源码，并与作者交流讨论：<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/7371%3Ff%3Dzhzl%26m%3D27559632" class=" wrap external" target="_blank" rel="nofollow noreferrer">一个似乎关注较少的因子--Aroon指标</a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>

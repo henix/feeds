@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>金融数据找不到？那是你没见识到joinquant的利器——JQData</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/55778113">原文</a></p>
+<p>文章转自聚宽忠实用户：李增海<br/></p><h2>金融数据找不到？那是你没见识到joinquant的利器——JQData——记一次用JQData补充本地缺失期货1分钟行情数据。</h2><h2>缘起</h2><p>我们的策略体系涵盖范围比较多，有股票、期货为交易标的的各类策略，单就期货部分而言，高频的数据用的比较少，Tick级的数据也是后来才开始落地储备。</p><p>近期因为某些需求，需要整理2010年以来的期货全品种全合约的1分钟数据，此前从朋友那里刷脸拿来一批高质量1分钟数据，数据截止到2017年10月27日，而我们自己的tick数据是从2017年底才开始落地，中间差不多缺失了1个月左右的数据。</p><p>缺失的数据怎么补充？从哪补充？质量是否可靠？</p><p>最终通过多维度的对比，我选择了——JQData。主要原因有几个：</p><p>第一、轻量化。像Wind之类的终端，不安装终端是没可能获取数据的，而终端有滚动7日1000万条数据（按字段）的限制，一条标准的1分钟K线数据包含：【时间戳、开盘价、最高价、最低价、收盘价、持仓量、成交量】，一条数据就有7个字段。所以看起来1000万不小实际没多少。只要用完，wind终端其他数据查询功能也用不了。而JQData现在是每天100万条数据，记住，是条！这一条中1个字段是一条，10个字段还是一条！</p><p>第二、质量。质量高不高，是用出来的、对不出来的，经过与多个数据源对比，质量很可靠。</p><p>第三、高效反馈。JoinQuant的社区真不是摆设，官方人员长期潜伏，遇到问题瞬间冒头这事儿真的容易圈粉，扛不住啊扛不住。而且，社区里高质量的帖子很多，潜水大神很多。当然啦，谁都有事情要忙的嘛，关于提问，给一个建议：能用搜索解决的问题一定别放过百度/Google。</p><p>第四、使用门槛低、成本无。时间成本不用考虑，用什么都需要时间。但JQData除了需要申请一下，其他啥成本也没有了。付费？？不存在的。福利之所以称之为福利原因有2个：1、够不着付费的门槛。2、穷。 没错，金融的世界就是这么现实！</p><p>还好有joinquant来送温暖。</p><p>但是，申请入口请自行百度。总不能让人把饭喂到嘴里才算能吃下去。</p><h2>安装篇</h2><p>直接在cmd命令行下使用python的pip方式安装即可：</p><div class="highlight"><pre><code class="language-text">pip install jqdatasdk</code></pre></div><p>如果安装过程中出现如下错误：</p><p>Cannot uninstall &#39;sqlalchemy’. It is a distutils installed project and thus we cannot accurately determine which files belong to it which would lead to only a partial uninstall.</p><p>可以对安装命令增加一个参数--ignore-installed，即使用如下命令：</p><div class="highlight"><pre><code class="language-text">pip install --ignore-installed jqdatasdk</code></pre></div><p>其作用是忽略已安装的某些模块。</p><p>一般而言，如果你的Python环境没有魔改过，或者多个版本在一层内并存的话，不会出现什么问题。如果真的遇到了问题，没关系，社区有安装问答贴—&gt;<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/12479" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">joinquant.com/post/1247</span><span class="invisible">9</span><span class="ellipsis"></span></a></p><h2>使用篇</h2><p>使用前，首先引入jqdata所有方法：</p><div class="highlight"><pre><code class="language-text">from jqdatasdk import *</code></pre></div><p>引入后，可以通过是否能够成功登陆来测试，</p><p>auth(&#39;账号&#39;,&#39;密码&#39;) #账号是申请时所填写的手机号；密码为聚宽官网登录密码，新申请用户默认为手机号后6位</p><p>在最新版本（JQData1.5.3）中，登陆成功后会有信息打印出来。同时，可以使用get_query_count()方法来查看剩余可用调数。如下图：</p><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-9c8ba915977b09acfacd98d42d753e73_b.jpg" data-caption="" data-size="normal" data-rawwidth="584" data-rawheight="104" class="origin_image zh-lightbox-thumb" width="584" data-original="https://pic4.zhimg.com/v2-9c8ba915977b09acfacd98d42d753e73_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-9c8ba915977b09acfacd98d42d753e73_b.jpg" data-caption="" data-size="normal" data-rawwidth="584" data-rawheight="104" class="origin_image zh-lightbox-thumb lazy" width="584" data-original="https://pic4.zhimg.com/v2-9c8ba915977b09acfacd98d42d753e73_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-9c8ba915977b09acfacd98d42d753e73_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p>看到截图中的数据是否表示表示好奇？数据有问题啊，前文说100万，为啥博主这里是1000万了？——————就在写本文的过程中，已然获得JQ官方的支持。如果想要增加流量，甚至获得机构版的JQ终端，都是有很大机会的！<b>哪怕复制粘贴</b>，<b>是的！哪怕复制粘贴！</b></p><p>对于jqdata的登录，原版auth的登录无论是否登录成功都不会有结果返回，如果自动化任务定时执行时，需要对是否登录成功进行判断，利用官方接口中如果登录失败会报错，登录成功则打印信息的逻辑，封装一个登录方法：</p><div class="highlight"><pre><code class="language-text">def login(user, pw):
+    try:
+        auth(user, pw)
+        return True
+    except Exception as e:
+        print(e)
+        return False</code></pre></div><p>考虑到期间有可能存在交割品种事件，要精确到每个品种自身的日线行情的时间区间。因此需要获取到每个品种的行情首尾日期。<br/>当然，聚宽提供了更简单的方法，get_future_contracts(&#39;M&#39;,&#39;2017-10-28&#39;)，就可以获取到当日该品种所有的在市合约列表了。<br/>但物尽其用，本地有数据就没必要浪费接口资源。</p><p>引入jqdata之外的其他必要库：</p><div class="highlight"><pre><code class="language-text">import os
+import pymssql
+# 引入自己的包
+from baselib import getdata, getsymtype
+from lzh.Config import Config</code></pre></div><p>从数据库中拉取分钟线中缺失时间段的日线行情：</p><div class="highlight"><pre><code class="language-text">islogin = login(&#39;******&#39;, &#39;******&#39;)
+
+cn = Config(&#39;config.ini&#39;)
+conn = pymssql.connect(
+        host=cn.getConfig(&#39;mssqldb&#39;,&#39;server&#39;), 
+        user=cn.getConfig(&#39;mssqldb&#39;,&#39;user&#39;),
+        password=cn.getConfig(&#39;mssqldb&#39;,&#39;password&#39;),
+        database=cn.getConfig(&#39;mssqldb&#39;,&#39;database&#39;),
+        charset=&#34;UTF-8&#34;)
+
+sdate = &#39;20171027&#39;
+edate = &#39;20171130&#39;
+
+# 自定义函数, 获取本地数据库日线行情
+mktdata = getdata(conn, sdate, edate, &#39;day&#39;)
+mktdata = mktdata.set_index(&#39;date&#39;)
+</code></pre></div><p>行情结构如下：</p><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-b147a6383fc70530d5babffc94a99d74_b.jpg" data-caption="" data-size="normal" data-rawwidth="660" data-rawheight="474" class="origin_image zh-lightbox-thumb" width="660" data-original="https://pic1.zhimg.com/v2-b147a6383fc70530d5babffc94a99d74_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-b147a6383fc70530d5babffc94a99d74_b.jpg" data-caption="" data-size="normal" data-rawwidth="660" data-rawheight="474" class="origin_image zh-lightbox-thumb lazy" width="660" data-original="https://pic1.zhimg.com/v2-b147a6383fc70530d5babffc94a99d74_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-b147a6383fc70530d5babffc94a99d74_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p>接下来，我们只要这数据中的合约代码、每个合约行情的起始时间。</p><div class="highlight"><pre><code class="language-text">symtype_dates = {}
+for x, symcode_data in mktdata.groupby(&#39;symbol&#39;):
+    symtype_dates[x] = []
+    if len(symcode_data)&lt;=2:
+        # 确保该时间内数据大于2条，否则该品种太不活跃，无存在意义。
+        continue
+    symtype_dates[x].extend([symcode_data.index[0], symcode_data.index[-1]])
+        
+</code></pre></div><p>如图所见，确实存在着起始日期不一致的情况，单独处理是必要的：</p><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-712a2560efa33f8dcaf68bfce51259b5_b.jpg" data-caption="" data-size="normal" data-rawwidth="660" data-rawheight="468" class="origin_image zh-lightbox-thumb" width="660" data-original="https://pic2.zhimg.com/v2-712a2560efa33f8dcaf68bfce51259b5_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-712a2560efa33f8dcaf68bfce51259b5_b.jpg" data-caption="" data-size="normal" data-rawwidth="660" data-rawheight="468" class="origin_image zh-lightbox-thumb lazy" width="660" data-original="https://pic2.zhimg.com/v2-712a2560efa33f8dcaf68bfce51259b5_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-712a2560efa33f8dcaf68bfce51259b5_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p>在取得上述信息后，就可以愉快的通过jqdata获取行情了。</p><p><b>get_price</b>是获取行情的方法。具体用法参见官方文档（非常详细）。</p><p>对于get_price方法，是可以传入多个合约/股票代码的。更加高效和简洁。<br/>但考虑到本次数据区间较短、起止时间可能有差异，因此采用逐个传入的方式下载1分钟期货数据。</p><p>统一品种交易所后缀，取该品种主力后缀，每个品种仅取一次。</p><div class="highlight"><pre><code class="language-text">exchangedata = {}    #品种所属交易所。
+#fields = [&#39;open&#39;, &#39;high&#39;, &#39;low&#39;, &#39;close&#39;, &#39;volume&#39;, &#39;position&#39;]
+for symcode in symtype_dates.keys():
+    print(symcode)
+    fpath = r&#39;data/{}.csv&#39;.format(symcode)
+    if os.path.exists(fpath):
+        continue
+    tmp_sdate, tmp_edate = symtype_dates[symcode]
+    symtype = getsymtype(symcode)   # 将合约代码转为品种
+    if symtype not in exchangedata.keys():
+        tmpsymcode = get_dominant_future(symtype)
+        exchangedata[symtype] = tmpsymcode.split(&#39;.&#39;)[-1]
+    
+    symcode2 = &#39;{}.{}&#39;.format(symcode, exchangedata[symtype])
+    data = get_price(symcode2, start_date=tmp_sdate, end_date=tmp_edate, \
+                     frequency=&#39;1m&#39;, fields=None, skip_paused=True, fq=None, count=None)
+    
+    data.to_csv(fpath)</code></pre></div><p>写到这里，基本上JQData的最基础用法已经介绍完了，而行情对于聚宽所能提供的数据来说，只是沧海一粟，完全不值得单独拿出来讲，但既然用到了，说一说还是有必要的。</p><p>那JQData还能提供啥呢？</p><p>我想一句话能够概括——“<b>你想到的金融数据，聚宽都有。如果，它没有，它可以有。</b>”</p><p>最后，感谢所有帮助过我的朋友们、平台们。谢谢。</p><p class="ztext-empty-paragraph"><br/></p><p>文章转自聚宽忠实用户：李增海</p><a href="https://link.zhihu.com/?target=http%3A//www.lizenghai.com/archives/1047.html" data-draft-node="block" data-draft-type="link-card" data-image="https://pic3.zhimg.com/v2-fddb18eef4996381e242ecd7b7b0e3ae_180x120.jpg" data-image-width="584" data-image-height="104" class=" wrap external" target="_blank" rel="nofollow noreferrer">金融数据找不到？那是你没见识到joinquant的利器--JQData - Python量化投资</a><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>

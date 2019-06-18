@@ -1,0 +1,106 @@
+<h2>引言</h2><p>研究目的： 本文参考华泰研报《人工智能选股之支持向量机模型》，对研报里面的结果进行了分析，并研究了支持向量机模型（SVM）在多因子选股模型领域的应用，实现股票因子与收益之间非线性模型的建立，通过对模型进行多维度分析实现模型评价。</p><p>研究内容： 多因子模型的本质是关于股票当期因子暴露和未来收益之间的线性回归模型。我们希望引入机器学习的思想，对传统多因子模型进行优化。然而，由于金融市场是复杂的、非线性的，因此线性模型就会存在比较大的缺陷。线性支持向量机能够解决线性分类问题，核支持向量机则主要针对非线性分类问题，支持向量回归能够处理回归问题。本篇报告我们将支持向量机应用于多因子选股，主要关注如下几方面的问题:<br/>（1）首先是模型选择的问题：常见的核函数有线性核、多项式核、高斯核等，不同核函数的选择会构建不同的模型,如何确定核函数才能使模型更优。<br/>（2）其次是参数寻优的问题：支持向量机包含两个重要参数，即惩罚系数 C 和 gamma 值，如何确定最优参数。<br/>（3）然后是组合构建的问题：在衡量过不同支持向量机模型的表现之后，应如何利用模型的预测结果构建策略组合进行回测。<br/>（4）最后是模型评价的问题：在根据模型预测结果构建策略组合进行回测后，如何对回测结果进行评价，从而判断出模型的优劣。</p><p>研究结论：<br/>（1）本文以 HS300 成分股为标的，以 2010-2014 年的因子及下期收益作为样本内集合，2014 年 2018 年的数据为样本外测试集，高斯核 SVM 在 HS300 选股模型交叉验证集正确率为 56.2%，AUC 为 0.561，样本外测试集平均正确率为 55.1%，平均 AUC 为 0.550。<br/>（2）以 HS300 为票池，利用高斯核 SVM 模型构建选股策略。对于 HS300 成份股内选股的等权重策略以及行业中性策略。总体而言，高斯核 SVM 在收益、夏普比率、最大回测等方面分层明确，可见模型是有效的。<br/>（3）比较了不同核支持向量机 (SVM) 的预测能力，一般情况下，高斯核收益能力要高于其他核函数模型。 （4）比较了高斯核支持向量机 (SVM) 以及支持向量回归 (SVR) 的预测能力，绝大多数时候，高斯核 SVC 的收益能力比 SVR 模型更强。</p><p>研究耗时： （1）数据准备部分：大约需要 8h，主要出现在数据采集部分，为了避免程序耗时过长，已将数据提前运行出来，下载地址：<a href="https://link.zhihu.com/?target=https%3A//pan.baidu.com/s/1DSI7uc5yBNY3hzedu9L7mw" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">pan.baidu.com/s/1DSI7uc</span><span class="invisible">5yBNY3hzedu9L7mw</span><span class="ellipsis"></span></a><br/>（2）模型测试部分：大约需要 6h，主要耗时在参数交叉验证，该步骤可仅作为参考，直接跳过该步骤。<br/>（3）策略构建部分：大约需要 36min，主要回测组合较多，且行业中性较为复杂，耗时较多。</p><h2>1 数据准备</h2><h2>1.1 日期列表获取（约 3 s）</h2><p>在每个月的月末对因子数据进行提取，因此需要对每个月的月末日期进行统计。<br/>输入参数分别为 peroid、start_date 和 end_date，其中 peroid 进行周期选择，可选周期为周(W)、月(M)和季(Q)，start_date和end_date 分别为开始日期和结束日期。<br/>函数返回值为对应的月末日期。本文选取开始日期为 2010.1.1，结束日期为 2018.1.1。</p><div class="highlight"><pre><code class="language-text">from jqdata import *
+from jqlib.technical_analysis import *
+from jqfactor import get_factor_values
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+import seaborn as sns</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">#获取指定周期的日期列表 &#39;W、M、Q&#39;
+def get_period_date(peroid,start_date, end_date):
+    #设定转换周期period_type  转换为周是&#39;W&#39;,月&#39;M&#39;,季度线&#39;Q&#39;,五分钟&#39;5min&#39;,12天&#39;12D&#39;
+    stock_data = get_price(&#39;000001.XSHE&#39;,start_date,end_date,&#39;daily&#39;,fields=[&#39;close&#39;])
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+np.array(get_period_date(&#39;M&#39;,&#39;2010-01-01&#39;, &#39;2018-01-01&#39;))</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">array([&#39;2009-12-31&#39;, &#39;2010-01-31&#39;, &#39;2010-02-28&#39;, &#39;2010-03-31&#39;,
+       &#39;2010-04-30&#39;, &#39;2010-05-31&#39;, &#39;2010-06-30&#39;, &#39;2010-07-31&#39;,
+       ......
+       &#39;2017-04-30&#39;, &#39;2017-05-31&#39;, &#39;2017-06-30&#39;, &#39;2017-07-31&#39;,
+       &#39;2017-08-31&#39;, &#39;2017-09-30&#39;, &#39;2017-10-31&#39;, &#39;2017-11-30&#39;, &#39;2017-12-31&#39;], 
+      dtype=&#39;|S10&#39;)</code></pre></div><h2>1.2 股票列表获取（约 2 s）</h2><p>可选股票池: HS300、ZZ500、中证 800、创业板指以及全 A 股</p><p>股票筛选：剔除 ST 股票，剔除上市 3 个月内的股票，每只股票视作一个样本</p><p>以 HS300 为例，取 2017-06-01 当天的股票成分股</p><div class="highlight"><pre><code class="language-text">#去除上市距beginDate不足3个月的股票
+def delect_stop(stocks,beginDate,n=30*3):
+    stockList=[]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+get_stock(&#39;HS300&#39;,&#39;2017-06-01&#39;)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">[u&#39;000001.XSHE&#39;,
+ u&#39;000002.XSHE&#39;,
+ u&#39;000008.XSHE&#39;,
+ ......
+ u&#39;603000.XSHG&#39;,
+ u&#39;603885.XSHG&#39;,
+ u&#39;603993.XSHG&#39;]</code></pre></div><h2>1.3 特征提取及特征预处理（约 8 h）</h2><p>特征提取: 每个自然月的最后一个交易日，计算之前报告里的 66 个因子暴露度（其中wind因子数据无法提取，股东因子存在缺失较多，暂不提取），作为样本的原始特征。<br/>特征预处理:<br/>(1) 中位数去极值: 设第 T 期某因子在所有个股上的暴露度序列为 𝐷𝑖 ，𝐷𝑀 为该序列中位数，𝐷𝑀1 为序列|𝐷𝑖-𝐷𝑀|的中位数，则将序列𝐷𝑖中所有大于 𝐷𝑀+5𝐷𝑀1 的数重设为 𝐷𝑀+5𝐷𝑀1，将序列 𝐷𝑖 中所有小于 𝐷𝑀-5𝐷𝑀1 的数重设为 𝐷𝑀-5𝐷𝑀1，本文采用聚宽的函数库 winsorize_med() 实现该功能。<br/>(2) 缺失值处理: 得到新的因子暴露度序列后，将因子暴露度缺失的地方设为申万一级行业相同个股的平均值，通过函数 replace_nan_indu() 实现该功能。<br/>(3) 行业市值中性化: 将填充缺失值后的因子暴露度对行业哑变量和取对数后的市值做线性回归，取残差作为新的因子暴露度，通过聚宽函数库 neutralize() 实现该功能。<br/>(4) 标准化: 将中性化处理后的因子暴露度序列减去其现在的均值、除以其标准差，得到一个新的近似服从 N(0,1) 分布的序列，通过聚宽函数库 standardlize() 实现该功能。<br/>注：考虑到时间运行时间较长，已将数据提前运行出来，下载地址：<a href="https://link.zhihu.com/?target=https%3A//pan.baidu.com/s/1DSI7uc5yBNY3hzedu9L7mw" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">pan.baidu.com/s/1DSI7uc</span><span class="invisible">5yBNY3hzedu9L7mw</span><span class="ellipsis"></span></a></p><div class="highlight"><pre><code class="language-text"># 辅助线性回归的函数
+def linreg(X,Y,columns=3):
+    X=sm.add_constant(array(X))
+    Y=array(Y)
+    if len(Y)&gt;1:
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+write_file(&#39;factor_solve_data.pkl&#39;, content, append=False)</code></pre></div><h2>1.4 读取数据 （约 3 s）</h2><p>特征数据经过预处理后，为了方便后续对数据进行处理，将数据保存为 pkl 文件。读取文件，文件格式如下所示：数据类型为 dict，key 为日期，value 为每一期对应的因子数据，格式为 dataframe，index 为股票列表，columns 为因子。<br/>注：可直接将pkl文件上传至研究环境，进行数据读取。</p><div class="highlight"><pre><code class="language-text">#使用pickle模块将数据对象保存到文件
+pkl_file_read = read_file(&#34;factor_solve_data.pkl&#34;)
+factor_data = pickle.load(StringIO(pkl_file_read))
+factor_data[&#39;2009-12-31&#39;].head()</code></pre></div><h2>2 模型测试</h2><p>对于 SVM 模型原理，可参考<a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/947cddc2c353527a01f75288d4fc64c6%3Ff%3Dstydy%26m%3Dmath" class=" wrap external" target="_blank" rel="nofollow noreferrer">量化课堂-SVM原理入门</a>，此处不再多加赘述。</p><h2>2.1 标签设置及数据集分割 （约 10 s）</h2><p>对于支持向量机模型，本文主要采用分类模型，因此需要将收益率数据转化为标签，在每个月末截面期，选取下月收益排前、后 30% 的股票分别作为正例 (𝑦 = 1)、负例 (𝑦 = −1)。</p><p>为了对模型进行测试，需要对数据集进行分割，故将前 4 年数据样本合并，作为训练集，后 4 年数据样本作为测试集。</p><div class="highlight"><pre><code class="language-text">peroid=&#39;M&#39;
+start_date=&#39;2010-01-01&#39;
+end_date=&#39;2018-01-01&#39;
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+    test_data[date]=testdf</code></pre></div><h2>2.2 模型训练及测试 （约 6 h）</h2><p>本文将前 4 年数据作为验证集，进行交叉验证，实现参数的设计，采用方法为 K 折交叉验证，将数据分成 K 组 (K=10) ，操作步骤如下：<br/>（1）随机抽取 1 组做为验证集（10%），剩余 K-1 组训练集（90%）；<br/>（2）训练集建立模型后，将验证集放到模型中，得到预测标签；<br/>（3）比较预测标签和实际标签，计算模型的评价指标（正确率、AUC 等）；<br/>（4）上述步骤 1-3 重复进行 n 次，对评价指标取均值，作为最后评价结果。</p><p>首先，确定核函数，核函数参数设定如下所示，用来比较不容核函数对模型的影响。</p><p>核函数参数设定线性核C = 1e-43 阶多项式核C = 0.003 gamma = 0.037 阶多项式核C = 0.03 gamma = 0.01高斯核C = 1 gamma = 3e-5</p><p>考虑到高斯核函数能够将任意维数据映射到无穷维空间，因此高斯核函数应用更有意义。然后，确定模型参数，惩罚系数 C 和 gamma 值是支持向量机模型最重要的两个参数。我们希望同时对 C 和 gamma 值进行遍历，找到全局最优解。参数寻优最常用的方法是网格搜索。下面我们以 SVM 为例，展示网格搜索的过程。<br/>取 C = (0.01, 0.03, 0.1, 0.3, 1, 3, 10)，γ= (1e-4, 3e-4, 1e-3, 3e-3, 0.01, 0.03, 0.1, 0.3, 1)<br/>测试每一组 C 和 gamma 值，得到交叉验证集的 AUC 值。（约 6 h）</p><div class="highlight"><pre><code class="language-text">target=train_data[&#39;label&#39;]
+train=train_data.copy()
+del train[&#39;pchg&#39;]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+# 输出最佳模型参数
+print clf.best_params_
+</code></pre></div><p>根据统计结果，选择 C=10，gamma=0.01，对前4年数据进行训练，在样本内进行交叉验证，预测结果如下所示。根据计算结果可知，高斯核 SVM 模型样本内训练集和交叉验证集合正确率分别为 81.9% 和 56.2%，AUC 分别为 0.819 和 0.561。（约 5 min）</p><div class="highlight"><pre><code class="language-text"># 迭代次数
+m=10
+# 获取特征及标签
+target=train_data[&#39;label&#39;]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+print &#39;样本内训练集正确率：&#39;,mean(train_score)
+print &#39;交叉验证集正确率：&#39;,mean(test_score)
+print &#39;样本内训练集AUC：&#39;,mean(train_auc)
+print &#39;交叉验证集AUC：&#39;,mean(test_auc)</code></pre></div><p>在后 4 年，每月末获取因子数据，放入模型中进行预测，并统计预测结果分别为：样本外测试正确率为 55.1% 及 AUC 均值为 55%，样本外正确率及 AUC 每个月变化曲线图如下所示。(约 1 min)</p><div class="highlight"><pre><code class="language-text"># 获取特征及标签
+train_target=train_data[&#39;label&#39;]
+train_feature=train_data.copy()
+del train_feature[&#39;pchg&#39;]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+print &#39;测试集正确率：&#39;,mean(test_sample_score)
+print &#39;测试集AUC：&#39;,mean(test_sample_auc)    
+测试集正确率： 0.550579287516
+测试集AUC： 0.550073726195</code></pre></div><p class="ztext-empty-paragraph"><br/></p><div class="highlight"><pre><code class="language-text">xs_date = [datetime.datetime.strptime(d, &#39;%Y-%m-%d&#39;).date() for d in test_sample_date]
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+# 纵坐标标记
+plt.ylabel(&#34;test accuracy&#34;)
+plt.show()</code></pre></div><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-c9adec595d6b69a2e68a8d4b3a06e6c2_b.jpg" data-caption="" data-size="normal" data-rawwidth="390" data-rawheight="265" class="content_image" width="390"/></noscript><img src="https://pic3.zhimg.com/v2-c9adec595d6b69a2e68a8d4b3a06e6c2_b.jpg" data-caption="" data-size="normal" data-rawwidth="390" data-rawheight="265" class="content_image lazy" width="390" data-actualsrc="https://pic3.zhimg.com/v2-c9adec595d6b69a2e68a8d4b3a06e6c2_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">xs_date = [datetime.datetime.strptime(d, &#39;%Y-%m-%d&#39;).date() for d in test_sample_date]
+ys_auc = test_sample_auc
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+plt.show()</code></pre></div><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-13dd3602bd5be073f3b357c8b949cfee_b.jpg" data-caption="" data-size="normal" data-rawwidth="390" data-rawheight="265" class="content_image" width="390"/></noscript><img src="https://pic3.zhimg.com/v2-13dd3602bd5be073f3b357c8b949cfee_b.jpg" data-caption="" data-size="normal" data-rawwidth="390" data-rawheight="265" class="content_image lazy" width="390" data-actualsrc="https://pic3.zhimg.com/v2-13dd3602bd5be073f3b357c8b949cfee_b.jpg"/></figure><p>在每个截面上，将高斯核 SVM 模型 (C=1，γ=0.01) 对全部个股下期涨跌的预测值 与因子池中各个因子值之间计算相关系数，查看模型预测值与各个因子值之间 “真实的”相关情况，如下图所示。我们发现，超额收益预测值与换手率、技术等交易类因子关联性较弱，与基本面类型因子关联性较强。</p><div class="highlight"><pre><code class="language-text">factor_predict_corr=pd.DataFrame()
+&#39;&#39;&#39;
+......
+(更多代码参考https://www.joinquant.com/post/15371?tag=algorithm)
+&#39;&#39;&#39; 
+# 高斯核 SVM 模型对于下期涨跌预测值与本期因子值之间相关系数示意图
+fig = plt.figure(figsize= (15,10))
+ax = fig.add_subplot(111)
+sns.set()
+ax = sns.heatmap(factor_predict_corr)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-9606531e89496e03699ab46baac89267_b.jpg" data-caption="" data-size="normal" data-rawwidth="906" data-rawheight="616" class="origin_image zh-lightbox-thumb" width="906" data-original="https://pic4.zhimg.com/v2-9606531e89496e03699ab46baac89267_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-9606531e89496e03699ab46baac89267_b.jpg" data-caption="" data-size="normal" data-rawwidth="906" data-rawheight="616" class="origin_image zh-lightbox-thumb lazy" width="906" data-original="https://pic4.zhimg.com/v2-9606531e89496e03699ab46baac89267_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-9606531e89496e03699ab46baac89267_b.jpg"/></figure><h2>2.3 小结</h2><p>本部分主要进行 SVM 模型的测试。首先，对核函数进行分类，根据需求将核函数分为线性核、3 阶多项式核、7 阶多项式核以及高斯核四大类；然后设定一系列 C 和 gamma 值，通过交叉验证的方法，确定高斯核 SVM 模型的最佳参数，经过验证发现 C=10，gamma=0.01 时模型最佳；紧接着，利用模型分别对样本内数据及样本完数据进行检验，根据计算结果可知，高斯核 SVM 模型样本内训练集和交叉验证集合正确率分别为 81.9% 和 56.2%，AUC 分别为 0.819 和 0.561，样本外测试正确率为 55.1% 及 AUC 均值为 55%；最后，评估了模型预测收益率与因子之间的相关性，发现超额收益预测值与换手率、技术等交易类因子关联性较弱，与基本面类型因子关联性较强。</p><p class="ztext-empty-paragraph"><br/></p><p>欲知策略模型表现，请关注我们下一篇文章～</p>

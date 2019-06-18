@@ -1,0 +1,111 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-27caa95329551e40ca3a093941a8b215_b.jpg" alt=""></div><p>本文是<a href="https://link.zhihu.com/?target=https%3A//joinquant.com/post/13305" class=" wrap external" target="_blank" rel="nofollow noreferrer">量化交易零基础入门教程</a>中的一篇，点击下划线部分可查看该系列详情。</p><p><b>摘要</b></p><p>· 学习用list存储多个股票</p><p>· 学习使用for循环</p><p>· 学习写一个简单的多股票策略</p><p class="ztext-empty-paragraph"><br/></p><p><b>前言</b></p><p>我们继续以如下这个简单的策略为例进行学习在策略中操作多个股票。</p><div class="highlight"><pre><code class="language-agda">def initialize(context):
+      run_daily(period,time=&#39;every_bar&#39;)
+      g.security = &#39;000001.XSHE&#39;
+
+  def period(context):
+      order(g.security, 100)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><b>用list数据类型存储多个股票</b></p><p>事实上，根据前面的所学我们是可以写多个股票的策略的，无非是把原来单个股票的操作类似地再写几遍，比如下面这个策略就在操作两个股票。</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+      run_daily(period,time=&#39;every_bar&#39;)
+      g.security1 = &#39;000001.XSHE&#39;
+      g.security2 = &#39;000002.XSHE&#39;
+  def period(context):
+      order(g.security1, 100)
+      order(g.security2, 100)</code></pre></div><p>显然问题是，当股票比较多的时候，就要写很多遍，这样的写法就会很麻烦，看这也会比较乱。因此我们要学习其他的写法。首先我们先学习用list数据类型存储多个股票，如下：</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+      run_daily(period,time=&#39;every_bar&#39;)
+      # 把两个股票代码作为list存入g.security中
+      g.security = [&#39;000001.XSHE&#39;,&#39;000002.XSHE&#39;]</code></pre></div><p>list数据类型用法前文有讲过，特点是各个元素用逗号隔开后，用中括号把所以元素包起来，比较简单，有疑问不妨去回顾下。接下来是重点内容--循环语句，用它可以方便的批量操作多个股票。</p><p class="ztext-empty-paragraph"><br/></p><p><b>循环语句</b></p><p>for循环可以遍历任何序列的项目，比如一个list，一般用法如下：</p><div class="highlight"><pre><code class="language-text"># 含义是依次把序列中的元素赋值给for后的变量，并执行循环语句
+  for 变量 in 一个序列:
+      要循环的语句，也叫循环体</code></pre></div><p>说起来略复杂，其实不难，来看个使用for的例子：</p><div class="highlight"><pre><code class="language-text">for k in [&#39;大卫&#39;,&#39;查理曼&#39;,&#39;凯撒&#39;,&#39;亚历山大&#39;]:
+      print(k)
+
+  # 执行后日志如下:
+  # 大卫
+  # 查理曼
+  # 凯撒
+  # 亚历山大
+
+  # 可见，for语句的运行过程是，取出list中第一个元素&#39;大卫&#39;并将其赋值给k，然后执行print(k)即在日志中打印k，，此时k中是&#39;大卫&#39;，之后，取出list中第二个元素&#39;查理曼&#39;并将其赋值给k，然后执行print(k)即在日志中打印k，此时k中是&#39;查理曼&#39;，以此类推，直到&#39;亚历山大&#39;被打印。</code></pre></div><p>使用for语句时有一个常见一起使用的语句range()，它的功能是生成等差数列的，用法如下：</p><div class="highlight"><pre><code class="language-text">range(首项,上限,步长)
+
+  # 首项 就是这个数列的第一项，可省略，省略后默认为0
+  # 步长 就是数列的公差、间隔，可省略，省略后默认为1
+  # 上限 是用来限制数列长度的，即数列不得大于或等于上限。不可省略。
+  # 另外，python2中range产生的是list，但python3中产生的不是list，但可以用list()这个语句把结果转成list类型，比如list(range(1,7,2))。我们策略编辑环境是python2。
+
+  # 一个例子
+  for j in range(1,7,2):
+      print(j)
+  print(range(1,7,2))
+
+  # 执行后日志如下:
+  # 1
+  # 3
+  # 5
+  # [1, 3, 5]</code></pre></div><p>continue与break是重要的修饰循环执行流程的语句，用法如下：</p><div class="highlight"><pre><code class="language-text"># break的作用是写在循环体中用来跳出当前的整个循环过程
+  # continue的作用是写在循环体中用来跳出当前的这一次的循环过程
+  # 通过一个例子应该就能明白两者的作用与区别
+
+  # 一个简单的循环例子
+  for t in range(4):
+      print(t)
+
+  # 执行的结果是
+  # 0
+  # 1
+  # 2
+  # 3
+
+  # 在例子中使用break。可以看到当循环到2的时候，打印omg后，执行break，终止了整个循环过程，不再继续循环3了，所以omg后就什么都没了。
+  for t in range(4):
+      if t == 2:
+          print(&#39;omg&#39;)
+          break
+      print(t)
+
+  # 执行的结果是
+  # 0
+  # 1
+  # omg
+
+  # 在例子中使用continue。可以看到当循环到2的时候，打印omg后，执行continue，跳过了当前正循环的t为2这个循环过程的余下部分，不在继续执行之后的语句(即print(t)，此时t等于2)，而继续循环3了，所以omg后有打印3。
+  for t in range(4):
+      if t == 2:
+          print(&#39;omg&#39;)
+          continue
+      print(t)
+
+  # 执行的结果是
+  # 0
+  # 1
+  # omg
+  # 3</code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><b>写一个简单多股票策略 </b></p><p>用刚学的知识把之前简单的策略例子改写成多股票版本，如下：</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+      run_daily(period,time=&#39;every_bar&#39;)
+      # 把两个股票代码作为list存入g.security中
+      g.security = [&#39;000001.XSHE&#39;,&#39;000002.XSHE&#39;]
+
+  def period(context):
+      # 每个股票买100股
+      for stk in g.security:
+          order(stk,100)</code></pre></div><p>其实运用所学的知识已经可以进一步的加入很多东西了，比如在这个多股票的基础上在加入之前讲过的止损。不妨自己先尝试下再看下面的样例代码。样例代码如下：</p><div class="highlight"><pre><code class="language-text">def initialize(context):
+      run_daily(period,time=&#39;every_bar&#39;)
+      # 把两个股票代码作为list存入g.security中
+      g.security = [&#39;000001.XSHE&#39;,&#39;000002.XSHE&#39;]
+
+  def period(context):
+      for stk in g.security:
+          order(stk,100)
+          # 获得股票持仓成本
+          cost=context.portfolio.positions[stk].avg_cost
+          # 获得股票现价
+          price=context.portfolio.positions[stk].price
+          # 计算收益率
+          ret=price/cost-1
+          # 如果收益率小于-0.01，即亏损达到1%则卖出股票，幅度可以自己调，一般10%
+          if ret&lt;-0.01:
+              order_target(stk,0)
+              print(&#39;触发止损&#39;)</code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><b>自测与自学</b></p><ul><li>实践下本文中的例子</li><li>用for语句生成一个100项的平方数数列的list，即[1,4,9,16,...,10000]；</li><li>用for语句计算100项的平方数数列的和，即1+4+9+16+...+10000的结果；</li><li>以下代码输出结果是？(len之前提到过，不记得的直接百度下)；</li></ul><div class="highlight"><pre><code class="language-text">a = [4,2,1,9,6,5,3,8,7]
+for i in range(len(a)):
+  for j in range(i+1,len(a)):
+      if a[j] &gt; a[i]:
+          t=a[j]
+          a[j] = a[i]
+          a[i]=t
+print(a)</code></pre></div><p>特别提示：文章研究的代码可以在聚宽社区获取哦。</p><p><a href="https://link.zhihu.com/?target=https%3A//www.joinquant.com/post/13877%3Ftag%3Dalgorithm" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">joinquant.com/post/1387</span><span class="invisible">7?tag=algorithm</span><span class="ellipsis"></span></a></p>
