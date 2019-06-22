@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Libra技术概览</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/70281322">原文</a></p>
+<p>本文由陈智罡博士撰写</p><p>我们是最早将Libra技术论文发到了格密链区块链群里，第二天一大早就看到有人翻译出该论文。粗粗阅览了一下，只有两个字“汗颜”。错误百出，居然把transaction翻译成事物，显然是机器翻译的。当然也反映出缺少专业性，所以无法胜任。</p><p>学术圈和商业界是一个生物链，有空我会好好说说。在一个新生技术面前，学术界是有极大的优势的，尤其是当这一技术具有高门槛，例如密码学技术，没有专门的学习与修炼是很难撼动的。</p><p>话说回来，这两天我们先后发表了对Libra的解读（<a href="https://zhuanlan.zhihu.com/p/70226104" class="internal">解读1</a>，<a href="https://zhuanlan.zhihu.com/p/70226370" class="internal">解读2</a>），引起了大家广泛的共识与讨论。接下来我们想对技术进行解读，好让大家对Libra有个清晰的认识。这个事情估计只有我们能够做的最好（可参考我们的比特币白皮书解析），因为我们即在学术圈，也在工业界，格密链一贯的思路是做区块链上密码技术的研发，也是国内首家专注于区块链上密码技术研发的公司。</p><p>对于普通大众，最关心的就是Libra是个啥区块链，能挖矿吗，激励机制怎么样。在高阶一点的朋友，就关心共识算法用的是什么，性能如何，用什么编程语言等等。下面一一解释。</p><p>细读完整个技术论文，我体会到Facebook满满的诚意。因为整个论文对Libra的称呼就是数据库，一个基于密码技术的可认证的数据库。换成其他白皮书，深怕别人说自己不是区块链，哪敢用数据库三个字。</p><p>然而，Facebook却很诚实。因为他们是想把该项目落地的，请看论文最后一部分第2段的第1句话：</p><p>We are working toward an initial launch of the system, and to keep it within a manageable scope, we plan to make several simplifcations in the frst version.</p><p>这句话啥意思，就是为了落地Libra，在第一版中简化了一些东西。</p><p>所以这也是我称呼该技术文档为论文的原因。整个文章都是按照论文风格写的，有理有据，和你见过的白皮书完全不一样。</p><p><b>既然Libra是一个去中心化的数据库，那么它是什么类型的区块链呢？</b></p><p>它是一个许可链，通俗的说就是联盟链。因为要落地使用，所以只有联盟链技术上最可行。论文中也指出，将来会慢慢朝着公有链方向发展。何年马月无从知晓。总之，目前要想真的开展应用，只有联盟链最合适。</p><p>紧接着可能很多人会问：<b>有激励机制吗？可以挖矿吗？</b></p><p>既然是联盟链就没有激励机制，也不可能挖矿了。<b>谁来记账呢？</b></p><p>Libra在这方面给出了详细解释，为了系统的性能，记账成员来自于基金会成员。将来Libra会把记账权推广到拥有Libra币的成员。</p><p><b>那么激励机制有吗？</b>准确的告诉您：没有。都是自家人何须激励，Libra系统中没有外人，只有自家成员。</p><p><b>有人记账了，那么如何达成共识呢？</b></p><p>该系统用的是一个称为LibraBFT的共识算法，它是HotStuﬀ共识协议的改进版。它具有拜占庭容错功能，能够在3f + 1个结点间达成共识，只要其中 f个结点是诚实的。这是技术上的需要和防范，其实你想想结点都是股东和基金会成员，大范围恶作乱是不可能的。</p><p>Libra并不是自己从头构建一个共识算法，这和有些白皮书截然不同（明明用的是别人的算法，偏偏说是自己革命性的创造）。在选择共识算法上，Libra选择的标准是至少能够支持100个结点，而且未来能够扩展到500-1000个结点。</p><p>鉴于以上的标准，Libra 选择了HotStuﬀ共识协议。该协议安全性证明简单，便于执行，而且性能较快。Libra系统通过3轮网络通信即可达成共识。</p><p>这一切再次说明，Libra不是玩虚的，一切为了落地应用。想想EOS吧，一比较就可以看出高低。</p><p><b>Libra性能如何呢？</b></p><p>论文明确的说明了，支持每秒1000笔交易，每笔交易从产生到最终确认需要10秒钟。熟悉比特币的同学，一定想到了比特币每10分钟出一个块，确认还要6个块后。Libra假设需要交易在链下进行，而且也可以通过支付通道完成。</p><p><b>那么Libra如何出块的呢？</b></p><p>遗憾的告诉你，Libra没有块这个概念。因为它自始至终是一个数据库，只有交易列表的概念。</p><p><b>Libra是用什么开发语言构建的？</b></p><p>用的是RUST。选择该语言也很明智，除了保障安全性外，该语言还有一个大的特征是高度契合支付交易场景。从语言上的选择，说明了Facebook确实冲着支付交易场景去的。</p><p>除了以上一些特性外，论文中反复说了，目前只是一个系统原型，某些方面做了简化。但是主要有的几个部件都有了，剩下的工作可以在此基础上进行开发。在Libra早期阶段，使用外部认可的基金会成员作为记账员，简化了激励机制以及提高了系统响应速度。为了落地应用，用户不能自己定义规则，等到MOVE语言参数规范之后，将来Libra系统会逐步开放。</p><p>后期我们将会给大家做详细的技术分析解读。关于技术论文的中文解释版，关注我们的微信公众号（btc201800）可以获得。</p><p>宁波格密链将会持续关注Libra系统的发展，技术上会对其进行研究与改进。</p><a href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzU3MTYzMjMzNA%3D%3D%26mid%3D2247485129%26idx%3D1%26sn%3Dc8cfd112fd11db3107342264763e2955%26chksm%3Dfcdc7968cbabf07ed2804c088d51fd0aff4904dab0816064436ecb0680ff50b523de040e866e%26token%3D1308837286%26lang%3Dzh_CN%23rd" data-draft-node="block" data-draft-type="link-card" class=" wrap external" target="_blank" rel="nofollow noreferrer">Libra技术概览</a><hr/><p><b>文章首发在微信公众号：btc201800</b><br/><b>知识星球ID：28018093</b><br/><br/><b>音频发布在喜马拉雅上“区块链杂谈 (第2季)”</b> <b><u><a href="https://link.zhihu.com/?target=http%3A//xima.tv/Bjq4se" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/Bjq4se</span><span class="invisible"></span></a></u></b><br/><b>解读区块链白皮书</b> <u><a href="https://link.zhihu.com/?target=http%3A//xima.tv/RNU1Q8" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/RNU1Q8</span><span class="invisible"></span></a></u><br/><br/><b>宁波格密链网络科技有限公司，专注于区块链上的密码技术研发。</b></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
