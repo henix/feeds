@@ -5,11 +5,676 @@
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/</link>
 <description>caoz的心得与分享,只此一家,别无分号.</description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 25 Jun 2019 15:52:35 +0800</lastBuildDate>
+<lastBuildDate>Wed, 26 Jun 2019 02:01:18 +0800</lastBuildDate>
+<item>
+<title>终于有人把 Elasticsearch 原理讲透了。</title>
+<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-25-1000000438_502384874.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5paYtvaa8-QdeguZMXeYe-zmqBWUCo6puJy0buHPAIT2FZTZUGC8IwfuW4lzw82q1q07os0Xuwd3dix9oU*bN7hE=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+
+		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+
+            
+                          
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    
+            终于有人把 Elasticsearch 原理讲透了。
+                      &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                                                &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                极客时间
+                                            &lt;/span&gt;
+                                        
+                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        caoz的梦呓                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;上个世纪末，我在广州做 PHP 程序员，那会儿程序员的门槛真低啊。我的上司是技术经理，非常照顾我。&lt;span style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;有个客户是开律所的，过来提了一个私活的需求，要做个法律查询的网站。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;上司让我赚点外块，说干就干，整个 Mysql，把内容导入进去，写个搜索查询语句，用不了多久，搞定。客户觉得，这开发效率，牛，没谁了。&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;于是，问题来了。搜索一个关键词，要等好半天，SQL 的 like 语法么，当时就会这个，更不用说负载问题了，还好那时候还没啥用户使用。真是啥都不会，所幸当时整个行业的门槛都低，再往后，客户就找别人去了。&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;后来，我才知道搜索这玩意的开销、字索引和词索引都是怎么回事，搜索引擎是如何实现的，也渐渐知道了各种第三方的开源搜索平台。&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;其实，&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;搜索是现代互联网应用必备的一项基础功能&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，很多产品都需要内建搜索系统。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;而且，随着时代的前进，搜索不再仅仅是关键词匹配，比如随着搜索出现的相关推荐，再比如基于地理位置的就近查询，等等需求应运而生。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;能够胜任这样的开发，可不是什么容易的事情。幸而有些强大的第三方工具，才能让我们不用重复造轮子，&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Elasticsearch 就是一款功能强大的&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;letter-spacing: 0.544px;text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;开源分布式搜索与数据分析引擎&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;text-align: left;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/span&gt;&lt;/span&gt;&lt;/strong&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;它可以从海量数据中快速找到相关信息，在同领域内几乎没有竞争对手——近两年 DBRanking 的数据库评测中，ES 在搜索引擎领域&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;始终位列第一&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;当你在 GitHub 上搜索时，Elasticsearch 可以实现代码级的搜索与高亮显示 ；当你在网上购物时，ES 可为你推荐喜欢的商品；当你下班打车回家时，ES 可以通过定位附近的乘客和司机，帮助平台优化调度。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Elasticsearch 还被广泛运用于&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;大数据近实时分析&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，包括&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;日志分析、指标监控、信息安全&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;等多个领域。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;它可以探索海量结构化、非结构化数据，按需创建可视化报表，对监控数据设置报警阈值，甚至通过使用机器学习，做到自动识别异常状况。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;作为&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;目前最流行的开源搜索引擎&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，ES 在全球的下载量已超过 3.5 亿次，腾讯、滴滴、今日头条、饿了么、360 安全、小米，vivo 等国内诸多知名公司都在使用 Elasticsearch。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 0.544px;font-size: 18px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;如何深入理解，并高效使用 ES ？&lt;/span&gt;&lt;/strong&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Elasticsearch&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; 非常容易上手&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，具有开箱即用的特性，你可以在极短的时间内设置好开发环境，然后快速上手使用，继而在成百上千台服务器上&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;实现 PB 级的数据处理&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;虽然上手快，但要做到&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;深入理解并高效使用，可就没那么简单了&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，比如：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 16px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;1. 为什么我的数据查不到，明明是有的啊！&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 16px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;2. 什么鬼？为什么这几条数据出现在搜索结果的前几位？&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 16px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;3. 生产环境我需要多少台机器，索引的分片数怎么样设置才是合理的？&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 16px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;4. 应该关注哪些指标，才能保证集群健康高效地运行？&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 16px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;5. 对于日志型应用，如何设置 Hot &amp;amp; Warm Architecture 节约成本，怎样管理和优化基于时间序列的索引数据，才能提高集群的整体性能？&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 16px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;6. 为什么我的集群脑裂了？数据损坏后，怎样才能恢复？&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;其实，想要掌握 Elasticsearch，除了要理解&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;其分布式架构的原理&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;外，还要了解一些&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;信息检索领域的知识和相关技巧&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;分享给你一张 &lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Elasticsearch 核心知识图谱&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，只有对每一个知识点仔细梳理并深入理解，才能解决工作中的实际问题。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-ratio=&quot;1.09296875&quot; data-s=&quot;300,640&quot; data-type=&quot;png&quot; data-w=&quot;1280&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/HXiabut2oicnMdeaN4Uw0ZOolhzWVeuCia6EVV2CuQ3SOFylppg7PiaHk5qFrtfaNZrMpIL79octannQAqricTNqC8g/640?wx_fmt=png&quot; style=&quot;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;text-align: justify;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;       &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这张图谱出自阮一鸣，我之前听过他在 Elastic 中国开发者大会的分享，讲得非常不错。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 0.5px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;最近，得知他跟极客时间合作，推出了一门视频课&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;《Elasticsearch 核心技术与实战》，&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 0.5px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;有幸提前看到了目录和一部分内容，很想推荐给你。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;在课程中，他用理论与实践相结合的方式、深入浅出地讲解了 Elasticsearch，&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;只要你坚持学习，就能掌握 ES 的基本概念和服务搭建，了解其运行机制和常用技巧，并通过上手实战理解 ES 在实际项目中的应用。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;近几年 ES 非常热门，所以去年 Elastic 公司推出了&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;官方的 Elastic 工程师认证考试&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，需要考生在 3 个小时的线上考试中，动手解决 12 个实际问题，就算有多年工作经验的老手都未必能通过。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;所以，这个认证的&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;含金量还是挺高&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;的，上面也提到，很多巨头都在使用 ES 搭建自己的搜索系统。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;你去应聘的时候，有证跟没证有可能就会影响你的录取，收入也有可能差一个档次。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;阮一鸣说，这门课&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;覆盖了 Elastic 认证考试的全部考点&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，想参加考试的朋友可以将这门课作为参考教材，这也算是&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;「学习技能之外的 bonus」&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;了。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;lCKB&quot; class=&quot;&quot; style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;h1 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/h1&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 18px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;关于阮一鸣&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;阮一鸣，eBay Pronto 平台技术负责人。Pronto 平台管理了 eBay 内部上百个 Elasticsearch 集群，数据规模超过了 4000 个节点。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这些集群在 ebay 的生产环境中，支撑了包括订单搜索，商品推荐，日志管理，风险控制，IT 运维，安全监控等不同领域的服务。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;作为一名互联网行业的老兵，他从业近 20 年了，在大数据、云计算和性能优化方面积累了丰富的经验。同时，他还是一名连续创业者，创办过手机游戏公司、个性化音乐推荐与分享平台 8box。&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;YNK4&quot; class=&quot;&quot; style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;h1 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/h1&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 18px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;他是如何讲解 Elasticsearch 的？&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;如果你对 Elasticsearch 有些了解，就会发现 ES 的&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;产品迭代速度非常快&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，很多老的 API 都已经被废弃不再使用，搜索到的参数配置也大多发生了变化。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;市面上的书籍和教程都是基于 5.x 甚至是 2.x 版本。而在课程中，哥们儿使用&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Elasticsearch 最新的 7.1 版本&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;进行教学。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;所有 ES 最新版本的特性&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，在课程里都会有全面和直观地展现，比如：用机器学习进行异常检测；用 Canvas 展示数据；用索引的生命周期管理工具对索引进行优化等等。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 18px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这个课大概分为 5 个部分&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;：&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;em style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;1.&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/em&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; 初识 Elasticsearch&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(136, 136, 136);font-size: 14px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;Elasticsearch 核心概念、工作机制与应用场景；本地开发环境搭建；倒排索引的原理与 ES 中 Analysis 的具体细节；Mapping 设置和一些基本的 Search &amp;amp; Aggregation API。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;em style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;2. &lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/em&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;深入了解 Elasticsearch&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(136, 136, 136);font-size: 14px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;理解 Elasticsearch 分布式架构的原理；相关性算分的原理；数据建模的最佳实践；深入搜索及聚合功能以提高搜索结果的相关度。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;em style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;3. &lt;/span&gt;&lt;/strong&gt;&lt;/em&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;管理 Elasticsearch 集群&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(136, 136, 136);font-size: 14px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;集群的水平扩展、参数配置、性能优化、故障诊断。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;em style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;4.&lt;/span&gt;&lt;/strong&gt;&lt;/em&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; 利用 ELK 做大数据分析&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(136, 136, 136);font-size: 14px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;结合使用场景和数据，探索 Logstash、Kibana 的各项功能。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;em style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;5. &lt;/span&gt;&lt;/strong&gt;&lt;/em&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;应用实战工作坊&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(136, 136, 136);font-size: 14px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;设计了电影搜索和 Stack Overflow 用户调查问卷数据分析两个实战项目，通过上手实践，你可以巩固所学的知识点，并运用到实际项目中。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;h1 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/h1&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 18px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;需要什么基础，能获得什么？&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这门课不仅适合有 ES 使用经验的人，也适合初学者。&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;编程知识和数据库的相关使用经验&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，会对你学习 ES 有一定帮助，但&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;并不是必须的&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;针对&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;开发人员&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，搜索是一项被广泛需要的功能，这个课程详细地讲解了相关的搜索概念在 Elasticsearch 中是如何对应和具体实现的。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;如果你是一名 ES 的&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;运维人员&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，管理了公司内部的 Elasticsearch 集群：&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(136, 136, 136);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;上线前的如何进行容量规划，上线后如何保证这些集群在生产环境内稳定高效的运行，如何在凌晨识别出异常信号，及时发出告警，以避免灾难的发生。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这些问题，他在课程中&lt;/span&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;都会给出相关的最佳实践&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;其实，无论是&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;开发还是运维，架构师抑或数据分析师，甚至是产品经理&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，如果想更多的掌握搜索相关的知识和能力，都可以学一学 Elastic Stack。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;哎，你可能要说，为什么产品经理也要学，因为以后遇到开发说“这个搜索功能做不来”的时候，你可以&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;理直气壮地撕逼&lt;/span&gt;&lt;/strong&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;啊。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;在大数据时代，近实时的搜索和分析能力，会让你唯快不破，洞见未来。——这句 copy 了阮一鸣。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;跟着认真学，结合课程中的练习和实践，相信你一定能学以致用，基于 Elasticsearch 构建出你自己的搜索和数据分析产品。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;说真的，搜索&lt;/span&gt;&lt;strong style=&quot;max-width: 100%;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;这种核心技术诉求，你只要在这行，迟早用得着。&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;text-align: center;line-height: normal;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-ratio=&quot;1.7787037037037037&quot; data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; data-w=&quot;1080&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/HXiabut2oicnMdeaN4Uw0ZOolhzWVeuCia6aeKKYYYbspq35qwPqBVcEiaMX1hOODD7eicjwhYgGtX7V6jtTb0IbbPw/640?wx_fmt=jpeg&quot; style=&quot;width: 460.354px;box-sizing: border-box !important;overflow-wrap: break-word !important;visibility: visible !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;text-align: center;line-height: normal;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;△扫我的海报试读或订阅&lt;/span&gt;&lt;/p&gt;&lt;p line=&quot;xOhn&quot; class=&quot;&quot; linespacing=&quot;115&quot; style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;h1 class=&quot;&quot; style=&quot;max-width: 100%;letter-spacing: 0.544px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/h1&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 17px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;从我这里订阅有什么福利？&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;1. &lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;早鸟 &lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;¥99&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，原价 ¥129。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;2. 结算时，输入&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;优惠口令&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;「ILOVEES66」再减 &lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;10&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;元，到手价 &lt;span style=&quot;max-width: 100%;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;¥89&lt;/span&gt;，口令&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;明天就过期&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;了。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;3. &lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;订阅专栏&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;后，可以获得阮一鸣亲自整理的高清版&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;「Elasticsearch 核心知识图谱」&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;，获取方式：在公众号内回复关键字「&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;ES&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;」。&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;说了半天，是时候上目录了，&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;color: rgb(0, 0, 0);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;strong style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;想要干货&lt;/span&gt;&lt;/strong&gt;&lt;/span&gt;&lt;span style=&quot;max-width: 100%;letter-spacing: 1px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;往下看：&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;line-height: 1.5em;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-ratio=&quot;6.326666666666667&quot; data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; data-w=&quot;750&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/HXiabut2oicnMdeaN4Uw0ZOolhzWVeuCia6JZSpibsc0uX1CsDcSicoRaqmgicC2nSA5DGjPK95FPnNuJqdCX3OoJBcw/640?wx_fmt=jpeg&quot; style=&quot;box-shadow: none;float: left;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;max-width: 100%;min-height: 1em;text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-ratio=&quot;5.362666666666667&quot; data-s=&quot;300,640&quot; data-type=&quot;jpeg&quot; data-w=&quot;750&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/HXiabut2oicnMdeaN4Uw0ZOolhzWVeuCia6DlQrfO5GBhAXibkspnzYDbLgyw7fbNQ1gjn5ZZVXT3UANl42d7RHYdA/640?wx_fmt=jpeg&quot; style=&quot;box-shadow: none;box-sizing: border-box !important;overflow-wrap: break-word !important;width: 677px !important;visibility: visible !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;优惠口令&lt;span style=&quot;letter-spacing: 1px;&quot;&gt;「&lt;/span&gt;&lt;span style=&quot;letter-spacing: 1px;&quot;&gt;I&lt;/span&gt;&lt;span style=&quot;letter-spacing: 1px;&quot;&gt;LOVEES66」&lt;/span&gt;&lt;span style=&quot;max-width: 100%;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;明天就过期&lt;/span&gt;。&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin-right: 8px;margin-left: 8px;max-width: 100%;min-height: 1em;text-align: left;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;👇点&lt;/span&gt;&lt;span style=&quot;max-width: 100%;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;「阅读原文」&lt;/span&gt;，以 &lt;span style=&quot;max-width: 100%;color: rgb(255, 104, 39);box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;¥89 &lt;/span&gt;最低价入手。&lt;span style=&quot;text-align: justify;&quot;&gt;&lt;/span&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;1373577922&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx46b604.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
+
+
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;极客时间&lt;/div&gt;
+                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
+        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
+
+    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
+
+    &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;
+    &lt;/div&gt;
+
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
+    &lt;/span&gt;
+
+      
+    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
+      &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
+    &lt;/span&gt;
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+      &lt;div style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
+  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+  
+  &lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+    &lt;div class=&quot;like_comment_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;like_comment_bd&quot;&gt;
+        &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+          &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;&lt;i class=&quot;icon-success-primary&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_ft&quot;&gt;
+        &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+        &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          写下你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://time.geekbang.org/course/intro/197?code=Yfo6VdIynpVpexN7mqD5%2F4aT4hfhC3B3CE0LFYF6TQo%3D&amp;amp;utm_term=SPoster&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+  
+      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>极客时间</author>
+<guid isPermaLink="false">2019-06-25-1000000438_502384874</guid>
+<pubDate>Tue, 25 Jun 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>从高考填志愿谈起</title>
+<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-25-1000000438.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5paYtvaa8-QdeguZMXeYe-zlszpFEBbbTviuqRSGcNwkPfx1BXA-yldVUxhCNQGBUK-NC3o7p74580sjWgVZYxCk=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
+
+        
+        
+		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
+
+		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
+
+            
+                          
+                        
+
+            &lt;div id=&quot;img-content&quot;&gt;
+
+                
+                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
+                    
+                    
+                    
+            从高考填志愿谈起
+                      &lt;/h2&gt;
+                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
+                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
+                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
+                                                &lt;span id=&quot;js_author_name&quot; class=&quot;rich_media_meta_link&quot; data-rewardsn=&quot;&quot; data-timestamp=&quot;&quot; data-canreward=&quot;0&quot;&gt;caozsay&lt;/span&gt;
+                                            &lt;/span&gt;
+                                        
+                                                                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
+                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
+                        caoz的梦呓                      &lt;/a&gt;
+                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
+                          &lt;div class=&quot;profile_inner&quot;&gt;
+                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
+                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
+                              &lt;/p&gt;
+
+                              &lt;p class=&quot;profile_meta&quot;&gt;
+                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
+                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
+                              &lt;/p&gt;
+                              
+                          &lt;/div&gt;
+                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
+                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
+                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
+                          &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/span&gt;
+
+
+                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
+
+
+
+
+
+                &lt;/div&gt;
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
+                    
+
+                    
+
+                    
+                    
+                    &lt;p&gt;据说最近发榜了，很多热点话题。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;一般情况下我不太愿意讲这些，毕竟我高考是在上个世纪，年代太久远了，不能总是倚老卖老。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但想想很多年轻人，面临如此关键的人生选择，还是觉得有必要说几句。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;1、格局和视野很重要&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;20多年前，很多成绩相当不错的人，初中毕业就去考重点中专，那时候考重点中专也挺难的，被认为很有前途。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但坚持读高中，读大学的，十年二十年过去，人生轨迹就大不一样。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有时候挺感慨的，家长的视野和格局就把很多优秀的年轻人耽误了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;还有就是狭隘的地区观。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;20多年前，当年我高考的时候，天津人认为最好的大学是清华北大，其次就是南开，天大。当时浙大，南京大学，上海交大，复旦等等在天津的竞争力是不如南开，天大的，这么说吧，浙大在天津的录取分数线低于我们高中班的平均分的，厦大，华南理工这种就更低了。但实际上，大部分成绩优秀的同学都留在了天津的几所高校。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我呢，有个建议，南方的同学，尽量报北方大城市的高校，北方的同学，尽量报南方大城市的高校。&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多人希望离家近一点，我建议格局开一些，视野开一些，多跟不同的人群打交道，思路开阔一些。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而且，对于本土情节严重的地区呢，这样你可以在同等成绩的情况下，进一些排名较好的大学。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外，如果读书的时候有各种海外交换的机会，建议争取，还是那句话，开阔视野，开阔格局。要让自己更多的，更全面的认识这个世界。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;2、选学校还是选专业&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得，学校差距不特别大的情况下，应该优先选专业。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如我当年如果不受父母影响，视野足够开阔，可以自主选择的话，我多半会选浙大的计算机专业。（清华计算机我是万万考不上的）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多人希望学校很有优势，还是那句话，差距不太大的前提下，这个优势也并不绝对，而专业，则是你能不能有兴趣，有动力在大学期间能够完成学业，如果非常被动，应付，其实是浪费自己的时间，也浪费学校的资源。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;专业不要盲目追热门，要结合自己的兴趣和爱好，你有没有兴趣深入研究的领域，这是你能不能学的好，做出成绩的基础。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，学校也要斟酌，比如很多人提到的，尽量选择大城市，尽量选择排名靠前的。网上其实各种数据很全，不同学校的排名情况，不同专业的排名情况，建议家长和学生多花一点时间研究一下，不要盲目相信一些不靠谱的亲戚朋友，多花点时间做做功课是值得的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;啰嗦一句，记住前面的条件，学校差距不大的情况下我建议优先选专业，学校差距太大的话，还是尽量去好一点的学校。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;3、 名校的价值&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;很多人并不知道名校读书的价值在哪里，其实社交资源很丰富。很多二代们在欧美各大名校建立了新的社交基础。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;前两年在新加坡跟一个做投资的新加坡政府前任司长聊天，他当年也是学霸，拿政府奖学金读名校，发现同学很多是东南亚各国的官二代，甚至让人怀疑是不是政府刻意安排的。（政府奖学金的学生基本上都会安排从政，新加坡政府官员薪酬也是世界名列前茅的）&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但二代们主要集中在一些顶尖名校的金融，企业管理等专业，特点是读起来没那么辛苦（我猜有些人会不同意），而且以后好接班，所以你说我这种读热物理的，又难读又接不了班，谁家二代肯来啊。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但社交资源并不只是二代独有，你可以认识很多优秀的人，这也很重要。名校的同学很多都是潜力股，你不知道哪个会在什么时候爆发，不知道什么时候谁会称为新的经济或技术领袖。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那有人会说，这是不是和上一条冲突了？其实不冲突。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如你去一流名校读一个偏冷门的专业，遇到优秀人才的概率，和去一个二流名校读一个非常有前途的专业，你遇到优秀人才的概率，我认为是相差不大的，甚至后者可能更大一些。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;网上有很多建议不要参与乱七八糟的学生社团，没什么用。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我觉得还是因人而异吧&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第一，你是不是有某些兴趣特长值得发挥，比如音乐或者美术才艺之类的，要混学生社团，优先找自己能发挥出来才能的。要做社团里足够闪耀的那个。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二，你可能会遇到一些非常厉害的人物，可能拓展以下自己的社交圈，当然，越是好学校这种概率越高一些。但不要认为你认识了人家就是你的社交资源，你在某个领域足够优秀，能给对方建立足够好的印象，也很重要。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第三，建议远离那种腐臭官僚气息的社团。什么是腐臭官僚气息的社团，你遇到的时候应该能感觉到。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;4、这并不是最终的选择&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;进入大学后，仍然要好好读书，不是说非要追求成绩多出色，但我建议要做到以下几点&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第一，要搞懂关键的知识和逻辑&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如你学计算机专业，数据结构，计算机原理，网络协议，要真的理解设计的原理和逻辑，不是说非要追求课程满分，但这种基础课程的关键知识点，一定要理解到位。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;再比如概率，线性代数，高等数学等课程，也是同理，要真正理解关键的定理的推导过程，以及证明过程，并能自如用于实际场景。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第二，要掌握学习技巧和方法&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;学习是一辈子的事情，多跟成绩最好的同学沟通交流，问问他们对待问题的解题思路是什么，问问他们是如何理解一些难以理解的知识点的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第三，要尽早找到自己的目标和方向&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不要等毕业的时候随波逐流，尽早未雨绸缪，找自己定位，自己的优点，缺点要清楚，为理想的工作早做准备。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第四，想办法去最好的企业参加实习&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;实习不要关心待遇，尽量去最好的企业，只要能进去就是胜利。进去就是学习，不要牢骚做多做少，不要怕批评怕指责，不要怕被嘲笑，就找里面公认最牛的人，拜师，多提问，多学习。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;相信我，如果一个人是领域内最好的企业里公认某方面最牛的人，那一定是这个行业基本上顶尖的存在，你跟着学就对了。不收你学费就偷着笑吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;第五，节制消费&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;不要借贷！不要借贷！不要借贷！&lt;/p&gt;&lt;p&gt;如果确实有合理需求缺钱，找父母！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果谈恋爱缺钱，找父母！&lt;/p&gt;&lt;p&gt;有的孩子觉得，父母当年严防早恋，不敢提，怕挨批。我觉得，大学里谈恋爱，对绝大部分父母来说，开心都来不及！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，谈恋爱适当花钱可以理解，看个电影吃个饭什么的，但如果对方大手大脚，总是让你花钱来表诚意，今天买个包明天买个表，这种多半不是真爱，尽早远离。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;大学之后仍然会分流的厉害，同样进入一所学校，有的人继续奋进，有的人彻底沉沦，毕业的时候就已经能看出非常大的区别，工作之后更会体现出天壤之别。进了高校并不是终点，未来有更多的选择，仍然需要不断的努力。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;5，维持自制力&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;自制力很重要，很多人一上大学彻底放松了，父母也管不着了，学校也不管了，然后就昏天黑地，人就废掉了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;自制力是什么，控制自己的欲望和惰性，不断催促自己发挥积极性的一面。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么大学生的自制力其实不用那么复杂，这几点做到就好&lt;/p&gt;&lt;ul class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: disc;&quot;&gt;&lt;li&gt;&lt;p&gt;保障作息规律，保障睡眠。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;坚持锻炼身体。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;坚持价值阅读/背单词/或其他兴趣学习&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;控制饮食&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;坚持亲自去上课&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;惭愧，说来，我当年读书的时候好像一条都没做到。但这些真的很重要。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;6、保持自信&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;进入一些好的学校，遇到一些优秀的同学，有时候会带来不小的压力，我靠，怎么这哥们这么牛逼，怎么谁谁谁都这么牛逼。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;其实这是好事，你通过自己的努力可以和这么多牛逼的人平起平坐。要相信自己，哪怕确实天赋不如人家，也要相信自己，坐在一起，你已经足够优秀。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最怕心态失衡，情绪崩溃。特别是一路优秀过来的那种。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我跟你们讲个真的，我高考的时候都不紧张的，真的不紧张，可淡定了。但我读大学后，到毕业十多年的时间里，经常做同一种噩梦，就是第二天快考试了，自己什么都不会。后来才知道，有不止一个同学跟我有同样的感觉。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;还好只是噩梦。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;就这些吧，希望对你们身边的人有一点帮助。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;script nonce=&quot;324625212&quot; type=&quot;text/javascript&quot;&gt;
+                    var first_sceen__time = (+new Date());
+
+                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
+                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
+                            var link = document.createElement(&#39;link&#39;);
+                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
+                            link.rel = &#39;stylesheet&#39;;
+                            link.type = &#39;text/css&#39;;
+                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx46b604.css&quot;;
+                            head.appendChild(link);
+                        }
+                    })();
+                &lt;/script&gt;
+
+                
+  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
+
+
+                
+                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
+                    
+                &lt;/div&gt;
+
+                
+                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_reward_avatar&quot;&gt;
+                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_reward_author_head&quot;&gt;
+                    &lt;/div&gt;
+                    
+                                                                    &lt;div class=&quot;reward-author&quot; style=&quot;display: none;&quot; id=&quot;js_reward_author&quot;&gt;caozsay&lt;/div&gt;
+                                                                                    &lt;p class=&quot;reward_tips js_reward_wording&quot;&gt;感谢您的支持&lt;/p&gt;
+                                        &lt;p&gt;
+                        &lt;a class=&quot;reward_button&quot; id=&quot;js_reward_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
+                    &lt;/p&gt;
+                    &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
+                        &lt;p class=&quot;weui-loadmore weui-loadmore_line reward_user_tips&quot; id=&quot;js_reward_total_parent&quot;&gt;
+                          &lt;span class=&quot;weui-loadmore__tips&quot;&gt;
+                            &lt;a href=&quot;##&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt; &lt;span id=&quot;js_reward_total_text&quot;&gt;人赞赏&lt;/span&gt;
+                        &lt;/span&gt;
+                        &lt;/p&gt;
+                        
+                        &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
+                                        &lt;p class=&quot;reward_tips&quot;&gt;感谢您的支持&lt;/p&gt;
+                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; id=&quot;js_reward_qrcode_img&quot;&gt;&lt;/span&gt;
+                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
+                &lt;/div&gt;
+                                                
+                
+                            &lt;/div&gt;
+                                    
+                        
+
+
+                        
+            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
+
+
+            
+
+            
+
+
+&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
+
+            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
+
+    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
+
+    &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;
+    &lt;/div&gt;
+
+
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
+        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
+    &lt;/span&gt;
+
+      
+    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
+      &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
+    &lt;/span&gt;
+    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
+        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
+          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
+        &lt;/button&gt;
+    &lt;/span&gt;
+
+      &lt;div style=&quot;display:none&quot;&gt;
+        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
+        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
+          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    
+    &lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
+  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+  
+  &lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
+    &lt;div class=&quot;like_comment_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;like_comment_bd&quot;&gt;
+        &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
+          &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;&lt;i class=&quot;icon-success-primary&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_ft&quot;&gt;
+        &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+        &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
+  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;weui-toast&quot;&gt;
+    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
+    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
+          朋友将在看一看看到        &lt;/h4&gt;
+        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;span class=&quot;tips_global_primary&quot;&gt;
+          写下你的想法...        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
+  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
+    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
+      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
+        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
+        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
+        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
+        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
+    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;weui-toast&quot;&gt;
+        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
+        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
+
+                                
+            &lt;/div&gt;
+                      &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
+
+
+        
+        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
+          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
+              
+              &lt;div id=&quot;js_share_appmsg&quot;&gt;
+              &lt;/div&gt;
+
+              
+  
+      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
+                
+              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
+                            
+                            
+              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
+                
+
+                
+                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                  
+                  
+                  
+                &lt;/div&gt;
+
+                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
+                &lt;/div&gt;
+                              &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        
+        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
+            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
+                &lt;div class=&quot;qr_code_pc&quot;&gt;
+                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
+                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</description>
+<author>caozsay</author>
+<guid isPermaLink="false">2019-06-25-1000000438</guid>
+<pubDate>Tue, 25 Jun 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>我看Facebook Libra，让子弹飞一会。</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-22-1000000437.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyR4YY9*kI26ztX5dx0SuGn*0Xc2-renaZOn94szaZda84-CS8nmsvxn8MI0XcVq-*Ww9Q4CNO94cGku4DRhuAWY=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pQXc1lTk02KeZJ7yfaRsvhkwmaZ9X71cTyP26ULTO0jchHBdrEgVDgPUh3o*DOrbJfO-1zr0uCcbCufktE2rvR8=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -345,7 +1010,7 @@
 <item>
 <title>黑白之间，烦请适当宽松。</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-20-1000000436.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyd-bndknLBApX0L7eFuJK7DFiEwlrpn6XMIpPXHi5Ud62bpqQX7LGKTObKYoszAvDh7MkB2OX4bthwv5u7mQlAA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pYe3JO9TjtMRcth0sDLP9SRnrL6SNkXBNQ7hUknzqwRIpVtAa3RK-SBUvb2HrLkXogVkpJdmD4*HAsVNtpWK2Qc=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -681,7 +1346,7 @@
 <item>
 <title>毕业两年成为首席架构师，他是怎么做到的？</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-18-1000000435_502384853.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyfgFEPFTL1X0qdbjHy1CSWQr9aWQSelI3fbG24Y*j5ELCM2DQ2WZYY0-p3RJ7kLJ4pFHBPcyppcGQFYyXk7heTA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pRO3P-tpnLCCyv0d8XRvIb1oQgD7jglbMGKwdBXiS2i6hfxoGjhPMRTdFfiQviomdoqbIWk70R7kjqG*kO1Ch0A=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1010,7 +1675,7 @@
 <item>
 <title>我看鸿蒙操作系统</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-18-1000000435.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyfgFEPFTL1X0qdbjHy1CSWSvyXFlMEjQ*c9uon78cOSPsMtQC6aosorAuuI6yIF42gRPjEGyBQOn8ImJWKDMyWA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pRO3P-tpnLCCyv0d8XRvIb3n3RRgJ3Fy5gXoQq2GydqhWHllh3*sJVJscGEaEw2u-IvXkhI9olPOQbfGuii4oaU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&quot;icon_area&quot;&gt;&lt;i class=&quot;icon_msg warn&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;div class=&quot;text_area&quot;&gt;
         &lt;p class=&quot;tips__gray&quot;&gt;
                         此内容因违规无法查看
@@ -1029,7 +1694,7 @@
 <item>
 <title>学好kafka，轻松做架构</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-16-1000000434_502384841.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyec1YcJjIbm4PFkuNcLqq6W8EwPz*k6s96G301KDxyihn26Q49YTwqeXxXddZg8K-CnAzoLX1c9fbgUFEpA3hUo=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pS1A5ukaXmE*NSCTqCWDBOtYuwzpiNZCBKJhTP8vB3Od0*W6*PPBvij7-33X9Jw4E7wYasPkEaYj21L1bmRBcpY=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1358,7 +2023,7 @@
 <item>
 <title>为什么会做的越多，错的越多</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-16-1000000434.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyec1YcJjIbm4PFkuNcLqq6VT3SpX0Z2Fwqmu1ndftcH1o4DY9Y6ja9c8lCwDnsYf4DghLCAqFWRqfUk97KjXEkQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pS1A5ukaXmE*NSCTqCWDBOscGY571iA4A31ZyFjc91uj0OYQX825SQvhQEhmx1O9fXVHI6Svm0D1SiZ9w7PeYhQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
 
         
@@ -1694,7 +2359,7 @@
 <item>
 <title>学好kafka，轻松做架构</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-13-1000000433_502384841.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyZdp7aaUiwKWz-bYTDyetBBi10sTmJrLt-mPbK9UPT8v9br2cFuLeDd5gYXgbCjjZZYGflcwrxuSyNmImbS00aQ=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pa2niOeNnM7a-LAahdrDXUUfHTvW7QGiUT7d-gjYKTmCsM-UHfBdXEpv9bV-0oeJpnExvbQRRu4HCpCijjMDhsI=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;/&gt;
 &lt;div class=&quot;rich_media_inner&quot;&gt;
 
@@ -2025,7 +2690,7 @@
 <item>
 <title>年薪百万是种怎样的体验</title>
 <link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-13-1000000433.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyZdp7aaUiwKWz-bYTDyetBCQFHSZxBMUG8saq6MWweNGFj*OIw5QkEQGY8S-Cypidp9cWeZYo7mpuVm-Xg91eEU=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561485673&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=*Tr5UYVutsP6g-1LVzST3S6*aIOiZw5-UuBGOzJTjFbyJ03o5uG3JqwQDVLKZFMrfh5cXVAPHgSNjy9gwLz5pa2niOeNnM7a-LAahdrDXUV397KFHT7Yxq4HS0T-Oa4UU-vNwFMGP6pVRhqvYbCMvr*uXDH7jrzYB-CLM5S-MUA=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
 &lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;/&gt;
 &lt;div class=&quot;rich_media_inner&quot;&gt;
 
@@ -2359,679 +3024,6 @@
 <author>caozsay</author>
 <guid isPermaLink="false">2019-06-13-1000000433</guid>
 <pubDate>Thu, 13 Jun 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>谈谈数据分析</title>
-<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-11-1000000432.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyUFPOsmpQnGP0lHOS0S4OdHshm8RxK5sy7NEdQ8nkNPBxYF9s445zrhgJ2dO0GQSnKE9Zm-*YyeGi*TJe9Uzv4w=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-
-		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-
-            
-                          
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    
-            谈谈数据分析
-                      &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                                                &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                caozsay
-                                            &lt;/span&gt;
-                                        
-                                        &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        caoz的梦呓                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p&gt;前几天我的知识星球里还有人问过问题，列出几个数据分析相关的offer，问怎么选，其中有一个是阿里妈妈部门的，我说如果是我的话，这个职位不给钱都去。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;当然，不给钱都喊着要去的，估计阿里也不敢要，有些读者就不明白，为什么。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;阿里财报里，去年联盟分出去300个亿，300个亿啊！这些钱分给谁了，大玩家怎么拿的，为什么能拿到。知道这藏着什么么，大量的信息不对称和认知不对称。如果掌握了这种信息和认知，出来就做最简单的事情，低价收购那些有价值又不会变现的流量，一个信息不对称，转手变现效率就能提高n多倍。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;你以为这是我灵光一现突然想到的？你以为我当年互联网百晓生的名头怎么来的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;数据是公司的，不是你的，贩卖数据是违法的，绝对不可以的。但数据带给你的认知是你自己的，在有限时间内能对你的决策产生巨大的提升。其实我旧文提过的：&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=400867699&amp;amp;idx=1&amp;amp;sn=965286b77ed05377eef238fd4f9dc575&amp;amp;chksm=7b125b1e4c65d20816e74bdb317a7ef671a1928d11681f4d40834f631a1c20bf81cf701f03af&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;职场通病之 - 坐守金山不自知&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;数据分析师这个工作本身薪酬就不算低，在行业内还是非常受认可的，而更重要的是，无论是产品，运营，乃至于安全风控，你会发现，数据分析，数据决策，都是你能力提升的重要一环。这个职业带来的认知提升，对你无论是创业，投资，还是更好的职场选择，都会有极大的提升。以前我旧文提过，百度商业分析团队出来的很多年轻人，无论是从事投资，还是金融领域创业，后来的职场表现都特别耀目。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;话说，最近政府也特别重视这一块，大数据反腐已经铺开了，相关的新闻也有很多，此外大数据查税这两年特别生猛，身边有不少创业的小伙伴们已经体会到这个威力了。所以，即便你的目标是公务员，一技傍身也能更好的为人民服务对不对。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;看上去目标不同，基本的认知思路和技能是一致的。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我职场早期也很迷茫，做研发吧，感觉自己没有写代码的耐心，做产品吧，又觉得自己不够接地气。后来做cnzz，以及在百度做数据分析，突然觉得，这就是我想要做的事情啊，数据放在那里，不用别人给任务，自己忍不住就会去拆解，分析，寻找里面隐藏的故事和真相。我旧文也提过，我最有成效的工作，不是基于领导的安排，而是基于个人的好奇心。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果你对数据背后的故事没有好奇心，我坦白说，可能数据分析这份工作不适合你。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;但我也要很坦诚一点，和现在的年轻人相比，我占了一个大便宜，就是早期互联网，数据人才匮乏，而且早期的巨头，当时还只是创业公司，研发人才也紧缺，事情简单做做，就有价值，先解决从没有到有的这块，对技术技能要求不高，这才有我可以随心所欲发挥的空间。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;可现在不同了，如果我现在去应聘巨头的数据分析工作，仅以技能而论，我觉得我无法胜任那些巨头的数据分析师的工作，时代不同了，人才的门槛在提升，职场的门槛在提升。要与时俱进啊，同学们。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;另外要说的是，数据分析毕竟是互联网商业环境下新技能，传统教育存在一定的缺位，以我这些年职场观察，即便是现在，谈数据的人，可能90%都不是真的理解数据分析的目标和价值所在。只能算数据搬运工，或者操作员。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;有不少年轻人曾经咨询过我，当前从事产品运营工作，或者还在读书，希望未来选择数据分析师的职业路线，但不确定自己能不能符合，以及是否可以推荐一些学习素材和资源。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那我今天也必须诚实的告诉你们，如果年轻人想要找一份有前途的公司的数据分析工作，一定要超过我当年的水平和能力才可以。也一定要明确数据价值和业务逻辑才可以。所以，有必要给大家找更好的老师来辅导。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;可能有人还记得，以前我推过一次数据分析的课程，可惜后来有不少童鞋吐槽，说那个课程入门门槛有点高，更适合有一定研发背景的童鞋，对只具有产品运营经验，想转型数据分析的人来说，有点难以衔接。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;今天，我找到一个能够从技术基础开始讲，又非常贴近产品运营实战的数据分析课程。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;三节课与&lt;strong&gt;前滴滴策略运营专家，前微软高级数据和应用科学家张宇晖老师&lt;/strong&gt;共同出品的&lt;strong&gt;《数据分析师p1》&lt;/strong&gt;系列课程正式上线了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那为什么推荐这门课程呢，&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;优势1：三节课这个平台是扎扎实实做互联网职场教育的平台，很多互联网巨头选择三节课作为企业内部培训的平台。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;在这里学习质量有保障，不割韭菜不收智商税，而且敢于承诺&lt;strong&gt;7天无理由退款。&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;学员复购率高，这是很直接的证明。还记得我常强调的么，别人可能看重获客技巧，我看重留存率，复购率。因为后者能证明其真实的产品价值。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;优势2、不应该是类似“教课书”一般的知识堆砌，而是基于真实的工作场景，给你讲解成为一个合格数据分析师所需要的一切技能。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;网上有些所谓数据分析课程，看上去讲的很细，为了凑课时，把很多数据分析工具的功能点，操作方法一点点演示给你，问题是，缺乏落地场景和目标感，学起来昏昏欲睡，学完后没有印象，需要时想不起来。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;从真实场景出发，提出问题，找到目标，然后给出解决途径，这样融会贯通，才能真正掌握知识点。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;而这节课程的设计，调研过近200个从业者和行业专家后，总结出，&lt;strong&gt;成为一个合格数据分析师所需要具备的一切高频技能&lt;/strong&gt;（下图绿色部分），&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;margin-bottom: 5px;padding-right: 1em;padding-left: 1em;max-width: 100%;min-height: 1em;white-space: normal;background-color: rgb(255, 255, 255);font-family: Optima-Regular, PingFangTC-light;letter-spacing: 1.5px;line-height: 1.75em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt; &lt;img src=&quot;https://mmbiz.qpic.cn/mmbiz_png/RwfAdibODeZsUbnSdaOC1ftyGibj9FLOTJKLDZzH2XKWiazV3DhMqzg2X2ialzaHw7ufIbiclImNIAFYwFegSibCSczQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; class=&quot;&quot; data-ratio=&quot;0.5448275862068965&quot; data-w=&quot;725&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;据此，这门数据分析课程将围绕这些核心技能模块展开，帮助你快速而全面的掌握和了解成为一个数据分析师的所有必修功法。&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;margin-bottom: 5px;padding-right: 1em;padding-left: 1em;max-width: 100%;min-height: 1em;white-space: normal;background-color: rgb(255, 255, 255);font-family: Optima-Regular, PingFangTC-light;letter-spacing: 1.5px;line-height: 1.75em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;       &lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-copyright=&quot;0&quot; data-ratio=&quot;3.8466666666666667&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer2zxOXctIRPcRACAufYzPrb9ibJYDeNgGfGuB4NlLc3lReicQibrom6gNQLvBX3GFR33Y8BAsVtMvHCg/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;750&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;margin-bottom: 5px;padding-right: 1em;padding-left: 1em;max-width: 100%;min-height: 1em;white-space: normal;background-color: rgb(255, 255, 255);font-family: Optima-Regular, PingFangTC-light;letter-spacing: 1.5px;line-height: 1.75em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;    &lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;然后,最重要的是，每一个技能模块都会建立在一个真实的业务场景之上。&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;优势3：50+国内实战经典案例，模拟训练&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;没什么比实战案例更容易让人理解技术的价值和操作技巧了。而国内场景下的实战案例更容易让我们理解和认同。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;比如带你用power bi展现saas公司销售的团队业绩；&lt;/p&gt;&lt;p&gt;用SQL做网店销售趋势分析;&lt;/p&gt;&lt;p&gt;用A/B测试验证共享单车收取押金对用户的满意度调查等等 。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://mmbiz.qpic.cn/mmbiz_png/RwfAdibODeZsUbnSdaOC1ftyGibj9FLOTJtlwr3vHOQek5CfPicpDyZiaWZJdIs3P9icAx2vLN0MKiclm018x6EyO3XA/640?wx_fmt=png&quot; data-type=&quot;png&quot; class=&quot;&quot; data-ratio=&quot;0.7639956092206367&quot; data-w=&quot;911&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最重要的是，课程导师拥有强大的背景——他既是美国前微软的的高级数据与应用科学家，又是中国前滴滴的策略运营专家。他既在学术圈呆过，又在互联网圈的浪潮之巅闯荡。&lt;/p&gt;&lt;p&gt; &lt;/p&gt;&lt;p&gt;因此，可以相信的是，他可以结合美国最前沿的数据分析理论知识和中国实际的业务环境，带给学员，最科学，最落地，最贴合实际业务的课程讲解。&lt;/p&gt;&lt;p&gt;       &lt;/p&gt;&lt;p style=&quot;padding-right: 1em;padding-left: 1em;max-width: 100%;min-height: 1em;letter-spacing: 0.544px;white-space: normal;background-color: rgb(255, 255, 255);text-align: center;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;img class=&quot;rich_pages &quot; data-backh=&quot;398&quot; data-backw=&quot;654&quot; data-before-oversubscription-url=&quot;https://mmbiz.qlogo.cn/mmbiz_png/RwfAdibODeZsUbnSdaOC1ftyGibj9FLOTJPvO03uIUTiaNDfl8C10gWNFENyxcMvoCmASbicYYRT6veMs9RsAedPOQ/0?wx_fmt=png&quot; data-ratio=&quot;0.6080956761729531&quot; data-s=&quot;300,640&quot; data-type=&quot;png&quot; data-w=&quot;1087&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/RwfAdibODeZsUbnSdaOC1ftyGibj9FLOTJPvO03uIUTiaNDfl8C10gWNFENyxcMvoCmASbicYYRT6veMs9RsAedPOQ/640?wx_fmt=png&quot; style=&quot;box-shadow: rgb(170, 170, 170) 0px 0px 14px 0px;width: 643px;box-sizing: border-box !important;overflow-wrap: break-word !important;visibility: visible !important;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin-top: 5px;margin-bottom: 5px;padding-right: 1em;padding-left: 1em;max-width: 100%;min-height: 1em;white-space: normal;background-color: rgb(255, 255, 255);font-family: Optima-Regular, PingFangTC-light;letter-spacing: 1.5px;line-height: 1.75em;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;&lt;span style=&quot;max-width: 100%;font-size: 15px;box-sizing: border-box !important;overflow-wrap: break-word !important;&quot;&gt;       &lt;/span&gt;&lt;/p&gt;&lt;p&gt;优势4:  性价比极高。在保证课程含金量+三节课魔鬼训练营+1v1大厂助教的情况下，售价仅为同行业其他课程的1/4.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://mmbiz.qpic.cn/mmbiz_png/RwfAdibODeZsUbnSdaOC1ftyGibj9FLOTJQchGKhfUl0FXRSByjtld1Sic4w1EYU7SaEquticZunvvjM34fcwxo5cg/640?wx_fmt=png&quot; data-type=&quot;png&quot; class=&quot;&quot; data-ratio=&quot;0.35537190082644626&quot; data-w=&quot;847&quot;&gt;&lt;/p&gt;&lt;p&gt;那有读者说不对啊，我见到有更便宜的课程啊。网上还有大量免费资料呢怎么说。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;如果只是内容的分享，确实有更便宜的选择，但限定名额教学，导师1对1辅导，作业批改，职业解惑答疑，你觉得值多少呢？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://mmbiz.qpic.cn/mmbiz_png/RwfAdibODeZsUbnSdaOC1ftyGibj9FLOTJlFHk0LbtwDsfXdkiat8K8kiahAH0SU86XJbaRAFjzJYz4icH69y6iaUiacQ/640?wx_fmt=png&quot; data-type=&quot;png&quot; class=&quot;&quot; data-ratio=&quot;0.23652365236523654&quot; data-w=&quot;909&quot;&gt;&lt;/p&gt;&lt;p&gt;说实话，人总是有惰性的，那种买了课后不上的还少么，现在老师留作业再带你模拟训练，这下总不能偷懒了吧。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;那么早鸟优惠，还可以有一点点折扣。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;rich_pages&quot; data-ratio=&quot;0.555&quot; data-s=&quot;300,640&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_jpg/nBKX0s8fer3597yEamAxZ3LaM6KicDHdSfyee9AHJnpiaox1VlFBUj0MRpBrJXvPzVgeWLsXzOVocyaFzUQKgZYQ/640?wx_fmt=jpeg&quot; data-type=&quot;jpeg&quot; data-w=&quot;800&quot; style=&quot;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;对了，三节课承诺，&lt;strong&gt;7天内不满意无条件免费退款！&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;我猜有读者要说了，曹老师你又在卖课，我们今年花在知识付费上的钱够多了。没关系，我特意找三节课官方为读者争取了一份&lt;strong&gt;免费福利&lt;/strong&gt;，不买课，也可以去领取免费福利！&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;三节课的教研同学花费 6 个月时间，调研了多位中美一线互联网大厂的数据分析师，制作了一份「数据分析师职业全景手册」，系统回答你：&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;ol class=&quot; list-paddingleft-2&quot; style=&quot;list-style-type: decimal;&quot;&gt;&lt;li&gt;&lt;p&gt;数据分析的定义和价值&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;数据分析师的相关岗位和日常工作&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;数据分析师如何驱动业务&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;数据分析师必备的软硬技能&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;……&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;想要系统学习数据分析的你，再也不用各处搜集干货文章，再也不用刷知乎来拼凑知识了，一份手册给你最全面、最专业、最前沿的信息！&lt;/p&gt;&lt;p&gt;&lt;br style=&quot;outline: none;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;而且，现在，这份「数据分析师职业全景手册」，免费就能领，限量 500 份，手快有，手慢无哦！&lt;/p&gt;&lt;p&gt;&lt;br style=&quot;outline: none;box-sizing: border-box;&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;img class=&quot;gallery-image&quot; data-ratio=&quot;1.781041388518024&quot; src=&quot;https://mmbiz.qpic.cn/mmbiz_png/nBKX0s8fer3597yEamAxZ3LaM6KicDHdSlMehX6x5yCkZUusZjTnmQ1Isiah0j5o60zaib7PaLtzXsqns4qicfFTkw/640?wx_fmt=png&quot; data-type=&quot;png&quot; data-w=&quot;749&quot; height=&quot;auto&quot; style=&quot;outline: none;border-width: initial;border-style: none;border-color: initial;box-sizing: border-box;break-inside: avoid;display: block;opacity: 1;transition: opacity 0.5s ease-out 0s;transform-origin: left top;cursor: zoom-in;outline-offset: inherit;box-shadow: none;&quot; width=&quot;749&quot;&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;免费福利只限500份，按上图二维码识别获取，手慢无。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;最后，有些运营，产品人员，可能觉得，我确实想强化数据分析能力，但还没打算转换职业岗位，这个课程确实，包括R，SQL语言的学习。有些技术内容，可能学起来并不轻松。如果只是提升工作中数据分析的感觉，也许不需要学那么重，怎么办？&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;关注三节课公众号，回复“业务数据”&lt;/strong&gt;，神策数据副总裁开设的“&lt;strong&gt;业务数据分析实战”课程&lt;/strong&gt;，也许适合您。顺便说一句，神策数据创始人桑文峰当年就是百度数据分析团队出去创业的，他写的那本书《数据驱动》还有我做的序。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;想要了解课程更多，也可以点击“阅读原文”链接。&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;958671732&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx464c32.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
-
-
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_preview_reward_author&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_preview_reward_author_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_preview_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                        &lt;div class=&quot;reward-author&quot; id=&quot;js_preview_reward_author_name&quot;&gt;caozsay&lt;/div&gt;
-                                        &lt;p class=&quot;reward_tips&quot; id=&quot;js_preview_reward_author_wording&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_preview_reward_author_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_preview_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                &lt;/div&gt;
-
-                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_preview_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                    &lt;p id=&quot;js_preview_reward_ios_wording&quot; class=&quot;reward_tips&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-            &lt;a class=&quot;media_tool_meta meta_primary&quot; id=&quot;js_view_source&quot; href=&quot;##&quot;&gt;阅读原文&lt;/a&gt;
-        &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
-
-    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
-
-    &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;
-    &lt;/div&gt;
-
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-      
-    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
-        &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
-    &lt;/span&gt;
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-      &lt;div style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
-  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-  
-  &lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-    &lt;div class=&quot;like_comment_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-      &lt;div class=&quot;like_comment_bd&quot;&gt;
-        &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-          &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;&lt;i class=&quot;icon-success-primary&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_ft&quot;&gt;
-        &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-        &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          写下你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                &lt;a class=&quot;media_tool_meta meta_primary&quot; href=&quot;https://class.sanjieke.cn/course/detail/2/web/13602828?utm_campaign=xjs_shujufenxip1&amp;amp;utm_content=caozdmy&amp;amp;utm_medium=tuiwen_cpt&amp;amp;utm_source=weixinkol&amp;amp;utm_term=0610-kol9&quot; target=&quot;_blank&quot;&gt;阅读原文&lt;/a&gt;
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-  
-      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>caozsay</author>
-<guid isPermaLink="false">2019-06-11-1000000432</guid>
-<pubDate>Tue, 11 Jun 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>听说你想炒币</title>
-<link>https://henix.github.io/feeds/weixin.sogou.caozsay/2019-06-09-1000000431.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?timestamp=1561449159&amp;amp;src=3&amp;amp;ver=1&amp;amp;signature=D47Uz0Tudlu7GMDM2ythsOvCaCvuKTSIg2CHG5WREFeYpVlYE5j1TnhNjmT7lIrEhM-w*qv0GEFpbd1BZPLPyQsUTPYZNJJ0RT0Y1cWleqyCqhgMoB4eaK3WdERDjUFRV6ldjMiHG5u2Y0Cao9iO1N9ZTiMxNmnH5y8A1Do2X7Q=&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div id=&quot;js_top_ad_area&quot; class=&quot;top_banner&quot;&gt;&lt;/div&gt;&lt;div class=&quot;rich_media_inner&quot;&gt;
-
-        
-        
-		&lt;div id=&quot;page-content&quot; class=&quot;rich_media_area_primary&quot;&gt;
-
-		  &lt;div class=&quot;rich_media_area_primary_inner&quot;&gt;
-
-            
-                          
-                        
-
-            &lt;div id=&quot;img-content&quot;&gt;
-
-                
-                &lt;h2 class=&quot;rich_media_title&quot; id=&quot;activity-name&quot;&gt;
-                    
-                    
-                    
-            听说你想炒币
-                      &lt;/h2&gt;
-                &lt;div id=&quot;meta_content&quot; class=&quot;rich_media_meta_list&quot;&gt;
-                                                            &lt;span id=&quot;copyright_logo&quot; class=&quot;rich_media_meta rich_media_meta_text meta_tag_text&quot;&gt;原创：&lt;/span&gt;
-                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;
-                                                &lt;span id=&quot;js_author_name&quot; class=&quot;rich_media_meta_link&quot; data-rewardsn=&quot;&quot; data-timestamp=&quot;&quot; data-canreward=&quot;0&quot;&gt;caozsay&lt;/span&gt;
-                                            &lt;/span&gt;
-                                        
-                                                                                                            &lt;span class=&quot;rich_media_meta rich_media_meta_nickname&quot; id=&quot;profileBt&quot;&gt;
-                      &lt;a href=&quot;javascript:void(0);&quot; id=&quot;js_name&quot;&gt;
-                        caoz的梦呓                      &lt;/a&gt;
-                      &lt;div id=&quot;js_profile_qrcode&quot; class=&quot;profile_container&quot; style=&quot;display:none;&quot;&gt;
-                          &lt;div class=&quot;profile_inner&quot;&gt;
-                              &lt;strong class=&quot;profile_nickname&quot;&gt;caoz的梦呓&lt;/strong&gt;
-                              &lt;img class=&quot;profile_avatar&quot; id=&quot;js_profile_qrcode_img&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;微信号&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caozsay&lt;/span&gt;
-                              &lt;/p&gt;
-
-                              &lt;p class=&quot;profile_meta&quot;&gt;
-                              &lt;label class=&quot;profile_meta_label&quot;&gt;功能介绍&lt;/label&gt;
-                              &lt;span class=&quot;profile_meta_value&quot;&gt;caoz的心得与分享，只此一家，别无分号。&lt;/span&gt;
-                              &lt;/p&gt;
-                              
-                          &lt;/div&gt;
-                          &lt;span class=&quot;profile_arrow_wrp&quot; id=&quot;js_profile_arrow_wrp&quot;&gt;
-                              &lt;i class=&quot;profile_arrow arrow_out&quot;&gt;&lt;/i&gt;
-                              &lt;i class=&quot;profile_arrow arrow_in&quot;&gt;&lt;/i&gt;
-                          &lt;/span&gt;
-                      &lt;/div&gt;
-                    &lt;/span&gt;
-
-
-                    &lt;em id=&quot;publish_time&quot; class=&quot;rich_media_meta rich_media_meta_text&quot;&gt;&lt;/em&gt;
-
-
-
-
-
-                &lt;/div&gt;
-                
-                
-                
-                
-                                                
-                                                                
-                                
-                
-                &lt;div class=&quot;rich_media_content &quot; id=&quot;js_content&quot;&gt;
-                    
-
-                    
-
-                    
-                    
-                    &lt;p style=&quot;white-space: normal;&quot;&gt;什么是信仰，什么是共识，阳线就是信仰，阳线就是共识。三根大阳线，千军万马来相见。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;去年销声匿迹不敢出声的币圈大神们又都冒出来了。现在又有很多人跑来问，是不是可以投资买币了。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;其实该说的我早就说过无数次了，不过鉴于我的文章访问量一直不高，我就稍微重述一下吧。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867524&amp;amp;idx=1&amp;amp;sn=a014a13af2c035e123039f4d0d661455&amp;amp;chksm=f1075f69c670d67ff8de2fff8f1dd1ac3794fb4a6bb76fe26ea4c1db7abd500dae2cb8be0cd9&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;有些钱，即便不脏，但也有毒。&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649868352&amp;amp;idx=1&amp;amp;sn=ec915d426219b0a10c9f012bd0034889&amp;amp;chksm=f107522dc670db3bbde2914bddbfc4d371a94663bffc4f49dcb264b692359ead3e4a585f91cf&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;听说你，不想错过。。。&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;这是我对大部分读者投资数字货币的观点。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;1、不要沉迷赌博。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;2、不要追逐你不熟悉的热点。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;币圈就是赌场，赌场里有两种人稳定赚钱，一种是开赌场的，一种是拉客的叠码仔。澳门赌王身价百亿，不是靠赌技赢的，而是靠开赌场赢的。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;赌场就是个零和游戏，开赌场的赚了，拉客的赚了，请问，谁亏了。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;开赌场的，拉客的确实发财了，人五人六的在那里吆喝，你旁边兴奋个什么劲？&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;赌客当然也有赚钱的，幸存者偏差要解释多少遍？&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;当然，有人会说，大佬们说了，区块链会改变世界，区块链是下一代革命。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;拜托，投资圈的那些大佬们都已经删微博了，各个假装自己没说过，你倒还记得。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;再翻一篇旧文，&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867681&amp;amp;idx=1&amp;amp;sn=c2a410238b4fe49578782c34d3bcc5df&amp;amp;chksm=f1075fccc670d6da89cbfd29c1b1e706c2e4f5fb6bd9294b728d29dd61b498589e5863fcffa1&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;谈谈区块链的容错&lt;/a&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;3、区块链的容错性之差，效率之低，不足以支撑革命性的新业务。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;当然，又有人会说，区块链有很多新技术，容错性增强了，可以回滚了，效率提升了，我特么的都懒得吐槽，不就是回到中心化么？中心化阿里和微信不早就解决了。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;顺便说一句，所谓解决了负载问题，以及具有一定容错性的EOS，所谓选举机制，一票多投机制背后是什么，寡头随便垄断有没有，你只要有足够票数（远少于半数），你就可以控制所有节点，什么去中心，什么算法共识？所谓区块链的优势荡然无存，兜了一圈回到原地而已。而且，从已知的各种dapp漏洞看，所谓容错性，依然特别扯。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;安全问题，旧文摘一下&lt;/p&gt;&lt;blockquote class=&quot;js_blockquote_wrap&quot; data-type=&quot;1&quot; data-url=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867681&amp;amp;idx=1&amp;amp;sn=c2a410238b4fe49578782c34d3bcc5df&amp;amp;chksm=f1075fccc670d6da89cbfd29c1b1e706c2e4f5fb6bd9294b728d29dd61b498589e5863fcffa1#rd&quot; data-author-name=&quot;曹政&quot; data-content-utf8-length=&quot;193&quot; data-source-title=&quot;谈谈区块链的容错&quot;&gt;&lt;section class=&quot;js_blockquote_digest&quot;&gt;&lt;p&gt;再说最近开始热谈的dapp，特别是EOS主网要上线，很多人觉得dapp的春天快来了。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;智能合约最大的风险是什么？还是不能容错啊！
-
-
-
-最近币圈连续出几个安全问题，一行代码的问题就被黑客薅到死。
-
-
-
-传统互联网公司可以回滚啊，可以把出问题的数据摘除修复啊，但智能合约出了问题，对不起，只能硬分叉，问题是，硬分叉实际上解决不了继承性的问题。 &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt; 一个不具备容错性的系统，其未来的发展空间有多大，我是表示存疑的。&lt;/p&gt;&lt;/section&gt;&lt;section class=&quot;blockquote_info js_blockquote_source&quot; data-json=&quot;%7B%22type%22%3A%22inner%22%2C%22source%22%3A%22biz%22%2C%22digest%22%3A%22%3Cp%3E%E5%86%8D%E8%AF%B4%E6%9C%80%E8%BF%91%E5%BC%80%E5%A7%8B%E7%83%AD%E8%B0%88%E7%9A%84dapp%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AFEOS%E4%B8%BB%E7%BD%91%E8%A6%81%E4%B8%8A%E7%BA%BF%EF%BC%8C%E5%BE%88%E5%A4%9A%E4%BA%BA%E8%A7%89%E5%BE%97dapp%E7%9A%84%E6%98%A5%E5%A4%A9%E5%BF%AB%E6%9D%A5%E4%BA%86%E3%80%82%5Cn%5Cn%5Cn%5Cn%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6%E6%9C%80%E5%A4%A7%E7%9A%84%E9%A3%8E%E9%99%A9%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E8%BF%98%E6%98%AF%E4%B8%8D%E8%83%BD%E5%AE%B9%E9%94%99%E5%95%8A%EF%BC%81%5Cn%5Cn%5Cn%5Cn%E6%9C%80%E8%BF%91%E5%B8%81%E5%9C%88%E8%BF%9E%E7%BB%AD%E5%87%BA%E5%87%A0%E4%B8%AA%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98%EF%BC%8C%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E7%9A%84%E9%97%AE%E9%A2%98%E5%B0%B1%E8%A2%AB%E9%BB%91%E5%AE%A2%E8%96%85%E5%88%B0%E6%AD%BB%E3%80%82%5Cn%5Cn%5Cn%5Cn%E4%BC%A0%E7%BB%9F%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E5%8F%AF%E4%BB%A5%E5%9B%9E%E6%BB%9A%E5%95%8A%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%8A%8A%E5%87%BA%E9%97%AE%E9%A2%98%E7%9A%84%E6%95%B0%E6%8D%AE%E6%91%98%E9%99%A4%E4%BF%AE%E5%A4%8D%E5%95%8A%EF%BC%8C%E4%BD%86%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6%E5%87%BA%E4%BA%86%E9%97%AE%E9%A2%98%EF%BC%8C%E5%AF%B9%E4%B8%8D%E8%B5%B7%EF%BC%8C%E5%8F%AA%E8%83%BD%E7%A1%AC%E5%88%86%E5%8F%89%EF%BC%8C%E9%97%AE%E9%A2%98%E6%98%AF%EF%BC%8C%E7%A1%AC%E5%88%86%E5%8F%89%E5%AE%9E%E9%99%85%E4%B8%8A%E8%A7%A3%E5%86%B3%E4%B8%8D%E4%BA%86%E7%BB%A7%E6%89%BF%E6%80%A7%E7%9A%84%E9%97%AE%E9%A2%98%E3%80%82%5Cn%5Cn%5Cn%5Cn%E4%B8%80%E4%B8%AA%E4%B8%8D%E5%85%B7%E5%A4%87%E5%AE%B9%E9%94%99%E6%80%A7%E7%9A%84%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%85%B6%E6%9C%AA%E6%9D%A5%E7%9A%84%E5%8F%91%E5%B1%95%E7%A9%BA%E9%97%B4%E6%9C%89%E5%A4%9A%E5%A4%A7%EF%BC%8C%E6%88%91%E6%98%AF%E8%A1%A8%E7%A4%BA%E5%AD%98%E7%96%91%E7%9A%84%E3%80%82%3C%2Fp%3E%22%2C%22digestLen%22%3A209%2C%22text%22%3A%22%22%2C%22article%22%3A%7B%22title%22%3A%22%E8%B0%88%E8%B0%88%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9A%84%E5%AE%B9%E9%94%99%22%2C%22url%22%3A%22http%3A%2F%2Fmp.weixin.qq.com%2Fs%3F__biz%3DMzI0MjA1Mjg2Ng%3D%3D%26mid%3D2649867681%26idx%3D1%26sn%3Dc2a410238b4fe49578782c34d3bcc5df%26chksm%3Df1075fccc670d6da89cbfd29c1b1e706c2e4f5fb6bd9294b728d29dd61b498589e5863fcffa1%23rd%22%2C%22nickname%22%3A%22caoz%E7%9A%84%E6%A2%A6%E5%91%93%22%2C%22authorName%22%3A%22%E6%9B%B9%E6%94%BF%22%7D%2C%22hasReportOverSize%22%3Afalse%7D&quot;&gt;&lt;span class=&quot;blockquote_biz&quot;&gt;曹政，公众号：caoz的梦呓&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867681&amp;amp;idx=1&amp;amp;sn=c2a410238b4fe49578782c34d3bcc5df&amp;amp;chksm=f1075fccc670d6da89cbfd29c1b1e706c2e4f5fb6bd9294b728d29dd61b498589e5863fcffa1#rd&quot; class=&quot;blockquote_article&quot;&gt;谈谈区块链的容错&lt;/a&gt;&lt;/span&gt;&lt;/section&gt;&lt;/blockquote&gt;&lt;p&gt;区块链上的博彩dapp一度非常火爆，很多人觉得，你看代码公开透明，庄家无法恶意操作赔率，这算良心博彩了吧，结果呢，各种被黑，什么伪随机数全军覆没。是黑客干的，还是庄家故意留的后门，别问我，我真不知道。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;4、所谓公链其实是无法升级的。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;有人说不对啊，你没看到各种升级么，你这不是睁眼说瞎话么。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;一升级就撕逼有没有，妥协出来的方案跟屎一样有没有，区块链价值是什么？共识，结果一升级共识就撕裂，各种硬分叉，去年怎么崩盘的，BCH分叉把整个币圈共识打残了有没有。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;a href=&quot;http://mp.weixin.qq.com/s?__biz=MzI0MjA1Mjg2Ng==&amp;amp;mid=2649867501&amp;amp;idx=1&amp;amp;sn=79566e7aa5bd81aecf2ec6bbfd18f1c3&amp;amp;chksm=f1075e80c670d7960b1c42decf66ae25be2a7a0d84b1327ef2cbc8f2b056e04e62a0c521b4b3&amp;amp;scene=21#wechat_redirect&quot; target=&quot;_blank&quot; data-itemshowtype=&quot;0&quot; data-linktype=&quot;2&quot;&gt;谈谈比特币分叉&lt;/a&gt;，旧文提过，只要谈升级，各个都想当操盘手，各个都想从中渔利，然后就开始撕逼，共识基础越来越薄弱。&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;那么有没有解决方案呢？有，怎么解决，回到中心化。权威中心想怎么升级怎么升级，兜了一圈，有意思么。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;5、巨头可以玩，跟你没关系。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;最近Facebook说推出加密币，各个都疯狂了，看，连Facebook都入场了，是不是革命开始了？&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;你说腾讯发Q币的时候咋没这么大动静呢，有区别么？Facebook是纵容炒币的么？是开赌场的么？人家讲了，一揽子货币的稳定币，解决跨境支付问题而已，你兴奋个什么劲。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;说实话，区块链在解决交易信用上有一定价值，在金融行业也存在一定的应用场景，我以前也讲过，金融领域对区块链技术人才的需求还是很强的，这也是事实。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;但金融寡头如果打算通过区块链优化国际贸易结算，国际信用凭证的工作，人家可以在互信的机构内部，比如各大银行，各大证券公司，保险公司等等的联盟里，搭建私有链，联盟链。为什么要把这事情搞到公链上，为什么要让第三方的所谓公链上跑自己的金融业务？没有理由么。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;有些金融机构小规模试水测试一下公链，一些币圈的人就开始磕了春药没完的得瑟。搜搜前两年币圈新闻，一堆山寨链号称跟金融寡头有合作，结果呢？潮退之后，没一个穿衣服的。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;总结一下&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;1、不要沉迷赌博&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;2、不是每个热点都值得去追&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;3、区块链的容错性问题，根本不足以支撑革命性发展&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;4、公链升级就是共识撕裂，除非回到中心化，脱裤子放屁&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;5、金融领域有一定价值，巨头自己玩，跟公链没关系，跟炒币更没关系&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;那你说我全面看衰么？&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;还真不是，你把区块链信仰看成宗教就行了。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;所谓第二代区块链以太坊取代不了比特币吧，所谓第三代区块链EOS也取代不了以太坊吧。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;什么技术革命，别扯了，比特币就是宗教，信徒够多，就会值钱，这么理解就对了。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;最近为什么币圈暴涨啊，其实还不是川普老爷子闹的。币圈呆久了，我估计心理会失衡，巴不得世界各种乱，大国各种斗，避险的钱一进来，就哗啦啦啦的涨。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;那你说我看好这个宗教，我买行不行。随便，小心别丢了。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;小心别丢了，这句话其实很纠结的。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;1、如果你怕被黑客黑掉，你就尽可能让这个账户不联网，不在公开场合，无备份，不会被人偷窥。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;然而，自己丢失或物理损坏的概率就很大。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;什么，硬件钱包安全？你真以为硬件钱包永远不会坏？永远不会丢？坏了你怎么恢复你的账户？&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;2、如果你怕丢失或损坏，就多留几个备份，放在不同云盘，通过密码保存起来，然后告诉老婆和其他亲人如何获取。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;然而，被黑客偷掉或被社工搞走的概率就很大。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;2选1，你想选择怎样丢币？&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;更不用说去年那波韭菜进来，稍微钓鱼一下，几乎随便可以偷。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;对了，还有很多人买币放在交易所里，根本不在自己钱包里，知道从比特币问世到现在，多少头部交易所被黑的破产了么。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;那今天最后说点建议。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;第一，分叉币，I*O币，建议一个都不要碰。99.9%撑不久。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;第二，主流币，有信仰就买，小心别丢，长远看丢的概率不低。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;第三，愿意买我不拦着，别炒来炒去，久赌必输。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;第四，想开赌场，想当叠码仔，当心，政府会抓人的。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;前年底我开的区块链课程，我说区块链的生态是挖矿，交易所，ICO，硬分叉，资讯，钱包工具，博彩dapp。说到最后很多人觉得不对啊，怎么没有革命性的杀手应用呢，我说对不起，我看不到。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;这快两年过去了，对不起，我还是看不到。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;hr style=&quot;border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);&quot;&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;其实都是以前说过的，说到底都是废话。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;最后重述傻逼第三定律&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;疯狂收割傻逼的最终被傻逼封神，而试图唤醒傻逼的是傻逼眼中的傻逼。&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;white-space: normal;&quot;&gt;&lt;br&gt;&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;script nonce=&quot;1486572935&quot; type=&quot;text/javascript&quot;&gt;
-                    var first_sceen__time = (+new Date());
-
-                    if (&quot;&quot; == 1 &amp;&amp; document.getElementById(&#39;js_content&#39;)) {
-                        document.getElementById(&#39;js_content&#39;).addEventListener(&quot;selectstart&quot;,function(e){ e.preventDefault(); });
-                    }
-
-                    
-                    (function(){
-                        if (navigator.userAgent.indexOf(&quot;WindowsWechat&quot;) != -1){
-                            var link = document.createElement(&#39;link&#39;);
-                            var head = document.getElementsByTagName(&#39;head&#39;)[0];
-                            link.rel = &#39;stylesheet&#39;;
-                            link.type = &#39;text/css&#39;;
-                            link.href = &quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx464c32.css&quot;;
-                            head.appendChild(link);
-                        }
-                    })();
-                &lt;/script&gt;
-
-                
-  &lt;div class=&quot;ct_mpda_wrp&quot; id=&quot;js_sponsor_ad_area&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
-
-
-                
-                &lt;div class=&quot;read-more__area&quot; id=&quot;js_more_read_area&quot; style=&quot;display:none;&quot;&gt;
-                    
-                &lt;/div&gt;
-
-                
-                                &lt;div class=&quot;reward_area tc reward_area_primary&quot; id=&quot;js_reward_area&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;div class=&quot;reward-avatar&quot; style=&quot;display: none;&quot; id=&quot;js_reward_avatar&quot;&gt;
-                        &lt;img src=&quot;&quot; alt=&quot;&quot; id=&quot;js_reward_author_head&quot;&gt;
-                    &lt;/div&gt;
-                    
-                                                                    &lt;div class=&quot;reward-author&quot; style=&quot;display: none;&quot; id=&quot;js_reward_author&quot;&gt;caozsay&lt;/div&gt;
-                                                                                    &lt;p class=&quot;reward_tips js_reward_wording&quot;&gt;感谢您的支持&lt;/p&gt;
-                                        &lt;p&gt;
-                        &lt;a class=&quot;reward_button&quot; id=&quot;js_reward_link&quot; href=&quot;##&quot;&gt;&lt;span id=&quot;js_reward_link_text&quot;&gt;赞赏&lt;/span&gt;&lt;/a&gt;
-                    &lt;/p&gt;
-                    &lt;div id=&quot;js_reward_inner&quot; class=&quot;reward_area_inner&quot; style=&quot;display:none;&quot;&gt;
-                        &lt;p class=&quot;weui-loadmore weui-loadmore_line reward_user_tips&quot; id=&quot;js_reward_total_parent&quot;&gt;
-                          &lt;span class=&quot;weui-loadmore__tips&quot;&gt;
-                            &lt;a href=&quot;##&quot; id=&quot;js_reward_total&quot;&gt;&lt;/a&gt; &lt;span id=&quot;js_reward_total_text&quot;&gt;人赞赏&lt;/span&gt;
-                        &lt;/span&gt;
-                        &lt;/p&gt;
-                        
-                        &lt;div id=&quot;js_reward_list&quot; class=&quot;reward_user_list&quot;&gt;&lt;/div&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-                                &lt;div class=&quot;reward_qrcode_area reward_area tc&quot; id=&quot;js_reward_qrcode&quot; style=&quot;display:none;&quot;&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;长按二维码向我转账&lt;/p&gt;
-                                        &lt;p class=&quot;reward_tips&quot;&gt;感谢您的支持&lt;/p&gt;
-                    &lt;span class=&quot;reward_qrcode_img_wrp&quot;&gt;&lt;img class=&quot;reward_qrcode_img&quot; id=&quot;js_reward_qrcode_img&quot;&gt;&lt;/span&gt;
-                    &lt;p class=&quot;tips_global&quot;&gt;受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。&lt;/p&gt;
-                &lt;/div&gt;
-                                                
-                
-                            &lt;/div&gt;
-                                    
-                        
-
-
-                        
-            &lt;ul id=&quot;js_hotspot_area&quot; class=&quot;article_extend_area&quot;&gt;&lt;/ul&gt;
-
-
-            
-
-            
-
-
-&lt;div class=&quot;rich_media_tool&quot; id=&quot;js_toobar3&quot;&gt;
-
-            &lt;div id=&quot;js_read_area3&quot; class=&quot;media_tool_meta tips_global_primary meta_primary&quot; style=&quot;display:none;&quot;&gt;
-
-    &lt;span id=&quot;readTxt&quot;&gt;阅读&lt;/span&gt;
-
-    &lt;span id=&quot;readNum3&quot;&gt;&lt;/span&gt;
-    &lt;/div&gt;
-
-
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_praise&quot; id=&quot;like_old&quot;&gt;
-        &lt;i class=&quot;icon_praise_gray&quot;&gt;&lt;/i&gt;&lt;span class=&quot;praise_num&quot; id=&quot;likeNum_old&quot;&gt;&lt;/span&gt;
-    &lt;/span&gt;
-
-      
-    &lt;span class=&quot;media_tool_meta meta_extra meta_share&quot; style=&quot;display: none;&quot;&gt;
-        &lt;button class=&quot;share_btn&quot; id=&quot;js_share_btn&quot;&gt;分享&lt;/button&gt;
-    &lt;/span&gt;
-    &lt;span style=&quot;display:none;&quot; class=&quot;media_tool_meta meta_extra meta_like&quot; id=&quot;like3&quot;&gt;
-        &lt;button class=&quot;like_btn&quot; id=&quot;js_like_btn&quot;&gt; 
-          &lt;span id=&quot;js_like_wording&quot;&gt; 在看&lt;/span&gt;&lt;span class=&quot;like_num&quot; id=&quot;likeNum3&quot;&gt;&lt;/span&gt;
-        &lt;/button&gt;
-    &lt;/span&gt;
-
-      &lt;div style=&quot;display:none&quot;&gt;
-        &lt;div class=&quot;weui-mask&quot;&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog weui-dialog_haokan&quot;&gt;
-        &lt;div class=&quot;weui-dialog__hd&quot;&gt;&lt;strong class=&quot;weui-dialog__title&quot; id=&quot;educate_title&quot;&gt;已同步到看一看&lt;/strong&gt;&lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__bd&quot;&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_default&quot; id=&quot;js_cancel&quot;&gt;取消&lt;/a&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_confirm&quot;&gt;发送&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;div class=&quot;weui-dialog__ft&quot; id=&quot;educate_btn2&quot; style=&quot;display: none&quot;&gt;
-          &lt;a href=&quot;javascript:;&quot; class=&quot;weui-dialog__btn weui-dialog__btn_primary&quot; id=&quot;js_acknowledge&quot;&gt;我知道了&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    
-    &lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_like_educate&quot; class=&quot;like_skin_primary like_comment_primary_pop&quot;&gt;
-  &lt;div id=&quot;js_like_educate_wrapper&quot; class=&quot;like_comment_primary_wrp like_comment_primary_pos_top&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友会在“发现-看一看”看到你“在看”的内容        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;img class=&quot;pic_haokan&quot; src=&quot;//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png&quot;&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_3&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-  
-  &lt;div class=&quot;like_comment_wrp&quot; id=&quot;js_a_like_comment&quot; style=&quot;display: none;&quot;&gt;
-    &lt;div class=&quot;like_comment_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_hd&quot; style=&quot;display:none&quot; id=&quot;js_like_title&quot;&gt;&lt;/div&gt;
-      &lt;div class=&quot;like_comment_bd&quot;&gt;
-        &lt;div class=&quot;tips_global_primary like_comment_tips&quot;&gt;
-          &lt;i class=&quot;weui-icon-success&quot;&gt;&lt;/i&gt;&lt;i class=&quot;icon-success-primary&quot;&gt;&lt;/i&gt;已同步到看一看&lt;a href=&quot;javascript:;&quot; class=&quot;like_comment_share_link&quot; id=&quot;js_a_like_comment_share&quot;&gt;写下你的想法&lt;/a&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_ft&quot;&gt;
-        &lt;span id=&quot;js_a_like_comment_msg&quot; class=&quot;like_comment_msg&quot; style=&quot;visibility:hidden&quot;&gt;最多200字，当前共&lt;span id=&quot;js_a_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-        &lt;button class=&quot;like_comment_btn&quot; disabled id=&quot;js_a_like_confirm&quot;&gt;发送&lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-
-&lt;div id=&quot;js_like_toast&quot; style=&quot;display: none;&quot;&gt;
-  &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;weui-toast&quot;&gt;
-    &lt;i class=&quot;weui-icon-success-no-circle weui-icon_toast&quot;&gt;&lt;/i&gt;
-    &lt;p class=&quot;weui-toast__content&quot; id=&quot;js_toast_msg&quot;&gt;已发送&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_panel&quot; class=&quot;like_comment_primary_pop&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp&quot; id=&quot;js_b_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt;
-          朋友将在看一看看到        &lt;/h4&gt;
-        &lt;button id=&quot;js_b_like_confirm&quot; class=&quot;like_comment_primary_btn&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div id=&quot;js_b_comment_text_first&quot; class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;span class=&quot;tips_global_primary&quot;&gt;
-          写下你的想法...        &lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_1&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div style=&quot;display: none;&quot; id=&quot;js_b_comment_final&quot;&gt;
-  &lt;div class=&quot;like_comment_primary_wrp editing&quot; id=&quot;js_comment_wrp&quot;&gt;
-    &lt;div class=&quot;like_comment_primary_inner&quot;&gt;
-      &lt;div class=&quot;like_comment_primary_hd&quot;&gt;
-        &lt;button class=&quot;like_comment_primary_cancel&quot; id=&quot;js_b_comment_cancel&quot;&gt;取消&lt;/button&gt;
-        &lt;h4 class=&quot;like_comment_primary_title&quot;&gt; 发布到看一看 &lt;/h4&gt;
-        &lt;button class=&quot;like_comment_primary_btn&quot; id=&quot;js_b_comment_confirm&quot;&gt;确定&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;like_comment_primary_bd&quot;&gt;
-        &lt;textarea class=&quot;like_comment_textarea weui-textarea&quot; placeholder=&quot;写下你的想法...&quot; id=&quot;js_b_comment_text_second&quot;&gt;&lt;/textarea&gt;
-      &lt;/div&gt;
-      &lt;span class=&quot;like_comment_msg&quot; id=&quot;js_b_like_comment_msg&quot; style=&quot;visibility: hidden;&quot;&gt;最多200字，当前共&lt;span id=&quot;js_b_like_current_cnt&quot;&gt;&lt;/span&gt;字&lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;like_comment_primary_mask&quot; id=&quot;js_mask_2&quot;&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id=&quot;js_loading&quot; style=&quot; display: none;&quot;&gt;
-    &lt;div class=&quot;weui-mask_transparent&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;weui-toast&quot;&gt;
-        &lt;i class=&quot;weui-loading weui-icon_toast&quot;&gt;&lt;/i&gt;
-        &lt;p class=&quot;weui-toast__content&quot;&gt;发送中&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-
-
-                        &lt;div class=&quot;rich_media_tool&quot; id=&quot;js_sg_bar&quot;&gt;
-
-                                
-            &lt;/div&gt;
-                      &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class=&quot;rich_media_area_primary sougou&quot; id=&quot;sg_tj&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;
-
-
-        
-        &lt;div class=&quot;rich_media_area_extra&quot;&gt;
-          &lt;div class=&quot;rich_media_area_extra_inner&quot;&gt;
-              
-              &lt;div id=&quot;js_share_appmsg&quot;&gt;
-              &lt;/div&gt;
-
-              
-  
-      &lt;div class=&quot;mpda_bottom_container&quot; id=&quot;js_bottom_ad_area&quot;&gt;&lt;/div&gt;
-                
-              &lt;div id=&quot;js_iframetest&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;
-                            
-                            
-              &lt;div class=&quot;rich_media_extra rich_media_extra_discuss&quot; id=&quot;js_cmt_container&quot; style=&quot;display:none&quot;&gt;
-                
-
-                
-                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_friend_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                  
-                  
-                  
-                &lt;/div&gt;
-
-                                &lt;div class=&quot;discuss_mod&quot; id=&quot;js_cmt_area&quot; style=&quot;display:none&quot;&gt;
-                &lt;/div&gt;
-                              &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        
-        &lt;div id=&quot;js_pc_qr_code&quot; class=&quot;qr_code_pc_outer&quot; style=&quot;display:none;&quot;&gt;
-            &lt;div class=&quot;qr_code_pc_inner&quot;&gt;
-                &lt;div class=&quot;qr_code_pc&quot;&gt;
-                    &lt;img id=&quot;js_pc_qr_code_img&quot; class=&quot;qr_code_pc_img&quot;&gt;
-                    &lt;p&gt;微信扫一扫&lt;br&gt;关注该公众号&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;</description>
-<author>caozsay</author>
-<guid isPermaLink="false">2019-06-09-1000000431</guid>
-<pubDate>Sun, 09 Jun 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
