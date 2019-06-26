@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>A股市场周内效应研究</title>
+</head>
+<body>
+<p><a href="https://mp.weixin.qq.com/s?timestamp=1561548775&amp;src=3&amp;ver=1&amp;signature=IU8XUqyYrev6toWOEUaTi8R2Rf2Km3V7CCemnTUKV*iwiLho3QfL471JIwOTQ12w3ceHtD5-yqovrkqf3nTUoyQdfoxj69QsWukN9kHbGh3VRmSYZ4mgY*SsmCi-xYIfs3WgF*laY75ALt74r5BZfGNKDdiG*KH2cvaNrBhX2-I=">原文</a></p>
+<div id="js_top_ad_area" class="top_banner"></div><div class="rich_media_inner">
+
+        
+        
+		<div id="page-content" class="rich_media_area_primary">
+
+		  <div class="rich_media_area_primary_inner">
+
+            
+                          
+                        
+
+            <div id="img-content">
+
+                
+                <h2 class="rich_media_title" id="activity-name">
+                    
+                    
+                    
+            A股市场周内效应研究
+                      </h2>
+                <div id="meta_content" class="rich_media_meta_list">
+                                                            <span id="copyright_logo" class="rich_media_meta rich_media_meta_text meta_tag_text">原创：</span>
+                                                            <span class="rich_media_meta rich_media_meta_text">
+                                                刘铭坤
+                                            </span>
+                                        
+                                        <span class="rich_media_meta rich_media_meta_nickname" id="profileBt">
+                      <a href="javascript:void(0);" id="js_name">
+                        聚宽量化实验室                      </a>
+                      <div id="js_profile_qrcode" class="profile_container" style="display:none;">
+                          <div class="profile_inner">
+                              <strong class="profile_nickname">聚宽量化实验室</strong>
+                              <img class="profile_avatar" id="js_profile_qrcode_img" src="" alt="">
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">微信号</label>
+                              <span class="profile_meta_value">JoinQuant-jx</span>
+                              </p>
+
+                              <p class="profile_meta">
+                              <label class="profile_meta_label">功能介绍</label>
+                              <span class="profile_meta_value">用数学+编程，驾驭金融市场波动。 汇集最优质量化投资模型，和最勤奋聪明的大脑。</span>
+                              </p>
+                              
+                          </div>
+                          <span class="profile_arrow_wrp" id="js_profile_arrow_wrp">
+                              <i class="profile_arrow arrow_out"></i>
+                              <i class="profile_arrow arrow_in"></i>
+                          </span>
+                      </div>
+                    </span>
+
+
+                    <em id="publish_time" class="rich_media_meta rich_media_meta_text"></em>
+
+
+
+
+
+                </div>
+                
+                
+                
+                
+                                                
+                                                                
+                                
+                
+                <div class="rich_media_content " id="js_content">
+                    
+
+                    
+
+                    
+                    
+                    <p style='letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;line-height: 1.5em;'><img data-ratio="0.2222222222222222" data-w="900" data-backw="556" data-backh="124" data-before-oversubscription-url="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?" class="__bg_gif " src="https://mmbiz.qpic.cn/mmbiz_gif/ZZTd2u8ycXibDM6MY1CKPZH6IwxyWUeKlfbgiahCVnsEygjPWkwGczyGemVPbTZHg6blIUyPIashqscFCtHia13mQ/640?" style="visibility: visible !important;width: 677px !important;"></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><br></p><h2 mpa-is-content="t" style='margin: 5px 8px;padding-right: 10px;padding-left: 10px;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);color: rgb(89, 89, 89);font-family: "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei", 黑体, Arial, sans-serif;border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;'><span style="color: rgb(54, 116, 201);"><strong><span style="text-indent: 2em;">引言</span></strong></span></h2><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><br></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  研究目的</strong></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>本文参考东吴证券研报《A股市场的周内效应》内容，对A股市场的日历效应在周内表现进行探索。日历效应，是一个鱼龙混杂的题目。有诙谐逗笑的，如马克吐温老先生的段子：十月，这是股市最危险的月份，其他危险的月份有七月、一月、九月、四月、十一月、五月、三月、六月、十二月、八月和二月。有认真总结的，如华尔街那个著名谚语：Sell in May and go away。然而从量化的角度来讲由于其样本数量过小，逻辑支撑也不够直接，对于以月份为支撑的日历效应一直被人持以怀疑的态度。相对地，以周为时间单位的周内效应更多地成为了我们关注的对象。我们考察了时间周期内股票在周一至周五每一天涨跌幅的中位数以观察周内效应的存在性。</span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  研究思路</strong></span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【1】观察周内不同交易日指数等效组合收益分解前后的涨跌幅中位数趋势变化。</p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【2】观察周内不同交易日全A股收益分解前后的涨跌幅中位数趋势变化。</p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【3】观察周内不同交易日收益分解前后的股指期货涨跌幅变化分析异象原因。</p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【4】尝试构建基于周内异象的策略获取来自异象的超额收益</p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【4】尝试构建不同半仓t+0策略获取观察到的日内收益。</p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  研究结论</strong></span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: justify;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【1】周内异象在我国A股市场内广泛存在，且该异象主要来源于日内收益，日间收益并无明显规律。</p><p style='box-sizing: border-box;margin-top: 1em;text-align: justify;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【2】周内异象的存在原因可能与资金流转、股票的t+1机制有关。</p><p style='box-sizing: border-box;margin-top: 1em;text-align: justify;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【3】在考虑了手续费以及印花税后，操作频率较低的基础策略有着明显的超额收益，而操作频率较高的以获得日内收益为目标的t+0策略超额收益会被几乎抹平，在两种情况下，周内异象的考量均可以明显改善策略绩效。</p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  研究设计</strong></span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【1】时间范围：2007.1 ～ 2019.6</p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【2】研究指数：上证50、沪深300、中证500</p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'>【3】股票池：上证50、沪深300、中证500指数成分股以及全部A股</p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></span></p><h2 mpa-is-content="t" style='margin: 5px 8px;padding-right: 10px;padding-left: 10px;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);color: rgb(89, 89, 89);font-family: "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei", 黑体, Arial, sans-serif;border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;'><span style="color: rgb(54, 116, 201);"><strong><span style="text-indent: 2em;">周内涨跌幅分析</span></strong></span></h2><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  指数组合涨跌幅</strong></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>首先，我们将收益区分为了日内收益（一天之中开盘价到收盘价的收益），日间收益（前一天收盘价至当天开盘价之间的收益）与总收益，并计算了2007年1月至29019年6月上证50，沪深300以及中证500三个指数等效组合对应的涨跌幅中位数，观察其在一周不同交易日内的变化趋势。</span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5727659574468085" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISqMeVr2vLibfMqBdRxlBfnCsunXNicicgibxqD33XHl8QPO66LhK0t34slQ/640?wx_fmt=png" data-type="png" data-w="1175" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color:#b2b2b2;"><span style="font-size: 12px;">图1-上证50，沪深300，中证500总涨跌幅中位数</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5727659574468085" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISicd2T0S2BL3ScIIGbfPLkMZkQkWtibXCrt7wZydWJxZic8v9rRNaLnUPg/640?wx_fmt=png" data-type="png" data-w="1175" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color:#b2b2b2;"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color:#b2b2b2;"><span style="font-size: 12px;">图2-上证50，沪深300，中证500日内涨跌幅中位数</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5698560541913632" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISibXH5tGXYZVibpianEBSUzPPlSvTicziceNoKU522stV5ISe7nA8Zd4mwicA/640?wx_fmt=png" data-type="png" data-w="1181" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图3-上证50，沪深300，中证500日间涨跌幅中位数</span></span></p><p><br></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><span style="color:#b2b2b2;"><span style="font-size: 12px;"></span></span><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>观察图表我们可以发现，周内的涨跌幅呈现出了强烈的“V”型趋势：从周一开始涨跌幅逐渐下降，到周日跌至低点，周五则出现了轻微的反弹，在分解收益后，我们发现这一现象主要来自日内收益，日间收益在周二至周五的几天间并没出现明显的规律。</span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: justify;"><br></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  个股涨跌幅</strong></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>为了进一步观察现象的存在性，我们将研究扩展到了全部A股，以下是全部A股在一周不同交易日下的涨跌幅变化趋势，观察图表可知，与指数相同的周内异象在全A股的范围内依然显著存在，从周一起涨跌幅逐渐下降，跌至周四达到了最低点，在周五有着一定程度上的回升，值得一提的是，周内日间收益显著为负，证明我国A股市场存在着显著的低开现象，在下文我们也将通过一些操作尝试规避低开现象带来的负收益。</span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.6323404255319149" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISEHbJ5LYGKs02Y4z6UGVDv7kA9najXcXbl9mibqAxIWicagvaibmWFXL5g/640?wx_fmt=png" data-type="png" data-w="1175" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图4-全A总涨跌幅中位数</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.6323404255319149" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISKurFkqibphVdCYKKqkne4yYnKUe9pVRJbr8Tf4vXOBQC3sibicg2b3z9w/640?wx_fmt=png" data-type="png" data-w="1175" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图5-全A日内涨跌幅中位数</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.627318718381113" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISia0ablvK33RPgRdX2E5VnMmHMXia8M1jLdib7AzSpELq2gIyic6s8zgdZg/640?wx_fmt=png" data-type="png" data-w="1186" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图6-全A日间涨跌幅中位数</span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"><br></span></span></p><h2 mpa-is-content="t" style='margin: 5px 8px;padding-right: 10px;padding-left: 10px;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);color: rgb(89, 89, 89);font-family: "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei", 黑体, Arial, sans-serif;border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;'><span style="color: rgb(54, 116, 201);"><strong><span style="text-indent: 2em;">获取周内收益——基础策略</span></strong></span></h2><p><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>通过前文的研究我们可以发现，在我国A股市场中周一、周二、周三、周五平均来讲存在正向收益，而正向收益的来源基本为日内收益，因此我们将研究策略主要分为直接获取周内收益以及通过半仓t+0获取日内收益两种，我们首先着眼于直接获得周内收益的基础策略，即周五开盘时买入，持有至周三收盘时卖出。</span></p><p><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5476603119584056" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISIybsWialXc4iaKKicG2aTsQlLf8Mdqld6FZ6V82gudMd4zibFY6skdowVw/640?wx_fmt=png" data-type="png" data-w="1154" style=""></p><p><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图7-上证50指数等效组合价值曲线(基础策略)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5514834205933682" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISdKN3Kly9xqzRGgGMxiabcuJMnequMHuGbUyqSOrEOmEEX4MnwNIPfXg/640?wx_fmt=png" data-type="png" data-w="1146" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图8-沪深300指数等效组合价值曲线(基础策略)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5448275862068965" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISib6rH03M0byUsVU8nFEjicv19V2PgGuBxSF4ItcIfwy1iadI4qopUNS6w/640?wx_fmt=png" data-type="png" data-w="1160" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图9-中证500指数等效组合价值曲线(基础策略)</span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><br></p><p><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>我们测试了上证50、沪深300以及中证500的等效组合收益情况。通过测试我们可以发现，由于较低的操作频率，在规避掉周四以后三种组合均获得了明显的超额收益。由于周内收益主要来自于日内，而日间收益则基本为负，接下来我们将观察基于半仓t+0策略仅获取日间收益的可行性。</span></p><p><span style="color: rgb(54, 116, 201);"><strong><span style="text-indent: 2em;"><br></span></strong></span></p><h2 mpa-is-content="t" style='margin: 5px 8px;padding-right: 10px;padding-left: 10px;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);color: rgb(89, 89, 89);font-family: "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei", 黑体, Arial, sans-serif;border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;'><span style="color: rgb(54, 116, 201);"><strong><span style="text-indent: 2em;">获取日内收益——半仓t+0策略</span></strong></span></h2><p style='box-sizing: border-box;margin-top: 1em;text-align: justify;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>获取A股日内收益的方法最直接的是每日开盘买入、收盘卖出，但是由于t+1交易机制的限制，当日买入的股票无法当日卖出。这里我们依然采用之前<a href="http://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716579439&amp;idx=1&amp;sn=518df14e0582a88de4139de2b569dc3f&amp;chksm=cd1f96f0fa681fe6c5f81a34ca7b5a14737ddff6bc28002e0ea932f07614bb51ee32ad437e60&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">《A股市场低开现象研究》</a>中所用到的操作方法，因此如果想获取这部分收益，需要一部分底仓的存在。所谓半仓策略，即初始仓位里有一半现金和一半股票，每日开盘时现金购入股票，仓位变为满仓，收盘时将仓位中原有的股票卖出，回到半仓状态，如此循环往复。基础操作如下：</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【1】初始净值假设为1，定义基准为证券本身。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【2】在第一日开盘时买入半仓，第二天开盘时再补至满仓，收盘时卖出一半股票，恢复半仓状态，如此循环往复。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【3】计算手续费，印花税下策略净值走势和绩效表现。</span></p><p><br></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  基础策略</strong></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>首先我们测试了在不考虑周内异象的半仓t+0策略绩效，可以发现，从指数的角度来讲，由于高昂的手续费以及印花税，本来可观的日内收益收益被完全抹平，其数值低于基准收益很多。接下来，我们将通过两种不同方式从周内异象对层面上尝试对半仓t+0策略进行优化。</span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5514834205933682" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISl4doqLYq5P0k2dKcjMTWWjd68ggWjohDq3U5058qibTM6cibuOESj1TA/640?wx_fmt=png" data-type="png" data-w="1146" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图10-上证50指数等效组合价值曲线(基础t+0)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5514834205933682" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISmFibDq08qlEfRcoVNvxv0z09q9OqicHeLqFUicEGUNCg0P61K4Dcu5iczw/640?wx_fmt=png" data-type="png" data-w="1146" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图11-沪深300指数等效组合价值曲线(基础t+0)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5490877497827976" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokIScAJ9k6uuotIoT4bjkvicVDia0xJVGFFAF7gKpaJ3RRW8duYHmSSXgCEQ/640?wx_fmt=png" data-type="png" data-w="1151" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图12-中证500指数等效组合价值曲线(基础t+0)</span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"><br></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  跳过周四</strong></span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>通过基础半仓t+0策略的构建过程我们可以发现其获取的是每一天的日内收益，但由于我们的研究发现，周四的日内收益显著为负，因此对于基础的半仓t+0策略，我们增加的改进方式如下：</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【1】在策略执行到周四时不进行买卖操作。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【2】在周三开盘时买入的那部分股票在周五收盘时卖出。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【3】在周三收盘时卖出的资金在周五开盘时重新买入。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>在这样改进后观察图表，我们可以发现尽管高昂的手续费依然会抹平日内收益，但修正后的价值曲线相对于基础价值曲线有了显著的整体上移，特别地，在中证500的情况下策略曲线与基准几乎重合，较为显著地提高了半仓t+0策略的绩效。</span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;"><br></strong></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5514834205933682" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISibJOKgibJ2iascyic2hTPWQ1FfSbmtGyeiaMDaUs347u7soUwVFD2vWs12A/640?wx_fmt=png" data-type="png" data-w="1146" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图13-上证50指数等效组合价值曲线(跳过周四)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5514834205933682" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISgMDD1oUppwSWw9rqcqV3FMr9ndib2lQS7CXl18icwCGMdPWKQODOibqWg/640?wx_fmt=png" data-type="png" data-w="1146" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图14-沪深300指数等效组合价值曲线(跳过周四)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5448275862068965" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISrhJRgaibibBhROkfDPic53v40f1ZSz0hIaTDcy2zW2grPDgTnmVaTFnUw/640?wx_fmt=png" data-type="png" data-w="1160" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图15-中证500指数等效组合价值曲线(跳过周四)</span></span></p><p><br></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;">&gt;&gt;&gt;  调整周四</strong></span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>与上文相似地，对于周四显著为负的日内收益我们还有另一种调整方式，即对于每个周四的买卖方式进行改变：</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【1】对于周三收盘时卖出的资金，在周四收盘时进行买入。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>【2】对于周三在开盘时买入的股票，在周四开盘时进行卖出。</span></p><p style='box-sizing: border-box;margin-top: 1em;text-align: left;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;white-space: normal;background-color: rgb(255, 255, 255);'><span style='letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'>这种改进方式可以在不影响周三以及周五仓位的情况下规避掉周四的负日内收益，观察图表可以发现，这一操作带来的效果与上一种操作程度上相似，也可以显著地提高半仓t+0策略的绩效。</span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><span style='color: rgb(89, 89, 89);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;font-size: 15px;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);'><strong style="color: rgb(54, 116, 201);letter-spacing: 0.544px;text-indent: 34px;"><br></strong></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5514834205933682" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISMCial8pfFnNYHByPyCFWoB9PxbaT1gcgZoqRCKSnqe1IXqE03JkpAJw/640?wx_fmt=png" data-type="png" data-w="1146" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图16-上证50指数等效组合价值曲线(调整周四)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5490877497827976" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokIS8AeOnVNStrOeSicLerbcS14S5t90PbOKrN9Jw59bpLZWgyvHbiatXDkA/640?wx_fmt=png" data-type="png" data-w="1151" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图17-沪深300指数等效组合价值曲线(调整周四)</span></span></p><p style="text-align: center;"><img class="rich_pages" data-ratio="0.5490877497827976" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_png/zEy1aCmAZQRxPUViaib0e7RibSZB52YokISWjxdKvupXyNg04ib7VkB8TTwSZrcLbPMEQUWicnKF7xSfGqBmbs1I74g/640?wx_fmt=png" data-type="png" data-w="1151" style=""></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"></span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;">图18-中证500指数等效组合价值曲线(调整周四)</span></span></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;text-align: center;"><span style="color: rgb(178, 178, 178);"><span style="font-size: 12px;"><br></span></span></p><h2 mpa-is-content="t" style='margin: 5px 8px;padding-right: 10px;padding-left: 10px;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);color: rgb(89, 89, 89);font-family: "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei", 黑体, Arial, sans-serif;border-left: 5px solid rgb(54, 116, 201);border-top-color: rgb(54, 116, 201);border-bottom-color: rgb(54, 116, 201);border-right-color: rgb(54, 116, 201);line-height: 1.5em;'><span style="color: rgb(54, 116, 201);"><strong><span style="text-indent: 2em;">结论</span></strong></span></h2><p style='margin-top: 1em;white-space: normal;box-sizing: border-box;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;'><span style='background-color: rgb(255, 255, 255);letter-spacing: 0.544px;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;'>通过以上的研究发现，<span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;letter-spacing: 0.544px;text-align: left;'>A股</span><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;letter-spacing: 0.544px;text-align: left;'>市场周内效应明显，</span></span><span style="background-color: rgb(255, 255, 255);letter-spacing: 0.544px;text-align: left;">在个股和指数上强烈地呈现出“V 型模式”：周一</span><span style="background-color: rgb(255, 255, 255);letter-spacing: 0.544px;text-align: left;">行情最亢奋，其后逐渐走低，周四最低迷，周五轻微反弹。在研究</span><span style="background-color: rgb(255, 255, 255);letter-spacing: 0.544px;text-align: left;">周内异象进行收益提升的过程中，我们结合A股低开现象，分为<span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;letter-spacing: 0.544px;text-align: left;background-color: rgb(255, 255, 255);'>直接获取周内收益的基础策略以及通过半仓t+0获取日内收益两种</span>模式，基础策略<span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;letter-spacing: 0.544px;text-align: left;background-color: rgb(255, 255, 255);'>在规避掉周四后获得了较为明显的超额收益</span>，由于交易成</span><span style="letter-spacing: 0.544px;text-align: left;"><span style="background-color: rgb(255, 255, 255);">本的缘故，t+0策略表现并没有交易频率较低的基础</span>策略<span style="background-color: rgb(255, 255, 255);">显著，这也揭示出了交易成本与超额收益的均衡在调仓较为频繁的策略中至关重要。</span></span></p><p style='margin-top: 1em;white-space: normal;box-sizing: border-box;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></p><p style='margin-top: 1em;white-space: normal;box-sizing: border-box;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;background-color: rgb(255, 255, 255);'><span style='color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;text-align: left;background-color: rgb(255, 255, 255);'><br></span></p><p style="margin-right: 8px;margin-left: 8px;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);line-height: 1.5em;"><span style='color: rgb(255, 255, 255);font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Emoji Symbols Font", "Segoe UI Symbol", Arial, sans-serif;background-color: rgb(54, 116, 201);font-size: 16px;'>推荐阅读</span></p><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><a href="https://mp.weixin.qq.com/s?__biz=MzI2ODAzNzQ0Mw==&amp;mid=2650725493&amp;idx=1&amp;sn=8f72567ca050e9f838676cef926c68ba&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="text-decoration: underline;-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"><span style="letter-spacing: 0.5px;cursor: auto;font-size: 12px;"><strong><span style="line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong><span style="color: rgb(89, 89, 89);"><strong><span style="line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong></span></span><span style="letter-spacing: 0.5px;font-size: 12px;cursor: auto;color: rgb(89, 89, 89);">【一创·聚宽】国内首家券商合作Python量化实盘开放申请！</span></a></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716577948&amp;idx=1&amp;sn=400d9f57a9568f08ef7e1f6f57bd1cdd&amp;chksm=cd1f9003fa6819157fe38c04b7533b882ebfd9799f96095bb5ca50585acb7be58d4858212e73&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><strong><span style="letter-spacing: 0.5px;cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■ </span></strong><span style="letter-spacing: 0.5px;cursor: auto;color: rgb(89, 89, 89);">【年度干货】精选99个量化投资策略源码打包下载</span></a></span></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716577888&amp;idx=1&amp;sn=d3e9b1bcfc5c04853926c5e1460ae581&amp;chksm=cd1f90fffa6819e9765141a42d3f7aa1d9167c4af4ac4113f2bd0ef61cfad473d4e34c077857&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><strong style="cursor: auto;"><span style="letter-spacing: 0.5px;cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong><span style="letter-spacing: 0.5px;cursor: auto;color: rgb(89, 89, 89);"><strong><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong>瑞银量化策略公布：通过散户羊群效应 获得A股超额收益</span></a></span></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716578130&amp;idx=1&amp;sn=1a1a0b1e4ee0cdae36eed5fda0be03a8&amp;chksm=cd1f91cdfa6818db8ab7293d74758f71344bc4a20a7502c195c2aa7a65e56b35cef4c0d8323f&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><strong style="cursor: auto;"><span style="letter-spacing: 0.5px;cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong><span style="letter-spacing: 0.5px;cursor: auto;color: rgb(89, 89, 89);"><strong><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong>业绩爆雷预测 六大异常财务指标效果实测</span></a></span></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716578198&amp;idx=1&amp;sn=8929659a056c4b39298d8c304f54d35c&amp;chksm=cd1f9109fa68181f83d91d877e6af2e6e7043cc0380e20676f85e363ac4f647ce3d368b4dd30&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><strong><span style="letter-spacing: 0.5px;cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong><span style="letter-spacing: 0.5px;cursor: auto;color: rgb(89, 89, 89);"><strong><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong>A股短期大涨能延续？高盛揭秘我们处于全球周期的位置</span></a></span></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716577770&amp;idx=1&amp;sn=2c8a3e3efee9bce95521005ebee957ee&amp;chksm=cd1f8f75fa68066374dcbb53eea1cbc59bee8ee40b9b3e6451de96446a18601ec466c3d279c7&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><strong style="cursor: auto;"><span style="letter-spacing: 0.5px;cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong><span style="letter-spacing: 0.5px;cursor: auto;color: rgb(89, 89, 89);"><strong><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong>量化择业 银行vs券商vs公募vs私募？（行内人深度分享）</span></a></span></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716577725&amp;idx=1&amp;sn=c9625a0072f759c03c474170e2e54296&amp;chksm=cd1f8f22fa680634c63c57a38c7a8cbd01515c2837af3550c2b6c40bfdd580c38cdd0611442c&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><strong style="cursor: auto;"><span style="letter-spacing: 0.5px;cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong><span style="letter-spacing: 0.5px;cursor: auto;color: rgb(89, 89, 89);"><strong><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong>趋势交易能赚钱吗？商品期货动量效应挖掘初探</span></a></span></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716577685&amp;idx=1&amp;sn=e69bb086b7d52b9092b72534e2747317&amp;chksm=cd1f8f0afa68061cbd69f2e0c97a0943a8a0a8bee9c6b1e779e2f5be0e0a427fb29d7f293da4&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="text-decoration: underline;-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;font-size: 12px;"><span style="letter-spacing: 0.5px;cursor: auto;"><strong style="cursor: auto;"><span style="line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong></span><span style="letter-spacing: 0.5px;color: rgb(89, 89, 89);"><strong> </strong>天生量化将才？理工科程序员 做量化投资优劣势分析</span></a></h1><h1 accuse="qTitle" style='margin-right: 8px;margin-left: 8px;font-variant-numeric: normal;font-variant-east-asian: normal;font-weight: bold;font-stretch: normal;line-height: 1.5em;font-family: "PingFang SC", "Lantinghei SC", "Microsoft YaHei", arial, 宋体, sans-serif, tahoma;letter-spacing: 0px;white-space: normal;background-color: rgb(255, 255, 255);'><span style="cursor: auto;font-size: 12px;text-decoration: underline;"><a href="https://mp.weixin.qq.com/s?__biz=MzI0MjE2MjE2MA==&amp;mid=2716577714&amp;idx=1&amp;sn=355052af66a0a460c16922f34f661065&amp;chksm=cd1f8f2dfa68063b24475cda93a2bf95dc44fdef60e8853ff195c2bb52a56f77fd731fac24c5&amp;scene=21#wechat_redirect" target="_blank" data-linktype="2" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;"><span style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;letter-spacing: 0.5px;"><strong style="cursor: auto;"><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;color: rgb(54, 116, 201);">■</span></strong></span><span style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);cursor: auto;letter-spacing: 0.5px;color: rgb(89, 89, 89);"><strong><span style="cursor: auto;line-height: 34px;font-weight: 400;overflow: hidden;"> </span></strong>摩根士丹利研究：量化投资者 都在思考什么？What Are Quantitative Investors Thinking?</span></a></span></h1><p style='margin-top: 1em;letter-spacing: 0px;white-space: normal;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;background-color: rgb(255, 255, 255);line-height: 1.5em;'><br></p><p style='margin-top: 1em;letter-spacing: 0px;white-space: normal;color: rgb(0, 0, 0);font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;background-color: rgb(255, 255, 255);'><br></p><p style="letter-spacing: 0px;white-space: normal;line-height: 1.5em;"><img class="rich_pages" data-ratio="0.7017291066282421" data-s="300,640" src="https://mmbiz.qpic.cn/mmbiz_gif/zEy1aCmAZQSAANLg6tzcv84icNyTUYH1XF8Ux60MInMxF2J9B8zibmFtm0ibrc9jV45datjjklCjPrCKWvLj4OwSA/640?wx_fmt=gif" data-type="gif" data-w="694"></p><section style="margin-top: 5px;padding: 10px;letter-spacing: 0px;white-space: normal;background-image: none;background-color: rgb(255, 255, 255);border-width: initial;border-style: none;border-color: initial;"><p style="margin-left: 10px;color: rgb(255, 255, 255);letter-spacing: 0.544px;float: left;font-size: 24px;line-height: 1.5em;">↙</p><p style="margin-top: -1px;margin-right: 8px;margin-left: 8px;min-height: 40px;visibility: visible;height: 40px;border-radius: 4px;text-align: center;box-shadow: rgb(190, 190, 190) 0px 3px 5px;background: rgb(54, 116, 201);line-height: 1.5em;"><span style="color: rgb(255, 255, 255);font-size: 14px;letter-spacing: 0.544px;">点击 “阅读原文” ，查看研究源码。</span></p></section>
+                </div>
+                <script nonce="720065759" type="text/javascript">
+                    var first_sceen__time = (+new Date());
+
+                    if ("" == 1 && document.getElementById('js_content')) {
+                        document.getElementById('js_content').addEventListener("selectstart",function(e){ e.preventDefault(); });
+                    }
+
+                    
+                    (function(){
+                        if (navigator.userAgent.indexOf("WindowsWechat") != -1){
+                            var link = document.createElement('link');
+                            var head = document.getElementsByTagName('head')[0];
+                            link.rel = 'stylesheet';
+                            link.type = 'text/css';
+                            link.href = "//res.wx.qq.com/mmbizwap/zh_CN/htmledition/style/page/appmsg_new/winwx46b604.css";
+                            head.appendChild(link);
+                        }
+                    })();
+                </script>
+
+                
+  <div class="ct_mpda_wrp" id="js_sponsor_ad_area" style="display: none;"></div>
+
+
+                
+                <div class="read-more__area" id="js_more_read_area" style="display:none;">
+                    
+                </div>
+
+                
+                                <div class="reward_area tc reward_area_primary" id="js_preview_reward_author" style="display:none;">
+                    <div class="reward-avatar" style="display: none;" id="js_preview_reward_author_avatar">
+                        <img src="" alt="" id="js_preview_reward_author_head">
+                    </div>
+                    
+                                        <div class="reward-author" id="js_preview_reward_author_name">刘铭坤</div>
+                                        <p class="reward_tips" id="js_preview_reward_author_wording" style="display:none;"></p>
+                    <p>
+                        <a class="reward_button" id="js_preview_reward_author_link" href="##"><span id="js_preview_reward_link_text">赞赏</span></a>
+                    </p>
+                </div>
+
+                <div class="reward_qrcode_area reward_area tc" id="js_preview_reward_qrcode" style="display:none;">
+                    <p class="tips_global">长按二维码向我转账</p>
+                    <p id="js_preview_reward_ios_wording" class="reward_tips" style="display:none;"></p>
+                    <span class="reward_qrcode_img_wrp"><img class="reward_qrcode_img" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_reward_qrcode.2x42f400.png"></span>
+                    <p class="tips_global">受苹果公司新规定影响，微信 iOS 版的赞赏功能被关闭，可通过二维码转账支持公众号。</p>
+                </div>
+                                
+                
+                            </div>
+                                    
+                        
+
+
+                        
+            <ul id="js_hotspot_area" class="article_extend_area"></ul>
+
+
+            
+
+            
+
+
+<div class="rich_media_tool" id="js_toobar3">
+
+            <a class="media_tool_meta meta_primary" id="js_view_source" href="##">阅读原文</a>
+        <div id="js_read_area3" class="media_tool_meta tips_global_primary meta_primary" style="display:none;">
+
+    <span id="readTxt">阅读</span>
+
+    <span id="readNum3"></span>
+    </div>
+
+
+    <span style="display:none;" class="media_tool_meta meta_extra meta_praise" id="like_old">
+        <i class="icon_praise_gray"></i><span class="praise_num" id="likeNum_old"></span>
+    </span>
+
+      
+    <span class="media_tool_meta meta_extra meta_share" style="display: none;">
+      <button class="share_btn" id="js_share_btn">分享</button>
+    </span>
+    <span style="display:none;" class="media_tool_meta meta_extra meta_like" id="like3">
+        <button class="like_btn" id="js_like_btn"> 
+          <span id="js_like_wording"> 在看</span><span class="like_num" id="likeNum3"></span>
+        </button>
+    </span>
+
+      <div style="display:none">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog weui-dialog_haokan">
+        <div class="weui-dialog__hd"><strong class="weui-dialog__title" id="educate_title">已同步到看一看</strong></div>
+        <div class="weui-dialog__bd">
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" id="js_cancel">取消</a>
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_confirm">发送</a>
+        </div>
+        <div class="weui-dialog__ft" id="educate_btn2" style="display: none">
+          <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" id="js_acknowledge">我知道了</a>
+        </div>
+        </div>
+    </div>
+
+    
+    </div>
+
+<div style="display: none;" id="js_like_educate" class="like_skin_primary like_comment_primary_pop">
+  <div id="js_like_educate_wrapper" class="like_comment_primary_wrp like_comment_primary_pos_top">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友会在“发现-看一看”看到你“在看”的内容        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <img class="pic_haokan" src="//res.wx.qq.com/mmbizwap/zh_CN/htmledition/images/pic/appmsg/pic_haokan4516f7.png">
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_3"></div>
+</div>
+
+  
+  <div class="like_comment_wrp" id="js_a_like_comment" style="display: none;">
+    <div class="like_comment_inner">
+      <div class="like_comment_hd" style="display:none" id="js_like_title"></div>
+      <div class="like_comment_bd">
+        <div class="tips_global_primary like_comment_tips">
+          <i class="weui-icon-success"></i><i class="icon-success-primary"></i>已同步到看一看<a href="javascript:;" class="like_comment_share_link" id="js_a_like_comment_share">写下你的想法</a>
+        </div>
+      </div>
+      <div class="like_comment_ft">
+        <span id="js_a_like_comment_msg" class="like_comment_msg" style="visibility:hidden">最多200字，当前共<span id="js_a_like_current_cnt"></span>字</span>
+        <button class="like_comment_btn" disabled id="js_a_like_confirm">发送</button>
+      </div>
+    </div>
+  </div>
+
+<div id="js_like_toast" style="display: none;">
+  <div class="weui-mask_transparent"></div>
+  <div class="weui-toast">
+    <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+    <p class="weui-toast__content" id="js_toast_msg">已发送</p>
+  </div>
+</div>
+
+
+<div style="display: none;" id="js_b_comment_panel" class="like_comment_primary_pop">
+  <div class="like_comment_primary_wrp" id="js_b_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <h4 class="like_comment_primary_title">
+          朋友将在看一看看到        </h4>
+        <button id="js_b_like_confirm" class="like_comment_primary_btn">确定</button>
+      </div>
+      <div id="js_b_comment_text_first" class="like_comment_primary_bd">
+        <span class="tips_global_primary">
+          写下你的想法...        </span>
+      </div>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_1"></div>
+</div>
+
+<div style="display: none;" id="js_b_comment_final">
+  <div class="like_comment_primary_wrp editing" id="js_comment_wrp">
+    <div class="like_comment_primary_inner">
+      <div class="like_comment_primary_hd">
+        <button class="like_comment_primary_cancel" id="js_b_comment_cancel">取消</button>
+        <h4 class="like_comment_primary_title"> 发布到看一看 </h4>
+        <button class="like_comment_primary_btn" id="js_b_comment_confirm">确定</button>
+      </div>
+      <div class="like_comment_primary_bd">
+        <textarea class="like_comment_textarea weui-textarea" placeholder="写下你的想法..." id="js_b_comment_text_second"></textarea>
+      </div>
+      <span class="like_comment_msg" id="js_b_like_comment_msg" style="visibility: hidden;">最多200字，当前共<span id="js_b_like_current_cnt"></span>字</span>
+    </div>
+  </div>
+  <div class="like_comment_primary_mask" id="js_mask_2"></div>
+</div>
+
+<div id="js_loading" style=" display: none;">
+    <div class="weui-mask_transparent"></div>
+    <div class="weui-toast">
+        <i class="weui-loading weui-icon_toast"></i>
+        <p class="weui-toast__content">发送中</p>
+    </div>
+</div>
+
+
+
+                        <div class="rich_media_tool" id="js_sg_bar">
+
+                                <a class="media_tool_meta meta_primary" href="https://www.joinquant.com/view/community/detail/1e966e431448696a2e93cf5bec69123c?type=1" target="_blank">阅读原文</a>
+                                
+            </div>
+                      </div>
+        </div>
+
+        <div class="rich_media_area_primary sougou" id="sg_tj" style="display:none"></div>
+
+
+        
+        <div class="rich_media_area_extra">
+          <div class="rich_media_area_extra_inner">
+              
+              <div id="js_share_appmsg">
+              </div>
+
+              
+  
+      <div class="mpda_bottom_container" id="js_bottom_ad_area"></div>
+                
+              <div id="js_iframetest" style="display:none;"></div>
+                            
+                            
+              <div class="rich_media_extra rich_media_extra_discuss" id="js_cmt_container" style="display:none">
+                
+
+                
+                <div class="discuss_mod" id="js_friend_cmt_area" style="display:none">
+                  
+                  
+                  
+                </div>
+
+                                <div class="discuss_mod" id="js_cmt_area" style="display:none">
+                </div>
+                              </div>
+          </div>
+        </div>
+
+        
+        <div id="js_pc_qr_code" class="qr_code_pc_outer" style="display:none;">
+            <div class="qr_code_pc_inner">
+                <div class="qr_code_pc">
+                    <img id="js_pc_qr_code_img" class="qr_code_pc_img">
+                    <p>微信扫一扫<br>关注该公众号</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
