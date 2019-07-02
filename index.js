@@ -22,6 +22,7 @@ const feeds = [
 		"DreamyTalks",
 		"TokyoTradingFloor",
 		"JoinQuant-jx",
+		"smartindex",
 		"worldofboss",
 		"yan-guan-lin-20",
 		"gh_0f34e4e813fc",
