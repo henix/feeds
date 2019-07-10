@@ -5,7 +5,146 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Tue, 09 Jul 2019 02:50:13 +0800</lastBuildDate>
+<lastBuildDate>Wed, 10 Jul 2019 11:20:52 +0800</lastBuildDate>
+<item>
+<title>TiKV 源码解析系列文章（十）Snapshot 的发送和接收</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-07-09-72880848.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/72880848&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-72226a1aa2a61516be7404c2f7b95548_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：黄梦龙&lt;/p&gt;&lt;h2&gt;背景知识&lt;/h2&gt;&lt;p&gt;TiKV 使用 Raft 算法来提供高可用且具有强一致性的存储服务。在 Raft 中，Snapshot 指的是整个 State Machine 数据的一份快照，大体上有以下这几种情况需要用到 Snapshot：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;正常情况下 leader 与 follower/learner 之间是通过 append log 的方式进行同步的，出于空间和效率的考虑，leader 会定期清理过老的 log。假如 follower/learner 出现宕机或者网络隔离，恢复以后可能所缺的 log 已经在 leader 节点被清理掉了，此时只能通过 Snapshot 的方式进行同步。&lt;/li&gt;&lt;li&gt;Raft 加入新的节点的，由于新节点没同步过任何日志，只能通过接收 Snapshot 的方式来同步。实际上这也可以认为是 1 的一种特殊情形。&lt;/li&gt;&lt;li&gt;出于备份/恢复等需求，应用层需要 dump 一份 State Machine 的完整数据。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;TiKV 涉及到的是 1 和 2 这两种情况。在我们的实现中，Snapshot 总是由 Region leader 所在的 TiKV 生成，通过网络发送给 Region follower/learner 所在的 TiKV。&lt;/p&gt;&lt;p&gt;理论上讲，我们完全可以把 Snapshot 当作普通的 &lt;code&gt;RaftMessage&lt;/code&gt; 来发送，但这样做实践上会产生一些问题，主要是因为 Snapshot 消息的尺寸远大于其他 &lt;code&gt;RaftMessage&lt;/code&gt;：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Snapshot 消息需要花费更长的时间来发送，如果共用网络连接容易导致网络拥塞，进而引起其他 Region 出现 Raft 选举超时等问题。&lt;/li&gt;&lt;li&gt;构建待发送 Snapshot 消息需要消耗更多的内存。&lt;/li&gt;&lt;li&gt;过大的消息可能导致超出 gRPC 的 Message Size 限制等问题。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;基于上面的原因，TiKV 对 Snapshot 的发送和接收进行了特殊处理，为每个 Snapshot 创建单独的网络连接，并将 Snapshot 拆分成 1M 大小的多个 Chunk 进行传输。&lt;/p&gt;&lt;h2&gt;源码解读&lt;/h2&gt;&lt;p&gt;下面我们分别从 RPC 协议、发送 Snapshot、收取 Snapshot 三个方面来解读相关源代码。本文的所有内容都基于 v3.0.0-rc.2 版本。&lt;/p&gt;&lt;h3&gt;Snapshot RPC call 的定义&lt;/h3&gt;&lt;p&gt;与普通的 raft message 类似，Snapshot 消息也是使用 gRPC 远程调用的方式来传输的。在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/kvproto&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;pingcap/kvproto&lt;/a&gt; 项目中可以找到相关 RPC Call 的定义，具体在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/kvproto/blob/5cb23649b361013f929e0d46a166ae24848fbcbb/proto/tikvpb.proto%23L57&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;tikvpb.proto&lt;/a&gt; 和 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/kvproto/blob/5cb23649b361013f929e0d46a166ae24848fbcbb/proto/raft_serverpb.proto%23L42-L47&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;raft_serverpb.proto&lt;/a&gt; 文件中。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;rpc Snapshot(stream raft_serverpb.SnapshotChunk) returns (raft_serverpb.Done) {}
+...
+message SnapshotChunk {
+  RaftMessage message = 1;
+  bytes data = 2;
+}
+
+message Done {}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看出，Snapshot 被定义成 client streaming 调用，即对于每个 Call，客户端依次向服务器发送多个相同类型的请求，服务器接收并处理完所有请求后，向客户端返回处理结果。具体在这里，每个请求的类型是 &lt;code&gt;SnapshotChunk&lt;/code&gt;，其中包含了 Snapshot 对应的 &lt;code&gt;RaftMessage&lt;/code&gt;，或者携带一段 Snapshot 数据；回复消息是一个简单的空消息 &lt;code&gt;Done&lt;/code&gt;，因为我们在这里实际不需要返回任何信息给客户端，只需要关闭对应的 stream。&lt;/p&gt;&lt;h3&gt;Snapshot 的发送流程&lt;/h3&gt;&lt;p&gt;Snapshot 的发送过程的处理比较简单粗暴，直接在将要发送 &lt;code&gt;RaftMessage&lt;/code&gt; 的地方截获 Snapshot 类型的消息，转而通过特殊的方式进行发送。相关代码可以在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/transport.rs%23L313-L344&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;server/transport.rs&lt;/a&gt; 中找到：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn write_data(&amp;amp;self, store_id: u64, addr: &amp;amp;str, msg: RaftMessage) {
+  if msg.get_message().has_snapshot() {
+      return self.send_snapshot_sock(addr, msg);
+  }
+  if let Err(e) = self.raft_client.wl().send(store_id, addr, msg) {
+      error!(&amp;#34;send raft msg err&amp;#34;; &amp;#34;err&amp;#34; =&amp;gt; ?e);
+  }
+}
+
+fn send_snapshot_sock(&amp;amp;self, addr: &amp;amp;str, msg: RaftMessage) {
+  ...
+  if let Err(e) = self.snap_scheduler.schedule(SnapTask::Send {
+      addr: addr.to_owned(),
+      msg,
+      cb,
+  }) {
+      ...
+  }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从代码中可以看出，这里简单地把对应的 &lt;code&gt;RaftMessage&lt;/code&gt; 包装成一个 &lt;code&gt;SnapTask::Send&lt;/code&gt; 任务，并将其交给独立的 &lt;code&gt;snap-worker&lt;/code&gt; 去处理。值得注意的是，这里的 &lt;code&gt;RaftMessage&lt;/code&gt; 只包含 Snapshot 的元信息，而不包括真正的快照数据。TiKV 中有一个单独的模块叫做 &lt;code&gt;SnapManager&lt;/code&gt; ，用来专门处理数据快照的生成与转存，稍后我们将会看到从 &lt;code&gt;SnapManager&lt;/code&gt; 模块读取 Snapshot 数据块并进行发送的相关代码。&lt;/p&gt;&lt;p&gt;我们不妨顺藤摸瓜来看看 &lt;code&gt;snap-worker&lt;/code&gt; 是如何处理这个任务的，相关代码在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L329-L398&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;server/snap.rs&lt;/a&gt;，精简掉非核心逻辑后的代码引用如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn run(&amp;amp;mut self, task: Task) {
+  match task {
+      Task::Recv { stream, sink } =&amp;gt; {
+           ...
+           let f = recv_snap(stream, sink, ...).then(move |result| {
+               ...
+           });
+           self.pool.spawn(f).forget();
+      }
+      Task::Send { addr, msg, cb } =&amp;gt; {
+          ...
+          let f = future::result(send_snap(..., &amp;amp;addr, msg))
+              .flatten()
+              .then(move |res| {
+                  ...
+              });
+          self.pool.spawn(f).forget();
+      }
+  }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;snap-worker&lt;/code&gt; 使用了 &lt;code&gt;future&lt;/code&gt; 来完成收发 Snapshot 任务：通过调用 &lt;code&gt;send_snap()&lt;/code&gt; 或 &lt;code&gt;recv_snap()&lt;/code&gt; 生成一个 future 对象，并将其交给 &lt;code&gt;FuturePool&lt;/code&gt; 异步执行。&lt;/p&gt;&lt;p&gt;现在我们暂且只关注 &lt;code&gt;send_snap()&lt;/code&gt; 的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L103-L175&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;实现&lt;/a&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn send_snap(
+  ...
+  addr: &amp;amp;str,
+  msg: RaftMessage,
+) -&amp;gt; Result&amp;lt;impl Future&amp;lt;Item = SendStat, Error = Error&amp;gt;&amp;gt; {
+  ...
+  let key = {
+      let snap = msg.get_message().get_snapshot();
+      SnapKey::from_snap(snap)?
+  };
+  ...
+  let s = box_try!(mgr.get_snapshot_for_sending(&amp;amp;key));
+  if !s.exists() {
+      return Err(box_err!(&amp;#34;missing snap file: {:?}&amp;#34;, s.path()));
+  }
+  let total_size = s.total_size()?;
+  let chunks = {
+      let mut first_chunk = SnapshotChunk::new();
+      first_chunk.set_message(msg);
+
+      SnapChunk {
+          first: Some(first_chunk),
+          snap: s,
+          remain_bytes: total_size as usize,
+      }
+  };
+
+  let cb = ChannelBuilder::new(env);
+  let channel = security_mgr.connect(cb, addr);
+  let client = TikvClient::new(channel);
+  let (sink, receiver) = client.snapshot()?;
+
+  let send = chunks.forward(sink).map_err(Error::from);
+  let send = send
+      .and_then(|(s, _)| receiver.map_err(Error::from).map(|_| s))
+      .then(move |result| {
+          ...
+      });
+  Ok(send)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这一段流程还是比较清晰的：先是用 Snapshot 元信息从 &lt;code&gt;SnapManager&lt;/code&gt; 取到待发送的快照数据，然后将 &lt;code&gt;RaftMessage&lt;/code&gt; 和 &lt;code&gt;Snap&lt;/code&gt; 一起封装进 &lt;code&gt;SnapChunk&lt;/code&gt; 结构，最后创建全新的 gRPC 连接及一个 Snapshot stream 并将 &lt;code&gt;SnapChunk&lt;/code&gt; 写入。这里引入 &lt;code&gt;SnapChunk&lt;/code&gt; 是为了避免将整块 Snapshot 快照一次性加载进内存，它 impl 了 &lt;code&gt;futures::Stream&lt;/code&gt; 这个 trait 来达成按需加载流式发送的效果。如果感兴趣可以参考它的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L55-L92&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;具体实现&lt;/a&gt;，本文就暂不展开了。&lt;/p&gt;&lt;h3&gt;Snapshot 的收取流程&lt;/h3&gt;&lt;p&gt;最后我们来简单看一下 Snapshot 的收取流程，其实也就是 gRPC Call 的 server 端对应的处理，整个流程的入口我们可以在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/service/kv.rs%23L714-L729&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;server/service/kv.rs&lt;/a&gt; 中找到：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn snapshot(
+  &amp;amp;mut self,
+  ctx: RpcContext&amp;lt;&amp;#39;_&amp;gt;,
+  stream: RequestStream&amp;lt;SnapshotChunk&amp;gt;,
+  sink: ClientStreamingSink&amp;lt;Done&amp;gt;,
+) {
+  let task = SnapTask::Recv { stream, sink };
+  if let Err(e) = self.snap_scheduler.schedule(task) {
+      ...
+  }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;与发送过程类似，也是直接构建 &lt;code&gt;SnapTask::Recv&lt;/code&gt; 任务并转发给 &lt;code&gt;snap-worker&lt;/code&gt; 了，这里会调用上面出现过的 &lt;code&gt;recv_snap()&lt;/code&gt; 函数，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L237-L291&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;具体实现&lt;/a&gt; 如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn recv_snap&amp;lt;R: RaftStoreRouter + &amp;#39;static&amp;gt;(
+  stream: RequestStream&amp;lt;SnapshotChunk&amp;gt;,
+  sink: ClientStreamingSink&amp;lt;Done&amp;gt;,
+  ...
+) -&amp;gt; impl Future&amp;lt;Item = (), Error = Error&amp;gt; {
+  ...
+  let f = stream.into_future().map_err(|(e, _)| e).and_then(
+      move |(head, chunks)| -&amp;gt; Box&amp;lt;dyn Future&amp;lt;Item = (), Error = Error&amp;gt; + Send&amp;gt; {
+          let context = match RecvSnapContext::new(head, &amp;amp;snap_mgr) {
+              Ok(context) =&amp;gt; context,
+              Err(e) =&amp;gt; return Box::new(future::err(e)),
+          };
+
+          ...
+          let recv_chunks = chunks.fold(context, |mut context, mut chunk| -&amp;gt; Result&amp;lt;_&amp;gt; {
+              let data = chunk.take_data();
+              ...
+              if let Err(e) = context.file.as_mut().unwrap().write_all(&amp;amp;data) {
+                  ...
+              }
+              Ok(context)
+          });
+
+          Box::new(
+              recv_chunks
+                  .and_then(move |context| context.finish(raft_router))
+                  .then(move |r| {
+                      snap_mgr.deregister(&amp;amp;context_key, &amp;amp;SnapEntry::Receiving);
+                      r
+                  }),
+          )
+      },
+  );
+  f.then(move |res| match res {
+      ...
+  })
+  .map_err(Error::from)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;值得留意的是 stream 中的第一个消息（其中包含有 &lt;code&gt;RaftMessage&lt;/code&gt;）被用来创建 &lt;code&gt;RecvSnapContext&lt;/code&gt; 对象，其后的每个 chunk 收取后都依次写入文件，最后调用 &lt;code&gt;context.finish()&lt;/code&gt; 把之前保存的 &lt;code&gt;RaftMessage&lt;/code&gt; 发送给 &lt;code&gt;raftstore&lt;/code&gt; 完成整个接收过程。&lt;/p&gt;&lt;h2&gt;总结&lt;/h2&gt;&lt;p&gt;以上就是 TiKV 发送和接收 Snapshot 相关的代码解析了。这是 TiKV 代码库中较小的一个模块，它很好地解决了由于 Snapshot 消息特殊性所带来的一系列问题，充分应用了 &lt;code&gt;grpc-rs&lt;/code&gt; 组件及 &lt;code&gt;futures&lt;/code&gt;/&lt;code&gt;FuturePool&lt;/code&gt; 模型，大家可以结合本系列文章的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-7/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;第七篇&lt;/a&gt; 和 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-8/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;第八篇&lt;/a&gt; 进一步拓展学习。&lt;/p&gt;&lt;p&gt;&lt;b&gt;原文阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-10/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 源码解析系列文章（十）Snapshot 的发送和接收&lt;/a&gt;&lt;p&gt;&lt;b&gt;更多 TiKV 源码阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/%23TiKV-%25E6%25BA%2590%25E7%25A0%2581%25E8%25A7%25A3%25E6%259E%2590&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;博客 | PingCAP&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-07-09-72880848</guid>
+<pubDate>Tue, 09 Jul 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>TiKV 源码解析系列文章（九）Service 层处理流程解析</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-07-08-72640867.html</link>
@@ -116,155 +255,6 @@ You may now debug from another terminal. Press [ENTER] to continue.&lt;/code&gt;
 &lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-fa41bd457e35dd58ddf95bfb059c3b14_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8586cd2684f54a840fa8d06bfa302c5c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1212&quot; data-rawheight=&quot;800&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1212&quot; data-original=&quot;https://pic1.zhimg.com/v2-8586cd2684f54a840fa8d06bfa302c5c_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-8586cd2684f54a840fa8d06bfa302c5c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1212&quot; data-rawheight=&quot;800&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1212&quot; data-original=&quot;https://pic1.zhimg.com/v2-8586cd2684f54a840fa8d06bfa302c5c_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-8586cd2684f54a840fa8d06bfa302c5c_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;TiDB 的设计灵魂，是让优雅灵活的架构充满无限可能性。从大规模业务场景中稳定使用的 TiDB 2.0 版本，到这一次备受关注的 3.0，我们持续地在倾听、修正、尝试，并获得一次又一次验证。距离年初公布 TiDB 3.0 beta 版本，已经过去了大半年，这期间我们对各方面进行了测试和优化，也看到有第一梯队用户在业务中体验了 3.0 的新特性。很多小伙伴好奇我们当时承诺的 TiDB 3.0 稳定性 / 易用性 / 高性能 / 新功能，都兑现得怎么样了？&lt;/p&gt;&lt;p&gt;今天正式剧透一波：TiDB 3.0 GA 版本将在本月底正式发布！借此机会，为了让更多的社区伙伴能够近距离与我们展开交流，并快速 Get 3.0 GA 的技术细节和正确使用姿势，&lt;b&gt;我们启动「TiDB TechDay 2019 全国巡讲」，打破「一年一城」的传统，巡回北京、上海、成都、深圳、武汉、杭州 6 座城市&lt;/b&gt;，用一整天的时间为当地朋友深入拆解 TiDB 3.0 以及展示今年技术层面的各个大招：从 TiDB 最新的 OLAP 架构，到云原生 TiDB demo、TiKV 性能大幅提升等等。各地用户伙伴也会一起交流分享 TiDB 实践经验，另外关于全球开源社区运营，我们又有了新的想法，也将与各地的社区伙伴们聊聊。当然 TechDay 2019 特别设计的 T-Shirt &amp;amp; 贴纸也会有的！&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-38fe0e5fb7c2864b9b0542a433724f00_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;333&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-38fe0e5fb7c2864b9b0542a433724f00_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-38fe0e5fb7c2864b9b0542a433724f00_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;333&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic1.zhimg.com/v2-38fe0e5fb7c2864b9b0542a433724f00_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-38fe0e5fb7c2864b9b0542a433724f00_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;相信在社区伙伴们的力量加持下，我们可以接着做更多做不到的事情。期待与大家见面～&lt;/p&gt;&lt;h2&gt;&lt;b&gt;北京站日程&lt;/b&gt;&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f546abf33d0cab8b1a4bdfdec1a08f05_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;692&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-f546abf33d0cab8b1a4bdfdec1a08f05_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f546abf33d0cab8b1a4bdfdec1a08f05_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;692&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-f546abf33d0cab8b1a4bdfdec1a08f05_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-f546abf33d0cab8b1a4bdfdec1a08f05_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;时间：2019-06-23 周日 10:00 - 16:50 &lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;地点：北京市-朝阳区-西大望路-地铁 14 号线平乐园站 B 口-灿空间&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;扫描下方二维码报名【北京站】&lt;/b&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;报名截止时间：6 月 22 日晚 18:00&lt;/li&gt;&lt;li&gt;请大家认真填写表单信息（T-Shirt 尺码别忘填啦）&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-2ced3e37da357cef5f7b17faf0cf986e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;256&quot; data-rawheight=&quot;256&quot; class=&quot;content_image&quot; width=&quot;256&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-2ced3e37da357cef5f7b17faf0cf986e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;256&quot; data-rawheight=&quot;256&quot; class=&quot;content_image lazy&quot; width=&quot;256&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-2ced3e37da357cef5f7b17faf0cf986e_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;ul&gt;&lt;li&gt;交通提示&lt;/li&gt;&lt;ul&gt;&lt;li&gt;公共交通：地铁 14 号线平乐园站 B 口出，步行 300 米即到。&lt;/li&gt;&lt;li&gt;驾车导航“地铁 14 号线平乐园站 B 口”，行驶西大望路至南磨房路口北 200 米，进入停车场（路东）。&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f67f151b82447ff53c8609cd5886a465_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;578&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-f67f151b82447ff53c8609cd5886a465_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f67f151b82447ff53c8609cd5886a465_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;578&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-f67f151b82447ff53c8609cd5886a465_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-f67f151b82447ff53c8609cd5886a465_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;* 最终日程信息以 TiDB TechDay 2019 官网显示为准&lt;/p&gt;&lt;p&gt;&lt;b&gt;点击进入 TiDB TechDay 2019 官网查询其余五站报名信息：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/community-cn/techday2019/%3Futm_source%3Dwechat%26utm_medium%3Dpingcap%26utm_campaign%3Dtechday%2520190613&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TechDay 2019 | PingCAP&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-06-13-69023375</guid>
-<pubDate>Thu, 13 Jun 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>TiKV 源码解析系列文章（八）grpc-rs 的封装与实现</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-06-13-68954079.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/68954079&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-b5f498470ddbe833aa913d5a12886a90_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：李建俊&lt;/p&gt;&lt;p&gt;上一篇《&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-7/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;gRPC Server 的初始化和启动流程&lt;/a&gt;》为大家介绍了 gRPC Server 的初始化和启动流程，本篇将带大家深入到 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/grpc-rs&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;grpc-rs&lt;/a&gt; 这个库里，查看 RPC 请求是如何被封装和派发的，以及它是怎么和 Rust Future 进行结合的。&lt;/p&gt;&lt;h2&gt;gRPC C Core&lt;/h2&gt;&lt;p&gt;gRPC 包括了一系列复杂的协议和流控机制，如果要为每个语言都实现一遍这些机制和协议，将会是一个很繁重的工作。因此 gRPC 提供了一个统一的库来提供基本的实现，其他语言再基于这个实现进行封装和适配，提供更符合相应语言习惯或生态的接口。这个库就是 gRPC C Core，grpc-rs 就是基于 gRPC C Core 进行封装的。&lt;/p&gt;&lt;p&gt;要说明 grpc-rs 的实现，需要先介绍 gRPC C Core 的运行方式。gRPC C Core 有三个很关键的概念 &lt;code&gt;grpc_channel&lt;/code&gt;、&lt;code&gt;grpc_completion_queue&lt;/code&gt;、&lt;code&gt;grpc_call&lt;/code&gt;。&lt;code&gt;grpc_channel&lt;/code&gt; 在 RPC 里就是底层的连接，&lt;code&gt;grpc_completion_queue&lt;/code&gt; 就是一个处理完成事件的队列。&lt;code&gt;grpc_call&lt;/code&gt; 代表的是一个 RPC。要进行一次 RPC，首先从 &lt;code&gt;grpc_channel&lt;/code&gt; 创建一个 grpc_call，然后再给这个 &lt;code&gt;grpc_call&lt;/code&gt; 发送请求，收取响应。而这个过程都是异步，所以需要调用 &lt;code&gt;grpc_completion_queue&lt;/code&gt; 的接口去驱动消息处理。整个过程可以通过以下代码来解释（为了让代码更可读一些，以下代码和实际可编译运行的代码有一些出入）。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;grpc_completion_queue* queue = grpc_completion_queue_create_for_next(NULL);
-grpc_channel* ch = grpc_insecure_channel_create(&amp;#34;example.com&amp;#34;, NULL);
-grpc_call* call = grpc_channel_create_call(ch, NULL, 0, queue, &amp;#34;say_hello&amp;#34;);
-grpc_op ops[6];
-memset(ops, 0, sizeof(ops));
-char* buffer = (char*) malloc(100);
-ops[0].op = GRPC_OP_SEND_INITIAL_METADATA;
-ops[1].op = GRPC_OP_SEND_MESSAGE;
-ops[1].data.send_message.send_message = &amp;#34;gRPC&amp;#34;;
-ops[2].op = GRPC_OP_SEND_CLOSE_FROM_CLIENT;
-ops[3].op = GRPC_OP_RECV_INITIAL_METADATA;
-ops[4].op = GRPC_OP_RECV_MESSAGE;
-ops[4].data.recv_message.recv_message = buffer;
-ops[5].op = GRPC_OP_RECV_STATUS_ON_CLIENT;
-void* tag = malloc(1);
-grpc_call_start_batch(call, ops, 6, tag);
-grpc_event ev = grpc_completion_queue_next(queue);
-ASSERT_EQ(ev.tag, tag);
-ASSERT(strcmp(buffer, &amp;#34;Hello gRPC&amp;#34;));&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到，对 &lt;code&gt;grpc_call&lt;/code&gt; 的操作是通过一次 &lt;code&gt;grpc_call_start_batch&lt;/code&gt; 来指定的。这个 start batch 会将指定的操作放在内存 buffer 当中，然后通过 &lt;code&gt;grpc_completion_queue_next&lt;/code&gt; 来实际执行相关操作，如收发消息。这里需要注意的是 &lt;code&gt;tag&lt;/code&gt; 这个变量。当这些操作都完成以后，&lt;code&gt;grpc_completion_queue_next&lt;/code&gt; 会返回一个包含 tag 的消息来通知这个操作完成了。所以在代码的末尾就可以在先前指定的 &lt;code&gt;buffer&lt;/code&gt; 读出预期的字符串。&lt;/p&gt;&lt;p&gt;由于篇幅有限，对于 gRPC C Core 的解析就不再深入了，对这部分很感兴趣的朋友也可以在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/grpc/grpc&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;github.com/grpc/grpc&lt;/a&gt; 阅读相关文档和源码。&lt;/p&gt;&lt;h2&gt;封装与实现细节&lt;/h2&gt;&lt;p&gt;通过上文的分析可以明显看到，gRPC C Core 的通知机制其实和 Rust Future 的通知机制非常类似。Rust Future 提供一个 poll 方法来检验当前 Future 是否已经 ready。如果尚未 ready，poll 方法会注册一个通知钩子 &lt;code&gt;task&lt;/code&gt;。等到 ready 时，&lt;code&gt;task&lt;/code&gt; 会被调用，从而触发对这个 Future 的再次 poll，获取结果。&lt;code&gt;task&lt;/code&gt; 其实和上文中的 &lt;code&gt;tag&lt;/code&gt; 正好对应起来了，而在 grpc-rs 中，&lt;code&gt;tag&lt;/code&gt; 就是一个储存了 &lt;code&gt;task&lt;/code&gt; 的 enum。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;pub enum CallTag {
-   Batch(BatchPromise),
-   Request(RequestCallback),
-   UnaryRequest(UnaryRequestCallback),
-   Abort(Abort),
-   Shutdown(ShutdownPromise),
-   Spawn(SpawnNotify),
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;tag&lt;/code&gt; 之所以是一个 enum 是因为不同的 call 会对应不同的行为，如对于服务器端接受请求的处理和客户端发起请求的处理就不太一样。&lt;/p&gt;&lt;p&gt;grpc-rs 在初始化时会创建多个线程来不断调用 &lt;code&gt;grpc_completion_queue_next&lt;/code&gt; 来获取已经完成的 &lt;code&gt;tag&lt;/code&gt;，然后根据 &lt;code&gt;tag&lt;/code&gt;的类型，将数据存放在结构体中并通知 &lt;code&gt;task&lt;/code&gt; 来获取。下面是这个流程的代码。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;// event loop
-fn poll_queue(cq: Arc&amp;lt;CompletionQueueHandle&amp;gt;) {
-   let id = thread::current().id();
-   let cq = CompletionQueue::new(cq, id);
-   loop {
-       let e = cq.next();
-       match e.event_type {
-           EventType::QueueShutdown =&amp;gt; break,
-           // timeout should not happen in theory.
-           EventType::QueueTimeout =&amp;gt; continue,
-           EventType::OpComplete =&amp;gt; {}
-       }
-
-       let tag: Box&amp;lt;CallTag&amp;gt; = unsafe { Box::from_raw(e.tag as _) };
-
-       tag.resolve(&amp;amp;cq, e.success != 0);
-   }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到，&lt;code&gt;tag&lt;/code&gt; 会被强转成为一个 &lt;code&gt;CallTag&lt;/code&gt;，然后调用 &lt;code&gt;resolve&lt;/code&gt; 方法来处理结果。不同的 enum 类型会有不同的 &lt;code&gt;resolve&lt;/code&gt; 方式，这里挑选其中 &lt;code&gt;CallTag::Batch&lt;/code&gt; 和 &lt;code&gt;CallTag::Request&lt;/code&gt; 来进行解释，其他的 &lt;code&gt;CallTag&lt;/code&gt; 流程类似。&lt;/p&gt;&lt;p&gt;&lt;code&gt;BatchPromise&lt;/code&gt; 是用来处理上文提到的 &lt;code&gt;grpc_call_start_batch&lt;/code&gt; 返回结果的 &lt;code&gt;tag&lt;/code&gt;。&lt;code&gt;RequestCallback&lt;/code&gt; 则用来接受新的 RPC 请求。下面是 &lt;code&gt;BatchPromise&lt;/code&gt; 的定义及其 &lt;code&gt;resolve&lt;/code&gt; 方法。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/// A promise used to resolve batch jobs.
-pub struct BatchPromise {
-   ty: BatchType,
-   ctx: BatchContext,
-   inner: Arc&amp;lt;Inner&amp;lt;Option&amp;lt;MessageReader&amp;gt;&amp;gt;&amp;gt;,
-}
-
-impl BatchPromise {
-   fn handle_unary_response(&amp;amp;mut self) {
-       let task = {
-           let mut guard = self.inner.lock();
-           let status = self.ctx.rpc_status();
-           if status.status == RpcStatusCode::Ok {
-               guard.set_result(Ok(self.ctx.recv_message()))
-           } else {
-               guard.set_result(Err(Error::RpcFailure(status)))
-           }
-       };
-       task.map(|t| t.notify());
-   }
-
-   pub fn resolve(mut self, success: bool) {
-       match self.ty {
-           BatchType::CheckRead =&amp;gt; {
-               assert!(success);
-               self.handle_unary_response();
-           }
-           BatchType::Finish =&amp;gt; {
-               self.finish_response(success);
-           }
-           BatchType::Read =&amp;gt; {
-               self.read_one_msg(success);
-           }
-       }
-   }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面代码中的 &lt;code&gt;ctx&lt;/code&gt; 是用来储存响应的字段，包括响应头、数据之类的。当 &lt;code&gt;next&lt;/code&gt; 返回时，gRPC C Core 会将对应内容填充到这个结构体里。&lt;code&gt;inner&lt;/code&gt; 储存的是 &lt;code&gt;task&lt;/code&gt; 和收到的消息。当 &lt;code&gt;resolve&lt;/code&gt; 被调用时，先判断这个 &lt;code&gt;tag&lt;/code&gt; 要执行的是什么任务。&lt;code&gt;BatchType::CheckRead&lt;/code&gt; 表示是一问一答式的读取任务，&lt;code&gt;Batch::Finish&lt;/code&gt; 表示的是没有返回数据的任务，&lt;code&gt;BatchType::Read&lt;/code&gt; 表示的是流式响应里读取单个消息的任务。拿 &lt;code&gt;CheckRead&lt;/code&gt; 举例，它会将拉取到的数据存放在 &lt;code&gt;inner&lt;/code&gt;里，并通知 &lt;code&gt;task&lt;/code&gt;。而 &lt;code&gt;task&lt;/code&gt; 对应的 Future 再被 poll 时就可以拿到对应的数据了。这个 Future 的定义如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/// A future object for task that is scheduled to `CompletionQueue`.
-pub struct CqFuture&amp;lt;T&amp;gt; {
-    inner: Arc&amp;lt;Inner&amp;lt;T&amp;gt;&amp;gt;,
-}
-
-impl&amp;lt;T&amp;gt; Future for CqFuture&amp;lt;T&amp;gt; {
-    type Item = T;
-    type Error = Error;
-
-    fn poll(&amp;amp;mut self) -&amp;gt; Poll&amp;lt;T, Error&amp;gt; {
-        let mut guard = self.inner.lock();
-        if guard.stale {
-            panic!(&amp;#34;Resolved future is not supposed to be polled again.&amp;#34;);
-        }
-
-        if let Some(res) = guard.result.take() {
-            guard.stale = true;
-            return Ok(Async::Ready(res?));
-        }
-
-        // So the task has not been finished yet, add notification hook.
-        if guard.task.is_none() || !guard.task.as_ref().unwrap().will_notify_current() {
-            guard.task = Some(task::current());
-        }
-
-        Ok(Async::NotReady)
-    }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;Inner&lt;/code&gt; 是一个 &lt;code&gt;SpinLock&lt;/code&gt;。如果在 poll 时还没拿到结果时，会将 &lt;code&gt;task&lt;/code&gt; 存放在锁里，在有结果的时候，存放结果并通过 &lt;code&gt;task&lt;/code&gt; 通知再次 poll。如果有结果则直接返回结果。&lt;/p&gt;&lt;p&gt;下面是 &lt;code&gt;RequestCallback&lt;/code&gt; 的定义和 &lt;code&gt;resolve&lt;/code&gt; 方法。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;pub struct RequestCallback {
-   ctx: RequestContext,
-}
-
-impl RequestCallback {
-   pub fn resolve(mut self, cq: &amp;amp;CompletionQueue, success: bool) {
-       let mut rc = self.ctx.take_request_call_context().unwrap();
-       if !success {
-           server::request_call(rc, cq);
-           return;
-       }
-
-       match self.ctx.handle_stream_req(cq, &amp;amp;mut rc) {
-           Ok(_) =&amp;gt; server::request_call(rc, cq),
-           Err(ctx) =&amp;gt; ctx.handle_unary_req(rc, cq),
-       }
-   }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面代码中的 &lt;code&gt;ctx&lt;/code&gt; 是用来储存请求的字段，主要包括请求头。和 &lt;code&gt;BatchPromise&lt;/code&gt; 类似，&lt;code&gt;ctx&lt;/code&gt; 的内容也是在调用 &lt;code&gt;next&lt;/code&gt; 方法时被填充。在 &lt;code&gt;resolve&lt;/code&gt; 时，如果失败，则再次调用 &lt;code&gt;request_call&lt;/code&gt; 来接受下一个 RPC，否则会调用对应的 RPC 方法。&lt;/p&gt;&lt;p&gt;&lt;code&gt;handle_stream_req&lt;/code&gt; 的定义如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;pub fn handle_stream_req(
-   self,
-   cq: &amp;amp;CompletionQueue,
-   rc: &amp;amp;mut RequestCallContext,
-) -&amp;gt; result::Result&amp;lt;(), Self&amp;gt; {
-   let handler = unsafe { rc.get_handler(self.method()) };
-   match handler {
-       Some(handler) =&amp;gt; match handler.method_type() {
-           MethodType::Unary | MethodType::ServerStreaming =&amp;gt; Err(self),
-           _ =&amp;gt; {
-               execute(self, cq, None, handler);
-               Ok(())
-           }
-       },
-       None =&amp;gt; {
-           execute_unimplemented(self, cq.clone());
-           Ok(())
-       }
-   }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从上面可以看到，整个过程先通过 &lt;code&gt;get_handler&lt;/code&gt;，根据 RPC 想要执行的方法名字拿到方法并调用，如果方法不存在，则向客户端报错。可以看到这里对于 &lt;code&gt;Unary&lt;/code&gt; 和 &lt;code&gt;ServerStreaming&lt;/code&gt; 返回了错误。这是因为这两种请求都是客户端只发一次请求，所以返回错误让 &lt;code&gt;resolve&lt;/code&gt; 继续拉取消息体然后再执行对应的方法。&lt;/p&gt;&lt;p&gt;为什么 &lt;code&gt;get_handler&lt;/code&gt; 可以知道调用的是什么方法呢？这是因为 gRPC 编译器在生成代码里对这些方法进行了映射，具体的细节在生成的 &lt;code&gt;create_xxx_service&lt;/code&gt; 里，本文就不再展开了。&lt;/p&gt;&lt;h2&gt;小结&lt;/h2&gt;&lt;p&gt;最后简要总结一下 grpc-rs 的封装和实现过程。当 grpc-rs 初始化时，会创建数个线程轮询消息队列（&lt;code&gt;grpc_completion_queue&lt;/code&gt;）并 &lt;code&gt;resolve&lt;/code&gt;。当 server 被创建时，RPC 会被注册起来，server 启动时，grpc-rs 会创建数个 &lt;code&gt;RequestCall&lt;/code&gt; 来接受请求。当有 RPC 请求发到服务器端时，&lt;code&gt;CallTag::Request&lt;/code&gt; 就会被返回并 &lt;code&gt;resolve&lt;/code&gt;，并在 &lt;code&gt;resolve&lt;/code&gt; 中调用对应的 RPC 方法。而 client 在调用 RPC 时，其实都是创建了一个 Call，并产生相应的 &lt;code&gt;BatchPromise&lt;/code&gt; 来异步通知 RPC 方法是否已经完成。&lt;/p&gt;&lt;p&gt;还有很多 grpc-rs 的源码在我们的文章中暂未涉及，其中还有不少有趣的技巧，比如，如何减少唤醒线程的次数而减少切换、如何无锁地注册调用各个 service 钩子等。欢迎有好奇心的小伙伴自行阅读源码，也欢迎大家提 issue 或 PR 一起来完善这个项目。&lt;/p&gt;&lt;p&gt;&lt;b&gt;原文阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/tikv-source-code-reading-8/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 源码解析系列文章（八）grpc-rs 的封装与实现&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-06-13-68954079</guid>
 <pubDate>Thu, 13 Jun 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
