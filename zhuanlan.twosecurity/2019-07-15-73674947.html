@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>通过策略注入绕过CSP</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/73674947">原文</a></p>
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-bbdf1a768b9cf3e78ac4cdf87aa8b92f_b.jpg" alt=""></div><p>在测试PayPal寻找绕过CSP和混合内容保护的方法时，我发现了一件有趣的事儿。PayPal在CSP的report-uri指令中放置了一个名为token的GET参数。我发现通过改变token的参数，可以将指令注入策略。大多数浏览器只是跳过无效的CSP指令，而Edge不同。如果遇到无效语法，Edge将删除整个策略！我使Edge变得模糊，以找到用尽可能少的字符打破CSP的方法，并可以简单地使用分号和下划线。因此，如果你加载了以下URL：</p><p><a href="https://link.zhihu.com/?target=https%3A//www.paypal.com/webapps/xoonboarding%3Fvalues%3Detc%26token" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">paypal.com/webapps/xoon</span><span class="invisible">boarding?values=etc&amp;token</span><span class="ellipsis"></span></a> <b>= SOMETOKEN; _</b></p><p>你将获得此CSP标头：</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-ff673c9b283551f87bb79f8832b7e2c8_b.jpg" data-caption="" data-size="normal" data-rawwidth="820" data-rawheight="243" class="origin_image zh-lightbox-thumb" width="820" data-original="https://pic1.zhimg.com/v2-ff673c9b283551f87bb79f8832b7e2c8_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-ff673c9b283551f87bb79f8832b7e2c8_b.jpg" data-caption="" data-size="normal" data-rawwidth="820" data-rawheight="243" class="origin_image zh-lightbox-thumb lazy" width="820" data-original="https://pic1.zhimg.com/v2-ff673c9b283551f87bb79f8832b7e2c8_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-ff673c9b283551f87bb79f8832b7e2c8_b.jpg"/></figure><p>而Edge将放弃整个策略。</p><p>为了看到它的实际应用，我创建了一个简单的PoC：</p><p><u><a href="https://link.zhihu.com/?target=http%3A//portswigger-labs.net/edge_csp_injection_xndhfye721/%3Fx%3D%3B_%26y%3D%253Cscript%253Ealert%281%29%253C/script%253E" class=" wrap external" target="_blank" rel="nofollow noreferrer">Edge CSP绕过使用策略注入</a></u></p><p>当然几乎没有人使用Edge，所以我想到了Chrome。因为Chrome会忽略无效指令，并且我们的注入发生在策略的最后，我需要一种覆盖指令的方法。我发现了最近提出的一个名为“ <u><a href="https://link.zhihu.com/?target=https%3A//w3c.github.io/webappsec-csp/%23directive-script-src-elem" class=" wrap external" target="_blank" rel="nofollow noreferrer">script-src-elem </a></u>”的指令。该指令只允许你控制脚本块并创建，以便于你可以允许事件处理程序但阻止脚本元素，例如：</p><p>Content-Security-Policy: script-src-elem &#39;none&#39;; script-src-attr &#39;unsafe-inline&#39;</p><p>&lt;script&gt;alert(&#34;This will be blocked&#34;)&lt;/script&gt;<br/>&lt;a href=&#34;#&#34; onclick=&#34;alert(&#39;This will be allowed&#39;)&#34;&gt;test&lt;/a&gt;</p><p>关于这个指令的有趣之处在于它将覆盖现有的script-src指令！因此，如果你有策略注入，可以使用它来绕过CSP。这是适用于Chrome的PoC：</p><p><a href="https://link.zhihu.com/?target=http%3A//portswigger-labs.net/edge_csp_injection_xndhfye721/%3Fx%3D%253Bscript-src-elem%2B%2A%26y%3D%253Cscript%2Bsrc%3D%2522http%3A//subdomain1.portswigger-labs.net/xss/xss.js%2522%253E%253C/script%253E" class=" wrap external" target="_blank" rel="nofollow noreferrer">使用策略注入的Chrome CSP绕过</a></p><p class="ztext-empty-paragraph"><br/></p><p>翻译自：<a href="https://link.zhihu.com/?target=https%3A//portswigger.net/blog/bypassing-csp-with-policy-injection" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">portswigger.net/blog/by</span><span class="invisible">passing-csp-with-policy-injection</span><span class="ellipsis"></span></a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
