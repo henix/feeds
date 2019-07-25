@@ -131,7 +131,6 @@ const feeds = [
 	]],
 	["Security", [
 		"chaitin-tech",
-		"HuorongLab",
 		"datasec",
 		"fhe-blockchain",
 		"dong-tian-yang",
@@ -152,7 +151,6 @@ const feeds = [
 	]],
 	["法律", [
 		"mclawman",
-		"laodongfaquanji",
 	]],
 ];
 
