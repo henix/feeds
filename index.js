@@ -37,7 +37,6 @@ const feeds = [
 	["", [
 		"FinanEx",
 		"hthgyj",
-		"Trading_CNY",
 		"Chouma2016",
 		"touyanbang88",
 		"sanleima",
