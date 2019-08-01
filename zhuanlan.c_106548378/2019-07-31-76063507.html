@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>推荐《Systematic Trading》 by Robert Carver</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/76063507">原文</a></p>
+<p>这本书应该是量化交易方面比较靠谱的一本，作者是原来AHL的量化投资经理，AHL跟Winton都是期货中低频趋势交易方面全世界最顶级的。</p><p>这期货交易有点奇怪，这方面的书籍很多是传统技术分析的，正儿八经学术界的研究并不多，业界写书的也不多，这哥们算牛逼的了。推荐这本书不是因为作者数学很牛逼，而正是因为他数学不牛逼，所以应该看懂不难，因为太难的他也写不出。</p><p>这本书是传统的趋势交易，量化方面更多是加了传统的概率统计，没有机器学习那些。他把整个交易系统分了很多个模块，单品种单策略、单品种多策略、多品种投资组合等。</p><p>data first vs idea first</p><p>作者提到研究有两种方法，一个是数据出发，类似机器学习、数据挖掘那样，另一个是想法出发，然后用数据验证。但其实两种方法都有可能过度拟合。比如数据出发的逻辑性差一些，只能靠一些统计检验来判断；想法出发的话，你肯定是听说这个想法能赚钱才去试的，已经潜在过度拟合了。</p><p>关于过度拟合</p><p>作者对防止过度拟合的方法是不拟合。比如你滚动优化选取样本内夏普比最高的（或者其它标准），这样的效果往往很差。因为很多时候策略之间的区别非常小，比如一个策略夏普比0.8，另一个0.3，可能需要10年才能明显（95%的置信区间）地看出0.8的比0.3的好。所以这么筛选策略没意义。</p><p>他认为应该先把参数限制在一个小的范围内，然后动态地做风险平价，这样可以防止过度拟合。当然其实也可以喷，因为你肯定是限制在一个表现好的小范围内，这是不是过度拟合了呢？</p><p>关于多因子组合</p><p>这里因子的意思是跟仓位有关的随机变量，它把每个因子的值限制到-20到20，然后两个因子组合到一起的时候，整体波动一般降低，然后他要再乘一个系数恢复到-20到20；其实机器学习、深度学习也经常renormalize，类似的意思，方便调参；对因子的权重他似乎都是等权，也可能我看漏了。</p><p>关于投资组合优化</p><p>由于传统的均值方差模型对数值比较敏感，经常给出极端的权重，所以可以有一些办法解决。比如用boostrapping来估计协方差矩阵，但他不鼓励；他更鼓励一些启发式的方法，人为给出权重，他分了很多种情况，比如两个资产，相关性分别是x,y,z的时候应该怎么样之类的。</p><p>关于品种选择</p><p>只是强调波动太低的不要选，因为很多策略的下单手数跟波动成反比，波动很小的品种赚钱难又下单重，意义不大。</p><p>整体来说他的很多观点我是赞同的，只是可能大家的框架略有不同，不过殊途同归。他最大的优势在于可以全球配置，比如他自己交易45种期货，国内适合趋势交易的品种没那么多。</p><p>下图是Winton的业绩，20年来还是很平稳的，300多亿美元能有这样的曲线算很不错了。</p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-baf606e172ae1c520e1a39c8dc4fa26b_b.jpg" data-caption="" data-size="normal" data-rawwidth="1387" data-rawheight="673" class="origin_image zh-lightbox-thumb" width="1387" data-original="https://pic4.zhimg.com/v2-baf606e172ae1c520e1a39c8dc4fa26b_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-baf606e172ae1c520e1a39c8dc4fa26b_b.jpg" data-caption="" data-size="normal" data-rawwidth="1387" data-rawheight="673" class="origin_image zh-lightbox-thumb lazy" width="1387" data-original="https://pic4.zhimg.com/v2-baf606e172ae1c520e1a39c8dc4fa26b_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-baf606e172ae1c520e1a39c8dc4fa26b_b.jpg"/></figure><p>策略配置包括：</p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-2eeef96bbd8114850a311f798cc62333_b.jpg" data-caption="" data-size="normal" data-rawwidth="670" data-rawheight="518" class="origin_image zh-lightbox-thumb" width="670" data-original="https://pic4.zhimg.com/v2-2eeef96bbd8114850a311f798cc62333_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-2eeef96bbd8114850a311f798cc62333_b.jpg" data-caption="" data-size="normal" data-rawwidth="670" data-rawheight="518" class="origin_image zh-lightbox-thumb lazy" width="670" data-original="https://pic4.zhimg.com/v2-2eeef96bbd8114850a311f798cc62333_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-2eeef96bbd8114850a311f798cc62333_b.jpg"/></figure><p>Macro就是期货的意思，可以看出纯期货技术分析类的也不少。</p><p>其实我现在更倾向于认为机器学习在中低频投资决策中用处不会太大，毕竟持仓一个月的话一年也交易不了几次，样本数太少。元盛也说他们很多因子研究出来预计先亏两年正常，因为单个因子一般都很微弱，夏普比0.2了不得了，亏两年很正常，但不代表它无效。用来检测因子是否有效也是用一些传统的序贯分析之类的统计学方法，毕竟样本太少了，机器学习没啥用，gpu更是忽悠，或者我让公司买400万的gpu我可以拿120万的回扣？</p><p>当然或深度学习、增强学习对算法交易是有用的，一张单拆成1万份就有了1万个样本，还是可以建模的。但对于一年没几次交易先亏两年都不能确定它失效的策略，我想象不出深度增强学习有啥用。当然了，资管的本质在于销售，如果能增加销量，那还是有用的。</p><p>其实我没有黑什么私募，可能别人对我的话有一些误解。最简单的，一家私募sharpe 10但是只卖1亿，另一家亏得一塌糊涂却卖了100亿，你说哪家牛逼？说实话，把表现好的产品卖出去真的不值一提，把表现差的卖出去才是本事。就像招聘销售，这家公司产品好傻子都能卖，他家销售有啥能力可言呢？但如果一家公司产品很差但他居然能卖很多，这才是真的牛。</p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
