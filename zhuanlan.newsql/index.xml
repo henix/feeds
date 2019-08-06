@@ -5,7 +5,16 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 01 Aug 2019 22:40:58 +0800</lastBuildDate>
+<lastBuildDate>Tue, 06 Aug 2019 12:32:17 +0800</lastBuildDate>
+<item>
+<title>我们是如何设计 Golang &amp; SQL 引擎课程的？ | Talent Plan 背后的故事</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-08-05-76778250.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/76778250&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-188adcf8f0a02c1c30930cfb1d7f3f45_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：谢海滨&lt;/p&gt;&lt;p&gt;在 &lt;u&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/73950816&quot; class=&quot;internal&quot;&gt;上篇文章&lt;/a&gt;&lt;/u&gt; 中我们介绍了 PingCAP Talent Plan - TiKV 方向的课程内容，本文将从课程设计的角度和大家聊一聊 TiDB 方向的课程内容，包括课程设计的逻辑，和课程学习过程中常见的问题及解答等。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;TiDB 方向课程内容&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;TiDB 作为一个支持 MySQL 协议，以某种支持事务的分布式 KV 存储引擎为底层存储的 SQL 引擎，主要需要处理与 MySQL 客户端的交互，在底层存储引擎中存取数据，以及实现 SQL 功能。&lt;/b&gt;在 Talent Plan 课程设计上，我们主要关注在如何实现 SQL 功能，并将重点放在如何实现 SQL 优化器以及执行引擎上：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;优化器&lt;/b&gt;：主要负责生成并且优化查询计划，执行计划的好坏将极大影响执行效率，因此这一部分也可以说是整个 SQL 功能最核心的部分之一；&lt;/li&gt;&lt;li&gt;&lt;b&gt;执行引擎&lt;/b&gt;：主要负责执行生成的查询计划，大部分 SQL 的执行逻辑都在这里，目前 TiDB 的执行框架已经由经典的火山模型改进为了向量化模型。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;当然，&lt;b&gt;Golang&lt;/b&gt; 作为 TiDB 使用的语言，在课程设计中也是非常重要的一部分。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;课程设计&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;在线上课程的内容设计上，我们主要希望大家可以循序渐进地掌握数据库实现 SQL 功能的一些重要基石，这些内容可能并不局限于数据库领域，这样即使大家将来不从事数据库相关工作或者研究，也可以有所收获。&lt;/b&gt;而在作业的设计上，一方面是需要紧密的贴合学习内容，另一方面是希望大家在完成作业的过程中可以尽可能有及时而准确的反馈，获得一些成就感～&lt;/p&gt;&lt;p&gt;在第一周的课程作业中，我们选取了归并排序来作为 Golang 的实战演练。相对来说，Golang 的语法并不复杂，这里主要需要掌握的是它的并发模型和性能调优工具，因此在题目的选择上需要尽可能的经典而且简单，这样大家的关注重心可以放在之前可能并不熟悉的 Golang 并发模型上，从这一点上来说，归并排序可以说是相当适合的选择了。&lt;/p&gt;&lt;p&gt;当然实现完成归并排序并不是我们唯一的目的，更重要的是大家可以对程序的运行代价有一个直观的认识，在这一点上 Go Profile 可以说是做的比较出色，通过性能这样容易衡量的指标，以及 Go Profile 这样的性能分析工具，相信大家在完成第一周作业的过程中可以更加得心应手。&lt;/p&gt;&lt;p&gt;在简单地完成和 Golang 的“初相识”后，第二周我们选择了 MapReduce 来帮助大家认识分布式计算。作为经典的计算模型，MapReduce 对 TiDB 来说非常重要，比如在 TiDB 的并行 Hash 聚合执行算子里可以看到 MapReduce 的影子。在这一周里，我们直接采用了 MIT 6.824 的 Lab 1。当然与第一周一样，这里另外一个比较重要的目标就是利用 Go Profile 来优化代码性能。&lt;/p&gt;&lt;p&gt;前两周的课程设置中，我们选择从两个比较经典的算法切入，来由浅入深地带大家学习优化性能，当然在实际操作过程中，面临的问题往往更复杂，也许 Profile 已经无法满足需求。这时我们就需要从更抽象的角度，来思考以及组合我们的计算模型。所以在第三周，我们选择了优化器作为切入点，带大家了解数据库是如何从更抽象的层面优化执行代价的。这一周，大家可以简单地了解逻辑算子和物理算子，学习它们优化方式的不同。&lt;b&gt;在为大家提交的作业评分时，我们发现很多同学只是从物理优化的层面去考虑问题，也就是只考虑了 Join 算子的不同实现方式，而没有从逻辑执行计划的角度考虑问题，导致错失大量分数，希望后面的同学可以多加注意。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;最后一周的线上课程可以说是对前三周课程知识的总结。在实现并优化一个带有 Join 以及聚合的 SQL 语句的过程中，大家既可以从第二周学到的执行框架上去考虑，也可以从逻辑以及物理算子的角度考虑，可以说是一个相当开放且有趣的题目。&lt;/p&gt;&lt;p&gt;&lt;b&gt;线下课程是线上课程的一个延伸和连续。在学习完线上课程后，相信大家会对数据库有一个基本的了解，在线下课程中我们将继续带领大家学习 TiDB 是如何实现优化器以及执行引擎的。当然除了 TiDB 现有的实现外，我们也希望可以带大家看看业界前沿的研究，拓宽视野。更多的细节已在 &lt;u&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzI3NDIxNTQyOQ%3D%3D%26mid%3D2247489103%26idx%3D1%26sn%3D7de7c0ce7733e6d18eb3f0e95fc5e426%26chksm%3Deb163125dc61b83341aa265ad7b908e93800fce82876a9f1475d09fc13bd2901fc383ebb66b1%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;这篇文章&lt;/a&gt;&lt;/u&gt; 中披露，在这就不赘述了。&lt;/b&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;FAQ&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;下面是我们经常被问到的几个问题，在此和大家分享一下。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Q1: Merge Sort 的理想性能该是多少？应该要比 Normal Sort 快几倍？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;A1: 这个主要取决于具体的 CPU 数目，性能上当然是要越快越好了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Q2: MapReduce 的作业消耗空间比较大，跑不完怎么办？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;A2: 可以更改测试文件里的数据量大小，调到自己可以运行的程度，并以此为基准来优化就可以了。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Q3: Plan Tree 该怎么画？有标准画法么？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;A3: 在作业中只需要以书本上类似的形式画出来就可以了，当然如果算子的含义与书上的不同，需要在作业中标注出来。&lt;/p&gt;&lt;p&gt;&lt;b&gt;Q4: Join 算子优化前后耗时很接近，该怎么办？&lt;/b&gt;&lt;/p&gt;&lt;p&gt;A4: 题目中给出的接口会主要耗在读文件上，可以考虑测试读文件之后的处理时间。&lt;/p&gt;&lt;p&gt;以上是关于 PingCAP Talent Plan - TiDB 方向课程的介绍，欢迎大家参与课程学习，也非常欢迎大家对课程提出意见和建议，在这里也要特别感谢 @Jiaolong 同学提供 Effective Go 的学习地址，为大家学习 Go 语言提供了更加丰富的学习素材。&lt;/p&gt;&lt;blockquote&gt;&lt;b&gt;PingCAP Talent Plan&lt;/b&gt;&lt;br/&gt;PingCAP Talent Plan 是 PingCAP 为 TiDB 开源社区小伙伴提供的进阶式学习计划。课程设置上分为两个方向，分别是面向 SQL 引擎的 TiDB 方向和面向大规模、一致性的分布式存储的 TiKV 方向。每个方向的课程都包含线上和线下两部分，线上课程侧重于对基础知识的讲解，对社区所有小伙伴们开放，时间上比较灵活。线下课程在夯实基础知识的基础上，注重实操能力的培养。&lt;br/&gt;完成线上课程并通过线上考核的小伙伴可以获得线上课程结业证书，表现优秀的还将有机会拿到 PingCAP 校招/实习免笔试绿色通道，而且有机会参与半年内 PingCAP 组织的任意一期线下课程；完成线下课程的小伙伴可以获得专属 PingCAP Talent Plan 结业证书，表现优秀的还将有机会拿到 PingCAP 校招/实习免面试绿色通道/Special Offer、 PingCAP/TiDB 全球 Meetup 的邀请函等。&lt;/blockquote&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-08-05-76778250</guid>
+<pubDate>Mon, 05 Aug 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>微众银行数据库架构演进及 TiDB 实践经验</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-08-01-76239450.html</link>
@@ -160,145 +169,6 @@ struct SchedulerInner {
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-07-12-73262030</guid>
 <pubDate>Fri, 12 Jul 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>TiKV 源码解析系列文章（十）Snapshot 的发送和接收</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-07-09-72880848.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/72880848&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-72226a1aa2a61516be7404c2f7b95548_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：黄梦龙&lt;/p&gt;&lt;h2&gt;背景知识&lt;/h2&gt;&lt;p&gt;TiKV 使用 Raft 算法来提供高可用且具有强一致性的存储服务。在 Raft 中，Snapshot 指的是整个 State Machine 数据的一份快照，大体上有以下这几种情况需要用到 Snapshot：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;正常情况下 leader 与 follower/learner 之间是通过 append log 的方式进行同步的，出于空间和效率的考虑，leader 会定期清理过老的 log。假如 follower/learner 出现宕机或者网络隔离，恢复以后可能所缺的 log 已经在 leader 节点被清理掉了，此时只能通过 Snapshot 的方式进行同步。&lt;/li&gt;&lt;li&gt;Raft 加入新的节点的，由于新节点没同步过任何日志，只能通过接收 Snapshot 的方式来同步。实际上这也可以认为是 1 的一种特殊情形。&lt;/li&gt;&lt;li&gt;出于备份/恢复等需求，应用层需要 dump 一份 State Machine 的完整数据。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;TiKV 涉及到的是 1 和 2 这两种情况。在我们的实现中，Snapshot 总是由 Region leader 所在的 TiKV 生成，通过网络发送给 Region follower/learner 所在的 TiKV。&lt;/p&gt;&lt;p&gt;理论上讲，我们完全可以把 Snapshot 当作普通的 &lt;code&gt;RaftMessage&lt;/code&gt; 来发送，但这样做实践上会产生一些问题，主要是因为 Snapshot 消息的尺寸远大于其他 &lt;code&gt;RaftMessage&lt;/code&gt;：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;Snapshot 消息需要花费更长的时间来发送，如果共用网络连接容易导致网络拥塞，进而引起其他 Region 出现 Raft 选举超时等问题。&lt;/li&gt;&lt;li&gt;构建待发送 Snapshot 消息需要消耗更多的内存。&lt;/li&gt;&lt;li&gt;过大的消息可能导致超出 gRPC 的 Message Size 限制等问题。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;基于上面的原因，TiKV 对 Snapshot 的发送和接收进行了特殊处理，为每个 Snapshot 创建单独的网络连接，并将 Snapshot 拆分成 1M 大小的多个 Chunk 进行传输。&lt;/p&gt;&lt;h2&gt;源码解读&lt;/h2&gt;&lt;p&gt;下面我们分别从 RPC 协议、发送 Snapshot、收取 Snapshot 三个方面来解读相关源代码。本文的所有内容都基于 v3.0.0-rc.2 版本。&lt;/p&gt;&lt;h3&gt;Snapshot RPC call 的定义&lt;/h3&gt;&lt;p&gt;与普通的 raft message 类似，Snapshot 消息也是使用 gRPC 远程调用的方式来传输的。在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/kvproto&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;pingcap/kvproto&lt;/a&gt; 项目中可以找到相关 RPC Call 的定义，具体在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/kvproto/blob/5cb23649b361013f929e0d46a166ae24848fbcbb/proto/tikvpb.proto%23L57&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;tikvpb.proto&lt;/a&gt; 和 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/kvproto/blob/5cb23649b361013f929e0d46a166ae24848fbcbb/proto/raft_serverpb.proto%23L42-L47&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;raft_serverpb.proto&lt;/a&gt; 文件中。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;rpc Snapshot(stream raft_serverpb.SnapshotChunk) returns (raft_serverpb.Done) {}
-...
-message SnapshotChunk {
-  RaftMessage message = 1;
-  bytes data = 2;
-}
-
-message Done {}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看出，Snapshot 被定义成 client streaming 调用，即对于每个 Call，客户端依次向服务器发送多个相同类型的请求，服务器接收并处理完所有请求后，向客户端返回处理结果。具体在这里，每个请求的类型是 &lt;code&gt;SnapshotChunk&lt;/code&gt;，其中包含了 Snapshot 对应的 &lt;code&gt;RaftMessage&lt;/code&gt;，或者携带一段 Snapshot 数据；回复消息是一个简单的空消息 &lt;code&gt;Done&lt;/code&gt;，因为我们在这里实际不需要返回任何信息给客户端，只需要关闭对应的 stream。&lt;/p&gt;&lt;h3&gt;Snapshot 的发送流程&lt;/h3&gt;&lt;p&gt;Snapshot 的发送过程的处理比较简单粗暴，直接在将要发送 &lt;code&gt;RaftMessage&lt;/code&gt; 的地方截获 Snapshot 类型的消息，转而通过特殊的方式进行发送。相关代码可以在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/transport.rs%23L313-L344&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;server/transport.rs&lt;/a&gt; 中找到：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn write_data(&amp;amp;self, store_id: u64, addr: &amp;amp;str, msg: RaftMessage) {
-  if msg.get_message().has_snapshot() {
-      return self.send_snapshot_sock(addr, msg);
-  }
-  if let Err(e) = self.raft_client.wl().send(store_id, addr, msg) {
-      error!(&amp;#34;send raft msg err&amp;#34;; &amp;#34;err&amp;#34; =&amp;gt; ?e);
-  }
-}
-
-fn send_snapshot_sock(&amp;amp;self, addr: &amp;amp;str, msg: RaftMessage) {
-  ...
-  if let Err(e) = self.snap_scheduler.schedule(SnapTask::Send {
-      addr: addr.to_owned(),
-      msg,
-      cb,
-  }) {
-      ...
-  }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从代码中可以看出，这里简单地把对应的 &lt;code&gt;RaftMessage&lt;/code&gt; 包装成一个 &lt;code&gt;SnapTask::Send&lt;/code&gt; 任务，并将其交给独立的 &lt;code&gt;snap-worker&lt;/code&gt; 去处理。值得注意的是，这里的 &lt;code&gt;RaftMessage&lt;/code&gt; 只包含 Snapshot 的元信息，而不包括真正的快照数据。TiKV 中有一个单独的模块叫做 &lt;code&gt;SnapManager&lt;/code&gt; ，用来专门处理数据快照的生成与转存，稍后我们将会看到从 &lt;code&gt;SnapManager&lt;/code&gt; 模块读取 Snapshot 数据块并进行发送的相关代码。&lt;/p&gt;&lt;p&gt;我们不妨顺藤摸瓜来看看 &lt;code&gt;snap-worker&lt;/code&gt; 是如何处理这个任务的，相关代码在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L329-L398&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;server/snap.rs&lt;/a&gt;，精简掉非核心逻辑后的代码引用如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn run(&amp;amp;mut self, task: Task) {
-  match task {
-      Task::Recv { stream, sink } =&amp;gt; {
-           ...
-           let f = recv_snap(stream, sink, ...).then(move |result| {
-               ...
-           });
-           self.pool.spawn(f).forget();
-      }
-      Task::Send { addr, msg, cb } =&amp;gt; {
-          ...
-          let f = future::result(send_snap(..., &amp;amp;addr, msg))
-              .flatten()
-              .then(move |res| {
-                  ...
-              });
-          self.pool.spawn(f).forget();
-      }
-  }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;snap-worker&lt;/code&gt; 使用了 &lt;code&gt;future&lt;/code&gt; 来完成收发 Snapshot 任务：通过调用 &lt;code&gt;send_snap()&lt;/code&gt; 或 &lt;code&gt;recv_snap()&lt;/code&gt; 生成一个 future 对象，并将其交给 &lt;code&gt;FuturePool&lt;/code&gt; 异步执行。&lt;/p&gt;&lt;p&gt;现在我们暂且只关注 &lt;code&gt;send_snap()&lt;/code&gt; 的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L103-L175&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;实现&lt;/a&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn send_snap(
-  ...
-  addr: &amp;amp;str,
-  msg: RaftMessage,
-) -&amp;gt; Result&amp;lt;impl Future&amp;lt;Item = SendStat, Error = Error&amp;gt;&amp;gt; {
-  ...
-  let key = {
-      let snap = msg.get_message().get_snapshot();
-      SnapKey::from_snap(snap)?
-  };
-  ...
-  let s = box_try!(mgr.get_snapshot_for_sending(&amp;amp;key));
-  if !s.exists() {
-      return Err(box_err!(&amp;#34;missing snap file: {:?}&amp;#34;, s.path()));
-  }
-  let total_size = s.total_size()?;
-  let chunks = {
-      let mut first_chunk = SnapshotChunk::new();
-      first_chunk.set_message(msg);
-
-      SnapChunk {
-          first: Some(first_chunk),
-          snap: s,
-          remain_bytes: total_size as usize,
-      }
-  };
-
-  let cb = ChannelBuilder::new(env);
-  let channel = security_mgr.connect(cb, addr);
-  let client = TikvClient::new(channel);
-  let (sink, receiver) = client.snapshot()?;
-
-  let send = chunks.forward(sink).map_err(Error::from);
-  let send = send
-      .and_then(|(s, _)| receiver.map_err(Error::from).map(|_| s))
-      .then(move |result| {
-          ...
-      });
-  Ok(send)
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这一段流程还是比较清晰的：先是用 Snapshot 元信息从 &lt;code&gt;SnapManager&lt;/code&gt; 取到待发送的快照数据，然后将 &lt;code&gt;RaftMessage&lt;/code&gt; 和 &lt;code&gt;Snap&lt;/code&gt; 一起封装进 &lt;code&gt;SnapChunk&lt;/code&gt; 结构，最后创建全新的 gRPC 连接及一个 Snapshot stream 并将 &lt;code&gt;SnapChunk&lt;/code&gt; 写入。这里引入 &lt;code&gt;SnapChunk&lt;/code&gt; 是为了避免将整块 Snapshot 快照一次性加载进内存，它 impl 了 &lt;code&gt;futures::Stream&lt;/code&gt; 这个 trait 来达成按需加载流式发送的效果。如果感兴趣可以参考它的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L55-L92&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;具体实现&lt;/a&gt;，本文就暂不展开了。&lt;/p&gt;&lt;h3&gt;Snapshot 的收取流程&lt;/h3&gt;&lt;p&gt;最后我们来简单看一下 Snapshot 的收取流程，其实也就是 gRPC Call 的 server 端对应的处理，整个流程的入口我们可以在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/service/kv.rs%23L714-L729&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;server/service/kv.rs&lt;/a&gt; 中找到：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn snapshot(
-  &amp;amp;mut self,
-  ctx: RpcContext&amp;lt;&amp;#39;_&amp;gt;,
-  stream: RequestStream&amp;lt;SnapshotChunk&amp;gt;,
-  sink: ClientStreamingSink&amp;lt;Done&amp;gt;,
-) {
-  let task = SnapTask::Recv { stream, sink };
-  if let Err(e) = self.snap_scheduler.schedule(task) {
-      ...
-  }
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;与发送过程类似，也是直接构建 &lt;code&gt;SnapTask::Recv&lt;/code&gt; 任务并转发给 &lt;code&gt;snap-worker&lt;/code&gt; 了，这里会调用上面出现过的 &lt;code&gt;recv_snap()&lt;/code&gt; 函数，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/tikv/tikv/blob/892c12039e0213989940d29c232bddee9cbe4686/src/server/snap.rs%23L237-L291&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;具体实现&lt;/a&gt; 如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;fn recv_snap&amp;lt;R: RaftStoreRouter + &amp;#39;static&amp;gt;(
-  stream: RequestStream&amp;lt;SnapshotChunk&amp;gt;,
-  sink: ClientStreamingSink&amp;lt;Done&amp;gt;,
-  ...
-) -&amp;gt; impl Future&amp;lt;Item = (), Error = Error&amp;gt; {
-  ...
-  let f = stream.into_future().map_err(|(e, _)| e).and_then(
-      move |(head, chunks)| -&amp;gt; Box&amp;lt;dyn Future&amp;lt;Item = (), Error = Error&amp;gt; + Send&amp;gt; {
-          let context = match RecvSnapContext::new(head, &amp;amp;snap_mgr) {
-              Ok(context) =&amp;gt; context,
-              Err(e) =&amp;gt; return Box::new(future::err(e)),
-          };
-
-          ...
-          let recv_chunks = chunks.fold(context, |mut context, mut chunk| -&amp;gt; Result&amp;lt;_&amp;gt; {
-              let data = chunk.take_data();
-              ...
-              if let Err(e) = context.file.as_mut().unwrap().write_all(&amp;amp;data) {
-                  ...
-              }
-              Ok(context)
-          });
-
-          Box::new(
-              recv_chunks
-                  .and_then(move |context| context.finish(raft_router))
-                  .then(move |r| {
-                      snap_mgr.deregister(&amp;amp;context_key, &amp;amp;SnapEntry::Receiving);
-                      r
-                  }),
-          )
-      },
-  );
-  f.then(move |res| match res {
-      ...
-  })
-  .map_err(Error::from)
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;值得留意的是 stream 中的第一个消息（其中包含有 &lt;code&gt;RaftMessage&lt;/code&gt;）被用来创建 &lt;code&gt;RecvSnapContext&lt;/code&gt; 对象，其后的每个 chunk 收取后都依次写入文件，最后调用 &lt;code&gt;context.finish()&lt;/code&gt; 把之前保存的 &lt;code&gt;RaftMessage&lt;/code&gt; 发送给 &lt;code&gt;raftstore&lt;/code&gt; 完成整个接收过程。&lt;/p&gt;&lt;h2&gt;总结&lt;/h2&gt;&lt;p&gt;以上就是 TiKV 发送和接收 Snapshot 相关的代码解析了。这是 TiKV 代码库中较小的一个模块，它很好地解决了由于 Snapshot 消息特殊性所带来的一系列问题，充分应用了 &lt;code&gt;grpc-rs&lt;/code&gt; 组件及 &lt;code&gt;futures&lt;/code&gt;/&lt;code&gt;FuturePool&lt;/code&gt; 模型，大家可以结合本系列文章的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-7/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;第七篇&lt;/a&gt; 和 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-8/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;第八篇&lt;/a&gt; 进一步拓展学习。&lt;/p&gt;&lt;p&gt;&lt;b&gt;原文阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tikv-source-code-reading-10/&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiKV 源码解析系列文章（十）Snapshot 的发送和接收&lt;/a&gt;&lt;p&gt;&lt;b&gt;更多 TiKV 源码阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/%23TiKV-%25E6%25BA%2590%25E7%25A0%2581%25E8%25A7%25A3%25E6%259E%2590&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;博客 | PingCAP&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-07-09-72880848</guid>
-<pubDate>Tue, 09 Jul 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
