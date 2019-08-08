@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>如何少快好省地写一个optparser</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/77136288">原文</a></p>
+<p>大多数编程语言都有自己的命令行程序参数解析库，C/C++有getopt，Gflags，Python有optparse，除了可扩展性不足之外，用起来都还趁手。Hackage上也有不少类似的库，其中optparser-appilicative特别能体现Haskell编程风格，里面用到半群Semigroup，幺半群Monoid，函子Functor，合用函子Applicative Functor以及范畴论的自由构造Free Construction，不过源代码非常臃肿，很难让人理清思路。我扒了原始论文<sup data-text="Capriotti, Paolo &amp; Kaposi, Ambrus. (2014). Free Applicative Functors. Electronic Proceedings in Theoretical Computer Science. 153. 10.4204/EPTCS.153.2." data-url="" data-draft-node="inline" data-draft-type="reference" data-numero="1">[1]</sup>，决定从头开始写一个简易版本的optparser。这篇文章用Literature Haskell写的，可以直接在GHC解释器里打开。首先打开几个GHC编译器扩展，前面四个是方便书写的语法糖，RankNTypes用于写智能构造器Smart Constructor，主要数据结构只用到GADTs扩展。导入的模块也比较常见，无需多介绍。<br/></p><div class="highlight"><pre><code class="language-text">&gt; {-# LANGUAGE OverloadedStrings #-}
+&gt; {-# LANGUAGE TupleSections     #-}
+&gt; {-# LANGUAGE DeriveFunctor     #-}
+&gt; {-# LANGUAGE ViewPatterns      #-}
+&gt; {-# LANGUAGE RankNTypes        #-}
+&gt; {-# LANGUAGE GADTs             #-}
+&gt;
+&gt; import qualified Data.Text as T
+&gt; import qualified Data.Set as S
+&gt; import Data.Time (UTCTime)
+&gt; import Data.Time.Format (parseTimeM, defaultTimeLocale)
+&gt; import Data.String (IsString, fromString)
+&gt; import Data.Semigroup (Semigroup, (&lt;&gt;))
+&gt; import Data.Monoid (Endo(..))
+&gt; import Control.Applicative (Const(..), getConst)
+</code></pre></div><p><br/>参数解析库大概包括这几个部分，用户输入解析（tokenize），解析目标的数据结构，解析过程和错误报告。输入解析是为了滤去噪音（比如多余的空白字符）和预处理，把原始字符串数据拆分为词条列表，如果忽略单双引号转义，这部分其实就是Haskell现成的函数words。解析过程依赖于记录解析目标信息的数据结构设计。写好Haskell第一步就是设计数据类型，良好的类型是对数据内部静态结构的抽象，依赖Haskell强大的类型系统和全局类型推导，即使想重构数据类型，也比大多数语言轻松多了。阅读POSIX程序参数语法约定发现，词条可以分成命令Command，参数Argument，标志位Flag和选项Option，标志位和选项以连字符(&#39;-&#39;)开头，选项分长短两种，短选项只有一个字母并且和紧跟的参数之间空白可以省略，长选项用空白或者等号(&#39;=&#39;)来引导参数，只要没有歧义，选项和参数可以乱序混合使用。</p><p>这里我只实现了选项。实现标志位比较容易实现，只是对于并列标志位可以合并这项灵活语法的解析稍微麻烦一点；位置相关的参数则是optName为空的选项，解析过程必定有一个Monadic风格的状态机，Applicative风格的数据结构完全可以用Monadic风格来deconstruction；要解析子命令需要添加Free Alternative的构造器，比如Perforce的语法结构，“p4 [global options] command [command-specific options] [command arguments]”，作者对这种Ad Hoc做法比较犹豫，因为Alternative并没有很好的公理，不过我看见Edward A. Kmett的free库有这种自由构造，应该不至于没有公理。<br/><br/>选项类型包括名称，默认值以及选项目标的解析器。我选择给选项名称新的类型，这样短选项只能用单字母构造，以后扩展加入标志位也比较容易。选项是解析目标的计算上下文，自然而然就是函子。最终的解析器其实就是把这一堆子解析器合并起来，一旦解析完命令行参数原始数据，只要把子解析器和词条对应起来应用解析目标的构造器就能得到最后目标。这种对应是静态的，因为POSIX明确说这几种种程序参数可以是乱序的，除了命令，命令得是Alternative风格的。静态对应并不是说一一对应，可能是一对多，比如选项，也可能是多对一，比如说合并标志位的灵活语法，还可能是是零对多，比如说参数。这里的静态应该理解为结构已经包含在解析目标的数据结构中，单个子解析器是可以并行的。<br/></p><div class="highlight"><pre><code class="language-text">&gt; data OptName  = LName T.Text | SName Char deriving (Show)
+&gt; 
+&gt; data Option a = Option
+&gt;   { optName :: [OptName]
+&gt;   , optValue :: Maybe a
+&gt;   , optReader :: T.Text -&gt; Result a
+&gt;   } deriving (Functor)
+</code></pre></div><p><br/>但现在的问题是解析目标类型不止一种，Haskell不是Python那种unitype的动态语言，也不像OOP语言用继承多态做类型擦除，如果结合类型类（type class）和存在代数数据类型Existential ADT，在Haskell里面确实也能构造类型擦除的列表，但据我所知，并没有办法能把解析完的参数组合起来。这里用到是自由合用函子Free Applicative，也就是说对于任意的函子都有办法能提升为自由合用函子，自由单子Free Monad可能更为常见，因为它能极大帮助我们写EDSL，自由合用函子构造相当类似，只是换了种张量乘法。列表，自由单子和自由合用函子都属于自由构造Free Construction<sup data-text="" data-url="http://oleg.fi/gists/posts/2018-02-21-single-free.html" data-draft-node="inline" data-draft-type="reference" data-numero="2">[2]</sup>。</p><div class="highlight"><pre><code class="language-text">
+&gt; class Functor f =&gt; Applicative&#39; f where
+&gt;   azero :: f ()
+&gt;   aplus :: f x -&gt; f y -&gt; f (x, y)
+</code></pre></div><p><br/>如果你熟悉合用函子在范畴论中的定义，那么你会发现合用函子就是用来收集多元函数的参数，最后通过uncurry和fmap就能得到在上下文中函数应用的结果。合用函子的这两种定义是同构的，我在文末给出了两者之间相互转化的函数。感兴趣的可以验证一下自由合用函子符合合用函子的四条公理。多说一句第一条自然性公理其实在Haskell里是定理，可以用Free Theorem证明，剩余的三条公理如果用范畴论的合用函子定义表述无非还是范畴论的单位律和结合律。<br/><br/>好了，下面就是整个解析器的类型。为了表明和列表之间的相似性，我借用了Lisp列表的构造器nil和cons，类比列表我们有左偏Cons和右偏Snoc，同样存在右偏的解析器定义，我在文末给出。原文作者用的是右偏形式的，似乎是定义起来更简单，不过我觉得左偏形式的更直观，可以看出最终的解析器其实就是包含了一个合并子解析器结果的纯函数以及若干子解析器。<br/></p><div class="highlight"><pre><code class="language-text">&gt; data Parser a where
+&gt;   NilP :: a -&gt; Parser a
+&gt;   ConsP:: Parser (x -&gt; a) -&gt; Option x -&gt; Parser a 
+&gt; 
+&gt; instance Functor Parser where
+&gt;   fmap f (NilP a) = NilP (f a)
+&gt;   fmap f (ConsP pg px) = ConsP ((f.) &lt;$&gt; pg) px
+&gt; 
+&gt; instance Applicative Parser where
+&gt;   pure = NilP
+&gt;   NilP f &lt;*&gt; pa = f &lt;$&gt; pa
+&gt;   ConsP pf px &lt;*&gt; pa = ConsP (flip &lt;$&gt; pf &lt;*&gt; pa) px
+</code></pre></div><p><br/>接下来是解析过程。首先定义一个错误类型的ADT，准确打印出错误信息直接关系着库代码的质量，毕竟大部分时候都是写一小时debug十小时。我还定义了半群来指定错误优先级以及两个智能构造器来帮助类型提升。<br/></p><div class="highlight"><pre><code class="language-text">&gt; data OptError = ExpectArgErr | UnexpectedOptErr | MissingOptErr | ParseArgErr | ErrMsg T.Text deriving (Show)
+&gt;
+&gt; newtype Result a = Result (Either OptError a) deriving (Show, Functor)
+&gt;
+&gt; instance Semigroup (Result a) where
+&gt;   (Result (Right a           )) &lt;&gt; _                             = Result (Right a           )
+&gt;   _                             &lt;&gt; (Result (Right a          ))  = Result (Right a           )
+&gt;   (Result (Left ParseArgErr  )) &lt;&gt; _                             = Result (Left ParseArgErr  )
+&gt;   _                             &lt;&gt; (Result (Left ParseArgErr ))  = Result (Left ParseArgErr  )
+&gt;   (Result (Left ExpectArgErr )) &lt;&gt; _                             = Result (Left ExpectArgErr )
+&gt;   _                             &lt;&gt; (Result (Left ExpectArgErr))  = Result (Left ExpectArgErr )
+&gt;   (Result (Left MissingOptErr)) &lt;&gt; _                             = Result (Left MissingOptErr)
+&gt;   _                             &lt;&gt; (Result (Left MissingOptErr)) = Result (Left MissingOptErr)
+&gt;   err                           &lt;&gt; _                             = err
+&gt;
+&gt; failWith :: T.Text -&gt; Result a  
+&gt; failWith = Result . Left . ErrMsg
+&gt; 
+&gt; okHas :: a -&gt; Result a
+&gt; okHas = Result . Right
+</code></pre></div><p><br/>运行子解析器就是逐个扫描词条，如果匹配再调用子解析器里面的reader完成参数解析并且把它从词条列表中删除，如果不匹配就移至下一个，直至词条列表末尾，最后查看有没有预设值否则报错。这里的复杂度是N2，如果预处理排序或者Hash复杂度可能降低，不过预处理选项可能比较麻烦。这里有一个改进效率的地方就是每次词条解析都得重组列表，可以用DList来提高append的效率，大家可以试一下。<br/></p><div class="highlight"><pre><code class="language-text">&gt; runParser :: Parser a -&gt; ([T.Text], [T.Text]) -&gt; ([T.Text], Result a)
+&gt; runParser (NilP a)      (ls, rs) = (ls ++ rs, okHas a)
+&gt; runParser (ConsP pf pa) (ls, []) = maybe (ls, Result (Left MissingOptErr)) (\a -&gt; runParser (($ a) &lt;$&gt; pf) ([], ls)) (optValue pa)
+&gt; runParser (ConsP pf pa) (ls, rs) = case runOption pa rs of
+&gt;   Result (Right (a, ts)     ) -&gt; runParser (($ a) &lt;$&gt; pf) ([], ls ++ ts)
+&gt;   Result (Left ExpectArgErr ) -&gt; (rs, Result (Left ExpectArgErr))
+&gt;   Result (Left ParseArgErr  ) -&gt; (rs, Result (Left ParseArgErr))
+&gt;   Result (Left MissingOptErr) -&gt; (rs, Result (Left MissingOptErr))  
+&gt;   _                           -&gt; runParser (ConsP pf pa) (ls ++ [head rs], tail rs)
+&gt;    
+&gt; runOption :: Option a -&gt; [T.Text] -&gt; Result (a, [T.Text])
+&gt; runOption opt [] = maybe (failWith &#34;missing&#34;) (okHas . (,[])) (optValue opt)
+&gt; runOption opt (t:ts) = if null (optName opt)
+&gt;   then maybe (Result (Left MissingOptErr)) (okHas . (,[])) (optValue opt)
+&gt;   else foldl1 (&lt;&gt;) (flip stepOption t &lt;$&gt; optName opt)
+&gt;   where
+&gt;     stepOption n (matchPrefix n -&gt; (Nothing, False)) = failWith &#34;mismatch&#34;
+&gt;     stepOption n (matchPrefix n -&gt; (Nothing, True )) = if null ts
+&gt;       then Result (Left ExpectArgErr)
+&gt;       else if T.head (head ts) == &#39;-&#39; then Result (Left ExpectArgErr) else (,tail ts) &lt;$&gt; optReader opt (head ts)
+&gt;     stepOption n (matchPrefix n -&gt; (Just as, _    )) = (,ts) &lt;$&gt; optReader opt as
+&gt;         
+&gt;     matchPrefix (SName n) (T.stripPrefix (T.snoc   &#34;-&#34;  n) -&gt; Nothing) = (Nothing, False)
+&gt;     matchPrefix (LName n) (T.stripPrefix (T.append &#34;--&#34; n) -&gt; Nothing) = (Nothing, False)
+&gt;     matchPrefix (SName n) (T.stripPrefix (T.snoc   &#34;-&#34;  n) -&gt; Just as) = if T.null as
+&gt;       then (Nothing, True)
+&gt;       else (Just as, False)
+&gt;     matchPrefix (LName n) (T.stripPrefix (T.append &#34;--&#34; n) -&gt; Just as) = if T.null as
+&gt;       then (Nothing, True)
+&gt;       else if T.head as == &#39;=&#39; then (Just (T.tail as), False) else (Nothing, False)
+</code></pre></div><p><br/>好了，到这里整个库差不多写完了。不过我还会加一些智能构造器，这会极大提高程序可读性和排版美感（强迫症，很多问题到最后都是审美问题，编程何尝不是？）。Edward Z. Yang在博客<sup data-text="" data-url="http://blog.ezyang.com/2012/08/applicative-functors/" data-draft-node="inline" data-draft-type="reference" data-numero="3">[3]</sup>里说API编程的灵活性和数据结构满足抽象公理的“美感”是矛盾的，智能构造器正是桥接灵活和抽象的重要一环。为了让智能构造器可组合，我用了一种特殊的幺半群Endo。Endo是定义域和值域相同的一元函数之上的wrapper，可以理解为动作Action，每一次动作，状态机都会响应，合并若干连续动作还是一个动作，另外还有一种特殊动作不使状态机发生任何变化，上文提到的DList优化也是一种Endo的实例化。除了用Endo，还可以用comonad来实现，毕竟comonad本质也是一种状态机。<br/></p><div class="highlight"><pre><code class="language-text">&gt; auto :: Read a =&gt; T.Text -&gt; Result a
+&gt; auto t = case reads (T.unpack t) of
+&gt;   [(a, &#34;&#34;)] -&gt; Result (Right a)
+&gt;   _         -&gt; Result (Left ParseArgErr)
+&gt; 
+&gt; str :: IsString s =&gt; T.Text -&gt; Result s
+&gt; str = Result . Right . fromString . T.unpack
+&gt;
+&gt; long :: T.Text -&gt; Endo (Option a)
+&gt; long t = Endo $ \opt -&gt; opt { optName = LName t : optName opt } 
+&gt;
+&gt; short :: Char -&gt; Endo (Option a)
+&gt; short c = Endo $ \opt -&gt; opt { optName = SName c : optName opt } 
+&gt;
+&gt; value :: a -&gt; Endo (Option a)
+&gt; value a = Endo $ \opt -&gt; opt { optValue = maybe (Just a) Just (optValue opt) }
+&gt;
+&gt; strOption :: IsString s =&gt; Endo (Option s) -&gt; Parser s
+&gt; strOption = option str
+&gt;
+&gt; option :: (T.Text -&gt; Result a) -&gt; Endo (Option a) -&gt; Parser a
+&gt; option p = lift . flip appEndo (Option [] Nothing p)
+&gt;
+&gt; autoOption :: Read a =&gt; Endo (Option a) -&gt; Parser a
+&gt; autoOption = option auto
+</code></pre></div><p><br/>关于扩展，一个完整的命令行参数解析器还包括显示帮助和版本信息，bash长选项自动补全。要显示帮助只需要在选项类型里加一项，然后用下面的collect函数重新format一下就行。版本信息就是一个总是成功的子解析器。既然整个parser是静态，我们还可以进行静态分析，比如统计子解析器的个数。我这里给出一个disambiguation的例子，如果标志位或者短选项有重合就提前报错，同样用到了collect函数。<br/></p><div class="highlight"><pre><code class="language-text">&gt; type NatF f g = forall a. f a -&gt; g a -- f, g must be Functor
+&gt; type NatA f g = forall a. f a -&gt; g a -- f, g must be Applicative
+&gt; 
+&gt; hoist :: Applicative f =&gt; NatF Option f -&gt; NatA Parser f
+&gt; hoist _ (NilP p)      = pure p
+&gt; hoist t (ConsP pf pa) = hoist t pf &lt;*&gt; t pa
+&gt; 
+&gt; lower :: Applicative f =&gt; NatA Parser f -&gt; NatF Option f
+&gt; lower t = t . ConsP (pure id)
+&gt;
+&gt; lift :: Option a -&gt; Parser a
+&gt; lift = lower id
+&gt;
+&gt; collect :: Parser a -&gt; (forall x. Option x -&gt; b) -&gt; (b -&gt; r -&gt; r) -&gt; r -&gt; r
+&gt; collect p f acc = flip (foldr acc) (getConst (hoist (\opt -&gt; Const [f opt]) p))
+
+&gt; disamb :: Parser a -&gt; Either OptError Bool
+&gt; disamb p = const True &lt;$&gt; collect p (S.unions . fmap sname . optName) acc (Right S.empty)
+&gt;   where
+&gt;     acc _ (Left err) = Left err
+&gt;     acc a (Right as) = if S.null (S.intersection a as) then Right (S.union a as) else Left (ErrMsg &#34;ambigous&#34;)
+&gt;     sname (LName _)  = S.empty
+&gt;     sname (SName c)  = S.singleton c
+</code></pre></div><p><br/>下面是一个简单的例子，大家可以试一下。短短一百多行我们实现了一个可扩展的optparser，Haskell还是足够简洁的。我觉得用Haskell解决问题思路就一个字——退，退回去解决更普遍更抽象的问题，虽然你最后找到的数据结构可能很抽象，但最初的问题也就成了实例化数据结构之后的特例，往往不值一提。另外Typeclassopedia定义出来的类型类是Hakell的common knowledge，抽象层次非常清晰，数学性质足够良好，大多数时候你的数据结构都能在里面找到一个位置。<br/></p><div class="highlight"><pre><code class="language-text">&gt; data Bsub = Bsub
+&gt;   { host_name :: T.Text
+&gt;   , user_name :: T.Text
+&gt;   , threads   :: Int
+&gt;   , sch_time  :: UTCTime
+&gt;   , error_file:: T.Text
+&gt;   } deriving (Show)
+&gt; 
+&gt; 
+&gt; bsub = Bsub
+&gt;   &lt;$&gt; strOption (long &#34;host_name&#34; &lt;&gt; short &#39;h&#39;)
+&gt;   &lt;*&gt; strOption (long &#34;user_name&#34; &lt;&gt; short &#39;u&#39; &lt;&gt; value &#34;anonymous&#34;)
+&gt;   &lt;*&gt; autoOption (short &#39;m&#39; &lt;&gt; value 6)
+&gt;   &lt;*&gt; option timeP (long &#34;post_time&#34; &lt;&gt; short &#39;p&#39; &lt;&gt; short &#39;t&#39;)
+&gt;   &lt;*&gt; strOption (short &#39;e&#39; &lt;&gt; value &#34;/dev/null&#34;)
+&gt;   where
+&gt;     timeP = Result . parseTimeM True defaultTimeLocale &#34;%Y-%m-%d::%H:%M:%S&#34; . T.unpack
+&gt;
+&gt; argument :: String -&gt; [T.Text]
+&gt; argument = drop 1 . fmap T.pack . words
+&gt;
+&gt; execParser :: Parser a -&gt; String -&gt; Result a 
+&gt; execParser p args = case runParser p ([], argument args) of
+&gt;   ([], r) -&gt; r
+&gt;   (_ , _) -&gt; Result (Left UnexpectedOptErr)
+</code></pre></div><p>说明</p><ol><li>第一次写知乎文章，知乎把我的初稿格式完全弄乱了，非常抱歉。</li><li>既然是写Haskell，如果发现错误，请重（Zhong）拍。</li><li>关于Alternative的公理，我现在才反应过来为啥论文作者犹豫。问题出在Applicative可左偏可右偏甚至并行，构造的时候没啥问题，关键deconstruction的时候，Alternative的操作语义是必须严格左偏或者严格右偏，否则effect无法撤销。比较之下MonadPlus就没有这个问题。</li></ol><p>附录<br/></p><div class="highlight"><pre><code class="language-text">&gt; pure&#39; :: Applicative&#39; f =&gt; a -&gt; f a
+&gt; pure&#39; a = const a &lt;$&gt; azero
+&gt; 
+&gt; ap&#39; :: Applicative&#39; f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+&gt; ap&#39; ff fa = (\(f, a) -&gt; f a) &lt;$&gt; aplus ff fa
+&gt; 
+&gt; azero&#39; :: Applicative f =&gt; f ()
+&gt; azero&#39; = pure ()
+&gt; 
+&gt; aplus&#39; :: Applicative f =&gt; f x -&gt; f y -&gt; f (x, y)
+&gt; aplus&#39; fx fy = (,) &lt;$&gt; fx &lt;*&gt; fy
+&gt;
+&gt; data Parser&#39; a where
+&gt;   NilP&#39; :: a -&gt; Parser&#39; a
+&gt;   ConsP&#39;:: Option (x -&gt; a) -&gt; Parser&#39; x -&gt; Parser&#39; a
+&gt; 
+&gt; instance Functor Parser&#39; where
+&gt;   fmap f (NilP&#39; a) = NilP&#39; (f a)
+&gt;   fmap f (ConsP&#39; pg px) = ConsP&#39; ((f.) &lt;$&gt; pg) px
+&gt; 
+&gt; instance Applicative Parser&#39; where
+&gt;   pure = NilP&#39;
+&gt;   NilP&#39; f &lt;*&gt; pa = f &lt;$&gt; pa
+&gt;   ConsP&#39; pf px &lt;*&gt; pa = ConsP&#39; (uncurry &lt;$&gt; pf) ((,) &lt;$&gt; px &lt;*&gt; pa)</code></pre></div><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
