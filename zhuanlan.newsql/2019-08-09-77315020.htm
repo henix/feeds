@@ -1,0 +1,434 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-ddb25062bbdfd62a9fc8581afeb07798_b.jpg" alt=""></div><p><b>本文转自公众号 TCTP，作者 TCTP。</b></p><p><b>原文链接：</b><a href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s/voEr3WId1LeOr-o4sFptPA%3Fscene%3D25%23wechat_redirect" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">mp.weixin.qq.com/s/voEr</span><span class="invisible">3WId1LeOr-o4sFptPA?scene=25#wechat_redirect</span><span class="ellipsis"></span></a></p><p>我行在 2018 年开始了基于 ARM 服务器平台的尝试，当前 TDSQL 的冷备数据全部保存在基于 ARM 服务器搭建的 CEPH 存储集群上，运行稳定。在今年贸易战的大背景下，我们数据库团队也尝试将各个数据库产品放到 ARM 平台上去编译并运行起来，为我行在基础架构层面的进一步国产化打下基础。</p><p>我们这次首先针对我行引入的 NewSQL 数据库 TiDB，在我行实验室的 ARM 平台上进行了编译和测试，预计会将整个测试流程和相关测试结论，整理为三篇技术文章分享出来，分别是:</p><p><b>（一）《TiDB 集群 在 arm 平台编译、安装与部署》</b></p><p><b>（二）《sysbench 测试下 arm 平台 cpu ／内存／磁盘的能力》</b></p><p><b>（三）《 TiDB 在 arm 与 x86 平台的性能测试对比》</b></p><p>此次是系列文章的第一篇。</p><h2><b>一、环境准备</b></h2><p>PingCAP 提供了 TiDB-Ansible 部署方案，可以使用 Ansible 快速方便地部署一个完整的 TiDB 集群，而 TiDB-Ansible release-3.0 版本依赖 Ansible 2.4.2 及以上版本（Ansible&gt;=2.4.2，最好是 2.7.11 版本），另外依赖 Python 模块：jinja2 &gt;= 2.9.6 和 jmespath &gt;= 0.9.0，而且内部的数据库服务器与外网一般是隔离的，所以只能选择离线安装：</p><p><b>1、机器准备</b>可以连接外网的 ARM 服务器一台</p><ul><li>该机器需开放外网访问</li><li>用于下载 TiDB-Ansible、TiDB 及相关软件安装包</li><li>用于编译 TiDB ARM 版本</li></ul><p>部署目标机器三台、部署中控机一台</p><ul><li>无法访问外网</li><li>部署目标机器为 ARM 服务器</li><li>部署中控机和部署目标机器共用</li></ul><p><b>2、依赖包下载</b>以下是主要的依赖安装包（如果在安装过程中发现还缺少其他依赖包，可以按需下载）。</p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_b.jpg" data-caption="" data-size="normal" data-rawwidth="1372" data-rawheight="2103" class="origin_image zh-lightbox-thumb" width="1372" data-original="https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_b.jpg" data-caption="" data-size="normal" data-rawwidth="1372" data-rawheight="2103" class="origin_image zh-lightbox-thumb lazy" width="1372" data-original="https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_b.jpg"/></figure><p>另外上图所示的依赖包只保证当前 ARM 环境可正常，但因为不同的服务器依赖可能不完全一样，所以在安装过程发现还缺少其他依赖包，若想安装其他依赖包，可自行网上寻找相关 RPM 包按需下载，实际我安装上述 RPM 包时也存在依赖性问题，但使用 RPM 强制安装已成功安装。</p><p><b>3、安装依赖包</b></p><div class="highlight"><pre><code class="language-text">[root@ip-localhost ansible]# cd ansible_pkg/
+[root@ip-localhost ansible_pkg]# rpm -Uvh *.rpm --nodeps --force
+warning: libyaml-0.1.4-11.el7_0.aarch64.rpm: Header V3 RSA/SHA256 Signature, key ID fd431d51: NOKEY
+warning: python2-babel-2.7.0-1.fc31.noarch.rpm: Header V3 RSA/SHA256 Signature, key ID 3c3359c4: NOKEY
+warning: python2-markupsafe-1.0-1.fc29.aarch64.rpm: Header V3 RSA/SHA256 Signature, key ID 429476b4: NOKEY
+Preparing...                          ################################# [100%]
+Updating / installing...
+  1:python2-pyasn1-0.1.9-7.el7       ################################# [ 5%]
+  2:sshpass-1.06-1.el7               ################################# [ 10%]
+  3:python-ply-3.4-11.el7            ################################# [ 14%]
+  4:python-pycparser-2.14-1.el7      ################################# [ 19%]
+  5:python-cffi-1.6.0-5.el7          ################################# [ 24%]
+  6:python-idna-2.4-1.el7            ################################# [ 29%]
+  7:python-httplib2-0.9.2-0.2.el7    ################################# [ 33%]
+  8:python-enum34-1.0.4-1.el7        ################################# [ 38%]
+  9:python2-cryptography-1.7.2-2.el7 ################################# [ 43%]
+ 10:python-paramiko-2.1.1-9.el7      ################################# [ 48%]
+ 11:python2-pytz-2018.9-1.fc31       ################################# [ 52%]
+ 12:python2-babel-2.7.0-1.fc31       ################################# [ 57%]
+ 13:python2-markupsafe-1.0-1.fc29    ################################# [ 62%]
+ 14:python2-jinja2-2.10-2.el7        ################################# [ 67%]
+ 15:python2-jmespath-0.9.0-1.el7     ################################# [ 71%]
+ 16:libyaml-0.1.4-11.el7_0           ################################# [ 76%]
+ 17:PyYAML-3.10-11.el7               ################################# [ 81%]
+ 18:ansible-2.8.2-1.el7              ################################# [ 86%]
+ 19:python2-pip-8.1.2-8.el7          ################################# [ 90%]
+ 20:mariadb-1:5.5.60-1.el7_5         ################################# [ 95%]
+ 21:epel-release-7-11                ################################# [100%]</code></pre></div><p><b>4、确认 ansible 是否安装成功</b></p><div class="highlight"><pre><code class="language-text">[root@ip-localhost ansible]# ansible --version
+ansible 2.8.2
+config file = /etc/ansible/ansible.cfg
+configured module search path = [u&#39;/root/.ansible/plugins/modules&#39;, u&#39;/usr/share/ansible/plugins/modules&#39;]
+ansible python module location = /usr/lib/python2.7/site-packages/ansible
+executable location = /bin/ansible
+python version = 2.7.5 (default, Oct 31 2018, 18:48:32) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]</code></pre></div><p><b>5、确认 jinja2 是否安装成功</b></p><div class="highlight"><pre><code class="language-text">[root@ip-localhost ansible]# pip show jinja2
+Metadata-Version: 1.1
+Name: Jinja2
+Version: 2.10
+Summary: A small but fast and easy to use stand-alone template engine written in pure python.
+Home-page: http://jinja.pocoo.org/
+Author: Armin Ronacher
+Author-email: armin.ronacher@active-4.com
+License: BSD
+Location: /usr/lib/python2.7/site-packages
+Requires: MarkupSafe
+Classifiers:
+Development Status :: 5 - Production/Stable
+Environment :: Web Environment
+Intended Audience :: Developers
+License :: OSI Approved :: BSD License
+Operating System :: OS Independent
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.3
+Programming Language :: Python :: 3.4
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Topic :: Software Development :: Libraries :: Python Modules
+Topic :: Text Processing :: Markup :: HTML
+Entry-points:
+[babel.extractors]
+jinja2 = jinja2.ext:babel_extract[i18n]</code></pre></div><p><b>6、确认 jmespath 是否安装成功</b></p><div class="highlight"><pre><code class="language-text">[root@ip-localhost ansible]# pip show jmespath
+Metadata-Version: 1.1
+Name: jmespath
+Version: 0.9.0
+Summary: JSON Matching Expressions
+Home-page: https://github.com/jmespath/jmespath.py
+Author: James Saryerwinnie
+Author-email: js@jamesls.com
+License: UNKNOWN
+Location: /usr/lib/python2.7/site-packages
+Requires:
+Classifiers:
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+Natural Language :: English
+License :: OSI Approved :: MIT License
+Programming Language :: Python
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.3
+Programming Language :: Python :: 3.4</code></pre></div><h2><b>二、编译 TiDB arm 版本</b></h2><p>TiDB 包括三大组件 PD、TiKV Server 和 TiDB Server，还包括其他周边组件，比如 Pump、Prometheus、Alertmanager、Node_exporter、Blackbox_exporter、Pushgateway 和 Grafana，所以需要把这些组件都统一编译成 ARM 版本，而且要和官方版本对齐。</p><p><b>1、编译脚本示例</b></p><div class="highlight"><pre><code class="language-text">#!/bin/bash
+# Soft Version
+# TiDN Core
+tidb_version=release-3.0
+# TiDB Tools
+tispark_version=master
+dm_version=master
+# Monitor
+prometheus_version=v2.8.1
+alertmanager_version=v0.17.0
+node_exporter_version=v0.17.0
+# blackbox_exporter_version=v0.12.0
+#v0.12.0 meets some wrong
+blackbox_exporter_version=master
+pushgateway_version=v0.7.0
+grafana_version=6.1.6
+
+# Soft Dir
+declare -A soft_srcs
+
+soft_srcs=(
+# [&#34;tidb&#34;]=&#34;$tidb_version https://github.com/pingcap/tidb.git&#34;
+# [&#34;pd&#34;]=&#34;$tidb_version https://github.com/pingcap/pd.git&#34;
+# [&#34;tikv&#34;]=&#34;$tidb_version https://github.com/tikv/tikv.git&#34;
+#   [&#34;tispark&#34;]=&#34;$tidb_version https://github.com/pingcap/tispark&#34;
+  [&#34;tidb-binlog&#34;]=&#34;$tidb_version https://github.com/pingcap/tidb-binlog&#34;
+[&#34;dm&#34;]=&#34;$dm_version https://github.com/pingcap/dm&#34;
+[&#34;prometheus&#34;]=&#34;$prometheus_version https://github.com/prometheus/prometheus.git&#34;
+[&#34;alertmanager&#34;]=&#34;$alertmanager_version https://github.com/prometheus/alertmanager.git&#34;
+[&#34;node_exporter&#34;]=&#34;$node_exporter_version https://github.com/prometheus/node_exporter.git&#34;
+[&#34;blackbox_version&#34;]=&#34;$blackbox_exporter_version https://github.com/prometheus/blackbox_exporter.git&#34;
+[&#34;pushgateway&#34;]=&#34;$pushgateway_version https://github.com/prometheus/pushgateway.git&#34;
+# [&#34;grafana&#34;]=&#34;$grafana_version https://github.com/grafana/grafana.git&#34;
+)
+
+# Dir
+ROOT=$PWD/build
+target=$ROOT/bin
+rm -rf $ROOT
+mkdir -p $target
+
+sudo yum install -y gcc gcc-c++ wget git zlib-devel
+
+cd $ROOT
+# Go
+if which go &gt;/dev/null; then
+   echo &#34;go installed, skip&#34;
+else
+   wget https://dl.google.com/go/go1.12.6.linux-arm64.tar.gz
+   sudo tar -C /usr/local -xzf go1.12.6.linux-arm64.tar.gz
+   echo &#34;export GOPATH=$ROOT/go&#34; &gt;&gt; ~/.bashrc
+   echo &#39;export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin&#39; &gt;&gt; ~/.bashrc
+   source ~/.bashrc
+fi
+
+# Rust
+if which rustc &gt;/dev/null; then
+   echo &#34;rust installed, skip&#34;
+else
+   curl https://sh.rustup.rs -sSf | sh -s -- -y
+   source $HOME/.cargo/env
+fi
+
+# Install cmake3
+if which cmake3 &gt;/dev/null; then
+   echo &#34;cmake3 installed, skip&#34;
+else
+   wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+   sudo rpm -ivh epel-release-latest-7.noarch.rpm
+   sudo yum install -y epel-release
+   sudo yum install -y cmake3
+
+   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
+fi
+
+# Install Java
+if which java &gt;/dev/null;then
+echo &#34;java installed, skip&#34;
+else
+ce $ROOT
+wget --no-cookies --no-check-certificate --header &#34;Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie&#34; &#34;http://download.oracle.com/otn-pub/java/jdk/8u141-b15/336fa29ff2bb4ef291e347e091f7f4a7/jdk-8u141-linux-arm64-vfp-hflt.tar.gz&#34;
+sudo tar -C /usr/local -xzf jdk-8u141-linux-arm64-vfp-hflt.tar.gz
+echo &#39;export JAVA_HOME=/usr/local/jdk1.8.0_141&#39; &gt;&gt; ~/.bashrc
+echo &#39;export JRE_HOME=/user/local/jdk1.8.0_141/jre&#39; &gt;&gt; ~/.bashrc
+echo &#39;export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin&#39; &gt;&gt; ~/.bashrc
+fi
+
+
+# Install maven
+if which mvn &gt;/dev/null;then
+echo &#34;maven installed, skip&#34;
+else
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+sudo tar -C /usr/local -xzf apache-maven-3.6.1-bin.tar.gz
+echo &#39;export PATH=$PATH:/usr/local/apache-maven-3.6.1/bin&#39; &gt;&gt; ~/.bashrc
+source ~/.bashrc
+fi
+
+
+# # RocksDB gflags
+# git clone https://github.com/gflags/gflags.git
+# cd gflags
+# git checkout v2.0
+# ./configure --build=aarch64-unknown-linux-gnu &amp;&amp; make &amp;&amp; sudo make install
+# cd $ROOT
+
+# Build Monitor
+for soft in $(echo ${!soft_srcs[*]})
+do
+soft_src=${soft_srcs[$soft]}
+cd $ROOT
+git clone -b $soft_src
+cd $soft
+make build
+if [ -d bin ];then
+cp bin/* $target
+else
+cp $soft $target
+fi
+cd $ROOT
+echo &#34;`date +&#39;%F %T&#39;`: Build Soft $soft done .&#34;
+done
+
+# Download Grafana
+cd $ROOT
+wget https://dl.grafana.com/oss/release/grafana-${grafana_version}.linux-arm64.tar.gz
+tar -zxvf grafana-${grafana_version}.linux-arm64.tar.gz
+
+cp grafana-${grafana_version}/bin/* bin/
+
+# Build TiDB
+cd $ROOT
+git clone -b $tidb_version https://github.com/pingcap/tidb
+cd tidb
+make
+cp bin/* $target
+# Build PD
+cd $ROOT
+git clone -b $tidb_version https://github.com/pingcap/pd
+cd pd
+make
+cp bin/* $target
+
+# Build TiKV
+cd $ROOT
+git clone -b $tidb_version https://github.com/tikv/tikv.git
+cd tikv
+ROCKSDB_SYS_SSE=0 make release
+cp target/release/tikv-*  $target
+
+# Build tispark
+cd $ROOT
+git clone -b $tispark_version https://github.com/pingcap/tispark
+cd tispark
+mvn clean install -Dmaven.test.skip=true -P spark-2.3</code></pre></div><p><b>2、 确认组件是否编译成功</b></p><div class="highlight"><pre><code class="language-text">[root@ip-localhost bin]# ll
+total 1492252
+-rwxr-xr-x 1 tidb tidb  25880636 Jul 25 16:21 alertmanager
+-rwxr-xr-x 1 tidb tidb  41476026 Jul 25 16:21 arbiter
+-rwxr-xr-x 1 tidb tidb  23086365 Jul 25 16:21 binlogctl
+-rwxr-xr-x 1 root root  16725668 Jul 25 16:48 blackbox_exporter
+-rwxr-xr-x 1 tidb tidb  42190443 Jul 25 16:21 dmctl
+-rwxr-xr-x 1 tidb tidb  42643818 Jul 25 16:21 dm-master
+-rwxr-xr-x 1 tidb tidb  41231475 Jul 25 16:21 dm-tracer
+-rwxr-xr-x 1 tidb tidb  45855210 Jul 25 16:21 dm-worker
+-rwxr-xr-x 1 tidb tidb  45378703 Jul 25 16:21 drainer
+-rwxr-xr-x 1 tidb tidb  20578913 Jul 25 16:21 grafana-cli
+-rw-r--r-- 1 tidb tidb        33 Jul 25 16:21 grafana-cli.md5
+-rwxr-xr-x 1 tidb tidb  41749049 Jul 25 16:21 grafana-server
+-rw-r--r-- 1 tidb tidb        33 Jul 25 16:21 grafana-server.md5
+-rwxr-xr-x 1 tidb tidb  15884939 Jul 25 16:21 node_exporter
+-rwxr-xr-x 1 tidb tidb  27341094 Jul 25 16:21 pd-ctl
+-rwxr-xr-x 1 tidb tidb  16345055 Jul 25 16:21 pd-recover
+-rwxr-xr-x 1 tidb tidb  36866195 Jul 25 16:21 pd-server
+-rwxr-xr-x 1 tidb tidb  16394398 Jul 25 16:21 pd-tso-bench
+-rwxr-xr-x 1 tidb tidb  68935640 Jul 25 16:21 prometheus
+-rwxr-xr-x 1 tidb tidb  32089280 Jul 25 16:21 pump
+-rwxr-xr-x 1 tidb tidb  14439632 Jul 25 16:21 pushgateway
+-rwxr-xr-x 1 tidb tidb  39814928 Jul 25 16:21 reparo
+-rwxr-xr-x 1 tidb tidb   8280869 Jul 25 16:21 shadow
+-rwxr-xr-x 1 tidb tidb  67211621 Jul 25 16:21 tidb-server
+-rwxr-xr-x 1 tidb tidb 197494880 Jul 25 16:21 tikv-ctl
+-rw-r--r-- 1 tidb tidb     20985 Jul 25 16:21 tikv-ctl.d
+-rwxr-xr-x 1 tidb tidb 207880328 Jul 25 16:21 tikv-importer
+-rw-r--r-- 1 tidb tidb     20995 Jul 25 16:21 tikv-importer.d
+-rwxr-xr-x 1 tidb tidb 355234696 Jul 25 16:21 tikv-server
+-rw-r--r-- 1 tidb tidb     20991 Jul 25 16:21 tikv-server.d
+-rw-r--r-- 1 tidb tidb  32650300 Jul 25 16:59 tispark-SNAPSHOT-jar-with-dependencies.jar</code></pre></div><p>在 TiDB-Ansible 的 bootstrap.yml 阶段需要使用 fio 进行性能压测，所以需要额外下载一个 fio(version 3.8) 文件。</p><h2><b>三、安装 TiDB</b></h2><p><b>1、下载 tidb-ansible 以及完成相关初始化</b></p><p>根据 PingCAP 官网的离线 TiDB-Ansible 部署方案（<a href="https://link.zhihu.com/?target=https%3A//pingcap.com/docs-cn/v3.0/how-to/deploy/orchestrated/offline-ansible/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">pingcap.com/docs-cn/v3.</span><span class="invisible">0/how-to/deploy/orchestrated/offline-ansible/</span><span class="ellipsis"></span></a>），完成以下初始化工作：</p><ul><li>在中控机上创建 tidb 用户，并生成 ssh key</li><li>在下载机上下载 TiDB-Ansible 及 TiDB 安装包，但下载机不需要安装 ansible，具体操作如下：</li></ul><p>下载 release-3.0 版本：</p><p>$ git clone -b v3.0.0 <a href="https://link.zhihu.com/?target=https%3A//github.com/pingcap/tidb-ansible.git" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/pingcap/tidb</span><span class="invisible">-ansible.git</span><span class="ellipsis"></span></a></p><p>注：不需要执行 ansible-playbook local_prepare.yml，因为使用的是自己编译的 ARM 版二进制包</p><ul><li>在中控机上配置部署机器 ssh 互信及 sudo 规则</li><li>在部署目标机器上安装 NTP 服务</li><li>在部署目标机器上配置 CPUfreq 调节器模式</li><li>在部署目标机器上添加数据盘 ext4 文件系统挂载参数</li></ul><p><b>2、部署任务</b></p><ul><li>把在下载机下载好的 tidb-ansible 传到部署中控机</li><li>在 tidb-ansible 目录下创建 resources/bin/ 目录，并且把编译的 ARM 版二进制文件全部放到 resources/bin/ 目录里（还包括 fio 文件）</li><li>编辑 inventory.ini</li></ul><div class="highlight"><pre><code class="language-text">## TiDB Cluster Part
+[tidb_servers]
+TiDB-1 ansible_host=127.0.0.1  deploy_dir=/tidb/deploy_tidb/tidb tidb_port=5000 tidb_status_port=10089 labels=&#34;host=ip-1&#34;
+TiDB-2 ansible_host=127.0.0.2  deploy_dir=/tidb/deploy_tidb/tidb tidb_port=5000 tidb_status_port=10089 labels=&#34;host=ip-2&#34;
+TiDB-3 ansible_host=127.0.0.3  deploy_dir=/tidb/deploy_tidb/tidb tidb_port=5000 tidb_status_port=10089 labels=&#34;host=ip-3&#34;
+
+
+[tikv_servers]
+TiKV1-1 ansible_host=127.0.0.1 deploy_dir=/tidb/deploy_tidb/tikv1 tikv_port=20891  tikv_status_port=20181  labels=&#34;host=TiKV1-1&#34;
+
+TiKV2-1 ansible_host=127.0.0.2 deploy_dir=/tidb/deploy_tidb/tikv1 tikv_port=20891  tikv_status_port=20181  labels=&#34;host=TiKV2-1&#34;
+
+TiKV3-1 ansible_host=127.0.0.3 deploy_dir=/tidb/deploy_tidb/tikv1 tikv_port=20891  tikv_status_port=20181  labels=&#34;host=TiKV3-1&#34;
+
+
+[pd_servers]
+PD01 ansible_host=127.0.0.1  deploy_dir=/tidb/deploy_tidb/pd pd_client_port=2589 pd_peer_port=2590 labels=&#34;host=ip-1&#34;
+PD02 ansible_host=127.0.0.2  deploy_dir=/tidb/deploy_tidb/pd pd_client_port=2589 pd_peer_port=2590 labels=&#34;host=ip-2&#34;
+PD03 ansible_host=127.0.0.3  deploy_dir=/tidb/deploy_tidb/pd pd_client_port=2589 pd_peer_port=2590 labels=&#34;host=ip-3&#34;
+
+
+[spark_master]
+
+[spark_slaves]
+
+[lightning_server]
+
+[importer_server]
+
+## Monitoring Part
+# prometheus and pushgateway servers
+[monitoring_servers]
+#prometheus89 ansible_host=127.0.0.1 prometheus_port=7098 pushgateway_port=7099 labels=&#34;host=ip-127.0.0.1&#34;
+127.0.0.1
+
+[grafana_servers]
+#grafanaleifu89 ansible_host=127.0.0.1 grafana_port=7002 grafana_collector_port=7088 labels=&#34;host=ip-127.0.0.1&#34;
+127.0.0.1
+
+# node_exporter and blackbox_exporter servers
+[monitored_servers]
+nodeblack1  ansible_host=127.0.0.1        node_exporter_port=7102 blackbox_exporter_port=7117 labels=&#34;host=ip-1&#34;
+nodeblack2  ansible_host=127.0.0.2        node_exporter_port=7102 blackbox_exporter_port=7117 labels=&#34;host=ip-2&#34;
+nodeblack3  ansible_host=127.0.0.3        node_exporter_port=7102 blackbox_exporter_port=7117 labels=&#34;host=ip-3&#34;
+
+
+[alertmanager_servers]
+127.0.0.1
+
+[kafka_exporter_servers]
+
+## Binlog Part
+[pump_servers]
+pump1 ansible_host=127.0.0.1  deploy_dir=/tidb/deploy_tidb/pump pump_port=8290
+pump2 ansible_host=127.0.0.2  deploy_dir=/tidb/deploy_tidb/pump pump_port=8290
+pump3 ansible_host=127.0.0.3  deploy_dir=/tidb/deploy_tidb/pump pump_port=8290
+
+[drainer_servers]
+
+## Group variables
+[pd_servers:vars]
+location_labels = [&#34;host&#34;]
+
+## Global variables
+[all:vars]
+deploy_dir = /tidb/deploy_tidb
+
+## Connection
+# ssh via normal user
+ansible_user = tidb
+
+cluster_name = test-cluster-30-ga
+
+tidb_version = v3.0.0
+
+# process supervision, [systemd, supervise]
+process_supervision = systemd
+
+timezone = Asia/Shanghai
+
+enable_firewalld = False
+# check NTP service
+enable_ntpd = True
+set_hostname = True
+
+## binlog trigger
+enable_binlog = True
+
+# kafka cluster address for monitoring, example:
+# kafka_addrs = &#34;192.168.0.11:9092,192.168.0.12:9092,192.168.0.13:9092&#34;
+kafka_addrs = &#34;&#34;
+
+# zookeeper address of kafka cluster for monitoring, example:
+# zookeeper_addrs = &#34;192.168.0.11:2181,192.168.0.12:2181,192.168.0.13:2181&#34;
+zookeeper_addrs = &#34;&#34;
+
+# enable TLS authentication in the TiDB cluster
+enable_tls = False
+
+# KV mode
+deploy_without_tidb = False
+
+# wait for region replication complete before start tidb-server.
+wait_replication = True
+
+# Optional: Set if you already have a alertmanager server.
+# Format: alertmanager_host:alertmanager_port
+alertmanager_target = &#34;&#34;
+
+grafana_admin_user = &#34;admin&#34;
+grafana_admin_password = &#34;admin&#34;
+
+
+### Collect diagnosis
+collect_log_recent_hours = 2
+
+enable_bandwidth_limit = True
+# default: 10Mb/s, unit: Kbit/s
+collect_bandwidth_limit = 10000</code></pre></div><ul><li>初始化系统环境，修改内核参数</li></ul><div class="highlight"><pre><code class="language-text">ansible-playbook bootstrap.yml</code></pre></div><ul><li>部署 TiDB 集群软件</li></ul><div class="highlight"><pre><code class="language-text">ansible-playbook deploy.yml</code></pre></div><ul><li>启动 TiDB 集群</li></ul><div class="highlight"><pre><code class="language-text">ansible-playbook start.yml</code></pre></div><h2><b>四、验证并使用</b></h2><p><b>1、连接 TiDB</b></p><div class="highlight"><pre><code class="language-text">[root@ip-localhost ~]# mysql -uroot -h127.0.0.1 -P5000
+Welcome to the MariaDB monitor. Commands end with ; or \g.
+Your MySQL connection id is 207
+Server version: 5.7.25-TiDB-v3.0.1-36-g709ee4f-dirty MySQL Community Server (Apache License 2.0)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type &#39;help;&#39; or &#39;\h&#39; for help. Type &#39;\c&#39; to clear the current input statement.
+
+MySQL [(none)]&gt; select tidb_version();
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| tidb_version()                                                                                                                                                                                                                                                                                                                         |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Release Version: v3.0.1-36-g709ee4f-dirty
+Git Commit Hash: 709ee4f5c1cd08b43da651c32f78c1032a397c84
+Git Branch: release-3.0
+UTC Build Time: 2019-07-25 06:26:30
+GoVersion: go version go1.12.6 linux/arm64
+Race Enabled: false
+TiKV Min Version: 2.1.0-alpha.1-ff3dd160846b7d1aed9079c389fc188f7f5ea13e
+Check Table Before Drop: false |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+MySQL [(none)]&gt; create database db_arm;
+uQuery OK, 0 rows affected (1.02 sec)
+
+MySQL [(none)]&gt; use db_arm
+Database changed
+MySQL [db_arm]&gt; create table tb_arm(i int);
+Query OK, 0 rows affected (0.51 sec)
+
+MySQL [db_arm]&gt; insert into tb_arm values(1);
+Query OK, 1 row affected (0.02 sec)
+
+MySQL [db_arm]&gt; select * from tb_arm;
++------+
+| i   |
++------+
+|    1 |
++------+
+1 row in set (0.00 sec)
+
+MySQL [db_arm]&gt;</code></pre></div><p><b>2、查看监控是否正常</b></p><p>TiDB 自带的监控展示平台 grafana:</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_b.jpg" data-caption="" data-size="normal" data-rawwidth="941" data-rawheight="404" class="origin_image zh-lightbox-thumb" width="941" data-original="https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_b.jpg" data-caption="" data-size="normal" data-rawwidth="941" data-rawheight="404" class="origin_image zh-lightbox-thumb lazy" width="941" data-original="https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_b.jpg"/></figure><p>TiDB 自带的告警平台 prometheus:</p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_b.jpg" data-caption="" data-size="normal" data-rawwidth="941" data-rawheight="277" class="origin_image zh-lightbox-thumb" width="941" data-original="https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_b.jpg" data-caption="" data-size="normal" data-rawwidth="941" data-rawheight="277" class="origin_image zh-lightbox-thumb lazy" width="941" data-original="https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><h2><b>五、计划</b></h2><p>至此，在 ARM64 平台上迈出坚实的一步，完成分布式数据库 TiDB 集群的安装部署，建议各位按照上面步骤进行操作，否则可能遇到一些未知的坑或者异常；接下来，我们将继续探索 ARM64 与 X86 平台差异化对比测试，通过基准硬件和分布式数据库性能两个维度深入挖掘，欢迎有兴趣的朋友一块探讨。</p>

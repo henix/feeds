@@ -5,7 +5,449 @@
 <link>https://henix.github.io/feeds/zhuanlan.newsql/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 09 Aug 2019 00:18:08 +0800</lastBuildDate>
+<lastBuildDate>Fri, 09 Aug 2019 12:44:35 +0800</lastBuildDate>
+<item>
+<title>分布式数据库在 ARM 平台探索之路（一） TiDB 集群在 arm 平台编译安装与部署</title>
+<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-08-09-77315020.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/77315020&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-ddb25062bbdfd62a9fc8581afeb07798_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;本文转自公众号 TCTP，作者 TCTP。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;原文链接：&lt;/b&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s/voEr3WId1LeOr-o4sFptPA%3Fscene%3D25%23wechat_redirect&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;mp.weixin.qq.com/s/voEr&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;3WId1LeOr-o4sFptPA?scene=25#wechat_redirect&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;我行在 2018 年开始了基于 ARM 服务器平台的尝试，当前 TDSQL 的冷备数据全部保存在基于 ARM 服务器搭建的 CEPH 存储集群上，运行稳定。在今年贸易战的大背景下，我们数据库团队也尝试将各个数据库产品放到 ARM 平台上去编译并运行起来，为我行在基础架构层面的进一步国产化打下基础。&lt;/p&gt;&lt;p&gt;我们这次首先针对我行引入的 NewSQL 数据库 TiDB，在我行实验室的 ARM 平台上进行了编译和测试，预计会将整个测试流程和相关测试结论，整理为三篇技术文章分享出来，分别是:&lt;/p&gt;&lt;p&gt;&lt;b&gt;（一）《TiDB 集群 在 arm 平台编译、安装与部署》&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（二）《sysbench 测试下 arm 平台 cpu ／内存／磁盘的能力》&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（三）《 TiDB 在 arm 与 x86 平台的性能测试对比》&lt;/b&gt;&lt;/p&gt;&lt;p&gt;此次是系列文章的第一篇。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;一、环境准备&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;PingCAP 提供了 TiDB-Ansible 部署方案，可以使用 Ansible 快速方便地部署一个完整的 TiDB 集群，而 TiDB-Ansible release-3.0 版本依赖 Ansible 2.4.2 及以上版本（Ansible&amp;gt;=2.4.2，最好是 2.7.11 版本），另外依赖 Python 模块：jinja2 &amp;gt;= 2.9.6 和 jmespath &amp;gt;= 0.9.0，而且内部的数据库服务器与外网一般是隔离的，所以只能选择离线安装：&lt;/p&gt;&lt;p&gt;&lt;b&gt;1、机器准备&lt;/b&gt;可以连接外网的 ARM 服务器一台&lt;/p&gt;&lt;ul&gt;&lt;li&gt;该机器需开放外网访问&lt;/li&gt;&lt;li&gt;用于下载 TiDB-Ansible、TiDB 及相关软件安装包&lt;/li&gt;&lt;li&gt;用于编译 TiDB ARM 版本&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;部署目标机器三台、部署中控机一台&lt;/p&gt;&lt;ul&gt;&lt;li&gt;无法访问外网&lt;/li&gt;&lt;li&gt;部署目标机器为 ARM 服务器&lt;/li&gt;&lt;li&gt;部署中控机和部署目标机器共用&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;2、依赖包下载&lt;/b&gt;以下是主要的依赖安装包（如果在安装过程中发现还缺少其他依赖包，可以按需下载）。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1372&quot; data-rawheight=&quot;2103&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1372&quot; data-original=&quot;https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1372&quot; data-rawheight=&quot;2103&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1372&quot; data-original=&quot;https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-2e0e1fc71d129c2c98bf03ce4264a65a_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;另外上图所示的依赖包只保证当前 ARM 环境可正常，但因为不同的服务器依赖可能不完全一样，所以在安装过程发现还缺少其他依赖包，若想安装其他依赖包，可自行网上寻找相关 RPM 包按需下载，实际我安装上述 RPM 包时也存在依赖性问题，但使用 RPM 强制安装已成功安装。&lt;/p&gt;&lt;p&gt;&lt;b&gt;3、安装依赖包&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;[root@ip-localhost ansible]# cd ansible_pkg/
+[root@ip-localhost ansible_pkg]# rpm -Uvh *.rpm --nodeps --force
+warning: libyaml-0.1.4-11.el7_0.aarch64.rpm: Header V3 RSA/SHA256 Signature, key ID fd431d51: NOKEY
+warning: python2-babel-2.7.0-1.fc31.noarch.rpm: Header V3 RSA/SHA256 Signature, key ID 3c3359c4: NOKEY
+warning: python2-markupsafe-1.0-1.fc29.aarch64.rpm: Header V3 RSA/SHA256 Signature, key ID 429476b4: NOKEY
+Preparing...                          ################################# [100%]
+Updating / installing...
+  1:python2-pyasn1-0.1.9-7.el7       ################################# [ 5%]
+  2:sshpass-1.06-1.el7               ################################# [ 10%]
+  3:python-ply-3.4-11.el7            ################################# [ 14%]
+  4:python-pycparser-2.14-1.el7      ################################# [ 19%]
+  5:python-cffi-1.6.0-5.el7          ################################# [ 24%]
+  6:python-idna-2.4-1.el7            ################################# [ 29%]
+  7:python-httplib2-0.9.2-0.2.el7    ################################# [ 33%]
+  8:python-enum34-1.0.4-1.el7        ################################# [ 38%]
+  9:python2-cryptography-1.7.2-2.el7 ################################# [ 43%]
+ 10:python-paramiko-2.1.1-9.el7      ################################# [ 48%]
+ 11:python2-pytz-2018.9-1.fc31       ################################# [ 52%]
+ 12:python2-babel-2.7.0-1.fc31       ################################# [ 57%]
+ 13:python2-markupsafe-1.0-1.fc29    ################################# [ 62%]
+ 14:python2-jinja2-2.10-2.el7        ################################# [ 67%]
+ 15:python2-jmespath-0.9.0-1.el7     ################################# [ 71%]
+ 16:libyaml-0.1.4-11.el7_0           ################################# [ 76%]
+ 17:PyYAML-3.10-11.el7               ################################# [ 81%]
+ 18:ansible-2.8.2-1.el7              ################################# [ 86%]
+ 19:python2-pip-8.1.2-8.el7          ################################# [ 90%]
+ 20:mariadb-1:5.5.60-1.el7_5         ################################# [ 95%]
+ 21:epel-release-7-11                ################################# [100%]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;4、确认 ansible 是否安装成功&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;[root@ip-localhost ansible]# ansible --version
+ansible 2.8.2
+config file = /etc/ansible/ansible.cfg
+configured module search path = [u&amp;#39;/root/.ansible/plugins/modules&amp;#39;, u&amp;#39;/usr/share/ansible/plugins/modules&amp;#39;]
+ansible python module location = /usr/lib/python2.7/site-packages/ansible
+executable location = /bin/ansible
+python version = 2.7.5 (default, Oct 31 2018, 18:48:32) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;5、确认 jinja2 是否安装成功&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;[root@ip-localhost ansible]# pip show jinja2
+Metadata-Version: 1.1
+Name: Jinja2
+Version: 2.10
+Summary: A small but fast and easy to use stand-alone template engine written in pure python.
+Home-page: http://jinja.pocoo.org/
+Author: Armin Ronacher
+Author-email: armin.ronacher@active-4.com
+License: BSD
+Location: /usr/lib/python2.7/site-packages
+Requires: MarkupSafe
+Classifiers:
+Development Status :: 5 - Production/Stable
+Environment :: Web Environment
+Intended Audience :: Developers
+License :: OSI Approved :: BSD License
+Operating System :: OS Independent
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.3
+Programming Language :: Python :: 3.4
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Topic :: Software Development :: Libraries :: Python Modules
+Topic :: Text Processing :: Markup :: HTML
+Entry-points:
+[babel.extractors]
+jinja2 = jinja2.ext:babel_extract[i18n]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;6、确认 jmespath 是否安装成功&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;[root@ip-localhost ansible]# pip show jmespath
+Metadata-Version: 1.1
+Name: jmespath
+Version: 0.9.0
+Summary: JSON Matching Expressions
+Home-page: https://github.com/jmespath/jmespath.py
+Author: James Saryerwinnie
+Author-email: js@jamesls.com
+License: UNKNOWN
+Location: /usr/lib/python2.7/site-packages
+Requires:
+Classifiers:
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+Natural Language :: English
+License :: OSI Approved :: MIT License
+Programming Language :: Python
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.3
+Programming Language :: Python :: 3.4&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;二、编译 TiDB arm 版本&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;TiDB 包括三大组件 PD、TiKV Server 和 TiDB Server，还包括其他周边组件，比如 Pump、Prometheus、Alertmanager、Node_exporter、Blackbox_exporter、Pushgateway 和 Grafana，所以需要把这些组件都统一编译成 ARM 版本，而且要和官方版本对齐。&lt;/p&gt;&lt;p&gt;&lt;b&gt;1、编译脚本示例&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;#!/bin/bash
+# Soft Version
+# TiDN Core
+tidb_version=release-3.0
+# TiDB Tools
+tispark_version=master
+dm_version=master
+# Monitor
+prometheus_version=v2.8.1
+alertmanager_version=v0.17.0
+node_exporter_version=v0.17.0
+# blackbox_exporter_version=v0.12.0
+#v0.12.0 meets some wrong
+blackbox_exporter_version=master
+pushgateway_version=v0.7.0
+grafana_version=6.1.6
+
+# Soft Dir
+declare -A soft_srcs
+
+soft_srcs=(
+# [&amp;#34;tidb&amp;#34;]=&amp;#34;$tidb_version https://github.com/pingcap/tidb.git&amp;#34;
+# [&amp;#34;pd&amp;#34;]=&amp;#34;$tidb_version https://github.com/pingcap/pd.git&amp;#34;
+# [&amp;#34;tikv&amp;#34;]=&amp;#34;$tidb_version https://github.com/tikv/tikv.git&amp;#34;
+#   [&amp;#34;tispark&amp;#34;]=&amp;#34;$tidb_version https://github.com/pingcap/tispark&amp;#34;
+  [&amp;#34;tidb-binlog&amp;#34;]=&amp;#34;$tidb_version https://github.com/pingcap/tidb-binlog&amp;#34;
+[&amp;#34;dm&amp;#34;]=&amp;#34;$dm_version https://github.com/pingcap/dm&amp;#34;
+[&amp;#34;prometheus&amp;#34;]=&amp;#34;$prometheus_version https://github.com/prometheus/prometheus.git&amp;#34;
+[&amp;#34;alertmanager&amp;#34;]=&amp;#34;$alertmanager_version https://github.com/prometheus/alertmanager.git&amp;#34;
+[&amp;#34;node_exporter&amp;#34;]=&amp;#34;$node_exporter_version https://github.com/prometheus/node_exporter.git&amp;#34;
+[&amp;#34;blackbox_version&amp;#34;]=&amp;#34;$blackbox_exporter_version https://github.com/prometheus/blackbox_exporter.git&amp;#34;
+[&amp;#34;pushgateway&amp;#34;]=&amp;#34;$pushgateway_version https://github.com/prometheus/pushgateway.git&amp;#34;
+# [&amp;#34;grafana&amp;#34;]=&amp;#34;$grafana_version https://github.com/grafana/grafana.git&amp;#34;
+)
+
+# Dir
+ROOT=$PWD/build
+target=$ROOT/bin
+rm -rf $ROOT
+mkdir -p $target
+
+sudo yum install -y gcc gcc-c++ wget git zlib-devel
+
+cd $ROOT
+# Go
+if which go &amp;gt;/dev/null; then
+   echo &amp;#34;go installed, skip&amp;#34;
+else
+   wget https://dl.google.com/go/go1.12.6.linux-arm64.tar.gz
+   sudo tar -C /usr/local -xzf go1.12.6.linux-arm64.tar.gz
+   echo &amp;#34;export GOPATH=$ROOT/go&amp;#34; &amp;gt;&amp;gt; ~/.bashrc
+   echo &amp;#39;export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin&amp;#39; &amp;gt;&amp;gt; ~/.bashrc
+   source ~/.bashrc
+fi
+
+# Rust
+if which rustc &amp;gt;/dev/null; then
+   echo &amp;#34;rust installed, skip&amp;#34;
+else
+   curl https://sh.rustup.rs -sSf | sh -s -- -y
+   source $HOME/.cargo/env
+fi
+
+# Install cmake3
+if which cmake3 &amp;gt;/dev/null; then
+   echo &amp;#34;cmake3 installed, skip&amp;#34;
+else
+   wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+   sudo rpm -ivh epel-release-latest-7.noarch.rpm
+   sudo yum install -y epel-release
+   sudo yum install -y cmake3
+
+   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
+fi
+
+# Install Java
+if which java &amp;gt;/dev/null;then
+echo &amp;#34;java installed, skip&amp;#34;
+else
+ce $ROOT
+wget --no-cookies --no-check-certificate --header &amp;#34;Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie&amp;#34; &amp;#34;http://download.oracle.com/otn-pub/java/jdk/8u141-b15/336fa29ff2bb4ef291e347e091f7f4a7/jdk-8u141-linux-arm64-vfp-hflt.tar.gz&amp;#34;
+sudo tar -C /usr/local -xzf jdk-8u141-linux-arm64-vfp-hflt.tar.gz
+echo &amp;#39;export JAVA_HOME=/usr/local/jdk1.8.0_141&amp;#39; &amp;gt;&amp;gt; ~/.bashrc
+echo &amp;#39;export JRE_HOME=/user/local/jdk1.8.0_141/jre&amp;#39; &amp;gt;&amp;gt; ~/.bashrc
+echo &amp;#39;export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin&amp;#39; &amp;gt;&amp;gt; ~/.bashrc
+fi
+
+
+# Install maven
+if which mvn &amp;gt;/dev/null;then
+echo &amp;#34;maven installed, skip&amp;#34;
+else
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+sudo tar -C /usr/local -xzf apache-maven-3.6.1-bin.tar.gz
+echo &amp;#39;export PATH=$PATH:/usr/local/apache-maven-3.6.1/bin&amp;#39; &amp;gt;&amp;gt; ~/.bashrc
+source ~/.bashrc
+fi
+
+
+# # RocksDB gflags
+# git clone https://github.com/gflags/gflags.git
+# cd gflags
+# git checkout v2.0
+# ./configure --build=aarch64-unknown-linux-gnu &amp;amp;&amp;amp; make &amp;amp;&amp;amp; sudo make install
+# cd $ROOT
+
+# Build Monitor
+for soft in $(echo ${!soft_srcs[*]})
+do
+soft_src=${soft_srcs[$soft]}
+cd $ROOT
+git clone -b $soft_src
+cd $soft
+make build
+if [ -d bin ];then
+cp bin/* $target
+else
+cp $soft $target
+fi
+cd $ROOT
+echo &amp;#34;`date +&amp;#39;%F %T&amp;#39;`: Build Soft $soft done .&amp;#34;
+done
+
+# Download Grafana
+cd $ROOT
+wget https://dl.grafana.com/oss/release/grafana-${grafana_version}.linux-arm64.tar.gz
+tar -zxvf grafana-${grafana_version}.linux-arm64.tar.gz
+
+cp grafana-${grafana_version}/bin/* bin/
+
+# Build TiDB
+cd $ROOT
+git clone -b $tidb_version https://github.com/pingcap/tidb
+cd tidb
+make
+cp bin/* $target
+# Build PD
+cd $ROOT
+git clone -b $tidb_version https://github.com/pingcap/pd
+cd pd
+make
+cp bin/* $target
+
+# Build TiKV
+cd $ROOT
+git clone -b $tidb_version https://github.com/tikv/tikv.git
+cd tikv
+ROCKSDB_SYS_SSE=0 make release
+cp target/release/tikv-*  $target
+
+# Build tispark
+cd $ROOT
+git clone -b $tispark_version https://github.com/pingcap/tispark
+cd tispark
+mvn clean install -Dmaven.test.skip=true -P spark-2.3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;2、 确认组件是否编译成功&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;[root@ip-localhost bin]# ll
+total 1492252
+-rwxr-xr-x 1 tidb tidb  25880636 Jul 25 16:21 alertmanager
+-rwxr-xr-x 1 tidb tidb  41476026 Jul 25 16:21 arbiter
+-rwxr-xr-x 1 tidb tidb  23086365 Jul 25 16:21 binlogctl
+-rwxr-xr-x 1 root root  16725668 Jul 25 16:48 blackbox_exporter
+-rwxr-xr-x 1 tidb tidb  42190443 Jul 25 16:21 dmctl
+-rwxr-xr-x 1 tidb tidb  42643818 Jul 25 16:21 dm-master
+-rwxr-xr-x 1 tidb tidb  41231475 Jul 25 16:21 dm-tracer
+-rwxr-xr-x 1 tidb tidb  45855210 Jul 25 16:21 dm-worker
+-rwxr-xr-x 1 tidb tidb  45378703 Jul 25 16:21 drainer
+-rwxr-xr-x 1 tidb tidb  20578913 Jul 25 16:21 grafana-cli
+-rw-r--r-- 1 tidb tidb        33 Jul 25 16:21 grafana-cli.md5
+-rwxr-xr-x 1 tidb tidb  41749049 Jul 25 16:21 grafana-server
+-rw-r--r-- 1 tidb tidb        33 Jul 25 16:21 grafana-server.md5
+-rwxr-xr-x 1 tidb tidb  15884939 Jul 25 16:21 node_exporter
+-rwxr-xr-x 1 tidb tidb  27341094 Jul 25 16:21 pd-ctl
+-rwxr-xr-x 1 tidb tidb  16345055 Jul 25 16:21 pd-recover
+-rwxr-xr-x 1 tidb tidb  36866195 Jul 25 16:21 pd-server
+-rwxr-xr-x 1 tidb tidb  16394398 Jul 25 16:21 pd-tso-bench
+-rwxr-xr-x 1 tidb tidb  68935640 Jul 25 16:21 prometheus
+-rwxr-xr-x 1 tidb tidb  32089280 Jul 25 16:21 pump
+-rwxr-xr-x 1 tidb tidb  14439632 Jul 25 16:21 pushgateway
+-rwxr-xr-x 1 tidb tidb  39814928 Jul 25 16:21 reparo
+-rwxr-xr-x 1 tidb tidb   8280869 Jul 25 16:21 shadow
+-rwxr-xr-x 1 tidb tidb  67211621 Jul 25 16:21 tidb-server
+-rwxr-xr-x 1 tidb tidb 197494880 Jul 25 16:21 tikv-ctl
+-rw-r--r-- 1 tidb tidb     20985 Jul 25 16:21 tikv-ctl.d
+-rwxr-xr-x 1 tidb tidb 207880328 Jul 25 16:21 tikv-importer
+-rw-r--r-- 1 tidb tidb     20995 Jul 25 16:21 tikv-importer.d
+-rwxr-xr-x 1 tidb tidb 355234696 Jul 25 16:21 tikv-server
+-rw-r--r-- 1 tidb tidb     20991 Jul 25 16:21 tikv-server.d
+-rw-r--r-- 1 tidb tidb  32650300 Jul 25 16:59 tispark-SNAPSHOT-jar-with-dependencies.jar&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在 TiDB-Ansible 的 bootstrap.yml 阶段需要使用 fio 进行性能压测，所以需要额外下载一个 fio(version 3.8) 文件。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;三、安装 TiDB&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;1、下载 tidb-ansible 以及完成相关初始化&lt;/b&gt;&lt;/p&gt;&lt;p&gt;根据 PingCAP 官网的离线 TiDB-Ansible 部署方案（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/docs-cn/v3.0/how-to/deploy/orchestrated/offline-ansible/&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;pingcap.com/docs-cn/v3.&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;0/how-to/deploy/orchestrated/offline-ansible/&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;），完成以下初始化工作：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在中控机上创建 tidb 用户，并生成 ssh key&lt;/li&gt;&lt;li&gt;在下载机上下载 TiDB-Ansible 及 TiDB 安装包，但下载机不需要安装 ansible，具体操作如下：&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;下载 release-3.0 版本：&lt;/p&gt;&lt;p&gt;$ git clone -b v3.0.0 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/tidb-ansible.git&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/tidb&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;-ansible.git&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;注：不需要执行 ansible-playbook local_prepare.yml，因为使用的是自己编译的 ARM 版二进制包&lt;/p&gt;&lt;ul&gt;&lt;li&gt;在中控机上配置部署机器 ssh 互信及 sudo 规则&lt;/li&gt;&lt;li&gt;在部署目标机器上安装 NTP 服务&lt;/li&gt;&lt;li&gt;在部署目标机器上配置 CPUfreq 调节器模式&lt;/li&gt;&lt;li&gt;在部署目标机器上添加数据盘 ext4 文件系统挂载参数&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;2、部署任务&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;把在下载机下载好的 tidb-ansible 传到部署中控机&lt;/li&gt;&lt;li&gt;在 tidb-ansible 目录下创建 resources/bin/ 目录，并且把编译的 ARM 版二进制文件全部放到 resources/bin/ 目录里（还包括 fio 文件）&lt;/li&gt;&lt;li&gt;编辑 inventory.ini&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;## TiDB Cluster Part
+[tidb_servers]
+TiDB-1 ansible_host=127.0.0.1  deploy_dir=/tidb/deploy_tidb/tidb tidb_port=5000 tidb_status_port=10089 labels=&amp;#34;host=ip-1&amp;#34;
+TiDB-2 ansible_host=127.0.0.2  deploy_dir=/tidb/deploy_tidb/tidb tidb_port=5000 tidb_status_port=10089 labels=&amp;#34;host=ip-2&amp;#34;
+TiDB-3 ansible_host=127.0.0.3  deploy_dir=/tidb/deploy_tidb/tidb tidb_port=5000 tidb_status_port=10089 labels=&amp;#34;host=ip-3&amp;#34;
+
+
+[tikv_servers]
+TiKV1-1 ansible_host=127.0.0.1 deploy_dir=/tidb/deploy_tidb/tikv1 tikv_port=20891  tikv_status_port=20181  labels=&amp;#34;host=TiKV1-1&amp;#34;
+
+TiKV2-1 ansible_host=127.0.0.2 deploy_dir=/tidb/deploy_tidb/tikv1 tikv_port=20891  tikv_status_port=20181  labels=&amp;#34;host=TiKV2-1&amp;#34;
+
+TiKV3-1 ansible_host=127.0.0.3 deploy_dir=/tidb/deploy_tidb/tikv1 tikv_port=20891  tikv_status_port=20181  labels=&amp;#34;host=TiKV3-1&amp;#34;
+
+
+[pd_servers]
+PD01 ansible_host=127.0.0.1  deploy_dir=/tidb/deploy_tidb/pd pd_client_port=2589 pd_peer_port=2590 labels=&amp;#34;host=ip-1&amp;#34;
+PD02 ansible_host=127.0.0.2  deploy_dir=/tidb/deploy_tidb/pd pd_client_port=2589 pd_peer_port=2590 labels=&amp;#34;host=ip-2&amp;#34;
+PD03 ansible_host=127.0.0.3  deploy_dir=/tidb/deploy_tidb/pd pd_client_port=2589 pd_peer_port=2590 labels=&amp;#34;host=ip-3&amp;#34;
+
+
+[spark_master]
+
+[spark_slaves]
+
+[lightning_server]
+
+[importer_server]
+
+## Monitoring Part
+# prometheus and pushgateway servers
+[monitoring_servers]
+#prometheus89 ansible_host=127.0.0.1 prometheus_port=7098 pushgateway_port=7099 labels=&amp;#34;host=ip-127.0.0.1&amp;#34;
+127.0.0.1
+
+[grafana_servers]
+#grafanaleifu89 ansible_host=127.0.0.1 grafana_port=7002 grafana_collector_port=7088 labels=&amp;#34;host=ip-127.0.0.1&amp;#34;
+127.0.0.1
+
+# node_exporter and blackbox_exporter servers
+[monitored_servers]
+nodeblack1  ansible_host=127.0.0.1        node_exporter_port=7102 blackbox_exporter_port=7117 labels=&amp;#34;host=ip-1&amp;#34;
+nodeblack2  ansible_host=127.0.0.2        node_exporter_port=7102 blackbox_exporter_port=7117 labels=&amp;#34;host=ip-2&amp;#34;
+nodeblack3  ansible_host=127.0.0.3        node_exporter_port=7102 blackbox_exporter_port=7117 labels=&amp;#34;host=ip-3&amp;#34;
+
+
+[alertmanager_servers]
+127.0.0.1
+
+[kafka_exporter_servers]
+
+## Binlog Part
+[pump_servers]
+pump1 ansible_host=127.0.0.1  deploy_dir=/tidb/deploy_tidb/pump pump_port=8290
+pump2 ansible_host=127.0.0.2  deploy_dir=/tidb/deploy_tidb/pump pump_port=8290
+pump3 ansible_host=127.0.0.3  deploy_dir=/tidb/deploy_tidb/pump pump_port=8290
+
+[drainer_servers]
+
+## Group variables
+[pd_servers:vars]
+location_labels = [&amp;#34;host&amp;#34;]
+
+## Global variables
+[all:vars]
+deploy_dir = /tidb/deploy_tidb
+
+## Connection
+# ssh via normal user
+ansible_user = tidb
+
+cluster_name = test-cluster-30-ga
+
+tidb_version = v3.0.0
+
+# process supervision, [systemd, supervise]
+process_supervision = systemd
+
+timezone = Asia/Shanghai
+
+enable_firewalld = False
+# check NTP service
+enable_ntpd = True
+set_hostname = True
+
+## binlog trigger
+enable_binlog = True
+
+# kafka cluster address for monitoring, example:
+# kafka_addrs = &amp;#34;192.168.0.11:9092,192.168.0.12:9092,192.168.0.13:9092&amp;#34;
+kafka_addrs = &amp;#34;&amp;#34;
+
+# zookeeper address of kafka cluster for monitoring, example:
+# zookeeper_addrs = &amp;#34;192.168.0.11:2181,192.168.0.12:2181,192.168.0.13:2181&amp;#34;
+zookeeper_addrs = &amp;#34;&amp;#34;
+
+# enable TLS authentication in the TiDB cluster
+enable_tls = False
+
+# KV mode
+deploy_without_tidb = False
+
+# wait for region replication complete before start tidb-server.
+wait_replication = True
+
+# Optional: Set if you already have a alertmanager server.
+# Format: alertmanager_host:alertmanager_port
+alertmanager_target = &amp;#34;&amp;#34;
+
+grafana_admin_user = &amp;#34;admin&amp;#34;
+grafana_admin_password = &amp;#34;admin&amp;#34;
+
+
+### Collect diagnosis
+collect_log_recent_hours = 2
+
+enable_bandwidth_limit = True
+# default: 10Mb/s, unit: Kbit/s
+collect_bandwidth_limit = 10000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;初始化系统环境，修改内核参数&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;ansible-playbook bootstrap.yml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;部署 TiDB 集群软件&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;ansible-playbook deploy.yml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;启动 TiDB 集群&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;ansible-playbook start.yml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;&lt;b&gt;四、验证并使用&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;&lt;b&gt;1、连接 TiDB&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;[root@ip-localhost ~]# mysql -uroot -h127.0.0.1 -P5000
+Welcome to the MariaDB monitor. Commands end with ; or \g.
+Your MySQL connection id is 207
+Server version: 5.7.25-TiDB-v3.0.1-36-g709ee4f-dirty MySQL Community Server (Apache License 2.0)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type &amp;#39;help;&amp;#39; or &amp;#39;\h&amp;#39; for help. Type &amp;#39;\c&amp;#39; to clear the current input statement.
+
+MySQL [(none)]&amp;gt; select tidb_version();
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| tidb_version()                                                                                                                                                                                                                                                                                                                         |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Release Version: v3.0.1-36-g709ee4f-dirty
+Git Commit Hash: 709ee4f5c1cd08b43da651c32f78c1032a397c84
+Git Branch: release-3.0
+UTC Build Time: 2019-07-25 06:26:30
+GoVersion: go version go1.12.6 linux/arm64
+Race Enabled: false
+TiKV Min Version: 2.1.0-alpha.1-ff3dd160846b7d1aed9079c389fc188f7f5ea13e
+Check Table Before Drop: false |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+MySQL [(none)]&amp;gt; create database db_arm;
+uQuery OK, 0 rows affected (1.02 sec)
+
+MySQL [(none)]&amp;gt; use db_arm
+Database changed
+MySQL [db_arm]&amp;gt; create table tb_arm(i int);
+Query OK, 0 rows affected (0.51 sec)
+
+MySQL [db_arm]&amp;gt; insert into tb_arm values(1);
+Query OK, 1 row affected (0.02 sec)
+
+MySQL [db_arm]&amp;gt; select * from tb_arm;
++------+
+| i   |
++------+
+|    1 |
++------+
+1 row in set (0.00 sec)
+
+MySQL [db_arm]&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;2、查看监控是否正常&lt;/b&gt;&lt;/p&gt;&lt;p&gt;TiDB 自带的监控展示平台 grafana:&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;941&quot; data-rawheight=&quot;404&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;941&quot; data-original=&quot;https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;941&quot; data-rawheight=&quot;404&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;941&quot; data-original=&quot;https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-3f6a536ac2f627a425102522b21c41d4_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;TiDB 自带的告警平台 prometheus:&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;941&quot; data-rawheight=&quot;277&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;941&quot; data-original=&quot;https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;941&quot; data-rawheight=&quot;277&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;941&quot; data-original=&quot;https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-e7af18ad009a201cdf77d48bd1fdde1d_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;h2&gt;&lt;b&gt;五、计划&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;至此，在 ARM64 平台上迈出坚实的一步，完成分布式数据库 TiDB 集群的安装部署，建议各位按照上面步骤进行操作，否则可能遇到一些未知的坑或者异常；接下来，我们将继续探索 ARM64 与 X86 平台差异化对比测试，通过基准硬件和分布式数据库性能两个维度深入挖掘，欢迎有兴趣的朋友一块探讨。&lt;/p&gt;</description>
+<author>ZoeyZhai</author>
+<guid isPermaLink="false">2019-08-09-77315020</guid>
+<pubDate>Fri, 09 Aug 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>三十分钟成为Contributor | 提升TiDB Parser对MySQL 8.0语法兼容性</title>
 <link>https://henix.github.io/feeds/zhuanlan.newsql/2019-08-08-77255479.html</link>
@@ -315,15 +757,6 @@ struct SchedulerInner {
 <author>ZoeyZhai</author>
 <guid isPermaLink="false">2019-07-22-74717464</guid>
 <pubDate>Mon, 22 Jul 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>DM 源码阅读系列文章（九）shard DDL 与 checkpoint 机制的实现</title>
-<link>https://henix.github.io/feeds/zhuanlan.newsql/2019-07-18-74205520.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/74205520&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-cfe2dd456c96422b7941425773b6833b_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;作者：张学程&lt;/p&gt;&lt;p&gt;本文为 DM 源码阅读系列文章的第九篇，在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/dm-source-code-reading-8/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;上篇文章&lt;/a&gt; 中我们详细介绍了 DM 对 online schema change 方案的同步支持，对 online schema change 同步方案以及实现细节等逻辑进行了分析。&lt;/p&gt;&lt;p&gt;在本篇文章中，我们将对 shard DDL 同步机制以及 checkpoint 机制等进行详细的介绍，内容包括 shard group 的定义、shard DDL 的同步协调处理流程、checkpoint 机制以及与之相关的 safe mode 机制。&lt;/p&gt;&lt;h2&gt;shard DDL 机制的实现&lt;/h2&gt;&lt;p&gt;DM 中通过 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/dm-source-code-reading-7/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;库表路由与列值转换&lt;/a&gt; 功能，实现了对分库分表合并场景下 DML 的同步支持。但当需要同步的各分表存在 DDL 变更时，还需要对 DDL 的同步进行更多额外的处理。有关分表合并时 shard DDL 同步需要处理的问题以及 DM 中的同步支持原理，请先阅读 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tidb-ecosystem-tools-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;TiDB Ecosystem Tools 原理解读系列（三）TiDB-DM 架构设计与实现原理&lt;/a&gt;。&lt;/p&gt;&lt;h3&gt;shard group&lt;/h3&gt;&lt;p&gt;在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tidb-ecosystem-tools-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;这篇文章&lt;/a&gt; 中，我们介绍了 DM 在处理 shard DDL 同步时引入了两级 shard group 的概念，即用于执行分表合并同步任务的各 DM-worker 组成的 shard group、每个 DM-worker 内需要进行合表同步的各上游分表组成的 shard group。&lt;/p&gt;&lt;p&gt;&lt;b&gt;DM-worker 组成的 shard group&lt;/b&gt;&lt;/p&gt;&lt;p&gt;由 DM-worker 组成的 shard group 是由集群部署拓扑及同步任务配置决定的，即任务配置文件中定义的需要进行合表同步的所有上游 MySQL 实例对应的所有 DM-worker 实例即组成了一个 shard group。为了表示同步过程中的相关动态信息，DM-master 内部引入了两个概念：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/lock.go%23L24&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Lock&lt;/a&gt;：对于每组需要进行合并的表，其中每一条需要进行同步协调的 shard DDL，由一个 Lock 实例进行表示；每个 Lock 实例在有 shard DDL 需要协调同步时被创建、在协调同步完成后被销毁；在 dmctl 中使用 show-ddl-locks 命令查看到的每一个 Lock 信息即对应一个该实例&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/ddl_lock.go%23L91&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;LockKeeper&lt;/a&gt;：维护所有的 Lock 实例信息并提供相关的操作接口&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Lock 中各主要成员变量的作用如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0a92b55c1b60ed26df9a59da855cbc89_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1256&quot; data-rawheight=&quot;686&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1256&quot; data-original=&quot;https://pic2.zhimg.com/v2-0a92b55c1b60ed26df9a59da855cbc89_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-0a92b55c1b60ed26df9a59da855cbc89_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1256&quot; data-rawheight=&quot;686&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1256&quot; data-original=&quot;https://pic2.zhimg.com/v2-0a92b55c1b60ed26df9a59da855cbc89_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-0a92b55c1b60ed26df9a59da855cbc89_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;DM-worker 内分表组成的 shard group&lt;/b&gt;&lt;/p&gt;&lt;p&gt;每个 DM-worker 内的 shard group 是由对应上游 MySQL 实例内分表及同步任务配置决定的，即任务配置文件中定义的对应 MySQL 实例内需要进行合并同步到同一个下游目标表的所有分表组成一个 shard group。在 DM-worker 内部，我们维护了下面两个对象：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/sharding_group.go%23L87&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;ShardingGroup&lt;/a&gt;：对于每一组需要进行合并的表，由一个 ShardingGroup 实例进行表示；每个 ShardGroup 实例在同步任务启动阶段被创建，在任务停止时被销毁&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/sharding_group.go%23L395&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;ShardingGroupKeeper&lt;/a&gt;：维护所有的 ShardingGroup 实例信息并提供相关的操作接口&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;ShardingGroup 中各主要成员变量的作用如下：&lt;/p&gt;&lt;h3&gt;shard DDL 同步流程&lt;/h3&gt;&lt;p&gt;对于两级 shard group，DM 内部在依次完成两个级别的 相应的 shard DDL 同步协调。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;对于 DM-worker 内由各分表组成的 shard group，其 shard DDL 的同步在对应 DM-worker 内部进行协调&lt;/li&gt;&lt;li&gt;对于由各 DM-worker 组成的 shard group，其 shard DDL 的同步由 DM-master 进行协调&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;DM-worker 间 shard DDL 协调流程&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们基于在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tidb-ecosystem-tools-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;这篇文章&lt;/a&gt; 中展示过的仅包含两个 DM-worker 的 shard DDL 协调流程示例（如下图）来了解 DM 内部的具体实现。&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6ccd31fea26ecf270f373f9eb9337498_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;447&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;939&quot; data-original=&quot;https://pic1.zhimg.com/v2-6ccd31fea26ecf270f373f9eb9337498_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6ccd31fea26ecf270f373f9eb9337498_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;939&quot; data-rawheight=&quot;447&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;939&quot; data-original=&quot;https://pic1.zhimg.com/v2-6ccd31fea26ecf270f373f9eb9337498_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-6ccd31fea26ecf270f373f9eb9337498_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;ol&gt;&lt;li&gt;DM-worker-1 将 shard DDL 信息发送给 DM-master&lt;br/&gt;a. 当 DM-worker-1 内部 shard DDL 协调完成时，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1727&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker-1 将对应的 shard DDL 信息保存在 channel 中&lt;/a&gt;供 DM-master 通过 gRPC 获取&lt;br/&gt;b. DM-master 在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1243&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;fetchWorkerDDLInfo&lt;/a&gt; 方法中&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1277&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;以 gRPC streaming 的方式读取到 DM-worker-1 的 shard DDL 信息&lt;/a&gt;&lt;br/&gt;c. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1308&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-master 调用 ShardingGroupKeeper 的 TrySync 方法创建对应的 lock 信息&lt;/a&gt;，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/lock.go%23L77&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;并在 lock 中标记已收到 DM-worker-1 的 shard DDL 信息&lt;/a&gt;&lt;/li&gt;&lt;li&gt;DM-master 将 lock 信息发回给 DM-worker-1&lt;br/&gt;a. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1319&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-master 以 gRPC streaming 的方式将 lock 信息发送给 DM-worker-1&lt;/a&gt;&lt;br/&gt;b. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/worker/subtask.go%23L535&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker-1 将来自 DM-master 的 lock 信息保存在内存中&lt;/a&gt;用于在 DM-master 请求 DM-worker 执行/跳过 shard DDL 时进行验证&lt;/li&gt;&lt;li&gt;DM-worker-2 将 shard DDL 信息发送给 DM-master（流程与 step.1 一致）&lt;/li&gt;&lt;li&gt;DM-master 将 lock 信息发回给 DM-worker-2（流程与 step.2 一致）&lt;/li&gt;&lt;li&gt;DM-master 协调 DM-worker-1 向下游同步 shard DDL&lt;br/&gt;a. DM-master 根据 step.1 与 step.3 时收到的 shard DDL 信息&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/lock.go%23L80&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;判定已经收到 shard group 内所有 DM-worker 的 shard DDL 信息&lt;/a&gt;&lt;br/&gt;b. DM-master 在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1360&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;resolveDDLLock&lt;/a&gt; 方法中&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1431&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;向 DM-worker-1 发送向下游同步 shard DDL 的请求&lt;/a&gt;（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1427&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Exec 参数为 true&lt;/a&gt;）&lt;/li&gt;&lt;li&gt;DM-worker-1 向下游同步 shard DDL&lt;br/&gt;a. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1732&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker-1 接收到来自 DM-master 的向下游执行 shard DDL 的请求&lt;/a&gt;&lt;br/&gt;b. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1773&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker-1 构造 DDL job 并添加到 DDL 执行队列中&lt;/a&gt;&lt;br/&gt;c. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L874&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker-1 将 shard DDL 执行结果保存在 channel 中&lt;/a&gt;供 DM-master 通过 gRPC 获取&lt;/li&gt;&lt;li&gt;DM-worker-2 忽略向下游同步 shard DDL&lt;br/&gt;a. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1436&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-master 获取 DM-worker-1 向下游同步 shard DDL 的结果&lt;/a&gt;判断得知 DM-worker-1 同步 shard DDL 成功&lt;br/&gt;b. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1486&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-master 向 DM-worker-2 发送忽略向下游同步 shard DDL 的请求&lt;/a&gt;（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/dm/master/server.go%23L1461&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Exec 参数为 false&lt;/a&gt;）&lt;br/&gt;c. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L843&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker-2 根据 DM-master 请求忽略向下游同步 shard DDL&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;b&gt;DM-worker 内 shard DDL 同步流程&lt;/b&gt;&lt;/p&gt;&lt;p&gt;我们基于在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/tidb-ecosystem-tools-3/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;实现原理文章&lt;/a&gt; 中展示过的一个 DM-worker 内仅包含两个分表 &lt;code&gt;（table_1，table_2）&lt;/code&gt; 的 shard DDL（仅一条 DDL）协调处理流程示例来了解 DM 内部的具体实现。&lt;/p&gt;&lt;ol&gt;&lt;li&gt;DM-worker 收到 &lt;code&gt;table_1&lt;/code&gt; 的 DDL&lt;br/&gt;a. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1659&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;根据 DDL 及 binlog event position 等信息更新对应的 shard group&lt;/a&gt;&lt;br/&gt;b. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1675&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;确保 binlog replication 过程已进入 safe mode&lt;/a&gt;（后文介绍 checkpoint 机制时会再介绍 safe mode）&lt;br/&gt;c. href=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1683&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/369933f31b/syncer/syncer.go#L1683&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;更新 table_1 的 checkpoint（后文会详细介绍 checkpoint 机制）&lt;/li&gt;&lt;li&gt;DM-worker 继续解析后续的 binlog event&lt;br/&gt;根据 step.1 时返回的更新后的 shard group 信息得知还&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1684&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;未收到 shard group 内所有分表对应的 shard DDL&lt;/a&gt;，不向下游同步 shard DDL 并&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1686&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;继续后续解析&lt;/a&gt;&lt;/li&gt;&lt;li&gt;忽略 &lt;code&gt;table_1&lt;/code&gt; 的 DML 并同步 &lt;code&gt;table_2&lt;/code&gt; 的 DML&lt;br/&gt;href=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1331&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/369933f31b/syncer/syncer.go#L1331&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;由于 table_1 已收到 shard DDL 但 shard DDL 自身还未完成同步，ref=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1335&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/369933f31b/syncer/syncer.go#L1335&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;忽略对 table_1 相关 DML 的同步&lt;/li&gt;&lt;li&gt;DM-worker 收到 &lt;code&gt;table_2&lt;/code&gt; 的 DDL（流程与 step.1 一致）&lt;/li&gt;&lt;li&gt;DM-worker 向下游同步 shard DDL&lt;br/&gt;a. 根据 step.4 时返回的更新后的 shard group 信息得知已经收到 shard group 内所有分表对应的 shard DDL&lt;br/&gt;b. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1690&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;尝试让 binlog replication 过程退出 safe mode&lt;/a&gt;&lt;br/&gt;c. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1707&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;将当前 shard DDL 同步完成后 re-sync 时重新同步 step.3 忽略的 DML 所需的相关信息保存在 channel 中&lt;/a&gt;&lt;br/&gt;d. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1716&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;等待已分发的所有 DML 同步完成&lt;/a&gt;（确保等待并发同步的 DML 都同步到下游后再对下游 schema 进行变更）&lt;br/&gt;e. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1727&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;将 shard DDL 相关信息保存在 channel 中以进行 DM-worker 间的同步&lt;/a&gt;（见前文 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/dm-source-code-reading-9/%23dm-worker-%25E9%2597%25B4-shard-ddl-%25E5%258D%258F%25E8%25B0%2583%25E6%25B5%2581%25E7%25A8%258B&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker 间 shard DDL 协调流程&lt;/a&gt;）&lt;br/&gt;f. 待 DM-worker 间协调完成后，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L846&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;向下游同步 shard DDL&lt;/a&gt;&lt;/li&gt;&lt;li&gt;将 binlog 的解析位置重定向回 step.1 对应 DDL 后的 binlog event position 进入 re-sync 阶段&lt;br/&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1074&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;根据 step.5 中保存的信息&lt;/a&gt;，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1080&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;将 binlog 的解析位置重定向回 step.1 对应的 DDL 后的 binlog event position&lt;/a&gt;&lt;/li&gt;&lt;li&gt;重新解析 binlog event&lt;/li&gt;&lt;li&gt;对于不同表的 DML 做不同的处理&lt;br/&gt;a. 对于 &lt;code&gt;table_1&lt;/code&gt; 在 step.3 时忽略的 DML，解析后向下游同步&lt;br/&gt;b. href=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1310&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/pingcap/dm/b&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;lob/369933f31b/syncer/syncer.go#L1310&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&amp;#34;&amp;gt;对于 table_2 的 DML，根据 checkpoint 信息忽略向下游同步&lt;/li&gt;&lt;li&gt;解析到达 step.4 时 DDL 对应的 binlog position，re-sync 阶段完成&lt;br/&gt;a. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1296&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;解析 binlog position 到达 step.4 的 DDL&lt;/a&gt;&lt;br/&gt;b. &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1298&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;结束 re-sync 过程&lt;/a&gt;&lt;/li&gt;&lt;li&gt;继续进行后续的 DDL 与 DML 的同步&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;需要注意的是，在上述 step.1 与 step.4 之间，如果有收到 &lt;code&gt;table_1&lt;/code&gt; 的其他 DDL，则对于该 shard group，需要协调同步由一组 shard DDL 组成的 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/sharding-meta/shardmeta.go%23L53&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;ShardingSequence&lt;/a&gt;。当在 step.9 对其中某一条 shard DDL 同步完成后，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1051&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;如果有更多的未同步的 shard DDL 需要协调处理&lt;/a&gt;，则会&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1057&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;重定向到待处理的下一条 shard DDL 对应的位置重新开始解析 binlog event&lt;/a&gt;。&lt;/p&gt;&lt;h2&gt;checkpoint 机制的实现&lt;/h2&gt;&lt;p&gt;DM 中通过 checkpoint 机制来实现同步任务中断后恢复时的续传功能。对于 load 阶段，其 checkpoint 机制的实现在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/dm-source-code-reading-4/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM 源码阅读系列文章（四）dump/load 全量同步的实现&lt;/a&gt; 文章中我们已经进行了介绍，本文不再赘述。在本文中，我们将介绍 binlog replication 增量同步阶段的 checkpoint 机制的实现及与之相关的 safe mode 机制的实现。&lt;/p&gt;&lt;h3&gt;checkpoint 机制&lt;/h3&gt;&lt;p&gt;DM 在 binlog replication 阶段以 binlog event 对应的 position 为 checkpoint，包括两类：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;全局 checkpiont：对应已成功解析并同步到下游的 binlog event 的 position，同步任务中断恢复后将从该位置重新进行解析与同步&lt;/li&gt;&lt;li&gt;每个需要同步 table 的 checkpoint：对应该 table 已成功解析并同步到下游的 binlog event 的 position，主要用于在 re-sync 过程中避免对已同步的数据进行重复同步&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;DM 的 checkpoint 信息保存在下游数据库中，通过 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/checkpoint.go%23L174&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;RemoteCheckPoint&lt;/a&gt;&lt;/code&gt; 对象进行读写，其主要成员变量包括：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/checkpoint.go%23L197&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;globalPoint&lt;/a&gt;&lt;/code&gt;：用于保存全局 checkpoint&lt;/li&gt;&lt;li&gt;&lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/checkpoint.go%23L189&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;points&lt;/a&gt;&lt;/code&gt;：用于保存各 table 的 checkpoint&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;checkpoint 信息在下游数据库中对应的 schema 通过 &lt;code&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/checkpoint.go%23L453&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;createTable&lt;/a&gt;&lt;/code&gt; 方法进行创建，其中各主要字段的含义为：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-304a3fa97bd59f5a36ceb66e6431d3bc_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1252&quot; data-rawheight=&quot;422&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1252&quot; data-original=&quot;https://pic1.zhimg.com/v2-304a3fa97bd59f5a36ceb66e6431d3bc_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-304a3fa97bd59f5a36ceb66e6431d3bc_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1252&quot; data-rawheight=&quot;422&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1252&quot; data-original=&quot;https://pic1.zhimg.com/v2-304a3fa97bd59f5a36ceb66e6431d3bc_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-304a3fa97bd59f5a36ceb66e6431d3bc_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;对于全局 checkpoint，在以下情况下会更新内存中的信息：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L652&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;收到 XID event 时&lt;/a&gt;（表示一个 DML 事务的结束）&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L696&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DDL 向下游同步成功后&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;对于各 table checkpoint，在以下情况下会更新内存中的信息：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L705&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DML 向下游同步成功后&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L696&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DDL 向下游同步成功后&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1683&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;收到 shard DDL 且成功更新了 shard group，但未向下游同步 shard DDL 时&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;对于全局与 table 的 checkpoint，会在以下情况下 flush 到下游数据库中：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L663&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;收到 flush 通知&lt;/a&gt;（如同步任务将暂停或停止时）&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L710&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;已分发的任务成功同步到下游&lt;/a&gt;（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L635&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DDL 同步到下游&lt;/a&gt;，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L639&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;超过指定时间阈值 flush&lt;/a&gt;）&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;值得注意的是，在 shard DDL 未同步到下游之前，为确保中断恢复后仍能继续整个 shard DDL 的协调过程，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L718&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM 不会将全局 checkpoint 更新为比 shard DDL 起始 position 更大的 position&lt;/a&gt;，&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L757&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM 也不会将 shard DDL 协调过程中对应 table 的 checkpoint flush 到下游&lt;/a&gt;。&lt;/p&gt;&lt;h3&gt;safe mode 机制&lt;/h3&gt;&lt;p&gt;当同步任务中断恢复后，DM 在 binlog replication 阶段通过 checkpoint 机制保证了重新开始同步的起始点前的数据都已经成功同步到了下游数据库中，即保证了 at-least-once 语义。但由于 flush checkpoint 与同步 DDL、DML 到下游不是在同一个事务中完成的，因此从 checkpoint 开始重新同步时，可能存在部分数据被重复同步的可能，即不能保证 at-most-once 。&lt;/p&gt;&lt;p&gt;在 DM 的 binlog replication 阶段，通过增加 safe mode 机制确保了重复同步数据时的可重入，即：&lt;/p&gt;&lt;ul&gt;&lt;li&gt; href=&amp;#34;https&lt;code&gt;://gith&lt;/code&gt;ub.com/pingcap/dm/blob/369933f31b/syncer/dml.go#L132&amp;#34;&amp;gt;将 INSERT 操作转为 REPLACE 操作&lt;/li&gt;&lt;li&gt; href=&amp;#34;https&lt;code&gt;://git&lt;/code&gt;hub.com/pingcap/dm/blob/369933f31b/syncer/dml.go#L195&amp;#34;&amp;gt;将 UPDATE 操作转为 DELETE 操作和 &lt;code&gt;=&amp;#34;https://github.com/pingcap/dm/blob/369933f31b/syncer/dml.go#L200&amp;#34;&amp;gt;REPLACE 操作&lt;/code&gt;&lt;/li&gt;&lt;li&gt; href=&amp;#34;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//gith&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;gith&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;code&gt;ub.com&lt;/code&gt;/pingcap/dm/blob/369933f31b/syncer/dml.go#L265&amp;#34;&amp;gt;对 DELETE 操作不进行转换仍保持为 DELETE&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;目前，safe mode 会在以下情况时启用：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1023&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;启动或恢复任务时的前 5 分钟&lt;/a&gt;，确保从 checkpoint 位置开始被重复同步的部分数据最终一致&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/syncer.go%23L1675&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker 内进行 shard DDL 同步协调时&lt;/a&gt;（见前文 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/dm-source-code-reading-9/%23dm-worker-%25E5%2586%2585-shard-ddl-%25E5%2590%258C%25E6%25AD%25A5%25E6%25B5%2581%25E7%25A8%258B&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DM-worker 内 shard DDL 同步流程&lt;/a&gt;），确保即使 shard DDL 协调过程中异常重启且 5 分钟内无法重复同步完之前已同步数据也能最终一致&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/pingcap/dm/blob/369933f31b/syncer/mode.go%23L33&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;用户在同步任务配置文件中指定了启用 safe mode&lt;/a&gt;，用于其他需要以 safe mode 同步超 5 分钟的场景&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;小结&lt;/h2&gt;&lt;p&gt;本篇文章详细地介绍了 shard DDL 机制与 checkpoint 机制的实现，内容包括了两级 shard group 的定义与 DM-worker 间及 DM-worker 内的 shard DDL 同步协调处理流程、checkpoint 机制及与之相关的 safe mode 机制。下一篇文章中，我们将介绍用于保证 DM 正确性与稳定性的测试框架的实现，敬请期待。&lt;/p&gt;&lt;p&gt;&lt;b&gt;原文阅读：&lt;/b&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/dm-source-code-reading-9/&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://www.&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;pingcap.com/blog-cn/dm-&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;source-code-reading-9/&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;更多 DM 源码阅读：&lt;/b&gt;&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.pingcap.com/blog-cn/%23DM-%25E6%25BA%2590%25E7%25A0%2581%25E9%2598%2585%25E8%25AF%25BB&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg&quot; data-image-width=&quot;1200&quot; data-image-height=&quot;1200&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;博客 | PingCAP&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>ZoeyZhai</author>
-<guid isPermaLink="false">2019-07-18-74205520</guid>
-<pubDate>Thu, 18 Jul 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
