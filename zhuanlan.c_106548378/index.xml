@@ -5,7 +5,47 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/</link>
 <description>介绍量化金融相关知识</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 04 Aug 2019 05:38:55 +0800</lastBuildDate>
+<lastBuildDate>Mon, 12 Aug 2019 15:22:41 +0800</lastBuildDate>
+<item>
+<title>圆中四鸭属于一个半圆的概率</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-08-10-77489865.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/77489865&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;今天有人发了一道初中数学题：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_b.jpg&quot; data-rawwidth=&quot;1248&quot; data-rawheight=&quot;473&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1248&quot; data-original=&quot;https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_b.jpg&quot; data-rawwidth=&quot;1248&quot; data-rawheight=&quot;473&quot; data-size=&quot;normal&quot; data-caption=&quot;&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1248&quot; data-original=&quot;https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;就是4只鸭子在一个圆，求他们在一个半圆的概率。&lt;/p&gt;&lt;p&gt;其实如果用半径和弧度来表示鸭子的位置，可以避开平面坐标二次项的麻烦。&lt;/p&gt;&lt;p&gt;而且显然鸭子是否属于一个半圆只与它们的弧度有关，与它们距离圆心的距离无关。&lt;/p&gt;&lt;p&gt;4只鸭子属于一个半圆的充要条件：其中一只鸭子顺时针转180度，或逆时针转180度，可以扫遍其它的鸭子。&lt;/p&gt;&lt;p&gt;按照这个思路不难写出程序：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;set.seed(100)
+n &amp;lt;- 1000000
+angle &amp;lt;- matrix(runif(n*4, 0, 360), nrow=4)
+max.angle &amp;lt;- apply(angle, 2, max)
+min.angle &amp;lt;- apply(angle, 2, min)
+reverse.angle &amp;lt;- ifelse(angle&amp;gt;180, angle-360, angle)
+max.reverse &amp;lt;- apply(reverse.angle,2,max)
+min.reverse &amp;lt;- apply(reverse.angle,2,min)
+sum(max.angle-min.angle&amp;lt;180 | max.reverse-min.reverse&amp;lt;180)/n&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;结果就是0.5.&lt;/p&gt;&lt;p&gt;如果用python是这样：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;import numpy as np
+def duck_guess():
+    s = e = 1000000
+    r = 0
+    while(e &amp;gt; 0):
+        e = e - 1
+        d = np.random.uniform(0,360,(1,4))[0]
+        d = np.sort(d)
+        angle = -1
+        delta = 0
+        for x in range(d.size):
+            if(angle &amp;gt;0 and delta &amp;lt; d[x] - angle):
+                delta =  d[x] - angle
+            angle = d[x]
+        if(delta &amp;gt;= 180):
+            r = r + 1
+        elif(d[0]+ 360 - d[-1:] &amp;gt;= 180):
+            r = r +1
+    print(r*1.0/s)
+
+duck_guess()&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;答案也是0.5，但python代码长很多，运行时间慢很多。如果想学习编程的家长和小朋友，注意了。&lt;/p&gt;&lt;p&gt;当然，还有更简单一些的方法。前面4只鸭子都是随机的，因此会有顺时针和逆时针两种可能；但如果固定了其中第一只鸭子，那么四只鸭子练成半圆就只有一种可能了，就是穿过第一只鸭子那种方案。于是可以写成第二个程序。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;angle &amp;lt;- rbind(matrix(runif(n*3, 0, 360), nrow=3), rep(180,n))
+max.angle &amp;lt;- apply(angle, 2, max)
+min.angle &amp;lt;- apply(angle, 2, min)
+sum(max.angle-min.angle&amp;lt;180)/n&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;结果自然也是0.5的。&lt;/p&gt;&lt;p&gt;有人说初中生不懂编程怎么办？其实也可以手算。&lt;/p&gt;&lt;p&gt;比如先固定一只鸭子，连圆心作一条直径，那么其它3只鸭子都在它左边，或者都在它右边的概率都是0.5^3=0.125，因为3只鸭子的位置是独立的，因此，加起来是0.25;&lt;/p&gt;&lt;p&gt;最后一种情况是左边和右边分别有1只或2只，但不相等，恰好在直径上的概率是0，可以忽略。&lt;/p&gt;&lt;p&gt;假设1只在左边，两只在右边，左边是a1，a1&amp;lt;0，右边是a2,a3&amp;gt;0，那么我们知道，如果a1固定了，则需要0&amp;lt;a2&amp;lt;a1+0.5，0&amp;lt;a3&amp;lt;a1+0.5，而由于a2、a3是独立的，因此&lt;/p&gt;&lt;h2&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=%5Cbegin%7Balign%2A%7D+++prob%26%3D%5Cint_%7B-0.5%7D%5E%7B0%7D%5Cint_%7B0%7D%5E%7Ba1%2B0.5%7Dda_2%5Cint_%7B0%7D%5E%7Ba1%2B0.5%7Dda_3da_1%5C%5C+%26%3D%5Cint_%7B-0.5%7D%5E%7B0%7D%28a_1%2B0.5%29%5E2da_1%5C%5C+%26%3D%5Cfrac%7B1%7D%7B3%7D%28a_1%2B0.5%29%5E3%7C_%7B-0.5%7D%5E%7B0%7D%5C%5C+%26%3D1%2F24+%5Cend%7Balign%2A%7D+&quot; alt=&quot;\begin{align*}   prob&amp;amp;=\int_{-0.5}^{0}\int_{0}^{a1+0.5}da_2\int_{0}^{a1+0.5}da_3da_1\\ &amp;amp;=\int_{-0.5}^{0}(a_1+0.5)^2da_1\\ &amp;amp;=\frac{1}{3}(a_1+0.5)^3|_{-0.5}^{0}\\ &amp;amp;=1/24 \end{align*} &quot; eeimg=&quot;1&quot;/&gt; &lt;/h2&gt;&lt;p&gt;可以看出，这个概率是1/24，而这样的情况有多少种呢？&lt;/p&gt;&lt;p&gt;比如一个左边两个右边，就有3种情况，就是3只鸭子分别在左边；&lt;/p&gt;&lt;p&gt;还有就是两只鸭子在左边，一只鸭子在右边，也是3种情况，一共6种情况，总概率是6/24=0.25。&lt;/p&gt;&lt;p&gt;最后，加上之前三只鸭子在一边的情况，就是0.25+0.25=0.5，也得出了0.5。&lt;/p&gt;&lt;p&gt;不过，有人说这是初中题，初中生未必懂积分。当然，从答案反推道理也不难，这里就不推了。&lt;/p&gt;&lt;p&gt;感觉以后要辅导女儿搞奥数也不容易，但好歹可以省了不少培训班的钱。哎，可怜天下父母心。&lt;/p&gt;&lt;p&gt;根据网友回答总结了通项公式，四大不用这么复杂：&lt;/p&gt;&lt;p&gt;假设n只鸭子，其中一个角度是零，则有；&lt;/p&gt;&lt;p&gt;1.其余都大于0的概率；（1/2）^（n-1）；&lt;/p&gt;&lt;p&gt;2.至少一个小于零，假设a1最小，那么它的范围是（-0.5，0），其余的范围只能是（a1，a1+0.5），都是0.5的区间，一共（1/2）^（n-2），再乘以a1的0.5，变成（1/2）^（n-1），一共n-1个这样的（有一个是0），因此是（n-1）（1/2）^（n-1）（&lt;/p&gt;&lt;p&gt;3.综合1，2，一共是n（1/2）^（n-1）；&lt;/p&gt;&lt;p&gt;如果n=4，4*0.125=0.5，没错。&lt;/p&gt;&lt;p&gt;或者更容易理解的方式：假设一号鸭子最左，那么其余鸭子离他0.5的概率论是0.5^（n-1）；由于每只鸭子最左的概率论是一样的，所以加起来就是n（1/2）^（n-1）&lt;/p&gt;</description>
+<author>babyquant</author>
+<guid isPermaLink="false">2019-08-10-77489865</guid>
+<pubDate>Sat, 10 Aug 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>招聘：CEO 业务助理-底薪30-50万+奖金-深圳</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-08-03-76528272.html</link>
@@ -85,15 +125,6 @@
 &lt;p&gt;我觉得很多人对市场经济是不是有什么误解，我一直认为，有人生产，有人消费，只要不是黄赌毒那种，其他基本都是比较正常的经济活动，都能增加GDP的，其实不应该太带着负面的有色眼镜去看待。&lt;/p&gt;&lt;p&gt;比如咪蒙写1小时文章，赚10万块钱很容易，也就是创造了10万的产出；&lt;/p&gt;&lt;p&gt;码农写1小时代码，当然有的大码农如扎克伯格，有的小码农张三李四，可能产出各不相同，普通码农来说，100-1000块钱吧。&lt;/p&gt;&lt;p&gt;我觉得这些是可以直接比较的，你不能说码农写代码的产出就比咪蒙写文章的产出更高尚之类的。&lt;/p&gt;&lt;p&gt;你说读咪蒙的文章变傻，那难道玩码农的游戏不会变傻？&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-bfd4eea0986a7702d61d85cace5e3beb_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;797&quot; data-rawheight=&quot;174&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;797&quot; data-original=&quot;https://pic4.zhimg.com/v2-bfd4eea0986a7702d61d85cace5e3beb_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-bfd4eea0986a7702d61d85cace5e3beb_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;797&quot; data-rawheight=&quot;174&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;797&quot; data-original=&quot;https://pic4.zhimg.com/v2-bfd4eea0986a7702d61d85cace5e3beb_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-bfd4eea0986a7702d61d85cace5e3beb_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;所以码农就不要批判咪蒙了，好像自己很高尚似的。&lt;/p&gt;&lt;p&gt;很多人搞出什么咪蒙率之类的还黑咪蒙，好像好友里头关注咪蒙的越多说明朋友圈越低端。其实我觉得咪蒙率跟高端低端的相关性不是很高，可能跟直男癌、田园女权的相关性更高一些。毕竟也是圈了几千万甚至几亿粉丝的自媒体第一大V，我也写了几年知乎了，说实话那些文章我写不出来。她毕竟中文的硕士，也是大媒体出身，文字功底还是好很多。&lt;/p&gt;&lt;p&gt;我不明白现在经济形势不是很好的情况下为什么要打击咪蒙，人家一篇文章可以创造几十万上百万的财富，一年几个亿的GDP，也不需要多少人，人均GDP数千万。市场经济生产消费投资储蓄这几个环节，咪蒙主要是生产端，可以刺激消费；把她打压了，产出减少，消费也少，经济自然就不好了。其实她产出文章，跟别人产出软件、硬件，本质上是一样的。有人说这是虚拟经济，其实互联网、电子游戏也是虚拟经济，真的，没必要从太过抨击咪蒙。&lt;/p&gt;&lt;p&gt;有人说咪蒙影响了人们的思想，其实思想也罢、意识形态也罢，我觉得只要不走极端都好说。极左、极右都不大好，但其实大部分人都是中间地带。咪蒙的思想，本质上中间偏右，其实我并不赞同她的思想，但我并不反对她表达思想的形式。女权是左翼的，咪蒙其实并不是女权，也不是田园女权，她是偏右翼的，很多人喜欢把她跟女权、田园女权划等号，其实是不了解咪蒙的表现。&lt;/p&gt;&lt;p&gt;咪蒙的思想，其实有一种“我强我有理的”的味道，这本质是右翼的，左翼更偏向“我弱我有理”。咪蒙一直强调自己很强，自己的信徒很强，比如“信咪蒙的女生你娶不起”“我的助理月薪5万”等等，都是强调自己多么牛逼。当然，她一个年入数亿的自媒体，请个月薪5万的助理并不困难，我不会去质疑这些。&lt;b&gt;其实我只想说她的思想跟反对她的人的思想，本质上是一样的，都是偏右翼的。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;大家都知道咪蒙赚钱多，这个社会某种意义来说，按右翼的观点，赚钱多就是牛逼，甚至赚钱多就是有理，因此咪蒙应该是牛逼的。同为右翼，他们为何反对咪蒙？你觉得咪蒙写文章赚钱，你也可以写文章赚钱哈；你觉得咪蒙洗脑，你可以反洗脑；但并没有看见同样有影响力的人从另外一个角度跟咪蒙PK，只是更多借助官方力量强行打压，这本质上对经济发展是有害的。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;一篇文章几十万上百万，如果大家都不写了，这经济损失其实是挺大的。现在经济下行，GDP增速每年都在下降，本来应该积极发展新的经济增长点，而不是打压创新经济和创意经济。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
 <author>babyquant</author>
 <guid isPermaLink="false">2019-07-20-74456513</guid>
-<pubDate>Sat, 20 Jul 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>从私募知乎事件我们可以学习到什么经验教训</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-07-20-74412625.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/74412625&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;事情的经过我也不想再说了，有人批评我蹭热点，但我觉得更多是因为最近很多粉丝和朋友要我发表一下看法，本来我是不想回应的，无奈大家盛情难却，我也就勉为其难了。&lt;/p&gt;&lt;p&gt;我记得很多年以前有人说“（私募）老板不愿意明确提成”之类的问题怎么办，当时某人是完全站在老板的角度说话的，其实我当时就在想，难道你就不怕哪天自己被撸掉么？&lt;/p&gt;&lt;p&gt;有些人好像觉得自己帮老板说话，表表忠心，老板就会对自己更好之类的。但其实人有很多个方面，比如哪怕是西蒙斯，当国防部密码学研究员的西蒙斯，数学教授的西蒙斯，做慈善的西蒙斯，和开对冲基金的西蒙斯，可能是非常不一样的4个人。&lt;/p&gt;&lt;p&gt;反正人本质上都是为自己利益服务的，否则共产主义早已实现，我也不好再在这个问题上纠缠太多。比如从打工的角度出发，自然是我赚的越多越好；从老板的角度出发，也是我赚的越多越好。在网络上频繁发生表忠心的，更多是希望获得老板的好感，这样哪怕自己亏了钱，老板也会看在忠心耿耿的份上，把别人赚的钱分给自己。除此之外，我想不到第二个理由。&lt;/p&gt;&lt;p&gt;很多时候，如果身为同事，反而需要警惕的就是这种人。最近一些人貌似威胁我不想让我说话。其实我发现某些工科类学校的学生，虽然专业技术还行，但大脑思想真的被洗坏了，也可能本来内心就是坏的。有人说，很多私募从业者，小时候都是好学生，习惯踩着别人上位；我之前还是不大赞同的，但现在，对于某些国内知名工科类大学的学生，我现在倾向于赞同的。&lt;/p&gt;&lt;p&gt;人的意识形态无外乎左翼和右翼，有的极端一些，有的没那么极端。刨去专业技能这些与意识形态无关的东西，如果在工作中选择朋友，我认为左翼远比右翼好。右翼的话，你不知道他哪天为了向领导表忠心把你卖了，或者他天天晒朋友圈“哎呀，今天又熬通宵，努力工作”来恶心你。跟左翼的话，压力小得多。其实大家赚钱多少与意识形态关系不大，别忘了西蒙斯、巴菲特清一色左翼。&lt;/p&gt;&lt;p&gt;从老板角度，当然是给的越少越好。比如某些量化私募，表面上是公式化计算奖金，但我看那公式真是太复杂，各种条件写了好几页，模拟了几个场景，貌似也没啥赚头。比如超额收益，不是说你的收益直接减去指数的收益，而是“如果是选多少股票，要先扣减5%；选多少股票，不用扣；时间半年，要怎么算；时间一年；有怎么算”，反正算来算去，铁定不到为公司贡献收入的3%，这公式有毛用啊......没错，人均收入1个亿，问题是老板也算进去，不算老板人均也就20万（算上工资），但老板没关系，反正程序在我这，你走了随时找个人来接盘。西蒙斯本质上也差不多，为啥大家都是30年的公司，规模差不多，他身家200亿，David E. Shaw才40亿？西蒙斯也说过，按其他公司那种打法，他得给5倍工资，多出来的这部分，不就自己赚了么......但从打工的角度，你觉得哪种更划算？&lt;/p&gt;&lt;p&gt;其实量化交易、资产管理这些，由于超额收益整体是零和的，如果再扣除每年2%的管理费，全体投资者每年都是尽亏2%，长期来看这个商业模式缺乏存在的理由。美国也一样，大牌私募本质是大号自营，文艺复兴旗舰基金20年前就全自营了，给投资者的当年一个期货的beta基金一个股票长线基金都是亏成狗的模样。还是那句话——真那么好赚，我自己的钱都不够吃，还要帮你赚？&lt;/p&gt;&lt;p&gt;其实商业模式不大一样，卖汽水、卖电脑，本质上跟卖基金很不一样，不存在这种零和负和的特性，所以那些可以成为正儿八经的生意。哪怕卖书、卖live、卖培训，其实本质上也不存在负和效应，也可以成为是正儿八经的生意。但资管不同，太明显了，别忘了我大A股十年来收益是负的，比期货还惨，自带负和属性。如果真要去洗，非蠢即坏。&lt;/p&gt;&lt;p&gt;结论也很简单，如果现在是码农，就老老实实写代码，像搞量化可以自己买本书参加个培训入个门，了解一下基础知识，然后就靠自己深厚的编程能力、分析功底、稳定的收入自己撸，进可攻退可守；如果已经入了坑做量化，我也不好说什么，该干啥干啥吧。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>babyquant</author>
-<guid isPermaLink="false">2019-07-20-74412625</guid>
 <pubDate>Sat, 20 Jul 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>

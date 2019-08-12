@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>圆中四鸭属于一个半圆的概率</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/77489865">原文</a></p>
+<p>今天有人发了一道初中数学题：</p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_b.jpg" data-rawwidth="1248" data-rawheight="473" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb" width="1248" data-original="https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_b.jpg" data-rawwidth="1248" data-rawheight="473" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy" width="1248" data-original="https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-bf6800e4672098a287bec3b3c6d207ff_b.jpg"/></figure><p>就是4只鸭子在一个圆，求他们在一个半圆的概率。</p><p>其实如果用半径和弧度来表示鸭子的位置，可以避开平面坐标二次项的麻烦。</p><p>而且显然鸭子是否属于一个半圆只与它们的弧度有关，与它们距离圆心的距离无关。</p><p>4只鸭子属于一个半圆的充要条件：其中一只鸭子顺时针转180度，或逆时针转180度，可以扫遍其它的鸭子。</p><p>按照这个思路不难写出程序：</p><div class="highlight"><pre><code class="language-text">set.seed(100)
+n &lt;- 1000000
+angle &lt;- matrix(runif(n*4, 0, 360), nrow=4)
+max.angle &lt;- apply(angle, 2, max)
+min.angle &lt;- apply(angle, 2, min)
+reverse.angle &lt;- ifelse(angle&gt;180, angle-360, angle)
+max.reverse &lt;- apply(reverse.angle,2,max)
+min.reverse &lt;- apply(reverse.angle,2,min)
+sum(max.angle-min.angle&lt;180 | max.reverse-min.reverse&lt;180)/n</code></pre></div><p>结果就是0.5.</p><p>如果用python是这样：</p><div class="highlight"><pre><code class="language-text">import numpy as np
+def duck_guess():
+    s = e = 1000000
+    r = 0
+    while(e &gt; 0):
+        e = e - 1
+        d = np.random.uniform(0,360,(1,4))[0]
+        d = np.sort(d)
+        angle = -1
+        delta = 0
+        for x in range(d.size):
+            if(angle &gt;0 and delta &lt; d[x] - angle):
+                delta =  d[x] - angle
+            angle = d[x]
+        if(delta &gt;= 180):
+            r = r + 1
+        elif(d[0]+ 360 - d[-1:] &gt;= 180):
+            r = r +1
+    print(r*1.0/s)
+
+duck_guess()</code></pre></div><p>答案也是0.5，但python代码长很多，运行时间慢很多。如果想学习编程的家长和小朋友，注意了。</p><p>当然，还有更简单一些的方法。前面4只鸭子都是随机的，因此会有顺时针和逆时针两种可能；但如果固定了其中第一只鸭子，那么四只鸭子练成半圆就只有一种可能了，就是穿过第一只鸭子那种方案。于是可以写成第二个程序。</p><div class="highlight"><pre><code class="language-text">angle &lt;- rbind(matrix(runif(n*3, 0, 360), nrow=3), rep(180,n))
+max.angle &lt;- apply(angle, 2, max)
+min.angle &lt;- apply(angle, 2, min)
+sum(max.angle-min.angle&lt;180)/n</code></pre></div><p>结果自然也是0.5的。</p><p>有人说初中生不懂编程怎么办？其实也可以手算。</p><p>比如先固定一只鸭子，连圆心作一条直径，那么其它3只鸭子都在它左边，或者都在它右边的概率都是0.5^3=0.125，因为3只鸭子的位置是独立的，因此，加起来是0.25;</p><p>最后一种情况是左边和右边分别有1只或2只，但不相等，恰好在直径上的概率是0，可以忽略。</p><p>假设1只在左边，两只在右边，左边是a1，a1&lt;0，右边是a2,a3&gt;0，那么我们知道，如果a1固定了，则需要0&lt;a2&lt;a1+0.5，0&lt;a3&lt;a1+0.5，而由于a2、a3是独立的，因此</p><h2><img src="https://www.zhihu.com/equation?tex=%5Cbegin%7Balign%2A%7D+++prob%26%3D%5Cint_%7B-0.5%7D%5E%7B0%7D%5Cint_%7B0%7D%5E%7Ba1%2B0.5%7Dda_2%5Cint_%7B0%7D%5E%7Ba1%2B0.5%7Dda_3da_1%5C%5C+%26%3D%5Cint_%7B-0.5%7D%5E%7B0%7D%28a_1%2B0.5%29%5E2da_1%5C%5C+%26%3D%5Cfrac%7B1%7D%7B3%7D%28a_1%2B0.5%29%5E3%7C_%7B-0.5%7D%5E%7B0%7D%5C%5C+%26%3D1%2F24+%5Cend%7Balign%2A%7D+" alt="\begin{align*}   prob&amp;=\int_{-0.5}^{0}\int_{0}^{a1+0.5}da_2\int_{0}^{a1+0.5}da_3da_1\\ &amp;=\int_{-0.5}^{0}(a_1+0.5)^2da_1\\ &amp;=\frac{1}{3}(a_1+0.5)^3|_{-0.5}^{0}\\ &amp;=1/24 \end{align*} " eeimg="1"/> </h2><p>可以看出，这个概率是1/24，而这样的情况有多少种呢？</p><p>比如一个左边两个右边，就有3种情况，就是3只鸭子分别在左边；</p><p>还有就是两只鸭子在左边，一只鸭子在右边，也是3种情况，一共6种情况，总概率是6/24=0.25。</p><p>最后，加上之前三只鸭子在一边的情况，就是0.25+0.25=0.5，也得出了0.5。</p><p>不过，有人说这是初中题，初中生未必懂积分。当然，从答案反推道理也不难，这里就不推了。</p><p>感觉以后要辅导女儿搞奥数也不容易，但好歹可以省了不少培训班的钱。哎，可怜天下父母心。</p><p>根据网友回答总结了通项公式，四大不用这么复杂：</p><p>假设n只鸭子，其中一个角度是零，则有；</p><p>1.其余都大于0的概率；（1/2）^（n-1）；</p><p>2.至少一个小于零，假设a1最小，那么它的范围是（-0.5，0），其余的范围只能是（a1，a1+0.5），都是0.5的区间，一共（1/2）^（n-2），再乘以a1的0.5，变成（1/2）^（n-1），一共n-1个这样的（有一个是0），因此是（n-1）（1/2）^（n-1）（</p><p>3.综合1，2，一共是n（1/2）^（n-1）；</p><p>如果n=4，4*0.125=0.5，没错。</p><p>或者更容易理解的方式：假设一号鸭子最左，那么其余鸭子离他0.5的概率论是0.5^（n-1）；由于每只鸭子最左的概率论是一样的，所以加起来就是n（1/2）^（n-1）</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
