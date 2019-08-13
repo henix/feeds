@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>谷歌推出一种新型的安全多方计算开源库</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/77652463">原文</a></p>
+<p>谷歌公司不断投资于新的研究，以推动创新，保护个人隐私。今年早些时候，推出了密码检查器，这是一个Chrome扩展程序，可帮助用户检测他们在网站上输入的用户名和密码是否已被盗用。它依赖于称为隐私集合交集（PSI）的加密协议，以将您的登录凭据与超过40亿凭证的加密数据库相匹配，谷歌知道这些凭据是不安全的。同时，它确保没有人（包括谷歌）了解您的实际凭据。</p><p>现在谷歌推出了<b>隐私加入和计算（Private Join和Compute）的开源库，这是一种新型的安全多方计算（MPC）</b>，它增强了核心PSI协议，帮助组织与机密数据集协同工作，同时提高了隐私。大家可以到GitHub上查看该项目：<a href="https://link.zhihu.com/?target=https%3A//github.com/Google/private-join-and-compute" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/Google/priva</span><span class="invisible">te-join-and-compute</span><span class="ellipsis"></span></a> 。</p><h2><b>以隐私安全的方式与数据协作</b></h2><p>许多重要的研究，商业和社会问题可以通过来自不同方的数据集的组合来推导出想要的结果，其中每一方都拥有关于一组共享标识符（例如电子邮件地址）的个人信息，其中一些是常见的。但是，当您处理敏感数据时，一方如何在不知道另外一方的任何个人数据情况下，而得到有关另一方数据的汇总信息呢？这是Private Join和Compute需要解决的挑战。</p><p>使用此加密协议，双方可以加密其标识符和关联数据，然后加入它们。然后，他们可以对重叠的数据集执行某些类型的计算，从而汇总两个数据集中的有用信息。所有输入（标识符及其相关数据）在整个过程中保持完全加密且不可读。任何一方都没有透露他们的原始数据，但他们仍然可以使用计算的输出回答手头的问题。最终结果是以聚合统计信息的形式解密和共享的唯一结果。例如，这可以是两组中数据的计数，总和或平均值。</p><h2><b>深入了解该技术</b></h2><p>Private Join和Compute结合了两种基本的加密技术来保护单个数据：</p><p>隐私集合交集：允许双方私下加入他们的集合并发现他们共有的标识符。我们使用一个不经意问题的变种协议，它只标记加密的标识符而不学习任何标识符。</p><p class="ztext-empty-paragraph"><br/></p><p>同态加密：允许直接对加密数据执行某些类型的计算，而不必首先对其进行解密，这保留了原始数据的隐私。在整个过程中，个人标识符和值仍然隐藏。例如，您可以计算公共集中有多少个标识符，或计算与标记的加密标识符关联的值的总和 - 无需了解有关个人的任何信息。</p><p class="ztext-empty-paragraph"><br/></p><p>这两种技术组合确保只显示连接集的大小和其相关值的统计（例如总和）。个别项目使用随机密钥进行高度加密，并且不以原始形式提供给对方或其他任何人。</p><h2><b>使用多方计算来解决实际问题</b></h2><p>多方计算（MPC）是一个历史悠久的领域，但它通常面临着学术界以外广泛采用的障碍。常见的挑战包括找到有效的方法来定制加密技术和工具来解决实际问题。谷歌致力于通过更广泛地提供隐私技术，将MPC和加密技术应用于Google及其他更具体的现实问题。我们正在通过协作机器学习，用户安全性和汇总广告衡量来探索Google的一些潜在用例。这只是可能的开始。该技术可以帮助推进需要组织协同工作的各种领域的有价值的研究，而不会泄露有关数据中所代表的个人的任何信息。例如：公共政策 - 如果政府在公立学校实施新的健康计划（例如更好的午餐选择和体育课程），受影响学生的长期健康结果是什么？多元化和包容性 - 当行业制定新的计划来弥补性别和种族薪酬差距时，这会如何影响人口统计公司之间的薪酬？医疗保健 - 当一种新的预防性药物被开给全国的患者时，它是否会降低疾病的发病率？汽车安全标准 - 当汽车制造商为车辆增加更先进的安全功能时，是否与报告的车祸减少相吻合？Private Join和Compute可确保个人信息安全，同时允许组织准确计算并从汇总统计中获取有用的见解。通过更广泛地共享技术，我们希望这扩展了安全计算的使用案例。</p><a href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzU3MTYzMjMzNA%3D%3D%26mid%3D2247485193%26idx%3D1%26sn%3D8fe898903cd4d1fe2356f08888a573a4%26chksm%3Dfcdc78a8cbabf1be64669d7b5ce533926dd32de71a030e13bcd38d430f01483a805413b47add%26token%3D393350469%26lang%3Dzh_CN%23rd" data-draft-node="block" data-draft-type="link-card" class=" wrap external" target="_blank" rel="nofollow noreferrer">谷歌推出一种新型的安全多方计算开源库</a><hr/><p><b>文章首发在微信公众号：btc201800</b><br/><b>知识星球ID：28018093</b><br/><br/><b>音频发布在喜马拉雅上“区块链杂谈 (第2季)”</b> <b><u><a href="https://link.zhihu.com/?target=http%3A//xima.tv/Bjq4se" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/Bjq4se</span><span class="invisible"></span></a></u></b><br/><b>解读区块链白皮书</b> <u><a href="https://link.zhihu.com/?target=http%3A//xima.tv/RNU1Q8" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/RNU1Q8</span><span class="invisible"></span></a></u><br/><br/><b>宁波格密链网络科技有限公司，专注于区块链上的密码技术研发。</b></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
