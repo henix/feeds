@@ -5,7 +5,251 @@
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/</link>
 <description>培养黑客式思维: twosecurity.cn 培养黑客式思维: twosecurity.cn</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 29 Aug 2019 06:11:09 +0800</lastBuildDate>
+<lastBuildDate>Sat, 31 Aug 2019 03:04:19 +0800</lastBuildDate>
+<item>
+<title>程序员离不开的 7 大编程方法！</title>
+<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-08-30-80464994.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/80464994&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-a2da84b842712607aaddd0c241567849_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;Don Roberts 提出的一条重构准则：&lt;/p&gt;&lt;blockquote&gt;第一次做某件事时只管去做；第二次做类似的事时会产生反感，但无论如何还是可以去做；第三次再做类似的事时，你就应该重构。&lt;/blockquote&gt;&lt;p&gt;&lt;br/&gt;编码也是如此，当多次编写类似的代码时，我们需要考虑是否有一种方法能够提高编码速度。作者多年来致力于敏捷开发，总结了一套编码的方法论，有助于程序员&amp;#34;快速、优质、高效&amp;#34;地进行编码。&lt;/p&gt;&lt;h2&gt;1. &lt;b&gt;手工编写代码&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;大多数刚学习 Java 的程序员，都会怀着一种崇敬的仪式感，一字一句地在开发工具上敲出以下代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;public class Test {  
+  public static void main(String[] args) {         
+    System.out.println(&amp;#34;Hello world!&amp;#34;);     
+  } 
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;br/&gt;没错，这就是经典的&amp;#34;Hello world&amp;#34;，这也是大多数人手工编写的第一个程序。&lt;/p&gt;&lt;p&gt;手工编写代码，更能体现一个程序员的基本素质。有很多公司，都把上机编程考试作为面试的重要手段之一。面试者需要根据题目的要求，挑选一款熟悉的编程工具（比如Eclipse），手工编写代码并调试运行通过。在整个过程中，不能通过网络搜索答案，不能查看联机帮助文档，要求面试者必须手工编写代码，主要是考察面试者手工编写代码的能力——语法、函数、逻辑、思维、算法以及动手能力。&lt;/p&gt;&lt;p&gt;手工编写代码，是一个优秀程序员必须具备的基础能力。手工编写代码正如提笔写文章，语法就是遣词造句的方法、函数就是组成文章的词句、类库就是据经引典的掌故、架构就是行文表述的体裁、功能就是写作文章的主旨、算法就是组织语言的逻辑……所以，只要掌握一门程序语言的语法、学习一堆基础类库的函数、引用一些所需的第三方类库、选择一款成熟稳定的架构、明确一下产品需求的功能、挑选一种实现逻辑的算法……手工编写代码就会像写文章一样手到擒来。&lt;/p&gt;&lt;h2&gt;2. &lt;b&gt;复制粘贴代码&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;常言道：&amp;#34;熟读唐诗三百首，不会作诗也会吟。&amp;#34;编码也是同样的道理，编码的第一步就是模仿，简单地说就是&amp;#34;抄代码&amp;#34;——复制粘贴代码。复制粘贴代码是一门艺术，用好了编码会事半功倍。但是，没有检验过的东西，终究是不可全信的。当看到需要的代码时，在复制粘贴前，我们都需要仔细研读、认真思考、详细甄别……很多东西，都是仁者见仁、智者见智的东西，适合别的场景但不一定适合你的场景。作为一名合格的程序员，切不可一味地&amp;#34;拿来主义&amp;#34;。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1）为什么要复制粘贴代码&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;复制粘贴现有代码，可以节省开发时间；&lt;/li&gt;&lt;li&gt;复制粘贴稳定代码，可以降低系统故障风险；&lt;/li&gt;&lt;li&gt;复制粘贴网络代码，可以把别人的成果化为己用。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;b&gt;（2）复制粘贴代码带来的问题&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;你对复制的代码理解程度是多少？实现逻辑是否合理？能不能稳定运行？存在多少潜在的 Bug?&lt;/li&gt;&lt;li&gt;这个代码在项目中已经复制粘贴了多少次？根据“三则重构”原则，你是否需要对这些相同代码进行重构？&lt;/li&gt;&lt;li&gt;代码被复制粘贴次数越多，带来的代码维护问题越多。多个代码版本的更改和修正，要保持这些代码的同步，就必须需要在每一处进行同样的修改，增加了维护的成本和风险。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;总之，复制粘贴代码，跟其它编码方法一样，没有优劣对错之分。它只是一种方法，你可以善用，也可以滥用。如果我们用到了复制粘贴，我们就必须为结果负责。&lt;/p&gt;&lt;h2&gt;3. 用文本替换生成代码&lt;/h2&gt;&lt;p&gt;&lt;b&gt;（1）生成代码样例&lt;/b&gt;&lt;/p&gt;&lt;p&gt;已经编写好的用户查询相关代码：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 查询用户服务函数 */
+public PageData&amp;lt;UserVO&amp;gt; queryUser(QueryUserParameterVO parameter) {
+ Long totalCount = userDAO.countByParameter(parameter);
+    List&amp;lt;UserVO&amp;gt; userList = null;
+ if (Objects.nonNull(totalCount) &amp;amp;&amp;amp; totalCount.compareTo(0L) &amp;gt; 0) {
+        userList = userDAO.queryByParameter(parameter);
+    }
+ return new PageData&amp;lt;&amp;gt;(totalCount, userList);
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 查询用户控制器函数 */
+@RequestMapping(path = &amp;#34;/queryUser&amp;#34;, method = RequestMethod.POST)
+public Result&amp;lt;PageData&amp;lt;UserVO&amp;gt;&amp;gt; queryUser(@Valid @RequestBody QueryUserParameterVO parameter) {
+    PageData&amp;lt;UserVO&amp;gt; pageData = userService.queryUser(parameter);
+ return Result.success(pageData);
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果我们要编写公司查询相关代码，其代码形式与用户查询类似，整理出替换关系如下：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;把&amp;#34;用户&amp;#34;替换为&amp;#34;公司&amp;#34;;&lt;/li&gt;&lt;li&gt;把&amp;#34;User&amp;#34;替换为&amp;#34;Company&amp;#34;;&lt;/li&gt;&lt;li&gt;把&amp;#34;user&amp;#34;替换为&amp;#34;company&amp;#34;。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;利用 Notepad、EditPlus 等文本编辑器，选择区分大小写，进行普通文本替换，最终得到结果如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 查询公司服务函数 */
+public PageData&amp;lt;CompanyVO&amp;gt; queryCompany(QueryCompanyParameterVO parameter) {
+ Long totalCount = companyDAO.countByParameter(parameter);
+    List&amp;lt;CompanyVO&amp;gt; companyList = null;
+ if (Objects.nonNull(totalCount) &amp;amp;&amp;amp; totalCount.compareTo(0L) &amp;gt; 0) {
+        companyList = companyDAO.queryByParameter(parameter);
+    }
+ return new PageData&amp;lt;&amp;gt;(totalCount, companyList);
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 查询公司控制器函数 */
+@RequestMapping(path = &amp;#34;/queryCompany&amp;#34;, method = RequestMethod.POST)
+public Result&amp;lt;PageData&amp;lt;CompanyVO&amp;gt;&amp;gt; queryCompany(@Valid @RequestBody QueryCompanyParameterVO parameter) {
+    PageData&amp;lt;CompanyVO&amp;gt; pageData = companyService.queryCompany(parameter);
+ return Result.success(pageData);
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;利用文本替换生成代码，整段代码生成时间不会超过1分钟。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（2）主要优缺点&lt;/b&gt;&lt;/p&gt;&lt;p&gt;主要优点：生成代码速度较快。&lt;/p&gt;&lt;p&gt;主要缺点：必须编写样例代码；只适用于文本替换的情景。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;4. 用Excel公式生成代码&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Excel 的公式非常强悍，可以用于编写一些公式化的代码。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1）利用 Excel 公式生成模型类&lt;/b&gt;&lt;/p&gt;&lt;p&gt;从 Wiki 上拷贝接口模型定义到 Excel 里，样例数据内容如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-75114eee1adebf90cb00f05a787a8895_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;917&quot; data-rawheight=&quot;242&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;917&quot; data-original=&quot;https://pic2.zhimg.com/v2-75114eee1adebf90cb00f05a787a8895_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-75114eee1adebf90cb00f05a787a8895_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;917&quot; data-rawheight=&quot;242&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;917&quot; data-original=&quot;https://pic2.zhimg.com/v2-75114eee1adebf90cb00f05a787a8895_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-75114eee1adebf90cb00f05a787a8895_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;编写 Excel 公式如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;= &amp;#34;/** &amp;#34;&amp;amp;D6&amp;amp;IF(ISBLANK(F6), &amp;#34;&amp;#34;, &amp;#34;(&amp;#34;&amp;amp;F6&amp;amp;&amp;#34;)&amp;#34;)&amp;amp;&amp;#34; */ &amp;#34;&amp;amp;IF(E6 = &amp;#34;否&amp;#34;, IF(C6 = &amp;#34;String&amp;#34;, &amp;#34;@NotBlank&amp;#34;, &amp;#34;@NotNull&amp;#34;), &amp;#34;&amp;#34;)&amp;amp;&amp;#34; private &amp;#34;&amp;amp;C6&amp;amp;&amp;#34; &amp;#34;&amp;amp;B6&amp;amp;&amp;#34;;&amp;#34;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;利用公式生成代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 用户标识 */ @NotNull private Long id;
+/** 用户名称 */ @NotBlank private String name;
+/** 用户性别(0:未知;1:男;2:女) */ @NotNull private Integer sex;
+/** 用户描述 */ private String description;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;创建模型类，整理代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 用户DO类 */
+public class UserDO {
+ /** 用户标识 */
+    @NotNull
+ private Long id;
+ /** 用户名称 */
+    @NotBlank
+ private String name;
+ /** 用户性别(0:未知;1:男;2:女) */
+    @NotNull
+ private Integer sex;
+ /** 用户描述 */
+ private String description;
+    ......
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（2）利用 Excel 公式生成枚举类&lt;/b&gt;&lt;/p&gt;&lt;p&gt;从 WiKi 上拷贝枚举定义到 Excel 里，样例数据内容如下：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-63a6debb2f99948af77bd6c301db154b_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;918&quot; data-rawheight=&quot;206&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;918&quot; data-original=&quot;https://pic4.zhimg.com/v2-63a6debb2f99948af77bd6c301db154b_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-63a6debb2f99948af77bd6c301db154b_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;918&quot; data-rawheight=&quot;206&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;918&quot; data-original=&quot;https://pic4.zhimg.com/v2-63a6debb2f99948af77bd6c301db154b_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-63a6debb2f99948af77bd6c301db154b_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;编写 Excel 公式如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;=&amp;#34;/** &amp;#34;&amp;amp;D2&amp;amp;&amp;#34;(&amp;#34;&amp;amp;B2&amp;amp;&amp;#34;) */&amp;#34;&amp;amp;C2&amp;amp;&amp;#34;(&amp;#34;&amp;amp;B2&amp;amp;&amp;#34;, &amp;#34;&amp;#34;&amp;#34;&amp;amp;D2&amp;amp;&amp;#34;&amp;#34;&amp;#34;),&amp;#34;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;利用公式生成代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 空(0) */NONE(0, &amp;#34;空&amp;#34;),
+/** 男(1) */MAN(1, &amp;#34;男&amp;#34;),
+/** 女(2) */WOMAN(2, &amp;#34;女&amp;#34;),&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;创建枚举类，整理代码如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 用户性别枚举 */
+public enum UserSex {
+ /** 枚举定义 */
+ /** 空(0) */
+    NONE(0, &amp;#34;空&amp;#34;),
+ /** 男(1) */
+    MAN(1, &amp;#34;男&amp;#34;),
+ /** 女(2) */
+    WOMAN(2, &amp;#34;女&amp;#34;);
+    ......
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（3）利用 Excel 公式生成数据库语句&lt;/b&gt;&lt;/p&gt;&lt;p&gt;用 Excel 整理的公司列表如下，需要整理成 SQL 语句直接插入数据库：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0ec415f5c8ce9a22e4dd296bd42c03c4_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;912&quot; data-rawheight=&quot;198&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;912&quot; data-original=&quot;https://pic1.zhimg.com/v2-0ec415f5c8ce9a22e4dd296bd42c03c4_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-0ec415f5c8ce9a22e4dd296bd42c03c4_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;912&quot; data-rawheight=&quot;198&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;912&quot; data-original=&quot;https://pic1.zhimg.com/v2-0ec415f5c8ce9a22e4dd296bd42c03c4_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-0ec415f5c8ce9a22e4dd296bd42c03c4_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;编写 Excel 公式如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;= &amp;#34;(&amp;#39;&amp;#34;&amp;amp;B2&amp;amp;&amp;#34;&amp;#39;, &amp;#39;&amp;#34;&amp;amp;C2&amp;amp;&amp;#34;&amp;#39;, &amp;#39;&amp;#34;&amp;amp;D2&amp;amp;&amp;#34;&amp;#39;, &amp;#39;&amp;#34;&amp;amp;E2&amp;amp;&amp;#34;&amp;#39;),&amp;#34;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;利用公式生成 SQL 如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;(&amp;#39;高德&amp;#39;, &amp;#39;首开大厦&amp;#39;, &amp;#39;(010)11111111&amp;#39;, &amp;#39;gaode@xxx.com&amp;#39;),
+(&amp;#39;阿里云&amp;#39;, &amp;#39;绿地中心&amp;#39;, &amp;#39;(010)22222222&amp;#39;, &amp;#39;aliyun@xxx.com&amp;#39;),
+(&amp;#39;菜鸟&amp;#39;, &amp;#39;阿里中心&amp;#39;, &amp;#39;(010)33333333&amp;#39;, &amp;#39;cainiao@xxx.com&amp;#39;),&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;添加 into 语句头，整理 SQL 如下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;insert into t_company(name, address, phone, email) values
+(&amp;#39;高德&amp;#39;, &amp;#39;首开大厦&amp;#39;, &amp;#39;(010)11111111&amp;#39;, &amp;#39;gaode@xxx.com&amp;#39;),
+(&amp;#39;阿里云&amp;#39;, &amp;#39;绿地中心&amp;#39;, &amp;#39;(010)22222222&amp;#39;, &amp;#39;aliyun@xxx.com&amp;#39;),
+(&amp;#39;菜鸟&amp;#39;, &amp;#39;阿里中心&amp;#39;, &amp;#39;(010)33333333&amp;#39;, &amp;#39;cainiao@xxx.com&amp;#39;);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（4）主要优缺点&lt;/b&gt;&lt;/p&gt;&lt;p&gt;主要优点：适用于表格化数据的代码生成；写好公式后，拖拽生成代码，生成速度较快。&lt;/p&gt;&lt;p&gt;主要缺点：不适用于复杂功能的代码生成。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;5. 用工具生成代码&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;用工具生成代码，顾名思义就是借用已有的工具生成代码。很多开发工具都提供一些工具生成代码，比如：生成构造函数，重载基类/接口函数，生成 Getter/Setter 函数，生成 toString 函数……能够避免很多手敲代码。还有一些生成代码插件，也可以生成满足某些应用场景的代码。&lt;/p&gt;&lt;p&gt;这里以 mybatis-generator 插件生成代码为例，介绍如何利用工具生成代码。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1）安装运行插件&lt;/b&gt;&lt;/p&gt;&lt;p&gt;具体方法这里不再累述，自行上网搜索文档了解。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（2）生成代码样例&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（2.1）生成模型类代码&lt;/b&gt;&lt;/p&gt;&lt;p&gt;文件 User.java 内容：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;......
+public class User {
+ private Long id;
+ private String user;
+ private String password;
+ private Integer age;
+    ......
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（2.2）生成映射接口代码&lt;/b&gt;&lt;/p&gt;&lt;p&gt;文件 UserMapper.java 内容：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;......
+public interface UserMapper {
+ User selectByPrimaryKey(Long id);
+    ......
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（2.3）生成映射XML代码&lt;/b&gt;&lt;/p&gt;&lt;p&gt;文件 UserMapper.xml 内容：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;......
+&amp;lt;mapper namespace=&amp;#34;com.test.dao.UserMapper&amp;#34; &amp;gt;
+ &amp;lt;resultMap id=&amp;#34;BaseResultMap&amp;#34; type=&amp;#34;com.test.pojo.User&amp;#34; &amp;gt;
+ &amp;lt;id column=&amp;#34;id&amp;#34; property=&amp;#34;id&amp;#34; jdbcType=&amp;#34;BIGINT&amp;#34; /&amp;gt;
+ &amp;lt;result column=&amp;#34;user&amp;#34; property=&amp;#34;user&amp;#34; jdbcType=&amp;#34;VARCHAR&amp;#34; /&amp;gt;
+ &amp;lt;result column=&amp;#34;password&amp;#34; property=&amp;#34;password&amp;#34; jdbcType=&amp;#34;VARCHAR&amp;#34; /&amp;gt;
+ &amp;lt;result column=&amp;#34;age&amp;#34; property=&amp;#34;age&amp;#34; jdbcType=&amp;#34;INTEGER&amp;#34; /&amp;gt;
+ &amp;lt;/resultMap&amp;gt;
+ &amp;lt;sql id=&amp;#34;Base_Column_List&amp;#34; &amp;gt;
+    id, user, password, age
+ &amp;lt;/sql&amp;gt;
+ &amp;lt;select id=&amp;#34;selectByPrimaryKey&amp;#34; resultMap=&amp;#34;BaseResultMap&amp;#34; parameterType=&amp;#34;java.lang.Long&amp;#34; &amp;gt;
+    select
+ &amp;lt;include refid=&amp;#34;Base_Column_List&amp;#34; /&amp;gt;
+    from test_user
+    where id = #{id,jdbcType=BIGINT}
+ &amp;lt;/select&amp;gt;
+  ......
+&amp;lt;/mapper&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（3）主要优缺点&lt;/b&gt;&lt;/p&gt;&lt;p&gt;主要优点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;利用生成代码插件，生成代码速度较快；&lt;/li&gt;&lt;li&gt;利用插件配置文件，控制生成想要的功能代码。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;主要缺点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;需要时间研究和熟悉生成代码插件的使用；&lt;/li&gt;&lt;li&gt;生成的代码不一定满足代码规范，每次生成后需进行代码合规；&lt;/li&gt;&lt;li&gt;重新生成代码后，容易覆盖自定义代码（建议维护单独的生成代码库，通过DIFF 工具比较代码差异，然后再赋值粘贴差异代码）。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;6. 用代码生成代码&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;用代码生成代码，就是自己编写代码，按照自己的格式生成代码。下面，以生成基于 MyBatis 的数据库访问代码为例说明。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1）查询表格信息&lt;/b&gt;&lt;/p&gt;&lt;p&gt;首先，我们要从数据库中拿到我们生成代码所需要的表和列相关信息。&lt;/p&gt;&lt;p&gt;&lt;b&gt;（1.1）查询表信息&lt;/b&gt;&lt;/p&gt;&lt;p&gt;查询表信息语句：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;select t.table_name as &amp;#39;表名称&amp;#39;
+, t.table_comment as &amp;#39;表备注&amp;#39;
+from information_schema.tables t
+where t.table_schema = ?
+and t.table_type = &amp;#39;BASE TABLE&amp;#39;
+and t.table_name = ?;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其中，第1个问号赋值数据库名称，第2个问号赋值表名称。&lt;/p&gt;&lt;p&gt;查询表信息结果：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1b23f5f97b60fe45be028d7bf26a779e_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;920&quot; data-rawheight=&quot;90&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;920&quot; data-original=&quot;https://pic3.zhimg.com/v2-1b23f5f97b60fe45be028d7bf26a779e_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-1b23f5f97b60fe45be028d7bf26a779e_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;920&quot; data-rawheight=&quot;90&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;920&quot; data-original=&quot;https://pic3.zhimg.com/v2-1b23f5f97b60fe45be028d7bf26a779e_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-1b23f5f97b60fe45be028d7bf26a779e_b.png&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;（1.2）查询列信息&lt;/b&gt;&lt;/p&gt;&lt;p&gt;查询列信息语句：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;select c.column_name as &amp;#39;列名称&amp;#39;
+, c.column_comment as &amp;#39;列备注&amp;#39;
+, c.data_type as &amp;#39;数据类型&amp;#39;
+, c.character_maximum_length as &amp;#39;字符长度&amp;#39;
+, c.numeric_precision as &amp;#39;数字精度&amp;#39;
+, c.numeric_scale as &amp;#39;数字范围&amp;#39;
+, c.column_default as &amp;#39;&amp;#39;
+, c.is_nullable as &amp;#39;是否可空&amp;#39;
+, c.column_key as &amp;#39;列键名&amp;#39;
+from information_schema.columns c
+where c.table_schema = ?
+and c.table_name = ?
+order by c.ordinal_position;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其中，第1个问号赋值数据库名称，第2个问号赋值表名称。&lt;/p&gt;&lt;p&gt;查询列信息结果：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-07a122eaf3d30c2dc7d75b2b73b2da71_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;921&quot; data-rawheight=&quot;208&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;921&quot; data-original=&quot;https://pic2.zhimg.com/v2-07a122eaf3d30c2dc7d75b2b73b2da71_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-07a122eaf3d30c2dc7d75b2b73b2da71_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;921&quot; data-rawheight=&quot;208&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;921&quot; data-original=&quot;https://pic2.zhimg.com/v2-07a122eaf3d30c2dc7d75b2b73b2da71_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-07a122eaf3d30c2dc7d75b2b73b2da71_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;b&gt;（2）编写生成代码&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（2.1）编写生成模型类代码&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 生成模型类文件函数 */
+private void generateModelClassFile(File dir, Table table, List&amp;lt;Column&amp;gt; columnList) throws Exception {
+    try (PrintWriter writer = new PrintWriter(new File(dir, className + &amp;#34;DO.java&amp;#34;))) {
+        String className = getClassName(table.getTableName());
+        String classComments = getClassComment(table.getTableComment());
+        writer.println(&amp;#34;package &amp;#34; + groupName + &amp;#34;.&amp;#34; + systemName + &amp;#34;.database;&amp;#34;);
+        ......
+        writer.println(&amp;#34;/** &amp;#34; + classComments + &amp;#34;DO类 */&amp;#34;);
+        writer.println(&amp;#34;@Getter&amp;#34;);
+        writer.println(&amp;#34;@Setter&amp;#34;);
+        writer.println(&amp;#34;@ToString&amp;#34;);
+        writer.println(&amp;#34;public class &amp;#34; + className + &amp;#34;DO {&amp;#34;);
+ for (Column column : columnList) {
+            String fieldType = getFieldType(column);
+            String fieldName = getFieldName(column.getColumnName());
+            String fieldComment = getFieldComment(column);
+            writer.println(&amp;#34;\t/** &amp;#34; + fieldComment + &amp;#34; */&amp;#34;);
+            writer.println(&amp;#34;\tprivate &amp;#34; + fieldType + &amp;#34; &amp;#34; + fieldName + &amp;#34;;&amp;#34;);
+        }
+        writer.println(&amp;#34;}&amp;#34;);
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（2.2）编写生成 DAO 接口代码&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 生成DAO接口文件函数 */
+private void generateDaoInterfaceFile(File dir, Table table, List&amp;lt;Column&amp;gt; columnList, List&amp;lt;Column&amp;gt; pkColumnList) throws Exception {
+ try (PrintWriter writer = new PrintWriter(new File(dir, className + &amp;#34;DAO.java&amp;#34;))) {
+ String className = getClassName(table.getTableName());
+ String classComments = getClassComment(table.getTableComment());
+        writer.println(&amp;#34;package &amp;#34; + groupName + &amp;#34;.&amp;#34; + systemName + &amp;#34;.database;&amp;#34;);
+        ......
+        writer.println(&amp;#34;/** &amp;#34; + classComments + &amp;#34;DAO接口 */&amp;#34;);
+        writer.println(&amp;#34;public interface &amp;#34; + className + &amp;#34;DAO {&amp;#34;);
+        writer.println(&amp;#34;\t/** 获取&amp;#34; + classComments + &amp;#34;函数 */&amp;#34;);
+        writer.print(&amp;#34;\tpublic &amp;#34; + className + &amp;#34;DO get(&amp;#34;);
+        boolean isFirst = true;
+ for (Column pkColumn : pkColumnList) {
+ if (!isFirst) {
+                writer.print(&amp;#34;, &amp;#34;);
+            } else {
+                isFirst = false;
+            }
+ String fieldType = getFieldType(pkColumn);
+ String fieldName = getFieldName(pkColumn.getColumnName());
+            writer.print(&amp;#34;@Param(\&amp;#34;&amp;#34; + fieldName + &amp;#34;\&amp;#34;) &amp;#34; + fieldType + &amp;#34; &amp;#34; + fieldName);
+        }
+        writer.println(&amp;#34;);&amp;#34;);
+        ......
+        writer.println(&amp;#34;}&amp;#34;);
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（2.3）编写生成 DAO 映射代码&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 生成DAO映射文件函数 */
+private void generateDaoMapperFile(File dir, Table table, List&amp;lt;Column&amp;gt; columnList, List&amp;lt;Column&amp;gt; pkColumnList) throws Exception {
+    try (PrintWriter writer = new PrintWriter(new File(dir, className + &amp;#34;DAO.xml&amp;#34;))) {
+        String className = getClassName(table.getTableName());
+        String classComments = getClassComment(table.getTableComment());
+        writer.println(&amp;#34;&amp;lt;?xml version=\&amp;#34;1.0\&amp;#34; encoding=\&amp;#34;UTF-8\&amp;#34;?&amp;gt;&amp;#34;);
+        ......
+        writer.println(&amp;#34;&amp;lt;!-- &amp;#34; + classComments + &amp;#34;映射 --&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;&amp;lt;mapper namespace=\&amp;#34;&amp;#34; + groupName + &amp;#34;.&amp;#34; + systemName + &amp;#34;.database.&amp;#34; + className + &amp;#34;DAO\&amp;#34;&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;\t&amp;lt;!-- 所有字段语句 --&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;\t&amp;lt;sql id=\&amp;#34;fields\&amp;#34;&amp;gt;&amp;#34;);
+ if (CollectionUtils.isNotEmpty(columnList)) {
+            boolean isFirst = true;
+            String columnName = getColumnName(pkColumn.getColumnName());
+ for (Column column : columnList) {
+ if (isFirst) {
+                    isFirst = false;
+                    writer.println(&amp;#34;\t\t&amp;#34; + columnName);
+                } else {
+                    writer.println(&amp;#34;\t\t, &amp;#34; + columnName);
+                }
+            }
+        }
+        writer.println(&amp;#34;\t&amp;lt;/sql&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;\t&amp;lt;!-- 获取&amp;#34; + classComments + &amp;#34;函数语句 --&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;\t&amp;lt;select id=\&amp;#34;get\&amp;#34; resultType=\&amp;#34;&amp;#34; + groupName + &amp;#34;.&amp;#34; + systemName + &amp;#34;.database.&amp;#34; + className + &amp;#34;DO\&amp;#34;&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;\t\tselect&amp;#34;);
+        writer.println(&amp;#34;\t\t&amp;lt;include refid=\&amp;#34;fields\&amp;#34;/&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;\t\tfrom &amp;#34; + table.getTableName());
+        boolean isFirst = true;
+ for (Column pkColumn : pkColumnList) {
+            String columnName = getColumnName(pkColumn.getColumnName());
+            String fieldName = getFieldName(pkColumn.getColumnName());
+            writer.print(&amp;#34;\t\t&amp;#34;);
+ if (isFirst) {
+                writer.print(&amp;#34;where&amp;#34;);
+                isFirst = false;
+            } else {
+                writer.print(&amp;#34;and&amp;#34;);
+            }
+            writer.println(&amp;#34; &amp;#34; + columnName + &amp;#34; = #{&amp;#34; + fieldName + &amp;#34;}&amp;#34;);
+        }
+        writer.println(&amp;#34;\t&amp;lt;/select&amp;gt;&amp;#34;);
+        writer.println(&amp;#34;&amp;lt;/mapper&amp;gt;&amp;#34;);
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（3）生成相关代码&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;（3.1）生成的模型类代码&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 组织公司DO类 */
+@Getter
+@Setter
+@ToString
+public class OrgCompanyDO {
+ /** 公司标识 */
+    private Long id;
+ /** 公司名称 */
+    private String name;
+ /** 联系地址 */
+    private String address;
+ /** 公司描述 */
+    private String description;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（3.2）生成的 DAO 接口代码&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;/** 组织公司DAO接口 */
+public interface OrgCompanyDAO {
+ /** 获取组织公司函数 */
+ public OrgCompanyDO get(@Param(&amp;#34;id&amp;#34;) Long id);
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（3.3）生成的 DAO 映射代码&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;!-- 组织公司映射 --&amp;gt;
+&amp;lt;mapper namespace=&amp;#34;xxx.database.OrgCompanyDAO&amp;#34;&amp;gt;
+ &amp;lt;!-- 所有字段语句 --&amp;gt;
+ &amp;lt;sql id=&amp;#34;fields&amp;#34;&amp;gt;
+        id
+        , name
+        , address
+        , description
+ &amp;lt;/sql&amp;gt;
+ &amp;lt;!-- 获取组织公司函数语句 --&amp;gt;
+ &amp;lt;select id=&amp;#34;get&amp;#34; resultType=&amp;#34;xxx.database.OrgCompanyDO&amp;#34;&amp;gt;
+        select
+ &amp;lt;include refid=&amp;#34;fields&amp;#34;/&amp;gt;
+        from org_company
+        where id = #{id}
+ &amp;lt;/select&amp;gt;
+&amp;lt;/mapper&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;（4）主要优缺点&lt;/b&gt;&lt;/p&gt;&lt;p&gt;主要优点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;代码格式可以定制，保证生成代码合规；&lt;/li&gt;&lt;li&gt;代码功能可以定制，只生成需要的代码；&lt;/li&gt;&lt;li&gt;经过前期代码沉淀后，后期能够直接使用。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;主要缺点：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;需要研究数据来源，保证能获取到生成代码所需的数据；&lt;/li&gt;&lt;li&gt;需要建立数据模型、编写生成代码，耗费时间比较长。&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;7. 代码规范化&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;在上面的各种编码方法中，很多方法都需要手工编写样例代码。如果你的代码不遵循代码规范，就很难发现代码之间的共性，并抽象出能够作为标准的样例代码；如果作为标准的样例代码不满足代码规范，必然导致生成的代码也不满足代码规范，于是把这些不规范放大了十倍、百倍甚至千倍。所以，代码规范化是编码的重中之重。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;终极方法：无招胜有招&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;编码的终极方法，是不是直接对着电脑说需求，然后电脑就自动生成代码了？未来科技发展到一定水平后，这种情况或许会变成现实。但是，目前这种情况是不现实的。现实中，想要做到&amp;#34;大口一张、代码就来&amp;#34;，除非你是老板、产品经理或者技术管理者。&lt;/p&gt;&lt;p&gt;编码的终极方法是“无招胜有招”，&amp;#34;无招&amp;#34;并不是不讲究&amp;#34;招式&amp;#34;，而是不拘泥于某一&amp;#34;招式&amp;#34;，信手拈来合适的&amp;#34;招式&amp;#34;为宜。本文中列举的各种编码方法，没有高低优劣之分，只有合不合适之说。所以，灵活地运用各种编码方法，就是编码的终极方法。&lt;/p&gt;&lt;p&gt;作者：陈昌毅&lt;/p&gt;</description>
+<author>二向箔安全</author>
+<guid isPermaLink="false">2019-08-30-80464994</guid>
+<pubDate>Fri, 30 Aug 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>网络安全学习方法论之体系的重要性</title>
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-08-28-80096602.html</link>
@@ -262,15 +506,6 @@ False 
 <author>二向箔安全</author>
 <guid isPermaLink="false">2019-08-14-78123742</guid>
 <pubDate>Wed, 14 Aug 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>世界上那些久负盛名的电脑病毒，你中了几个？</title>
-<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2019-08-13-77958872.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/77958872&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;一提到电脑病毒，全球的计算机用户都要抖一抖。看看它干的那些事儿：硬盘数据被清空，盗取用户隐私信息，计算机死机，网络连接被掐断，好好的机器变成了毒源，开始传染其他计算机……下面小编就来盘点一下世界上那些令人闻风丧胆的电脑病毒，希望你不是受害者之一！（以下排名不分先后）&lt;/p&gt;&lt;h2&gt;1. CIH 病毒&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-62f915ba732a9ff8202d900a89ba9e08_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;584&quot; data-rawheight=&quot;376&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;584&quot; data-original=&quot;https://pic1.zhimg.com/v2-62f915ba732a9ff8202d900a89ba9e08_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-62f915ba732a9ff8202d900a89ba9e08_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;584&quot; data-rawheight=&quot;376&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;584&quot; data-original=&quot;https://pic1.zhimg.com/v2-62f915ba732a9ff8202d900a89ba9e08_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-62f915ba732a9ff8202d900a89ba9e08_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;说到CIH病毒，可真给国人“增光”，因为这是一位名叫陈盈豪的台湾大学生所编写的，其名称源自作者名字的拼音或注音（&lt;b&gt;C&lt;/b&gt;hen &lt;b&gt;I&lt;/b&gt;ng-&lt;b&gt;h&lt;/b&gt;au）缩写。最早随国际两大盗版集团贩卖的盗版光盘在欧美等地广泛传播，后来经互联网各网站互相转载，使其迅速传播。&lt;/p&gt;&lt;p&gt;它的厉害之处就在于，其他病毒破坏的都是电脑软件（充其量也就是操作系统、数据文件一级），而CIH破坏的是电脑硬件（让电脑无法开机）！当时恢复的方法，除了彻底清除硬盘数据外，还需要借助专业工具重写主板BIOS。在2001年及2002的时候这个病毒的还死灰复燃过几次，真是打不死的小强啊。也正是从那个时代开始，杀毒厂商才冒出了所谓的专杀工具，而主板厂商也因此开发出了双BIOS这样一些很奇葩的设计。&lt;/p&gt;&lt;h2&gt;2. 梅利莎病毒&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-19957a27febcf04820cdd3b71a3e38ab_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;713&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1080&quot; data-original=&quot;https://pic4.zhimg.com/v2-19957a27febcf04820cdd3b71a3e38ab_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-19957a27febcf04820cdd3b71a3e38ab_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1080&quot; data-rawheight=&quot;713&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1080&quot; data-original=&quot;https://pic4.zhimg.com/v2-19957a27febcf04820cdd3b71a3e38ab_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-19957a27febcf04820cdd3b71a3e38ab_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;1999年3月26日，星期五，梅利莎病毒登上了全球各地报纸的头版。估计数字显示，这个Word宏脚本病毒感染了全球15%~20%的商用 PC。病毒传播速度之快，令英特尔公司、微软公司、以及其他许多使用Outlook软件的公司措手不及，为了防止损害，他们被迫关闭整个电子邮件系统。&lt;/p&gt;&lt;p&gt;梅利莎通过微软的Outlook电子邮件软件，向用户通讯簿名单中的50位联系人发送邮件来传播自身。该邮件包含以下这句话：“这就是你要的文件，不要给别人看（Here is that document you asked for， don&amp;#39;t show anybody else）”，此外夹带一个Word文档附件。而单击这个文件(成千上万毫无疑虑的用户都是这么做的)，就会使病毒感染主机并且不断自我复制。&lt;/p&gt;&lt;p&gt;更加令人恼火的事情还在后头——一旦被激活，病毒就用动画片《辛普森一家》(The Simpsons)的台词修改用户的Word文档。&lt;/p&gt;&lt;h2&gt;3. 红色代码&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6e3d2db53f5f61328918ea2ea2993b62_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;398&quot; data-rawheight=&quot;291&quot; class=&quot;content_image&quot; width=&quot;398&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-6e3d2db53f5f61328918ea2ea2993b62_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;398&quot; data-rawheight=&quot;291&quot; class=&quot;content_image lazy&quot; width=&quot;398&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-6e3d2db53f5f61328918ea2ea2993b62_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;“红色代码”病毒是2001年7月15日发现的一种网络蠕虫病毒，感染运行Microsoft IIS Web服务器的计算机。其传播所使用的技术可以充分体现网络时代网络安全与病毒的巧妙结合，将网络蠕虫、计算机病毒、木马程序合为一体，开创了网络病毒传播的新路，可称之为划时代的病毒。如果稍加改造，将是非常致命的病毒，可以完全取得所攻破计算机的所有权限并为所欲为，可以盗走机密数据，严重威胁网络安全。&lt;/p&gt;&lt;h2&gt;4. &lt;b&gt;爱虫病毒&lt;/b&gt;(ILOVEYOU)&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-204caf9a0dd63b8e478f3a70cc95337e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;415&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;500&quot; data-original=&quot;https://pic3.zhimg.com/v2-204caf9a0dd63b8e478f3a70cc95337e_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-204caf9a0dd63b8e478f3a70cc95337e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;415&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;500&quot; data-original=&quot;https://pic3.zhimg.com/v2-204caf9a0dd63b8e478f3a70cc95337e_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-204caf9a0dd63b8e478f3a70cc95337e_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;它是一个Visual Basic脚本，设计精妙，还有令人难以抗拒的诱饵——爱的诺言。2000年5月3日，“我爱你”蠕虫病毒首次在香港被发现。&lt;/p&gt;&lt;p&gt;爱虫跟梅利莎类似也是通过Outlook电子邮件系统传播，不过邮件主题变为了“I Love You”，打开病毒附件后，就会自动传播。该病毒在很短的时间内就袭击了全球无以数计的电脑，并且，它还是个很挑食的病毒，专喜欢那些具有高价值IT资源的电脑系统：比如美国国安部门、CIA、英国国会等政府机构、股票经纪及那些著名的跨国公司等。“爱虫”病毒是迄今为止发现的传染速度最快而且传染面积最广的计算机病毒。&lt;/p&gt;&lt;h2&gt;5. SQL Slammer蠕虫（蓝宝石蠕虫）&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7b5add4b8f9ad82a306b1d8050a93ad8_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;600&quot; data-original=&quot;https://pic1.zhimg.com/v2-7b5add4b8f9ad82a306b1d8050a93ad8_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-7b5add4b8f9ad82a306b1d8050a93ad8_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;600&quot; data-rawheight=&quot;400&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;600&quot; data-original=&quot;https://pic1.zhimg.com/v2-7b5add4b8f9ad82a306b1d8050a93ad8_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-7b5add4b8f9ad82a306b1d8050a93ad8_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;由于SQL Slammer爆发的日期是星期六，破坏所造成的金钱损失并不大。尽管如此，它仍然冲击了全球约50万台服务器，韩国的在线能力瘫痪长达12小时。&lt;/p&gt;&lt;p&gt;SQL Slammer也被称为“蓝宝石”(Sapphire)，2003年1月25日首次出现。它是一个非同寻常的蠕虫病毒，给互联网的流量造成了显而易见的负面影响。有意思的是，它的目标并非终端计算机用户，而是服务器。它是一个单包的、长度为376字节的蠕虫病毒，它随机产生IP地址，并向这些IP地址发送自身。如果某个IP地址恰好是一台运行着未打补丁的微软SQL服务器桌面引擎(SQL Server Desktop Engine)软件的计算机，它也会迅速开始向随机IP地址的主机开火，发射病毒。&lt;/p&gt;&lt;p&gt;正是运用这种效果显著的传播方式，SQL Slammer在十分钟之内感染了7.5万台计算机。庞大的数据流量令全球的路由器不堪重负，如此循环往复，更高的请求被发往更多的路由器，导致它们一个个被关闭。在补丁和病毒专杀软件出现之前，这种病毒造成了10亿美元以上的损失。&lt;/p&gt;&lt;h2&gt;6.  冲击波、霸王虫(Sobig.F)和震荡波&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9e184cc578698db8ea57c33fd7624177_b.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;318&quot; data-rawheight=&quot;400&quot; class=&quot;content_image&quot; width=&quot;318&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9e184cc578698db8ea57c33fd7624177_b.jpg&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;318&quot; data-rawheight=&quot;400&quot; class=&quot;content_image lazy&quot; width=&quot;318&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-9e184cc578698db8ea57c33fd7624177_b.jpg&quot;/&gt;&lt;figcaption&gt;制造冲击波变种的少年&lt;/figcaption&gt;&lt;/figure&gt;&lt;p&gt;冲击波病毒是利用在2003年7月21日公布的RPC漏洞进行传播的，该病毒于当年8月爆发。病毒运行时会不停地利用IP扫描技术寻找网络上系统为Win2000或XP的计算机，找到后就利用DCOM/RPC缓冲区漏洞攻击该系统，一旦攻击成功，病毒体将会被传送到对方计算机中进行感染，使系统操作异常、不停重启、甚至导致系统奔溃。另外，该病毒还会对系统升级网站进行拒绝服务攻击，导致该网站堵塞，使用户无法通过该网站升级系统。只要是计算机上有RPC服务并且没有打安全补丁的计算机都存在有RPC漏洞，具体涉及的操作系统是：Windows 2000\XP\Server 2003\NT4.0。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f7b3a809aba649d84221aa59700bf4ca_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;499&quot; data-rawheight=&quot;325&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;499&quot; data-original=&quot;https://pic3.zhimg.com/v2-f7b3a809aba649d84221aa59700bf4ca_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f7b3a809aba649d84221aa59700bf4ca_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;499&quot; data-rawheight=&quot;325&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;499&quot; data-original=&quot;https://pic3.zhimg.com/v2-f7b3a809aba649d84221aa59700bf4ca_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-f7b3a809aba649d84221aa59700bf4ca_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;对于依赖计算机运行的商业领域而言，2003年夏天是一个艰难的时期。一波未平，一波又起。“冲击波”一走，“霸王虫”病毒便接踵而至。它是8月19日开始迅速传播，在最初的24小时之内，自身复制了100万次，创下了历史纪录(后来被Mydoom病毒打破)。病毒伪装在文件名看似无害的邮件附件之中。被激活之后，这个蠕虫便向用户的本地文件类型中发现的电子邮件地址传播自身。最终结果是造成互联网流量激增。&lt;/p&gt;&lt;p&gt;2003年9月10日，病毒禁用了自身，从此不再成为威胁。为得到线索，找出Sobig.F病毒的始作俑者，微软宣布悬赏25万美元，但至今为止，这个作恶者也没有被抓到。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-59c3b7bee3a909297a64b4830ba843d2_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;580&quot; data-rawheight=&quot;435&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;580&quot; data-original=&quot;https://pic3.zhimg.com/v2-59c3b7bee3a909297a64b4830ba843d2_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-59c3b7bee3a909297a64b4830ba843d2_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;580&quot; data-rawheight=&quot;435&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;580&quot; data-original=&quot;https://pic3.zhimg.com/v2-59c3b7bee3a909297a64b4830ba843d2_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-59c3b7bee3a909297a64b4830ba843d2_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;“冲击波”余音未消，“震荡波”又来了，时隔一年之后又一款和冲击波表现类似的电脑病毒重回网友电脑。从名称上看，这两款病毒貌似区别并不是很大，甚至连重启提示都长得一样一样的。但实际上冲击波利用的是系统RPC漏洞，而震荡波利用的则是系统LSASS漏洞。甭管怎么说吧，反正这两种病毒始终都是那个时代的噩梦！&lt;/p&gt;&lt;h2&gt;7. &lt;b&gt;熊猫烧香&lt;/b&gt;&lt;/h2&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0768b0d6362f1139ab9e2b88bfed94a7_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;375&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;500&quot; data-original=&quot;https://pic4.zhimg.com/v2-0768b0d6362f1139ab9e2b88bfed94a7_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-0768b0d6362f1139ab9e2b88bfed94a7_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;375&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;500&quot; data-original=&quot;https://pic4.zhimg.com/v2-0768b0d6362f1139ab9e2b88bfed94a7_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-0768b0d6362f1139ab9e2b88bfed94a7_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;又是一款国产病毒……&lt;/p&gt;&lt;p&gt;2006年底到2007年初短短两个月时间里，一款名叫“熊猫烧香”的病毒便席卷了整个神州大地，一时间各大网站、个人电脑都被一个很诡异的病毒图标所覆盖——一只正在烧香的熊猫。&lt;/p&gt;&lt;p&gt;它主要通过下载的档案传染，受到感染的机器文件因为被误携带间接对其它 计算机程序、系统破坏严重。在短短的两个多月时间，该病毒不断入侵个人电脑，给上百万个人用户、网吧及企业局域网用户带来无法估量的损失，被《2006年度中国大陆地区电脑病毒疫情和互联网安全报告》评为“毒王”。而它的始作俑者——湖北武汉新洲区人李俊，也在当年被判处4年有期徒刑！&lt;/p&gt;&lt;p&gt;可以预见，越来越多的病毒木马程序会出现，技术和传播途径上也会非常类似与现在的勒索病毒，因此我们只要做到以下注意事项，就可以很好地预防计算机中毒：&lt;/p&gt;&lt;p&gt;1 收到陌生可疑邮件，请谨慎处理不要贸然点开，尤其是包含链接和附件的那种。&lt;/p&gt;&lt;p&gt;2 使用独立移动硬盘备份所有计算机里面的重要数据和资料，尽量避免移动硬盘接入网络。&lt;/p&gt;&lt;p&gt;3 及时修复系统漏洞，至少安装一款杀毒软件和一款数据恢复软件&lt;/p&gt;&lt;p&gt;4 最好还是尽快地升级到Windows 10最新版本&lt;/p&gt;&lt;p&gt;5 只到正规下载站去安装软件，不随便搜索下载安装软件！&lt;/p&gt;</description>
-<author>二向箔安全</author>
-<guid isPermaLink="false">2019-08-13-77958872</guid>
-<pubDate>Tue, 13 Aug 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
