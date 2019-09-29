@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>不同梯度下降算法的比较及Python实现</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/77380412">原文</a></p>
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-9e3eadb87c883c17cde53f684dfd1dc0_b.jpg" alt=""></div><blockquote>少年不识愁滋味，爱上层楼。爱上层楼，为赋新词强说愁。而今识尽愁滋味，欲说还休。欲说还休，却道天凉好个秋。       --- 辛弃疾 《丑奴儿》</blockquote><p>梯度下降法是深度学习中常用的一阶优化算法。其逻辑清晰，实现简单，且当目标函数是凸函数时，梯度下降法求得的解是全局最优解。本文拟从算法介绍到算法实现方面进行一个简单梳理作为笔记留存，方便日后查阅，若有纰漏，欢迎指正。由于不同梯度下降法的算法介绍文章汗牛充栋，所以本文主要侧重在算法实现上。</p><p>那当我们在谈论梯度下降时，我们究竟在谈论什么？一般而言，根据时间线排列，常见的梯度下降法有：</p><ul><li>Batch Gradient Descent（<b>BGD</b>，批量梯度下降）</li><li>Stochastic Gradient Descent（<b>SGD</b>，随机梯度下降）</li><li>Mini-Batch Gradient Descent（<b>MBGD</b>，小批量梯度下降）</li><li>Moment Gradient Descent（<b>MGD</b>，动量梯度下降）</li><li>Adaptive Gradient Descent（<b>AdaGrad</b>，自适应梯度下降，2011）</li><li>Adaptive Delta Gradient Descent（<b>AdaDelta</b>，自适应调整梯度下降,  2012）</li><li>Root Mean Square Prop（<b>RMSProp</b>，均方根支撑， 2012）</li><li>Nesterov Accelerated Gradient Descent（<b>NAG</b>，Nesterov加速梯度下降，2013）</li><li>Adaptive Moment Estimation（<b>Adam</b>，自适应矩估计，2014）</li><li>Adaptive Moment Estimation Max（<b>AdaMax, </b>2015）</li><li>Nesterov Adaptive Moment Estimation（<b>Nadam</b>，Nesterov加速自适应矩估计，2016）</li><li>Adam &amp; RMSProp Gradient Descent (<b>AMSGrad, </b>2018)</li></ul><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+Batch+Gradient+Descent+" alt="\gg Batch Gradient Descent " eeimg="1"/> </h2><p>批量梯度下降法是梯度下降最原始的形式，其在全部训练集上计算损失函数 <img src="https://www.zhihu.com/equation?tex=J_%7B%5Ctheta%7D+" alt="J_{\theta} " eeimg="1"/> 关于参数 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 的梯度。一个常规的梯度下降的过程如下：</p><ol><li>构造假设函数 <img src="https://www.zhihu.com/equation?tex=h_%7B%5Ctheta%7D%28x%29" alt="h_{\theta}(x)" eeimg="1"/> </li></ol><p><img src="https://www.zhihu.com/equation?tex=h_%7B%5Ctheta%7D%28x_1%2C+x_2%2C+...%2C+x_n%29+%3D+%5Ctheta_0+%2B+%5Ctheta_1+x_1+%2B+...+%2B+%5Ctheta_n+x_n++%3D+%5Csum_%7Bi%3D0%7D%5E%7Bn%7D%5Ctheta_%7Bi%7Dx_%7Bi%7D%EF%BC%8Cx_0+%3D+1" alt="h_{\theta}(x_1, x_2, ..., x_n) = \theta_0 + \theta_1 x_1 + ... + \theta_n x_n  = \sum_{i=0}^{n}\theta_{i}x_{i}，x_0 = 1" eeimg="1"/> </p><p>2. 构造损失函数 <img src="https://www.zhihu.com/equation?tex=J%28%5Ctheta%29" alt="J(\theta)" eeimg="1"/></p><p><img src="https://www.zhihu.com/equation?tex=J%28%5Ctheta_0%2C+%5Ctheta_1%2C+...%2C+%5Ctheta_n%29+%3D+%5Cfrac%7B1%7D%7B2m%7D%5Csum_%7Bj%3D0%7D%5E%7Bm%7D+%28h_%7B%5Ctheta%7D%5E%7Bj%7D%28x_0%2C+x_1%2C+...%2C+x_n%29+-+y_%7Bj%7D%29+%5E+2" alt="J(\theta_0, \theta_1, ..., \theta_n) = \frac{1}{2m}\sum_{j=0}^{m} (h_{\theta}^{j}(x_0, x_1, ..., x_n) - y_{j}) ^ 2" eeimg="1"/> </p><p>3. 判断程序是否提前终止</p><p>计算损失函数的值 <img src="https://www.zhihu.com/equation?tex=J_%7B%5Ctheta%7D%5E%7Bt%2B1%7D" alt="J_{\theta}^{t+1}" eeimg="1"/> ，并与前值 <img src="https://www.zhihu.com/equation?tex=J_%7B%5Ctheta%7D%5E%7Bt%7D" alt="J_{\theta}^{t}" eeimg="1"/> 进行差值运算，当其绝对值小于某个设定的阈值 <img src="https://www.zhihu.com/equation?tex=%5Cepsilon" alt="\epsilon" eeimg="1"/> ，则提前终止程序，当前的 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 值即为最终结果，若否，跳入步骤4</p><p>4. 计算损失函数 <img src="https://www.zhihu.com/equation?tex=J%28%5Ctheta%29" alt="J(\theta)" eeimg="1"/> 关于参数 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 的梯度</p><p><img src="https://www.zhihu.com/equation?tex=%5Cfrac%7B%5Cpartial%7D%7B%5Cpartial+%5Ctheta_i%7D+J%28%5Ctheta_0%2C+%5Ctheta_1%2C+...%2C+%5Ctheta_n%29%3D%5Cfrac%7B1%7D%7Bm%7D%5Csum_%7Bj%3D0%7D%5E%7Bm%7D%28h_%7B%5Ctheta%7D%5E%7Bj%7D%28x_0%2C+x_1%2C+...%2C+x_n%29+-+y_%7Bj%7D%29x_%7Bi%7D%5E%7Bj%7D" alt="\frac{\partial}{\partial \theta_i} J(\theta_0, \theta_1, ..., \theta_n)=\frac{1}{m}\sum_{j=0}^{m}(h_{\theta}^{j}(x_0, x_1, ..., x_n) - y_{j})x_{i}^{j}" eeimg="1"/> </p><p>5. 更新参数 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 的表达式，并返回步骤1</p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_i+%3D+%5Ctheta_i+-+%5Cfrac%7B%5Ceta+%7D%7Bm%7D%5Csum_%7Bj%3D0%7D%5E%7Bm%7D%28h_%7B%5Ctheta%7D%5E%7Bj%7D%28x_0%2C+x_1%2C+...%2C+x_n%29+-+y_j%29x_%7Bi%7D%5E%7Bj%7D" alt="\theta_i = \theta_i - \frac{\eta }{m}\sum_{j=0}^{m}(h_{\theta}^{j}(x_0, x_1, ..., x_n) - y_j)x_{i}^{j}" eeimg="1"/> </p><p class="ztext-empty-paragraph"><br/></p><p>当我们根据以上逻辑编写程序时，通常需要初始化几个变量：</p><ul><li>学习率（learning_rate）</li></ul><p>学习率是控制梯度下降幅度的参数，亦称步长，学习率设置过大会阻碍收敛并导致损失函数在最小值附近波动甚至发散；学习率太小又会导致收敛速度缓慢，尤其是在迭代后期，当梯度变动很小的时候，整个收敛过程会变得很缓慢</p><ul><li>初始权重（theta）</li></ul><p>初始权重的个数等于原始样本中特征值的个数加1，其中新增的1个参数主要考虑偏置项( <img src="https://www.zhihu.com/equation?tex=bias" alt="bias" eeimg="1"/> )带来的影响</p><ul><li>程序终止条件（max_iteration_number / tolerance）</li><ul><li>最大迭代次数：防止结果不收敛时，对程序进行强制终止</li><li>误差容忍度：当结果改善的变动低于某个阈值时，程序提前终止</li></ul></ul><div class="highlight"><pre><code class="language-python3"><span class="k">class</span> <span class="nc">BatchGradientDescent</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">=</span> <span class="n">eta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_samples</span><span class="p">),</span> <span class="n">X</span><span class="p">]</span>  <span class="c1"># 增加截距项</span>
+        <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">*</span> <span class="n">errors</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+            <span class="n">delta_loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta_loss</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gradient</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">n_samples</span> <span class="o">*</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">*</span> <span class="n">gradient</span>
+
+        <span class="k">return</span> <span class="bp">self</span></code></pre></div><p>批量梯度下降法由于使用了全部样本进行训练，所以当损失函数是凸函数时，理论上可以找到全局最优解，但当训练样本很大时，其训练速度会非常慢，不适用于在线学习的一些项目。为了解决这个问题，随机梯度下降算法被提出。</p><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+Stochastic+Gradient+Descent+" alt="\gg Stochastic Gradient Descent " eeimg="1"/> </h2><p>为了避免训练速度过慢，随机梯度下降法在训练过程中每次仅针对一个样本进行训练，但进行多次更新。在每一轮新的更新之前，需要对数据样本进行重新洗牌（shuffle）。</p><div class="highlight"><pre><code class="language-python3"><span class="k">class</span> <span class="nc">StochasticGradientDescent</span><span class="p">(</span><span class="n">BatchGradientDescent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StochasticGradientDescent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+        <span class="k">if</span> <span class="n">random_state</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">X</span><span class="p">]</span>
+        <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+                <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># 重新排序</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                <span class="n">error_i</span> <span class="o">=</span> <span class="n">xi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">-</span> <span class="n">yi</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_i</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">gradient_i</span> <span class="o">=</span> <span class="n">xi</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error_i</span><span class="p">)</span>  <span class="c1"># 单个样本的梯度</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">*</span> <span class="n">gradient_i</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+            <span class="n">delta_loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta_loss</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_shuffle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">[</span><span class="n">location</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">location</span><span class="p">]</span></code></pre></div><p>随机梯度下降法在更新过程中由于是针对单个样本，所以其迭代的方向有时候并不是整体最优的方向，同时其方差较大，导致损失函数值的变动并不是规律的递减，更多的情况可能是波动形状的下降。</p><p>为了解决批量梯度下降的速度太慢以及随机梯度下降方差变动过大的情况，一种折中的算法--小批量梯度下降算法被提出，其从全部样本中选取部分样本进行迭代训练。并且在每一轮新的迭代开始之前，对全部样本进行Shuffle处理。<b>那么问题来了，为什么进行随机梯度下降时，需要在每一轮更新之前对数据样本进行重新洗牌（shuffle）呢？</b></p><div class="highlight"><pre><code class="language-python3"><span class="k">class</span> <span class="nc">MiniBatchGradientDescent</span><span class="p">(</span><span class="n">StochasticGradientDescent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MiniBatchGradientDescent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">X</span><span class="p">]</span>
+        <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+                <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">mini_X</span><span class="p">,</span> <span class="n">mini_y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">]</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">-</span> <span class="n">mini_y</span>  <span class="c1"># 长度与batch_size的长度一致</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+                <span class="n">mini_gradient</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>  <span class="c1"># 小批量样本梯度</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">*</span> <span class="n">mini_gradient</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+            <span class="n">delta_loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta_loss</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="bp">self</span></code></pre></div><p>以上三种梯度下降算法仅局限于对训练样本进行变更，且每次迭代更新权重时使用的梯度仅作用于当前状态。由于每一期的样本有好有坏，导致迭代过程是曲折波动的，影响了收敛速度。为了降低波动幅度从而加快收敛，各种梯度下降算法的升级版开始出现。由于小批量梯度下降算法是以上三种中的最优选择，所以以下的改进算法均基于小批量梯度下降来说明。</p><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+Momentum+Gradient+Descent" alt="\gg Momentum Gradient Descent" eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=%7Bg%7D_%7Bt%7D+%3D+%5Cnabla+%7BJ_%7B%5Ctheta%7D%28%5Ctheta_%7Bt%7D%29%7D" alt="{g}_{t} = \nabla {J_{\theta}(\theta_{t})}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=v_%7Bt%7D+%3D+%5Cgamma++v_%7Bt-1%7D+%2B+%5Ceta+g_%7Bt%7D" alt="v_{t} = \gamma  v_{t-1} + \eta g_{t}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+v_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - v_{t}" eeimg="1"/> </p><p>其中，超参数 <img src="https://www.zhihu.com/equation?tex=%5Cgamma" alt="\gamma" eeimg="1"/> 通常设为0.9，<img src="https://www.zhihu.com/equation?tex=velocity" alt="velocity" eeimg="1"/> 初始化为0</p><p>区别于仅使用当前梯度来更新权重的梯度下降法，动量梯度下降法引入了一个新的参数<img src="https://www.zhihu.com/equation?tex=velocity" alt="velocity" eeimg="1"/> 来表示当前的梯度变动，其本质上是一个<b>指数加权移动平均值</b>，其将历史上每一期的梯度都考虑到了当前的状态中。同时指数加权移动的特性使得当前梯度在参数更新中能够占据更大权重，这也符合我们的一般认知，越接近当下的信息对未来的判断越重要。当衰减超参数 <img src="https://www.zhihu.com/equation?tex=%5Cgamma" alt="\gamma" eeimg="1"/> 远大于学习率 <img src="https://www.zhihu.com/equation?tex=%5Ceta" alt="\eta" eeimg="1"/> 的时候，在程序迭代过程中，历史梯度的累积值在梯度的更新过程中将会占据主导作用，即使因为噪音的扰动导致当前梯度变化较大，也不会对最终的更新方向产生大的影响。</p><p>若当前梯度 <img src="https://www.zhihu.com/equation?tex=%5Cnabla_%7B%5Ctheta%7DJ%28%5Ctheta%29" alt="\nabla_{\theta}J(\theta)" eeimg="1"/> 与上期<img src="https://www.zhihu.com/equation?tex=velocity" alt="velocity" eeimg="1"/> 方向一致时，本期<img src="https://www.zhihu.com/equation?tex=velocity" alt="velocity" eeimg="1"/> 项相应增加，参数 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 更新幅度加大，加快训练速度；当方向相反时， <img src="https://www.zhihu.com/equation?tex=velocity" alt="velocity" eeimg="1"/> 项相应减少，参数 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 更新幅度缓慢减小，避免了大幅震荡，用一句不太恰当的比喻，动量梯度下降有种“锦上添花，雪中送碳”的意味。</p><div class="highlight"><pre><code class="language-python3"><span class="k">class</span> <span class="nc">MomentumGradientDescent</span><span class="p">(</span><span class="n">MiniBatchGradientDescent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>                <span class="c1"># 当gamma=0时，相当于小批量随机梯度下降</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MomentumGradientDescent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">X</span><span class="p">]</span>
+        <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+                <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">mini_X</span><span class="p">,</span> <span class="n">mini_y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">]</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">-</span> <span class="n">mini_y</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+                <span class="n">mini_gradient</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">*</span> <span class="n">mini_gradient</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+            <span class="n">delta_loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta_loss</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="bp">self</span></code></pre></div><p class="ztext-empty-paragraph"><br/></p><p><img src="https://www.zhihu.com/equation?tex=%5Cgg+NesterovAcceleratedGradient" alt="\gg NesterovAcceleratedGradient" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctilde%7Bg%7D_%7Bt%7D+%3D+%5Cnabla+%7BJ_%7B%5Ctheta%7D%28%5Ctheta_%7Bt%7D+-+%5Cgamma+v_%7Bt-1%7D%29%7D" alt="\tilde{g}_{t} = \nabla {J_{\theta}(\theta_{t} - \gamma v_{t-1})}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=v_%7Bt%7D+%3D+%5Cgamma++v_%7Bt-1%7D+%2B+%5Ceta+%5Ctilde%7Bg_%7Bt%7D%7D" alt="v_{t} = \gamma  v_{t-1} + \eta \tilde{g_{t}}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+v_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - v_{t}" eeimg="1"/> </p><p>Nesterov Accelerated Gradient与Momentum Gradient Descent的方法非常相似，二者的差异主要在于计算梯度时所用的参数，一个是纯粹的 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> ，一个是经过 <img src="https://www.zhihu.com/equation?tex=velocity" alt="velocity" eeimg="1"/> 调整后的 <img src="https://www.zhihu.com/equation?tex=%5Ctilde%7B%5Ctheta%7D" alt="\tilde{\theta}" eeimg="1"/> 。为了便于理解其内在的差异，可以这样想象二者的作用机制：动量梯度下降是利用历史情况对当前状态进行纠偏，防止过度反应；而Nesterov加速下降则依赖于先见之明，对未来的走势进行预判，在事情发生前便进行了内部调整，避免出现极端情况。再给个不太恰当的比喻，Momentum是亡羊补牢，Nesterov是未雨绸缪。</p><div class="highlight"><pre><code class="language-text">class NesterovAccelerateGradient(MomentumGradientDescent):
+    def __init__(self, **kwargs):
+        super(NesterovAccelerateGradient, self).__init__(**kwargs)
+
+    def fit(self, X, y):
+        X = np.c_[np.ones(len(X)), X]
+        n_samples, n_features = X.shape
+
+        self.theta = np.ones(n_features)
+        self.velocity = np.zeros_like(self.theta)
+        self.loss_ = [0]
+
+        self.i = 0
+        while self.i &lt; self.n_iter:
+            self.i += 1
+            if self.shuffle:
+                X, y = self._shuffle(X, y)
+
+            errors = []
+            for j in range(0, n_samples, self.batch_size):
+                mini_X, mini_y = X[j: j + self.batch_size], y[j: j + self.batch_size]
+                error = mini_X.dot(self.theta - self.gamma * self.velocity) - mini_y  
+                errors.append(error.dot(error))
+                mini_gradient = 1 / self.batch_size * mini_X.T.dot(error)
+                self.velocity = self.velocity * self.gamma + self.eta * mini_gradient
+                self.theta -= self.velocity
+            loss = 1 / (2 * self.batch_size) * np.mean(errors)
+            delta_loss = loss - self.loss_[-1]
+            self.loss_.append(loss)
+            if np.abs(delta_loss) &lt; self.tolerance:
+                break
+        return self</code></pre></div><p>虽然动量类梯度下降能够加快程序运行速度，但前述各种梯度下降算法依然只是遵循一个固定的学习速率，这便需要用户对样本的特性有个前瞻性了解以选取一个合适的初始超参数，但合适超参数的选取本身也是一件有挑战的事情，那有没有什么方法来根据具体情况自适应学习率呢？自适应梯度下降算法应运而生。</p><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+AdaptiveGradientDescent++" alt="\gg AdaptiveGradientDescent  " eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta+%7D%7B%5Csqrt%7Bdiag%28G_%7Bt%7D%29+%2B+%5Cepsilon+I%7D%7D+%5Codot+g_%7Bt%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta+%7D%7B%5Csqrt%7B%5Csum+g_%7Bt%7D%5E2+%2B+%5Cepsilon%7D%7D+%5Codot+g_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - \frac{\eta }{\sqrt{diag(G_{t}) + \epsilon I}} \odot g_{t} = \theta_{t} - \frac{\eta }{\sqrt{\sum g_{t}^2 + \epsilon}} \odot g_{t}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=G_%7Bt%7D+%3D+%5Csum_%7B%5Ctau%3D1%7D%5E%7Bt%7D%7Bg_%7B%5Ctau%7Dg_%7B%5Ctau%7D%5E%7BT%7D%7D" alt="G_{t} = \sum_{\tau=1}^{t}{g_{\tau}g_{\tau}^{T}}" eeimg="1"/> </p><p>其中，矩阵<img src="https://www.zhihu.com/equation?tex=G_%7Bt%7D" alt="G_{t}" eeimg="1"/> 的第 <img src="https://www.zhihu.com/equation?tex=t" alt="t" eeimg="1"/> 个对角元素是前 <img src="https://www.zhihu.com/equation?tex=t" alt="t" eeimg="1"/> 个时刻关于参数 <img src="https://www.zhihu.com/equation?tex=%5Ctheta" alt="\theta" eeimg="1"/> 的历史梯度值的平方和， <img src="https://www.zhihu.com/equation?tex=%5Cepsilon" alt="\epsilon" eeimg="1"/> 的作用主要是为了避免分母出现为0的情况，通常初始化为<img src="https://www.zhihu.com/equation?tex=1e-6" alt="1e-6" eeimg="1"/> 。</p><p>自适应梯度下降法通过将学习率除以历史梯度值平方和的平方根得到新的学习率从而来优化程序的迭代。那么问题来了，为什么分母部分需要构建成一个均方根（Root Mean Square）形式呢？这里隐含的一个前提是，学习率需为正值且其调整依赖于梯度值，这个梯度值的构成可以是历史梯度值的简单平均抑或是指数加权移动平均。</p><p>但回到算法本身，我们会发现，如果最优解需要很多次迭代，随着迭代次数的不断增加，历史梯度的平方和的平方根会越来越大，导致学习率会逐渐收缩到无穷小，大大降低了程序后期的运行效率。所以为了尽量减少迭代次数，我们最好在初始时刻设置一个较大的学习率。</p><div class="highlight"><pre><code class="language-python3"><span class="k">class</span> <span class="nc">AdaptiveGradientDescent</span><span class="p">(</span><span class="n">MiniBatchGradientDescent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AdaptiveGradientDescent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">X</span><span class="p">]</span>
+        <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">gradient_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+                <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">mini_X</span><span class="p">,</span> <span class="n">mini_y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">]</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">-</span> <span class="n">mini_y</span>  
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+                <span class="n">mini_gradient</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>  
+                <span class="n">gradient_sum</span> <span class="o">+=</span> <span class="n">mini_gradient</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">adj_gradient</span> <span class="o">=</span> <span class="n">mini_gradient</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gradient_sum</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">*</span> <span class="n">adj_gradient</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+
+            <span class="n">delta_loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta_loss</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="bp">self</span></code></pre></div><p>既然有缺点，就要改正。为了避免学习速率随着迭代次数增加逐渐收缩到无穷小的问题，AdaGrad的升级版开始被相继提出，最有代表性的包括AdaDelta和RMSProp。</p><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+AdaDelta" alt="\gg AdaDelta" eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=E%5Bg%5E2%5D_%7Bt%7D+%3D+%5Cgamma+E%5Bg%5E2%5D_%7Bt-1%7D+%2B+%281-%5Cgamma%29g%5E2_%7Bt%7D" alt="E[g^2]_{t} = \gamma E[g^2]_{t-1} + (1-\gamma)g^2_{t}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5CDelta+%5Ctheta_%7Bt%7D+%3D+-%5Cfrac%7B%5Csqrt%7BE%5B%5CDelta+%5Ctheta+%5E2%5D_%7Bt-1%7D+%2B+%5Cepsilon%7D%7D%7B%5Csqrt%7BE%5Bg%5E2%5D_%7Bt-1%7D+%2B+%5Cepsilon%7D%7D+g_%7Bt%7D" alt="\Delta \theta_{t} = -\frac{\sqrt{E[\Delta \theta ^2]_{t-1} + \epsilon}}{\sqrt{E[g^2]_{t-1} + \epsilon}} g_{t}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=E%5B%5CDelta+%5Ctheta%5E2%5D_%7Bt%7D+%3D+%5Cgamma+E%5B%5CDelta+%5Ctheta%5E2%5D_%7Bt-1%7D+%2B+%281-+%5Cgamma%29%5CDelta+%5Ctheta_%7Bt%7D%5E2" alt="E[\Delta \theta^2]_{t} = \gamma E[\Delta \theta^2]_{t-1} + (1- \gamma)\Delta \theta_{t}^2" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+%2B+%5CDelta%7B%5Ctheta_%7Bt%7D%7D" alt="\theta_{t+1} = \theta_{t} + \Delta{\theta_{t}}" eeimg="1"/> </p><p>其中， <img src="https://www.zhihu.com/equation?tex=%5Cgamma" alt="\gamma" eeimg="1"/> 表示衰减参数。</p><p>AdaDelta主要的特性在于其虽然考虑了历史的梯度值，但其通过对历史梯度的平方进行指数加权移动平均来减缓梯度的累积效应，进而达到了减缓’学习率‘收缩的速度；同时，其引入了一个作用类似于动量的成分来代替原始的超参数学习率 <img src="https://www.zhihu.com/equation?tex=%5Ceta" alt="\eta" eeimg="1"/> ，状态变量的自适应性加快了收敛速度</p><div class="highlight"><pre><code class="language-python3"><span class="k">class</span> <span class="nc">AdaDelta</span><span class="p">(</span><span class="n">MiniBatchGradientDescent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AdaDelta</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">X</span><span class="p">]</span>
+        <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">gradient_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+        <span class="n">delta_theta_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+                <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">mini_X</span><span class="p">,</span> <span class="n">mini_y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">]</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">-</span> <span class="n">mini_y</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+                <span class="n">mini_gradient</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="n">mini_X</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+                <span class="n">gradient_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">gradient_exp</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">*</span> <span class="n">mini_gradient</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">gradient_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gradient_exp</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+                <span class="n">delta_theta</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">delta_theta_exp</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span> <span class="o">/</span> <span class="n">gradient_rms</span> <span class="o">*</span> <span class="n">mini_gradient</span>
+                <span class="n">delta_theta_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">delta_theta_exp</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta_theta</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">delta_theta_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">delta_theta_exp</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+                <span class="n">delta_theta</span> <span class="o">=</span> <span class="o">-</span><span class="n">delta_theta_rms</span> <span class="o">/</span> <span class="n">gradient_rms</span> <span class="o">*</span> <span class="n">mini_gradient</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">+=</span> <span class="n">delta_theta</span>
+
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+            <span class="n">delta_loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta_loss</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="bp">self</span></code></pre></div><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+RootMeanSquareProp" alt="\gg RootMeanSquareProp" eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=E%5Bg%5E2%5D_%7Bt%7D+%3D+%5Cgamma+E%5Bg%5E2%5D_%7Bt-1%7D+%2B+%281-%5Cgamma%29g_%7Bt%7D%5E2" alt="E[g^2]_{t} = \gamma E[g^2]_{t-1} + (1-\gamma)g_{t}^2" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7BE%5Bg%5E2%5D_%7Bt%7D+%2B+%5Cepsilon%7D%7Dg_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - \frac{\eta}{\sqrt{E[g^2]_{t} + \epsilon}}g_{t}" eeimg="1"/> </p><p>RMSProp的提出也是为了对AdaGrad进行改进，防止学习速率过快的衰减。区别于AdaGrad对历史所有梯度的平方进行累加，RMSProp采用了对历史梯度的平方和进行指数加权移动，来减缓梯度的累积效应，而其与AdaDelta的差异仅仅在于未对学习率进行变动。</p><div class="highlight"><pre><code class="language-text">class RMSProp(MiniBatchGradientDescent):
+    def __init__(self, gamma=0.9, epsilon=1e-6, **kwargs):
+        self.gamma = gamma
+        self.epsilon = epsilon
+        super(RMSProp, self).__init__(**kwargs)
+
+    def fit(self, X, y):
+        X = np.c_[np.ones(len(X)), X]
+        n_samples, n_features = X.shape
+        self.theta = np.ones(n_features)
+        self.loss_ = [0]
+
+        gradient_exp = np.zeros(n_features)
+
+        self.i = 0
+        while self.i &lt; self.n_iter:
+            self.i += 1
+            if self.shuffle:
+                X, y = self._shuffle(X, y)
+
+            errors = []
+            for j in range(0, n_samples, self.batch_size):
+                mini_X, mini_y = X[j: j + self.batch_size], y[j: j + self.batch_size]
+                error = mini_X.dot(self.theta) - mini_y
+                errors.append(error.dot(error))
+                mini_gradient = 1 / self.batch_size * mini_X.T.dot(error)
+                gradient_exp = self.gamma * gradient_exp + (1 - self.gamma) * mini_gradient ** 2
+                gradient_rms = np.sqrt(gradient_exp + self.epsilon)
+                self.theta -= self.eta / gradient_rms * mini_gradient
+
+            loss = 1 / (2 * self.batch_size) * np.mean(errors)
+            delta_loss = loss - self.loss_[-1]
+            self.loss_.append(loss)
+            if np.abs(delta_loss) &lt; self.tolerance:
+                break
+        return self</code></pre></div><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+AdaptiveMomentEstimation" alt="\gg AdaptiveMomentEstimation" eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=m_t+%3D+%5Cbeta_1+m_%7Bt-1%7D+%2B+%281-%5Cbeta_1%29g_t" alt="m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=v_t+%3D+%5Cbeta_2+v_%7Bt-1%7D+%2B+%281-%5Cbeta_2%29g_t%5E2" alt="v_t = \beta_2 v_{t-1} + (1-\beta_2)g_t^2" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctilde%7Bm%7D_%7Bt%7D+%3D+%5Cfrac%7Bm_%7Bt%7D%7D%7B1-%5Cbeta_1%5E%7Bt%7D%7D" alt="\tilde{m}_{t} = \frac{m_{t}}{1-\beta_1^{t}}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctilde%7Bv%7D_%7Bt%7D+%3D+%5Cfrac%7Bv_%7Bt%7D%7D%7B1-%5Cbeta_2%5E%7Bt%7D%7D" alt="\tilde{v}_{t} = \frac{v_{t}}{1-\beta_2^{t}}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7B%5Ctilde%7Bv%7D_%7Bt%7D%7D+%2B+%5Cepsilon%7D%5Ctilde%7Bm%7D_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - \frac{\eta}{\sqrt{\tilde{v}_{t}} + \epsilon}\tilde{m}_{t}" eeimg="1"/> </p><p>Adam相对于RMSProp新增了两处改动。其一，Adam使用经过指数移动加权平均的梯度值来替换原始的梯度值；其二，Adam对经指数加权后的梯度值 <img src="https://www.zhihu.com/equation?tex=m_t" alt="m_t" eeimg="1"/> 和平方梯度值 <img src="https://www.zhihu.com/equation?tex=v_t" alt="v_t" eeimg="1"/> 都进行了修正，亦即偏差修正（Bias Correction）。<b>那问题来了，为什么要进行偏差修正？</b></p><div class="highlight"><pre><code class="language-text">class AdaptiveMomentEstimation(MiniBatchGradientDescent):
+    def __init__(self, beta_1=0.9, beta_2=0.999, epsilon=1e-6, **kwargs):
+        self.beta_1 = beta_1
+        self.beta_2 = beta_2
+        self.epsilon = epsilon
+        super(AdaptiveMomentEstimation, self).__init__(**kwargs)
+
+    def fit(self, X, y):
+        X = np.c_[np.ones(len(X)), X]
+        n_samples, n_features = X.shape
+        self.theta = np.ones(n_features)
+        self.loss_ = [0]
+
+        m_t = np.zeros(n_features)  
+        v_t = np.zeros(n_features)  
+
+        self.i = 0
+        while self.i &lt; self.n_iter:
+            self.i += 1
+            if self.shuffle:
+                X, y = self._shuffle(X, y)
+            errors = []
+            for j in range(0, n_samples, self.batch_size):
+                mini_X, mini_y = X[j: j + self.batch_size], y[j: j + self.batch_size]
+                error = mini_X.dot(self.theta) - mini_y
+                errors.append(error.dot(error))
+                mini_gradient = 1 / self.batch_size * mini_X.T.dot(error)
+                m_t = self.beta_1 * m_t + (1 - self.beta_1) * mini_gradient
+                v_t = self.beta_2 * v_t + (1 - self.beta_2) * mini_gradient ** 2
+                m_t_hat = m_t / (1 - self.beta_1 ** self.i)  # correction
+                v_t_hat = v_t / (1 - self.beta_2 ** self.i)
+                self.theta -= self.eta / (np.sqrt(v_t_hat) + self.epsilon) * m_t_hat
+
+            loss = 1 / (2 * self.batch_size) * np.mean(errors)
+            delta_loss = loss - self.loss_[-1]
+            self.loss_.append(loss)
+            if np.abs(delta_loss) &lt; self.tolerance:
+                break
+        return self</code></pre></div><p>你以为到这里改进空间已经很小，差不多就结束了？Naive！劳动人民的智慧是无穷尽的。一阶矩二阶矩可以整出来，无穷阶矩是不是也可以考虑考虑？</p><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+AdaMax" alt="\gg AdaMax" eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=u_t+%3D+%5Cbeta_%7B2%7D%5E%7B%5Cinfty%7D+v_%7Bt-1%7D+%2B+%281+-+%5Cbeta_%7B2%7D%5E%7B%5Cinfty%7D%29%7Cg_%7Bt%7D%7C%5E%5Cinfty+%3Dmax%28%5Cbeta_2+v_%7Bt-1%7D%2C+%7Cg_%7Bt%7D%7C%29" alt="u_t = \beta_{2}^{\infty} v_{t-1} + (1 - \beta_{2}^{\infty})|g_{t}|^\infty =max(\beta_2 v_{t-1}, |g_{t}|)" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta%7D%7Bu%7Bt%7D%7D%5Chat%7Bm%7D_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - \frac{\eta}{u{t}}\hat{m}_{t}" eeimg="1"/> </p><p>AdaMax本质上是一个无穷阶的Adam，其将原来的二阶矩估计扩展到了无穷阶矩。这其中隐含的一个前提是高阶矩往往不稳定，而无穷阶矩却更稳定，具体推导过程请自行Google。同时，AdaMax也无需对变量 <img src="https://www.zhihu.com/equation?tex=u_%7Bt%7D" alt="u_{t}" eeimg="1"/> 进行偏差校正。</p><div class="highlight"><pre><code class="language-text">class AdaMax(AdaptiveMomentEstimation):
+    def __init__(self, **kwargs):
+        super(AdaMax, self).__init__(**kwargs)
+
+    def fit(self, X, y):
+        X = np.c_[np.ones(len(X)), X]
+        n_samples, n_features = X.shape
+        self.theta = np.ones(n_features)
+        self.loss_ = [0]
+
+        m_t = np.zeros(n_features)
+        u_t = np.zeros(n_features)
+
+        self.i = 0
+        while self.i &lt; self.n_iter:
+            self.i += 1
+            if self.shuffle:
+                X, y = self._shuffle(X, y)
+            errors = []
+            for j in range(0, n_samples, self.batch_size):
+                mini_X, mini_y = X[j: j + self.batch_size], y[j: j + self.batch_size]
+                error = mini_X.dot(self.theta) - mini_y
+                errors.append(error.dot(error))
+                mini_gradient = 1 / self.batch_size * mini_X.T.dot(error)
+                m_t = self.beta_1 * m_t + (1 - self.beta_1) * mini_gradient
+                m_t_hat = m_t / (1 - self.beta_1 ** self.i)
+                u_t = np.max(np.c_[self.beta_2 * u_t, np.abs(mini_gradient)], axis=1)
+                self.theta -= self.eta / u_t * m_t_hat
+            loss = 1 / (2 * self.batch_size) * np.mean(errors)
+            delta_loss = loss - self.loss_[-1]
+            self.loss_.append(loss)
+            if np.abs(delta_loss) &lt; self.tolerance:
+                break
+        return self</code></pre></div><p><img src="https://www.zhihu.com/equation?tex=%5Cgg+Nadam" alt="\gg Nadam" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7B%5Chat%7Bv%7D_%7Bt%7D%7D+%2B+%5Cepsilon%7D%28%5Cbeta_1+%5Chat%7Bm%7D_%7Bt%7D+%2B+%5Cfrac%7B%281-%5Cbeta_1%29g_%7Bt%7D%7D%7B1-%5Cbeta_%7B1%7D%5Et%7D%29" alt="\theta_{t+1} = \theta_{t} - \frac{\eta}{\sqrt{\hat{v}_{t}} + \epsilon}(\beta_1 \hat{m}_{t} + \frac{(1-\beta_1)g_{t}}{1-\beta_{1}^t})" eeimg="1"/> </p><p>根据Nadam的全称Nesterov Accelerated Adaptive Moment Estimation即可联想到其是Nesterov和Adam的结合。具体的推导步骤请参考相关文献，此处不再赘述。</p><div class="highlight"><pre><code class="language-text">class Nadam(AdaptiveMomentEstimation):
+    def __init__(self, **kwargs):
+        super(Nadam, self).__init__(**kwargs)
+
+    def fit(self, X, y):
+        X = np.c_[np.ones(len(X)), X]
+        n_samples, n_features = X.shape
+        self.theta = np.ones(n_features)
+        self.loss_ = [0]
+
+        m_t = np.zeros(n_features)
+        v_t = np.zeros(n_features)
+
+        self.i = 0
+        while self.i &lt; self.n_iter:
+            self.i += 1
+            if self.shuffle:
+                X, y = self._shuffle(X, y)
+            errors = []
+            for j in range(0, n_samples, self.batch_size):
+                mini_X, mini_y = X[j: j + self.batch_size], y[j: j + self.batch_size]
+                error = mini_X.dot(self.theta) - mini_y
+                errors.append(error.dot(error))
+                mini_gradient = 1 / self.batch_size * mini_X.T.dot(error)
+                m_t = self.beta_1 * m_t + (1 - self.beta_1) * mini_gradient
+                v_t = self.beta_2 * v_t + (1 - self.beta_2) * mini_gradient ** 2
+                m_t_hat = m_t / (1 - self.beta_1 ** self.i)  # correction
+                v_t_hat = v_t / (1 - self.beta_2 ** self.i)
+                self.theta -= self.eta / (np.sqrt(v_t_hat) + self.epsilon) * (
+                            self.beta_1 * m_t_hat + (1 - self.beta_1) * mini_gradient / (1 - self.beta_1 ** self.i))
+
+            loss = 1 / (2 * self.batch_size) * np.mean(errors)
+            delta_loss = loss - self.loss_[-1]
+            self.loss_.append(loss)
+            if np.abs(delta_loss) &lt; self.tolerance:
+                break
+        return self</code></pre></div><h2><img src="https://www.zhihu.com/equation?tex=%5Cgg+AMSGrad" alt="\gg AMSGrad" eeimg="1"/> </h2><p><img src="https://www.zhihu.com/equation?tex=m_%7Bt%7D+%3D+%5Cbeta_%7B1%7D+m_%7Bt-1%7D+%2B+%281-%5Cbeta_%7B1%7D%29g_%7Bt%7D" alt="m_{t} = \beta_{1} m_{t-1} + (1-\beta_{1})g_{t}" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=v_%7Bt%7D+%3D+%5Cbeta_%7B2%7Dv_%7Bt-1%7D+%2B+%281-%5Cbeta_2%29g_%7Bt%7D%5E2" alt="v_{t} = \beta_{2}v_{t-1} + (1-\beta_2)g_{t}^2" eeimg="1"/> </p><p><img src="https://www.zhihu.com/equation?tex=%5Chat%7Bv%7D_%7Bt%7D+%3D+max%28%5Chat%7Bv%7D_%7Bt-1%7D%2C+v_%7Bt%7D%29" alt="\hat{v}_{t} = max(\hat{v}_{t-1}, v_{t})" eeimg="1"/></p><p><img src="https://www.zhihu.com/equation?tex=%5Ctheta_%7Bt%2B1%7D+%3D+%5Ctheta_%7Bt%7D+-+%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7B%5Chat%7Bv%7D_%7Bt%7D%7D+%2B+%5Cepsilon%7Dm_%7Bt%7D" alt="\theta_{t+1} = \theta_{t} - \frac{\eta}{\sqrt{\hat{v}_{t}} + \epsilon}m_{t}" eeimg="1"/> </p><p>AMSGrad区别于Adam的地方在于：其一，其去除了对变量 <img src="https://www.zhihu.com/equation?tex=m_t" alt="m_t" eeimg="1"/> 的偏差修正；其二，其使用历史上的平方梯度的最大值替换了指数加权移动平均值来控制学习速率的衰减。</p><p>正如作者在<a href="https://link.zhihu.com/?target=http%3A//www.satyenkale.com/papers/amsgrad.pdf" class=" wrap external" target="_blank" rel="nofollow noreferrer">文章摘要</a>中指出，虽然AdaGrad方法及其变体在大部分的情况下表现很好，但在其采用指数加权移动平均的平方根的形式来减缓学习率的快速衰减，避免学习率受到最近梯度过大影响的同时，这也导致了其在某些设置中，程序收敛性较差。比如某些小批量样本提供了较大的梯度，但却很少出现，虽然这些大梯度很有用，但是由于采用了指数加权平均，它们的影响很快就消失了，收敛速度也因此下降了。</p><div class="highlight"><pre><code class="language-text">class AMSGrad(AdaptiveMomentEstimation):
+    def __init__(self, **kwargs):
+        super(AMSGrad, self).__init__(**kwargs)
+
+    def fit(self, X, y):
+        X = np.c_[np.ones(len(X)), X]
+        n_samples, n_features = X.shape
+        self.theta = np.ones(n_features)
+        self.loss_ = [0]
+
+        m_t = np.zeros(n_features)
+        v_t = np.zeros(n_features)
+        v_t_hat = np.zeros(n_features)
+
+        self.i = 0
+        while self.i &lt; self.n_iter:
+            self.i += 1
+            if self.shuffle:
+                X, y = self._shuffle(X, y)
+            errors = []
+            for j in range(0, n_samples, self.batch_size):
+                mini_X, mini_y = X[j: j + self.batch_size], y[j: j + self.batch_size]
+                error = mini_X.dot(self.theta) - mini_y
+                errors.append(error.dot(error))
+                mini_gradient = 1 / self.batch_size * mini_X.T.dot(error)
+                m_t = self.beta_1 * m_t + (1 - self.beta_1) * mini_gradient
+                v_t = self.beta_2 * v_t + (1 - self.beta_2) * mini_gradient ** 2
+                v_t_hat = np.max(np.hstack((v_t_hat, v_t)))
+                self.theta -= self.eta / (np.sqrt(v_t_hat) + self.epsilon) * m_t
+
+            loss = 1 / (2 * self.batch_size) * np.mean(errors)
+            delta_loss = loss - self.loss_[-1]
+            self.loss_.append(loss)
+            if np.abs(delta_loss) &lt; self.tolerance:
+                break
+        return self </code></pre></div><p>讲了这么多，让我们来比较一下各梯度下降算法的实际应用情况。曾经听说梯度下降和线性回归更配，那我们也来试一下。构造线性回归表达式如下：</p><p><img src="https://www.zhihu.com/equation?tex=y+%3D+2.3+%2B+5.1+x_1+-+1.5+x_2" alt="y = 2.3 + 5.1 x_1 - 1.5 x_2" eeimg="1"/> </p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-67094405bd52c05856d327affcda23e1_b.jpg" data-size="normal" data-rawwidth="1212" data-rawheight="612" class="origin_image zh-lightbox-thumb" width="1212" data-original="https://pic2.zhimg.com/v2-67094405bd52c05856d327affcda23e1_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-67094405bd52c05856d327affcda23e1_b.jpg" data-size="normal" data-rawwidth="1212" data-rawheight="612" class="origin_image zh-lightbox-thumb lazy" width="1212" data-original="https://pic2.zhimg.com/v2-67094405bd52c05856d327affcda23e1_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-67094405bd52c05856d327affcda23e1_b.jpg"/><figcaption>线性回归与梯度下降</figcaption></figure><p>其实我自己在查资料的过程中，发现将梯度过程可视化感觉是更有意思的一件事，有兴趣的小伙伴可以自己动手画画那些梯度介绍文章中出现的动态图。</p><p>最后，以上算法的整理结构主要参考了<a href="https://link.zhihu.com/?target=http%3A//ruder.io/optimizing-gradient-descent/index.html%23nadam" class=" wrap external" target="_blank" rel="nofollow noreferrer">Sebastian Ruder</a>和<a href="https://link.zhihu.com/?target=https%3A//towardsdatascience.com/10-gradient-descent-optimisation-algorithms-86989510b5e9" class=" wrap external" target="_blank" rel="nofollow noreferrer">Raimi Karim</a>的文章 ，在此表示感谢。由于他们整理的相当好，所以本文的侧重点主要是在个人认知的基础上来进行算法实现，从而加深自己对梯度下降的理解深度。</p><p>讲完了梯度下降，接着我们就该试着自己搭建一个深度神经网络啦，并尝试用其来进行简单的任务训练，以此来加深我们对神经网络本身作用机制的理解。</p><p>以上！</p><p>客官，都看到这里了，点个赞再走？</p><p class="ztext-empty-paragraph"><br/></p><p>参考资料：</p><p>[1] <a href="https://link.zhihu.com/?target=http%3A//ruder.io/optimizing-gradient-descent/index.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">An overview of gradient descent optimization algorithms</a></p><p>[2] <a href="https://link.zhihu.com/?target=https%3A//towardsdatascience.com/10-gradient-descent-optimisation-algorithms-86989510b5e9" class=" wrap external" target="_blank" rel="nofollow noreferrer">10 Gradient Descent Optimization Algorithms + Cheat Sheet</a></p><p>[3] <a href="https://link.zhihu.com/?target=https%3A//medium.com/konvergen/an-introduction-to-adagrad-f130ae871827" class=" wrap external" target="_blank" rel="nofollow noreferrer">An Introduction to AdaGrad</a></p><p>[4] <a href="https://link.zhihu.com/?target=https%3A//www.cnblogs.com/pinard/p/5970503.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">梯度下降小结</a></p><p>[5] <a href="https://link.zhihu.com/?target=https%3A//book.douban.com/subject/27000110/" class=" wrap external" target="_blank" rel="nofollow noreferrer">Python机器学习</a></p><p></p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
