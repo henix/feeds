@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>量化面试——5*5匹马赛跑的问题</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/89471508">原文</a></p>
+<p>25匹马分成5组赛跑，每组5匹，这样可以得到每组的第1名；然后这5个第1名赛跑，可以得到全场第1名，一共6次比赛，问确定找出2、3、4、5名至少需要多少次比赛？</p><p>-------------------------我是罪恶的分割线------------------------------</p><p>其实这道题我2011年的时候大致研究过，并扩展到n*n匹马，可以推出一个近似公式，需要估计上下界等等，可惜时间久远，没有保存，就算了，吉米多维奇第一册有相关通项公式的上界估计。现在重新做一下。5匹马其实容易。</p><p>记 <img src="https://www.zhihu.com/equation?tex=A_%7Bi%2Cj%7D" alt="A_{i,j}" eeimg="1"/> 是第i场比赛第j名的马，并且按照第6次的排号，也就是 <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C1%7D" alt="A_{1,1}" eeimg="1"/> 最快， <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C2%7D" alt="A_{1,2}" eeimg="1"/> 次之， <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C5%7D" alt="A_{1,5}" eeimg="1"/> 最慢。</p><p>那么很显然，第二快的只会在 <img src="https://www.zhihu.com/equation?tex=A_%7B2%2C1%7D" alt="A_{2,1}" eeimg="1"/> 和 <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C2%7D" alt="A_{1,2}" eeimg="1"/> 中产生，因为其余的马都已经确定至少2匹比他快乐，这个跑一遍就行，一共7次；</p><p>第三名继续看对角线 <img src="https://www.zhihu.com/equation?tex=A_%7B3%2C1%7D-A_%7B2%2C2%7D-A_%7B1%2C3%7D" alt="A_{3,1}-A_{2,2}-A_{1,3}" eeimg="1"/> ，也就是i+j的和为4的元素，它们是跑第三名的底线，更往右或更往下（假设 <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C1%7D" alt="A_{1,1}" eeimg="1"/> 是左上角）的马都不可能，因为已经确认至少3匹马比他快；加上前面的 <img src="https://www.zhihu.com/equation?tex=A_%7B2%2C1%7D" alt="A_{2,1}" eeimg="1"/> 和 <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C2%7D" alt="A_{1,2}" eeimg="1"/>，这5匹马跑一遍，其实还是7次，之前那次可以省的，这次第1名的就是全场第二，第二名的就是全场第三；</p><p>然后就是第四名。刚刚第7次跑的结果可以这么算，7.1是第1名，7.2是第二名，7.3是第3名，我们已经知道7.1是全场第2，7.2是全场第3，但7.3未必是全场第4，因为 <img src="https://www.zhihu.com/equation?tex=A_%7B1%2C4%7D%E3%80%81A_%7B2%2C3%7D%E3%80%81A_%7B3%2C2%7D%E5%92%8CA_%7B4%2C1%7D" alt="A_{1,4}、A_{2,3}、A_{3,2}和A_{4,1}" eeimg="1"/> 都有可能是全场第4，也就是i+j等于5的这些，一共4个；我们知道，第7次跑比7.3慢的肯定不可能全场第4了，因为已经确定4个比他们快，因此全场第4只可能在上述4个以及7.3中产生，我们不必管7.3是谁，这样一共8次；</p><p>最后第5名。同样的，我们标记8.1-8.5表示第8场的前5名，8.1是全场第4，8.2有可能第5的；同样，7.3如果全场第4，那么7.4也可能全场第5；如果7.3不是全场第4，那么7.3就可能全场第5，无论如何，第7组会有且仅有一个7.x可能全场第5，而且这个7.x此时已经确定。</p><p>8.2其实有可能就是7.3，但不管怎样，7、8场比赛会有1、2匹马可能是全场第5，还有i+j=6的那条对角线的5个，这些都是可能第5名的，已经超过5匹马了，至少需要两场比赛才能确定，因此一共需要10场比赛吧。</p><p>当然，从8到10有点跳跃，不知道有没有优化的空间。其实是有的：</p><p>第7场比的结果可以拿来用，前两名无外乎 <img src="https://www.zhihu.com/equation?tex=%5BA_%7B2%2C1%7D%2CA_%7B3%2C1%7D%5D%2C%5BA_%7B2%2C1%7D%2CA_%7B1%2C2%7D%5D%2C%5BA_%7B1%2C2%7D%2CA_%7B2%2C2%7D%5D%2C%5BA_%7B1%2C2%7D%2CA_%7B1%2C3%7D%5D+" alt="[A_{2,1},A_{3,1}],[A_{2,1},A_{1,2}],[A_{1,2},A_{2,2}],[A_{1,2},A_{1,3}] " eeimg="1"/> 等几种可能，</p><p>那么针对每一种可能，他们排出了全场第2、3名，我们知道，如果某一列的第一名都无法出现在这里面，那么这个第一名最多全场第4，第二名是不可能全场第4的；因此，1、2、3、4这4列，在参加第8场比赛时，前4行中每列最多一支队伍参赛，这样腾出了一个空位给 <img src="https://www.zhihu.com/equation?tex=A_%7B5%2C1%7D" alt="A_{5,1}" eeimg="1"/> ，于是第8场比赛可以塞进<img src="https://www.zhihu.com/equation?tex=A_%7B5%2C1%7D" alt="A_{5,1}" eeimg="1"/>，第8场比赛的第1名就是全场第4名；</p><p>然后第8场的第2名再与对角线的 <img src="https://www.zhihu.com/equation?tex=A_%7B4%2C2%7D%2CA_%7B3%2C3%7D%2CA_%7B2%2C4%7D%2CA_%7B1%2C5%7D" alt="A_{4,2},A_{3,3},A_{2,4},A_{1,5}" eeimg="1"/> 比赛，排第一名的就是全场第5，一共9场比赛，节省了一场。应该没有更省的方法了。</p><p>以前我推广到n*n匹马的，可惜忘了，推多几项有公式的。</p><p>这里有人说8次，</p><a href="https://zhuanlan.zhihu.com/p/86441697" data-draft-node="block" data-draft-type="link-card" class="internal">LbyG：25匹马，5条赛道，最多8次比赛可以保证找出最快的5匹马</a><p>关键在于他这里“第7轮选择A3, B2, B3, C2, D1进行比赛。”有误，因为此时A2,B1的名次尚未确定，他就对其它的进行比赛，自然比别人少一次。</p><p>当然，如果只是找出前5匹，不用排序，可能可以少一次，容我想想。</p><p>但似乎也不大行。因为前5名很可能就是A1-A5，无论如何B2也要比的。</p><p>当然，还可以继续扩展下去，比如n*n匹马比赛找到前n名最少需要多少场比赛，也未必太精确，可以估计个上界，然后推导出通项公式；或者把n*n全部排出来的通项公式，之前推到过，需要一些不等式放缩，现在老了，算了，希望寄托下一代。也可以写个程序模拟排序，找到规律后总结公式等，之前写过一篇文章，回去再找找。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
