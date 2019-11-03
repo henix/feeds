@@ -5,7 +5,242 @@
 <link>https://henix.github.io/feeds/zhuanlan.milocode/</link>
 <description></description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 29 Sep 2019 20:47:48 +0800</lastBuildDate>
+<lastBuildDate>Sun, 03 Nov 2019 19:14:28 +0800</lastBuildDate>
+<item>
+<title>使用 Graphviz 绘画 UML 图</title>
+<link>https://henix.github.io/feeds/zhuanlan.milocode/2019-10-29-88835583.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/88835583&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-5cb521bd5213630b8a492bd6601cbc8c_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;简介&lt;/h2&gt;&lt;blockquote&gt;本文为开放文档，可在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/miloyip/graphvizuml&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;GitHub&lt;/a&gt; 提交 issue／PR。本文的 PDF 版本可在 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//miloyip.github.io/graphvizuml/graphvizuml.pdf&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;在此下载&lt;/a&gt;。&lt;/blockquote&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.graphviz.org/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Graphviz&lt;/a&gt; 是 AT&amp;amp;T 实验室开发的一个开源软件，它以一种文本语言去描述图（graph），然后自动排布节点和边去生成图片。它已有近 30 年历史。&lt;/p&gt;&lt;p&gt;UML（unified modeling language，统一建模语言）是一种常用的面向对象设计的方法。其中最常用的是类图（class diagram），用于表示类的构成以及类之间的关系。&lt;/p&gt;&lt;p&gt;利用 Graphviz 去生成 UML 类图有几个好处：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;用文本表示图，容易更新，容易做版本管理。&lt;/li&gt;&lt;li&gt;能自动排布节点位置，在大型复杂的图特别方便。&lt;/li&gt;&lt;li&gt;统一文档风格。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;实际上，文档生成工具&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//www.doxygen.nl/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Doxygen&lt;/a&gt; 也是采用 Graphviz 生成类图的。不过，我们在软件设计中，经常以类图表示系统中某个部分，并且按需展示某些重点，而不是简单地全部列出，所以还是需要手工去描述我们想要画什么，表示我们的软件设计。&lt;/p&gt;&lt;h2&gt;使用 Graphviz dot&lt;/h2&gt;&lt;p&gt;首先，下载 &lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.graphviz.org/download/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Graphviz&lt;/a&gt; 安装包。macOS 用户可以 &lt;code&gt;brew install graphviz&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;建立一个测试源文件 &lt;code&gt;hello.dot&lt;/code&gt;（&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//zh.wikipedia.org/wiki/DOT%25E8%25AF%25AD%25E8%25A8%2580&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;DOT语言&lt;/a&gt;为 Graphviz 的图形描述语言）：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    Hello -&amp;gt; World
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在命令行执行：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;dot -Tpng hello.dot -o hello.png&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;就能生成：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fcb1bc1215556c437adc1e3670992f4c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;300&quot; data-rawheight=&quot;483&quot; class=&quot;content_image&quot; width=&quot;300&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-fcb1bc1215556c437adc1e3670992f4c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;300&quot; data-rawheight=&quot;483&quot; class=&quot;content_image lazy&quot; width=&quot;300&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-fcb1bc1215556c437adc1e3670992f4c_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;作为程序员，我们可以用常用的 GNU make 去做这个生成，以下的 makefile 也展示生成 PDF 矢量格式：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;DOTFILES = $(basename $(wildcard *.dot))
+
+all: \
+    $(addsuffix .png, $(DOTFILES)) \
+    $(addsuffix .pdf, $(DOTFILES))
+
+%.png: %.dot
+    dot $&amp;lt; -Tpng -o $@
+
+%.pdf: %.dot
+    dot $&amp;lt; -Tpdf -o $@&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;类图&lt;/h2&gt;&lt;p&gt;UML 类图（class diagram）是最常见的图，用于表示系统的静态结构。UML 中类是以矩形表示。我们可以在 dot 文件中预设节点的形状，并且设置一些如字体等属性：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Foo
+    Bar
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-9d812d8ee9b39146f1c92a52a53a14ae_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;179&quot; data-rawheight=&quot;59&quot; class=&quot;content_image&quot; width=&quot;179&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-9d812d8ee9b39146f1c92a52a53a14ae_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;179&quot; data-rawheight=&quot;59&quot; class=&quot;content_image lazy&quot; width=&quot;179&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-9d812d8ee9b39146f1c92a52a53a14ae_b.png&quot;/&gt;&lt;/figure&gt;&lt;p&gt;稍后我们再谈如何加入类的成员。&lt;/p&gt;&lt;h2&gt;继承&lt;/h2&gt;&lt;p&gt;继承（inheritance）是类之间很重要的关系，在 UML 中又称其为泛化（generalization）关系，以空心箭头表示派生类指向基类。在 DOT 语言中，可以设置边的箭头形状，不过要注意，通常我们会把基类放在上面，因此我通常会这样设置：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Animal, Mammal, Reptile, Dog, Cat, Snake
+
+    /* inheritance */
+    {
+        edge [arrowtail=onormal, dir=back]
+
+        Animal -&amp;gt; { Mammal, Reptile }
+        Mammal -&amp;gt; { Dog, Cat}
+        Reptile -&amp;gt; Snake
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-16bb86422b5d32af6cbb21d290cd9b44_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;275&quot; data-rawheight=&quot;251&quot; class=&quot;content_image&quot; width=&quot;275&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-16bb86422b5d32af6cbb21d290cd9b44_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;275&quot; data-rawheight=&quot;251&quot; class=&quot;content_image lazy&quot; width=&quot;275&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-16bb86422b5d32af6cbb21d290cd9b44_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;关联&lt;/h2&gt;&lt;p&gt;UML 中的关联（association）描述两个类的关系，以类之间的实线表示。例如人和杂志的关系是订阅：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Person, Magazine
+
+    /* Association */
+    {
+        edge [dir=none]
+        Person -&amp;gt; Magazine [label=&amp;#34; subscribe&amp;#34;]
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-4062e2958ca79dad0565bcb936aae067_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;111&quot; data-rawheight=&quot;168&quot; class=&quot;content_image&quot; width=&quot;111&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-4062e2958ca79dad0565bcb936aae067_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;111&quot; data-rawheight=&quot;168&quot; class=&quot;content_image lazy&quot; width=&quot;111&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-4062e2958ca79dad0565bcb936aae067_b.png&quot;/&gt;&lt;/figure&gt;&lt;p&gt;我们经常会表示关联之间的多重性（multiplicity），例如 &lt;code&gt;Person&lt;/code&gt; 类的实例最多可订阅 5 本杂志，而每本杂志可被任意数目的人订阅：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Person, Magazine
+
+    /* Association with multiplicity */
+    {
+        edge [dir=none]
+        Person -&amp;gt; Magazine [label=&amp;#34; subscribe&amp;#34;, headlabel=&amp;#34;0..10&amp;#34;, taillabel=&amp;#34;* &amp;#34;]
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8d7106016f7b32fde83cc5c44ee2ad25_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;111&quot; data-rawheight=&quot;168&quot; class=&quot;content_image&quot; width=&quot;111&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-8d7106016f7b32fde83cc5c44ee2ad25_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;111&quot; data-rawheight=&quot;168&quot; class=&quot;content_image lazy&quot; width=&quot;111&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-8d7106016f7b32fde83cc5c44ee2ad25_b.png&quot;/&gt;&lt;/figure&gt;&lt;p&gt;注意，上面的例子在 &lt;code&gt;label&lt;/code&gt;、&lt;code&gt;headlabel&lt;/code&gt;、&lt;code&gt;taillabel&lt;/code&gt; 加入空格避免它们太贴近连线（这不完美）。&lt;/p&gt;&lt;p&gt;关联可以是单向或双向的，以线形箭头表示，无箭头也表示双向关联。以下展示单向关联，面试官知道他对应的候选人，但候选人不知道面试官：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Interviewer, Candidate
+
+    /* Unidirection association */
+    {
+        Interviewer -&amp;gt; Candidate [arrowhead=vee]
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2ad362c65be547450d5f196f4876d235_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;97&quot; data-rawheight=&quot;155&quot; class=&quot;content_image&quot; width=&quot;97&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-2ad362c65be547450d5f196f4876d235_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;97&quot; data-rawheight=&quot;155&quot; class=&quot;content_image lazy&quot; width=&quot;97&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-2ad362c65be547450d5f196f4876d235_b.png&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;聚合&lt;/h2&gt;&lt;p&gt;聚合（aggregation）是一种特殊的关系，是一种弱的包含关系，包含方以空心菱形表示。例如，一个部门含有一些员工：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Department, Employeee
+
+    /* Aggregation */
+    {
+        edge [dir=back, arrowtail=odiamond, headlabel=&amp;#34;* &amp;#34;]
+        Department -&amp;gt; Employeee
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4e54aa100bf23b7e16256e599ba27ed4_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;102&quot; data-rawheight=&quot;155&quot; class=&quot;content_image&quot; width=&quot;102&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4e54aa100bf23b7e16256e599ba27ed4_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;102&quot; data-rawheight=&quot;155&quot; class=&quot;content_image lazy&quot; width=&quot;102&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-4e54aa100bf23b7e16256e599ba27ed4_b.png&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;组成&lt;/h2&gt;&lt;p&gt;组成（composition）是更强的包含关系，说明一个类的实例是另一个类的组成部分，它们有一致的生命周期，组成方以实心菱形表示。例如，一家公司由多个部门组成，若果公司结业，部门也不存在了：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Company, Department, Employeee
+
+    /* Composition */
+    {
+        edge [dir=back, arrowtail=diamond, headlabel=&amp;#34;* &amp;#34;]
+        Company -&amp;gt; Department        
+    }
+
+    /* Aggregation */
+    {
+        edge [dir=back, arrowtail=odiamond, headlabel=&amp;#34;* &amp;#34;]
+        Department -&amp;gt; Employeee
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-d730758e13a7d6dbfd19de88a197c6c9_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;102&quot; data-rawheight=&quot;251&quot; class=&quot;content_image&quot; width=&quot;102&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-d730758e13a7d6dbfd19de88a197c6c9_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;102&quot; data-rawheight=&quot;251&quot; class=&quot;content_image lazy&quot; width=&quot;102&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-d730758e13a7d6dbfd19de88a197c6c9_b.png&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;依赖&lt;/h2&gt;&lt;p&gt;依赖（depedency）关系说明一个类会使用到另一个类，例如表示以一个类作为成员方法的参数或返回值。UML 中采用线形箭头和虚线表示。以下的例子表示工厂创建产品，常见于各种工厂模式，工厂不拥有产品。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Factory, Product
+
+    /* Dependency */
+    {
+        edge [arrowhead=vee, style=dashed]
+        Factory -&amp;gt; Product [label=&amp;#34; &amp;lt;&amp;lt;create&amp;gt;&amp;gt;&amp;#34;]
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ab9e69eb721e09640efea6402a5711c2_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;119&quot; data-rawheight=&quot;168&quot; class=&quot;content_image&quot; width=&quot;119&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-ab9e69eb721e09640efea6402a5711c2_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;119&quot; data-rawheight=&quot;168&quot; class=&quot;content_image lazy&quot; width=&quot;119&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-ab9e69eb721e09640efea6402a5711c2_b.png&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;类成员&lt;/h2&gt;&lt;p&gt;类除了名字，也可以展示其成员。成员包括属性（attribute）和方法（method）。&lt;/p&gt;&lt;p&gt;每个成员的可见性（visibility）以一个前置符号表示：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code&gt;+&lt;/code&gt; 公有（public）&lt;/li&gt;&lt;li&gt;&lt;code&gt;-&lt;/code&gt; 私有（private）&lt;/li&gt;&lt;li&gt;&lt;code&gt;#&lt;/code&gt; 保护（protected）&lt;/li&gt;&lt;li&gt;&lt;code&gt;~&lt;/code&gt; 包（package）&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;如果成员为静态（static）的，则加下划线。&lt;/p&gt;&lt;p&gt;属性的格式为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;visibility&amp;gt; &amp;lt;attribute name&amp;gt; : &amp;lt;type&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;方法的格式为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;visibility&amp;gt; &amp;lt;method name&amp;gt; (&amp;lt;param1 name&amp;gt; : &amp;lt;param1 type&amp;gt;, ...) : &amp;lt;return type&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Graphviz 可使用 record shape 或 HTML table 来分隔类名字、属性和方法，例如以下的 C++ 类：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;err&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Account&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Deposite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Withdraw&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GetAmount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;balance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;private&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;用 record shape 的话可写作：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=record, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Account [label=&amp;#34;{
+Account
+|
+# balance : int\l
+- owner : string\l
+|
++ Deposite(amount : int)\l
++ Withdraw(amount : int)\l
++ GetBalance() : int\l
+}&amp;#34;]
+
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6ebcda7e08e3b541b84a14b5d169d874_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;178&quot; data-rawheight=&quot;124&quot; class=&quot;content_image&quot; width=&quot;178&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-6ebcda7e08e3b541b84a14b5d169d874_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;178&quot; data-rawheight=&quot;124&quot; class=&quot;content_image lazy&quot; width=&quot;178&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-6ebcda7e08e3b541b84a14b5d169d874_b.png&quot;/&gt;&lt;/figure&gt;&lt;p&gt;当中，&lt;code&gt;\l&lt;/code&gt; 是代表该行向左对齐并换行。&lt;/p&gt;&lt;p&gt;如需更多控制，则可使用 HTML table，但就会更冗长：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=plaintext, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Account [label=&amp;lt;
+&amp;lt;table border=&amp;#34;0&amp;#34; cellborder=&amp;#34;1&amp;#34; cellspacing=&amp;#34;0&amp;#34;&amp;gt;
+&amp;lt;tr&amp;gt;&amp;lt;td align=&amp;#34;left&amp;#34; balign=&amp;#34;left&amp;#34;&amp;gt;
+# balance : int&amp;lt;br/&amp;gt;
+- owner : string&amp;lt;br/&amp;gt;
+&amp;lt;/td&amp;gt;&amp;lt;/tr&amp;gt;
+&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;Account&amp;lt;/td&amp;gt;&amp;lt;/tr&amp;gt;
+&amp;lt;tr&amp;gt;&amp;lt;td align=&amp;#34;left&amp;#34; balign=&amp;#34;left&amp;#34;&amp;gt;
++ Deposite(amount : int)&amp;lt;br/&amp;gt;
++ Withdraw(amount : int)&amp;lt;br/&amp;gt;
++ GetBalance() : int&amp;lt;br/&amp;gt;
+&amp;lt;/td&amp;gt;&amp;lt;/tr&amp;gt;
+&amp;lt;/table&amp;gt;
+&amp;gt;]
+
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用 HTML table 可加入 &lt;code&gt;&amp;lt;U&amp;gt;&amp;lt;/U&amp;gt;&lt;/code&gt;（下划线）、&lt;code&gt;&amp;lt;I&amp;gt;&amp;lt;/I&amp;gt;&lt;/code&gt; （斜体）等字体控制，但只在一些渲染器中有效。如需表示静态或抽像，可利用 stereotype &lt;code&gt;&amp;lt;&amp;lt;abstract&amp;gt;&amp;gt;&lt;/code&gt;、&lt;code&gt;&amp;lt;&amp;lt;static&amp;gt;&amp;gt;&lt;/code&gt; 等说明。&lt;/p&gt;&lt;p&gt;再重申一次，类图不必要展示所有细节，可按想表达的意思仅加入部分成员，每个方法也可忽略一些参数细节。&lt;/p&gt;&lt;h2&gt;包&lt;/h2&gt;&lt;p&gt;在比较大的系统里，类通常会用包（package）的方式来组织。Graphviz 不能简单还完 UML 包的图形，但可以使用 subgraph cluster 功能去近似地表示类属于那个包。&lt;/p&gt;&lt;p&gt;例如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    graph [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5,
+        labeljust=left] 
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    subgraph clusterView {
+        label=&amp;#34;View&amp;#34;
+        AccountView, CustomerView
+    }
+
+    subgraph clusterModel {
+        label=&amp;#34;Model&amp;#34;
+        Account, Customer
+    }
+
+    /* Unidirecitonal association */
+    {
+        edge [arrowhead=vee]
+        AccountView -&amp;gt; Account
+        CustomerView -&amp;gt; Customer
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e9dee260a95e0ed2be812a9c1d4805a3_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;283&quot; data-rawheight=&quot;229&quot; class=&quot;content_image&quot; width=&quot;283&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e9dee260a95e0ed2be812a9c1d4805a3_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;283&quot; data-rawheight=&quot;229&quot; class=&quot;content_image lazy&quot; width=&quot;283&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-e9dee260a95e0ed2be812a9c1d4805a3_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;注意，&lt;code&gt;subgraph&lt;/code&gt; 的名字必须以 &lt;code&gt;cluster&lt;/code&gt; 为前缀。&lt;/p&gt;&lt;h2&gt;排布技巧&lt;/h2&gt;&lt;p&gt;自动排布故然很方便，但有时候我们想做出一些修改。例如，dot 描述的是有向图，从来源节点指向目标节点时，目标节点就会成为下一级，预设设置下，节点会垂直排列，如以下例子：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    Canvas, Shape, Rectangle, Circle
+
+    /* Inheritance */
+    {
+        edge [arrowtail=onormal, dir=back]
+        Shape -&amp;gt; { Rectangle, Circle }
+    }
+
+    /* Composition */
+    {
+        edge [dir=back, arrowtail=diamond, headlabel=&amp;#34;* &amp;#34;]        
+        Canvas -&amp;gt; Shape
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-e8529cc90f0c84b40175be2db4c3a70a_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;189&quot; data-rawheight=&quot;251&quot; class=&quot;content_image&quot; width=&quot;189&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-e8529cc90f0c84b40175be2db4c3a70a_b.png&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;189&quot; data-rawheight=&quot;251&quot; class=&quot;content_image lazy&quot; width=&quot;189&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-e8529cc90f0c84b40175be2db4c3a70a_b.png&quot;/&gt;&lt;/figure&gt;&lt;p&gt;但有时候我们想作一些改动，例如继承沿用这种方式，但关联时则以水平。我们可以使用 &lt;code&gt;rank=same&lt;/code&gt; 去设置一组节点为同一级，节点之间的距离可整体设置 &lt;code&gt;nodesep&lt;/code&gt; 属性：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    graph [nodesep=1]
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    {
+        rank=same
+        Canvas, Shape
+    }
+
+    Rectangle, Circle
+
+    /* inheritance */
+    {
+        edge [arrowtail=onormal, dir=back]
+        Shape -&amp;gt; { Rectangle, Circle }
+    }
+
+    /* composition */
+    {
+        edge [dir=back, arrowtail=diamond, headlabel=&amp;#34;* &amp;#34;]
+        Canvas -&amp;gt; Shape
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-be7d43b8b14763b62f01219a8652df76_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;337&quot; data-rawheight=&quot;155&quot; class=&quot;content_image&quot; width=&quot;337&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-be7d43b8b14763b62f01219a8652df76_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;337&quot; data-rawheight=&quot;155&quot; class=&quot;content_image lazy&quot; width=&quot;337&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-be7d43b8b14763b62f01219a8652df76_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;颜色&lt;/h2&gt;&lt;p&gt;UML 图也不一定是黑白的。做软件设计时可以加入颜色去加入一些意思，例如不同包的类可设置为不同颜色。挑选颜色是一个头痛的问题，可以采用 Graphviz 的配色方案（color scheme）功能。例如用 &lt;code&gt;colorscheme=spectral7&lt;/code&gt; 设置 7 个光谱色配色方案，然后我们可以用 &lt;code&gt;fillcolor=1&lt;/code&gt; 至 &lt;code&gt;7&lt;/code&gt; 去填充节点形状：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;digraph {
+    graph [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5, labeljust=left] 
+    node [shape=box, fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5,
+        style=filled, colorscheme=spectral7]
+    edge [fontname=&amp;#34;Inconsolata, Consolas&amp;#34;, fontsize=10, penwidth=0.5]
+
+    subgraph clusterView {
+        label=&amp;#34;View&amp;#34;
+        node [fillcolor=4]
+        AccountView, CustomerView
+    }
+
+    subgraph clusterModel {
+        label=&amp;#34;Model&amp;#34;
+        node [fillcolor=6]
+        Account, Customer
+    }
+
+    /* Unidirecitonal association */
+    {
+        edge [arrowhead=vee]
+        AccountView -&amp;gt; Account
+        CustomerView -&amp;gt; Customer
+    }
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3115b3b5765c4250ef799a6873213f51_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;283&quot; data-rawheight=&quot;229&quot; class=&quot;content_image&quot; width=&quot;283&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-3115b3b5765c4250ef799a6873213f51_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;283&quot; data-rawheight=&quot;229&quot; class=&quot;content_image lazy&quot; width=&quot;283&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-3115b3b5765c4250ef799a6873213f51_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;状态图&lt;/h2&gt;&lt;p&gt;T.B.W.&lt;/p&gt;&lt;h2&gt;参考&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;Koutsofios, Eleftherios, and Stephen C. North. &lt;a href=&quot;https://zhuanlan.zhihu.com/(https://graphviz.gitlab.io/_pages/pdf/dotguide.pdf)&quot; class=&quot;internal&quot;&gt;&amp;#34;Drawing graphs with dot.&amp;#34;&lt;/a&gt; (1996).&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//graphviz.gitlab.io/_pages/doc/info/attrs.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Node, Edge and Graph Attributes&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//graphviz.gitlab.io/_pages/doc/info/shapes.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Node Shapes&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//graphviz.gitlab.io/_pages/doc/info/arrows.html&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Arrow Shapes&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</description>
+<author>Milo Yip</author>
+<guid isPermaLink="false">2019-10-29-88835583</guid>
+<pubDate>Tue, 29 Oct 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>近况、出版、道合</title>
 <link>https://henix.github.io/feeds/zhuanlan.milocode/2019-09-26-83349497.html</link>
@@ -467,213 +702,6 @@ void printTree(Node* n) {
 <author>Milo Yip</author>
 <guid isPermaLink="false">2018-06-13-38013510</guid>
 <pubDate>Wed, 13 Jun 2018 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>从零开始的 JSON 库教程（八）：访问与其他功能</title>
-<link>https://henix.github.io/feeds/zhuanlan.milocode/2018-06-04-37618664.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/37618664&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-58d55d45d37aa51b9ba19f3e3cec0b22_r.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;本文是&lt;a href=&quot;https://zhuanlan.zhihu.com/json-tutorial&quot;&gt;《从零开始的 JSON 库教程》&lt;/a&gt;的第八个单元。代码位于 &lt;a href=&quot;https://github.com/miloyip/json-tutorial/blob/master/tutorial08&quot;&gt;json-tutorial/tutorial08&lt;/a&gt;。&lt;/p&gt;&lt;p&gt;（题图Photo by &lt;a href=&quot;https://unsplash.com/photos/9Q_pLLP_jmA?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Rob Lambert&lt;/a&gt;）&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;1. 对象键值查询&lt;/h2&gt;&lt;p&gt;我们在第六个单元实现了 JSON 对象的数据结构，它仅为一个 &lt;code class=&quot;inline&quot;&gt;lept_value&lt;/code&gt; 的数组：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;struct lept_value {
-    union {
-        struct { lept_member* m; size_t size; }o;
-        /* ... */
-    }u;
-    lept_type type;
-};
-
-struct lept_member {
-    char* k; size_t klen;   /* member key string, key string length */
-    lept_value v;           /* member value */
-};&lt;/code&gt;&lt;p&gt;为了做相应的解析测试，我们实现了最基本的查询功能：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;size_t lept_get_object_size(const lept_value* v);
-const char* lept_get_object_key(const lept_value* v, size_t index);
-size_t lept_get_object_key_length(const lept_value* v, size_t index);
-lept_value* lept_get_object_value(lept_value* v, size_t index);&lt;/code&gt;&lt;p&gt;在实际使用时，我们许多时候需要查询一个键值是否存在，如存在，要获得其相应的值。我们可以提供一个函数，简单地用线性搜寻实现这个查询功能（时间复杂度 &lt;equation&gt;\mathrm{O}(n)&lt;/equation&gt; ）：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;#define LEPT_KEY_NOT_EXIST ((size_t)-1)
-
-size_t lept_find_object_index(const lept_value* v, const char* key, size_t klen) {
-    size_t i;
-    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_OBJECT &amp;amp;&amp;amp; key != NULL);
-    for (i = 0; i &amp;lt; v-&amp;gt;u.o.size; i++)
-        if (v-&amp;gt;u.o.m[i].klen == klen &amp;amp;&amp;amp; memcmp(v-&amp;gt;u.o.m[i].k, key, klen) == 0)
-            return i;
-    return LEPT_KEY_NOT_EXIST;
-}}&lt;/code&gt;&lt;p&gt;若对象内没有所需的键，此函数返回 &lt;code class=&quot;inline&quot;&gt;LEPT_KEY_NOT_EXIST&lt;/code&gt;。使用时：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value o;
-size_t index;
-lept_init(&amp;amp;o);
-lept_parse(&amp;amp;o, &quot;{\&quot;name\&quot;:\&quot;Milo\&quot;, \&quot;gender\&quot;:\&quot;M\&quot;}&quot;);
-index = lept_find_object_index(&amp;amp;o, &quot;name&quot;, 4);
-if (index != LEPT_KEY_NOT_EXIST) {
-    lept_value* v = lept_get_object_value(&amp;amp;o, index);
-    printf(&quot;%s\n&quot;, lept_get_string(v));
-}
-lept_free(&amp;amp;o);&lt;/code&gt;&lt;p&gt;由于一般也是希望获取键对应的值，而不需要索引，我们再加入一个辅助函数，返回类型改为 &lt;code class=&quot;inline&quot;&gt;lept_value*&lt;/code&gt;：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value* lept_find_object_value(lept_value* v, const char* key, size_t klen) {
-    size_t index = lept_find_object_index(v, key, klen);
-    return index != LEPT_KEY_NOT_EXIST ? &amp;amp;v-&amp;gt;u.o.m[index].v : NULL;
-}&lt;/code&gt;&lt;p&gt;上述例子便可简化为：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value o, *v;
-/* ... */
-if ((v = lept_find_object_value(&amp;amp;o, &quot;name&quot;, 4)) != NULL)
-    printf(&quot;%s\n&quot;, lept_get_string(v));&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;2. 相等比较&lt;/h2&gt;&lt;p&gt;在实现数组和对象的修改之前，为了测试结果的正确性，我们先实现 &lt;code class=&quot;inline&quot;&gt;lept_value&lt;/code&gt; 的&lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E9%97%9C%E4%BF%82%E9%81%8B%E7%AE%97%E5%AD%90&quot;&gt;相等比较&lt;/a&gt;（equality comparison）。首先，两个值的类型必须相同，对于 true、false、null 这三种类型，比较类型后便完成比较。而对于数字和字符串，需进一步检查是否相等：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int lept_is_equal(const lept_value* lhs, const lept_value* rhs) {
-    assert(lhs != NULL &amp;amp;&amp;amp; rhs != NULL);
-    if (lhs-&amp;gt;type != rhs-&amp;gt;type)
-        return 0;
-    switch (lhs-&amp;gt;type) {
-        case LEPT_STRING:
-            return lhs-&amp;gt;u.s.len == rhs-&amp;gt;u.s.len &amp;amp;&amp;amp; 
-                memcmp(lhs-&amp;gt;u.s.s, rhs-&amp;gt;u.s.s, lhs-&amp;gt;u.s.len) == 0;
-        case LEPT_NUMBER:
-            return lhs-&amp;gt;u.n == rhs-&amp;gt;u.n;
-        /* ... */
-        default:
-            return 1;
-    }
-}&lt;/code&gt;&lt;p&gt;由于值可能复合类型（数组和对象），也就是一个树形结构。当我们要比较两个树是否相等，可通过递归实现。例如，对于数组，我们先比较元素数目是否相等，然后递归检查对应的元素是否相等：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;int lept_is_equal(const lept_value* lhs, const lept_value* rhs) {
-    size_t i;
-    /* ... */
-    switch (lhs-&amp;gt;type) {
-        /* ... */
-        case LEPT_ARRAY:
-            if (lhs-&amp;gt;u.a.size != rhs-&amp;gt;u.a.size)
-                return 0;
-            for (i = 0; i &amp;lt; lhs-&amp;gt;u.a.size; i++)
-                if (!lept_is_equal(&amp;amp;lhs-&amp;gt;u.a.e[i], &amp;amp;rhs-&amp;gt;u.a.e[i]))
-                    return 0;
-            return 1;
-        /* ... */
-    }
-}&lt;/code&gt;&lt;p&gt;而对象与数组的不同之处，在于概念上对象的键值对是无序的。例如，&lt;code class=&quot;inline&quot;&gt;{&quot;a&quot;:1,&quot;b&quot;:2}&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;{&quot;b&quot;:2,&quot;a&quot;:1}&lt;/code&gt; 虽然键值的次序不同，但这两个 JSON 对象是相等的。我们可以简单地利用 &lt;code class=&quot;inline&quot;&gt;lept_find_object_index()&lt;/code&gt; 去找出对应的值，然后递归作比较。这部分留给读者作为练习。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;3. 复制、移动与交换&lt;/h2&gt;&lt;p&gt;本单元的重点，在于修改数组和对象的内容。我们将会实现一些接口做修改的操作，例如，为对象设置一个键值，我们可能会这么设计：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_set_object_value(lept_value* v, const char* key, size_t klen, const lept_value* value);
-
-void f() {
-    lept_value v, s;
-    lept_init(&amp;amp;v);
-    lept_parse(&amp;amp;v, &quot;{}&quot;);
-    lept_init(&amp;amp;s);
-    lept_set_string(&amp;amp;s, &quot;Hello&quot;, 5);
-    lept_set_object_keyvalue(&amp;amp;v, &quot;s&quot;, &amp;amp;s); /* {&quot;s&quot;:&quot;Hello&quot;} */
-    lept_free(&amp;amp;v)
-    lept_free(&amp;amp;s);  /* 第二次释放！*/
-}&lt;/code&gt;&lt;p&gt;凡涉及赋值，都可能会引起资源拥有权（resource ownership）的问题。值 &lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt; 并不能以指针方式简单地写入对象 &lt;code class=&quot;inline&quot;&gt;v&lt;/code&gt;，因为这样便会有两个地方都拥有 &lt;code class=&quot;inline&quot;&gt;s&lt;/code&gt;，会做成重复释放的 bug。我们有两个选择：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;在 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 中，把参数 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt; &lt;a href=&quot;https://en.wikipedia.org/wiki/Object_copying#Deep_copy&quot;&gt;深度复制&lt;/a&gt;（deep copy）一个值，即把整个树复制一份，写入其新增的键值对中。&lt;/li&gt;&lt;li&gt;在 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 中，把参数 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt; 拥有权转移至新增的键值对，再把 &lt;code class=&quot;inline&quot;&gt;value&lt;/code&gt; 设置成 null 值。这就是所谓的移动语意（move semantics）。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;深度复制是一个常用功能，使用者也可能会用到，例如把一个 JSON 复制一个版本出来修改，保持原来的不变。所以，我们实现一个公开的深度复制函数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_copy(lept_value* dst, const lept_value* src) {
-    size_t i;
-    assert(src != NULL &amp;amp;&amp;amp; dst != NULL &amp;amp;&amp;amp; src != dst);
-    switch (src-&amp;gt;type) {
-        case LEPT_STRING:
-            lept_set_string(dst, src-&amp;gt;u.s.s, src-&amp;gt;u.s.len);
-            break;
-        case LEPT_ARRAY:
-            /* \todo */
-            break;
-        case LEPT_OBJECT:
-            /* \todo */
-            break;
-        default:
-            lept_free(dst);
-            memcpy(dst, src, sizeof(lept_value));
-            break;
-    }
-}&lt;/code&gt;&lt;p&gt;C++11 加入了右值引用的功能，可以从语言层面区分复制和移动语意。而在 C 语言中，我们也可以通过实现不同版本的接口（不同名字的函数），实现这两种语意。但为了令接口更简单和正交（orthgonal），我们修改了 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 的设计，让它返回新增键值对的值指针，所以我们可以用 &lt;code class=&quot;inline&quot;&gt;lept_copy()&lt;/code&gt; 去复制赋值，也可以简单地改变新增的键值：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;/* 返回新增键值对的指针 */
-lept_value* lept_set_object_value(lept_value* v, const char* key, size_t klen);
-
-void f() {
-    lept_value v;
-    lept_init(&amp;amp;v);
-    lept_parse(&amp;amp;v, &quot;{}&quot;);
-    lept_set_string(lept_set_object_value(&amp;amp;v, &quot;s&quot;), &quot;Hello&quot;, 5);
-    /* {&quot;s&quot;:&quot;Hello&quot;} */
-    lept_copy(
-        lept_add_object_keyvalue(&amp;amp;v, &quot;t&quot;),
-        lept_get_object_keyvalue(&amp;amp;v, &quot;s&quot;, 1));
-    /* {&quot;s&quot;:&quot;Hello&quot;,&quot;t&quot;:&quot;Hello&quot;} */
-    lept_free(&amp;amp;v);
-}
-&lt;/code&gt;&lt;p&gt;我们还提供了 &lt;code class=&quot;inline&quot;&gt;lept_move()&lt;/code&gt;，它的实现也非常简单：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_move(lept_value* dst, lept_value* src) {
-    assert(dst != NULL &amp;amp;&amp;amp; src != NULL &amp;amp;&amp;amp; src != dst);
-    lept_free(dst);
-    memcpy(dst, src, sizeof(lept_value));
-    lept_init(src);
-}&lt;/code&gt;&lt;p&gt;类似地，我们也实现了一个交换值的接口：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_swap(lept_value* lhs, lept_value* rhs) {
-    assert(lhs != NULL &amp;amp;&amp;amp; rhs != NULL);
-    if (lhs != rhs) {
-        lept_value temp;
-        memcpy(&amp;amp;temp, lhs, sizeof(lept_value));
-        memcpy(lhs,   rhs, sizeof(lept_value));
-        memcpy(rhs, &amp;amp;temp, sizeof(lept_value));
-    }
-}&lt;/code&gt;&lt;p&gt;当我们要修改对象或数组里的值时，我们可以利用这 3 个函数。例如：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;const char* json = &quot;{\&quot;a\&quot;:[1,2],\&quot;b\&quot;:3}&quot;;
-char *out;
-lept_value v;
-lept_init(&amp;amp;v);
-lept_parse(&amp;amp;v, json);
-lept_copy(
-    lept_find_object_value(&amp;amp;v, &quot;b&quot;, 1),
-    lept_find_object_value(&amp;amp;v, &quot;a&quot;, 1));
-printf(&quot;%s\n&quot;, out = lept_stringify(&amp;amp;v, NULL)); /* {&quot;a&quot;:[1,2],&quot;b&quot;:[1,2]} */
-free(out);
-
-lept_parse(&amp;amp;v, json);
-lept_move(
-    lept_find_object_value(&amp;amp;v, &quot;b&quot;, 1),
-    lept_find_object_value(&amp;amp;v, &quot;a&quot;, 1));
-printf(&quot;%s\n&quot;, out = lept_stringify(&amp;amp;v, NULL)); /* {&quot;a&quot;:null,&quot;b&quot;:[1,2]} */
-free(out);
-
-lept_parse(&amp;amp;v, json);
-lept_swap(
-    lept_find_object_value(&amp;amp;v, &quot;b&quot;, 1),
-    lept_find_object_value(&amp;amp;v, &quot;a&quot;, 1));
-printf(&quot;%s\n&quot;, out = lept_stringify(&amp;amp;v, NULL)); /* {&quot;a&quot;:3,&quot;b&quot;:[1,2]} */
-free(out);
-
-lept_free(&amp;amp;v);&lt;/code&gt;&lt;p&gt;在使用时，可尽量避免 &lt;code class=&quot;inline&quot;&gt;lept_copy()&lt;/code&gt;，而改用 &lt;code class=&quot;inline&quot;&gt;lept_move()&lt;/code&gt; 或 &lt;code class=&quot;inline&quot;&gt;lept_swap()&lt;/code&gt;，因为后者不需要分配内存。当中 &lt;code class=&quot;inline&quot;&gt;lept_swap()&lt;/code&gt; 更是无须做释放的工作，令它达到 &lt;equation&gt;\mathrm{O}(1)&lt;/equation&gt; 时间复杂度，其性能与值的内容无关。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;4. 动态数组&lt;/h2&gt;&lt;p&gt;在此单元之前的实现里，每个数组的元素数目在解析后是固定不变的，其数据结构是：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;struct lept_value {
-    union {
-        /* ... */
-        struct { lept_value* e; size_t size; }a; /* array:  elements, element count*/
-        /* ... */
-    }u;
-    lept_type type;
-};&lt;/code&gt;&lt;p&gt;用这种数据结构增删元素时，我们需要重新分配一个数组，把适当的旧数据拷贝过去。但这种做法是非常低效的。例如我们想要从一个空的数组加入 &lt;equation&gt;n&lt;/equation&gt; 个元素，便要做 &lt;equation&gt;n(n - 1)/2&lt;/equation&gt; 次元素复制，即 &lt;equation&gt;\mathrm{O}(n^2)&lt;/equation&gt; 的时间复杂度。&lt;/p&gt;&lt;p&gt;其中一个改进方法，是使用动态数组（&lt;a href=&quot;https://en.wikipedia.org/wiki/Dynamic_array&quot;&gt;dynamic array&lt;/a&gt;，或称可增长数组／growable array）的数据结构。C++ STL 标准库中最常用的 &lt;code class=&quot;inline&quot;&gt;std::vector&lt;/code&gt; 也是使用这种数据结构的容器。&lt;/p&gt;&lt;p&gt;改动也很简单，只需要在数组中加入容量 &lt;code class=&quot;inline&quot;&gt;capacity&lt;/code&gt; 字段，表示当前已分配的元素数目，而 &lt;code class=&quot;inline&quot;&gt;size&lt;/code&gt; 则表示现时的有效元素数目：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;        /* ... */
-        struct { lept_value* e; size_t size, capacity; }a; /* array:  elements, element count, capacity */
-        /* ... */&lt;/code&gt;&lt;p&gt;我们终于提供设置数组的函数，而且它可提供初始的容量：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_set_array(lept_value* v, size_t capacity) {
-    assert(v != NULL);
-    lept_free(v);
-    v-&amp;gt;type = LEPT_ARRAY;
-    v-&amp;gt;u.a.size = 0;
-    v-&amp;gt;u.a.capacity = capacity;
-    v-&amp;gt;u.a.e = capacity &amp;gt; 0 ? (lept_value*)malloc(capacity * sizeof(lept_value)) : NULL;
-}&lt;/code&gt;&lt;p&gt;我们需要稍修改 &lt;code class=&quot;inline&quot;&gt;lept_parse_array()&lt;/code&gt;，调用 &lt;code class=&quot;inline&quot;&gt;lept_set_array()&lt;/code&gt; 去设置类型和分配空间。&lt;/p&gt;&lt;p&gt;另外，类似于 &lt;code class=&quot;inline&quot;&gt;lept_get_array_size()&lt;/code&gt;，也加入获取当前容量的函数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;size_t lept_get_array_capacity(const lept_value* v) {
-    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
-    return v-&amp;gt;u.a.capacity;
-}&lt;/code&gt;&lt;p&gt;如果当前的容量不足，我们需要扩大容量，标准库的 &lt;code class=&quot;inline&quot;&gt;realloc()&lt;/code&gt; 可以分配新的内存并把旧的数据拷背过去：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_reserve_array(lept_value* v, size_t capacity) {
-    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
-    if (v-&amp;gt;u.a.capacity &amp;lt; capacity) {
-        v-&amp;gt;u.a.capacity = capacity;
-        v-&amp;gt;u.a.e = (lept_value*)realloc(v-&amp;gt;u.a.e, capacity * sizeof(lept_value));
-    }
-}&lt;/code&gt;&lt;p&gt;当数组不需要再修改，可以使用以下的函数，把容量缩小至刚好能放置现有元素：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_shrink_array(lept_value* v) {
-    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
-    if (v-&amp;gt;u.a.capacity &amp;gt; v-&amp;gt;u.a.size) {
-        v-&amp;gt;u.a.capacity = v-&amp;gt;u.a.size;
-        v-&amp;gt;u.a.e = (lept_value*)realloc(v-&amp;gt;u.a.e, v-&amp;gt;u.a.capacity * sizeof(lept_value));
-    }
-}&lt;/code&gt;&lt;p&gt;我们不逐一检视每个数组修改函数，仅介绍一下两个例子：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;lept_value* lept_pushback_array_element(lept_value* v) {
-    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY);
-    if (v-&amp;gt;u.a.size == v-&amp;gt;u.a.capacity)
-        lept_reserve_array(v, v-&amp;gt;u.a.capacity == 0 ? 1 : v-&amp;gt;u.a.capacity * 2);
-    lept_init(&amp;amp;v-&amp;gt;u.a.e[v-&amp;gt;u.a.size]);
-    return &amp;amp;v-&amp;gt;u.a.e[v-&amp;gt;u.a.size++];
-}
-
-void lept_popback_array_element(lept_value* v) {
-    assert(v != NULL &amp;amp;&amp;amp; v-&amp;gt;type == LEPT_ARRAY &amp;amp;&amp;amp; v-&amp;gt;u.a.size &amp;gt; 0);
-    lept_free(&amp;amp;v-&amp;gt;u.a.e[--v-&amp;gt;u.a.size]);
-}&lt;/code&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;lept_pushback_array_element()&lt;/code&gt; 在数组末端压入一个元素，返回新的元素指针。如果现有的容量不足，就需要调用 &lt;code class=&quot;inline&quot;&gt;lept_reserve_array()&lt;/code&gt; 扩容。我们现在用了一个最简单的扩容公式：若容量为 0，则分配 1 个元素；其他情况倍增容量。&lt;/p&gt;&lt;p&gt;&lt;code class=&quot;inline&quot;&gt;lept_popback_array_element()&lt;/code&gt; 则做相反的工作，记得删去的元素需要调用 &lt;code class=&quot;inline&quot;&gt;lept_free()&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;下面这 3 个函数留给读者练习：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;lept_insert_array_element()&lt;/code&gt; 在 &lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt; 位置插入一个元素；&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;lept_erase_array_element()&lt;/code&gt; 删去在 &lt;code class=&quot;inline&quot;&gt;index&lt;/code&gt; 位置开始共 &lt;code class=&quot;inline&quot;&gt;count&lt;/code&gt; 个元素（不改容量）；&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;lept_clear_array()&lt;/code&gt; 清除所有元素（不改容量）。&lt;/li&gt;&lt;/ol&gt;&lt;code lang=&quot;c&quot;&gt;lept_value* lept_insert_array_element(lept_value* v, size_t index);
-void lept_erase_array_element(lept_value* v, size_t index, size_t count);
-void lept_clear_array(lept_value* v);&lt;/code&gt;&lt;hr&gt;&lt;h2&gt;5. 动态对象&lt;/h2&gt;&lt;p&gt;动态对象也是采用上述相同的结构，所以直接留给读者修改结构体，并实现以下函数：&lt;/p&gt;&lt;code lang=&quot;c&quot;&gt;void lept_set_object(lept_value* v, size_t capacity);
-size_t lept_get_object_capacity(const lept_value* v);
-void lept_reserve_object(lept_value* v, size_t capacity);
-void lept_shrink_object(lept_value* v);
-void lept_clear_object(lept_value* v);
-lept_value* lept_set_object_value(lept_value* v, const char* key, size_t klen);
-void lept_remove_object_value(lept_value* v, size_t index);&lt;/code&gt;&lt;p&gt;注意 &lt;code class=&quot;inline&quot;&gt;lept_set_object_value()&lt;/code&gt; 会先搜寻是否存在现有的键，若存在则直接返回该值的指针，不存在时才新增。&lt;/p&gt;&lt;hr&gt;&lt;h2&gt;6. 总结与练习&lt;/h2&gt;&lt;p&gt;本单元主要加入了数组和对象的访问、修改方法。当中的赋值又引申了三种赋值的方式（复制、移动、交换）。这些问题是各种编程语言中都需要考虑的事情，为了减少深度复制的成本，有些程序库或运行时还会采用&lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E5%AF%AB%E5%85%A5%E6%99%82%E8%A4%87%E8%A3%BD&quot;&gt;写入时复制&lt;/a&gt;（copy-on-write, COW）。而浅复制（shallow copy）则需要 &lt;a href=&quot;https://zh.wikipedia.org/wiki/%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0&quot;&gt;引用计数&lt;/a&gt;（reference count）或 &lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6_(%E8%A8%88%E7%AE%97%E6%A9%9F%E7%A7%91%E5%AD%B8)&quot;&gt;垃圾回收&lt;/a&gt;（garbage collection, GC）等技术。&lt;/p&gt;&lt;p&gt;另外，我们实现了以动态数组的数据结构，能较高效地对数组和对象进行增删操作。至此，我们已经完成本教程的所有核心功能。做完下面的练习后，我们还会作简单讲解，然后将迎来本教程的最后一个单元。&lt;/p&gt;&lt;p&gt;本单元练习内容：&lt;/p&gt;&lt;ol&gt;&lt;li&gt;完成 &lt;code class=&quot;inline&quot;&gt;lept_is_equal()&lt;/code&gt; 里的对象比较部分。不需要考虑对象内有重复键的情况。&lt;/li&gt;&lt;li&gt;打开 &lt;code class=&quot;inline&quot;&gt;test_array_access()&lt;/code&gt; 里的 &lt;code class=&quot;inline&quot;&gt;#if 0&lt;/code&gt;，实现 &lt;code class=&quot;inline&quot;&gt;lept_insert_array_element()&lt;/code&gt;、&lt;code class=&quot;inline&quot;&gt;lept_erase_array_element()&lt;/code&gt; 和 &lt;code class=&quot;inline&quot;&gt;lept_clear_array()&lt;/code&gt;。&lt;/li&gt;&lt;li&gt;打开 &lt;code class=&quot;inline&quot;&gt;test_object_access()&lt;/code&gt; 里的 &lt;code class=&quot;inline&quot;&gt;#if 0&lt;/code&gt;，参考动态数组，实现第 5 部分列出的所有函数。&lt;/li&gt;&lt;li&gt;完成 &lt;code class=&quot;inline&quot;&gt;lept_copy()&lt;/code&gt; 里的数组和对象的复制部分。&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;如果你遇到问题，有不理解的地方，或是有建议，都欢迎在评论或 &lt;a href=&quot;https://github.com/miloyip/json-tutorial/issues&quot;&gt;issue&lt;/a&gt; 中提出，让所有人一起讨论。&lt;/p&gt;</description>
-<author>Milo Yip</author>
-<guid isPermaLink="false">2018-06-04-37618664</guid>
-<pubDate>Mon, 04 Jun 2018 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>

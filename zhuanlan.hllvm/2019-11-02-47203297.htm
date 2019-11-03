@@ -1,0 +1,62 @@
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-3eef6665d6cb158c6d8c1677e11b18fd_b.jpg" alt=""></div><blockquote><b>你现在所阅读的并不是第一篇文章，你可能想看<a href="https://zhuanlan.zhihu.com/p/25959684" class="internal">目录和前言</a>。</b></blockquote><p>这个标题有点大。当然我根本就没打算要跟你们介绍C++的类型系统是怎么一回事，我只想简单介绍一下如何来用数据结构表达C++的类型系统，让计算进行地更高效。不过在这里先说一点题外话。我们都知道，int[1][2][3]是一个数组。C#的数组是没有尺寸的，所以它只能表达成int[][][]或者int[,,]。那么如果我们给C#的数组加上尺寸，那C++的int[1][2][3]在C#里面应该怎么写呢？</p><p>答案很简单：要么写成int[1,2,3]，要么写成int[3][2][1]。至于为什么，你们可以在拉尿的时候花10秒钟思考一下，没想出来的都不及格，赶紧改行（逃</p><p>本来我想写《<b>考不上三本也能懂系列——处理声明（二）</b>》的，但是我发现在模板还没做出来之前，剩下的内容太少了，写不成一篇文章，所以以后再写。</p><p>今天要讲的内容其实都在<a href="https://link.zhihu.com/?target=https%3A//github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/TypeSystem.h" class=" wrap external" target="_blank" rel="nofollow noreferrer">这里</a>。C++的程序从头跑到尾需要识别很多类型，我们需要用数据结构来表达他们。显而易见地，类型是一棵树。为了让编译的时间缩短，我们在创建、销毁、比较类型的时候，都要尽可能快。于是今天我介绍一种简单的做法。</p><p>在这里假设我们只有int、指针和数组三种类型。我的编译器会忽略数组的尺寸，因为为了code index搞constexpr的展开实在是划不来，干脆不做了，int[1]和int[2]我都看成是同一个类型。</p><p>为了让编程更愉快，我们定制接口的时候要遵循一种实用的态度，也就是这个接口使用起来必须容易，而且我们还不能为了容易使用而扭曲设计。因此最后我选择了下面的一种做法：</p><div class="highlight"><pre><code class="language-cpp"><span class="k">enum</span> <span class="k">class</span><span class="err"> </span><span class="nc">TypeEnum</span>
+<span class="p">{</span>
+    <span class="n">Int</span><span class="p">,</span>
+    <span class="n">Pointer</span><span class="p">,</span>
+    <span class="n">Array</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">IType</span>
+<span class="p">{</span>
+    <span class="k">virtual</span> <span class="n">TypeEnum</span> <span class="n">GetType</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">virtual</span> <span class="n">IType</span><span class="o">*</span> <span class="nf">GetElement</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// Pointer和Array有用，Int调用它直接崩溃
+</span><span class="c1"></span>    <span class="k">virtual</span> <span class="n">IType</span><span class="o">*</span> <span class="nf">PointerOf</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 创建这个类型的指针类型，下同
+</span><span class="c1"></span>    <span class="k">virtual</span> <span class="n">IType</span><span class="o">*</span> <span class="nf">ArrayOf</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">ITypeSystem</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ITypeSystem</span><span class="o">&gt;</span> <span class="n">Create</span><span class="p">();</span>
+    <span class="k">virtual</span> <span class="nf">GetInt</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div><p>使用的时候很简单。加入我们需要表达int*(*)[]，这是一个int的指针的数组的指针，我们只需要这么做：</p><div class="highlight"><pre><code class="language-cpp"><span class="n">IType</span><span class="o">*</span> <span class="nf">GetComplexType</span><span class="p">(</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ITypeSystem</span><span class="o">&gt;</span> <span class="n">tsys</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">tsys</span><span class="o">-&gt;</span><span class="n">GetInt</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">PointerOf</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">ArrayOf</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">PointerOf</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">// Assert(GetComplexType(fuck) == GetComplexType(fuck));
+</span><span class="c1">// Assert(GetComplexType(fuck)-&gt;GetElement()-&gt;GetElement() == fuck-&gt;GetInt()-&gt;PointerOf());
+</span></code></pre></div><p>在这里shared_ptr&lt;ITypeSystem&gt;是一个共享的对象，调用这个函数就可以得到int*(*)[]的数据结构的表达。为了满足上面所说的要求，调用两次GetComplexType必须返回的是同一个指针，因此比较两个类型是否相等就超级容易了，直接比较指针就好了，快的一笔。而且这还特别节省内存。那到底要怎么实现呢？其实非常简单，我们在每个类型里面都缓存下来它的指针和数组的类型就好了：</p><div class="highlight"><pre><code class="language-cpp"><span class="k">struct</span> <span class="nl">Base</span> <span class="p">:</span> <span class="n">IType</span>
+<span class="p">{</span>
+    <span class="n">IType</span><span class="o">*</span> <span class="n">pointerOf</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+    <span class="n">IType</span><span class="o">*</span> <span class="n">arrayOf</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+
+    <span class="n">IType</span><span class="o">*</span> <span class="nf">PointerOf</span><span class="p">()</span> <span class="k">override</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">pointerOf</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">pointerOf</span> <span class="o">=</span> <span class="n">MakeType</span><span class="o">&lt;</span><span class="n">Pointer</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">pointerOf</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// ArrayOf 同上
+</span><span class="c1"></span><span class="p">};</span>
+
+<span class="k">struct</span> <span class="nl">Int</span> <span class="p">:</span> <span class="n">Base</span>
+<span class="p">{</span>
+    <span class="n">TypeEnum</span> <span class="n">GetType</span><span class="p">()</span><span class="k">override</span> <span class="p">{</span> <span class="k">return</span> <span class="n">TypeEnum</span><span class="o">::</span><span class="n">Int</span><span class="p">;</span> <span class="p">}</span>
+    <span class="n">IType</span><span class="o">*</span> <span class="n">GetElement</span><span class="p">()</span><span class="k">override</span> <span class="p">{</span> <span class="k">throw</span> <span class="s">&#34;Fuck!&#34;</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nl">Pointer</span> <span class="p">:</span> <span class="n">Base</span>
+<span class="p">{</span>
+    <span class="n">TypeEnum</span> <span class="n">GetType</span><span class="p">()</span><span class="k">override</span> <span class="p">{</span> <span class="k">return</span> <span class="n">TypeEnum</span><span class="o">::</span><span class="n">Pointer</span><span class="p">;</span> <span class="p">}</span>
+    <span class="n">IType</span><span class="o">*</span> <span class="n">GetElement</span><span class="p">()</span><span class="k">override</span> <span class="p">{</span> <span class="k">return</span> <span class="n">element</span><span class="p">;</span> <span class="p">}</span> <span class="c1">// MakeType&lt;Pointer&gt;(传进来的)
+</span><span class="c1"></span><span class="p">};</span>
+
+<span class="k">struct</span> <span class="nl">Array</span> <span class="p">:</span> <span class="n">Base</span>
+<span class="p">{</span>
+    <span class="n">TypeEnum</span> <span class="n">GetType</span><span class="p">()</span><span class="k">override</span> <span class="p">{</span> <span class="k">return</span> <span class="n">TypeEnum</span><span class="o">::</span><span class="n">Array</span> <span class="p">;</span> <span class="p">}</span>
+    <span class="n">IType</span><span class="o">*</span> <span class="n">GetElement</span><span class="p">()</span><span class="k">override</span> <span class="p">{</span> <span class="k">return</span> <span class="n">element</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div><p>MakeType函数，就是跟ITypeSystem的实现要求从内存池里面构造一个那样的对象出来。剩下来的事情就很简单了。类型创建之后是不用释放的，编译器跑完了之后只要把ITypeSystem一删，全部东西都灰飞烟灭，内存绝对不可能泄露。这个事情做起来就很方便了。我们有Int、Pointer和Array三个类型，分别制作三个链表，每个链表有譬如说1024个节点。一开始只是一段内存，然后你就可以在需要的时候placement new一个出来，然后顺手counter++。如果满了就弄下一个节点接着来。释放的时候很容易，每个节点调用够placement delete之后直接干掉。这也是STL实现vector等容器的原理，是每一个C++程序员都应该熟练掌握的技巧。这部分的代码在<a href="https://link.zhihu.com/?target=https%3A//github.com/vczh-libraries/Document/blob/master/Tools/CppDoc/Core/Source/TypeSystem.cpp%23L331" class=" wrap external" target="_blank" rel="nofollow noreferrer">这里</a>。</p><p>今天的内容比较简单。接下来还有一些有趣的内容，譬如说如何确保我们的编译器在做一些类型运算的结果（譬如说a+b）的时候，跟VC++保持完全一致，并且test case写出来还要严格遵守Don&#39;t Repeat Yourself的原则。还有譬如说，定义二元运算表达式的语法都是左递归的，我们要怎样才能把这么多的左递归全部做在一个循环里。还有很多其他的细节都是很有意思的，接下来会给大家一一介绍。</p>
