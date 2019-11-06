@@ -5,7 +5,85 @@
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/</link>
 <description>介绍量化金融相关知识</description>
 <language>zh-cn</language>
-<lastBuildDate>Sun, 03 Nov 2019 19:14:57 +0800</lastBuildDate>
+<lastBuildDate>Wed, 06 Nov 2019 23:18:10 +0800</lastBuildDate>
+<item>
+<title>量化面试——兑换零钱</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-11-06-90512172.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/90512172&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;比如有1、5、8、12这几种纸币，现在有n元，想要兑换，最少需要多少张纸币？&lt;/p&gt;&lt;p&gt;--------------------------我是罪恶的分割线-------------------------&lt;/p&gt;&lt;p&gt;其实一看就知道是动态规划：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=f%28n%29%3Dmin%5C%7Bf%28n-1%29%2B1%2Cf%28n-5%29%2B1%2Cf%28n-8%29%2B1%2Cf%28n-12%29%2B1%5C%7D&quot; alt=&quot;f(n)=min\{f(n-1)+1,f(n-5)+1,f(n-8)+1,f(n-12)+1\}&quot; eeimg=&quot;1&quot;/&gt; &lt;/p&gt;&lt;p&gt;不难写出程序：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;coin &amp;lt;- c(1,5,8,12)
+n &amp;lt;- 100000
+num &amp;lt;- 1:n
+num[coin] &amp;lt;- 1
+for (i in 1:n) {
+  if (num[i]==1) next
+  for (x in coin)
+    if (i&amp;gt;x) num[i] &amp;lt;- min(num[i-x]+1, num[i])
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;因此不大难。有点像走楼梯的题目。&lt;/p&gt;</description>
+<author>babyquant</author>
+<guid isPermaLink="false">2019-11-06-90512172</guid>
+<pubDate>Wed, 06 Nov 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>量化面试——袋子抽球</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-11-06-89553879.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/89553879&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;问题：&lt;/p&gt;&lt;p&gt;一个袋子有白球5个，蓝球8个，&lt;/p&gt;&lt;p&gt;（1）抽一个看其颜色扔掉；&lt;/p&gt;&lt;p&gt;（2）继续抽，若跟上次不同放入袋中，继续（1）；若相同扔掉，继续（2）；&lt;/p&gt;&lt;p&gt;问最后一个白球概率。&lt;/p&gt;&lt;p&gt;---------------------------我是罪恶的分割线---------------------&lt;/p&gt;&lt;p&gt;其实可以用递推，先从简单开始，设f(x,y)表示x个白球y个蓝球的时候最后一个是白球的概率。我们知道，如果连续两个颜色相反，则可以用递推了。&lt;/p&gt;&lt;p&gt;我们知道，由于对称性，&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=f%28x%2Cy%29%2Bf%28y%2Cx%29%3D1%5C%5C&quot; alt=&quot;f(x,y)+f(y,x)=1\\&quot; eeimg=&quot;1&quot;/&gt; &lt;/p&gt;&lt;p&gt;f(x,0)=1,f(0,y)=0，这是显然的；&lt;/p&gt;&lt;p&gt;另外，设g(x,y)是上次抽到白球时最后一个是白球的概率，则有&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=g%28x%2Cy%29%3D%5Cfrac%7Bx%7D%7Bx%2By%7Dg%28x-1%2Cy%29%2B%5Cfrac%7By%7D%7Bx%2By%7Df%28x%2Cy%29%5C%5C&quot; alt=&quot;g(x,y)=\frac{x}{x+y}g(x-1,y)+\frac{y}{x+y}f(x,y)\\&quot; eeimg=&quot;1&quot;/&gt; &lt;/p&gt;&lt;p&gt;h(x,y)是上次抽到蓝球时最后一个是白球的概率，则有：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=h%28x%2Cy%29%3D%5Cfrac%7Bx%7D%7Bx%2By%7Df%28x%2Cy%29%2B%5Cfrac%7By%7D%7Bx%2By%7Dh%28x%2Cy-1%29%5C%5C&quot; alt=&quot;h(x,y)=\frac{x}{x+y}f(x,y)+\frac{y}{x+y}h(x,y-1)\\&quot; eeimg=&quot;1&quot;/&gt; &lt;/p&gt;&lt;p&gt;我们有：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=h%28x%2Cy%29%2Bg%28y%2Cx%29%3Dh%28y%2Cx%29%2Bg%28x%2Cy%29%3D1%5C%5C&quot; alt=&quot;h(x,y)+g(y,x)=h(y,x)+g(x,y)=1\\&quot; eeimg=&quot;1&quot;/&gt; &lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=%5Cbegin%7Bequation%7D+%5Cbegin%7Bsplit%7D+f%28x%2Cy%29%26%3D%5Cfrac%7Bx%7D%7Bx%2By%7Dg%28x-1%2Cy%29%2B%5Cfrac%7By%7D%7Bx%2By%7Dh%28x%2Cy-1%29%5C%5C+%26%3D%5Cfrac%7Bx%7D%7Bx%2By%7Dg%28x-1%2Cy%29%2B%5Cfrac%7By%7D%7Bx%2By%7D%281-g%28y-1%2Cx%29%29+%5Cend%7Bsplit%7D+%5Cend%7Bequation%7D+&quot; alt=&quot;\begin{equation} \begin{split} f(x,y)&amp;amp;=\frac{x}{x+y}g(x-1,y)+\frac{y}{x+y}h(x,y-1)\\ &amp;amp;=\frac{x}{x+y}g(x-1,y)+\frac{y}{x+y}(1-g(y-1,x)) \end{split} \end{equation} &quot; eeimg=&quot;1&quot;/&gt; &lt;/p&gt;&lt;p&gt;我们可以模拟一下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;n &amp;lt;- 8
+m &amp;lt;- 8
+f &amp;lt;- matrix(NA, nrow=n, ncol=m)
+g &amp;lt;- matrix(NA, nrow=n, ncol=m)
+for (i in 1:m)
+  f[1,i] &amp;lt;- 1/(i+1)
+for (i in 1:n)
+  f[i,1] &amp;lt;- i/(i+1)
+
+for (i in 1:m)
+  g[1,i] &amp;lt;- i/(i+1)*f[1,i]
+g[1,1]=1/4
+for (i in 2:n)
+  g[i,1] &amp;lt;- i/(i+1) *g[i-1,1]+1/(i+1)*f[i,1]
+for (x in 2:n) {
+  for (y in 2:x) {
+    if (is.na(g[x-1,y]) || is.na(g[y-1,x])) 
+      stop(&amp;#34;Error!&amp;#34;)
+    f[x,y] = x/(x+y)*g[x-1,y]+y/(x+y)*(1-g[y-1,x])
+    if (y&amp;lt;=n &amp;amp;&amp;amp; x&amp;lt;=m) f[y,x] = 1-f[x,y]
+    g[x,y] = x/(x+y)*g[x-1,y]+y/(x+y)*f[x,y]
+    if (y&amp;lt;=n &amp;amp;&amp;amp; x&amp;lt;=m) g[y,x] = y/(x+y)*g[y-1,x]+x/(x+y)*f[y,x]
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;结果为：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2e3c0f7a40c8cec5c984c2206f6e0dff_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;707&quot; data-rawheight=&quot;334&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;707&quot; data-original=&quot;https://pic4.zhimg.com/v2-2e3c0f7a40c8cec5c984c2206f6e0dff_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2e3c0f7a40c8cec5c984c2206f6e0dff_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;707&quot; data-rawheight=&quot;334&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;707&quot; data-original=&quot;https://pic4.zhimg.com/v2-2e3c0f7a40c8cec5c984c2206f6e0dff_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-2e3c0f7a40c8cec5c984c2206f6e0dff_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;br/&gt;中间为了防止计算出错所以有个输出错误信息的。结果表示没有出错。然后我们需要看的是（5,8）这一个数：&lt;/p&gt;&lt;p&gt;                                                                f[5,8]=0.4743748&lt;/p&gt;&lt;p&gt;之前算错了，谢谢网友指正&lt;/p&gt;</description>
+<author>babyquant</author>
+<guid isPermaLink="false">2019-11-06-89553879</guid>
+<pubDate>Wed, 06 Nov 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>量化面试——线段覆盖</title>
+<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-11-05-90233016.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/90233016&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;给出n个线段的起始点，这n条线段自然可以覆盖已知的线段，那么能否用更少的线段覆盖它们但同一条线段内的线段没有重叠呢？&lt;/p&gt;&lt;p&gt;比如[0,5],[6,10]这样的，显然可以用1条线段覆盖，因为它们之间没有重叠；但[0,5],[1,6]就只能用两条线段覆盖了。&lt;/p&gt;&lt;p&gt;问至少需要多少条线段覆盖它们，每条线段内都没有重叠？&lt;/p&gt;&lt;p&gt;--------------------------我是罪恶的分线---------------------------&lt;/p&gt;&lt;p&gt;这类无重复区间覆盖、线段覆盖的题目在leetcode上有很多，但似乎都不大一样：&lt;/p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//blog.csdn.net/bigtree_3721/article/details/89911532&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;blog.csdn.net/bigtree_3&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;721/article/details/89911532&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;p&gt;比如之前信息学有线段树的题目，问一大串这样的线段，问覆盖的总长度是多少；二维就是总面积，三维就是总体积，在现在信息学竞赛高度内卷化的今天，未来4维覆盖问题可以期待。&lt;/p&gt;&lt;p&gt;当然，其实我自己信息学水平也一般啊，又搜不到答案，就强答一波吧，答案未必正确。&lt;/p&gt;&lt;p&gt;本来我想用动态规划的，但似乎很难划分状态，似乎过去的分法都会影响未来。&lt;/p&gt;&lt;p&gt;当然，搜索是肯定可以的，但似乎太没节操，时间复杂度太大。&lt;/p&gt;&lt;p&gt;于是我看看能否用贪心算法。首先举几个反例：&lt;/p&gt;&lt;p&gt;&lt;b&gt;1.比如按右边界排序，然后找没有重复的线段中右边界最小的。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;说实话，这样做是不行的，反例如下：&lt;/p&gt;&lt;p&gt;[0,5], [1,7], [6,15]，[8,10],&lt;/p&gt;&lt;p&gt;已经按右边界排序了，然后看[0,5]，右边界最小的跟它没重复的是[8,10]，它俩一组；&lt;/p&gt;&lt;p&gt;但后面的[6,15],[1,7]是不能一组的，而且它俩都不能插进原来的，&lt;/p&gt;&lt;p&gt;1：—————&lt;/p&gt;&lt;p&gt;2：    ——————&lt;/p&gt;&lt;p&gt;3：                      —————————&lt;/p&gt;&lt;p&gt;4：                            ——&lt;/p&gt;&lt;p&gt;如图：如果1、4一组，那么2、3不可能一组，这样需要3组；&lt;/p&gt;&lt;p&gt;但换个角度，如果1、3一组，2、4是可以一组的，这样只需要2组。&lt;/p&gt;&lt;p&gt;因此，这个算法不大行。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2.按右边界排序，每次选取右端点最大的放一组。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;其实也是有反例的，比如：&lt;/p&gt;&lt;p&gt;[0,5],[4,10],[6,12],[11,15]&lt;/p&gt;&lt;p&gt;1：—————&lt;/p&gt;&lt;p&gt;2：               ——————&lt;/p&gt;&lt;p&gt;3：                    ——————&lt;/p&gt;&lt;p&gt;4：                                        ————&lt;/p&gt;&lt;p&gt;比如第一次[0,5]，右边界最大又与之没有交集的是[11,15]，但[4,10]和[6,12]是不能放一组的，因此需要3组。&lt;/p&gt;&lt;p&gt;不过其实[0,5]，[6,12]一组，[4,10]，[6,12]一组是可以的，一共两组就行。&lt;/p&gt;&lt;p&gt;因此，似乎上述两种方法都不大行。那么按左边界排序呢？&lt;/p&gt;&lt;p&gt;&lt;b&gt;3.按左边界排序，每次合并左边段点最小的不重复线段：&lt;/b&gt;&lt;/p&gt;&lt;p&gt;比如第一个：&lt;/p&gt;&lt;p&gt;[0,5], [1,7], [6,15]，[8,10],&lt;/p&gt;&lt;p&gt;就会有[0,5]，[6,15]一组，因为6比8小；然后[1,7]，[8,10]一组；&lt;/p&gt;&lt;p&gt;对于第二个：&lt;/p&gt;&lt;p&gt;[0,5],[4,10],[6,12],[11,15]&lt;/p&gt;&lt;p&gt;也有[0,5]，[6,12]一组，然后[4,10],[11,15]一组，似乎是可以的。&lt;/p&gt;&lt;p&gt;其实我们最担心的是这种情况：&lt;/p&gt;&lt;p&gt;1、2段可以合并，1、3段可以合并，2、4段可以合并，但3、4段不能合并，且1、2、4不能合并；使用贪心算法，会让1、2段合并，这样3、4段单独，需要3段；但如果1、3段和2、4段分别合并，只需要两端。&lt;/p&gt;&lt;p&gt;下面证明一下这种情况不会出现。&lt;/p&gt;&lt;p&gt;假设端点是： &lt;img src=&quot;https://www.zhihu.com/equation?tex=x_i%2Cy_i&quot; alt=&quot;x_i,y_i&quot; eeimg=&quot;1&quot;/&gt; ，按照之前的排序， &lt;img src=&quot;https://www.zhihu.com/equation?tex=x_1%3Cx_2%3Cx_3%3Cx_4&quot; alt=&quot;x_1&amp;lt;x_2&amp;lt;x_3&amp;lt;x_4&quot; eeimg=&quot;1&quot;/&gt; ，则有：&lt;/p&gt;&lt;p&gt;如果1、2段可以合并，则有:  &lt;img src=&quot;https://www.zhihu.com/equation?tex=x_1%3Cy_1%3Cx_2%3Cy_2&quot; alt=&quot;x_1&amp;lt;y_1&amp;lt;x_2&amp;lt;y_2&quot; eeimg=&quot;1&quot;/&gt; ，&lt;/p&gt;&lt;p&gt;如果1、3段可以合并，则有：&lt;img src=&quot;https://www.zhihu.com/equation?tex=x_1%3Cy_1%3Cx_3%3Cy_3&quot; alt=&quot;x_1&amp;lt;y_1&amp;lt;x_3&amp;lt;y_3&quot; eeimg=&quot;1&quot;/&gt; ，&lt;/p&gt;&lt;p&gt;如果2、4段可以合并，且1、2、4不能合并，则4只能在2的左边，则有：&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;https://www.zhihu.com/equation?tex=x_4%3Cy_4%3Cx_2%3Cy_2%5C%5C&quot; alt=&quot;x_4&amp;lt;y_4&amp;lt;x_2&amp;lt;y_2\\&quot; eeimg=&quot;1&quot;/&gt; ，好了，此时，3、4是可以合并的，因为 &lt;img src=&quot;https://www.zhihu.com/equation?tex=x_4%3Cy_4%3Cx_2%3Cx_3&quot; alt=&quot;x_4&amp;lt;y_4&amp;lt;x_2&amp;lt;x_3&quot; eeimg=&quot;1&quot;/&gt; ，这与题目中的3、4段不能合并矛盾。&lt;/p&gt;&lt;p&gt;因此，对于4个线段，这样的算法可以得到最优解，不会出现贪心过度的情况。&lt;/p&gt;&lt;p&gt;其实不失一般性，对于任意数目的线段，如果贪心导致出错，其实都可以归结为上述的情况，就是前面合并多了导致后面被动了，因此其实已经证明了贪心算法可以得到最优解。&lt;/p&gt;&lt;p&gt;然后我们知道，按这种算法如果两段线段合并了，是不会存在另外一条线段中间插缝合并进来的，因为中间插缝的线段y点小于被合并线段的x点，那么中间插缝的左端点更小了，理应是合并它才对。&lt;/p&gt;&lt;p&gt;所以说，按这个算法合并的话，如果同一条线段要继续合并，只能往右扩展。因此合并后的线段可以看成一整条，从最左到最右。这样就可以套用算法不断迭代了。&lt;/p&gt;&lt;p&gt;大概两重循环，算法复杂度 &lt;img src=&quot;https://www.zhihu.com/equation?tex=O%28n%5E2%29&quot; alt=&quot;O(n^2)&quot; eeimg=&quot;1&quot;/&gt; ，假设x已经排好序的。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;set.seed(100)
+n &amp;lt;- 10000
+x &amp;lt;- runif(n,0,10)
+y &amp;lt;- x+(runif(n,1,10))
+p &amp;lt;- 1:n
+ix &amp;lt;- sort.int(x, decreasing = FALSE, index.return = TRUE)$ix
+xx &amp;lt;- x[ix]
+yy &amp;lt;- y[ix]
+for (i in 1:(n-1))
+  if (p[i]) {
+    for (j in (i+1):n) {
+      if (p[j]==j &amp;amp;&amp;amp; xx[j]&amp;gt;=yy[i]) {
+          yy[i] &amp;lt;- yy[j]
+          p[j] &amp;lt;- i
+      }
+    }
+  }
+total &amp;lt;- length(table(p))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;假设已经按x排好序了，然后两层循环，第一层是每个线段开始的那条，然后一直往右扩张，直到无法扩张为止，然后再寻找下一个。然后如果被合并了，则记录它对应的初始线段编号p[j]=i，最终结果就是p的不重复元素。&lt;/p&gt;&lt;p&gt;水平有限，不知道对不对，也不知道能否继续优化。&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>babyquant</author>
+<guid isPermaLink="false">2019-11-05-90233016</guid>
+<pubDate>Tue, 05 Nov 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>量化面试——抛硬币的期望次数</title>
 <link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-11-03-89898118.html</link>
@@ -92,33 +170,6 @@ for (x in 2:n) {
 <author>babyquant</author>
 <guid isPermaLink="false">2019-10-26-88564562</guid>
 <pubDate>Sat, 26 Oct 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>量化C++招聘</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-10-25-88393620.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/88393620&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;**数家对冲基金招聘-C++ Developer -40-70万+奖金-北京/上海**&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;推荐奖: 1万&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;简历邮件至: quant345@163.com &lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;**C++ Developer-40-90万+奖金-上海-4家领先量化交易公司**&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;地点：上海&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;职责：&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1. 负责中国市场的股票,期货和海外股票市场的交易系统的研发；&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;2. 帮助策略研究员实现量化交易模型&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;关键词：2-6年的C++ 开发经验, Linux 操作系统，知名互联网经验或低延迟交易系统开发经验是加分项&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;**C++ Developer-30-70万+奖金-北京-股票/期货交易-2家公司**&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;地点：北京&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;职责：&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1. 负责交易和研究系统的开发，优化和维护&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;2. 负责交易系统的扩展，包括与海内外的金融市场的连接，功能模块的开发等&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;3. 负责交易系统的深层次优化（软件，硬件和网络）&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;4. 负责开发交易系统相对应的回测和分析模块&lt;/p&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;关键词：1-6年C++，C++ 底层系统开发，操作系统,知名互联网经验或低延迟交易系统开发经验是加分项&lt;/p&gt;</description>
-<author>babyquant</author>
-<guid isPermaLink="false">2019-10-25-88393620</guid>
-<pubDate>Fri, 25 Oct 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>美国量化交易的业绩提成标准</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-10-14-86488399.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/86488399&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;美国很多量化交易的公司一般都有比较明确的业绩提成标准，比如说一个人，一年下来pnl时2000万美金，这算是比较顶级的量化交易员了，夏普比4倍，公司自营的钱，那么能提多少呢？&lt;/p&gt;&lt;p&gt;首先，我们知道，这类高频交易对本金要求很低，收益率通常高的离谱，而且美国利率非常低，因此资金成本是可以忽略的。比如一年下来翻几倍的，无风险利率2-3%，可以忽略的。所以公司可以给比较高的提成。&lt;/p&gt;&lt;p&gt;其次，这夏普比也是比较高的。4倍的夏普比，一年256天，开根号是16，4/16=0.25，就是说日均值/日标准差=0.25，一年2000万美元，日均8万，日标准差是32万，2倍标准差64万，95%的置信去见识(8-64，8+64）也就是-56万到72万之间，但还是牛逼的。&lt;/p&gt;&lt;p&gt;如果是这种情况，提成是多少呢？&lt;/p&gt;&lt;p&gt;根据几个业内大神估计，分几种情况：&lt;/p&gt;&lt;p&gt;1.完全自主产权。这种情况，只与公司分享基础设施、经纪商、合规法律等资源，也就是策略完全自己的，只是占用了公司的数据、IT、法务、佣金优势等等，据业内消息灵通认识透露可以分到30%;&lt;/p&gt;&lt;p&gt;2.主要产权。也就是可能需要用到公司的码农实现策略之类的，这个可能就分不了这么多，视情况而定，10%吧。&lt;/p&gt;&lt;p&gt;当然，有人说完全自主产权为什么还需要打工？其实要这么看：&lt;/p&gt;&lt;p&gt;如果是高频交易，很多时候硬件成本非常高，而且一些资源个人拿不到，比如一些资源只有国外几家巨头有，必须跟他们合作才能拿到。&lt;/p&gt;&lt;p&gt;另外，自己的交易量有限，也拿不到多好的返佣条件，但如果跟公司合作，相当于很多交易员集合起来，自然有更强的议价能力。&lt;/p&gt;&lt;p&gt;还有合规法律之类的问题，一些市场可能要机构才能做，散户太难，因此水平再高也只能跟机构合作。&lt;/p&gt;&lt;p&gt;另外就是硬件资源，比如更好的数据库、服务器等，这些本质上可以跟机构共享，个人难以负担费用，这时候也只能去公司打工。&lt;/p&gt;&lt;p&gt;当然，这是国外的情况。国内这些私募，就不说了。&lt;/p&gt;</description>
-<author>babyquant</author>
-<guid isPermaLink="false">2019-10-14-86488399</guid>
-<pubDate>Mon, 14 Oct 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>美国少数族裔的政治选择</title>
-<link>https://henix.github.io/feeds/zhuanlan.c_106548378/2019-10-12-86188485.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/86188485&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;最近关于Facebook的文章引起了一些争议，其实我更多是就事论事，当然我自己观点偏自由派，可能跟知乎价值观不大一致，所以引起了群殴。&lt;/p&gt;&lt;p&gt;一般我说的白左、白右、华左、华右，都是完全客观地讨论，这不是扣帽子。从政治坐标来说，从左到右[-1,+1]，取零点的概率是0，因此一个人要么左倾，要么右倾，这是完全客观的描述。对任何一件事情的看法，基本上都有客观的左右标准，也不是我主观臆断的。比如支持同性恋的是左，反对同性恋的是右；支持环保的是左，反对环保的是右；我觉得，基本上这些都是客观承认的。&lt;/p&gt;&lt;p&gt;什么叫扣帽子？比如你说支持Affirmative Action的都是汉奸，这个就是典型的扣帽子。“汉奸”是贬义的词汇，而支持AA只是说明他立场偏左，这句话本质上就是骂左翼是汉奸，当然是扣帽子；我一般最多说这个人是大右派，这只能说他的立场在右翼光谱上更右一些，这不能说是贬义。&lt;/p&gt;&lt;p&gt;我发现一个很有趣的现象，美国的少数族裔，比如黑墨穆三犹，清一色大比例左倾；而华人，特别是知乎华人，清一色大比例右倾；以至于知乎上左倾的言论容易被恶意投诉而删贴，而右翼的言论却大行其道，例如 &lt;a class=&quot;member_mention&quot; href=&quot;https://www.zhihu.com/people/0e5c2a84ea0c614e550b8f2d9f4f6280&quot; data-hash=&quot;0e5c2a84ea0c614e550b8f2d9f4f6280&quot; data-hovercard=&quot;p$b$0e5c2a84ea0c614e550b8f2d9f4f6280&quot;&gt;@刘翔熙&lt;/a&gt; 的言论，或者类似尹伊的言论，很多也对少数族裔充满了恶意的攻击，但总是长时间大规模存在。&lt;/p&gt;&lt;p&gt;黑墨穆一般认为比华人要穷，而烙印米犹一般认为比华人要富。我不明白是华人独立思考太厉害，还是故意要特立独行，总觉得事情怪怪的。大家都是少数族裔，比我们穷的支持民主党，比我们富的支持民主党，如果族裔对政党的最优选择是关于族裔人均收入的单调连续函数，比如越穷越什么党，越富越什么党，那么既然更穷更富都是民主党，我们也应该支持民主党；你用肤色也一样，比我们浅色的犹太，比我们深色的黑墨穆三；你用历史时间也一样，比我们来美国历史时间长的老黑，比我们来美国历史时间短的米犹老墨；你用母国人均收入也一样，母国人均收入更少的老黑烙印，米国人均收入更高的米犹老墨；按什么标准，我们都夹在中间。我本科和研究生都是读数学的，可能时间久远忘了一些，现在数学不大好，但我不会像卫哲那样。&lt;/p&gt;&lt;p&gt;似乎比我们穷的也好，比我们富的也好，过得都比我们好，我们过得没他们好，却不向他们学习，总是抱怨这个抱怨那个，往相反的方向越走越偏，这到底是为什么？&lt;/p&gt;&lt;p&gt;有人说少数族裔剥削华人，要知道，黑人比例12%，劳模比例16%，他们加起来大几千万人，华人不足500万，你说8000多万黑墨剥削400多万华人，从此过上了美国上等人的生活？&lt;/p&gt;&lt;p&gt;华人右翼炮制了太多诸如此类莫名其妙的观点，而从来不去反思问题的根源。在他们眼中，好像黑墨穆的地位是靠打砸抢烧得来的，华人逆来顺受反而被欺负。然后人家打砸抢烧出了一个黑人总统，2016共和党两个候选人卢比奥、克鲁兹都是劳模，这些都是武德充沛打砸抢烧得来的？&lt;/p&gt;&lt;p&gt;我不否认华人需要斗争，但我反对的是无谓的牺牲。好比当年十年对峙时期反围剿时期，本来自己的力量就很弱，还去进攻别人最坚固的堡垒，这不是找死吗？类似这次尹伊主动被裁，如果是H1B，只有60天的grace period，找下家可能有点难度，人家问为啥被裁，背景调查公然举牌怒怼前公家接受采访胡说八道，国内国外任何一家公司，除了可能有明确政治目的的公司，或者都不会觉得这是加分项。这些都是毫无意义的牺牲。&lt;/p&gt;&lt;p&gt;有人说共和党对华人好，问题是好在哪里？贸易摩擦加税？两院一个议员都没有？50个州一个州长都没有？这个叫对华人好？难道参议院龟丞相娶了个华人富家女就叫对华人好？华人就是靠这个融入美国？这是什么价值观？&lt;/p&gt;&lt;p&gt;老说赵美心这不是那不是，人家好歹正儿八经职业女性去参选议员的。如果你说靠嫁白人老公和靠自己去竞选议员本质上没有区别，都是努力奋斗，嫁大官富豪更难，我觉得按这个标准，咱们广州姑娘邓文迪才是华人奋斗的楷模，水平比赵小兰高到不知哪里去了。&lt;/p&gt;&lt;p&gt;老说民主党搞AA消磨黑人意志奴化黑人，是白人虚伪的施舍，然后奴化施舍出了一个总统；特朗普上台前，说特朗普重视经济，淡化意识形态，会跟中国搞好关系；民主党重视意识形态，对中国不好；然后特朗普上台之后怒怼了中国几次，就说搞毛衣摩擦是给国人磨练，促进国人自强，让国人对白人放弃幻想，是对中国人好；那么我也可以说搞平权运动是给国人磨练，促进国人自强，让国人对白人放弃幻想，是对中国人好。做人能不能不要这么双标？&lt;/p&gt;&lt;p&gt;有时候又说奥巴马是敌国给美国的间谍，要拖垮美国的；那美国垮了，中国不就上位了吗？为啥又要黑他？特朗普要让美国再次强大，那中国不就千年老二了吗？为啥要支持他？&lt;/p&gt;&lt;p&gt;很多时候，我觉得这帮北美华右真的不知道自己要什么，也不清楚自己有几斤几两。其实很多华左反而更加务实——华人不到500万，黑墨8500万，你去搞AA，投票肯定搞不成；小概率搞成了，人家8500万人吃素的？政治其实很简单的，自己的人越多越好，对立的人越少越好。白人天然分裂，表面上人数众多但左右相抵也没多少了；黑人90%偏左，劳模70%偏左，反而是决定性的力量。&lt;/p&gt;&lt;p&gt;华左想法很简单——融入白左，放弃AA，以退为进。白左的议题——环保、LGBT、女性权益、劳工福利等——基本上是族裔中性的。这既能提高自己的政治影响力，也避免了来自其他族裔的攻击，不是很好吗？&lt;/p&gt;&lt;p&gt;杨安泽水平则更厉害，提出了无条件基础收入的概念，创造性地团结了左右两边的人，居然连福克斯的保守派主播都对他大为赞赏，票源横跨左右，这些才是华人的典范。而不是尹伊那种，潇洒一把，滞留60天，回国待业，有意思吗？大家说他是英雄，难道是白卷英雄？当年白卷英雄也是牺牲自己的前途抗议体制不公哈。&lt;/p&gt;&lt;p&gt;如果他举牌，是抗议工作压力大逼人自杀，那么回国要天天举牌；如果他举牌，是因为某些群体过的比华人好觉得不公平，如果回国，大家都不好，反而心安了；或者说过得好的二代群体不是他厌恶的LGBT、黑墨穆三，他觉得就没所谓，那么他所谓的抗议，只是纯粹的左右立场之间的斗争，跟正义没有任何关系。&lt;/p&gt;&lt;p&gt;我一直觉得有右翼势力在带节奏，可能是我敏感，但从后来搜出来的资料看，确实证实了我的想法，只不过恶意反对的太多，原帖和我的帖都被删了。现在很多千人计划都被美国政府搞的，正儿八经赴美签证都被关小黑屋的，好好做科研被学校辞退的，这些人的遭遇，比起这位尹伊，可以说悲惨得多，他们对社会的贡献，他们之前的工作，也比尹伊高大上的多。为什么这些人都没有引起如此规模的轰动？&lt;/p&gt;&lt;p&gt;我只能从左右政治斗争去解释。这些学术界的基本偏左翼，例如郗小星、陈霞芬以及其他一些千人计划，整他们的都是右翼；而知乎北美码农一般都是右翼，开他们的小扎是左翼；这本来只是左与右之间的政治斗争，非得讨论个是非对错，有意义吗？刚好知乎价值观严重右倾，所以对左翼受害者视而不见，对右翼的悲剧就大肆渲染，事实就是如此，我觉得我已经够客观了。&lt;/p&gt;&lt;p&gt;类似的例子，每次枪击案先看开枪的是谁，被打死的是谁，如果是黑人打死白人，就说“非法移民带来犯罪”“修墙”，其实人家黑人祖上10代就是黑奴了；如果白人打死黑人，就是“体制问题，社会问题，文化问题，环境问题，要积极辅导，要反思是什么让一个虔诚的清教徒一时想不开”。所有这些，都是政治斗争；陈勤也罢，尹伊也罢，只不过是政治斗争的工具而已。&lt;/p&gt;</description>
-<author>babyquant</author>
-<guid isPermaLink="false">2019-10-12-86188485</guid>
-<pubDate>Sat, 12 Oct 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
