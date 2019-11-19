@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>TiDB 最佳实践系列（六）HAProxy 的使用</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/92640961">原文</a></p>
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-58e795e497183685837e6922e5fe31bf_b.jpg" alt=""></div><p>作者：李仲舒</p><p>HAProxy 是一个使用 C 语言编写的自由及开放源代码软件，其提供高可用性、负载均衡，以及基于 TCP 和 HTTP 的应用程序代理。GitHub、Bitbucket、Stack Overflow、Reddit、Tumblr、Twitter 和 Tuenti 在内的知名网站，及亚马逊网络服务系统都在使用 HAProxy。</p><p>TiDB Server 作为无限水平扩展的无状态计算节点，需要能提供稳定且高性能的负载均衡组件用对外统一的接口地址来提供服务，而 HAProxy 在负载均衡的生态中占有很大的市场，TiDB 用户可以将这一成熟稳定的开源工具应用在自己的线上业务中，承担负载均衡、高可用的功能。</p><p class="ztext-empty-paragraph"><br/></p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-9781419c9ac0d603691c50fd3a63dda2_b.jpg" data-caption="" data-size="normal" data-rawwidth="2296" data-rawheight="1554" class="origin_image zh-lightbox-thumb" width="2296" data-original="https://pic3.zhimg.com/v2-9781419c9ac0d603691c50fd3a63dda2_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-9781419c9ac0d603691c50fd3a63dda2_b.jpg" data-caption="" data-size="normal" data-rawwidth="2296" data-rawheight="1554" class="origin_image zh-lightbox-thumb lazy" width="2296" data-original="https://pic3.zhimg.com/v2-9781419c9ac0d603691c50fd3a63dda2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-9781419c9ac0d603691c50fd3a63dda2_b.jpg"/></figure><p class="ztext-empty-paragraph"><br/></p><h2>HAProxy 简介</h2><p>HAProxy 由 Linux 内核的核心贡献者 Willy Tarreau 于 2000 年编写，他现在仍然负责该项目的维护，并在开源社区免费提供版本迭代。最新的稳定版本 2.0.0 于 2019 年 8 月 16 日发布，带来更多 <a href="https://link.zhihu.com/?target=https%3A//www.haproxy.com/blog/haproxy-2-0-and-beyond/" class=" wrap external" target="_blank" rel="nofollow noreferrer">优秀的特性</a>。</p><h2>HAProxy 部分核心功能</h2><ul><li><a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/1.9/intro.html%233.3.4" class=" wrap external" target="_blank" rel="nofollow noreferrer">高可用性</a>：HAProxy 提供优雅关闭服务和无缝切换的高可用功能；</li><li><a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/1.9/configuration.html%234.2-balance" class=" wrap external" target="_blank" rel="nofollow noreferrer">负载均衡</a>：L4（TCP）和 L7（HTTP）负载均衡模式，至少 9 类均衡算法，比如 roundrobin，leastconn，random 等；</li><li><a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/1.9/configuration.html%235.2-check" class=" wrap external" target="_blank" rel="nofollow noreferrer">健康检查</a>：对 HAProxy 配置的 HTTP 或者 TCP 模式状态进行检查；</li><li><a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/1.9/intro.html%233.3.6" class=" wrap external" target="_blank" rel="nofollow noreferrer">会话保持</a>：在应用程序没有提供会话保持功能的情况下，HAProxy 可以提供该项功能；</li><li><a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/1.9/intro.html%233.3.2" class=" wrap external" target="_blank" rel="nofollow noreferrer">SSL</a>：支持 HTTPS 通信和解析；</li><li><a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/1.9/intro.html%233.3.3" class=" wrap external" target="_blank" rel="nofollow noreferrer">监控与统计</a>：通过 web 页面可以实时监控服务状态以及具体的流量信息。</li></ul><h2>HAProxy 部署操作</h2><h3>1. 硬件要求 </h3><p>根据 <a href="https://link.zhihu.com/?target=http%3A//cbonte.github.io/haproxy-dconv/2.0/management.html%231" class=" wrap external" target="_blank" rel="nofollow noreferrer">HAProxy 官方文档</a> 对 HAProxy 的服务器硬件配置有以下建议（也可以根据负载均衡环境进行实际推算，在此基础上提高服务器配置）：</p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-c4511fcfd5148c0e99f14ad07928174a_b.jpg" data-caption="" data-size="normal" data-rawwidth="502" data-rawheight="374" class="origin_image zh-lightbox-thumb" width="502" data-original="https://pic3.zhimg.com/v2-c4511fcfd5148c0e99f14ad07928174a_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-c4511fcfd5148c0e99f14ad07928174a_b.jpg" data-caption="" data-size="normal" data-rawwidth="502" data-rawheight="374" class="origin_image zh-lightbox-thumb lazy" width="502" data-original="https://pic3.zhimg.com/v2-c4511fcfd5148c0e99f14ad07928174a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-c4511fcfd5148c0e99f14ad07928174a_b.jpg"/></figure><h3>2. 软件要求</h3><p>根据官方介绍，我们对操作系统和依赖包有以下建议（如果是通过 yum 源部署安装 HAProxy 软件，依赖包可以不需要单独安装）：</p><h3>操作系统</h3><ul><li>Linux 2.4 操作系统，支持 x86、x86_64、Alpha、SPARC、MIPS 和 PA-RISC 架构。</li><li>Linux 2.6 或 3.x 操作系统，支持 x86、x86_64、ARM、SPARC 和 PPC64 架构。</li><li>Solaris 8 或 9 操作系统，支持 UltraSPARC II 和 UltraSPARC III 架构。</li><li>Solaris 10 操作系统，支持 Opteron 和 UltraSPARC 架构。</li><li>FreeBSD 4.10~10 操作系统，支持 x86 架构。</li><li>OpenBSD 3.1 及以上版本操作系统，支持 i386、AMD64、macppc、Alpha 和 SPARC64 架构。</li><li>AIX 5.1~5.3 操作系统，支持 Power™ 架构。</li></ul><h3>依赖包</h3><ul><li>epel-release</li><li>gcc</li><li>systemd-devel</li></ul><h3>3. 推荐版本</h3><p>根据官方建议，目前 HAProxy 稳定版本为稳定版 2.0，特性介绍参考 <a href="https://link.zhihu.com/?target=https%3A//www.haproxy.com/blog/haproxy-2-0-and-beyond/" class=" wrap external" target="_blank" rel="nofollow noreferrer">这篇文章</a>。</p><h3>4.操作步骤</h3><p>HAProxy 配置 Database 负载均衡场景操作简单，以下 step by step 操作具有普遍性，不具有特殊性，建议根据实际场景，个性化配置相关的配置文件。</p><ol><li>安装 HAProxy：推荐 yum 安装</li></ol><div class="highlight"><pre><code class="language-text"># yum 安装 HAProxy
+yum -y install haproxy
+# 验证 HAProxy 安装是否成功
+which haproxy</code></pre></div><p>2. 配置 HAProxy</p><div class="highlight"><pre><code class="language-text"># yum 安装过程中会生成配置模版
+vim /etc/haproxy/haproxy.cfg</code></pre></div><p>3. 启动  HAProxy</p><p>方法一：直接启动</p><div class="highlight"><pre><code class="language-text">haproxy -f /etc/haproxy/haproxy.cfg</code></pre></div><p>方法二：systemd 启动 HAProxy，默认读取（推荐）</p><div class="highlight"><pre><code class="language-text">systemctl start haproxy.service</code></pre></div><p>4. 停止  HAProxy</p><p>方法一：kill -9</p><div class="highlight"><pre><code class="language-text">ps -ef | grep haproxy  kill -9 haproxy.pid</code></pre></div><p>方法二：systemd 停止 HAProxy（如果使用 systemd 启动）</p><div class="highlight"><pre><code class="language-text">systemctl stop haproxy.service</code></pre></div><h2>HAProxy 命令介绍</h2><p>通过以下命令查看 HAProxy 的命令列表：</p><div class="highlight"><pre><code class="language-text">$ haproxy --help
+Usage : haproxy [-f &lt;cfgfile|cfgdir&gt;]* [ -vdVD ] [ -n &lt;maxconn&gt; ] [ -N &lt;maxpconn&gt; ]
+        [ -p &lt;pidfile&gt; ] [ -m &lt;max megs&gt; ] [ -C &lt;dir&gt; ] [-- &lt;cfgfile&gt;*]</code></pre></div><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-f83df1a559f461d35be2865f0bc6ca25_b.jpg" data-caption="" data-size="normal" data-rawwidth="1000" data-rawheight="1845" class="origin_image zh-lightbox-thumb" width="1000" data-original="https://pic2.zhimg.com/v2-f83df1a559f461d35be2865f0bc6ca25_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-f83df1a559f461d35be2865f0bc6ca25_b.jpg" data-caption="" data-size="normal" data-rawwidth="1000" data-rawheight="1845" class="origin_image zh-lightbox-thumb lazy" width="1000" data-original="https://pic2.zhimg.com/v2-f83df1a559f461d35be2865f0bc6ca25_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-f83df1a559f461d35be2865f0bc6ca25_b.jpg"/></figure><h2>HAProxy 最佳实践</h2><div class="highlight"><pre><code class="language-text">global                                     # 全局配置
+   log         127.0.0.1 local0            # 定义全局的 syslog 服务器，最多可以定义两个
+   chroot      /var/lib/haproxy            # 将当前目录为指定目录，设置超级用户权限启动进程，提高安全性
+   pidfile     /var/run/haproxy.pid        # 将 HAProxy 进程写入 PID 文件
+   maxconn     4000                        # 设置每个 HAProxy 进程锁接受的最大并发连接数
+   user        haproxy                     # 同 uid 参数，使用是用户名
+   group       haproxy                     # 同 gid 参数，建议专用用户组
+   nbproc      40                          # 启动多个进程来转发请求，需要调整到足够大的值来保证 HAProxy 本身不会成为瓶颈
+   daemon                                  # 让 HAProxy 以守护进程的方式工作于后台，等同于“-D”选项的功能。当然，也可以在命令行中用“-db”选项将其禁用。
+   stats socket /var/lib/haproxy/stats     # 定义统计信息保存位置
+
+defaults                                   # 默认配置
+   log global                              # 日志继承全局配置段的设置
+   retries 2                               # 向上游服务器尝试连接的最大次数，超过此值就认为后端服务器不可用
+   timeout connect  2s                     # HAProxy 与后端服务器连接超时时间，如果在同一个局域网内可设置成较短的时间
+   timeout client 30000s                   # 定义客户端与 HAProxy 连接后，数据传输完毕，不再有数据传输，即非活动连接的超时时间
+   timeout server 30000s                   # 定义 HAProxy 与上游服务器非活动连接的超时时间
+
+listen admin_stats                         # frontend 和 backend 的组合体，监控组的名称，按需自定义名称
+   bind 0.0.0.0:8080                       # 配置监听端口
+   mode http                               # 配置监控运行的模式，此处为 `http` 模式
+   option httplog                          # 表示开始启用记录 HTTP 请求的日志功能
+   maxconn 10                              # 最大并发连接数
+   stats refresh 30s                       # 配置每隔 30 秒自动刷新监控页面
+   stats uri /haproxy                      # 配置监控页面的 URL
+   stats realm HAProxy                     # 配置监控页面的提示信息
+   stats auth admin:pingcap123             # 配置监控页面的用户和密码 admin，可以设置多个用户名
+   stats hide-version                      # 配置隐藏统计页面上的 HAProxy 版本信息
+   stats  admin if TRUE                    # 配置手工启用/禁用，后端服务器（HAProxy-1.4.9 以后版本）
+
+listen tidb-cluster                        # 配置 database 负载均衡
+   bind 0.0.0.0:3390                       # 配置浮动 IP 和 监听端口
+   mode tcp                                # HAProxy 中要使用第四层的应用层
+   balance leastconn                       # 连接数最少的服务器优先接收连接。`leastconn` 建议用于长会话服务，例如 LDAP、SQL、TSE 等，而不是短会话协议，如 HTTP。该算法是动态的，对于实例启动慢的服务器，权重会在运行中作调整。
+   server tidb-1 10.9.18.229:4000 check inter 2000 rise 2 fall 3       # 检测 4000 端口，检测频率为 2000 毫秒。如果检测出 2 次正常就认定机器已恢复正常使用，如果检测出 3 次失败便认定该服务器不可用。
+   server tidb-2 10.9.39.208:4000 check inter 2000 rise 2 fall 3
+   server tidb-3 10.9.64.166:4000 check inter 2000 rise 2 fall 3</code></pre></div><h2>总结</h2><p>本文介绍了在 TiDB 下使用 HAProxy 的最佳实践，全文对于 HAProxy 的基本使用方法进行较为详细的介绍，这里唯一遗憾的是没有将 HAProxy 的高可用架构和方案加以文字描述，大家在线上使用中可以通过 Linux 的 Keepalived 来实现主备配置，实现 HAProxy 的高可用；在按照该文档搭建 HAProxy 时候，一定要结合自己的具体业务需求和场景，适当调整参数，为业务的负载均衡和可用性提供最佳的保障方案。</p><p>最后也希望活跃在 TiDB 社区的小伙伴可以踊跃分享最佳实践经验，大家可以在 TiDB User Group 问答论坛交流讨论使用技巧（<a href="https://link.zhihu.com/?target=https%3A//asktug.com/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">asktug.com/</span><span class="invisible"></span></a>）。</p><p><b>原文阅读：</b></p><a href="https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/best-practice-haproxy/" data-draft-node="block" data-draft-type="link-card" data-image="https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg" data-image-width="1200" data-image-height="1200" class=" wrap external" target="_blank" rel="nofollow noreferrer">TiDB 最佳实践系列（六）HAProxy 的使用 | PingCAP</a><p><b>更多 TiDB 最佳实践：</b></p><a href="https://link.zhihu.com/?target=https%3A//pingcap.com/blog-cn/%23%25E6%259C%2580%25E4%25BD%25B3%25E5%25AE%259E%25E8%25B7%25B5" data-draft-node="block" data-draft-type="link-card" data-image="https://pic2.zhimg.com/v2-60ab5bd867c2434d70c957a02a2169e1_ipico.jpg" data-image-width="1200" data-image-height="1200" class=" wrap external" target="_blank" rel="nofollow noreferrer">Blog-cns | PingCAP</a><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
