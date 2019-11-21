@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IDASH 2019 竞赛花落谁家</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/92887790">原文</a></p>
+<p>iDASH（隐私与安全研讨会）是一场围绕基因组数据安全分析的竞赛，由UCSD的生物医学信息学系，UTHealth的生物医学信息学学院和印第安纳大学的信息学与计算机学院共同组织。自2014年以来，该竞赛每年都会举行一次，目的是挑战和评估用于安全计算的不同方法，以维护在云环境中部署时敏感数据的机密性。iDASH2019竞赛共有4条赛道，每条赛道的目的是通过使用不同的技术解决基因组数据的机器学习问题：Track I的区块链，Track II的同态加密，Track III的受信任执行环境（即SGX）和 Track IV的安全多方计算。在10月26日在美国布卢明顿（美国印第安纳州）举行的研讨会上提出的解决方案表明，隐私安全计算技术正在变得越来越具有竞争力，并且可能会在实际应用中得到有效部署。</p><p class="ztext-empty-paragraph"><br/></p><h2><b>TrackII ：使用同态加密的安全基因型插补</b></h2><p class="ztext-empty-paragraph"><br/></p><p>TrackII（使用同态加密的安全基因型插补）要求参与者提供基于同态加密的解决方案以执行基因型插补。在实践中，在输入中提供了包含多个缺少条目的个体的基因型信息（SNP）的数据集：解决方案必须提供能够预测这些丢失条目的训练模型。</p><p>模型的训练可以以明文形式进行，而分类则必须对加密数据进行。解决方案必须尽可能准确，并且必须在不到10分钟的时间内执行500个目标SNP的同态插补。</p><p>TrackII的组织者宣布，在54个参赛团队中，只有6个团队在时限内完成了任务。同态加密解决方案的第一名属于TFHE-Chimera小组，该小组由Sergiu Carpov（法国CEA LIST），Ilaria Chillotti（COSIC，比利时鲁汶大学），Nicolas Gama（瑞士Inpher和UVSQ，法国）和玛丽亚·格奥尔基耶娃（Mariya Georgieva）（瑞士因弗尔）组成。</p><p>获胜团队提出的解决方案比在同一赛道上竞争的所有其他团队表现出更好的准确性和更好的性能。</p><p>该模型考虑到目标SNP的一个最小近邻进行预测，并通过逻辑回归进行训练。通过使用带有系数打包的TFHE-Chimera对基因组数据进行加密，并通过对训练模型的系数进行线性回归计算，可以完成同态计算。</p><p>基于1k数据集提出的模型精度达到0.9971，执行同态插补所需的时间为0.7063秒（包括加密，计算和解密在内的总轮数为3.5496秒）。而对于10k数据集的模型则达到0.9763的精度，执行同态插补的时间为0.3146秒（整个轮数时间为0.8179秒）。</p><p>TrackII的第二名和第三名分别属于SNU团队（首尔国立大学）和EPFL团队（EPFL和北京大学）。</p><p class="ztext-empty-paragraph"><br/></p><h2><b>其他赛道</b></h2><p>赛道1（基于区块链和智能合约的分布式基因-药物相互作用数据共享）：在30个参与团队中，有5个完成了任务。胜利属于埃默里队（埃默里大学和京都大学）。</p><p>赛道3（SGX上的隐私保护机器学习）：在48个参与团队中，有6个完成了任务。胜利属于ZJU-CITYU团队（浙江大学和香港城市大学）。</p><p>赛道4（机器学习模型的安全协作培训）：在67个参与团队中，有9个完成了任务。胜利属于Gene X团队（华盛顿大学）。</p><p class="ztext-empty-paragraph"><br/></p><p>宁波格密链网络科技有限公司一直致力于全同态加密的研究，目前主要致力于密文机器学习的训练。</p><a href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzU3MTYzMjMzNA%3D%3D%26mid%3D2247485438%26idx%3D1%26sn%3Dbab2e98a648e468632714644157957fe%26chksm%3Dfcdc785fcbabf149fc02e1a65c0a9b87c84e906e74b563c59ea938b1c99f1a8ba894af11b390%26token%3D560732104%26lang%3Dzh_CN%23rd" data-draft-node="block" data-draft-type="link-card" data-image="https://pic1.zhimg.com/v2-6920cd6d3a2cff6720c6140833ff6724_180x120.jpg" data-image-width="795" data-image-height="504" class=" wrap external" target="_blank" rel="nofollow noreferrer">IDASH 2019 竞赛花落谁家</a><hr/><p><b>文章首发在微信公众号：btc201800</b><br/><b>知识星球ID：28018093</b><br/><br/><b>音频发布在喜马拉雅上“区块链杂谈 (第2季)”</b> <b><u><a href="https://link.zhihu.com/?target=http%3A//xima.tv/Bjq4se" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/Bjq4se</span><span class="invisible"></span></a></u></b><br/><b>解读区块链白皮书</b> <u><a href="https://link.zhihu.com/?target=http%3A//xima.tv/RNU1Q8" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">http://</span><span class="visible">xima.tv/RNU1Q8</span><span class="invisible"></span></a></u></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
