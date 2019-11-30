@@ -5,7 +5,382 @@
 <link>https://henix.github.io/feeds/zhuanlan.prattle/</link>
 <description>我的博客及微信公众号里的精华内容都会放在这里。 我的博客及微信公众号里的精华内容都会放在这里。</description>
 <language>zh-cn</language>
-<lastBuildDate>Thu, 14 Nov 2019 14:42:32 +0800</lastBuildDate>
+<lastBuildDate>Sat, 30 Nov 2019 18:01:26 +0800</lastBuildDate>
+<item>
+<title>我们随手做的 git stash，究竟干了什么？</title>
+<link>https://henix.github.io/feeds/zhuanlan.prattle/2019-11-28-94216223.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/94216223&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-7923a827cfed24e1951f026e1ec7f990_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;git stash&lt;/code&gt; 是程序员的至宝。老板 biangbiang 甩来一个 case，说这个要下班之前 hot fix，咋办，stash，切到 release 对应的分支，缝缝补补；产品 kuangkuang 砸来一个需求更新，说这个简单，小哥哥帮帮我先做了，咋办，stash 切一个新的 feature 分支，撸袖子干。如果没有 &lt;code&gt;git stash&lt;/code&gt;，人生至少要灰暗一半。&lt;/p&gt;&lt;p&gt;git 执拗，如果你手头上的活没提交，它拒绝切换分支的请求 —— 这挺合情合理，因为切换分支（其实就是切换到历史上的某个 commit，如果 &lt;code&gt;git checkout -b&lt;/code&gt; 就建立一个 ref 指向当前 &lt;code&gt;HEAD&lt;/code&gt;）涉及到工作目录的更新，以及 git 索引的重建，如果当前的工作目录修改了，git 总不能将你辛辛苦苦的成果抹去吧。&lt;/p&gt;&lt;p&gt;所以 &lt;code&gt;git stash&lt;/code&gt; 显得格外亲切。它帮你把手头未完成还不好提交（提交必然牵扯 commit-hook，又是运行单元测试又是静态检查的）的活收拢到一个暂存区，等新任务完成了可以再 &lt;code&gt;git stash pop&lt;/code&gt; 恢复之前的工作。它的产品机理，像极了 CPU 的 exception，所以说程序员来来回回就那么几出戏，只不过在不同的场景下粉饰一下改头换面上演而已。&lt;/p&gt;&lt;p&gt;那么，&lt;code&gt;git stash&lt;/code&gt; 背后究竟干了什么？这其实是我在推进 gitrocks 需要探索的。来来来，动次打次，动次打次，敲起你的茶柚，抖起你的肩儿，我们一起 type（wow, you can really type~）。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;第一遍尝试&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;建立一个新的 repo，&lt;code&gt;git add hello.txt&lt;/code&gt; (内容：&lt;code&gt;hello world!\n&lt;/code&gt;)，然后 &lt;code&gt;git commit -a -m &amp;#34;init commit&amp;#34;&lt;/code&gt;。之后再 &lt;code&gt;git ad goodbye.txt&lt;/code&gt; (内容：goodbye world!)。这些操作依次完成后，整个 objects / logs / refs 目录长这样：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;logs
+          HEAD
+          refs
+              heads
+                  master
+    objects
+          &lt;span class=&quot;m&quot;&gt;11&lt;/span&gt;
+                a295f9eedc7635bce94d7d2f82328fa5032ed1
+          &lt;span class=&quot;m&quot;&gt;55&lt;/span&gt;
+                b909b4a7cad81fe818b364959775188bfccf3d
+          &lt;span class=&quot;m&quot;&gt;60&lt;/span&gt;
+                09101760644963fee389fc730acc4c437edc8f
+          a0
+                423896973644771497bdc03eb99d5281615b51
+          info
+          pack
+    refs
+        heads
+              master
+        tags&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们查看一下 init commit：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p 11a2
+tree 6009101760644963fee389fc730acc4c437edc8f
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787652 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787652 -0800
+gpgsig -----BEGIN PGP SIGNATURE-----
+
+ iQB1BAAWCAAdFiEEDAfXiyARvxtLDYya/74NqNQekKwFAl3dWksACgkQ/74NqNQekKzqAgD9HCMmZOL6JRNZZd1jKoDXR8d65q0/aIgeOFQ5SHcdFzUBAMcQypPkhC9dSmV3PydpnddnIp03I6Fja1d2O+bF3nsP
+ =VDnV
+ -----END PGP SIGNATURE-----
+
+
+init commit&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;接着我们试着 &lt;code&gt;git stash&lt;/code&gt; 一下，神奇的事情发生了！&lt;code&gt;logs/refs&lt;/code&gt; 下多了 &lt;code&gt;stash&lt;/code&gt; 引用，而 &lt;code&gt;objects&lt;/code&gt; 下哐哐哐整出来三个新的对象：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;logs
+          HEAD
+          refs
+              heads
+                    master
+              stash
+    objects
+          11
+                a295f9eedc7635bce94d7d2f82328fa5032ed1
+          55
+                b909b4a7cad81fe818b364959775188bfccf3d
+          60
+                09101760644963fee389fc730acc4c437edc8f
+          68
+                0c79419d0067c90c1103329d9e1effef0fd216
+          a0
+                423896973644771497bdc03eb99d5281615b51
+          de
+                8fcd1649da1ab5a6694622508c0e95178ddd02
+          e8
+                c012220c2e1116ffa1de1264773bd92d31f36b
+          info
+          pack
+    refs
+        heads
+              master
+        stash
+        tags&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们看看这几个新的对象是什么东东。&lt;/p&gt;&lt;p&gt;&lt;code&gt;680c&lt;/code&gt; 是一棵包含了 &lt;code&gt;hello.txt&lt;/code&gt; 和 &lt;code&gt;goodbye.txt&lt;/code&gt; 的树。正常来说，只有当 commit 时，这棵树才会产生：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p 680c
+100644 blob 55b909b4a7cad81fe818b364959775188bfccf3d    goodbye.txt
+100644 blob a0423896973644771497bdc03eb99d5281615b51    hello.txt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;de8f&lt;/code&gt; 有点意思，它是一个 commit，commit 消息是 &lt;code&gt;WIP on master: 11a295f init commit&lt;/code&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p de8f
+tree 680c79419d0067c90c1103329d9e1effef0fd216
+parent 11a295f9eedc7635bce94d7d2f82328fa5032ed1
+parent e8c012220c2e1116ffa1de1264773bd92d31f36b
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787769 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787769 -0800
+
+WIP on master: 11a295f init commit&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这里 &lt;code&gt;11a295f&lt;/code&gt; 就是上文 &lt;code&gt;git cat-file -p 11a2&lt;/code&gt; 那个 commit。可以看到，这个 commit 并没有我的 GPG 签名。&lt;/p&gt;&lt;p&gt;&lt;code&gt;e8c0&lt;/code&gt; 让有有点摸不着头脑，它也是一个 commit：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p e8c0
+tree 680c79419d0067c90c1103329d9e1effef0fd216
+parent 11a295f9eedc7635bce94d7d2f82328fa5032ed1
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787769 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787769 -0800
+
+index on master: 11a295f init commit&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;仔细比较 &lt;code&gt;de8f&lt;/code&gt; 和 &lt;code&gt;e8c0&lt;/code&gt;，我们发现，除了 commit 消息不同之外，&lt;code&gt;de8f&lt;/code&gt; 还多了一个 &lt;code&gt;parent&lt;/code&gt; 指向 &lt;code&gt;e8c0&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;我们再看新增的 &lt;code&gt;.git/logs/refs/stash&lt;/code&gt; 里存了什么：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ cat .git/logs/refs/stash
+0000000000000000000000000000000000000000 de8fcd1649da1ab5a6694622508c0e95178ddd02 Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574787769 -0800    WIP on master: 11a295f init commit&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以及 &lt;code&gt;.git/refs/stash&lt;/code&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ cat .git/refs/stash
+de8fcd1649da1ab5a6694622508c0e95178ddd02&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最后看看 master 指向哪里：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ cat .git/HEAD
+ref: refs/heads/master
+$ cat .git/refs/heads/master
+11a295f9eedc7635bce94d7d2f82328fa5032ed1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这下子整个脉络就清晰了。各个对象之间的关系是：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f9ed66b29b6fa739684abb0773b6113a_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;598&quot; data-rawheight=&quot;737&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;598&quot; data-original=&quot;https://pic3.zhimg.com/v2-f9ed66b29b6fa739684abb0773b6113a_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f9ed66b29b6fa739684abb0773b6113a_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;598&quot; data-rawheight=&quot;737&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;598&quot; data-original=&quot;https://pic3.zhimg.com/v2-f9ed66b29b6fa739684abb0773b6113a_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-f9ed66b29b6fa739684abb0773b6113a_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;我们再看看 &lt;code&gt;git stash pop&lt;/code&gt; 会发生什么：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;logs
+          HEAD
+          refs
+              heads
+                  master
+    objects
+      jec 11
+                a295f9eedc7635bce94d7d2f82328fa5032ed1
+          55
+                b909b4a7cad81fe818b364959775188bfccf3d
+          60
+                09101760644963fee389fc730acc4c437edc8f
+          68
+                0c79419d0067c90c1103329d9e1effef0fd216
+          a0
+                423896973644771497bdc03eb99d5281615b51
+          de
+                8fcd1649da1ab5a6694622508c0e95178ddd02
+          e8
+                c012220c2e1116ffa1de1264773bd92d31f36b
+          info
+          pack
+    refs
+    ref heads
+          ads master
+        tags&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;.git/logs/refs/stash&lt;/code&gt; 和 &lt;code&gt;.git/refs/stash&lt;/code&gt;没了。其它没有变化。&lt;/p&gt;&lt;p&gt;作为一个较真的程序员，我们继续 &lt;code&gt;git stash&lt;/code&gt;，照理来说，新的 stash 应该只产生新的 &lt;code&gt;.git/logs/refs/stash&lt;/code&gt; 和 &lt;code&gt;.git/refs/stash&lt;/code&gt; 文件，不会再产生新的 commit 了，然而，git 依旧固执地同样产生了两个新的 commit：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p 9a06
+tree 680c79419d0067c90c1103329d9e1effef0fd216
+parent 11a295f9eedc7635bce94d7d2f82328fa5032ed1
+parent 7bb55ed97e4d922a2e2ae04bf2f2f7e04807f5de
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574788382 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574788382 -0800
+
+WIP on master: 11a295f init commit
+
+$ git cat-file -p 7bb5
+tree 680c79419d0067c90c1103329d9e1effef0fd216
+parent 11a295f9eedc7635bce94d7d2f82328fa5032ed1
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574788382 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574788382 -0800
+
+index on master: 11a295f init commit&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这次我们驾轻就熟：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ cat .git/logs/refs/stash
+0000000000000000000000000000000000000000 9a063baa8146a819548b0a59e27180ac6951ba3c Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574788382 -0800    WIP on master: 11a295f init commit
+
+$ cat .git/refs/stash
+9a063baa8146a819548b0a59e27180ac6951ba3c
+
+$ cat .git/refs/heads/master
+11a295f9eedc7635bce94d7d2f82328fa5032ed1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;有了这些信息，我们再次梳理一下现在 DAG 的样子：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-fdbc7c04fa866d99bb634a732fdfb2aa_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;638&quot; data-rawheight=&quot;759&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;638&quot; data-original=&quot;https://pic3.zhimg.com/v2-fdbc7c04fa866d99bb634a732fdfb2aa_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-fdbc7c04fa866d99bb634a732fdfb2aa_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;638&quot; data-rawheight=&quot;759&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;638&quot; data-original=&quot;https://pic3.zhimg.com/v2-fdbc7c04fa866d99bb634a732fdfb2aa_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-fdbc7c04fa866d99bb634a732fdfb2aa_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;我们把 &lt;code&gt;goodbye.txt&lt;/code&gt; &lt;code&gt;stash pop&lt;/code&gt; 出来，然后 &lt;code&gt;git commit -m &amp;#34;second commit&amp;#34;&lt;/code&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p b139
+tree 680c79419d0067c90c1103329d9e1effef0fd216
+parent 11a295f9eedc7635bce94d7d2f82328fa5032ed1
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574789596 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574789596 -0800
+gpgsig -----BEGIN PGP SIGNATURE-----
+
+ iQB1BAAWCAAdFiEEDAfXiyARvxtLDYya/74NqNQekKwFAl3dYeMACgkQ/74NqNQekKzuEQEAnpcMk/EBPhARtgKU+EplxhMUuJJOaFdka9bk2c22nL8BALaFzvsUlUdSwvZjFRrjW623Z0CktaIumyHpFefcGbME
+ =vT0q
+ -----END PGP SIGNATURE-----
+
+
+second commit
+
+$ cat .git/refs/heads/master
+b1390fc37a960f97e9e637c3f82315da94120167&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到，新生成了 &lt;code&gt;b139&lt;/code&gt; 这个 commit。master 指向了它。&lt;/p&gt;&lt;p&gt;最后，我们来看看如今的 DAG：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-225573cd5bb747e2d378c4de247064f6_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;673&quot; data-rawheight=&quot;751&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;673&quot; data-original=&quot;https://pic3.zhimg.com/v2-225573cd5bb747e2d378c4de247064f6_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-225573cd5bb747e2d378c4de247064f6_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;673&quot; data-rawheight=&quot;751&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;673&quot; data-original=&quot;https://pic3.zhimg.com/v2-225573cd5bb747e2d378c4de247064f6_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-225573cd5bb747e2d378c4de247064f6_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;为什么 &lt;code&gt;git stash&lt;/code&gt; 会生成两个 commit 呢？我们继续探索。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;第二遍尝试&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;由于之前的 repo 对象结构已经足够复杂，我们换个目录生成一个新的 git 仓库。然后我们还是重复刚才的动作：添加 hello.txt，commit，然后添加 goodbye.txt。这时数据库长这个样子：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;logs
+          HEAD
+          refs
+              heads
+                  master
+    objects
+          55
+                b909b4a7cad81fe818b364959775188bfccf3d
+          60
+                09101760644963fee389fc730acc4c437edc8f
+          a0
+                423896973644771497bdc03eb99d5281615b51
+          c6
+                2f16377b077275eace0239f24504becc359763
+          info
+          pack
+    refs
+        heads
+              master
+        tags&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们修改一下 &lt;code&gt;hello.txt&lt;/code&gt;，使其变成：&lt;code&gt;hello tyr!&lt;/code&gt;。&lt;code&gt;git status&lt;/code&gt; 会告诉我们一个文件在 staging 一个没有：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git status
+On branch master
+Changes to be committed:
+  (use &amp;#34;git restore --staged &amp;lt;file&amp;gt;...&amp;#34; to unstage)
+    new file:   goodbye.txt
+
+Changes not staged for commit:
+  (use &amp;#34;git add &amp;lt;file&amp;gt;...&amp;#34; to update what will be committed)
+  (use &amp;#34;git restore &amp;lt;file&amp;gt;...&amp;#34; to discard changes in working directory)
+    modified:   hello.txt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;让我们深吸一口气，&lt;code&gt;git stash&lt;/code&gt;：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;logs
+          HEAD
+          refs
+              heads
+                    master
+              stash
+    objects
+          27
+                8efbd09a21dbd2b443bd7a879013abfee434ca
+          55
+                b909b4a7cad81fe818b364959775188bfccf3d
+          60
+                09101760644963fee389fc730acc4c437edc8f
+          62
+                d7bceb43b713c838ce04075fa23fb263aa01f5
+          68
+                0c79419d0067c90c1103329d9e1effef0fd216
+          a0
+                423896973644771497bdc03eb99d5281615b51
+          a4
+                f7a95ef0b8dcbb8d89af09a488f7cb3166fadc
+          c3
+                efe55f18835756842af5f53a64d1d78dc5ed6c
+          c6
+                2f16377b077275eace0239f24504becc359763
+          info
+          pack
+    refs
+        heads
+              master
+        stash
+        tags&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;多了五个对象！我们探索一下：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git cat-file -p 278e
+tree 680c79419d0067c90c1103329d9e1effef0fd216
+parent c62f16377b077275eace0239f24504becc359763
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574791207 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574791207 -0800
+
+index on master: c62f163 init commit
+
+$ git cat-file -p 62d7
+100644 blob 55b909b4a7cad81fe818b364959775188bfccf3d    goodbye.txt
+100644 blob c3efe55f18835756842af5f53a64d1d78dc5ed6c    hello.txt
+
+$ git cat-file -p 680c
+100644 blob 55b909b4a7cad81fe818b364959775188bfccf3d    goodbye.txt
+100644 blob a0423896973644771497bdc03eb99d5281615b51    hello.txt
+
+$ git cat-file -p c3ef
+hello tyr!
+
+$ git cat-file -p a4f7
+tree 62d7bceb43b713c838ce04075fa23fb263aa01f5
+parent c62f16377b077275eace0239f24504becc359763
+parent 278efbd09a21dbd2b443bd7a879013abfee434ca
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574791207 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574791207 -0800
+
+WIP on master: c62f163 init commit
+
+$ cat .git/refs/stash
+a4f7a95ef0b8dcbb8d89af09a488f7cb3166fadc
+
+$ cat .git/logs/refs/stash
+0000000000000000000000000000000000000000 a4f7a95ef0b8dcbb8d89af09a488f7cb3166fadc Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1574791207 -0800    WIP on master: c62f163 init commit&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这下清楚了，commit &lt;code&gt;a4f7&lt;/code&gt; 使用了 &lt;code&gt;62d7&lt;/code&gt; 这棵树，而 commit &lt;code&gt;278e&lt;/code&gt; 使用了 &lt;code&gt;680c&lt;/code&gt; 这棵树。&lt;code&gt;62d7&lt;/code&gt; 里面包含的是更改过的 hello.txt，stash 引用指向了 &lt;code&gt;a4f7&lt;/code&gt;。我们看图更直观：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2c90522fb60a0ea4e9019694bd171d13_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;587&quot; data-rawheight=&quot;693&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;587&quot; data-original=&quot;https://pic4.zhimg.com/v2-2c90522fb60a0ea4e9019694bd171d13_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2c90522fb60a0ea4e9019694bd171d13_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;587&quot; data-rawheight=&quot;693&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;587&quot; data-original=&quot;https://pic4.zhimg.com/v2-2c90522fb60a0ea4e9019694bd171d13_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-2c90522fb60a0ea4e9019694bd171d13_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;也就是说，当我们做 &lt;code&gt;git stash&lt;/code&gt; 时，stash 了两类数据：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;staging 区域内的数据（goodbye.txt）&lt;/li&gt;&lt;li&gt;working 区域内的数据（修改了的 hello.txt）&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;&lt;b&gt;为什么这么设计？&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;开始我对此非常不解，这种还未完成的工作，就这样了咣咣塞到了不可修改的对象数据库中，不浪费资源么？为什么不直接放在一个 stash 目录中了事呢？在做 gitrocks 里，我探索过一些「聪明」的方案，比如放在一个目录中，扔在 sqlite 里等等，结果越深入，越发现 git 是对的。git 的用户可能像你我一样一天在若干个分支中天马行空恣意妄为，如果所到之处都 &lt;code&gt;git stash&lt;/code&gt; 一下到此一游，那么，势必要记录 parent commit，要为 stash 生成一颗树来保存目录结构，要把修改的文件存入某处 —— 而所有这一切，其实 commit 的代码已经很好地实现了，用一套代码解决两个问题，简单中透着美。此外，生成的 commit 虽然最后没有用，但中间的树和子树很大机会可以被复用，那么，之前的运算并没有白费功夫。最后，git 还提供 gc，把 &lt;code&gt;git stash pop&lt;/code&gt; 之后「绕树三匝，无枝可依」的孤儿们回收掉，节省空间。&lt;/p&gt;&lt;p&gt;花了将近两个小时探索，我平静地接受了这样一个事实：你大爷还是你大爷。git 设计上的精巧还需要认真琢磨。子曾经曰过：「吾有知乎哉？无知也」。连夫子都这么谦恭，我还得努力啊。&lt;/p&gt;&lt;hr/&gt;&lt;p&gt;也许你对我上一篇文章会感兴趣：&lt;/p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/93950349&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; data-image=&quot;https://pic2.zhimg.com/v2-a39ae0f396fbeb1984575016809ed02d_180x120.jpg&quot; data-image-width=&quot;1280&quot; data-image-height=&quot;960&quot; class=&quot;internal&quot;&gt;陈天：10 分钟重新认识 GIT&lt;/a&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>陈天</author>
+<guid isPermaLink="false">2019-11-28-94216223</guid>
+<pubDate>Thu, 28 Nov 2019 00:00:00 +0800</pubDate>
+</item>
+<item>
+<title>10 分钟重新认识 GIT</title>
+<link>https://henix.github.io/feeds/zhuanlan.prattle/2019-11-27-93950349.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/93950349&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a39ae0f396fbeb1984575016809ed02d_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;最近对 git 的底层实现异常迷恋，周末抽空用 rust 和 rocksdb 实现了一个乞丐版的 object store - 可以存储 blob，tree，commit 三种对象。之所以用 rocksdb，是因为我不太喜欢文件系统里的那些细碎的 git 对象，我也没太研究 packfile 是如何进行差分编码的，rocksdb 恰好解决了这两个不爽。本来想写篇文章讲讲我在实现过程中踩过的坑，但考虑可能大部分读者虽然每天都在用 git，却并不真正了解 git，所以我觉得有必要先通过一些例子回顾一下 git 的思想和主要的对象类型。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;Git 的起源和基础知识&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;git 是十多年前 Linus 不爽现有的版本控制软件，花了大概 10 天功夫做出来的一个工具（初代）— 大佬就是这么牛逼，不爽就撸袖子干，哪儿那么多废话。相比于 cvs/svn 这些「中心化」的，以 diff 为基础存储更新的传统版本控制软件不同的是，git 认为每个文件一旦写入对象数据库中都是不可更改的（immutable），任何微小的修改，都会在数据库中形成一个新的对象。对象的 id 就是其 sha1 哈希。有了这个基础，文件对象（blob）可以被组织成树（更确切地说是默克尔树），一次 提交（commit）就是根据更改的文件的信息生成新的树的过程，新树和老树共享相同的子树，只有变化的部分才会分叉。在漫长的操作之后，对象数据库中有无数棵树，这些树构成了一个默克尔图（merkle DAG）。通过使用引用（ref），比如 HEAD, heads/master，tags/v0.1，git 可以很方便地追踪用户关心的每一棵树的确切状态。&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-da4f382e06963f579fceedc13c391810_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;533&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;500&quot; data-original=&quot;https://pic1.zhimg.com/v2-da4f382e06963f579fceedc13c391810_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-da4f382e06963f579fceedc13c391810_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;500&quot; data-rawheight=&quot;533&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;500&quot; data-original=&quot;https://pic1.zhimg.com/v2-da4f382e06963f579fceedc13c391810_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-da4f382e06963f579fceedc13c391810_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p class=&quot;ztext-empty-paragraph&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;OK，文字部分就这些，我们稍稍动手来了解 git 的一些实现细节。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;探索 git 的对象数据库&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;首先我们在 &lt;code&gt;/tmp/test&lt;/code&gt; 下 &lt;code&gt;git init&lt;/code&gt; 生成一个新的仓库。git 会自动创建如下目录：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;.git/
+├── HEAD
+├── config
+├── description
+├── hooks
+├── info
+│   └── exclude
+├── objects
+│   ├── info
+│   └── pack
+└── refs
+    ├── heads
+    └── tags&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;对当前的 terminal 做分屏处理，然后在右半边的窗口运行：&lt;code&gt;watch -n .5 tree .git&lt;/code&gt; 监控 .git 目录。当我们 &lt;code&gt;git add README.md&lt;/code&gt; 后（README.md 是一个空文件）：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;.git
+    HEAD
+    config
+    description
+    hooks
+    index
+    info
+          exclude
+    objects
+          e6
+                9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+          info
+          pack
+    refs
+        heads
+        tags
+
+9 directories, 17 files&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们看到，在 git 的对象数据库中，创建了一个新的文件。这个文件的内容是 README.md 的内容，文件名是其 sha1 后 base16 编码的字符串。注意这里用了两层目录结构，这样在有很多对象的时候不至于目录内容太多而过载。这样的设计模式在很多系统中都可以见到，比如 nginx cache。&lt;/p&gt;&lt;p&gt;通过 &lt;code&gt;git show -p e69d&lt;/code&gt; 可以看到这是一个空的文件。&lt;/p&gt;&lt;p&gt;git 内部主要有四种对象：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;blob：存储实际的文件&lt;/li&gt;&lt;li&gt;tree：存储文件的目录结构&lt;/li&gt;&lt;li&gt;commit：存储提交信息（主要是当前的树根和上一棵树的树根）&lt;/li&gt;&lt;li&gt;tag：存储版本信息，相当于对对象库中的某个 commit 显式标记了一下&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;git 的对象数据库会以相同的方式存储所有这些对象类型，单单通过一个 base16 的对象 id，你无法知道其背后是个什么数据。&lt;/p&gt;&lt;p&gt;我们来提交现在的改动。当我们做 &lt;code&gt;git commit -m &amp;#39;create empty readme&amp;#39;&lt;/code&gt; 后：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;.git
+    COMMIT_EDITMSG
+    HEAD
+    config
+    description
+    hooks
+    index
+    info
+          exclude
+    logs
+          HEAD
+          refs
+              heads
+                  master
+    objects
+          66
+                d70e87e9fd27f086ebf88c9a725dcd3658d27d
+          e6
+                9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+          f9
+                3e3a1a1525fb5b91020da86e44810c87a2d7bc
+          info
+          pack
+    refs
+        heads
+              master
+        tags
+
+14 directories, 23 files&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;对象数据库中多了两个新的对象。我们看看他们都是什么。&lt;/p&gt;&lt;p&gt;f93e 是一个 tree object：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git show --pretty=raw f93e
+tree f93e
+
+README.md&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们也可以看关于 tree 更详细的信息：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git ls-tree f93e
+100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391    README.md&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;文件的文件名并没有存在 blob 对象中，而是存储在 tree 里。这样有两个好处：1) 相同内容的文件，即便拷贝多份，依然只存储一份数据 — 这多见于二进制文件，比如图片；2) 更改文件名只是生成一个新的 tree，并不需要生成新的 blb。&lt;/p&gt;&lt;p&gt;由此可以看出 git 关心的是项目的 snapshot，并不关心单个文件。&lt;/p&gt;&lt;p&gt;如果你严格按照我之前的步骤操作，至此你的文件 blob 和 tree 两个对象的 sha1 哈希应该和我的一样。这是 git 的伟大之处：任何人，在任何硬件环境下，相同的内容都会生成相同的对象（区块链在此之上加入了计算）。&lt;/p&gt;&lt;p&gt;在 commit 这里，我们的数据会产生分叉。在我的机器上，commit 是 &lt;code&gt;66d7&lt;/code&gt;，你的可能是另外一个哈希值。这是因为我设置的作者名，邮件，以及我的 PGP key 肯定都和你的不同。因而我的 PGP 签名和你的不同，哈希自然不同。&lt;/p&gt;&lt;p&gt;66d7 是一个 commit object:&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git show --pretty=raw 66d7
+commit 66d70e87e9fd27f086ebf88c9a725dcd3658d27d
+tree f93e3a1a1525fb5b91020da86e44810c87a2d7bc
+author Tyr Chen &amp;lt;xxxx@gmail.com&amp;gt; 1573839165 -0800
+committer Tyr Chen &amp;lt;xxxx@gmail.com&amp;gt; 1573839165 -0800
+gpgsig -----BEGIN PGP SIGNATURE-----
+
+ iQB1BAAWCAAdFiEEDAfXiyARvxtLDYya/74NqNQekKwFAl3O4T0ACgkQ/74NqNQekKxdmgD+Nw+1JNrV148xIkqfrLLGrFNAJdESu1h+StYVCGAbtLgA/R56Za+ABgLAM/IRGxYXRlZ0MwTmlfCwsznYCPdKyC8E
+ =6QP9
+ -----END PGP SIGNATURE-----
+
+
+    create empty readme
+
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..e69de29&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果我们把这个文件删除，并 &lt;code&gt;git commit -a -m &amp;#34;deleted README.md&amp;#34;&lt;/code&gt; 会发生什么事情呢？&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;.git
+    COMMIT_EDITMSG
+    HEAD
+    config
+    description
+    hooks
+    index
+    info
+          exclude
+    logs
+          HEAD
+          refs
+              heads
+                  master
+    objects
+          4b
+                825dc642cb6eb9a060e54bf8d69288fbee4904
+          66
+                d70e87e9fd27f086ebf88c9a725dcd3658d27d
+          e6
+                9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+          f9
+                3e3a1a1525fb5b91020da86e44810c87a2d7bc
+          fd
+                03a139f6b861be4d54247888213a723c24eb99
+          info
+          pack
+    refs
+        heads
+              master
+        tags
+
+16 directories, 25 files&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们可以看到，新生成了两个文件，猜测一下，一个是 commit 对象，一个是 tree 对象：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git show --pretty=raw fd03
+commit fd03a139f6b861be4d54247888213a723c24eb99
+tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
+parent 66d70e87e9fd27f086ebf88c9a725dcd3658d27d
+author Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1573840228 -0800
+committer Tyr Chen &amp;lt;tyr.chen@gmail.com&amp;gt; 1573840228 -0800
+gpgsig -----BEGIN PGP SIGNATURE-----
+
+ iQB1BAAWCAAdFiEEDAfXiyARvxtLDYya/74NqNQekKwFAl3O5WQACgkQ/74NqNQekKznZwEA+tFOIwzcEAt+j8FD0Sv3722Gfi21ZT56feOHktD1K9gA/3GNilWvdloA4t4mS1kX8HMc1Kr5zvA0iF9F54t3FV4B
+ =NGh7
+ -----END PGP SIGNATURE-----
+
+
+    deleted README.md
+
+diff --git a/README.md b/README.md
+deleted file mode 100644
+index e69de29..0000000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以及：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$ git show --pretty=raw 4b82
+tree 4b82&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以看到，在 &lt;code&gt;4b82&lt;/code&gt; 这个 tree 里，没有任何文件了。&lt;/p&gt;&lt;p&gt;希望这样一个简单的介绍，你对 git 有了更深的了解。这周晚点时间，我们介绍用 rust 实现一个乞丐版 git 踩过的坑。&lt;/p&gt;</description>
+<author>陈天</author>
+<guid isPermaLink="false">2019-11-27-93950349</guid>
+<pubDate>Wed, 27 Nov 2019 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>长日无痕(五): 天叔奇谈</title>
 <link>https://henix.github.io/feeds/zhuanlan.prattle/2019-11-14-91761475.html</link>
@@ -85,79 +460,6 @@ Endpoint = 1.1.1.1:54321&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;WG 的 VPN
 <author>陈天</author>
 <guid isPermaLink="false">2019-09-03-80581242</guid>
 <pubDate>Tue, 03 Sep 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>长日无痕（四）</title>
-<link>https://henix.github.io/feeds/zhuanlan.prattle/2019-07-25-75097584.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/75097584&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-36c8fc9486e94bb37c8f41d30b19ad61_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;（一）&lt;/p&gt;&lt;p&gt;&lt;br/&gt;一晃在美国呆了 1666 天，或者说，四年又二百零五天。如果一个人的职业生涯有四十年，我的十分之一已然耗散在了这片土地。回头看，刚来时的五年计划，完成得还不错：&lt;/p&gt;&lt;blockquote&gt;一晃在硅谷已经呆了两年半。&lt;br/&gt;两年半，在四十年左右的职业生涯中，仅占 1/16，似乎微不足道，但对于一个五年计划来说，它又举足轻重。14年底，当踏上这片土地时，我所考虑的是花上五年的时光，在此立足，然后融入，很简单的计划。&lt;br/&gt;立足是根本，这体现在「家」和「业」。庄子说：尧舜有天下，子孙无置锥之地。家人为了我的梦想而牺牲，我得为她们准备「置锥之地」。蛰伏了两年，攒了些钱，又薅了一圈长辈的羊毛后（唉，三十而立却未立），终于拍得一陋室。「家」，基本解决了。&lt;br/&gt;「业」并非一蹴而就。在美工作的异乡人共通的痛就是身份问题。国内的朋友总不理解：都成功肉身翻墙了，还矫情什么绿卡。这个中滋味只有身在其中的人才有感受。有时候稍不留意，要么 I94 过期（合法居留的时间），要么 EAD 过期（合法工作的时间），要么签证过期（合法入境的时间），白白惹上一身腥。就算你自己留意了，律师留意了，USCIS（移民局）的大爷们打个盹，你可能就要遭殃了。我的朋友曾经就遇到过 EAD 提前好几个月续签，结果过期两个月才给签回来的无妄之灾，两个月公司没法「雇佣」并给他发工资。&lt;br/&gt;我算是幸运，捡漏拿了个 O1a Visa，得以免除 PERM，直接走 EB1A，省下三五年为绿卡奋斗的时光。虽然在 485 上因为各种机缘巧合折腾了一年，但好歹在上个月终于拿到绿卡，算是圆满，十年内我不用愁跟入境，工作，居留等一切和身份有关的破事，可以把心思集中在事业上。&lt;br/&gt;&lt;br/&gt;摘自我 2017 年撰写的，未发表的《长日无痕 4.1》&lt;/blockquote&gt;&lt;p&gt;&lt;br/&gt;近五年时间里，我换了五个城市：Sunnyvale, Cupertino, San Jose, Redmond, Issaquah，以及两个州：California, Washington。6 月份准备英国签证时，表格里让我添加过去两年所有住过的地址，我惊奇地发现，2017.6 - 2019.6 间，我像逃犯似的换了四座城市，四个地址。本以为买了房子，有了立锥之地后，能安稳下来，结果发现「安稳」对我而言是奢望，自己的陋室的炕头还没有暖好，人就飞到了西雅图。&lt;/p&gt;&lt;p&gt;朋友们常常让我对比旧金山湾区和大西雅图地区。如果说找五个美国最适合中国人居住的地区，湾区和西雅图地区一定会榜上有名：宜人的气候，合适的收入支出比，不算温吞也并不激烈的工作环境，以及，与我们的肚子息息相关的，遍地的，口味还过得去的各地中华美食。对于程序员来说，这两地几乎是唯二的定居选择 —— 大大小小的科技公司，撑起了这两个地区的工作机会，撑出了亚裔的一片天，当然，也撑高了房价。&lt;/p&gt;&lt;p&gt;从税收的角度来说，华州免州收入税（income tax），从加州搬到华州，意味着工资单上冷不丁多出来 10% ；但因为不征州税，华州的消费税是西部之冠，比加州高一点点。&lt;/p&gt;&lt;p&gt;从总体生活成本上来说，西雅图地区比湾区相对低一些：还可以忍受的房价（七到八折），以及还算良心的房租（八折左右）。因为每月的开支居住是大头，所以西雅图地区生活上的月开销要比加州小不少。不过有得必有失 —— 西雅图地区的水果蔬菜价格（1.5倍），水电煤气（~2倍）等均高出湾区一大截。老婆总吐槽在湾区的大华超市，每周买个菜为了凑够 $30（有代金券）往往殚精竭虑，在这头的百家超市，随便买买就分分钟超过 $50。&lt;/p&gt;&lt;p&gt;养车的成本，西雅图地区要高不少，油价似乎差不太多，都是三四块钱之间浮动，主要高在了保险上。我用 metromile（基本费用 + 里程计费），从加州换到华州后，地址一改，保费几乎翻番。询过 Costco，Gecko 等保险，要比我 metromile 上的价格还高。好在养车在美国来说不是个事，养两辆车的开销可能还不到北京养一辆车的开销。&lt;/p&gt;&lt;p&gt;生活环境上两者各有千秋。美西是出了名的好山好水好寂寞，大家周末大部分时候过的是采菊东篱的田园生活。和湾区比，西雅图地区的山和水都离居住的地方更近 —— 偶尔我们晚上吃过饭，八点多开车十分钟晃悠到 Lake Sammamish State Park，娃儿们去 playground 撒欢，我和老婆倚在湖边赏花赏月赏秋水；周末半小时可达的地方有瀑布；三小时可达的地方有清朗隽秀的雪山，有美国最大的国家公园，有世界最大的温带雨林。&lt;br/&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3174c624803d74bf49ab0753ac7788d0_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1600&quot; data-rawheight=&quot;1200&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1600&quot; data-original=&quot;https://pic1.zhimg.com/v2-3174c624803d74bf49ab0753ac7788d0_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-3174c624803d74bf49ab0753ac7788d0_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1600&quot; data-rawheight=&quot;1200&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1600&quot; data-original=&quot;https://pic1.zhimg.com/v2-3174c624803d74bf49ab0753ac7788d0_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-3174c624803d74bf49ab0753ac7788d0_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5d64829d9dece4903a065a17238bca56_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1600&quot; data-rawheight=&quot;2133&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1600&quot; data-original=&quot;https://pic3.zhimg.com/v2-5d64829d9dece4903a065a17238bca56_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-5d64829d9dece4903a065a17238bca56_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1600&quot; data-rawheight=&quot;2133&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1600&quot; data-original=&quot;https://pic3.zhimg.com/v2-5d64829d9dece4903a065a17238bca56_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-5d64829d9dece4903a065a17238bca56_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;br/&gt;但是西雅图雨多 —— 我来之前，同事马老师提醒我这儿 80% 的时间都在下雨，整个人都会抑郁的。呆了一年多，也许我是命好，总体感觉，糟糕的阴雨天气和爽朗的晴天大概一半一半。每年的 10 月到 4 月，连绵的阴雨像一堵无形的墙，把你按在屋子里限制外出 —— 也难怪，星爸爸诞生于斯，《暮光之城》落户于此。很多沐浴过加州阳光的人，在西雅图没有阳光的半年里，百无聊赖，心都如天气一般阴沉沉的。&lt;/p&gt;&lt;p&gt;我还好，不挑。加州的阳光，我很喜欢，把我从黑古氧化成了炭古；西雅图的阴冷，我也喜欢，把我从炭古还原回黑古。我这人对环境向来是随遇而安，只要有妻儿作伴就好 —— 就像东坡说的那样：「试问岭南好不好，却道，此心安处是吾乡」。&lt;/p&gt;&lt;p&gt;（二）&lt;/p&gt;&lt;p&gt;&lt;br/&gt;两周前回国出差，见了很多朋友。有些半年未见，有些一年多未见，普遍的，大家的肚腩又添了一圈年轮。也许我们真的是老了，八零后们饭桌上聊的话题，除了工作，创业，孩子，便是生老病死。马尔克斯说：「父母在时，你和死亡隔着一层垫子；父母离开后，你就直接坐在死亡上面了」。看着孩儿们一天天长大，突然发现，我们自己，也成了那层垫子，在向上下左右的交代中，一点点变薄。&lt;/p&gt;&lt;p&gt;在年复一年的 996 的「福报」荫护下，好些朋友们身体大不如前，体检报告上尽是些触目惊心的病症，让我那中度脂肪肝都不好意思拿出来丢人现眼。有个朋友戏称自己就像五年开了五十万公里还不走心保养的奥拓，挂挡哐哐哐卡齿轮，踩油门突突突冒黑烟。&lt;/p&gt;&lt;p&gt;996 压榨的是身体，还好，千百万年来继承的中华民族的勤劳基因还扛得住；人到中年的焦虑，折磨的是精神，那才是压倒骆驼的最后一根稻草。&lt;/p&gt;&lt;p&gt;勤勤恳恳做中国式好员工的朋友：经济好，没房的忧心房子，有房的忧心换（学区）房；经济不好，都在忧心自己还有没有机会「享受福报」。十多年前意气风发在论坛上激扬文字指点「三十五岁的程序员该何去何从」，真真自己到了这个岁数，发现新闻里生活中全是某某公司清理三十五岁以上的一线员工；某某公司计划未来中层不会提拔三十五岁以上的员工。三十五岁就仿佛一个魔咒，让上有老下有小驼着背的中年大叔在二十出头的小朋友面前挺不起腰杆。&lt;/p&gt;&lt;p&gt;兢兢业业做中国式好老板的朋友：经济好，增加人手加班加点拉新和留存齐飞，让销售数据和核心指标再上一个台阶，杀出一条血路，融到下一轮；经济不好，勒紧裤腰带多快好省熬过冬天熬死同行，熬到下一轮，趟出一片天。好与不好都是上刀上下火海，每天坐着过山车，在 high-low high-low 间狠狠地过着别人无法理解的日子 —— 正所谓知我者谓我心忧，不知我者谓我何求。&lt;/p&gt;&lt;p&gt;反正庙堂之上，江湖之远，大家都活成了范文正公：进亦忧，退亦忧；酒入愁肠，把一颗颗焦虑压栈，化作肥肚腩。&lt;/p&gt;&lt;p&gt;两个没有交集的朋友，前后脚得了甲状腺癌，打开领口的扣子给我看，脖子上的术后的刀疤触目惊心，让人心痛。&lt;/p&gt;&lt;p&gt;呜呼！长太息以掩涕兮！十年帝都梦，一把辛酸泪！&lt;/p&gt;&lt;p&gt;从北京回到西雅图后，许久未出现的返程时差折磨了我一周。上周日的凌晨，睡不着觉，在床上懒懒翻着朋友圈。突然，看到一条噩耗：一位朋友故去了。记得两年前同事 Chun 把他介绍给我时，他说自己上一段（在一家创业公司的）经历太累了，打算离开北京一段时间，回老家休养，所以想找个 remote 的职位。我和他聊了许久，很是中意，想把他拉来 Tubi，无奈当时 CTO 马老师觉得他英语不好，怕 remote 难以沟通，给否了。我们便与同事关系差之毫厘，成了微信上的点赞之交，偶尔聊两句。我微信上朋友加得不少，总能看到某某朋友转发的某某某的噩耗，但这样一个活生生的，我们生命线上有过交集的尚处壮年的朋友的故去，还是头一遭。凝视着他的头像，我还能清晰地回忆起当时我们坐在望京北路启明国际大厦梦想加的沙发座上，酣畅淋漓讨论 js-bridge 和各种前端圈奇淫技巧的情景。&lt;/p&gt;&lt;p&gt;心中烦闷，睡不着觉，我鬼使神差地打开了『复仇者联盟 3』。当看到年轻的蜘蛛侠搂在老迈的铁人身上，灰飞烟灭，嘴里喃喃道：I don’t wanna go。可怜小蜘蛛空有济世之才，却赍志而殁。那一刻，我泪如泉涌。&lt;br/&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_b.gif&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;540&quot; data-rawheight=&quot;260&quot; data-thumbnail=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_b.jpg&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;540&quot; data-original=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_b.gif&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;540&quot; data-rawheight=&quot;260&quot; data-thumbnail=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_b.jpg&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;540&quot; data-original=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-4f37ae414bc054311ceed3676c5076ec_b.gif&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;br/&gt;浑浑噩噩的，我胡乱写下了这样的文字：&lt;/p&gt;&lt;blockquote&gt;在生命的旅途中，我们一直和时间赛跑。疾病和死亡，用最决绝的方式，把我们拉偏赛道。在被病魔缠身之前，我们还算得上是时间的主人，可以自主选择这旅途是闲庭散步，还是奋力冲刺，是休养生息，还是蓄势待发；然而生病之后，这选择权被一步步剥夺：先是才干被输液管无情禁锢，接着进取心被痛苦慢慢摧残，随后影响力如潮水般退去，退去之后，也不知能不能遗下丁零知交；最后，就剩乐观还就着卑微的希望不屈地挺立着，和亲情一道，寻觅翻盘的机会。&lt;br/&gt;剥夺一个人对时间的选择权还不是最糟的。当灭霸的响指弹起，死神的镰刀挥下，一个人未来的时间一下子被清零，再无翻盘的可能。这才是最要命的。离去的永远离去，活着的被悲痛萦绕。&lt;/blockquote&gt;&lt;p&gt;我一向以一个乐观的傻叉自诩，但那个周日，我实在堵得慌。&lt;/p&gt;&lt;p&gt;（三）&lt;/p&gt;&lt;p&gt;&lt;br/&gt;现代中国人最不愿意谈论的话题，一个是性，一个是生死。&lt;/p&gt;&lt;p&gt;对于生死，古人们到是很坦诚。&lt;/p&gt;&lt;p&gt;孔子说「未知生，焉知死？」，知生之道便知死之道。对于生死，他首先是敬畏和珍爱生命的 —— 他说「危邦不入，乱邦不居」，他鄙视那些「暴虎冯河，死而无悔」轻视生命的人，不愿与之共事；在这个前提下，他「无求生以害仁，有杀身以成仁」。他也坦然面对死亡，当自己心爱的弟子伯牛颜渊离去时，他的反应是：「亡之，命矣夫！斯人也而有斯疾也！斯人也而有斯疾也！」，「噫！天丧予！天丧予！」，虽悲痛满怀，但接受天命。正因为如此，他「不怨天，不尤人」，当理想得不到申张，他「乘桴浮于海」。&lt;/p&gt;&lt;p&gt;孟子认为：生于忧患死于安乐。孔子「杀身成仁」，孟子「舍生取义」，成为儒家的道德标准。孔子「知天命」，孟子「修身以俟之」，积极进取，修身养性，面对自己的使命。对孟子而言，君子对自己的生命也是有焦虑的，不光是当下的焦虑，还是一生的焦虑：「是故君子有终身之忧，无一朝之患也。乃若所忧则有之：舜，人也；我，亦人也。舜为法于天下，可传于后世。我由未免为乡人也，是则可忧也。」那焦虑了该怎么办呢？「如舜而已矣」，像舜那样去做呗。有了这样的大格局，便不会有一朝一夕对个人境遇的忧虑。&lt;/p&gt;&lt;p&gt;老子对生死的态度是不蹈死地 —— 「出生入死。生之徒，十有三，死之徒，十有三。人之生生，动皆之死地，亦十有三。夫何故？以其生生之厚。盖闻善摄生者，陆行不遇兕虎，入军不被甲兵。兕无所投其角。虎无所搓其主爪。兵无所容其刃。夫何故？以其无死地。」这点和孔子不要「暴虎冯河」异曲同工。所以他建议我们清心寡欲，「居善地，心善渊，与善仁，言善信」，有自知之明，不争，像水那样柔弱，不要过分「坚强」—— 「故坚强者死之徒，柔弱者生之徒。是以兵强则灭，木强则折。强大处下，柔弱处上」。&lt;/p&gt;&lt;p&gt;对于死亡，庄子特别豁达。他说：「人生天地之间，如白驹过隙，忽然而已」。所以庄子亡妻，惠子凭吊时，却见他席地而坐鼓盆而歌。当庄子自己将要死时，他不让弟子厚葬，要「以天地为棺椁，以日月为连璧，星辰为珠玑，万物为赍送」，这不比厚葬还要牛逼么？弟子们惶恐，怕「乌鸢之食夫子」。庄子笑笑：「在上为乌鸢食，在下为蝼蚁食，夺彼与此，何其偏也！」&lt;/p&gt;&lt;p&gt;我们小时都背过《扁鹊见蔡桓公》这个讳疾忌医最后病入膏肓的故事。相较于韩非的这篇文章，太史公的《扁鹊仓公列传》更值得诵读。因为讲完故事，太史公还摆出了他自己的生命观：&lt;br/&gt;&lt;/p&gt;&lt;blockquote&gt;使圣人预知微，能使良医得蚤从事，则疾可已，身可活也。人之所病，病疾多；而医之所病，病道少。故病有六不治：骄恣不论於理，一不治也；轻身重财，二不治也；衣食不能适，三不治也；阴阳并，藏气不定，四不治也；形羸不能服药，五不治也；信巫不信医，六不治也。有此一者，则重难治也。&lt;/blockquote&gt;&lt;p&gt;这个生命观，放在现代也非常科学。&lt;/p&gt;&lt;p&gt;第一，有病要遵医理，不要骄恣轻视。&lt;br/&gt;第二，生命和钱财孰轻孰重，要有个谱。&lt;br/&gt;第三，别暴饮暴食，也不要为了风度不管温度。&lt;br/&gt;第四，要有良好的生活习惯，好好休息，少熬夜加班，放宽心，少担忧焦虑，让阴阳错乱，五脏功能不正常。&lt;br/&gt;第五，日常锻炼，强健体魄，别搞得身体羸弱，病恹恹的。&lt;br/&gt;第六，别 TM 折腾偏方，吃乱七八糟的药，做不知所谓的理疗，要找真正的医生而不是巫医大师之流。&lt;/p&gt;&lt;p&gt;&lt;br/&gt;作为现代人，如果要为这个生命观加上点什么，那应该是：&lt;/p&gt;&lt;p&gt;第七，珍惜时间，向死而生。买点保险，指定好受益人；早立遗嘱，办理生前信托。&lt;br/&gt;&lt;/p&gt;&lt;hr/&gt;&lt;p&gt;&lt;br/&gt;&lt;b&gt;禅定时刻&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;《朗读者》第二季有期节目讲生命，建议大家看看。我很喜欢这个开场白：&lt;/p&gt;&lt;blockquote&gt;生命是多么深邃的话题，它包含着人世间一切最极致的体验。生命，可以是能够被毁灭但不能够被打败那般顽强，也可以是“亦余心之所善兮，虽九死其犹未悔”那般博大。生命如果有颜色，会不会看上去，就像梵高的《向日葵》和《星空》；生命如果有态度，是不是听上去，就是贝多芬的《田园》和《英雄》。生命的意义是如此厚重，无论我们怎样全力以赴都不为过，因为我们生而为人，生而为众生。&lt;/blockquote&gt;&lt;p&gt;你也可以翻看之前的《长日无痕》系列：&lt;br/&gt;&lt;br/&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D402251568%26idx%3D1%26sn%3Dc4fd5992187b720f199d16bc6766c558%26chksm%3D0d0c5d2c3a7bd43a1665108752e6dd5564aef050a9d529aaac3fc9a7bd8728192b0652e6bb1a%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;长日无痕（一）&lt;/a&gt;&lt;br/&gt;&lt;br/&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D401790638%26idx%3D1%26sn%3D090edc5546fc699d65bf5b43e9eb3adf%26chksm%3D0d0754b23a70dda4bbed5f9edb7131e357ee91c59c11b449f912c69614b13901c52725470b29%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;长日无痕（二）&lt;/a&gt;&lt;br/&gt;&lt;br/&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D2649827437%26idx%3D1%26sn%3D816d53775282cb31d65c7f3947737110%26chksm%3D8704aa71b07323678f3858aa2e35a3594f44521e606ccd8e4efa705df7fc67efe6548769d008%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;长日无痕（三）&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>陈天</author>
-<guid isPermaLink="false">2019-07-25-75097584</guid>
-<pubDate>Thu, 25 Jul 2019 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>沅有芷兮：类型系统的数学之美</title>
-<link>https://henix.github.io/feeds/zhuanlan.prattle/2019-06-15-69223872.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/69223872&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-3717ea2eee51cd779e0a6a582cc9afe2_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;最近两周在给 team 培训 rust。虽然去年汉东给我们北京的 team 做过一次 rust 讲座，我的好友旭东也跟我布道过不少 rust 的美妙之处，但我真正开始系统性学习 rust，也就是三周之前。对大多数人而言，rust 最令人兴奋的是所有权的概念，零成本抽象的能力，以及通过合适的约束巧妙解决内存安全和线程安全两大难题的优雅 —— 记得看过一个统计，linux kernel 里面这两类 bug 占据了 1/2 强。也就是说，你只要学会了 rust，就躺着消弭了 50% 的难啃的让 kernel developer 都闻之变色的 bug。&lt;/p&gt;&lt;p&gt;但对我来说，rust 的美妙之处在于其为如此底层的语言注入了如此高级的吸收了大量 Haskell 精髓的类型系统。如果你接触过 Haskell / F# / Scala，你大概能了解我的兴奋之处。我们所处的世界往往是鱼与熊掌不可兼得 —— Haskell 长于类型系统，但让程序员失去了对数据在内存中如何排布的控制；C 长于对数据在内存中的精确控制，但没有一个像样的类型系统。rust 几乎做到了二者兼得。虽然我的 haskell 之旅最终从入门走向了放弃，但就像冰火岛上对武功秘籍懵懵懂懂的无忌，那些 monad，monoid，senigroup，sum type，product type 等概念还是烙在我的脑海里，它们尘封着，等待一个契机，让自己重见天日。这个契机，便是 rust。&lt;/p&gt;&lt;p&gt;本文借用 rust，谈谈我对类型系统的一知半解。文章本身和 rust 并不太大，有其它编程语言经验的朋友想必也能读懂。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;primitive type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;primitive type，基本类型。基本上每种编程语言都有 —— integer，string，bool，array，list/vector 等。它们就像元素周期表里的一个个元素，不多，但构成了我们这个花花世界。&lt;/p&gt;&lt;p&gt;基本类型没有什么好讲的，不过在我们深入下面的话提前，我们需要问自己一个问题：什么是类型？&lt;/p&gt;&lt;p&gt;对于 u8 来说，它是 [0, 255] 之间的一个整数，是一个集合，可以这么表述：&lt;code&gt;{ x | x ∈ [0, 255]}&lt;/code&gt;。 对于 String 来说，它是任意字符串的一个集合，&lt;code&gt;{x | x ∈ [&amp;#34;&amp;#34;, &amp;#34;a&amp;#34;, ..., &amp;#34;War and Pease&amp;#34;, ...]}&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;所以，类型在数学上的意义是集合。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;product type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;product type 是几乎我们所知道的编程语言都有的数据类型 —— 在某些语言中它被称作 record (delphi, erlang)，另一些语言中被称作 struct (elixir, rust, go) 或者 object (javascript)。我们平时在软件开发中，最离不开的数据类型就是 product type，就像分子把不同元素的原子组合起来一样，product type 大大丰富了类型的可能性，从而很好地辅助我们做 DDD (Domain Driven Design)。&lt;/p&gt;&lt;p&gt;我们看 product type 数学上的意义。product type，顾名思义，是不同类型的乘积。类型的乘积究竟是什么东西呢？ 假设 x 的定义域是集合 int，y 的定义域是集合 string，x * y 展开便是 (…, -2, -1, 0, 1, 2, …) * (“”, “a”, “ab”, “hello world”, …)，也就是说对于 int 里的任意一个值，都有 string 里的任意一个值与其配对，看起来有些眼熟对不对？这就是笛卡尔积 (Cartesian product)。如图所示：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9de4e21697eb1282f8dd93a32a7931cb_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1947&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2560&quot; data-original=&quot;https://pic4.zhimg.com/v2-9de4e21697eb1282f8dd93a32a7931cb_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-9de4e21697eb1282f8dd93a32a7931cb_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1947&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2560&quot; data-original=&quot;https://pic4.zhimg.com/v2-9de4e21697eb1282f8dd93a32a7931cb_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-9de4e21697eb1282f8dd93a32a7931cb_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;比如在 rust 里，我们可以这样为一个 user 建模：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nickname&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;email_verified&lt;/span&gt;: &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这个 User 类型的集合的取值范围，就是它内部的所有类型的笛卡尔积。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;sum type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;笛卡尔积固然能帮助我们构建各式各样的复合类型，但它无法描述这样的场景：我们想为 User 添加一个 payment 的类型，它可以是信用卡，现金，微信，以及 ABT 其中的一种。自然，我们可以这样描述：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Payment&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Creditcard&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Cash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Wechat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;   &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Abt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;但这样的类型并不完备 —— 如果用户选择了信用卡，那么需要信用卡号，过期时间，持卡人等信息，而选择 ABT，则需要钱包地址及其公钥。这该怎么办？我们需要类似于这样的类型：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;n&quot;&gt;Creditcard&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CreditcardType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Cash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;f64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Abt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WalletType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在集合论中，这被称作 disjoint union（不相交集），表述为 A + B。 如图：&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a307eefe209832b7da86e60f5eb7cc23_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1920&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1920&quot; data-original=&quot;https://pic4.zhimg.com/v2-a307eefe209832b7da86e60f5eb7cc23_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a307eefe209832b7da86e60f5eb7cc23_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;1920&quot; data-rawheight=&quot;1920&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1920&quot; data-original=&quot;https://pic4.zhimg.com/v2-a307eefe209832b7da86e60f5eb7cc23_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-a307eefe209832b7da86e60f5eb7cc23_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;不相交集在数据类型中往往被称作 tagged union (C++) 或者 sum type (haskell, rust)，和 product type 相反的是，大部分编程语言没有 sum type。我们看 rust 是如何使用 sum type 来解决上面的问题的：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CreditcardInfo&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;number&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;expiration&lt;/span&gt;: &lt;span class=&quot;nc&quot;&gt;chrono&lt;/span&gt;::&lt;span class=&quot;n&quot;&gt;NaiveDate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;holder&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;WalletType&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;address&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pk&lt;/span&gt;: &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;u8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CreditcardType&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Creditcard&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CreditcardInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Cash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;f64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Wechat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AccountInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Abt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WalletType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;sum type 的美妙之处是它解决了类型系统中基本类型和复合类型潜在的不够严谨的问题，比如说这样一个函数：&lt;/p&gt;&lt;p&gt;&lt;b&gt; href=&amp;#34;&amp;#34;&amp;gt;fn div(x: f64, y: f64) -&amp;amp;gt; f64 { x / y }&lt;/b&gt;&lt;/p&gt;&lt;p&gt;从 type signature 上看，似乎没有问题，但在实现层面上，我们很快发现 &lt;code&gt;x / y&lt;/code&gt; 有约束条件：y 不能是 0。我们要么设计一种新的数据类型 non_zero_f64 把零从中排除出去（这在大多数语言里都很困难），从输入的角度让这个函数的 type signature 完备；要么让返回的结果是一种特殊的类型，它可能是 f64，可能为空。&lt;/p&gt;&lt;p&gt;由于大多数语言不支持 sum type，这种情况就只好用两种方式来解决：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;函数的返回值可能是 f64，可能是 null。如果一门语言不支持异常，那么就只好检查一下输入，当为 0 时返回 null。&lt;/li&gt;&lt;li&gt;函数的返回值依旧是 f64，但除零的时候会抛出异常。对于支持异常的语言，除了上一种方式，我们还可以抛出异常。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;第一种方式损害了类型的完备性，因为 type signature 不再有权威 —— 调用者不敢肯定自己一定会拿回一个 f64，所以只好也做相应的条件判断，把这种对于类型的泄露一层层传递出去。第二种方式也是对类型完备性的一种损伤，因为调用者需要知道并且选择处理或者不处理那些「意外」。因为意外不是返回类型的一部分，所以，额外的逻辑是必不可少的。&lt;/p&gt;&lt;p&gt;上面 div 函数的问题只是冰山的一角。我们除了学习写代码和写 PoC 的代码外，其余的时刻都不可能只为 happy ending 写代码，毕竟我们面对的不是童话世界。错误和意外几乎伴随着任何一次互动 —— 和 IO 的互动，和类库（别人的代码）的互动，和系统调用的互动等。Scott Wlaschin 在他著名的 Railway Oriented Programming 里把一个又一个这样的情况拎出来寻求解决之道，而 sum type，就是最佳的选择。&lt;/p&gt;&lt;p&gt;在 Rust 里，我们有类似于 Maybe Monad 的 Option：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;对于上面的函数，我们可以用 &lt;code&gt;Option&amp;lt;f64&amp;gt;&lt;/code&gt; 来完善其 type signature:&lt;/p&gt;&lt;p&gt;href=&amp;#34;&amp;#34;&amp;gt;fn div(x: f64, y: f64) -&amp;gt; Option&amp;lt;f64&amp;gt;;&lt;/p&gt;&lt;p&gt;当 y 为零，返回 None；不为零，返回 Some(x / y)。表面上看它似乎和上面第一种方式没有区别，但一个形式化完备的类型让很多事情变成了可能。这个函数可以被 pipe，被 compose，调用者不必担心类型的泄露 —— 所有信息都已经在 type signature 里面了，编译器可以做更合适更严格的检查，也可以适当优化 —— 更重要的是，围绕着这个类型，我们可以把一堆原本不断出现在用户代码中的对结果判断的 if else / try catch 抽象出来，成为 Option 类型的一组 behavior，这样让用户代码变得清晰。&lt;/p&gt;&lt;p&gt;同样的思路，在 Rust 里，exception 被抛弃，取而代之的是是 Result，也是一个 sum type:&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;E&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;E&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;和 IO 的互动，和别人家的代码的互动，大家都可以通过 Result 来完成。围绕着 Result，也有一组标准的 behavior 和宏，处理其结果。&lt;/p&gt;&lt;p&gt;围绕着编程语言是否需要 exception，exception 是良药还是毒药，有诸多争议，java / python 是建制派，C++ / haskell 是骑墙派，rust / go 是反对派，erlang / elixir 是无政府主义者，这里便不展开。你问我支持谁？我喜欢尤达大师对卢克说的那句经典台词：do or do not, there’s no try。这句话也蕴含了 erlang 的哲理：let it crash。&lt;/p&gt;&lt;h2&gt;&lt;b&gt;generics type&lt;/b&gt;&lt;/h2&gt;&lt;p&gt;Generics type，或者说泛型，是让人又爱又恨的类型。它简化了代码，提升了抽象程度，但程序员为之付出的代价是陡升的学习曲线。抛开泛型的好坏不提，我们先看看泛型的数学意义是什么。还是以 Option 类型来说事：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;T 代表任意类型，Option 是 T 映射到这个 enum 的结果。所以换个角度，我们可以认为泛型是作用在类型上的一种特殊的函数，它接受一种或者多种类型，返回一种新的类型。我们知道，编译器在处理具体的数据时会将泛型展开，比如说 &lt;code&gt;Option&amp;lt;u8&amp;gt;&lt;/code&gt; 展开后就是：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Option&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;u8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这种展开可以无限制延伸下去，但彼此又并不想交，就好像 sum type：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Options&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;U8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;u8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;U16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;u16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VectorU8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Vec&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;u8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VectorU16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;Vec&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;u16&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这个结果就很有意思了。我们知道 sum type 的数学意义是类型之和，我们把 primitive type 记作 X，那么这里就有 n 个 X，&lt;code&gt;Vector&amp;lt;T&amp;gt;&lt;/code&gt; 可以是 &lt;code&gt;Option&amp;lt;T&amp;gt;&lt;/code&gt; 的一种类型，因而 &lt;code&gt;Vector&amp;lt;T&amp;gt;&lt;/code&gt; 可以展开成 nX，类似 &lt;code&gt;Vector&amp;lt;T&amp;gt;&lt;/code&gt; 这样的类型也有 n 个，那么到现在为止展开的 Options 可以记作 nX + n _ nX，同理 HashMap&amp;lt;T, E&amp;gt; 是 n _ nX，而 n 个类似 HashMap&amp;lt;T, E&amp;gt; 展开的选项为 n _ n _ nX，以此类推我们可以得出泛型代表着：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;n + n^2 + n^3 + n^4 + ....&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;种数据类型的集合。这是一个等比级数，其结果是 &lt;code&gt;n(1 - n^n) / (1 - n)&lt;/code&gt;。&lt;/p&gt;&lt;p&gt;以上。&lt;br/&gt;&lt;/p&gt;&lt;hr/&gt;&lt;p&gt;我们 ArcBlock 还在招募 iOS 工程师和后端工程师，如果你对技术有热情，欢迎发送简历给我，tyr at &lt;a href=&quot;https://link.zhihu.com/?target=http%3A//arcblock.io&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;http://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;arcblock.io&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt;。想了解更多关于 ArcBlock 和区块链的信息，可以戳：&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D2649828178%26idx%3D1%26sn%3Dc5d0120098f2e51f12b16a05af4bd18b%26chksm%3D8704a94eb0732058916b6b04c20611bb5dd7fda3bf4bb0ff91ac14fc595f8ba5fd2ed79a5ba7%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;ArcBlock 一周年&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D2649828161%26idx%3D1%26sn%3Dba80c0212ecdd4e23c16263fb1cb8bb1%26chksm%3D8704a95db073204b3947117d1ea77d4ceb6650c0ae9279f0ce45fb2b706e7534e62847d42810%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;ABT network 部署记&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D2649828088%26idx%3D1%26sn%3D3fd4d3c48dde5aaf6c0d70848d945af0%26chksm%3D8704a8e4b07321f21a73393a16a874d0f5c3cb9deae88f611a6af15e39ac55b3a1aff593c33a%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;在程序中时间旅行&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//mp.weixin.qq.com/s%3F__biz%3DMzA3NDM0ODQwMw%3D%3D%26mid%3D2649828078%26idx%3D1%26sn%3D5a16285e2cd2253be306e14229e58254%26chksm%3D8704a8f2b07321e48b60aba5b07a3b065564efeb4f9a9113183691c2684d0c8c2090fc0da04b%26scene%3D21%23wechat_redirect&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;区块链和数据库：致虚极，守静笃&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;</description>
-<author>陈天</author>
-<guid isPermaLink="false">2019-06-15-69223872</guid>
-<pubDate>Sat, 15 Jun 2019 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
