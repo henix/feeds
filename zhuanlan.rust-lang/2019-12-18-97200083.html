@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>使用Rust实现Tcp加速</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/97200083">原文</a></p>
+<p>项目地址 [gkd-rs](<a href="https://link.zhihu.com/?target=https%3A//github.com/importcjj/gkd-rs" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/importcjj/gk</span><span class="invisible">d-rs</span><span class="ellipsis"></span></a>)</p><p>为了让自己的代理更加稳定，试着用Rust去做了个Tcp加速库。效果的话，我目前还在试用，另外库还没有完善，就先不上对比图了。</p><h2>原理及概念</h2><p>简单来说，就是原来通过一条Tcp连接收发的数据包现在借助N条Tcp来进行收发，达到提速的效果。</p><h3>Connection</h3><p>这里及下文中所提到的Connection并未一般意义上的TCP连接，在我们的项目里，它是一个抽象出来的东西。Connection在客户端和服务端的行为具有差异。客户端的Connection借助多个Tunnel进行通信，这些Connection在处理上游请求时，会先把从上游读取的data封装成带有自增ID和Connection ID的packet，然后通过channel发送给Tunnel Manager，于此同时，我们预先建立的N条Tunnel会通过poll channel的方式获取这些packet，并通过自己的TCP连接发送给服务端。服务端的Tunnel Manager收到这些packet后，会根据每个packet的Connection ID分发给对应的存在于服务端的Connection，而每个Connection会重新这些调整packet的顺序。</p><h3>Client</h3><ol><li>客户端会有自己的Peer ID</li><li>客户端启动时会与服务端建立起N条Tunnel, 即真实的TCP连接。</li><li>处理上游的请求时，新建Connection，并发送一个不带任何数据的connect packet。接着就是边读取上游data，边封packet交由Tunnel Manager发送给服务端。需要注意的是，服务端返回的数据packet是乱序的，客户端Connection在接收server端的发来的packet时，应调整顺序，这样上游方收到的数据才是正确的。</li></ol><h3>Server</h3><p>注: 服务端应该支持服务多个Peer，Peer通过ID区分，彼此之间隔离，互不影响</p><p>以下过程仅针对一个Peer来讲</p><p>Tunnel Manager从N个Tunnel的recv channel中读取packet，并根据packet携带的connection ID找到对应的Connection(如不存在则新建)，然后将packet交由该Connection处理。服务端的Connection处理packet时，若该packet为connect类型，则读取包中含有的dest server地址并与其建立TCP连接。Connection从Tunnel Manager得到的packet很大概率是乱序的，所以需要借助内部缓存来调整顺序，从而保证发送给dest server的数据是正常的原始数据。相对的，Connection在写数据时，直接将数据封成packet，然后直接交由Tunnel Manager发送给相应的客户端。</p><h2>Usage</h2><p>echo server</p><div class="highlight"><pre><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">async_std</span>::<span class="n">io</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">use</span><span class="w"> </span><span class="n">async_std</span>::<span class="n">task</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">use</span><span class="w"> </span><span class="n">gkd</span>::<span class="nb">Result</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">use</span><span class="w"> </span><span class="n">gkd</span>::<span class="n">Server</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="cp">#[async_std::main]</span><span class="w">
+</span><span class="w"></span><span class="n">async</span><span class="w"> </span><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">Result</span><span class="o">&lt;</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">    </span><span class="n">env_logger</span>::<span class="n">init</span><span class="p">();</span><span class="w">
+</span><span class="w">    </span><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&#34;Listening on :9990&#34;</span><span class="p">);</span><span class="w">
+</span><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">server</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Server</span>::<span class="n">bind</span><span class="p">(</span><span class="s">&#34;0.0.0.0:9990&#34;</span><span class="p">).</span><span class="n">await</span><span class="o">?</span><span class="p">;</span><span class="w">
+</span><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="kd">let</span><span class="w"> </span><span class="nb">Some</span><span class="p">((</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">))</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">server</span><span class="p">.</span><span class="n">accept</span><span class="p">().</span><span class="n">await</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">        </span><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&#34;serve {}&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span><span class="w">
+</span><span class="w">        </span><span class="n">task</span>::<span class="n">spawn</span><span class="p">(</span><span class="n">async</span><span class="w"> </span><span class="k">move</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">            </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">conn</span><span class="p">);</span><span class="w">
+</span><span class="w">            </span><span class="n">io</span>::<span class="n">copy</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="p">).</span><span class="n">await</span><span class="p">.</span><span class="n">unwrap</span><span class="p">();</span><span class="w">
+</span><span class="w">        </span><span class="p">});</span><span class="w">
+</span><span class="w">    </span><span class="p">}</span><span class="w">
+</span><span class="w">    </span><span class="nb">Ok</span><span class="p">(())</span><span class="w">
+</span><span class="w"></span><span class="p">}</span><span class="w">
+</span></code></pre></div><p>client</p><div class="highlight"><pre><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">async_std</span>::<span class="n">prelude</span>::<span class="o">*</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">use</span><span class="w"> </span><span class="n">gkd</span>::<span class="n">Client</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">use</span><span class="w"> </span><span class="n">gkd</span>::<span class="nb">Result</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="cp">#[async_std::main]</span><span class="w">
+</span><span class="w"></span><span class="n">async</span><span class="w"> </span><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">Result</span><span class="o">&lt;</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">    </span><span class="n">env_logger</span>::<span class="n">init</span><span class="p">();</span><span class="w">
+</span><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">tunnel_num</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w">
+</span><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Client</span>::<span class="n">connect</span><span class="p">(</span><span class="s">&#34;127.0.0.1:9990&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">tunnel_num</span><span class="p">).</span><span class="n">await</span><span class="o">?</span><span class="p">;</span><span class="w">
+</span><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="n">get_connection</span><span class="p">().</span><span class="n">await</span><span class="o">?</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="mi">1</span><span class="p">..</span><span class="mi">10</span><span class="k">u8</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">];</span><span class="w">
+</span><span class="w">        </span><span class="n">conn</span><span class="p">.</span><span class="n">write_all</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bytes</span><span class="p">).</span><span class="n">await</span><span class="o">?</span><span class="p">;</span><span class="w">
+</span><span class="w">    </span><span class="p">}</span><span class="w">
+</span><span class="w">
+</span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">_i</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="mi">1</span><span class="p">..</span><span class="mi">10</span><span class="k">u8</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="mi">3</span><span class="p">];</span><span class="w">
+</span><span class="w">        </span><span class="n">conn</span><span class="p">.</span><span class="n">read_exact</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="n">bytes</span><span class="p">).</span><span class="n">await</span><span class="o">?</span><span class="p">;</span><span class="w">
+</span><span class="w">        </span><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&#34;read [{:?}]&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">bytes</span><span class="p">);</span><span class="w">
+</span><span class="w">    </span><span class="p">}</span><span class="w">
+</span><span class="w">
+</span><span class="w">    </span><span class="nb">Ok</span><span class="p">(())</span><span class="w">
+</span><span class="w"></span><span class="p">}</span><span class="w">
+</span></code></pre></div><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
