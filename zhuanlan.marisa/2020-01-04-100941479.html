@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>面向组合编程之可应用组合子</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/100941479">原文</a></p>
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-4ed559ef2fa14f4f46ff2c74cc5de65f_b.jpg" alt=""></div><p>函数式编程的核心思想就是组合，其他一切的设计都是围绕着组合来的。什么不可变性，什么纯函数，都不是函数式编程的真正关心的。有了组合，我们可以将小的东西组合成大的复杂的更有用的东西。有了组合，我们可以将副作用（不纯的函数）组合起来，将不同的副作用组合成大的复杂的更有用的副作用。这样，编写有副作用的程序时会非常简洁，容易改变行为，也容易测试，比如使用有名的polysemy库。</p><p>组合是如此的强大和美好，有没有简单的具体例子来展示其威力呢？下面我就以可应用函子为基础的组合子来给大家演示一下组合在parser上的应用。</p><p>让我们来完成这么一个简单的任务，写一个有四则运算和指数运算的表达式解析器，然后对解析后的表达式求值。这个表达式的运算符是带优先级的，并且支持括号嵌套，一个具体例子如下所示：</p><div class="highlight"><pre><code class="language-text">  3 * (23 + 54 * (6 - 2) + 6)</code></pre></div><p>我们可以使用如下这个文法来描述我们要解析的表达式，这样我们就知道解析这个表达式需要的最基本的parser是什么了。</p><div class="highlight"><pre><code class="language-text">expr         ::= subExpr | binOpExpr
+subExpr      ::= &#39;(&#39; expr &#39;)&#39; | const | neg | zero
+binOpExpr    ::= sumOpExpr | prodOpExpr | expOpExpr
+sumOpExpr    ::= &#39;(&#39; subExpr &#39; &#39; sumOp  &#39; &#39;subExpr &#39;)&#39;
+sumOp        ::= &#39;+&#39; | &#39;-&#39;
+prodOpExpr   ::= &#39;(&#39; subExpr &#39; &#39; prodOp &#39; &#39;subExpr &#39;)&#39;
+prodOp       ::= &#39;*&#39; | &#39;/&#39;
+expOpExpr    ::= &#39;(&#39; subExpr &#39; &#39; expOp  &#39; &#39;subExpr &#39;)&#39;
+expOp        ::= &#39;^&#39;
+const        ::= int
+neg          ::= &#39;-&#39; subExpr
+zero         ::= &#39;z&#39;</code></pre></div><p>从上面的文法描述我们可以看到，最基本的parser就是解析一个字符的parser。我们把最基本的parser按照文法的描述组合起来，就可以得到一个解析整个表达式的parser。也就是将如下所示的charP组合起来得到exprP：</p><div class="highlight"><pre><code class="language-haskell"><span class="nf">charP</span> <span class="ow">::</span> <span class="kt">Parser</span> <span class="kt">Char</span>
+
+<span class="c1">-- combine the charP to get exprP</span>
+<span class="nf">exprP</span> <span class="ow">::</span> <span class="kt">Parser</span> <span class="kt">Expr</span></code></pre></div><p>如何将小的charP组合起来得到解析整个表达式的exprP呢，关键在于数据类型 Parser a 是可组合的。我们知道Monad m是可组合的，显然是可以满足这个需求的。但Monad m过于强大了，我们可以使用更简单些的同样是可组合的Applicative f，即我们将Parser 定义为一个可应用函子，就可以把小的charP组合起来得到大的exprP。于是我们定义Parser 为下面这样：</p><div class="highlight"><pre><code class="language-haskell"><span class="c1">-- | An ambiguous parser.</span>
+<span class="kr">newtype</span> <span class="kt">Parser</span> <span class="nf">a</span> <span class="ow">=</span> <span class="kt">P</span> <span class="p">{</span> <span class="nf">unP</span> <span class="ow">::</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="p">[(</span><span class="kt">String</span><span class="p">,</span> <span class="nf">a</span><span class="p">)]</span> <span class="p">}</span>
+
+<span class="kr">instance</span> <span class="kt">Functor</span> <span class="kt">Parser</span> <span class="kr">where</span>
+    <span class="c1">-- | Change the result of a parser.</span>
+    <span class="c1">-- fmap :: (a -&gt; b) -&gt; Parser a -&gt; Parser b</span>
+    <span class="nf">fmap</span> <span class="nf">f</span> <span class="nf">p</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="nf">map</span> <span class="p">(</span><span class="nf">\</span><span class="p">(</span><span class="nf">s1</span><span class="p">,</span> <span class="nf">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="nf">s1</span><span class="p">,</span> <span class="nf">f</span> <span class="nf">a</span><span class="p">))</span> <span class="o">$</span> <span class="nf">unP</span> <span class="nf">p</span> <span class="nf">s</span>
+
+<span class="kr">instance</span> <span class="kt">Applicative</span> <span class="kt">Parser</span> <span class="kr">where</span>
+    <span class="c1">-- | Inject a value into an identity parser.</span>
+    <span class="c1">-- pure :: a -&gt; Parser a</span>
+    <span class="nf">pure</span> <span class="nf">x</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="p">[(</span><span class="nf">s</span><span class="p">,</span> <span class="nf">x</span><span class="p">)]</span>
+
+    <span class="c1">-- | Given a parser with a function value and another parser, parse the function</span>
+    <span class="c1">-- first and then the value, return a parser which applies the function to the</span>
+    <span class="c1">-- value.</span>
+    <span class="c1">-- (&lt;*&gt;) :: Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b</span>
+    <span class="nf">pf</span> <span class="o">&lt;*&gt;</span> <span class="nf">px</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="nf">concat</span> <span class="p">[[(</span><span class="nf">s2</span><span class="p">,</span> <span class="nf">f</span> <span class="nf">a</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="nf">s2</span><span class="p">,</span> <span class="nf">a</span><span class="p">)</span> <span class="ow">&lt;-</span> <span class="nf">unP</span> <span class="nf">px</span> <span class="nf">s1</span><span class="p">]</span> <span class="o">|</span> <span class="p">(</span><span class="nf">s1</span><span class="p">,</span> <span class="nf">f</span><span class="p">)</span> <span class="ow">&lt;-</span> <span class="nf">unP</span> <span class="nf">pf</span> <span class="nf">s</span><span class="p">]</span></code></pre></div><p>为了更方便的组合parser，还定义了下面几个便于使用的组合子：</p><div class="highlight"><pre><code class="language-haskell"><span class="c1">-- infix form of function fmap</span>
+<span class="p">(</span><span class="o">&lt;$&gt;</span><span class="p">)</span> <span class="ow">=</span> <span class="nf">fmap</span>
+
+<span class="c1">-- replace value in functor by a</span>
+<span class="p">(</span><span class="o">&lt;$</span><span class="p">)</span> <span class="ow">::</span> <span class="nf">a</span> <span class="ow">-&gt;</span> <span class="nf">f</span> <span class="nf">b</span> <span class="ow">-&gt;</span> <span class="nf">f</span> <span class="nf">a</span>
+<span class="p">(</span><span class="o">&lt;$</span><span class="p">)</span> <span class="ow">=</span> <span class="nf">fmap</span> <span class="o">.</span> <span class="nf">const</span>
+
+<span class="c1">-- combine fa and fb, discard the value in fb</span>
+<span class="p">(</span><span class="o">&lt;*</span><span class="p">)</span> <span class="ow">::</span> <span class="nf">f</span> <span class="nf">a</span> <span class="ow">-&gt;</span> <span class="nf">f</span> <span class="nf">b</span> <span class="ow">-&gt;</span> <span class="nf">f</span> <span class="nf">a</span>
+<span class="nf">fa</span> <span class="o">&lt;*</span> <span class="nf">fb</span> <span class="ow">=</span> <span class="nf">const</span> <span class="o">&lt;$&gt;</span> <span class="nf">fa</span> <span class="o">&lt;*&gt;</span> <span class="nf">fb</span>
+
+<span class="c1">-- combine fa and fb, discard the value in fa</span>
+<span class="p">(</span><span class="o">*&gt;</span><span class="p">)</span> <span class="ow">::</span> <span class="nf">f</span> <span class="nf">a</span> <span class="ow">-&gt;</span> <span class="nf">f</span> <span class="nf">b</span> <span class="ow">-&gt;</span> <span class="nf">f</span> <span class="nf">b</span>
+<span class="nf">fa</span> <span class="o">*&gt;</span> <span class="nf">fb</span> <span class="ow">=</span> <span class="nf">flip</span> <span class="nf">const</span> <span class="o">&lt;$&gt;</span> <span class="nf">fa</span> <span class="o">&lt;*&gt;</span> <span class="nf">fb</span></code></pre></div><p>我们已经定义好了可应用函子 Parser，但似乎有这些还不够。比如我们在解析整数时，知道整数是由一个或多个数字组成的。那如何表示由一个或多个数字组成的组合运算呢，以及由零个或一个、或多个空格组成的空白这个组合运算呢。我们知道，这就是类似正则表达式中的 * 和 + 的匹配，这就要求Parser 具有Kleene 代数的结构，于是Parser 也必须是一个半环。上面的Applicative Parser的 &lt;*&gt; 和 pure 定义了半环的乘法和乘法的单位元，我们还需要定义Parser 这个半环的加法和加法的单位元，我们用Alternative 来完成这个定义。</p><div class="highlight"><pre><code class="language-haskell"><span class="kr">instance</span> <span class="kt">Alternative</span> <span class="kt">Parser</span> <span class="kr">where</span>
+    <span class="c1">-- | Construct a parser that never parses anything.</span>
+    <span class="c1">-- empty :: Parser a</span>
+    <span class="nf">empty</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="kt">[]</span>
+
+    <span class="c1">-- | Combine two parsers: When given an input, provide the results of both parser</span>
+    <span class="c1">-- run on the input.</span>
+    <span class="c1">-- (&lt;|&gt;) :: Parser a -&gt; Parser a -&gt; Parser a</span>
+    <span class="nf">p1</span> <span class="o">&lt;|&gt;</span> <span class="nf">p2</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="nf">unP</span> <span class="nf">p1</span> <span class="nf">s</span> <span class="o">++</span> <span class="nf">unP</span> <span class="nf">p2</span> <span class="nf">s</span>
+
+<span class="c1">-- | Apply the parser zero or more times.</span>
+<span class="c1">-- many :: Parser a -&gt; Parser [a]</span>
+<span class="c1">-- many p = some p &lt;|&gt; pure []</span>
+
+<span class="c1">-- | Apply the parser one or more times.</span>
+<span class="c1">-- some :: Parser a -&gt; Parser [a]</span>
+<span class="c1">-- some p = (:) &lt;$&gt; p &lt;*&gt; many p</span></code></pre></div><p>在Alternative中， &lt;|&gt; 和 empty 就是半环的加法和加法的单位元，many就是Kleene代数的 * 运算，而some就对应了 + 匹配。因为Alternative中已经有了many和some的缺省定义，所以在这里将many和some的实现注释掉了。</p><p>到此为止，我们就把解析这个表达式需要的组合子都已经定义好了，有empty、&lt;|&gt;、pure、&lt;*&gt;、many、some这些组合子。接下来我们就从最基本的parser开始，将这个基本的parser一步一步的组合成表达式的parser。</p><p>先定义predP和charP，stringP这些基本的parser。</p><div class="highlight"><pre><code class="language-haskell"><span class="c1">-- | Parse a character only when a predicate matches.</span>
+<span class="nf">predP</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Char</span> <span class="ow">-&gt;</span> <span class="kt">Bool</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="kt">Parser</span> <span class="kt">Char</span>
+<span class="nf">predP</span> <span class="nf">p</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="kr">case</span> <span class="nf">s</span> <span class="kr">of</span>
+                      <span class="kt">[]</span>                 <span class="ow">-&gt;</span> <span class="kt">[]</span>
+                      <span class="p">(</span><span class="nf">c</span><span class="kt">:</span><span class="nf">cs</span><span class="p">)</span> <span class="o">|</span> <span class="nf">p</span> <span class="nf">c</span>       <span class="ow">-&gt;</span> <span class="p">[(</span><span class="nf">cs</span><span class="p">,</span> <span class="nf">c</span><span class="p">)]</span>
+                             <span class="o">|</span> <span class="nf">otherwise</span> <span class="ow">-&gt;</span> <span class="kt">[]</span>
+
+<span class="c1">-- | Succeed only when parsing the given character.</span>
+<span class="nf">charP</span> <span class="ow">::</span> <span class="kt">Char</span> <span class="ow">-&gt;</span> <span class="kt">Parser</span> <span class="kt">Char</span>
+<span class="nf">charP</span> <span class="nf">x</span> <span class="ow">=</span> <span class="nf">predP</span> <span class="p">(</span><span class="o">==</span> <span class="nf">x</span><span class="p">)</span>
+
+<span class="c1">-- | Parse a whole string.</span>
+<span class="nf">stringP</span> <span class="ow">::</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="kt">Parser</span> <span class="kt">String</span>
+<span class="nf">stringP</span> <span class="kt">[]</span> <span class="ow">=</span> <span class="kt">P</span> <span class="o">$</span> <span class="nf">\s</span> <span class="ow">-&gt;</span> <span class="p">[(</span><span class="nf">s</span><span class="p">,</span> <span class="kt">[]</span><span class="p">)]</span>
+<span class="nf">stringP</span> <span class="p">(</span><span class="nf">c</span><span class="kt">:</span><span class="nf">cs</span><span class="p">)</span> <span class="ow">=</span> <span class="p">(</span><span class="kt">:</span><span class="p">)</span> <span class="o">&lt;$&gt;</span> <span class="nf">charP</span> <span class="nf">c</span> <span class="o">&lt;*&gt;</span> <span class="nf">stringP</span> <span class="nf">cs</span></code></pre></div><p>接下来，我们按要解析的表达式的文法来将上面这些基本的parser组合起来，得到exprP 这个解析整个表达式的parser。</p><div class="highlight"><pre><code class="language-haskell"><span class="nf">exprP</span> <span class="ow">::</span> <span class="kt">Parser</span> <span class="kt">Expr</span>
+<span class="nf">exprP</span> <span class="ow">=</span> <span class="nf">subExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">binOpExprP</span>
+
+<span class="nf">subExprP</span> <span class="ow">=</span> <span class="nf">charP</span> <span class="sc">&#39;(&#39;</span> <span class="o">*&gt;</span> <span class="nf">exprP</span> <span class="o">&lt;*</span> <span class="nf">charP</span> <span class="sc">&#39;)&#39;</span> <span class="o">&lt;|&gt;</span> <span class="nf">constP</span> <span class="o">&lt;|&gt;</span> <span class="nf">negP</span> <span class="o">&lt;|&gt;</span> <span class="nf">zeroP</span>
+
+<span class="nf">binOpExprP</span> <span class="ow">=</span> <span class="nf">sumOpExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">prodOpExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">expOpExprP</span>
+
+<span class="nf">sumOpExprP</span> <span class="ow">=</span> <span class="p">((</span><span class="nf">flip</span> <span class="kt">BinOpE</span><span class="p">)</span> <span class="o">&lt;$&gt;</span> <span class="p">(</span><span class="nf">subExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">prodOpExprP</span><span class="p">)</span> <span class="o">&lt;*</span> <span class="nf">spaceP</span>
+                            <span class="o">&lt;*&gt;</span> <span class="nf">sumOpP</span> <span class="o">&lt;*</span> <span class="nf">spaceP</span>
+                            <span class="o">&lt;*&gt;</span> <span class="p">(</span><span class="nf">subExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">sumOpExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">prodOpExprP</span><span class="p">))</span>
+
+<span class="nf">sumOpP</span> <span class="ow">=</span> <span class="kt">AddBO</span> <span class="o">&lt;$</span> <span class="nf">charP</span> <span class="sc">&#39;+&#39;</span> <span class="o">&lt;|&gt;</span> <span class="kt">SubBO</span> <span class="o">&lt;$</span> <span class="nf">charP</span> <span class="sc">&#39;-&#39;</span>
+
+<span class="nf">prodOpExprP</span> <span class="ow">=</span> <span class="p">(</span><span class="nf">flip</span> <span class="kt">BinOpE</span><span class="p">)</span> <span class="o">&lt;$&gt;</span> <span class="p">(</span><span class="nf">subExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">expOpExprP</span><span class="p">)</span> <span class="o">&lt;*</span> <span class="nf">spaceP</span>
+                            <span class="o">&lt;*&gt;</span> <span class="nf">prodOpP</span> <span class="o">&lt;*</span> <span class="nf">spaceP</span>
+                            <span class="o">&lt;*&gt;</span> <span class="p">(</span><span class="nf">subExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">prodOpExprP</span> <span class="o">&lt;|&gt;</span> <span class="nf">expOpExprP</span><span class="p">)</span>
+
+<span class="nf">prodOpP</span> <span class="ow">=</span> <span class="kt">MulBO</span> <span class="o">&lt;$</span> <span class="nf">charP</span> <span class="sc">&#39;*&#39;</span> <span class="o">&lt;|&gt;</span> <span class="kt">DivBO</span> <span class="o">&lt;$</span> <span class="nf">charP</span> <span class="sc">&#39;/&#39;</span>
+
+<span class="nf">expOpExprP</span> <span class="ow">=</span> <span class="p">(</span><span class="nf">flip</span> <span class="kt">BinOpE</span><span class="p">)</span> <span class="o">&lt;$&gt;</span> <span class="nf">subExprP</span> <span class="o">&lt;*</span> <span class="nf">spaceP</span>
+                           <span class="o">&lt;*&gt;</span> <span class="nf">expOpP</span> <span class="o">&lt;*</span> <span class="nf">spaceP</span>
+                           <span class="o">&lt;*&gt;</span> <span class="nf">subExprP</span>
+
+<span class="nf">expOpP</span> <span class="ow">=</span> <span class="kt">ExpBO</span> <span class="o">&lt;$</span> <span class="nf">charP</span> <span class="sc">&#39;^&#39;</span>
+
+<span class="nf">constP</span> <span class="ow">=</span> <span class="p">(</span><span class="kt">ConstE</span> <span class="o">.</span> <span class="nf">read</span><span class="p">)</span> <span class="o">&lt;$&gt;</span> <span class="nf">some</span> <span class="nf">digitP</span>
+
+<span class="nf">negP</span>  <span class="ow">=</span> <span class="kt">NegE</span> <span class="o">&lt;$</span> <span class="nf">charP</span> <span class="sc">&#39;-&#39;</span> <span class="o">&lt;*&gt;</span> <span class="nf">subExprP</span>
+
+<span class="nf">zeroP</span> <span class="ow">=</span> <span class="nf">const</span> <span class="kt">ZeroE</span> <span class="o">&lt;$&gt;</span> <span class="nf">charP</span> <span class="sc">&#39;z&#39;</span>
+
+<span class="nf">digitP</span> <span class="ow">=</span> <span class="nf">predP</span> <span class="nf">isDigit</span>
+
+<span class="nf">spaceP</span> <span class="ow">=</span> <span class="nf">many</span> <span class="o">$</span> <span class="nf">charP</span> <span class="sc">&#39; &#39;</span></code></pre></div><p>可以看到，上面的代码几乎是直接翻译自表达式的文法，除了sumOpExprP和prodOpExprP稍微有些不同。</p><p>下面我们给出表达式 Expr 的定义和求值函数，用于保存parser的结果，求得表达式的值。</p><div class="highlight"><pre><code class="language-haskell"><span class="c1">-- | Kinds of binary operators.</span>
+<span class="kr">data</span> <span class="kt">BinOp</span> <span class="ow">=</span> <span class="kt">AddBO</span> <span class="o">|</span> <span class="kt">SubBO</span>
+           <span class="o">|</span> <span class="kt">MulBO</span> <span class="o">|</span> <span class="kt">DivBO</span>
+           <span class="o">|</span> <span class="kt">ExpBO</span>
+           <span class="kr">deriving</span> <span class="p">(</span><span class="kt">Eq</span><span class="p">,</span> <span class="kt">Show</span><span class="p">)</span>
+
+<span class="c1">-- | Some kind of arithmetic expression.</span>
+<span class="kr">data</span> <span class="kt">Expr</span> <span class="ow">=</span> <span class="kt">ConstE</span>  <span class="kt">Int</span>
+          <span class="o">|</span> <span class="kt">BinOpE</span>  <span class="kt">BinOp</span> <span class="kt">Expr</span> <span class="kt">Expr</span>
+          <span class="o">|</span> <span class="kt">NegE</span>    <span class="kt">Expr</span>
+          <span class="o">|</span> <span class="kt">ZeroE</span>
+          <span class="kr">deriving</span> <span class="p">(</span><span class="kt">Eq</span><span class="p">,</span> <span class="kt">Show</span><span class="p">)</span>
+
+<span class="nf">evalExpr</span> <span class="ow">::</span> <span class="kt">Expr</span> <span class="ow">-&gt;</span> <span class="kt">Int</span>
+<span class="nf">evalExpr</span> <span class="p">(</span><span class="kt">ConstE</span> <span class="nf">i</span><span class="p">)</span> <span class="ow">=</span> <span class="nf">i</span>
+<span class="nf">evalExpr</span> <span class="p">(</span><span class="kt">BinOpE</span> <span class="nf">op</span> <span class="nf">e1</span> <span class="nf">e2</span><span class="p">)</span>
+  <span class="o">|</span> <span class="nf">op</span> <span class="o">==</span> <span class="kt">AddBO</span>     <span class="ow">=</span> <span class="nf">evalExpr</span> <span class="nf">e1</span> <span class="o">+</span> <span class="nf">evalExpr</span> <span class="nf">e2</span>
+  <span class="o">|</span> <span class="nf">op</span> <span class="o">==</span> <span class="kt">SubBO</span>     <span class="ow">=</span> <span class="nf">evalExpr</span> <span class="nf">e1</span> <span class="o">-</span> <span class="nf">evalExpr</span> <span class="nf">e2</span>
+  <span class="o">|</span> <span class="nf">op</span> <span class="o">==</span> <span class="kt">MulBO</span>     <span class="ow">=</span> <span class="nf">evalExpr</span> <span class="nf">e1</span> <span class="o">*</span> <span class="nf">evalExpr</span> <span class="nf">e2</span>
+  <span class="o">|</span> <span class="nf">op</span> <span class="o">==</span> <span class="kt">DivBO</span>     <span class="ow">=</span> <span class="nf">evalExpr</span> <span class="nf">e1</span> <span class="p">`</span><span class="nf">div</span><span class="p">`</span> <span class="nf">evalExpr</span> <span class="nf">e2</span>
+  <span class="o">|</span> <span class="nf">op</span> <span class="o">==</span> <span class="kt">ExpBO</span>     <span class="ow">=</span> <span class="nf">evalExpr</span> <span class="nf">e1</span> <span class="o">^</span> <span class="nf">evalExpr</span> <span class="nf">e2</span>
+  <span class="o">|</span> <span class="nf">otherwise</span>       <span class="ow">=</span> <span class="ne">error</span> <span class="o">$</span> <span class="s">&#34;Not support operator &#34;</span> <span class="o">++</span> <span class="nf">show</span> <span class="nf">op</span>
+<span class="nf">evalExpr</span> <span class="p">(</span><span class="kt">NegE</span> <span class="nf">e</span><span class="p">)</span>   <span class="ow">=</span> <span class="nf">negate</span> <span class="o">$</span> <span class="nf">evalExpr</span> <span class="nf">e</span>
+<span class="nf">evalExpr</span> <span class="kt">ZeroE</span>      <span class="ow">=</span> <span class="mi">0</span></code></pre></div><p>最后，我们将解析整个表达式的parser传给函数runParser，就可以从给定的一个字符串中解析得到表达式了。我们可以再进一步将其封装为函数 parseExpr，给这个函数输入一个字符串，我们可以得到一个可能的唯一表达式。</p><div class="highlight"><pre><code class="language-haskell"><span class="c1">-- | Apply a parser and return all ambiguous results,</span>
+<span class="c1">-- but only those where the input was fully consumed.</span>
+<span class="nf">runParser</span> <span class="ow">::</span> <span class="kt">Parser</span> <span class="nf">a</span> <span class="ow">-&gt;</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="nf">a</span><span class="p">]</span>
+<span class="nf">runParser</span> <span class="nf">p</span> <span class="nf">cs</span> <span class="ow">=</span> <span class="nf">map</span> <span class="nf">snd</span> <span class="o">.</span> <span class="nf">filter</span> <span class="p">(</span><span class="nf">null</span> <span class="o">.</span> <span class="nf">fst</span><span class="p">)</span> <span class="o">$</span> <span class="nf">unP</span> <span class="nf">p</span> <span class="nf">cs</span>
+
+<span class="c1">-- | Apply a parser and only return a result, if there</span>
+<span class="c1">-- was only one unambiguous result with output fully consumed.</span>
+<span class="nf">runParserUnique</span> <span class="ow">::</span> <span class="kt">Parser</span> <span class="nf">a</span> <span class="ow">-&gt;</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="kt">Maybe</span> <span class="nf">a</span>
+<span class="nf">runParserUnique</span> <span class="nf">p</span> <span class="nf">cs</span> <span class="ow">=</span> <span class="nf">getResult</span> <span class="o">$</span> <span class="nf">runParser</span> <span class="nf">p</span> <span class="nf">cs</span>
+  <span class="kr">where</span> <span class="nf">getResult</span> <span class="p">[</span><span class="nf">a</span><span class="p">]</span> <span class="ow">=</span> <span class="kt">Just</span> <span class="nf">a</span>
+        <span class="nf">getResult</span> <span class="kr">_</span>   <span class="ow">=</span> <span class="kt">Nothing</span>
+
+<span class="nf">parseExpr</span> <span class="ow">::</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="kt">Maybe</span> <span class="kt">Expr</span>
+<span class="nf">parseExpr</span> <span class="ow">=</span> <span class="nf">runParserUnique</span> <span class="nf">exprP</span></code></pre></div><p>在ghci中用parseExpr 函数运行我们一开始给出的字符串，其结果如下：</p><div class="highlight"><pre><code class="language-lhs">*ApplicativeParser&gt; parseExpr &#34;3 * (23 + 54 * (6 - 2) + 6)&#34;
+Just (BinOpE MulBO (ConstE 3) (BinOpE AddBO (ConstE 23) (BinOpE AddBO
+ (BinOpE MulBO (ConstE 54) (BinOpE SubBO (ConstE 6) (ConstE 2))) (ConstE 6))))</code></pre></div><p>对这个表达式求值后的结果如下：</p><div class="highlight"><pre><code class="language-lhs">*ApplicativeParser&gt; fmap evalExpr $ parseExpr &#34;3 * (23 + 54 * (6 - 2) + 6)&#34;
+Just 735</code></pre></div><p>最后总结一下。我们通过构造Parser的可应用函子(Applicative)和可选函子(Alternative)，得到了empty、&lt;|&gt;、pure、&lt;*&gt;、many、some这些组合子，使得Parser a 是一个半环，有kleene 代数结构。从而让我们可以通过这些组合子将基本的parser (charP) 组合起来得到一个可以解析完整表达式的parser (exprP)。而且实现非常优雅、简单、直观，让我们体会到了组合的威力。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
