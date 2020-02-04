@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>凉爽的 CuTT 介绍（2）--带有路径构造子的归纳类型</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/104929162">原文</a></p>
+<blockquote>文本译自<a href="https://www.zhihu.com/people/67ebe1bd8e4a63f17a42572e40afaac7" class="internal">@千里冰封 你懂吗</a>介绍<a href="https://link.zhihu.com/?target=https%3A//ice1000.org/2019/10-01-Cutt2.html" class=" wrap external" target="_blank" rel="nofollow noreferrer">立方类型论</a>的文章。</blockquote><p>回忆<a href="https://zhuanlan.zhihu.com/p/103565709" class="internal">上一章</a>，我们有了高维的路径（方形），而且可以通过路径应用来归约（降低）它们的维度。</p><div class="highlight"><pre><code class="language-text">{-# OPTIONS --cubical --allow-unsolved-metas #-}
+module 2019-10-1-Cutt2 where
+open import Cubical.Core.Everything
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Isomorphism
+open import Agda.Builtin.Nat
+
+variable A : Set</code></pre></div><p>回忆经典的整数定义（点击 <code><a href="https://link.zhihu.com/?target=https%3A//ice1000.org/lagda/Cubical.Data.Int.Base.html%23142" class=" wrap external" target="_blank" rel="nofollow noreferrer">Int</a></code> 查看）：</p><div class="highlight"><pre><code class="language-text">import Cubical.Data.Int using (Int)</code></pre></div><p>这玩意儿看着很不爽，因为它不对称——以数字 2 为例，<code>+2</code> 是 <code>pos 2</code>，而 <code>-2</code> 却是 <code>negsuc 1</code>。证明这种不对称整数的加法交换律很让人蛋疼（瞅一眼<a href="https://link.zhihu.com/?target=https%3A//github.com/ice1k/Theorems/blob/master/src/Ints/Add/Assoc.agda" class=" wrap external" target="_blank" rel="nofollow noreferrer">这儿</a>） （由于整数的定义不是对称的，因此其上的运算自然也不对称）。</p><p>我们想要一种对称的整数定义，它大概是这样的：</p><div class="highlight"><pre><code class="language-text">data Int : Set where
+  pos : Nat -&gt; Int
+  neg : Nat -&gt; Int</code></pre></div><p>不过这样我们就有两个零了：<code>pos 0</code>和<code>neg 0</code>。我们<b>之所以</b>把经典的整数定义成不对称的，是为了避免存在两种零，虽然从数学上讲零既非正数也非负数（从另一个角度上也可以说是只有正零而没有负零）。</p><p>于是问题来了：<b>我们能告诉 Agda</b> <b><code>pos 0</code></b> <b>等于</b> <b><code>neg 0</code></b> <b>吗？</b> 如果可以，那上面的定义就很有用了！</p><p>答案当然是：<b>确定！一定！以及肯定可以！</b></p><h2>路径构造子</h2><p>回忆一下，路径它：</p><ol><li>被定义为一种函数，其定义域为间点，陪域为端点的类型</li><li>可以视作一种等价关系</li></ol><p>我们可以为数据类型添加<b>路径构造子（Path Constructor）</b>，比如添加 <code>pos 0 ≡ neg 0</code>，它是一条映射到 <code>Int</code> 的路径（并且如果这种路径有定义，那么它就是一个从间点到 <code>Int</code> 的函数）：</p><div class="highlight"><pre><code class="language-text">zro : pos 0 ≡ neg 0</code></pre></div><p>如果我们用函数类型重写 <code>zro</code> 的类型（<code>zro</code> 本身就有一个路径类型），那么就得到了一个构造子式的类型（它的返回类型就是它所构造的类型）：</p><div class="highlight"><pre><code class="language-text">zroFn : I -&gt; Int
+zroFn i = zro i</code></pre></div><p>由于 <code>zro</code> 返回一个 <code>Int</code> 和它的构造子，因此我们称之为<b>路径构造子（Path Constructor）</b>。在介绍路径构造子的高级属性前，我们已经知道很多有趣的东西了：</p><div class="highlight"><pre><code class="language-text">posneg : pos 0 ≡ neg 0
+posneg = zro
+
+negpos : neg 0 ≡ pos 0
+negpos i = zro (~ i)</code></pre></div><h2>路径约束</h2><p>路径构造子的特殊之处在于，当带有路径构造子的数据类型出现在模式匹配从句的左侧时， 它们也<b>约束（Constraint）</b>了你的模式匹配从句。以 <code>succ</code> 函数为例， 在为 <code>Int</code> 写出 <code>succ</code> 函数时，我们需要对路径构造子进行模式匹配：</p><div class="highlight"><pre><code class="language-text">succ : Int -&gt; Int
+succ (pos x) = pos (suc x)
+succ (neg zero) = pos 1
+succ (neg (suc x)) = neg x
+-- 上面三个从句很平凡
+
+succ (zro i) = -- 这种情况我们要返回什么？</code></pre></div><p>这种情况的路径构造子的规则是，我们可以返回任何满足以下条件的东西（以 <code>Int</code> 上的 <code>succ</code> 为例）：</p><ul><li><code>succ (zro i)</code> 按照定义的等价性应被规约为：</li><ul><li><code>succ (pos 0)</code>（<code>pos 0</code> 来自 <code>zro i0</code>），当 <code>i0</code> 被代入 <code>i</code> 时</li><li><code>succ (neg 0)</code>（<code>neg 0</code> 来自 <code>zro i1</code>），当 <code>i1</code> 被代入 <code>i</code> 时</li></ul></ul><p>我们将此性质简称为「路径的端点需要被遵守」</p><p>而由于 <code>succ (pos 0)</code> 和 <code>succ (neg 0)</code> 均等于 <code>pos 1</code>，因此 <code>zro</code> 情况的唯一可能就是 <code>pos 1</code>。</p><div class="highlight"><pre><code class="language-text">succ : Int -&gt; Int
+succ (pos x) = pos (suc x)
+succ (neg zero) = pos 1
+succ (neg (suc x)) = neg x
+succ (zro i) = pos 1</code></pre></div><p>实际上，Agda 的约束求解器可以求出此函数的一些从句。 我们可以将上面的函数写成带<b>洞（Hole）</b>的形式：</p><div class="highlight"><pre><code class="language-text">succ′ : Int -&gt; Int
+succ′ (pos x) = pos (suc x)
+succ′ (neg zero) = {!!}
+succ′ (neg (suc x)) = neg x
+succ′ (zro i) = {!!}</code></pre></div><p>在你的 Agda 编辑器中加载本文中的代码并对它使用「Auto」。两个洞都可以被解决。</p><p>由于这里出现的路径构造子类型为 <code>pos 0 ≡ neg 0</code>，因此 Agda 知道 <code>succ&#39; (neg zero)</code> 等于 <code>succ&#39; (pos zero)</code>，其中 <code>succ&#39; (pos x)</code> 定义为 <code>pos (suc x)</code>， 对 <code>pos zero</code> 应用此模式的结果为 <code>pos (suc zero)</code>，它等于 <code>pos 1</code>。</p><p>同样，我们可以定义 <code>pred</code> 函数：</p><div class="highlight"><pre><code class="language-text">pred : Int -&gt; Int
+pred (pos zero) = neg 1
+pred (pos (suc x)) = pos x
+pred (neg x) = neg (suc x)
+pred (zro i) = neg 1</code></pre></div><h2>同构</h2><div class="highlight"><pre><code class="language-text">module IsoInt where
+open Cubical.Data.Int renaming (Int to StdInt)
+pattern spos n = StdInt.pos n
+pattern nsuc n = StdInt.negsuc n</code></pre></div><p>给出标准整数的定义，我们可以证明 HIT（高阶归纳类型，Higher-Inductive Type 的缩写， 即带有路径构造子的归纳类型）的整数与它同构。要在类型论下证明同构，我们需要给出两个 （实际上只有我们知道的）互逆的函数，并证明它们的互逆关系（以此来说服 Agda 它们是互逆的）。</p><p>从 <code>StdInt</code> 到 <code>Int</code>，我们将 <code>pos</code> 转换为 <code>pos</code>，将 <code>negsuc</code> 转换为 <code>neg ∘ suc</code>：</p><div class="highlight"><pre><code class="language-text">StdInt-&gt;Int : StdInt -&gt; Int
+StdInt-&gt;Int (spos n) = pos n
+StdInt-&gt;Int (nsuc n) = neg (suc n)</code></pre></div><p>另一方面，由于标准定义中缺少路径构造子，因此我们将 <code>zro i</code> 映射为 <code>pos 0</code>。</p><div class="highlight"><pre><code class="language-text">Int-&gt;StdInt : Int -&gt; StdInt
+Int-&gt;StdInt (pos x) = spos x
+Int-&gt;StdInt (neg zero) = spos 0
+Int-&gt;StdInt (neg (suc x)) = nsuc x
+Int-&gt;StdInt (zro i) = spos 0</code></pre></div><p>我们来试着证明两函数互逆。此同构的一面很平凡：</p><div class="highlight"><pre><code class="language-text">StdInt-&gt;Int-&gt;StdInt : (n : StdInt) -&gt; Int-&gt;StdInt (StdInt-&gt;Int n) ≡ n
+StdInt-&gt;Int-&gt;StdInt (spos _) = refl
+StdInt-&gt;Int-&gt;StdInt (nsuc _) = refl</code></pre></div><p>它可以证明是因为我们的两个模式将 <code>Int-&gt;StdInt (StdInt-&gt;Int n)</code> 代换成了 <code>Int-&gt;StdInt (StdInt-&gt;Int (spos n))</code> 和 <code>Int-&gt;StdInt (StdInt-&gt;Int (nsuc n))</code>， 它们可展开为 <code>spos n</code> 和 <code>nsuc n</code>，二者与返回类型中路径的右式一致。</p><p>此同构另一面的两种情况则要稍微难一些，我们来逐个讨论。</p><div class="highlight"><pre><code class="language-text">Int-&gt;StdInt-&gt;Int : (n : Int) -&gt; StdInt-&gt;Int (Int-&gt;StdInt n) ≡ n
+Int-&gt;StdInt-&gt;Int (pos x) = refl
+Int-&gt;StdInt-&gt;Int (neg zero) =</code></pre></div><p>此从句是第一个非平凡的情况。如果我们将 <code>neg zero</code> 代入 <code>Int-&gt;StdInt n</code>，就会得到 <code>spos 0</code>，而将 <code>spos 0</code> 代入 <code>StdInt-&gt;Int n</code> 则会得到 <code>pos 0</code>。于是此从句的类型为 <code>pos 0 ≡ neg 0</code>，它就是 <code>zro</code> 的类型。</p><div class="highlight"><pre><code class="language-text">  zro</code></pre></div><p>接着我们填上另一个平凡的情况。</p><div class="highlight"><pre><code class="language-text">Int-&gt;StdInt-&gt;Int (neg (suc x)) = refl
+Int-&gt;StdInt-&gt;Int (zro i) = lemma
+  where</code></pre></div><p>最后一种情况也有点复杂，我们为了可读性引入了一条引理。 进行一些简单代换后我们可以得到以下签名：</p><div class="highlight"><pre><code class="language-text">  lemma : pos 0 ≡ zro i
+  lemma j =</code></pre></div><p>它是上下文中一条带有一个间点变量的路径，它可以看做两个路径间一条的路径， 该路径的两边分别为 <code>pos 0</code> 和 <code>zro i</code>。如下图所示，如果把 <code>j = i0</code> 看做 <code>x = y</code> 的形式，那么 <code>x</code> 是间点变量，<code>y</code> 是 <code>i0</code> 或 <code>i1</code> 这样的端点。以 <code>x</code> 索引的路径的 <code>y</code> 端，即 <code>j = i0</code>，也就是 <code>pos 0</code> 的那条边（图的左边）是一个常量路径，而 <code>zro i</code>，即 <code>j = i1</code> 的那条边（图的右边） 有两个不同的边：<code>pos 0</code>（<code>i = i0</code> 的那条边，即底边）和 <code>neg 0</code>（<code>i = i1</code> 的那条边， 即顶边）。</p><figure data-size="normal"><noscript><img src="https://pic3.zhimg.com/v2-b88ebb8d46a6245b439130a515a55f8e_b.jpg" data-caption="" data-size="normal" data-rawwidth="427" data-rawheight="445" class="origin_image zh-lightbox-thumb" width="427" data-original="https://pic3.zhimg.com/v2-b88ebb8d46a6245b439130a515a55f8e_r.jpg"/></noscript><img src="https://pic3.zhimg.com/v2-b88ebb8d46a6245b439130a515a55f8e_b.jpg" data-caption="" data-size="normal" data-rawwidth="427" data-rawheight="445" class="origin_image zh-lightbox-thumb lazy" width="427" data-original="https://pic3.zhimg.com/v2-b88ebb8d46a6245b439130a515a55f8e_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-b88ebb8d46a6245b439130a515a55f8e_b.jpg"/></figure><p>它刚好就是上一篇文章中引入的 <code>minSq</code>（将 <code>pos 0</code> 代入 <code>a</code>，将 <code>neg 0</code> 代入 <code>b</code>）！ 回想 <code>minSq</code> 是以 <code>min</code> 运算符定义的，我们这里也可以应用同样的技术：</p><div class="highlight"><pre><code class="language-text">    zro (i ∧ j)</code></pre></div><p>搞定！</p><h2>同构与路径</h2><p>立方类型论可以带给你的一点好处是你可以在同构的类型之间创建一条路径。 其背后的理论超出了本文讨论的范围，但我们可以试一下基于该理论的库函数：</p><div class="highlight"><pre><code class="language-agda">Int≡StdInt : Int ≡ StdInt
+Int≡StdInt = isoToPath (iso Int-&gt;StdInt StdInt-&gt;Int StdInt-&gt;Int-&gt;StdInt Int-&gt;StdInt-&gt;Int)</code></pre></div><h2>一个问题</h2><p>还有一种定义为 HIT 的整数类型：</p><div class="highlight"><pre><code class="language-text">infixl 5 _⊝_
+data DeltaInt : Set where
+  _⊝_    : Nat -&gt; Nat -&gt; DeltaInt
+  cancel : ∀ a b -&gt; a ⊝ b ≡ suc a ⊝ suc b</code></pre></div><p>它是以一个自然数减去另一个来定义的。这是一种全新的 HIT， 因此我建议读者为它定义一些常见的运算并证明它们的性质以熟悉这个 HIT。</p><p>我们可以找出一条它的引理：</p><div class="highlight"><pre><code class="language-text">cancelDiamond : ∀ a b i → cancel a b i ≡ cancel (suc a) (suc b) i
+cancelDiamond a b = {!!}</code></pre></div><p>由于 <code>a ⊝ b</code> 等于 <code>suc a ⊝ suc b</code>，因此我们可以在一个间点上泛化这种相等关系（它正是 <code>cancelDiamond</code>）。但我们要如何证明它？试着画出 <code>cancelDiamond</code>，我们会看到一个方形，但它既不是 min 方形也不是 max 方形。</p><p>答案将在下一篇文章中使用新的 CuTT 运算来揭晓。</p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
