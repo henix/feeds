@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NuPRL 中的证明 (二) -- 我从来不写递归的</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/107183874">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-e6d675dc8016451cd7f7b49353613e7f_b.jpg" alt=""></div><p>图文无关。</p><p>上一篇文章 <a href="https://zhuanlan.zhihu.com/p/105439235" class="internal">LdBeth：NuPRL 中的证明--从一到CTT</a></p><p>上一篇讲了 CTT 中的一些类型。dependent function, dependent product, dependent record, universe 这些因为和 ITT 的沒什么区別，就默认读者已经会了。CTT 特色的 dependent intersection 和 dependent union 因为应用范围超出了基础，就先不讲了。</p><h2>General Recursion considered K</h2><blockquote>Also, in some other type systems, general recursion is not expressible, and such structural recursion operations must be built in.</blockquote><p>在 Agda 中，众所周知是用写程序來证明的，tc 过了相当于证明过了。然而 NuPRL 因为 undecidable type checking 的性质，除了程序以外，证明还包括了 tc。</p><p>比如吧，在 Agda 里要证 <img src="https://www.zhihu.com/equation?tex=x%5Cleq+x%21" alt="x\leq x!" eeimg="1"/> ，就要先写 ! (factorial) 的定义，写完了以后，在使用 factorial 的定义之前，还要做两件事: 给它一个能过 tc 的类型声明，并且证明 termination。</p><p>而在 NuPRL 中，写完一个定义后，类型声明和 termination proof 都是不需要的。我是不是说过 NuPRL 沒有 pattern match？那 factorial 要怎么定义呢</p><p><img src="https://www.zhihu.com/equation?tex=%5Ctextbf%7BRec%7D%5C+x%21+%3D%3D+%5Ctexttt%7Bif%7D%5C+x%3D0+%5Crightarrow+1%5C+%5Ctexttt%7Belse%7D%5C+x%28x-1%29%21%5C+%5Ctexttt%7Bfi%7D" alt="\textbf{Rec}\ x! == \texttt{if}\ x=0 \rightarrow 1\ \texttt{else}\ x(x-1)!\ \texttt{fi}" eeimg="1"/> </p><p>啥玩意，x 为负数的时候岂不是 non termination 了么？沒错，extrinsic type theory 就是可以为所欲为，这样的定义并不会造成什么问題。而 <img src="https://www.zhihu.com/equation?tex=%5Cforall+x+%3A%5Cmathbb%7BN%7D.+x%21+%5Cin+%5Cmathbb%7BN%7D" alt="\forall x :\mathbb{N}. x! \in \mathbb{N}" eeimg="1"/> 可以做为一个单独的定理证明。</p><p>又比如</p><div class="highlight"><pre><code class="language-agda">mu : (ℕ → Bool) → ℕ -- Kleene&#39;s paradigmatic unbounded search function
+mu f with f zero
+... | true = 0
+... | false = suc (mu (λ x → f (suc x)))</code></pre></div><p>这样在 Agda 明显不能过 termination check 的定义，也全然大丈夫。</p><h2>Recursive Type considered K</h2><blockquote>吶，没有 ADT 咋定义 List 吶</blockquote><p>那啥，我好像沒提 inl inr 什么的，那就提一下吧。因为 Sum type 是 primitive，所以还有一个对应的的 data destructor 叫 InjCase。</p><p><img src="https://www.zhihu.com/equation?tex=%5Ctextbf%7BThm%7D%5C+%5Cforall+z+%3A+A%2BB.z+%3D+InjCase%28z%3Bu.inl%28u%29%3Bv.inr%28v%29%29" alt="\textbf{Thm}\ \forall z : A+B.z = InjCase(z;u.inl(u);v.inr(v))" eeimg="1"/> </p><p>所以在 <img src="https://www.zhihu.com/equation?tex=%5Cmathbb%7BB%7D+%3D%3D+Unit%2BUnit%2C%5C+%5Ccdot+%5Cin+Unit" alt="\mathbb{B} == Unit+Unit,\ \cdot \in Unit" eeimg="1"/> 下， <img src="https://www.zhihu.com/equation?tex=true+%3D%3D+inl%28%5Ccdot%29%2C%5C+false+%3D%3D+inr%28%5Ccdot%29%2C%5C+%5Ctexttt%7Bif%7D%5C+b%5C+%5Crightarrow+t%5C+%5Ctexttt%7Belse%7D%5C+f%5C+%5Ctexttt%7Bfi%7D+%3D%3D+InjCase%28b+%3B+t%3B+f%29" alt="true == inl(\cdot),\ false == inr(\cdot),\ \texttt{if}\ b\ \rightarrow t\ \texttt{else}\ f\ \texttt{fi} == InjCase(b ; t; f)" eeimg="1"/> </p><p>借助用来定义 recursive type 的 primitive， <img src="https://www.zhihu.com/equation?tex=List+%28A%29+%3D%3D+rec%28X.Unit%2B%28A%5Ctimes+X%29%29%2C%5C+nil+%3D+inl%28%5Ccdot%29%2C%5C+Cons%28a%2Cb%29%3D%3Dinr%28%3Ca%2Cb%3E%29" alt="List (A) == rec(X.Unit+(A\times X)),\ nil = inl(\cdot),\ Cons(a,b)==inr(&lt;a,b&gt;)" eeimg="1"/> </p><p>还有个 destructor</p><p><img src="https://www.zhihu.com/equation?tex=%5Ctexttt%7Bcase%7D%5C+s%3A+nil+%5Crightarrow+e%3B+Cons%28x%2Cy%29+%5Crightarrow+f%28x%2Cy%29+%3D%3D+InjCase%28s%3Be%3Bx%2Cy.f%28x%2Cy%29%29" alt="\texttt{case}\ s: nil \rightarrow e; Cons(x,y) \rightarrow f(x,y) == InjCase(s;e;x,y.f(x,y))" eeimg="1"/> </p><p>忘了提了，不过很显然</p><p><img src="https://www.zhihu.com/equation?tex=%5Cforall+a+%3A+A%2C+b+%3A+B.+%3Ca%2C+b%3E+%5Cin+A+%5Ctimes+B" alt="\forall a : A, b : B. &lt;a, b&gt; \in A \times B" eeimg="1"/> </p><h2>This is (not) Y Kombinator</h2><p>上面的定义用到了 recursion，对于了解 untyped lambda 的读者定然知道 Y combinator。</p><p>NuPRL 的 recursion 并非做成了 primitive，而是用 Y 定义的。</p><p>上面 factorial 的定义实质上是</p><p><img src="https://www.zhihu.com/equation?tex=x%21+%3D%3D+Y%28%5Clambda+fx.+%5Ctexttt%7Bif%7D%5C+x%3D0+%5Crightarrow+1%5C+%5Ctexttt%7Belse%7D%5C+f%28x%28x-1%29%29%5C+%5Ctexttt%7Bfi%7D%2C+x%29" alt="x! == Y(\lambda fx. \texttt{if}\ x=0 \rightarrow 1\ \texttt{else}\ f(x(x-1))\ \texttt{fi}, x)" eeimg="1"/> </p><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
