@@ -1,0 +1,100 @@
+<div class="title-image"><img src="https://pic3.zhimg.com/v2-234d99a34a8dc97c81aabbe7e607390a_b.jpg" alt=""></div><p>这是一个免费的，独立于平台和体系结构的端口和应用层扫描程序。其分布式设计成为它最大的特色，一般情况下，其速度会优于 Nmap。</p><h2>Nray</h2><p>是一个用 Go 语言编写的高级端口扫描程序，除了常规目标（主机/网络列表）端口扫描之外，它还基于证书透明性日志或 LDAP 等来源支持动态目标选择。此外，nray 允许以分布式方式运行以加快扫描速度并从不同的有利位置执行扫描，以此加快扫描速度。然后进一步处理分析结果信息，例如，使用<code>jq</code>诸如 Elasticsearch 或 Splunk 之类的工具或成熟的数据分析平台。</p><p>项目地址：<a href="https://link.zhihu.com/?target=https%3A//github.com/nray-scanner/nray" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/nray-scanner</span><span class="invisible">/nray</span><span class="ellipsis"></span></a></p><p><b>扫描目标</b></p><ul><li>IP，域名和网络列表等常用的东西。</li><li>Nray 允许观察证书透明性日志并从几乎实时发布的证书中提取域名。</li><li>Nray 可以连接到 LDAP（例如Active Directory）并执行任意查询，例如获取所有已注册的计算机对象并提取其 FQDN。</li><li>已计划 DNS 区域传输。</li></ul><p><b>特点</b></p><p>其分布式是它最大的特点，让你可以从多个主机并行扫描，这使得扫描速度明显提高。</p><h2>安装&amp;使用</h2><blockquote>建议直接下载安装编译好的版本。</blockquote><p>下载地址：<a href="https://link.zhihu.com/?target=https%3A//github.com/nray-scanner/nray/releases" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">github.com/nray-scanner</span><span class="invisible">/nray/releases</span><span class="ellipsis"></span></a> </p><p>适用于：Linux、Windows、苹果系统</p><p>找到适用系统的程序，然后编辑配置文件 config.yaml （以扫描本地为例）</p><div class="highlight"><pre><code class="language-text">debug: false 
+listen: [8601] # Port to listen
+host: &#34;127.0.0.1&#34; # host to listen (only localhost)
+pools: 1 # Only use a single pool
+
+TLS:
+enabled: false
+CA: &#34;/path/to/ca.pem&#34;
+cert: &#34;/path/to/servercert.pem&#34;
+key: &#34;/path/to/servercert-key.pem&#34;
+forceClientAuth: false
+
+considerClientPoolPreference: true
+allowMultipleNodesPerHost: false
+internal:
+nodeExpiryTime: 30
+nodeExpiryCheckInterval: 10
+
+targetgenerator:
+bufferSize: 5
+standard:
+enabled: true
+targets: [&#34;192.168.178.1/28&#34;] # target network to scan
+tcpports: [&#34;top25&#34;] # which TCP ports to scan
+udpports: [] # don&#39;t scan UDP
+blacklist: [] # no blacklist
+maxHostsPerBatch: 20
+maxTcpPortsPerBatch: 25
+maxUdpPortsPerBatch: 25
+certificatetransparency:
+enabled: false
+domainRegex: &#39;^(www[.]).*([.]com)$&#39;
+tcpports: [top25]
+udpports: [top25]
+blacklist: []
+maxHostsPerBatch: 150
+maxTcpPortsPerBatch: 25
+maxUdpPortsPerBatch: 25
+ldap:
+enabled: false
+ldapSearchString: &#34;(objectCategory=computer)&#34;
+baseDN: &#34;dc=contoso,dc=com&#34;
+ldapAttribute: &#34;dNSHostName&#34;
+ldapServer: &#34;&#34;
+ldapPort: 636
+insecure: false
+ldapUser: &#34;&#34;
+ldapPass: &#34;&#34;
+tcpports: [top25]
+udpports: [top25]
+blacklist: []
+maxHostsPerBatch: 5
+maxTcpPortsPerBatch: 25
+maxUdpPortsPerBatch: 25
+scannerconfig:
+workers: 250 # Run with 250 workers
+ratelimit: &#34;none&#34; # No rate limit
+tcp:
+timeout: 2500ms # 2.5s TCP timeout
+udp:
+fast: false
+defaultHexPayload: &#34;\x6e\x72\x61\x79&#34;
+timeout: 2500ms
+zgrab2:
+enabledModules: []
+ssh:
+  subscribePorts: [&#34;tcp/22&#34;]
+  timeout: 2500ms
+  ClientID: &#34;SSH-2.0-Go-nray&#34; 
+  CollectUserAuth: true
+http:
+  subscribeHTTPPorts: [&#34;tcp/80&#34;, &#34;tcp/8080&#34;, &#34;tcp/8000&#34;]
+  subscribeHTTPSPorts: [&#34;tcp/443&#34;, &#34;tcp/8443&#34;]
+  timeout: 2500ms
+  method: &#34;GET&#34;
+  endpoint: &#34;/&#34;
+  userAgent: &#34;nray&#34; 
+  retryHTTPS: true 
+  maxRedirects: 2
+events:
+terminal:
+enabled: true # print events to terminal
+internal:
+  channelsize: 1000
+json-file: 
+enabled: true # write events to file
+filename: &#34;nray-output.json&#34; # filename
+overwriteExisting: false 
+internal:
+  channelsize: 10000 
+  synctimer: 10s
+elasticsearch:
+enabled: false
+server: &#34;elasticsearch.local&#34;
+useTLS: true
+port: 443
+internal:
+  indexname: &#34;nray&#34;
+  channelsize: 10000
+  committimer: 3</code></pre></div><p>运行服务器，这里以 Windows 系统为例，在 cmd 中执行命令：</p><div class="highlight"><pre><code class="language-text">nray.exe server -c config.yaml</code></pre></div><figure data-size="small"><noscript><img src="https://pic2.zhimg.com/v2-72118316cec5777736d90a0791e2ce0d_b.jpg" data-caption="" data-size="small" data-rawwidth="1567" data-rawheight="281" class="origin_image zh-lightbox-thumb" width="1567" data-original="https://pic2.zhimg.com/v2-72118316cec5777736d90a0791e2ce0d_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-72118316cec5777736d90a0791e2ce0d_b.jpg" data-caption="" data-size="small" data-rawwidth="1567" data-rawheight="281" class="origin_image zh-lightbox-thumb lazy" width="1567" data-original="https://pic2.zhimg.com/v2-72118316cec5777736d90a0791e2ce0d_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-72118316cec5777736d90a0791e2ce0d_b.jpg"/></figure><p>再开启一个 cmd 运行一个节点：</p><div class="highlight"><pre><code class="language-text">nray.exe node</code></pre></div><figure data-size="small"><noscript><img src="https://pic2.zhimg.com/v2-cce30dbc7b5bb106364a3923be5719e9_b.jpg" data-caption="" data-size="small" data-rawwidth="1213" data-rawheight="182" class="origin_image zh-lightbox-thumb" width="1213" data-original="https://pic2.zhimg.com/v2-cce30dbc7b5bb106364a3923be5719e9_r.jpg"/></noscript><img src="https://pic2.zhimg.com/v2-cce30dbc7b5bb106364a3923be5719e9_b.jpg" data-caption="" data-size="small" data-rawwidth="1213" data-rawheight="182" class="origin_image zh-lightbox-thumb lazy" width="1213" data-original="https://pic2.zhimg.com/v2-cce30dbc7b5bb106364a3923be5719e9_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-cce30dbc7b5bb106364a3923be5719e9_b.jpg"/></figure><p>如果未指定服务器和端口，则节点将尝试连接到 localhost:8601，也可以通过 -s &lt;server&gt; 和 -p &lt;port&gt; 参数来指定。</p><p>如果当前网络中打开了端口，则可以看到找到的每个端口的事件。</p><p>扫描结果会写入 nray-output.json 文件中。 </p><p>更多网络安全学习尽在 <a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>，另外，网络安全技能包又更新了！学 Python 的也能当黑客了，多实战沉浸式体验，让你回味无穷。</p><p>让你从 <b>程序猿→黑客x程序员 PLUS</b>！</p><figure data-size="normal"><noscript><img src="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg" data-caption="" data-size="normal" data-rawwidth="3058" data-rawheight="1720" class="origin_image zh-lightbox-thumb" width="3058" data-original="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_r.jpg"/></noscript><img src="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg" data-caption="" data-size="normal" data-rawwidth="3058" data-rawheight="1720" class="origin_image zh-lightbox-thumb lazy" width="3058" data-original="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-718b79371d6ca42244a942f02f2b537c_b.jpg"/></figure><p>更多有关渗透测试的内容请前往<a href="https://link.zhihu.com/?target=https%3A//www.baidu.com/link%3Furl%3DOcGTJIGtwpNYrGru7tSszpEf10ZQ0xIE7SvER9ejNcCar00KI-fG2lu214M4WKPc%26wd%3D%26eqid%3Da24dabb2002f492b000000065e13d46a" class=" wrap external" target="_blank" rel="nofollow noreferrer">二向箔安全</a>进行学习，最近推出了“挖洞”班，想了解更多资讯的，可咨询客服微信 <b>twosecurity02</b></p><figure data-size="normal"><noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg"/></noscript><img src="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg" data-caption="" data-size="normal" data-rawwidth="3041" data-rawheight="2000" class="origin_image zh-lightbox-thumb lazy" width="3041" data-original="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-2222e29c6decda168e1be1f049d93ccf_b.jpg"/></figure>
