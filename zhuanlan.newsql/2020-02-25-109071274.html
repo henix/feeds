@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>TiDB Architecture Team：挑战数据库的本质难题 | PingCAP 招聘季</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/109071274">原文</a></p>
+<div class="title-image"><img src="https://pic2.zhimg.com/v2-be4742ca2a50ab783500314036e4a4d4_b.jpg" alt=""></div><blockquote> 互联网时代，从衣食住行到社交娱乐，几乎所有的业务都离不开数据库服务的支撑，可以说关系数据库是信息社会中最无可替代的基础设施。作为一个基石组件，数据库系统之所以有重要的价值，其本质的原因在于数据库系统提供事务支持。</blockquote><p>数据库的本质其实就是做三件事：转账，记账，订票。但是天下没有免费的午餐，<b>数据库系统实现之难，也在于实现可靠而高性能的事务引擎。</b></p><p>实现数据库的事务系统，也就意味着郑重承诺，我们系统能够支持：</p><p>原子性：转账不能部分成功部分失败； 一致性：系统约束必须保持； 隔离性：并发事务需要保证正确处理； 持久性：数据不能丢。 另外，系统的处理能力、吞吐量，或者说系统的运行成本，都直接决定于事务引擎处理速度和能力。</p><p><b>简而言之，数据库系统需要提供事务保证，而且要高效地处理并发事务。更大的挑战在于，如何在基于不可靠硬件的分布式环境下，实现可靠而高效的分布式事务，提供更强高效的 OLTP 处理能力。</b></p><h2>我们在做什么？</h2><p>TiDB 从一开始就定位于分布式的关系数据库，TiDB 架构组一直致力于 TiDB 事务引擎的架构设计和研发工作，不断解决分布式事务的各种挑战和难题，提升 TiDB 稳定性和 OLTP 处理能力，其中包括但不限于：</p><ol><li><b>实现完整的基于 Percolator 论文的分布式事务引擎，确保分布式语境下事务原子性和一致性</b>。将 TiDB、PD、TiKV 等分布式组件有效整合，实现基本的分布式事务原语，即两阶段提交的各个基本组成部分，对上层提供完整的事务语义接口；<br/> </li><li><b>并发事务的协调和处理，确保快照读取（Snapshot Isolation）的事务隔离级别</b>。支持数据多版本（MVCC），实现数据历史版本的控制和清理；<br/> </li><li><b>协调事务处理资源使用，提升系统吞吐量和资源利用率</b>，支持量级更大的事务处理能力（GB 级别）和并发控制，提供更佳的资源调度策略；<br/> </li><li><b>提供不同的加锁模型适配不同的业务场景</b>，同时支持乐观锁和悲观锁的加锁模型，实现高效的优先级评估，等待唤醒，分布式死锁检测等机制；<br/> </li><li><b>尝试不同的提交策略，获取更好的事务处理性能</b>，实现组提交、并行提交、一阶段提交等优化策略，提升系统响应能力和吞吐量，降低延迟；<br/> </li><li><b>处理分布式环境的各种异常（操作系统，磁盘，网络等），保障事务引擎的正确性和性能</b>，实现分布式的容灾测试和异常测试，覆盖分布式环境下所有可能的异常分支，确保在各种异常情况下，分布式事务的正确推进和执行。<br/> </li></ol><p><b>除此之外，架构组致力于探索新的事务和存储技术，包括但不限于：</b></p><ol><li> 更强大的日志模块，在实现分布式一致性协议，提供持久化保证的基础上，实现更好的性能和吞吐能力；<br/> </li><li> 更强大 TiDB OLTP 处理能力，更好的复用执行计划，支持编译、向量化等执行方式，更友好的 cache 使用和更佳的指令执行效率等；<br/> </li><li> 更前沿的存储技术，新的 lsm 存储引擎，新的索引结构、缓存策略和算法、新的冻结和合并处理机制等，提供更好的读写性能，以及更优的内存，磁盘空间利用率。<br/> </li></ol><h2>期待你的加入！</h2><p>如果你对下面描述的任何一项，心有戚戚焉——</p><ul><li> 对分布式技术充满热情，对于 CAP 理论、一致性协议有独到的理解，热衷于解决相关的挑战和难题；<br/> </li><li> 对于事务处理有较深的认识，对于传统数据库的事务、存储引擎实现有深入探究，对于事务异常，并发控制，隔离级别等有独到的理解；<br/> </li><li> 有存储引擎工作的相关经验，对于索引结构，缓存策略，文件系统等有实践经历；<br/> </li><li> 对于分布式执行，有创新的想法，深谙 OLTP 性能调优之道；<br/> </li><li> 对于操作系统，数据库有浓厚的兴趣，期待加入 NewSQL 的浪潮。<br/> </li></ul><p><b>那么， 欢迎加入 TiDB Architecture Team！和我们一起挑战在不可靠的硬件环境下实现可靠的数据库服务的终极难题，打造新一代的海量数据存储系统，实现更低成本更高性能的分布式关系数据库服务。</b>这里是一个数据库技术和分布式技术的爱好者聚集地，高效快乐的工作的同时，你可以收获满满的个人成长，在基础核心技术领域遨游，尽情放飞想象力。</p><h3>加入我们吧！</h3><blockquote> 我们认为优秀的工程师或多或少有以下共同特质：<br/><br/>    ·    A Quick Learner<br/>    ·    A- n Earnest Curiosity<br/>    ·    Faith in Open Source<br/>    ·    Self-driven    <br/>    ·    Get Things Done<br/><br/> 如果你符合以上特质，欢迎进入招聘页面查看目前开放的工作机会：<br/><br/> <a href="https://link.zhihu.com/?target=https%3A//www.pingcap.com/recruit-cn/join/%23positions" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">pingcap.com/recruit-cn/</span><span class="invisible">join/#positions</span><span class="ellipsis"></span></a><br/><br/> <b>简历投递通道：hire@pingcap.com</b><br/><br/> <b>实习生</b>：公司的各项福利和学习资源对实习生全面开放，更重要的是实习生还未毕业就有机会接触工业级项目，而且实习期间表现优异者将有机会获得校招绿色通道特权。针对实习时间并不充裕的小伙伴，你可以先通过 Talent Plan 丰富基础知识（<a href="https://link.zhihu.com/?target=https%3A//university.pingcap.com/talent-plan/" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">university.pingcap.com/</span><span class="invisible">talent-plan/</span><span class="ellipsis"></span></a>），也可以通过参与 TiDB 开源社区获得更多实践机会！<br/><br/> <b>伯乐推荐</b>：如果你身边有符合以上要求的小伙伴，也可以找我们聊一聊，推荐成功就有机会获得伯乐推荐奖励。伯乐推荐邮件格式：[伯乐推荐] 候选人姓名-职位名称-推荐人姓名-推荐人手机号。</blockquote>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
