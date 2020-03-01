@@ -35,7 +35,6 @@ const feeds = [
 	]],
 	["", [
 		"FinanEx",
-		"hthgyj",
 		"Chouma2016",
 		"touyanbang88",
 		"sanleima",
