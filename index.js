@@ -39,7 +39,6 @@ const feeds = [
 		"Chouma2016",
 		"touyanbang88",
 		"sanleima",
-		"xiangxt1984",
 		"Lhtz-Jqxx",
 		"quanttech",
 		"tiangu1",
