@@ -25,7 +25,6 @@ const feeds = [
 		"smartindex",
 		"worldofboss",
 		"yan-guan-lin-20",
-		"gh_0f34e4e813fc",
 		"Gaosweco",
 		"ricequant",
 		"forex-analysis",
