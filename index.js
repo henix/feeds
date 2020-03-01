@@ -73,8 +73,6 @@ const feeds = [
 		"hulianzatan9",
 		"commando",
 		"bigeguide",
-		"zhidaoxue",
-		"zhidaoshe",
 	]],
 	["ACG", [
 		"c_126395105",
