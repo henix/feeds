@@ -65,7 +65,6 @@ const feeds = [
 	]],
 	["政治 / 人文", [
 		"knowledgewealth",
-		"mzmojo",
 		"gushibuduo",
 		"weimustudy",
 		"hulianzatan9",
