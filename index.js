@@ -118,7 +118,6 @@ const feeds = [
 	]],
 	["科学", [
 		"conformalgeometry",
-		"principia1687",
 		"zerojz",
 	]],
 	["后端", [
