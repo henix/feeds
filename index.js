@@ -100,7 +100,6 @@ const feeds = [
 		"PoliticalQuotient",
 		"banfoSB",
 		"caozsay",
-		"xingshu100",
 		"Professor-Li",
 	]],
 	["独立", [
