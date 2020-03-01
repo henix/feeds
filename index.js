@@ -111,7 +111,6 @@ const feeds = [
 		"FannyAndLiang",
 		"FlyTheCode",
 		"zhoudaobiji",
-		"iamawguo",
 	]],
 	["科学", [
 		"conformalgeometry",
