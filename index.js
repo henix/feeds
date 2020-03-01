@@ -45,8 +45,6 @@ const feeds = [
 		"DimensionsCapital",
 	]],
 	["心理", [
-		"knowyourself2015",
-		"knowyourself",
 		"c_133439818",
 		"gh_d46d2c2a843d",
 		"pongba_mindhacks",
