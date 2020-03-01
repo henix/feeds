@@ -80,9 +80,6 @@ const feeds = [
 	["商业", [
 		"jingyunxiaowu",
 		"PoliticalQuotient",
-		"banfoSB",
-		"caozsay",
-		"Professor-Li",
 	]],
 	["独立", [
 		"anotherland",
