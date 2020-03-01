@@ -71,7 +71,6 @@ const feeds = [
 		"mzmojo",
 		"gushibuduo",
 		"weimustudy",
-		"dushu_magazine",
 		"hulianzatan9",
 		"commando",
 		"bigeguide",
