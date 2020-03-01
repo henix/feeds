@@ -20,7 +20,7 @@ def e(s)
 end
 
 def l(url)
-	URI.escape(url)
+	url
 end
 
 buf = %{<!DOCTYPE html>

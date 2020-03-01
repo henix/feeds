@@ -22,7 +22,7 @@ def e(s)
 end
 
 def l(url)
-	URI.escape(url)
+	url
 end
 
 buf = %{<?xml version="1.0" encoding="utf-8"?>
