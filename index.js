@@ -69,7 +69,6 @@ const feeds = [
 		"weimustudy",
 		"hulianzatan9",
 		"commando",
-		"bigeguide",
 	]],
 	["独立", [
 		"hiyeka",
