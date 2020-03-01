@@ -72,17 +72,7 @@ const feeds = [
 		"commando",
 		"bigeguide",
 	]],
-	["ACG", [
-		"c_126395105",
-	]],
-	["商业", [
-		"jingyunxiaowu",
-		"PoliticalQuotient",
-	]],
 	["独立", [
-		"anotherland",
-		"mirrored-travel",
-		"meixiao421",
 		"hiyeka",
 		"wxieshuo",
 		"yeka52",
