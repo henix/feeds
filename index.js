@@ -102,7 +102,6 @@ const feeds = [
 		"prattle",
 		"programmer_life",
 		"milocode",
-		"newsql",
 	]],
 	["Security", [
 		"chaitin-tech",
