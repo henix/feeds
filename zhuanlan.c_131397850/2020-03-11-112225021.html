@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>这就是Python3.8么，i了i了</title>
+</head>
+<body>
+<p><a href="https://zhuanlan.zhihu.com/p/112225021">原文</a></p>
+<div class="title-image"><img src="https://pic4.zhimg.com/v2-07d3dc09ace1f5a8aa658f9d0162448d_b.jpg" alt=""></div><h2>0. Disclaimer: 本文纯属娱乐</h2><h2>1. Introduction </h2><p>前几天我的室友(已被封号)问我了一个文章封面中出现的问题，我竟没有意识到有这种事情:P。看来我还是太菜了(悲)。(文章封面是用Python 3.6跑的，不知3.8有没有修复:P)</p><p>这篇文章的启发来自上学期我的一个TA。</p><p>Python3.8出来了。其中一个新特性叫“海象表达式”(好像是这个名字)。这个特性看似是能够让我们在判断的时候顺便赋值这样就不用写冗余的代码，例如：</p><div class="highlight"><pre><code class="language-python3"><span class="k">def</span> <span class="nf">someTrivialFunc</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">printIfGe</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lo</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="p">:</span><span class="o">=</span> <span class="n">someTrivialFunc</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">lo</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Too small&#39;</span><span class="p">)</span></code></pre></div><p>越来越有C的味道了。。。</p><p>但是，这个表达式还可以在传参数的时候用：</p><div class="highlight"><pre><code class="language-python3"><span class="k">def</span> <span class="nf">whatTheHeck</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+<span class="n">whatTheHeck</span><span class="p">(</span><span class="n">x</span> <span class="p">:</span><span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="p">:</span><span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">z</span> <span class="p">:</span><span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></code></pre></div><p><b>嗯，有内味儿了</b>。(啥味儿？)</p><h2>2. Abuse Python3.8</h2><p>Python的函数可以接受变长参数(star operator)：</p><div class="highlight"><pre><code class="language-python3"><span class="k">def</span> <span class="nf">moreAndMore</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">others</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">others</span><span class="p">)</span></code></pre></div><p>并在函数内部将这个变长参数作为<code>List</code>处理。那么我们可以写出这样的代码：</p><div class="highlight"><pre><code class="language-python3"><span class="k">def</span> <span class="nf">Begin</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span> <span class="k">return</span> <span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="c1"># or Begin = lambda *args: args[-1]</span></code></pre></div><p> 看上去十分trivial。但是结合“海象表达式”，我们能做到什么呢？那就是定义任意多个参数，并在参数列表中进行计算最后返回最后一个参数的值：</p><div class="highlight"><pre><code class="language-python3"><span class="n">Begin</span><span class="p">(</span>
+    <span class="n">x</span> <span class="p">:</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">()),</span>
+    <span class="n">y</span> <span class="p">:</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">()),</span>
+    <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+<span class="p">)</span></code></pre></div><p><b>味儿更浓了。</b></p><p>我们知道Python有匿名函数(Lambda)，那么同样我们可以将lambda定义在参数里：</p><div class="highlight"><pre><code class="language-python3"><span class="n">Begin</span><span class="p">(</span>
+    <span class="n">func</span> <span class="p">:</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Begin</span><span class="p">(</span>
+        <span class="n">z</span> <span class="p">:</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">()),</span>
+        <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span>
+    <span class="p">),</span>
+    <span class="n">func</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">)</span></code></pre></div><p>首先我们能得到的是什么呢？<b>&lt;del&gt;Lambda终于可以写多行了！（错乱&lt;/del&gt;</b></p><p>这时你可能会问了：那这个<code>func</code>，能不能自己call自己啊？</p><p>答案是<b>可以：</b></p><div class="highlight"><pre><code class="language-python3"><span class="n">Begin</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">func</span> <span class="p">:</span><span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">x</span> <span class="o">+</span> <span class="n">func</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))),</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="mi">10</span><span class="p">)))</span></code></pre></div><p> 比如这样的一个求和函数。</p><p><b>这就是&lt;del&gt;Python3.8&lt;/del&gt;Racket吗，i了i了。</b></p><h2><b>3. Even More</b></h2><p>我们还可以在这个上面做一些小小的扩展：</p><div class="highlight"><pre><code class="language-python3"><span class="k">def</span> <span class="nf">Unless</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">body</span><span class="p">:</span> <span class="n">body</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cond</span> <span class="k">else</span> <span class="k">lambda</span> <span class="n">_</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="kc">None</span>
+<span class="k">def</span> <span class="nf">When</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">body</span><span class="p">:</span> <span class="n">body</span> <span class="k">if</span> <span class="n">cond</span> <span class="k">else</span> <span class="k">lambda</span> <span class="n">_</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="kc">None</span>
+<span class="k">def</span> <span class="nf">Ite</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">ifBranch</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">elseBranch</span><span class="p">:</span> <span class="n">ifBranch</span> <span class="k">if</span> <span class="n">cond</span> <span class="k">else</span> <span class="n">elseBranch</span></code></pre></div><p>然后这样使用：</p><div class="highlight"><pre><code class="language-python3"><span class="n">Begin</span><span class="p">(</span><span class="n">testIte</span> <span class="p">:</span><span class="o">=</span> 
+            <span class="n">Begin</span><span class="p">(</span>
+                <span class="n">x</span> <span class="p">:</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">()),</span>
+                <span class="n">y</span> <span class="p">:</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">()),</span>
+                <span class="p">(</span><span class="n">Ite</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">y</span><span class="p">)(</span>
+                    <span class="n">x</span>
+                <span class="p">)(</span>
+                    <span class="n">y</span>
+                <span class="p">))</span>
+            <span class="p">),</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">testIte</span><span class="p">))</span></code></pre></div><p>但是这有一点不好：<code>if</code>和<code>else</code>分支都会被求值...但是如果条件是<code>x</code>或<code>y</code>满足某些性质（比如是否是<code>None</code>），这样写可能会导致问题：</p><div class="highlight"><pre><code class="language-python3"><span class="c1"># TypeError: unsupported operand type(s) for +: &#39;NoneType&#39; and &#39;int&#39;</span>
+<span class="n">Begin</span><span class="p">(</span><span class="n">testIteBad</span> <span class="p">:</span><span class="o">=</span> 
+            <span class="n">Begin</span><span class="p">(</span>
+                <span class="n">x</span> <span class="p">:</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">y</span> <span class="p">:</span><span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">Ite</span><span class="p">(</span><span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)(</span>
+                    <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+                <span class="p">)(</span>
+                    <span class="n">y</span>
+                <span class="p">)</span>
+            <span class="p">))</span></code></pre></div><p> 但是没有关系，我们还有Lambda啊：</p><div class="highlight"><pre><code class="language-python3"><span class="n">Begin</span><span class="p">(</span><span class="n">testIteOK</span> <span class="p">:</span><span class="o">=</span> 
+            <span class="n">Begin</span><span class="p">(</span>
+                <span class="n">x</span> <span class="p">:</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">y</span> <span class="p">:</span><span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">Ite</span><span class="p">(</span><span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)(</span>
+                    <span class="k">lambda</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+                <span class="p">)(</span>
+                    <span class="k">lambda</span><span class="p">:</span> <span class="n">y</span>
+                <span class="p">)()</span>
+            <span class="p">))</span></code></pre></div><p>然后我们可以修改一下<code>Ite</code>的定义去call这个lambda:</p><div class="highlight"><pre><code class="language-text">def Ite(cond): return lambda ifBranch: lambda elseBranch: ifBranch() if cond else elseBranch()</code></pre></div><p>于是我们不难写出这样的程序(为了视觉效果，代码加了多余的东西)：</p><div class="highlight"><pre><code class="language-python3"><span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">Return</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">x</span><span class="p">:</span> <span class="kc">None</span>
+<span class="n">Pass</span> <span class="o">=</span> <span class="n">Return</span>
+
+<span class="n">Begin</span><span class="p">(</span>
+    <span class="n">func</span> <span class="p">:</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">beg</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">Begin</span><span class="p">(</span>
+        <span class="n">Ite</span><span class="p">(</span><span class="n">beg</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">)(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="kc">True</span>
+        <span class="p">)(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">f</span><span class="p">(</span><span class="n">beg</span><span class="p">)</span> <span class="ow">and</span> <span class="n">func</span><span class="p">(</span><span class="n">beg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+    <span class="n">isPrime</span> <span class="p">:</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Begin</span><span class="p">(</span>
+        <span class="n">Ite</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="kc">False</span>
+        <span class="p">)(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">Ite</span><span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)(</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="kc">True</span>
+                    <span class="p">)(</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">func</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">x</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+    <span class="n">printPrime</span> <span class="p">:</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Begin</span><span class="p">(</span>
+        <span class="n">func</span> <span class="p">:</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">dep</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> 
+                <span class="n">Ite</span><span class="p">(</span><span class="n">dep</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">)(</span>
+                    <span class="n">Return</span>
+                <span class="p">)(</span>
+                    <span class="k">lambda</span><span class="p">:</span> <span class="n">Begin</span><span class="p">(</span>
+                                <span class="n">Ite</span><span class="p">(</span><span class="n">isPrime</span><span class="p">(</span><span class="n">dep</span><span class="p">))(</span>
+                                    <span class="k">lambda</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{dep}</span><span class="s1"> is a prime&#39;</span><span class="p">)</span>
+                                <span class="p">)(</span>
+                                    <span class="n">Pass</span>
+                                <span class="p">),</span>
+                            <span class="n">func</span><span class="p">(</span><span class="n">dep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+                <span class="p">),</span>
+        <span class="n">func</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="p">),</span>
+    <span class="n">printPrime</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+<span class="p">)</span></code></pre></div><p>我们还得到了什么？</p><p><b>&lt;del&gt;不需要游标卡尺啦！（错乱）&lt;/del&gt;</b></p><p><b>奇怪的姿势增加了.jpg</b></p><h2><b>Conclusion: 人生苦短，远离Python(手动狗头)</b></h2><p><b>Reference: </b><a href="https://link.zhihu.com/?target=https%3A//twitter.com/sorawee_p/status/1163725751822123008" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://</span><span class="visible">twitter.com/sorawee_p/s</span><span class="invisible">tatus/1163725751822123008</span><span class="ellipsis"></span></a></p><h2>Appendix: 相应地，我们可以定义<code>Unless</code>和<code>When</code> </h2><div class="highlight"><pre><code class="language-python3"><span class="k">def</span> <span class="nf">When</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">body</span><span class="p">:</span> <span class="n">body</span> <span class="k">if</span> <span class="n">cond</span> <span class="k">else</span> <span class="k">lambda</span> <span class="n">_</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="kc">None</span>
+<span class="k">def</span> <span class="nf">Unless</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">body</span><span class="p">:</span> <span class="n">body</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cond</span> <span class="k">else</span> <span class="k">lambda</span> <span class="n">_</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="kc">None</span></code></pre></div><p></p>
+<script async defer="defer" src="https://www.googletagmanager.com/gtag/js?id=UA-7909075-5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', 'UA-7909075-5');
+</script>
+<script>
+var _hmt = _hmt || [];
+</script>
+<script async defer="defer" src="https://hm.baidu.com/hm.js?e3d40295e416616ddc21287da9646d31"></script>
+</body>
+</html>
