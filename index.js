@@ -1,7 +1,6 @@
 const feeds = [
 	["Finance", [
 		"GlobalMacroHedge",
-		"chinaetfs",
 		"lamboCFA",
 		"SmartGAA",
 		"canghaiyitugou",
@@ -84,11 +83,6 @@ const feeds = [
 		"conformalgeometry",
 		"zerojz",
 	]],
-	["后端", [
-		"prattle",
-		"programmer_life",
-		"milocode",
-	]],
 	["Security", [
 		"chaitin-tech",
 		"datasec",
@@ -97,14 +91,6 @@ const feeds = [
 		"twosecurity",
 		"freebuf",
 		"drops",
-	]],
-	["算法", [
-		"algorithmicliberalartsdegree",
-		"c_124392554",
-		"c_131397850",
-	]],
-	["文艺", [
-		"c_40866915",
 	]],
 	["法律", [
 		"mclawman",
