@@ -32,14 +32,8 @@ const feeds = [
 		"c_156910707",
 	]],
 	["", [
-		"FinanEx",
-		"Chouma2016",
-		"touyanbang88",
-		"sanleima",
 		"Lhtz-Jqxx",
 		"quanttech",
-		"tiangu1",
-		"sishimiao",
 		"DimensionsCapital",
 	]],
 	["心理", [
@@ -80,7 +74,6 @@ const feeds = [
 	]],
 	["科学", [
 		"conformalgeometry",
-		"zerojz",
 	]],
 	["Security", [
 		"chaitin-tech",
