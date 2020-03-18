@@ -26,7 +26,6 @@ const feeds = [
 		"yan-guan-lin-20",
 		"Gaosweco",
 		"ricequant",
-		"forex-analysis",
 		"yuefenginvest",
 		"trading",
 		"c_106548378",
