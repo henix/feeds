@@ -1,5 +1,0 @@
-最近有同学私信我如何从源码构建Clang，索性就写了篇文章吧。<p>注意如果不是需要最新的源码的话，不需要按照此处<a href="http://clang.llvm.org/get_started.html" class="">http://clang.llvm.org/get_started.html</a>的构建步骤进行，取到的是同步最新的源码库，当前是Clang 4.0。</p><p>此处我以Clang 2.6为例，最新版的构建步骤一致。我的构建环境是64bit Ubuntu 14.04.5，构建的编译器是g++4.4，过高的g++版本构建失败。你可以尝试一下，如果ubuntu自带的版本构建不了，自己安装g++-4.4即可。</p><p>从<a href="http://llvm.org/releases/download.html#2.6" class="">http://llvm.org/releases/download.html#2.6</a>处下载Clang source code 和LLVM source code两个压缩包，解压出来是两个目录clang-2.6和llvm，将clang那个目录重命名为clang然后放到llvm/tools/中，并在llvm的同一级目录下新建一个用于存放构建结果的build，下面是我的最终结果：<br></p><code lang="bash">xlous@xlous-Ubuntu:~/Development/compiler/llvm2.6$ ls
-build  llvm  test</code><p>然后安装cmake，Ubuntu 14.04使用apt-get方式安装的cmake版本是2.8，构建最新版本的Clang就会提示cmake版本过低，你可以自己从<a href="https://cmake.org/download/" class="">https://cmake.org/download/</a>官网下载最新版本的cmake安装即可。</p><p>然后使用如下Bash脚本：</p><code lang="text">cd build
-cmake ../llvm/ -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=X86
-cmake --build . （或者make -j2）
-make install (此处可选，主要是用于将生成的llvm安装，如果你不需要安装，此处跳过)</code>

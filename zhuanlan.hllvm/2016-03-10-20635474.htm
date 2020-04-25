@@ -1,6 +1,0 @@
-请跳传送门：<a href="http://openjdk.java.net/jeps/286" data-editable="true" data-title="JEP 286: Local-Variable Type Inference">JEP 286: Local-Variable Type Inference</a><p>看来有希望赶上Java 10。诶终于啊。</p><p>等JEP 286完成之后，Java的局部类型推导就比C#的还要神奇了…看：</p><code lang="java">List&lt;String&gt; strs1 = new ArrayList&lt;String&gt;(); // Java 5 generics
-List&lt;String&gt; strs2 = new ArrayList&lt;&gt;();       // Java 7 diamond syntax
-var strs3 = new ArrayList&lt;String&gt;();          // JEP 286 var syntax</code><p>左边能推导到右边（Java 7 diamond），右边也能推导到左边（JEP 286 var），多欢乐 &gt;_&lt;</p><p>另外，C# 3.0里的var是个“<a href="https://msdn.microsoft.com/en-us/library/the35c6y.aspx">上下文相关关键字</a>”，也就是说只有在合适的地方写var才会被看作变量声明隐式声明类型的关键字，而其它地方（例如说作为变量名）则不算关键字而是普通标识符。JEP 286把这个设计基本找搬了，只是换了个名字叫做“reserved type name”。</p><p>========================================</p><br><p>另外Java 10还有希望看到<a href="http://openjdk.java.net/projects/valhalla/" data-editable="true" data-title="OpenJDK: Valhalla">Project Valhalla</a>的完成。到时候就可以写：</p><code lang="java">var xs = new ArrayList&lt;int&gt;(); // Valhalla: generics over value types
-</code><p>好棒好棒 &gt;_&lt;|||</p><p>但Valhalla当前到了第三版原型的设计，把彻底的类型特化给抛弃了，改为只对value type做特化。泪奔啊。这就意味着当前的原型设计不让这样写：</p><code lang="java">  public static &lt;T, U&gt; T make(U arg0) {
-    return new T(arg0);
-  }</code><p>呜呜。</p>
